@@ -12816,33 +12816,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.vcxproj">
       <Project>{A57F658E-50AA-391E-E485-F24502684666}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
-      <Project>{9AFA0B40-428F-C48C-E67A-74044B678B53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\py3scipy-scipy-_lib.vcxproj">
-      <Project>{DD24B9E5-4DEC-B9CD-5E35-2E89E1A59626}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\py3scipy-scipy-linalg.vcxproj">
-      <Project>{C14DC1D5-6DD8-D3D2-EBC3-7B61DEE814FC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
-      <Project>{645CCEEE-2FA3-B06C-ADDE-E545B0813653}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\scipy-linalg-src.vcxproj">
-      <Project>{B9F50016-E750-8620-FE7F-92FA9FAE22D7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\py3scipy-scipy-ndimage.vcxproj">
-      <Project>{441FC54C-E78B-1EFE-D162-C84C57D50228}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\py3scipy-ndimage-src.vcxproj">
-      <Project>{0ED8A124-C0B9-5198-76D4-BEF540DE2E61}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\odrpack\scipy-odr-odrpack.vcxproj">
-      <Project>{56965D80-A7DF-EFA0-9FD9-E792EA0AF9EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\py3scipy-scipy-odr.vcxproj">
-      <Project>{8EC2AD6B-9E53-D706-A436-8E8654C1E9BA}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>

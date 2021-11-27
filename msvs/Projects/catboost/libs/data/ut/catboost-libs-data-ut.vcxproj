@@ -414,21 +414,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.global.vcxproj">
       <Project>{1744F707-D784-34F5-3A5A-A6B8E5A726DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\py3scipy-scipy-_lib.global.vcxproj">
-      <Project>{EAE82B31-E48D-CFED-1388-35D0D632DBF0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\py3scipy-scipy-linalg.global.vcxproj">
-      <Project>{C950F925-4D55-A1AB-198B-A18CEB0A23F0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\py3scipy-scipy-ndimage.global.vcxproj">
-      <Project>{F7B79A1D-2B35-9243-19BD-7B4C02A86716}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\py3scipy-ndimage-src.global.vcxproj">
-      <Project>{05DBDAC8-F2A7-DAF6-612F-3C3FCB6709B0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\py3scipy-scipy-odr.global.vcxproj">
-      <Project>{8DC156A3-55F9-EBDF-CC97-1244EF1672F5}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.global.vcxproj">
       <Project>{3883A5C2-D594-2667-C63C-A665727800A7}</Project>
     </ProjectReference>

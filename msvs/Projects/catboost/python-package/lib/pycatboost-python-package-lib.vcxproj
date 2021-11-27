@@ -834,33 +834,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\pycontrib-python-scipy.vcxproj">
       <Project>{86704140-3254-1ED6-9603-E3F23CDFD7F6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
-      <Project>{9AFA0B40-428F-C48C-E67A-74044B678B53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\_lib\pyscipy-scipy-_lib.vcxproj">
-      <Project>{52FF49F8-6118-21BB-8A64-3E37DF4AAE7D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\pyscipy-scipy-linalg.vcxproj">
-      <Project>{ABE47276-0A15-06CD-200C-33DAC2C9BEB2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
-      <Project>{645CCEEE-2FA3-B06C-ADDE-E545B0813653}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\linalg\src\scipy-linalg-src.vcxproj">
-      <Project>{B9F50016-E750-8620-FE7F-92FA9FAE22D7}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\pyscipy-scipy-ndimage.vcxproj">
-      <Project>{0FBAFA4F-00E7-B9E8-D80E-E11933F27E21}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\ndimage\src\pyscipy-ndimage-src.vcxproj">
-      <Project>{92A4E782-3DAE-F24A-A63D-300633A3343B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\odrpack\scipy-odr-odrpack.vcxproj">
-      <Project>{56965D80-A7DF-EFA0-9FD9-E792EA0AF9EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\scipy\odr\pyscipy-scipy-odr.vcxproj">
-      <Project>{EAC01E19-67B2-9675-2968-2AE9C0A0E252}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
     </ProjectReference>
