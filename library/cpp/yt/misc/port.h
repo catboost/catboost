@@ -1,7 +1,9 @@
 #pragma once
 
+#include <util/system/platform.h>
+
 // Check platform bitness.
-#if !defined(__x86_64__) && !defined(_M_X64)
+#if !defined(_64_)
     #error YT requires 64-bit platform
 #endif
 
@@ -65,8 +67,6 @@
     #define PER_THREAD __declspec(thread)
     #define ATTRIBUTE_NO_SANITIZE_ADDRESS
     #define ATTRIBUTE_USED
-    // VS does not support alignof natively yet.
-    #define alignof __alignof
 #else
     #error Unsupported compiler
 #endif
