@@ -157,7 +157,7 @@ ALLOW yql/dq/actors/compute -> kikimr/core/protos
 ALLOW yql/ -> kikimr/library/mkql_proto
 ALLOW yql/ -> kikimr/library/binary_json
 ALLOW yql/ -> kikimr/library/dynumber
-ALLOW yql/ -> kikimr/yndx/security
+ALLOW yql/ -> kikimr/public/lib/security
 
 ALLOW yql/providers/ydb -> kikimr/yq
 ALLOW yql/providers/ydb -> kikimr/public/lib/experimental
