@@ -366,7 +366,6 @@ migrations:
     - infra/porto/api_py
     - infra/portoshell
     - infra/portoshell/src
-    - infra/qyp/vmagent/src
     - infra/qyp/vmctl/src
     - infra/reconf_juggler/tools/jdiff/tests
     - infra/rtc/janitor
