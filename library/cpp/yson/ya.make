@@ -4,6 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/yt/misc
+    library/cpp/yt/yson_string
 )
 
 SRCS(
