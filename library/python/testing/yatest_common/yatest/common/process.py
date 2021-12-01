@@ -443,7 +443,7 @@ def execute(
     :param preexec_fn: subrpocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
 
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if env is None:
         env = os.environ.copy()
@@ -584,7 +584,7 @@ def py_execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if isinstance(command, six.string_types):
         command = [command]
