@@ -84,9 +84,14 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\enum.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\guid-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\guid.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\hash-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\port.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor-gen.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\preprocessor.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\source_location.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\variant-inl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\variant.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
