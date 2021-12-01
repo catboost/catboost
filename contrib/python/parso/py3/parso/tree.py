@@ -1,32 +1,40 @@
 from abc import abstractmethod, abstractproperty
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from parso.utils import split_lines
 
 
-def search_ancestor(node, *node_types):
+def search_ancestor(node: 'NodeOrLeaf', *node_types: str) -> 'Optional[BaseNode]':
     """
     Recursively looks at the parents of a node and returns the first found node
-    that matches node_types. Returns ``None`` if no matching node is found.
+    that matches ``node_types``. Returns ``None`` if no matching node is found.
+
+    This function is deprecated, use :meth:`NodeOrLeaf.search_ancestor` instead.
 
     :param node: The ancestors of this node will be checked.
     :param node_types: type names that are searched for.
-    :type node_types: tuple of str
     """
-    while True:
-        node = node.parent
-        if node is None or node.type in node_types:
-            return node
+    n = node.parent
+    while n is not None:
+        if n.type in node_types:
+            return n
+        n = n.parent
+    return None
 
 
 class NodeOrLeaf:
     """
     The base class for nodes and leaves.
     """
-    __slots__ = ()
+    __slots__ = ('parent',)
     type: str
     '''
     The type is a string that typically matches the types of the grammar file.
+    '''
+    parent: 'Optional[BaseNode]'
+    '''
+    The parent :class:`BaseNode` of this node or leaf.
+    None if this is the root node.
     '''
 
     def get_root_node(self):
@@ -173,13 +181,117 @@ class NodeOrLeaf:
             e.g. a statement.
         """
 
+    def search_ancestor(self, *node_types: str) -> 'Optional[BaseNode]':
+        """
+        Recursively looks at the parents of this node or leaf and returns the
+        first found node that matches ``node_types``. Returns ``None`` if no
+        matching node is found.
+
+        :param node_types: type names that are searched for.
+        """
+        node = self.parent
+        while node is not None:
+            if node.type in node_types:
+                return node
+            node = node.parent
+        return None
+
+    def dump(self, *, indent: Optional[Union[int, str]] = 4) -> str:
+        """
+        Returns a formatted dump of the parser tree rooted at this node or leaf. This is
+        mainly useful for debugging purposes.
+
+        The ``indent`` parameter is interpreted in a similar way as :py:func:`ast.dump`.
+        If ``indent`` is a non-negative integer or string, then the tree will be
+        pretty-printed with that indent level. An indent level of 0, negative, or ``""``
+        will only insert newlines. ``None`` selects the single line representation.
+        Using a positive integer indent indents that many spaces per level. If
+        ``indent`` is a string (such as ``"\\t"``), that string is used to indent each
+        level.
+
+        :param indent: Indentation style as described above. The default indentation is
+            4 spaces, which yields a pretty-printed dump.
+
+        >>> import parso
+        >>> print(parso.parse("lambda x, y: x + y").dump())
+        Module([
+            Lambda([
+                Keyword('lambda', (1, 0)),
+                Param([
+                    Name('x', (1, 7), prefix=' '),
+                    Operator(',', (1, 8)),
+                ]),
+                Param([
+                    Name('y', (1, 10), prefix=' '),
+                ]),
+                Operator(':', (1, 11)),
+                PythonNode('arith_expr', [
+                    Name('x', (1, 13), prefix=' '),
+                    Operator('+', (1, 15), prefix=' '),
+                    Name('y', (1, 17), prefix=' '),
+                ]),
+            ]),
+            EndMarker('', (1, 18)),
+        ])
+        """
+        if indent is None:
+            newline = False
+            indent_string = ''
+        elif isinstance(indent, int):
+            newline = True
+            indent_string = ' ' * indent
+        elif isinstance(indent, str):
+            newline = True
+            indent_string = indent
+        else:
+            raise TypeError(f"expect 'indent' to be int, str or None, got {indent!r}")
+
+        def _format_dump(node: NodeOrLeaf, indent: str = '', top_level: bool = True) -> str:
+            result = ''
+            node_type = type(node).__name__
+            if isinstance(node, Leaf):
+                result += f'{indent}{node_type}('
+                if isinstance(node, ErrorLeaf):
+                    result += f'{node.token_type!r}, '
+                elif isinstance(node, TypedLeaf):
+                    result += f'{node.type!r}, '
+                result += f'{node.value!r}, {node.start_pos!r}'
+                if node.prefix:
+                    result += f', prefix={node.prefix!r}'
+                result += ')'
+            elif isinstance(node, BaseNode):
+                result += f'{indent}{node_type}('
+                if isinstance(node, Node):
+                    result += f'{node.type!r}, '
+                result += '['
+                if newline:
+                    result += '\n'
+                for child in node.children:
+                    result += _format_dump(child, indent=indent + indent_string, top_level=False)
+                result += f'{indent}])'
+            else:  # pragma: no cover
+                # We shouldn't ever reach here, unless:
+                # - `NodeOrLeaf` is incorrectly subclassed else where
+                # - or a node's children list contains invalid nodes or leafs
+                # Both are unexpected internal errors.
+                raise TypeError(f'unsupported node encountered: {node!r}')
+            if not top_level:
+                if newline:
+                    result += ',\n'
+                else:
+                    result += ', '
+            return result
+
+        return _format_dump(self)
+
 
 class Leaf(NodeOrLeaf):
     '''
     Leafs are basically tokens with a better API. Leafs exactly know where they
     were defined and what text preceeds them.
     '''
-    __slots__ = ('value', 'parent', 'line', 'column', 'prefix')
+    __slots__ = ('value', 'line', 'column', 'prefix')
+    prefix: str
 
     def __init__(self, value: str, start_pos: Tuple[int, int], prefix: str = '') -> None:
         self.value = value
@@ -257,7 +369,7 @@ class BaseNode(NodeOrLeaf):
     The super class for all nodes.
     A node has children, a type and possibly a parent node.
     """
-    __slots__ = ('children', 'parent')
+    __slots__ = ('children',)
 
     def __init__(self, children: List[NodeOrLeaf]) -> None:
         self.children = children
@@ -266,9 +378,11 @@ class BaseNode(NodeOrLeaf):
         """
         self.parent: Optional[BaseNode] = None
         '''
-        The parent :class:`BaseNode` of this leaf.
+        The parent :class:`BaseNode` of this node.
         None if this is the root node.
         '''
+        for child in children:
+            child.parent = self
 
     @property
     def start_pos(self) -> Tuple[int, int]:
