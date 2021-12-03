@@ -4,14 +4,13 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/yt/misc
-    library/cpp/yt/yson_string
+    library/cpp/yt/yson
 )
 
 SRCS(
     consumer.cpp
     lexer.cpp
     parser.cpp
-    string.cpp
     token.cpp
     tokenizer.cpp
     varint.cpp

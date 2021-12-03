@@ -305,7 +305,7 @@ namespace NYson {
     template <class TConsumer, class TBlockStream>
     void ParseYsonStreamImpl(
         const TBlockStream& blockStream,
-        IYsonConsumer* consumer,
+        NYT::NYson::IYsonConsumer* consumer,
         EYsonType parsingMode,
         bool enableLinePositionInfo,
         TMaybe<ui64> memoryLimit) {

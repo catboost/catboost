@@ -107,21 +107,21 @@ TNode NodeFromYsonStream(IInputStream* input, ::NYson::EYsonType type)
     TNode result = CreateEmptyNodeByType(type);
 
     TNodeBuilder builder(&result);
-    NYson::TYsonParser parser(&builder, input, type);
+    ::NYson::TYsonParser parser(&builder, input, type);
     parser.Parse();
     return result;
 }
 
 void NodeToYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
-    NYson::TYsonWriter writer(output, format);
+    ::NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer);
     visitor.Visit(node);
 }
 
 void NodeToCanonicalYsonStream(const TNode& node, IOutputStream* output, NYson::EYsonFormat format)
 {
-    NYson::TYsonWriter writer(output, format);
+    ::NYson::TYsonWriter writer(output, format);
     TNodeVisitor visitor(&writer, /*sortMapKeys*/ true);
     visitor.Visit(node);
 }
