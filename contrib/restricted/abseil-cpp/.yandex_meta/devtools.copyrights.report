@@ -30,7 +30,7 @@
 # =======================
 
 KEEP     COPYRIGHT_SERVICE_LABEL 02e3ff10f74acdb217118846c5465fc1
-BELONGS absl/base/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make ya.make
+BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/ya.make absl/utility/ya.make ya.make
     License text:
         // Copyright 2017 The Abseil Authors.
     Scancode info:
@@ -263,7 +263,7 @@ BELONGS absl/time/ya.make
         absl/time/internal/cctz/src/zone_info_source.cc [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 2277624a2da390a98ec17138cb6dc2a5
-BELONGS absl/base/ya.make absl/flags/ya.make absl/status/ya.make ya.make
+BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functional/ya.make absl/status/ya.make absl/types/ya.make ya.make
     License text:
         // Copyright 2019 The Abseil Authors.
     Scancode info:
@@ -324,7 +324,7 @@ BELONGS absl/base/ya.make absl/flags/ya.make absl/status/ya.make ya.make
         absl/types/internal/transform_args.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 3fb410b721d46624abdaeb2473ffa5d6
-BELONGS absl/base/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/time/ya.make ya.make
+BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/functional/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/time/ya.make absl/types/ya.make ya.make
     License text:
         // Copyright 2018 The Abseil Authors.
     Scancode info:
