@@ -1,9 +1,4 @@
-import base64
 import json
-import os
-import ymake
-
-DELIM = '================================'
 
 
 def extract_macro_calls(unit, macro_value_name):
@@ -28,72 +23,22 @@ def macro_calls_to_dict(unit, calls):
     return dict(filter(None, map(split_args, calls)))
 
 
-def onprocess_docslib(unit, *args):
-    generate_dart(unit, as_lib=True)
-
-
 def onprocess_docs(unit, *args):
-    generate_dart(unit)
-
-
-def generate_dart(unit, as_lib=False):
-    if unit.get('YMAKE_JAVA_MODULES') != 'yes':
-        return
-
-    module_dir = os.path.normpath(unit.path()[3:])
-    docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
-    if docs_dir:
-        docs_dir = os.path.normpath(docs_dir)
-        unit.set(['SRCDIR', docs_dir])
+    build_tool = unit.get('_DOCS_BUILDER_VALUE')
+    if build_tool:
+        if build_tool not in ['mkdocs', 'yfm']:
+            unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
     else:
-        docs_dir = module_dir
-
-    build_tool = unit.get('DOCSBUILDER')
-
-    if build_tool not in ['mkdocs', 'yfm']:
-        unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
-
-    docs_config = unit.get('DOCSCONFIG')
-    if not docs_config:
-        docs_config = 'mkdocs.yml' if build_tool == 'mkdocs' else '.yfm'
-
-    docs_config = os.path.normpath(docs_config)
-    if os.path.sep not in docs_config:
-        docs_config = os.path.join(module_dir, docs_config)
-
-    if not docs_config.startswith(docs_dir + os.path.sep) and not docs_config.startswith(module_dir + os.path.sep) :
-        unit.message(['error', 'DOCS_CONFIG path "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
-        return
-
-    if not os.path.exists(unit.resolve('$S/' + docs_config)):
-        unit.message(['error', 'DOCS_CONFIG payj "{}" does not exist'.format(docs_config)])
-        return
-
-    includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES')
-
-    data = {
-        'DOCS_NAME': unit.name(),
-        'PATH': module_dir,
-        'MODULE_TAG': unit.get('MODULE_TAG'),
-        'DOCSDIR': docs_dir,
-        'DOCSCONFIG': docs_config,
-        'DOCSVARS': macro_calls_to_dict(unit, extract_macro_calls(unit, 'DOCSVARS')),
-        'DOCSINCLUDESOURCES': includes,
-        'DOCSLIB': as_lib,
-        'PEERDIRS': '${PEERDIR}',
-        'DOCSBUILDER': build_tool,
-        'USE_PLANTUML': unit.get('USE_PLANTUML'),
-    }
-
-    dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
-
-    unit.set_property(['DOCS_DART_DATA', dart])
-
-    for i in includes:
-        include_path = unit.resolve('$S/' + i)
-
-        if not os.path.exists(include_path):
-            ymake.report_configure_error('DOCS_INCLUDE_SOURCES path "{}" does not exist'.format(i))
-
-        elif not os.path.isfile(include_path):
-            ymake.report_configure_error('DOCS_INCLUDE_SOURCES path "{}" must be a file'.format(i))
+        build_tool = 'yfm'
+        unit.ondocs_builder([build_tool])
+    if build_tool == 'yfm' and unit.enabled('_DOCS_USE_PLANTUML'):
+        unit.on_docs_yfm_use_plantuml([])
+    orig_variables = macro_calls_to_dict(unit, extract_macro_calls(unit, '_DOCS_VARS_VALUE'))
+    variables = {k: unit.get(k) or v for k, v in orig_variables.items()}
+    if variables:
+        if build_tool == 'mkdocs':
+            unit.set(['_DOCS_VARS_FLAG', ' '.join(['--var {}={}'.format(k, v) for k, v in variables.items()])])
+        elif build_tool == 'yfm':
+            unit.set(['_DOCS_VARS_FLAG', '--vars {}'.format(json.dumps(json.dumps(variables, sort_keys=True)))])
+        else:
+            assert False, 'Unexpected build_tool value: [{}]'.format(build_tool)
