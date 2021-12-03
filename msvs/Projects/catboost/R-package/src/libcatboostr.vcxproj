@@ -906,6 +906,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\string\cpp-yt-string.vcxproj">
       <Project>{095E35E3-819C-26EC-ADF1-7A7720B6D0C9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\yson\cpp-yt-yson.vcxproj">
+      <Project>{1F68CF72-DA99-A8BA-A812-0F21F78B6A29}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\yson_string\cpp-yt-yson_string.vcxproj">
       <Project>{941A9342-350F-D87A-1E89-C724B0F1F66C}</Project>
     </ProjectReference>
