@@ -17,7 +17,9 @@ VERSION(2021-09-08-14bf5d5526056ae1cc16f03b7b8e96108a1e38d0)
 
 ORIGINAL_SOURCE(https://github.com/libcxxrt/libcxxrt/archive/14bf5d5526056ae1cc16f03b7b8e96108a1e38d0.tar.gz)
 
-ADDINCL(contrib/libs/cxxsupp/libcxxrt)
+ADDINCL(
+    contrib/libs/cxxsupp/libcxxrt
+)
 
 NO_COMPILER_WARNINGS()
 
