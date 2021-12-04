@@ -15,9 +15,6 @@
 #pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 // Suppress deprecation notice for volatile-qualified return type resulting
@@ -52,7 +49,5 @@ decltype(__declval<_Tp>(0))
 declval() _NOEXCEPT;
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___UTILITY_DECLVAL_H
