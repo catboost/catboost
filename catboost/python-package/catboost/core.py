@@ -1312,7 +1312,7 @@ def _process_synonyms(params):
 
     if 'scale_pos_weight' in params:
         if 'loss_function' in params and params['loss_function'] != 'Logloss':
-                raise CatBoostError('scale_pos_weight is supported only for binary classification Logloss loss')
+            raise CatBoostError('scale_pos_weight is supported only for binary classification Logloss loss')
         if 'class_weights' in params or 'auto_class_weights' in params:
             raise CatBoostError('only one of the parameters scale_pos_weight, class_weights, auto_class_weights should be initialized.')
         params['class_weights'] = [1.0, params['scale_pos_weight']]
