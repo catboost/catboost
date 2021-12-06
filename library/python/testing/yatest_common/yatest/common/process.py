@@ -271,7 +271,7 @@ class _Execution(object):
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
                 bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
                 with open(bt_filename, "wb") as afile:
-                    afile.write(self._backtrace)
+                    afile.write(six.ensure_binary(self._backtrace))
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
                 backtrace_to_html(bt_filename, pbt_filename)
@@ -443,7 +443,7 @@ def execute(
     :param preexec_fn: subrpocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
 
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if env is None:
         env = os.environ.copy()
@@ -584,7 +584,7 @@ def py_execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if isinstance(command, six.string_types):
         command = [command]

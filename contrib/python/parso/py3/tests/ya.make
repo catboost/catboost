@@ -16,6 +16,7 @@ TEST_SRCS(
     failing_examples.py
     test_cache.py
     test_diff_parser.py
+    test_dump_tree.py
     test_error_recovery.py
     test_file_python_errors.py
     test_fstring.py

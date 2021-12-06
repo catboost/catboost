@@ -394,16 +394,14 @@ bool TEnumIndexedVector<E, T, Min, Max>::IsDomainValue(E value)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class E>
-typename std::enable_if<TEnumTraits<E>::IsBitEnum, bool>::type
-Any(E value)
+template <typename E, typename>
+bool Any(E value)
 {
     return static_cast<typename TEnumTraits<E>::TUnderlying>(value) != 0;
 }
 
-template <class E>
-typename std::enable_if<TEnumTraits<E>::IsBitEnum, bool>::type
-None(E value)
+template <class E, typename>
+bool None(E value)
 {
     return static_cast<typename TEnumTraits<E>::TUnderlying>(value) == 0;
 }
@@ -411,4 +409,3 @@ None(E value)
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace NYT
-

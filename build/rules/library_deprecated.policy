@@ -204,8 +204,8 @@ ALLOW ofd/common/services/tvm -> library/python/deprecated/ticket_parser2
 ALLOW ofd/common/tests/test_tvm_service -> library/python/deprecated/ticket_parser2
 ALLOW offline_data/call_center/nirvana/send_sms -> library/python/deprecated/ticket_parser2
 ALLOW orgvisits/viewers/geotrack/backend -> library/python/deprecated/ticket_parser2
-ALLOW passport/cpp/daemons/tvm/ut_py -> library/python/deprecated/ticket_parser2
-ALLOW passport/go/daemons/tvmtool/ut_py -> library/python/deprecated/ticket_parser2
+ALLOW passport/infra/daemons/tvmapi/ut_py -> library/python/deprecated/ticket_parser2
+ALLOW passport/infra/daemons/tvmtool/ut_py -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/core/grants -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/core/logging_utils -> library/python/deprecated/ticket_parser2
 ALLOW passport/python/core/tvm/faker/tests -> library/python/deprecated/ticket_parser2

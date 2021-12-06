@@ -36,6 +36,12 @@ struct TGUID {
     TString AsUuidString() const;
 
     static TGUID Create();
+
+    /**
+    * Generate time based UUID version 1 RFC4122 GUID
+    * https://datatracker.ietf.org/doc/html/rfc4122#section-4.1
+    **/
+    static TGUID CreateTimebased();
 };
 
 constexpr bool operator==(const TGUID& a, const TGUID& b) noexcept {

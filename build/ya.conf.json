@@ -3979,6 +3979,12 @@
                         "os": "LINUX"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -5819,7 +5825,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    1133705841
+                    1139552306
                 ],
                 "match": "ymake"
             },
@@ -5876,7 +5882,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    1128977445
+                    1141817441
                 ],
                 "match": "arc"
             },
@@ -7151,7 +7157,7 @@
         "node-search": {
             "formula": {
                 "sandbox_id": [
-                    1104084318
+                    1142027066
                 ],
                 "match": "node_search"
             },
@@ -7397,7 +7403,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1138127936,
+                "sandbox_id": 1142618670,
                 "match": "horadric"
             },
             "executable": {
@@ -7540,7 +7546,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1138128081,
+                "sandbox_id": 1141592497,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8143,7 +8149,7 @@
         },
         "eductl": {
             "formula": {
-                "sandbox_id": 1138284690,
+                "sandbox_id": 1142403793,
                 "match": "eductl"
             },
             "executable": {
@@ -8154,7 +8160,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1138128333,
+                "sandbox_id": 1141592551,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8165,7 +8171,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1138128383,
+                "sandbox_id": 1142617738,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8187,7 +8193,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1138128424,
+                "sandbox_id": 1141592199,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8198,7 +8204,7 @@
         },
         "bigb_yt_profiles_dumper": {
             "formula": {
-                "sandbox_id": 1138128047,
+                "sandbox_id": 1141592538,
                 "match": "yt_profiles_dumper"
             },
             "executable": {
@@ -8209,7 +8215,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1138128593,
+                "sandbox_id": 1141592750,
                 "match": "ab"
             },
             "executable": {
@@ -8233,7 +8239,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1138128176,
+                "sandbox_id": 1141591708,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8244,7 +8250,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1138127425,
+                "sandbox_id": 1141591602,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8255,7 +8261,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1138127068,
+                "sandbox_id": 1142617529,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8266,7 +8272,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1138127322,
+                "sandbox_id": 1141592132,
                 "match": "profile_size_analyzer"
             },
             "executable": {

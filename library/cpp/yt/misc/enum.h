@@ -232,14 +232,12 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 //! Returns |true| iff the enumeration value is not bitwise zero.
-template <class E>
-typename std::enable_if<NYT::TEnumTraits<E>::IsBitEnum, bool>::type
-Any(E value);
+template <typename E, typename = std::enable_if_t<NYT::TEnumTraits<E>::IsBitEnum, E>>
+bool Any(E value);
 
 //! Returns |true| iff the enumeration value is bitwise zero.
-template <class E>
-typename std::enable_if<NYT::TEnumTraits<E>::IsBitEnum, bool>::type
-None(E value);
+template <typename E, typename = std::enable_if_t<NYT::TEnumTraits<E>::IsBitEnum, E>>
+bool None(E value);
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -788,7 +788,7 @@ public:                       \
         {
         }
 
-        inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
+        inline TBaseTestCase(const char* name, const std::function<void(TTestContext&)>& body, bool forceFork)
             : Name_(name)
             , Body_(body)
             , ForceFork_(forceFork)
@@ -796,7 +796,7 @@ public:                       \
         }
 
         virtual ~TBaseTestCase() = default;
-        
+
         // Each test case is executed in 3 steps:
         //
         // 1. SetUp() (from fixture)
@@ -919,7 +919,9 @@ public:                       \
                 return StaticName();                                                                                    \
             }                                                                                                           \
                                                                                                                         \
-            static void AddTest(const char* name, std::function<void(NUnitTest::TTestContext&)> body, bool forceFork) { \
+            static void AddTest(const char* name,                                                                       \
+                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork)                              \
+            {                                                                                                           \
                 Tests().push_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork); });          \
             }                                                                                                           \
                                                                                                                         \
