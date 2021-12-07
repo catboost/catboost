@@ -9,7 +9,7 @@ VERSION(2021-11-01)
 ORIGINAL_SOURCE(https://github.com/google/re2/archive/2021-11-01.tar.gz)
 
 LICENSE(
-    BSD-3-Clause
+    BSD-3-Clause AND
     X11-Lucent
 )
 
