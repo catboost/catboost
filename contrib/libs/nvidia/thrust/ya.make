@@ -3,15 +3,15 @@
 LIBRARY()
 
 LICENSE(
-    Apache-2.0
-    BSD-2-Clause
-    BSD-2-Clause-Views
-    BSD-3-Clause
-    BSL-1.0
-    Bsd-Unmodified
-    CC0-1.0
-    MIT
-    NCSA
+    Apache-2.0 AND
+    BSD-2-Clause AND
+    BSD-2-Clause-Views AND
+    BSD-3-Clause AND
+    BSL-1.0 AND
+    Bsd-Unmodified AND
+    CC0-1.0 AND
+    MIT AND
+    NCSA AND
     Sunpro
 )
 
