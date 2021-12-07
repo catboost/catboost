@@ -9,7 +9,7 @@ VERSION(3.37.0)
 ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.37.0.tar.gz)
 
 LICENSE(
-    Public-Domain
+    Public-Domain AND
     blessing
 )
 
