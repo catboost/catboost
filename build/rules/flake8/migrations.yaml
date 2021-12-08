@@ -1155,7 +1155,6 @@ migrations:
     - statbox/statkey/jam/jobs/cubes/superapp/bi_turboappweb_turbo_counter/v2
     - statbox/statkey/jam/jobs/cubes/superapp/cohorts_daily/v2
     - strm/generate/lib/generate
-    - taxi/graph/packages/mds-downloader
     - taxi/graph/packages/taxigraphd
     - testenv/core/tools
     - testenv/core/web_server
@@ -1546,7 +1545,6 @@ migrations:
     - yabs/sbyt/ytstatcollector/direct_feed/tests/banners_log_splitter
     - yabs/sbyt/ytstatcollector/moderation/tests
     - yabs/server/cs/pylibs/advmachine_export
-    - yabs/server/cs/pylibs/import_actions
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
@@ -3647,8 +3645,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/boards/resources
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/ban
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/bulk
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/card_of_the_day
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/competitions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/creation
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/cards/resources/delete
@@ -3672,7 +3668,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/clicks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/comments
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/common
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/competitions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/components
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ephemeral
@@ -3689,7 +3684,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/subscriptions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/tasks
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/toloka
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/underside
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/user/resources
@@ -3698,7 +3692,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/actions/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/boards
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/comments
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/competitions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/complaints
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/contents
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/e2e
