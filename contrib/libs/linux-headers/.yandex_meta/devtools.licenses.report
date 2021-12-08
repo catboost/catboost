@@ -1820,8 +1820,11 @@ BELONGS ya.make
     Files with this license:
         linux/if_eql.h [9:12]
 
-KEEP     GFDL-1.1-or-later    0ccd1f9b30b05f998af4fa20c3363cd7
+SKIP     GFDL-1.1-or-later    0ccd1f9b30b05f998af4fa20c3363cd7
 BELONGS ya.make
+    # https://st.yandex-team.ru/ARCADIAWGSUP-25
+    # See license text below
+    # Any part of this program >> may << be used in documents
     License text:
          * Any part of this program may be used in documents licensed under
          * the GNU Free Documentation License, Version 1.1 or any later version
