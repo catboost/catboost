@@ -3035,6 +3035,40 @@ BELONGS ya.make
     Files with this license:
         linux/virtio_input.h [3:28]
 
+SKIP     LicenseRef-scancode-unknown-license-reference AND GPL-2.0-only AND GPL-2.0-or-later AND mif-exception 71e29eb348ef1c2a7a4e13d6e4c05f3c
+BELONGS ya.make
+    # this is yandex patch
+    License text:
+        \#error "This file is licensed under bad license (GPL-2.0-or-later WITH mif-exception). See https://st.yandex-team.ru/DTCC-665 for details"
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        linux/jffs2.h [13:13]
+    Scancode info:
+        Original SPDX id: GPL-2.0-only
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.gnu.org/licenses/gpl-2.0.html, http://www.gnu.org/licenses/gpl-2.0.txt, https://spdx.org/licenses/GPL-2.0-only
+    Files with this license:
+        linux/jffs2.h [13:13]
+    Scancode info:
+        Original SPDX id: GPL-2.0-or-later
+        Score           : 50.00
+        Match type      : REFERENCE
+        Links           : http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html, https://spdx.org/licenses/GPL-2.0-or-later
+    Files with this license:
+        linux/jffs2.h [13:13]
+    Scancode info:
+        Original SPDX id: mif-exception
+        Score           : 50.00
+        Match type      : REFERENCE
+        Links           : https://spdx.org/licenses/mif-exception, https://spdx.org/licenses/mif-exception.html
+    Files with this license:
+        linux/jffs2.h [13:13]
+
 KEEP     LGPL-2.1-or-later WITH Linux-syscall-note 71f47baba34541b414171e56b7d94552
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -3946,8 +3980,11 @@ BELONGS ya.make
     Files with this license:
         linux/i2c.h [9:22]
 
-KEEP     Unknown              aadef76e5c3e20905658e28bdcfa4549
+SKIP     Unknown              aadef76e5c3e20905658e28bdcfa4549
 BELONGS ya.make
+    # this is GPL-2.0-or-later WITH mif-exception
+    # full text https://paste.yandex-team.ru/6144509
+    # skip because you can't include jffs2.h (it contains #error at top)
     License text:
          * For licensing information, see the file 'LICENCE' in the
          * jffs2 directory.

@@ -29,8 +29,7 @@ LICENSE(
     LGPL-2.1-or-later WITH Linux-syscall-note AND
     MIT AND
     NTP AND
-    Public-Domain AND
-    Unknown
+    Public-Domain
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
