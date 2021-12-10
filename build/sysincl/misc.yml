@@ -140,6 +140,10 @@
     - atomic.h:      contrib/libs/zeromq/missing_includes/atomic.h
     - Mstcpip.h:     contrib/libs/zeromq/missing_includes/Mstcpip.h
 
+- source_filter: "^contrib/restricted/openal-soft"
+  includes:
+    - atomic.h: contrib/restricted/openal-soft/common/atomic.h
+
 - source_filter: "^contrib/libs/ffmpeg-3"
   includes:
     - fontconfig/fontconfig.h
