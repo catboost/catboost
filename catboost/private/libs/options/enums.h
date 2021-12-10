@@ -352,6 +352,12 @@ enum class ENdcgDenominatorType {
     Position
 };
 
+enum class ENdcgSortType {
+    None,
+    ByPrediction,
+    ByTarget
+};
+
 enum class EMetricBestValue {
     Max,
     Min,

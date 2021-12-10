@@ -41,7 +41,7 @@ static TStackVec<double> GetTopSortedTargets(
     return targets;
 }
 
-static double CalcDcgSorted(
+double CalcDcgSorted(
         const TConstArrayRef<double> sortedTargets,
         const ENdcgMetricType type,
         const TMaybe<double> expDecay,
