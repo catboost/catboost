@@ -2239,6 +2239,65 @@
                 "gcc_version": "12.0"
             }
         },
+        "local": {
+            "tools": {
+                "c++": {
+                    "executable": "c++"
+                },
+                "cc": {
+                    "executable": "cc"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "xcode",
+                "local": true,
+                "werror_mode": "all",
+                "gcc_version": "13.1"
+            }
+
+        },
         "xcode_11_1": {
             "tools": {
                 "c++": {
