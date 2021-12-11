@@ -1390,7 +1390,6 @@ class GnuCompiler(Compiler):
                     '-Wno-pessimizing-move',
                     '-Wno-range-loop-construct',
                     '-Wno-reorder-init-list',
-                    '-Wno-unused-lambda-capture',
                 ))
 
             if self.tc.version_at_least(11):
