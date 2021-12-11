@@ -24,7 +24,6 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-
 #if defined(_LIBCPP_DEPRECATED_ABI_DISABLE_PAIR_TRIVIAL_COPY_CTOR)
 template <class, class>
 struct __non_trivially_copyable_base {
@@ -177,7 +176,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
                    is_nothrow_copy_constructible<second_type>::value)
         : first(__t1), second(__t2) {}
 
-    template<class _U1, class _U2, typename enable_if<
+    template<class _U1 = _T1, class _U2 = _T2, typename enable_if<
              _EnableExplicitConstructor<_U1, _U2>::value
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -186,7 +185,7 @@ struct _LIBCPP_TEMPLATE_VIS pair
                     is_nothrow_constructible<second_type, _U2>::value))
         : first(_VSTD::forward<_U1>(__u1)), second(_VSTD::forward<_U2>(__u2)) {}
 
-    template<class _U1, class _U2, bool _Dummy = true, typename enable_if<
+    template<class _U1 = _T1, class _U2 = _T2, bool _Dummy = true, typename enable_if<
             _EnableImplicitConstructor<_U1, _U2, _Dummy>::value
     >::type* = nullptr>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11

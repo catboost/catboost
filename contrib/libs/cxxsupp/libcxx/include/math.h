@@ -835,7 +835,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double atan2(long double __lcpp_y, long do
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -930,7 +930,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double fmod(long double __lcpp_x, long dou
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1008,7 +1008,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double pow(long double __lcpp_x, long doub
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1162,7 +1162,7 @@ template <class _A1, class _A2>
 _LIBCPP_CONSTEXPR
 #endif
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1189,7 +1189,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double copysign(long double __lcpp_x, long
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1246,7 +1246,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double fdim(long double __lcpp_x, long dou
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1281,7 +1281,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double fma(long double __lcpp_x, long doub
 
 template <class _A1, class _A2, class _A3>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value &&
@@ -1308,7 +1308,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double fmax(long double __lcpp_x, long dou
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1329,7 +1329,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double fmin(long double __lcpp_x, long dou
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1350,7 +1350,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double hypot(long double __lcpp_x, long do
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1557,7 +1557,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double nextafter(long double __lcpp_x, lon
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1588,7 +1588,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double remainder(long double __lcpp_x, lon
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
@@ -1609,7 +1609,7 @@ inline _LIBCPP_INLINE_VISIBILITY long double remquo(long double __lcpp_x, long d
 
 template <class _A1, class _A2>
 inline _LIBCPP_INLINE_VISIBILITY
-typename std::_EnableIf
+typename std::__enable_if_t
 <
     std::is_arithmetic<_A1>::value &&
     std::is_arithmetic<_A2>::value,
