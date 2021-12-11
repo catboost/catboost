@@ -54,6 +54,7 @@ IF(OPENSOURCE)
         DENY REQUIRE_DISCLOSURE FORBIDDEN
         EXCEPT
             contrib/libs/linux-headers # ARCADIAWGSUP-12
+            contrib/libs/intel/mkl
     )
 ELSE()
     PEERDIR(
