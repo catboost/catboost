@@ -6,7 +6,6 @@ ENDIF()
 
 RECURSE(
     api
-    core
 )
 
 IF (YT_ALLOC_ENABLED)
