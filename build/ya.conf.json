@@ -94,6 +94,9 @@
             "description": "Run Python 3",
             "visible": false
         },
+        "jar": {
+            "description": "Run jar"
+        },
         "java": {
             "description": "Run java"
         },
@@ -112,17 +115,23 @@
         "javac11": {
             "description": "Run javac 11"
         },
+        "jar15": {
+            "description": "Run jar from jdk15"
+        },
         "java15": {
             "description": "Run java 15"
         },
         "javac15": {
             "description": "Run javac 15"
         },
-        "jar": {
-            "description": "Run jar"
-        },
-        "jar15": {
+        "jar17": {
             "description": "Run jar from jdk15"
+        },
+        "java17": {
+            "description": "Run java 15"
+        },
+        "javac17": {
+            "description": "Run javac 15"
         },
         "jq": {
             "description": "Run jq"
@@ -3552,6 +3561,49 @@
                 }
             ]
         },
+        "jdk17": {
+            "tools": {
+                "jar17": {
+                    "bottle": "jdk17",
+                    "executable": "jar"
+                },
+                "java17": {
+                    "bottle": "jdk17",
+                    "executable": "java"
+                },
+                "javac17": {
+                    "bottle": "jdk17",
+                    "executable": "javac"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "svn110": {
             "tools": {
                 "svn": {
@@ -6194,6 +6246,31 @@
                 "jar15": [
                     "bin",
                     "jar"
+                ]
+            }
+        },
+        "jdk17": {
+            "formula": {
+                "sandbox_id": [
+                    1086829307,
+                    1086824941,
+                    1086822428,
+                    1086827917
+                ],
+                "match": "openjdk"
+            },
+            "executable": {
+                "jar": [
+                    "bin",
+                    "jar"
+                ],
+                "java": [
+                    "bin",
+                    "java"
+                ],
+                "javac": [
+                    "bin",
+                    "javac"
                 ]
             }
         },
