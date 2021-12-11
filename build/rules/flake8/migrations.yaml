@@ -483,7 +483,6 @@ migrations:
     - passport/python/core/db
     - passport/python/core/grants/tests
     - passport/python/core/historydb/tests
-    - passport/python/core/serializers/base
     - passport/python/core/suggest
     - passport/python/core/types
     - portal/tools/morda-release/server
@@ -817,7 +816,6 @@ migrations:
     - yabs/server/test/pylibs/qxl
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
-    - yabs/server/test/qabs_bsserver_pytest/db
     - yabs/server/test/tools/oneshot_tester/lib
     - yabs/stat/dropstat2/api/lib
     - yabs/stat/infra/clickhouse/repair_master_report
@@ -1471,7 +1469,6 @@ migrations:
     - sandbox/projects/resource_types
     - sandbox/projects/school/Load/MeduzaShooting
     - sandbox/projects/sdc
-    - sandbox/projects/search_velocity/LightPageReviser
     - sandbox/projects/smarttv
     - sandbox/projects/taxi/BuildDispatcherPackage
     - sandbox/projects/wmc
@@ -2155,8 +2152,6 @@ migrations:
     - market/guru-models-dumper/utils
     - market/library/cpp_meta_parser
     - market/report/lite/core
-    - market/sre/services/colba/common/lb_client
-    - market/sre/services/colba/dispatcher
     - market/sre/services/mcm/mcm
     - market/sre/tools/etcd/prometheus_graphite_bridge/prometheus_client
     - market/tools/develop/report_deploy
@@ -2253,7 +2248,6 @@ migrations:
     - passport/python/adm_api/tests/views
     - passport/python/api
     - passport/python/configs/golovan
-    - passport/python/contrib/bjoern
     - passport/python/contrib/cassandra
     - passport/python/contrib/django_contrib_comments
     - passport/python/contrib/elementflow
@@ -3152,7 +3146,6 @@ migrations:
     - antiadblock/cryprox/tests/functional
     - antiadblock/postgres_local/tests
     - april/mediaplan/mediaplan/forecaster/migrations
-    - balancer/test/functional/balancer
     - billing/agency_rewards/tests
     - bindings/java/abt/abt-native/android/tests
     - build/scripts
