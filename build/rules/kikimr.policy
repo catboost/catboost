@@ -180,4 +180,7 @@ ALLOW yql/tests -> kikimr/yq
 ALLOW yql/.*/ut -> kikimr/core/testlib/basics
 
 ALLOW kikimr/ -> kikimr
+
+# FIXME temporary allow ydb depend on kikimr
+ALLOW ydb/ -> kikimr
 DENY .* -> kikimr
