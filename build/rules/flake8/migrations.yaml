@@ -44,8 +44,6 @@ migrations:
     - ads/quality/dssm/search/201708/make_pool
     - ads/quality/dssm/synonyms/search/tools/join_fields
     - ads/quality/max_positions
-    - ads/quality/phf/yabs_debug_response/lib
-    - ads/quality/phf/yabs_debug_response/lib/samples
     - ads/quality/search_lm_conv/lib
     - ads/quality/tools/adj_calc
     - ads/sandbox_scripts/bmcategory_queryage_coeffs/lib
@@ -59,7 +57,6 @@ migrations:
     - ads/watchman/contrib/apispec-patched
     - ads/watchman/contrib/apispec-patched/apispec
     - ads/watchman/experiments/lib
-    - ads/watchman/funnel/lib
     - advq/offline_phits/monitoring
     - alice/boltalka/generative/tfnn/preprocess
     - alice/boltalka/generative/training/data/nn/filtered_twitter
@@ -1306,7 +1303,6 @@ migrations:
     - alice/uniproxy/tools/perf_results_parser
     - antirobot/tools/prepare_requests_cbb
     - browser/infra/services/ci/backend/flakiness/migrations
-    - clickhouse/utils/github
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
     - cv/short2long/training/yt_load_highlights
@@ -1391,7 +1387,6 @@ migrations:
     - modadvert/libs/antispam/threat_mapping/ut
     - modadvert/libs/jsonrpc2/client
     - modadvert/libs/nirvana/program
-    - modadvert/libs/utils/py3/auth
     - modadvert/nirvana/m1_update_media_objects/it
     - modadvert/programs/multik/libs
     - modadvert/programs/supermoderation_admin/libs/services
@@ -1551,7 +1546,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14107
     - yabs/server/test/ft/BSSERVER-14110
     - yabs/server/test/ft/BSSERVER-14309
-    - yabs/server/test/ft/BSSERVER-14556
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/qabs_bsserver_pytest
     - yabs/utils/log_stats/test
@@ -2391,7 +2385,6 @@ migrations:
     - robot/metrics/actuality/nirvana/generate
     - robot/metrics/actuality/stat_report
     - robot/metrics/speed_sbr/pylib
-    - robot/samovar/tools/ban_detector/postman
     - robot/samovar/tools/features/run_samovar_rank_graph
     - robot/saved_copy/tools/phantom_ammo_generator
     - robot/zora/tools/digger
@@ -3478,7 +3471,6 @@ migrations:
     - weather/libs/secrets/tests
     - weather/workers/apply/yt/apply/tests
     - weather/workers/common/location_indices/tests
-    - yabs/bscount/ft
     - yabs/indoor/tests
     - yabs/nanpu/tests
     - yabs/rmp/backend/tests/lib/zora
