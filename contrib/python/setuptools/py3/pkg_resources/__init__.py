@@ -2396,18 +2396,19 @@ def _set_parent_ns(packageName):
         setattr(sys.modules[parent], name, sys.modules[packageName])
 
 
-def yield_lines(strs):
-    """Yield non-empty/non-comment lines of a string or sequence"""
-    if isinstance(strs, str):
-        for s in strs.splitlines():
-            s = s.strip()
-            # skip blank lines/comments
-            if s and not s.startswith('#'):
-                yield s
-    else:
-        for ss in strs:
-            for s in yield_lines(ss):
-                yield s
+def _nonblank(str):
+    return str and not str.startswith('#')
+
+
+@functools.singledispatch
+def yield_lines(iterable):
+    """Yield valid lines of a string or iterable"""
+    return itertools.chain.from_iterable(map(yield_lines, iterable))
+
+
+@yield_lines.register(str)
+def _(text):
+    return filter(_nonblank, map(str.strip, text.splitlines()))
 
 
 MODULE = re.compile(r"\w+(\.\w+)*$").match
