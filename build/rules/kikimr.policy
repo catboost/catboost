@@ -4,6 +4,7 @@ ALLOW yabs/sbyt/testing/scenarios/bigstart -> kikimr/ci
 ALLOW mssngr/router/tests/lib -> kikimr/ci
 # temporary allow to depend (FIXME: gvit)
 ALLOW market/idx/yatf -> kikimr/public/tools/lib
+ALLOW logbroker/unified_agent/tools/lbk_recipe_wsl -> kikimr/public/tools/lib
 # temporary allow to depend (FIXME: gvit)
 ALLOW quality/deprecated/mapreducelib -> kikimr/library/common
 ALLOW quality/deprecated/mapreducelib -> kikimr/core/erasure
