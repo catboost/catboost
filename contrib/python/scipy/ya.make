@@ -17,6 +17,11 @@ PEERDIR(
 CFLAGS(
     -Dc_sqrt=SuperLU_c_sqrt
     -Dc_exp=SuperLU_c_exp
+    # Some of the -fcommon problems can be fixed by scipy update,
+    # see https://st.yandex-team.ru/CONTRIB-1250
+    # Additional notes regarging -fcommon in numpy can be found at
+    # https://nda.ya.ru/t/9EdYTMTv4cGJF2
+    -fcommon
 )
 
 IF (OS_WINDOWS)
