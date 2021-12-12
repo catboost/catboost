@@ -70,11 +70,8 @@ class TDerivedIntricateObject
     : public TIntricateObject
 {
 private:
-    // To suppress warning about unused Payload.
-    friend void NonExistingFunction() ATTRIBUTE_USED;
-
     // Payload.
-    std::array<char, 32> Payload;
+    [[maybe_unused]] std::array<char, 32> Payload;
 };
 
 typedef TIntrusivePtr<TDerivedIntricateObject> TDerivedIntricateObjectPtr;
