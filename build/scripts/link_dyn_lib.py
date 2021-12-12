@@ -150,6 +150,9 @@ def fix_cmd(arch, musl, c):
         if p.endswith('.supp'):
             return []
 
+        if p.endswith('.pkg.fake'):
+            return []
+
         return [p]
 
     return sum((do_fix(x) for x in c), [])
