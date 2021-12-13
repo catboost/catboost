@@ -6,6 +6,10 @@ LICENSE(BSD-3-Clause)
 
 VERSION(0.18.1)
 
+IF (SCIPY12)
+    PEERDIR(contrib/python/scipy/py2)
+ELSE()
+
 PEERDIR(
     contrib/libs/cblas
     contrib/libs/clapack
@@ -1416,9 +1420,12 @@ PY_SRCS(
     _ni_label.pyx
 )
 
+ENDIF (SCIPY12)
+
 END()
 
 RECURSE(
+    py2
     scipy/linalg/src/lapack_deprecations
 )
 
