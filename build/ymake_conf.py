@@ -1654,7 +1654,7 @@ class GnuCompiler(Compiler):
         if not self.build.is_coverage:
             emit('EXTRA_OUTPUT')
         else:
-            emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
+            emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s${COMPILE_OUT_SUFFIX}.gcno:SRC}' % self.cross_suffix)
 
         compiler_time_trace_requested = is_positive('TIME_TRACE') or is_positive('COMPILER_TIME_TRACE')
         compiler_supports_time_trace = self.tc.is_clang and self.tc.version_at_least(9)
