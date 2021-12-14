@@ -1320,6 +1320,11 @@ class GnuCompiler(Compiler):
             '-fno-common',
         ]
 
+        if self.tc.is_clang and self.target.is_linux:
+            # Use .init_array instead of .ctors (default for old clang versions)
+            # See: https://maskray.me/blog/2021-11-07-init-ctors-init-array
+            self.c_foptions.append('-fuse-init-array')
+
         # Set up output colorization
         if self.tc.is_clang:
             self.c_foptions.append('-fcolor-diagnostics')
@@ -1399,9 +1404,6 @@ class GnuCompiler(Compiler):
                 '-Wno-exceptions',
                 '-Wno-undefined-var-template',
             ]
-
-            if self.target.is_linux and not self.tc.version_at_least(10):
-                self.c_foptions.append('-fuse-init-array')
 
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
