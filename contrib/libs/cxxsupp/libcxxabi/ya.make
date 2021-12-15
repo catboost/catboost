@@ -9,8 +9,8 @@ VERSION(2021-06-07-87039c048c0cbc3d8cbba86187269b006bf2f373)
 ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/87039c048c0cbc3d8cbba86187269b006bf2f373.tar.gz)
 
 LICENSE(
-    Apache-2.0 WITH LLVM-exception
-    MIT
+    Apache-2.0 WITH LLVM-exception AND
+    MIT AND
     NCSA
 )
 
@@ -28,7 +28,9 @@ NO_RUNTIME()
 
 NO_UTIL()
 
-CFLAGS(-D_LIBCXXABI_BUILDING_LIBRARY)
+CFLAGS(
+    -D_LIBCXXABI_BUILDING_LIBRARY
+)
 
 SRCS(
     src/abort_message.cpp

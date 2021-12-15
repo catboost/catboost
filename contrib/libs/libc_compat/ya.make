@@ -3,9 +3,9 @@
 LIBRARY()
 
 LICENSE(
-    BSD-1-Clause
-    BSD-2-Clause
-    BSD-3-Clause
+    BSD-1-Clause AND
+    BSD-2-Clause AND
+    BSD-3-Clause AND
     ISC
 )
 
