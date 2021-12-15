@@ -79,6 +79,7 @@ ALLOW dict/mt/video -> contrib/restricted/rubberband
 
 # Allowed subset of abseil is exported via library/
 ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+ALLOW library/cpp/containers/absl_tstring_flat_hash -> contrib/restricted/abseil-cpp-tstring/y_absl/container
 
 # spdlog is just yet another best logging engine
 # The best logging engine, however, is to be designed in CPPCOM-20
