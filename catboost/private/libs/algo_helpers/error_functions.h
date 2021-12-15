@@ -1278,6 +1278,7 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1300,6 +1301,7 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1309,6 +1311,7 @@ private:
         TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         TArrayRef<double> cumSumRef,
         TArrayRef<double> cumSumUpRef,
         TArrayRef<double> cumSumLowRef

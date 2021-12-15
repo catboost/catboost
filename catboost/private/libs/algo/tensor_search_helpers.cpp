@@ -268,7 +268,8 @@ THolder<IDerCalcer> BuildError(
             const size_t numEstimations = NCatboostOptions::GetParamOrDefault(lossParams, "num_estimations", size_t(1));
             const double mu = NCatboostOptions::GetParamOrDefault(lossParams, "mu", 0.0);
             const double nu = NCatboostOptions::GetParamOrDefault(lossParams, "nu", 0.01);
-            const double lambda = NCatboostOptions::GetParamOrDefault(lossParams, "lambda", 1.0);
+            const double defaultLambda = targetMetric == ELossFunction::FilteredDCG ? 0.0 : 1.0;
+            const double lambda = NCatboostOptions::GetParamOrDefault(lossParams, "lambda", defaultLambda);
             return MakeHolder<TStochasticRankError>(targetMetric, lossParams, sigma, numEstimations, mu, nu, lambda);
         }
         case ELossFunction::PythonUserDefinedPerObject:

@@ -882,6 +882,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 case ELossFunction::PFound:
                     validParams = {"top", "decay", "hints"};
                     break;
+                case ELossFunction::FilteredDCG:
+                    validParams = {"type", "denominator", "hints"};
+                    break;
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);
             }
