@@ -31,6 +31,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 {% endcut %}
 
 {% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+
 The input training dataset in the form of a two-dimensional feature matrix.
 
 {% endcut %}
