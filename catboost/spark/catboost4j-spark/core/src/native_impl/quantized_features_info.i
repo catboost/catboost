@@ -42,6 +42,28 @@ namespace NSplitSelection {
 %pointer_class(bool, boolp)
 
 
+%catches(std::exception) TQuantizedFeaturesInfo::Init(TFeaturesLayout* featuresLayout);
+
+%catches(yexception) TQuantizedFeaturesInfo::GetNanMode(int floatFeatureIdx) const;
+%catches(yexception) TQuantizedFeaturesInfo::SetNanMode(int floatFeatureIdx, ENanMode nanMode);
+
+%catches(yexception) TQuantizedFeaturesInfo::GetQuantization(
+    int floatFeatureIdx,
+    TVector<float>* borders,
+    bool* hasDefaultQuantizedBin,
+    NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin
+) const;
+
+%catches(yexception) TQuantizedFeaturesInfo::SetQuantization(
+    int floatFeatureIdx,
+    // moved into
+    TVector<float>* borders,
+    // optional, poor man's TMaybe substitute
+    const NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin = nullptr
+);
+
+%catches(std::exception) TQuantizedFeaturesInfo::equalsImpl(const TQuantizedFeaturesInfo& rhs) const;
+
 namespace NCB {
     class TQuantizedFeaturesInfo {
     public:
@@ -183,5 +205,26 @@ namespace NCB {
 }
 
 %template(QuantizedFeaturesInfoPtr) TIntrusivePtr<NCB::TQuantizedFeaturesInfo>;
+
+
+%catches(yexception) MakeQuantizedFeaturesInfo(
+    const NCB::TFeaturesLayout& featuresLayout
+);
+
+%catches(yexception) MakeEstimatedQuantizedFeaturesInfo(i32 featureCount);
+
+%catches(yexception) UpdateCatFeaturesInfo(
+    TConstArrayRef<i32> catFeaturesUniqValueCounts, // [flatFeatureIdx]
+    bool isInitialization,
+    NCB::TQuantizedFeaturesInfo* quantizedFeaturesInfo
+);
+
+%catches(yexception) CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
+
+%catches(yexception) GetCategoricalFeaturesUniqueValuesCounts(
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
 
 %include "quantized_features_info.h"

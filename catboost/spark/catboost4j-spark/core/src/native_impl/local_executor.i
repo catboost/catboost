@@ -10,6 +10,9 @@
 
 %include "defaults.i"
 
+
+%catches(std::exception) NPar::TLocalExecutor::Init(i32 threadCount);
+
 namespace NPar {
 
     class TLocalExecutor {

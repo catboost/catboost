@@ -20,6 +20,3 @@ void CreateTrainingDataForWorker(
     const TVector<NCB::TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
     const TString& precomputedOnlineCtrMetaDataAsJsonString
 );
-
-// needed for forwarding exceptions from C++ to JVM
-void RunWorkerWrapper(i32 numThreads, i32 nodePort);

@@ -116,9 +116,9 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         new Runnable() {
           def run() = {
             if (partitionSize != 0) {
-              log.info("processPartition: start RunWorkerWrapper")
-              native_impl.RunWorkerWrapper(threadCount, workerPort)
-              log.info("processPartition: end RunWorkerWrapper")
+              log.info("processPartition: start RunWorker")
+              native_impl.RunWorker(threadCount, workerPort)
+              log.info("processPartition: end RunWorker")
             }
           }
         },
@@ -129,7 +129,7 @@ private[spark] class CatBoostWorker(partitionId : Int) extends Logging {
         impl.Helpers.waitForTwoFutures(
           ecs,
           workerFuture,
-          "native_impl.RunWorkerWrapper",
+          "native_impl.RunWorker",
           sendWorkerInfoFuture,
           "TrainingDriver.waitForListeningPortAndSendWorkerInfo"
         )

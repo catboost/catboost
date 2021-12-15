@@ -2,7 +2,6 @@
 
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/distributed/data_types.h>
-#include <catboost/private/libs/distributed/worker.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <catboost/libs/data/feature_names_converter.h>
@@ -124,10 +123,5 @@ void CreateTrainingDataForWorker(
             );
         }
     }
-}
-
-
-void RunWorkerWrapper(i32 numThreads, i32 nodePort) {
-    RunWorker(SafeIntegerCast<ui32>(numThreads), SafeIntegerCast<ui32>(nodePort));
 }
 

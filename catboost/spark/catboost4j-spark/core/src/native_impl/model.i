@@ -27,6 +27,27 @@
  *  is needed.
  */
 
+%catches(std::exception) TFullModel::Calc(
+    TConstArrayRef<double> featureValuesFromSpark,
+    TArrayRef<double> result
+) const;
+
+%catches(std::exception) TFullModel::CalcSparse(
+    i32 size,
+    TConstArrayRef<i32> featureIndicesFromSpark,
+    TConstArrayRef<double> featureValuesFromSpark,
+    TArrayRef<double> result
+) const;
+
+%catches(yexception, std::exception) TFullModel::Save(
+    const TString& fileName,
+    EModelType format,
+    const TString& exportParametersJsonString,
+    i32 poolCatFeaturesMaxUniqValueCount
+);
+
+%catches(std::exception) TFullModel::equalsImpl(const TFullModel& rhs) const;
+
 class TFullModel {
 public:
 
@@ -168,6 +189,11 @@ public:
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFullModel)
 };
 
-void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax);
 
-%include "model.h"
+
+%catches(yexception) ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
+
+TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
+
+
+void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax);

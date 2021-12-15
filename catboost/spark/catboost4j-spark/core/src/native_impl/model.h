@@ -32,10 +32,3 @@ void CalcOnSparkFeatureVector(
     }
     model.Calc(floatFeaturesValues, catFeaturesValues, result);
 }
-
-
-// needed for forwarding exceptions from C++ to JVM
-TFullModel ReadModelWrapper(
-    const TString& modelFile,
-    EModelType format = EModelType::CatboostBinary
-);

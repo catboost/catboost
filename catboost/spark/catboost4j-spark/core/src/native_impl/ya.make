@@ -24,7 +24,6 @@ SRCS(
     string.cpp
     target.cpp
     native_impl.swg
-    quantized_pool_serialization.cpp
     vector_output.cpp
     worker.cpp
 )

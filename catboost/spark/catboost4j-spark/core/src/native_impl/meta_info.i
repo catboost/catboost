@@ -12,6 +12,9 @@
 %include "features_layout.i"
 %include "cd_parser.i" // for TVector_TColumn
 
+
+%catches(std::exception) NCB::TDataColumnsMetaInfo::equalsImpl(const NCB::TDataColumnsMetaInfo& rhs) const;
+
 namespace NCB {
 
     struct TDataColumnsMetaInfo {
@@ -76,6 +79,9 @@ namespace NCB {
     };
 }
 
+
+%catches(yexception) TIntermediateDataMetaInfo::SetAvailableFeatures(TConstArrayRef<i32> selectedFeatures);
+%catches(std::exception) TIntermediateDataMetaInfo::equalsImpl(const TIntermediateDataMetaInfo& rhs) const;
 
 class TIntermediateDataMetaInfo : public NCB::TDataMetaInfo {
 public:
@@ -164,5 +170,14 @@ public:
 
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TIntermediateDataMetaInfo)
 };
+
+
+%catches(yexception) GetIntermediateDataMetaInfo(
+    const TString& schema,
+    const TString& columnDescriptionPathWithScheme, // can be empty
+    const TString& plainJsonParamsAsString,
+    const TMaybe<TString>& dsvHeader,
+    const TString& firstDataLine
+);
 
 %include "meta_info.h"

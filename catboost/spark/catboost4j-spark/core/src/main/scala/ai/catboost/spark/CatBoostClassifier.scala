@@ -255,7 +255,7 @@ object CatBoostClassificationModel extends MLReadable[CatBoostClassificationMode
     fileName: String, 
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostClassificationModel = {
-    new CatBoostClassificationModel(native_impl.native_impl.ReadModelWrapper(fileName, format))
+    new CatBoostClassificationModel(native_impl.native_impl.ReadModel(fileName, format))
   }
 }
 

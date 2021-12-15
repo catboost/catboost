@@ -15,13 +15,118 @@
 %include "model.i"
 %include "tvector.i"
 
+
+
+%catches(yexception) GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout
+);
+
+TVector<TString> GetMaybeGeneratedModelFeatureIds(
+    const TFullModel& model,
+    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout
+);
+
+
+%catches(yexception) GetDefaultFstrType(const TFullModel& model);
+
+%catches(yexception) PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model);
+
+%catches(yexception) CollectLeavesStatisticsWrapper(
+    const NCB::TDataProviderPtr dataset,
+    const TFullModel& model,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) PrepareTreesWithoutIndependent(
+    const TFullModel& model,
+    i64 datasetObjectCount,
+    bool needSumModelAndDatasetWeights,
+    TConstArrayRef<double> leafWeightsFromDataset,
+    EPreCalcShapValues mode,
+    bool calcInternalValues,
+    ECalcTypeShapValues calcType,
+    bool calcShapValuesByLeaf,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) CalcFeatureEffectLossChangeMetricStatsWrapper(
+    const TFullModel& model,
+    const int featuresCount,
+    const TShapPreparedTrees& preparedTrees,
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) CalcFeatureEffectLossChangeFromScores(
+    const TFullModel& model,
+    const TCombinationClassFeatures& combinationClassFeatures,
+    TConstArrayRef<double> scoresMatrix // row-major matrix representation of Stats[featureIdx][metricIdx]
+);
+
+%catches(yexception) CalcFeatureEffectAverageChangeWrapper(
+    const TFullModel& model,
+    TConstArrayRef<double> leafWeightsFromDataset // can be empty
+);
+
+%catches(yexception) GetPredictionDiffWrapper(
+    const TFullModel& model,
+    const NCB::TRawObjectsDataProviderPtr objectsDataProvider,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) TShapValuesResult::GetObjectCount() const;
+%catches(yexception) TShapValuesResult::GetShapValuesCount() const;
+%catches(yexception) TShapValuesResult::Get(i32 objectIdx) const;
+
+%catches(yexception) CalcShapValuesWithPreparedTreesWrapper(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TShapPreparedTrees& preparedTrees,
+    ECalcTypeShapValues calcType,
+    NPar::TLocalExecutor* localExecutor
+);
+
+%catches(yexception) GetSelectedFeaturesIndices(
+    const TFullModel& model,
+    const TString& feature1Name,
+    const TString& feature2Name,
+    TArrayRef<i32> featureIndices // out param
+);
+
+%catches(yexception) TShapInteractionValuesResult::GetObjectCount() const;
+%catches(yexception) TShapInteractionValuesResult::GetShapInteractionValuesCount() const;
+%catches(yexception) TShapInteractionValuesResult::Get(i32 objectIdx, i32 dimensionIdx = 0) const;
+
+%catches(yexception) CalcShapInteractionValuesWithPreparedTreesWrapper(
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    TConstArrayRef<i32> selectedFeatureIndices, // -1 if not selected
+    ECalcTypeShapValues calcType,
+    NPar::TLocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees
+);
+
+%catches(yexception) CalcInteraction(
+    const TFullModel& model,
+    TVector<i32>* firstIndices,
+    TVector<i32>* secondIndices,
+    TVector<double>* scores
+);
+
 %include "calc_fstr.h"
 
 
+%catches(yexception) HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
 bool HasNonZeroApproxForZeroWeightLeaf(const TFullModel& model);
 
+%catches(yexception) GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount);
 i64 GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount);
 
+
+%catches(yexception) TShapPreparedTrees::Serialize() const;
+%catches(yexception) TShapPreparedTrees::Deserialize(TConstArrayRef<i8> binaryBuffer);
 
 struct TShapPreparedTrees {
 
@@ -107,8 +212,10 @@ struct TShapPreparedTrees {
 
 };
 
+
 struct TCombinationClassFeatures {
     size_t size() const;
 };
 
+%catches(yexception) GetCombinationClassFeatures(const TFullModel& model);
 TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model);
