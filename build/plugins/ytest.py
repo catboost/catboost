@@ -31,7 +31,9 @@ BLOCK_SEPARATOR = '=============================================================
 SPLIT_FACTOR_MAX_VALUE = 1000
 PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
 DEFAULT_TIDY_CONFIG = "build/config/tests/clang_tidy/config.yaml"
-TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_project_map.json"
+DEFAULT_TIDY_CONFIGS_MAP = {}  # project_path -> path_to_config
+PROJECT_TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_project_map.json"
+
 
 tidy_config_map = None
 
@@ -366,10 +368,32 @@ def match_coverage_extractor_requirements(unit):
 def get_tidy_config_map(unit):
     global tidy_config_map
     if tidy_config_map is None:
-        config_map_path = unit.resolve(os.path.join("$S", TIDY_CONFIG_MAP_PATH))
+        config_map_path = unit.resolve(os.path.join("$S", PROJECT_TIDY_CONFIG_MAP_PATH))
         with open(config_map_path, 'r') as afile:
             tidy_config_map = json.load(afile)
     return tidy_config_map
+
+
+def get_default_tidy_config(unit):
+    unit_path = get_norm_unit_path(unit)
+    for project_prefix, config_path in DEFAULT_TIDY_CONFIGS_MAP.items():
+        if project_prefix.startswith(unit_path):
+            return config_path
+    return DEFAULT_TIDY_CONFIG
+
+
+def get_project_tidy_config(unit):
+    tidy_map = get_tidy_config_map(unit)
+    unit_path = get_norm_unit_path(unit)
+
+    for project_prefix, config_path in tidy_map.items():
+        if unit_path.startswith(project_prefix):
+            # Remove after release project configs
+            assert config_path.startswith("devtools/dummy_arcadia/example_tidy_project")
+            assert project_prefix.startswith("devtools/dummy_arcadia/example_tidy_project")
+            return config_path
+    else:
+        return get_default_tidy_config(unit)
 
 
 def onadd_ytest(unit, *args):
@@ -409,18 +433,17 @@ def onadd_ytest(unit, *args):
             return
 
     if flat_args[1] == "clang_tidy" and unit.get("TIDY") == "yes":
-        if not unit.get("TIDY_CONFIG"):
-            tidy_map = get_tidy_config_map(unit)
-            unit_path = get_norm_unit_path(unit)
-            for k, v in tidy_map.items():
-                if unit_path.startswith(k):
-                    # Remove after release project configs
-                    assert v.startswith("devtools/dummy_arcadia/example_tidy_project")
-                    assert k.startswith("devtools/dummy_arcadia/example_tidy_project")
-                    unit.set(["TIDY_CONFIG", v])
-                    break
-            else:
-                unit.set(["TIDY_CONFIG", DEFAULT_TIDY_CONFIG])
+        if unit.get("TIDY_CONFIG"):
+            default_config_path = unit.get("TIDY_CONFIG")
+            project_config_path = unit.get("TIDY_CONFIG")
+        else:
+            default_config_path = get_default_tidy_config(unit)
+            project_config_path = get_project_tidy_config(unit)
+
+        unit.set(["DEFAULT_TIDY_CONFIG", default_config_path])
+        unit.set(["PROJECT_TIDY_CONFIG", project_config_path])
+
+
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
