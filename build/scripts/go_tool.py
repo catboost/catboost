@@ -657,8 +657,16 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
 
-    for kind in ['Test', 'Benchmark', 'Example']:
-        lines.append('var {}s = []testing.Internal{}{{'.format(kind.lower(), kind))
+    if compare_versions('1.18', args.goversion) < 0:
+        kinds = ['Test', 'Benchmark', 'Example']
+    else:
+        kinds = ['Test', 'Benchmark', 'FuzzTarget', 'Example']
+
+    var_names = []
+    for kind in kinds:
+        var_name = '{}s'.format(kind.lower())
+        var_names.append(var_name)
+        lines.append('var {} = []testing.Internal{}{{'.format(var_name, kind))
         for test in [x for x in tests if x.startswith(kind)]:
             lines.append('    {{"{test}", _test.{test}}},'.format(test=test))
         for test in [x for x in xtests if x.startswith(kind)]:
@@ -679,7 +687,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
             '    })',
         ])
     lines.extend([
-        '    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)'
+        '    m := testing.MainStart(testdeps.TestDeps{{}}, {})'.format(', '.join(var_names)),
         '',
     ])
 
