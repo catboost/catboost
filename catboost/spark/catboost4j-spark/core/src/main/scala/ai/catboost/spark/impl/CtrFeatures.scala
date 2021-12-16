@@ -160,6 +160,7 @@ object CtrFeatures {
 
 
   /**
+   * @note if repartitioning is applied to result pools CtrsContext will no longer work with them
    * @return (trainPoolWithEstimatedFeatures, evalPoolsWithEstimatedFeatures, ctrsContext)
    */
   def addCtrsAsEstimated(
