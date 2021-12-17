@@ -20,8 +20,8 @@ NO_LINT()
 PEERDIR(
     contrib/libs/protobuf
     contrib/python/six
-    contrib/libs/protobuf/python/google_lib/protos_from_protobuf
-    contrib/libs/protobuf/python/google_lib/protos_from_protoc
+    contrib/libs/protobuf/builtin_proto/protos_from_protobuf
+    contrib/libs/protobuf/builtin_proto/protos_from_protoc
 )
 
 ADDINCL(
