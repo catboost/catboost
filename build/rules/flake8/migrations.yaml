@@ -1086,7 +1086,6 @@ migrations:
     - robot/quality/samovar_conveyour/tools/get_samples
     - robot/quality/sendlink_conveyour/tools/max_rank_acceptance
     - robot/research/eval_nirvana_graph
-    - rt-research/bannerland/lib
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/tools/jupyter
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
@@ -1914,7 +1913,6 @@ migrations:
     - extsearch/audio/deepdive/tools/deep_dive_release/bin
     - extsearch/audio/deepdive/tools/deep_dive_rollback/bin
     - extsearch/collections/tools/polirovka/collections_gui
-    - extsearch/geo/meta/tests/behavioral/bin_standalone
     - extsearch/geo/tools/rubric_synonyms/automation
     - extsearch/geo/tools/rubric_synonyms_mining/metasearch
     - extsearch/geo/tools/similar_orgs/acceptance/similars_search
@@ -2113,7 +2111,6 @@ migrations:
     - maps/streetview/backoffice/tools/source_validator
     - maps/tools/chains_generator
     - maps/wikimap/mapspro/services/mrc/libs/toloka_client/tests
-    - maps/wikimap/mapspro/services/mrc/libs/unittest/tests/pyserver
     - maps/wikimap/mapspro/services/mrc/long_tasks/toloka_manager_cron_jobs/lib/tests/test_server
     - maps/wikimap/mapspro/services/tasks/fastcgi/bin
     - maps/wikimap/mapspro/services/tasks/fastcgi/lib
