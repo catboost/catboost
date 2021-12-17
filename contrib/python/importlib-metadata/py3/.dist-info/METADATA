@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: importlib-metadata
-Version: 4.8.2
+Version: 4.9.0
 Summary: Read metadata from Python packages
 Home-page: https://github.com/python/importlib_metadata
 Author: Jason R. Coombs
@@ -12,7 +12,7 @@ Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 License-File: LICENSE
 Requires-Dist: typing-extensions (>=3.6.4) ; python_version < "3.8"
 Provides-Extra: docs
@@ -78,6 +78,8 @@ were contributed to different versions in the standard library:
 
    * - importlib_metadata
      - stdlib
+   * - 4.8
+     - 3.11
    * - 4.4
      - 3.10
    * - 1.4
