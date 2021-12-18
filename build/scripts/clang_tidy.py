@@ -1,6 +1,5 @@
 import argparse
 import contextlib
-import copy
 import json
 import os
 import re
@@ -15,6 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--testing-src", required=True)
     parser.add_argument("--clang-tidy-bin", required=True)
+    parser.add_argument("--config-validation-script", required=True)
+    parser.add_argument("--ymake-python", required=True)
     parser.add_argument("--tidy-json", required=True)
     parser.add_argument("--source-root", required=True)
     parser.add_argument("--build-root", required=True)
@@ -147,11 +148,13 @@ def main():
     else:
         header_filter = r"^(" + args.header_filter + r").*"
 
-    with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir, gen_tmpfile() as fixes_file, gen_tmpfile() as config_tmpfile:
+    with gen_tmpdir() as profile_tmpdir, gen_tmpdir() as db_tmpdir, gen_tmpfile() as fixes_file, gen_tmpdir() as config_dir:
         result_config_file = args.default_config_file
         if args.project_config_file != args.default_config_file:
-            result_config_file = merge_tidy_configs(base_config_path=args.default_config_file, additional_config_path=args.project_config_file, result_config_path=config_tmpfile)
-
+            result_config = os.path.join(config_dir, "result_tidy_config.yaml")
+            filtered_config = os.path.join(config_dir, "filtered_tidy_config.yaml")
+            subprocess.check_call([args.ymake_python, args.config_validation_script, "--input-config-path", args.project_config_file, "--result-config-path", filtered_config])
+            result_config_file = merge_tidy_configs(base_config_path=args.default_config_file, additional_config_path=filtered_config, result_config_path=result_config)
         compile_command_path = generate_compilation_database(clang_cmd, args.source_root, args.testing_src, db_tmpdir)
         cmd = [
             clang_tidy_bin,
