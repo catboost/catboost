@@ -1212,15 +1212,19 @@ class GnuToolchain(Toolchain):
             # However, Arcadia requires char to be signed
             self.c_flags_platform.append('-fsigned-char')
 
+        macos_version_min = '10.11'
+        macos_arm64_version_min = '11.0'
+        ios_version_min = '11.0'
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_power8le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
                 (target.is_linux and target.is_power9le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
-                (target.is_macos_arm64, ['-mmacosx-version-min=11.0']),
-                (target.is_macos, ['-mmacosx-version-min=10.11']),
-                (target.is_ios and not target.is_iossim, ['-mios-version-min=9.0']),
-                (target.is_iossim, ['-mios-simulator-version-min=10.0']),
+                (target.is_macos_arm64, ['-mmacosx-version-min={}'.format(macos_arm64_version_min)]),
+                (target.is_macos, ['-mmacosx-version-min={}'.format(macos_version_min)]),
+                (target.is_ios and not target.is_iossim, ['-mios-version-min={}'.format(ios_version_min)]),
+                (target.is_iossim, ['-mios-simulator-version-min={}'.format(ios_version_min)]),
                 (target.is_android and target.is_armv7, ['-march=armv7-a', '-mfloat-abi=softfp']),
                 (target.is_android and target.is_armv8, ['-march=armv8-a']),
                 (target.is_yocto and target.is_armv7, ['-march=armv7-a', '-mfpu=neon', '-mfloat-abi=hard', '-mcpu=cortex-a9', '-O1'])
