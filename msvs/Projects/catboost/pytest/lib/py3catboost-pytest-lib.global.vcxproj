@@ -836,6 +836,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\assert\cpp-yt-assert.vcxproj">
       <Project>{EBF93909-1BD6-7840-3A4B-D5668E08E011}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\coding\cpp-yt-coding.vcxproj">
+      <Project>{BD62B7B7-F1C9-B36F-C3A1-8ACB5B0CE3F1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\memory\cpp-yt-memory.vcxproj">
       <Project>{202131E1-2CB7-AD9D-424C-5EED820FF864}</Project>
     </ProjectReference>
