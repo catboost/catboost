@@ -872,8 +872,8 @@ class CatBoostClassifierTest {
             0.0
           ),
            Vectors.dense(
-            -0.21918830547587076,
-            0.21918830547587076
+            -0.21919037066065877,
+            0.21919037066065877
           ),
            Vectors.dense(
             -0.0,
@@ -886,8 +886,8 @@ class CatBoostClassifierTest {
             0.5
           ),
            Vectors.dense(
-            0.39212785827654295,
-            0.607872141723457
+            0.39212687374721583,
+            0.6078731262527841
           ),
            Vectors.dense(
             0.5,
@@ -903,8 +903,8 @@ class CatBoostClassifierTest {
       Map(
         "raw_prediction" -> Seq(
            Vectors.dense(
-            -0.21918830547587076,
-            0.21918830547587076
+            -0.21919037066065877,
+            0.21919037066065877
           ),
            Vectors.dense(
             -0.0,
@@ -915,14 +915,14 @@ class CatBoostClassifierTest {
             0.0
           ),
            Vectors.dense(
-            -0.77429223797021,
-            0.77429223797021
+            -0.7743093931361096,
+            0.7743093931361096
           )
         ),
         "probability" -> Seq(
           Vectors.dense(
-            0.39212785827654295,
-            0.607872141723457
+            0.39212687374721583,
+            0.6078731262527841
           ),
           Vectors.dense(
             0.5,
@@ -933,8 +933,8 @@ class CatBoostClassifierTest {
             0.5
           ),
           Vectors.dense(
-            0.17529080785253315,
-            0.8247091921474669
+            0.17528584787102616,
+            0.8247141521289738
           )
         ),
         "prediction" -> Seq(

@@ -1119,7 +1119,7 @@ class CatBoostRegressorTest {
       0.06002440645289813,
       0.0,
       0.0,
-      0.0844211462846704
+      0.08421609837877377
     )
     val expectedPredictionsData = mutable.Seq.concat(srcData)
     for (i <- 0 until srcData.length) {
