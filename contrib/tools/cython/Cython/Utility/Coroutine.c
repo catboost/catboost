@@ -714,9 +714,15 @@ PyObject *__Pyx_Coroutine_SendEx(__pyx_CoroutineObject *self, PyObject *value, i
             PyTracebackObject *tb = (PyTracebackObject *) exc_state->exc_traceback;
             PyFrameObject *f = tb->tb_frame;
 
-            Py_XINCREF(tstate->frame);
             assert(f->f_back == NULL);
+            #if PY_VERSION_HEX >= 0x030B00A1
+            // PyThreadState_GetFrame returns NULL if there isn't a current frame
+            // which is a valid state so no need to check
+            f->f_back = PyThreadState_GetFrame(tstate);
+            #else
+            Py_XINCREF(tstate->frame);
             f->f_back = tstate->frame;
+            #endif
         }
         #endif
     }
@@ -1558,6 +1564,9 @@ static PyTypeObject __pyx_CoroutineAwaitType_type = {
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
 #endif
+#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM+0 >= 0x06000000
+    0,                                          /*tp_pypy_flags*/
+#endif
 };
 
 #if PY_VERSION_HEX < 0x030500B1 || defined(__Pyx_IterableCoroutine_USED) || CYTHON_USE_ASYNC_SLOTS
@@ -1715,6 +1724,9 @@ static PyTypeObject __pyx_CoroutineType_type = {
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
 #endif
+#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM+0 >= 0x06000000
+    0,                                          /*tp_pypy_flags*/
+#endif
 };
 
 static int __pyx_Coroutine_init(void) {
@@ -1826,6 +1838,9 @@ static PyTypeObject __pyx_IterableCoroutineType_type = {
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
 #endif
+#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM+0 >= 0x06000000
+    0,                                          /*tp_pypy_flags*/
+#endif
 };
 
 
@@ -1933,6 +1948,9 @@ static PyTypeObject __pyx_GeneratorType_type = {
 #endif
 #if PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000
     0,                                  /*tp_print*/
+#endif
+#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM+0 >= 0x06000000
+    0,                                          /*tp_pypy_flags*/
 #endif
 };
 
@@ -2329,6 +2347,9 @@ static PyTypeObject __Pyx__PyExc_StopAsyncIteration_type = {
     0,                                  /*tp_version_tag*/
 #if PY_VERSION_HEX >= 0x030400a1
     0,                                  /*tp_finalize*/
+#endif
+#if CYTHON_COMPILING_IN_PYPY && PYPY_VERSION_NUM+0 >= 0x06000000
+    0,                                          /*tp_pypy_flags*/
 #endif
 };
 #endif

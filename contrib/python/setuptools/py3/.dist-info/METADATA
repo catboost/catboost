@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 59.5.0
+Version: 59.7.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
@@ -18,7 +18,7 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs

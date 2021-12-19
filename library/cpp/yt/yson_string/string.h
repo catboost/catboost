@@ -118,12 +118,6 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// Just a forward declaration.
-template <class T>
-TYsonString ConvertToYsonString(const T& value);
-
-////////////////////////////////////////////////////////////////////////////////
-
 bool operator == (const TYsonString& lhs, const TYsonString& rhs);
 bool operator == (const TYsonString& lhs, const TYsonStringBuf& rhs);
 bool operator == (const TYsonStringBuf& lhs, const TYsonString& rhs);

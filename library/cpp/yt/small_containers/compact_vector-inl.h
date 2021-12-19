@@ -94,7 +94,7 @@ TCompactVector<T, N>::TCompactVector(const TCompactVector<T, OtherN>& other)
 }
 
 template <class T, size_t N>
-TCompactVector<T, N>::TCompactVector(TCompactVector&& other)
+TCompactVector<T, N>::TCompactVector(TCompactVector&& other) noexcept(std::is_nothrow_move_constructible_v<T>)
     : TCompactVector()
 {
     swap(other);

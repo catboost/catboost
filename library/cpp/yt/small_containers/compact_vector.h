@@ -60,7 +60,7 @@ public:
     TCompactVector(const TCompactVector& other);
     template <size_t OtherN>
     TCompactVector(const TCompactVector<T, OtherN>& other);
-    TCompactVector(TCompactVector&& other);
+    TCompactVector(TCompactVector&& other) noexcept(std::is_nothrow_move_constructible_v<T>);
     template <size_t OtherN>
     TCompactVector(TCompactVector<T, OtherN>&& other);
     explicit TCompactVector(size_type count);

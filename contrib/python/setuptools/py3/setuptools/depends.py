@@ -2,7 +2,8 @@ import sys
 import marshal
 import contextlib
 import dis
-from distutils.version import StrictVersion
+
+from setuptools.extern.packaging import version
 
 from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
 from . import _imp
@@ -21,7 +22,7 @@ class Require:
             attribute=None, format=None):
 
         if format is None and requested_version is not None:
-            format = StrictVersion
+            format = version.Version
 
         if format is not None:
             requested_version = format(requested_version)
@@ -40,7 +41,7 @@ class Require:
     def version_ok(self, version):
         """Is 'version' sufficiently up-to-date?"""
         return self.attribute is None or self.format is None or \
-            str(version) != "unknown" and version >= self.requested_version
+            str(version) != "unknown" and self.format(version) >= self.requested_version
 
     def get_version(self, paths=None, default="unknown"):
         """Get version number of installed module, 'None', or 'default'
@@ -78,7 +79,7 @@ class Require:
         version = self.get_version(paths)
         if version is None:
             return False
-        return self.version_ok(version)
+        return self.version_ok(str(version))
 
 
 def maybe_close(f):
