@@ -550,6 +550,7 @@ ALLOW quality/functionality/turbo/forms/app/lib -> contrib/python/sqlalchemy/sql
 ALLOW quality/functionality/turbo/forms/job/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/functionality/turbo/json_api/app/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/functionality/turbo/json_api/job/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quasar/db/orm -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/blueprints -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
