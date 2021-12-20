@@ -224,4 +224,57 @@ Y_UNIT_TEST_SUITE(THeapDictTest) {
         }
         UNIT_ASSERT_EQUAL(heapDict.empty(), set.empty());
     }
+
+    Y_UNIT_TEST(TestAdditionalParameters) {
+        struct TTestCmp {
+            explicit TTestCmp(bool ascending)
+                : Asc_(ascending)
+            {
+            }
+
+            bool operator()(int a, int b) {
+                return !Asc_ != !(a < b);
+            }
+
+        private:
+            bool Asc_;
+        };
+
+        struct TTestHash {
+            bool operator()(int a) {
+                return a / 2;
+            }
+        };
+
+        struct TTestKeyEq {
+            bool operator()(int a, int b) {
+                return a / 2 == b / 2;
+            }
+        };
+
+        TTestCmp ascCmp(true);
+        TTestCmp descCmp(false);
+        TTestHash keyHashFcn;
+        TTestKeyEq keyEq;
+
+        THeapDict<int, int, TTestCmp, TTestHash, TTestKeyEq> ascHeapDict(ascCmp, keyHashFcn, keyEq);
+        THeapDict<int, int, TTestCmp, TTestHash, TTestKeyEq> descHeapDict(descCmp, keyHashFcn, keyEq);
+
+        for (int i = 0; i < 100; ++i) {
+            ascHeapDict.push(i, i + 200);
+            descHeapDict.push(i, i + 200);
+        }
+        UNIT_ASSERT_EQUAL(ascHeapDict.size(), 50);
+        UNIT_ASSERT_EQUAL(descHeapDict.size(), 50);
+        for (int i = 0; i < 50; ++i) {
+            UNIT_ASSERT_EQUAL(ascHeapDict[i * 2], i * 2 + 200);
+            UNIT_ASSERT_EQUAL(descHeapDict[i * 2], i * 2 + 200);
+        }
+        for (int i = 0; i < 50; ++i) {
+            UNIT_ASSERT_EQUAL(ascHeapDict.top().second, i * 2 + 200);
+            ascHeapDict.pop();
+            UNIT_ASSERT_EQUAL(descHeapDict.top().second, 298 - i * 2);
+            descHeapDict.pop();
+        }
+    }
 }
