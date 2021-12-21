@@ -3,6 +3,7 @@
 #include "entropy.h"
 
 #include <util/generic/singleton.h>
+#include <util/system/yassert.h>
 
 #if defined(_unix_)
     #include <pthread.h>
