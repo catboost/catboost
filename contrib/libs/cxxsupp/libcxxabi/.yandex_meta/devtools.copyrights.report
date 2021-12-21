@@ -32,6 +32,7 @@
 KEEP     COPYRIGHT_SERVICE_LABEL ebc015cad7377d32e7b2fc0ae5293aa1
 BELONGS ya.make
 FILE_INCLUDE CREDITS.TXT found in files: LICENSE.TXT at line 252
+    # libcxxabi/CREDITS.TXT included in libcxxabi
     License text:
         Copyright (c) 2009-2019 by the contributors listed in CREDITS.TXT
     Scancode info:
@@ -44,6 +45,7 @@ FILE_INCLUDE CREDITS.TXT found in files: LICENSE.TXT at line 252
 KEEP     COPYRIGHT_SERVICE_LABEL f52c727d32a7eaf5a8de6bc96b82797c
 BELONGS ya.make
 FILE_INCLUDE CREDITS.TXT found in files: LICENSE.TXT at line 293
+    # libcxxabi/CREDITS.TXT included in libcxxabi
     License text:
         Copyright (c) 2009-2014 by the contributors listed in CREDITS.TXT
     Scancode info:

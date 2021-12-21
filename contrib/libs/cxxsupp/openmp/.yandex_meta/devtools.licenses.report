@@ -1,0 +1,322 @@
+# File format ($ symbol means the beginning of a line):
+#
+# $ # this message
+# $ # =======================
+# $     # comments (all commentaries should starts with some number of spaces and # symbol)
+# ${action} {license spdx} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
+# ${all_file_action} filename
+# $ # user commentaries (many lines)
+# $ generated description - files with this license, license text... (some number of lines that starts with some number of spaces, do not modify)
+# ${action} {license spdx} {license text hash}
+# $BELONGS ./ya/make/file/relative/path/3/ya.make
+# ${all_file_action} filename
+# $    #    user commentaries
+# $ generated description
+# $ ...
+#
+# You can modify action, all_file_action and add commentaries
+# Available actions:
+# keep - keep license in contrib and use in credits
+# skip - skip license
+# remove - remove all files with this license
+# rename - save license text/links into licenses texts file, but not store SPDX into LINCENSE macro. You should store correct license id into devtools.license.spdx.txt file
+#
+# {all file action} records will be generated when license text contains filename that exists on filesystem (in contrib directory)
+# We suppose that that files can contain some license info
+# Available all file actions:
+# FILE_IGNORE - ignore file (do nothing)
+# FILE_INCLUDE - include all file data into licenses text file
+# =======================
+
+KEEP     NCSA AND MIT         0791db4b6d90edd44c715bba1e426f74
+BELONGS ya.make
+    License text:
+        // This file is dual licensed under the MIT and the University of Illinois Open
+        // Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        extractExternal.cpp [10:11]
+        include/30/omp.h.var [10:11]
+        include/40/omp.h.var [10:11]
+        include/41/omp.h.var [10:11]
+        kmp.h [11:12]
+        kmp_affinity.cpp [10:11]
+        kmp_affinity.h [10:11]
+        kmp_alloc.c [10:11]
+        kmp_atomic.c [10:11]
+        kmp_atomic.h [10:11]
+        kmp_barrier.cpp [10:11]
+        kmp_cancel.cpp [6:7]
+        kmp_config.h [8:9]
+        kmp_csupport.c [10:11]
+        kmp_debug.c [10:11]
+        kmp_debug.h [10:11]
+        kmp_debugger.c [11:12]
+        kmp_debugger.h [11:12]
+        kmp_dispatch.cpp [10:11]
+        kmp_environment.c [10:11]
+        kmp_environment.h [10:11]
+        kmp_error.c [10:11]
+        kmp_error.h [10:11]
+        kmp_ftn_cdecl.c [10:11]
+        kmp_ftn_entry.h [10:11]
+        kmp_ftn_extra.c [10:11]
+        kmp_ftn_os.h [10:11]
+        kmp_ftn_stdcall.c [10:11]
+        kmp_global.c [10:11]
+        kmp_gsupport.c [10:11]
+        kmp_i18n.c [10:11]
+        kmp_i18n.h [10:11]
+        kmp_import.c [10:11]
+        kmp_io.c [10:11]
+        kmp_io.h [10:11]
+        kmp_itt.c [13:14]
+        kmp_itt.h [11:12]
+        kmp_itt.inl [11:12]
+        kmp_lock.cpp [10:11]
+        kmp_lock.h [10:11]
+        kmp_omp.h [12:13]
+        kmp_os.h [10:11]
+        kmp_platform.h [9:10]
+        kmp_runtime.c [10:11]
+        kmp_safe_c_api.h [6:7]
+        kmp_sched.cpp [10:11]
+        kmp_settings.c [10:11]
+        kmp_settings.h [10:11]
+        kmp_stats.cpp [10:11]
+        kmp_stats.h [13:14]
+        kmp_stats_timing.cpp [10:11]
+        kmp_stats_timing.h [13:14]
+        kmp_str.c [10:11]
+        kmp_str.h [10:11]
+        kmp_stub.c [10:11]
+        kmp_stub.h [10:11]
+        kmp_taskdeps.cpp [10:11]
+        kmp_tasking.c [10:11]
+        kmp_taskq.c [10:11]
+        kmp_threadprivate.c [10:11]
+        kmp_utility.c [10:11]
+        kmp_version.c [10:11]
+        kmp_version.h [10:11]
+        kmp_wait_release.cpp [10:11]
+        kmp_wait_release.h [10:11]
+        kmp_wrapper_getpid.h [10:11]
+        kmp_wrapper_malloc.h [11:12]
+        omp.h [10:11]
+        test-touch.c [8:9]
+        thirdparty/ittnotify/disable_warnings.h [6:7]
+        thirdparty/ittnotify/ittnotify.h [6:7]
+        thirdparty/ittnotify/ittnotify_config.h [6:7]
+        thirdparty/ittnotify/ittnotify_static.c [6:7]
+        thirdparty/ittnotify/ittnotify_types.h [6:7]
+        thirdparty/ittnotify/legacy/ittnotify.h [6:7]
+        z_Linux_util.c [10:11]
+        z_Windows_NT-586_util.c [10:11]
+        z_Windows_NT_util.c [10:11]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        extractExternal.cpp [10:11]
+        include/30/omp.h.var [10:11]
+        include/40/omp.h.var [10:11]
+        include/41/omp.h.var [10:11]
+        kmp.h [11:12]
+        kmp_affinity.cpp [10:11]
+        kmp_affinity.h [10:11]
+        kmp_alloc.c [10:11]
+        kmp_atomic.c [10:11]
+        kmp_atomic.h [10:11]
+        kmp_barrier.cpp [10:11]
+        kmp_cancel.cpp [6:7]
+        kmp_config.h [8:9]
+        kmp_csupport.c [10:11]
+        kmp_debug.c [10:11]
+        kmp_debug.h [10:11]
+        kmp_debugger.c [11:12]
+        kmp_debugger.h [11:12]
+        kmp_dispatch.cpp [10:11]
+        kmp_environment.c [10:11]
+        kmp_environment.h [10:11]
+        kmp_error.c [10:11]
+        kmp_error.h [10:11]
+        kmp_ftn_cdecl.c [10:11]
+        kmp_ftn_entry.h [10:11]
+        kmp_ftn_extra.c [10:11]
+        kmp_ftn_os.h [10:11]
+        kmp_ftn_stdcall.c [10:11]
+        kmp_global.c [10:11]
+        kmp_gsupport.c [10:11]
+        kmp_i18n.c [10:11]
+        kmp_i18n.h [10:11]
+        kmp_import.c [10:11]
+        kmp_io.c [10:11]
+        kmp_io.h [10:11]
+        kmp_itt.c [13:14]
+        kmp_itt.h [11:12]
+        kmp_itt.inl [11:12]
+        kmp_lock.cpp [10:11]
+        kmp_lock.h [10:11]
+        kmp_omp.h [12:13]
+        kmp_os.h [10:11]
+        kmp_platform.h [9:10]
+        kmp_runtime.c [10:11]
+        kmp_safe_c_api.h [6:7]
+        kmp_sched.cpp [10:11]
+        kmp_settings.c [10:11]
+        kmp_settings.h [10:11]
+        kmp_stats.cpp [10:11]
+        kmp_stats.h [13:14]
+        kmp_stats_timing.cpp [10:11]
+        kmp_stats_timing.h [13:14]
+        kmp_str.c [10:11]
+        kmp_str.h [10:11]
+        kmp_stub.c [10:11]
+        kmp_stub.h [10:11]
+        kmp_taskdeps.cpp [10:11]
+        kmp_tasking.c [10:11]
+        kmp_taskq.c [10:11]
+        kmp_threadprivate.c [10:11]
+        kmp_utility.c [10:11]
+        kmp_version.c [10:11]
+        kmp_version.h [10:11]
+        kmp_wait_release.cpp [10:11]
+        kmp_wait_release.h [10:11]
+        kmp_wrapper_getpid.h [10:11]
+        kmp_wrapper_malloc.h [11:12]
+        omp.h [10:11]
+        test-touch.c [8:9]
+        thirdparty/ittnotify/disable_warnings.h [6:7]
+        thirdparty/ittnotify/ittnotify.h [6:7]
+        thirdparty/ittnotify/ittnotify_config.h [6:7]
+        thirdparty/ittnotify/ittnotify_static.c [6:7]
+        thirdparty/ittnotify/ittnotify_types.h [6:7]
+        thirdparty/ittnotify/legacy/ittnotify.h [6:7]
+        z_Linux_util.c [10:11]
+        z_Windows_NT-586_util.c [10:11]
+        z_Windows_NT_util.c [10:11]
+
+KEEP     NCSA AND MIT         479de2cae020eacfac58212c03d33ab1
+BELONGS ya.make
+    License text:
+        // This file is dual licensed under the MIT and the University of Illinois Open
+        // Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        thirdparty/ittnotify/ittnotify_static.h [6:7]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        thirdparty/ittnotify/ittnotify_static.h [6:7]
+
+KEEP     NCSA AND MIT         61ab203794bd26e0aab2c6b954e30d9a
+BELONGS ya.make
+    License text:
+        //// This file is dual licensed under the MIT and the University of Illinois Open
+        //// Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        libomp.rc.var [8:9]
+        z_Linux_asm.s [9:10]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        libomp.rc.var [8:9]
+        z_Linux_asm.s [9:10]
+
+KEEP     NCSA AND MIT         9d5ffd6253d2b406a8bc3bbf3cb4f38b
+BELONGS ya.make
+    License text:
+        !// This file is dual licensed under the MIT and the University of Illinois Open
+        !// Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        include/30/omp_lib.f.var [8:9]
+        include/30/omp_lib.f90.var [8:9]
+        include/30/omp_lib.h.var [8:9]
+        include/40/omp_lib.f.var [8:9]
+        include/40/omp_lib.f90.var [8:9]
+        include/40/omp_lib.h.var [8:9]
+        include/41/omp_lib.f.var [8:9]
+        include/41/omp_lib.f90.var [8:9]
+        include/41/omp_lib.h.var [8:9]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        include/30/omp_lib.f.var [8:9]
+        include/30/omp_lib.f90.var [8:9]
+        include/30/omp_lib.h.var [8:9]
+        include/40/omp_lib.f.var [8:9]
+        include/40/omp_lib.f90.var [8:9]
+        include/40/omp_lib.h.var [8:9]
+        include/41/omp_lib.f.var [8:9]
+        include/41/omp_lib.f90.var [8:9]
+        include/41/omp_lib.h.var [8:9]
+
+KEEP     NCSA AND MIT         d2725783fa0a2f24d855943aac3dbdf9
+BELONGS ya.make
+    License text:
+        ;// This file is dual licensed under the MIT and the University of Illinois Open
+        ;// Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        z_Windows_NT-586_asm.asm [9:10]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        z_Windows_NT-586_asm.asm [9:10]
+
+KEEP     NCSA AND MIT         e56769dac6aaa0678164025adda8a1da
+BELONGS ya.make
+    License text:
+        \#// This file is dual licensed under the MIT and the University of Illinois Open
+        \#// Source Licenses. See LICENSE.txt for details.
+    Scancode info:
+        Original SPDX id: NCSA
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+    Files with this license:
+        i18n/en_US.txt [8:9]
+    Scancode info:
+        Original SPDX id: MIT
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+    Files with this license:
+        i18n/en_US.txt [8:9]
