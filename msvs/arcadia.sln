@@ -1283,6 +1283,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "absl-types-bad_optional_acc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "absl-types-bad_variant_access", "Projects\contrib\restricted\abseil-cpp\absl\types\bad_variant_access\absl-types-bad_variant_access.vcxproj", "{28ADA7AD-918A-CFA6-21EF-D9B491057E66}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "absl-types-internal", "Projects\contrib\restricted\abseil-cpp\absl\types\internal\absl-types-internal.vcxproj", "{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "abseil-cpp-absl-utility", "Projects\contrib\restricted\abseil-cpp\absl\utility\abseil-cpp-absl-utility.vcxproj", "{8E4C07DF-5503-9B55-81B6-3168543E79CA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "contrib-restricted-abseil-cpp", "Projects\contrib\restricted\abseil-cpp\contrib-restricted-abseil-cpp.vcxproj", "{EF6CA6C0-39D9-9FBF-190B-A791E5522CEF}"
@@ -3789,6 +3791,10 @@ Global
 		{28ADA7AD-918A-CFA6-21EF-D9B491057E66}.Debug|x64.Build.0 = Debug|x64
 		{28ADA7AD-918A-CFA6-21EF-D9B491057E66}.Release|x64.ActiveCfg = Release|x64
 		{28ADA7AD-918A-CFA6-21EF-D9B491057E66}.Release|x64.Build.0 = Release|x64
+		{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}.Debug|x64.ActiveCfg = Debug|x64
+		{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}.Debug|x64.Build.0 = Debug|x64
+		{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}.Release|x64.ActiveCfg = Release|x64
+		{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}.Release|x64.Build.0 = Release|x64
 		{8E4C07DF-5503-9B55-81B6-3168543E79CA}.Debug|x64.ActiveCfg = Debug|x64
 		{8E4C07DF-5503-9B55-81B6-3168543E79CA}.Debug|x64.Build.0 = Debug|x64
 		{8E4C07DF-5503-9B55-81B6-3168543E79CA}.Release|x64.ActiveCfg = Release|x64
@@ -5432,6 +5438,7 @@ Global
 		{13EAA9C5-BC09-9D17-9084-801180AD417E} = {052DB546-AA94-F2B9-E38B-3579AE0AEAF1}
 		{753BBE3B-79AD-E56C-7D2C-82F512858168} = {052DB546-AA94-F2B9-E38B-3579AE0AEAF1}
 		{28ADA7AD-918A-CFA6-21EF-D9B491057E66} = {052DB546-AA94-F2B9-E38B-3579AE0AEAF1}
+		{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899} = {052DB546-AA94-F2B9-E38B-3579AE0AEAF1}
 		{8E4C07DF-5503-9B55-81B6-3168543E79CA} = {AF6BF93A-84C8-9A92-7233-447BE00D0FB2}
 		{EF6CA6C0-39D9-9FBF-190B-A791E5522CEF} = {C6680767-2E7D-C41F-61AC-32FB3F82F6DD}
 		{C4244186-1688-FFD7-FAB5-CB9E056577E2} = {972898BC-F23D-0807-03A7-9C71E386A097}
