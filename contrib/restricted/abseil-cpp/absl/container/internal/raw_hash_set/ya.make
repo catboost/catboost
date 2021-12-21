@@ -25,6 +25,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/strings/internal
     contrib/restricted/abseil-cpp/absl/synchronization
     contrib/restricted/abseil-cpp/absl/synchronization/internal
+    contrib/restricted/abseil-cpp/absl/types
     contrib/restricted/abseil-cpp/absl/time
     contrib/restricted/abseil-cpp/absl/time/civil_time
     contrib/restricted/abseil-cpp/absl/time/time_zone
