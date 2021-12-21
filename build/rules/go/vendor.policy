@@ -1014,6 +1014,9 @@ ALLOW .* -> vendor/github.com/haproxytech/go-logger
 # CONTRIB-2416 Bit Reader/Writer
 ALLOW .* -> vendor/github.com/icza/bitio
 
+# CONTRIB-2420 Syslog server/parser
+ALLOW .* -> vendor/gopkg.in/mcuadros/go-syslog.v2
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
