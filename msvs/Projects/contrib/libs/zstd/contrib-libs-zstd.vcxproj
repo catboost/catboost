@@ -193,10 +193,12 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\huf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\mem.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\portability_macros.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\threading.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\zstd_deps.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\zstd_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\common\zstd_trace.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\compress\clevels.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\compress\hist.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\compress\zstd_compress_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\lib\compress\zstd_compress_literals.h"/>
