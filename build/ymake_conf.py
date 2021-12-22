@@ -2116,7 +2116,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
-             '--target $_TARGET',
+             '--target $TARGET',
              '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX$MODULE_VERSION.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
              '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
              '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
@@ -2124,7 +2124,7 @@ class LD(Linker):
              '$LINK_DYN_LIB_FLAGS',
              '$CXX_COMPILER',
              srcs_globals,
-             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET$MODULE_VERSION',
+             '$VCS_C_OBJ $AUTO_INPUT -o $TARGET',
              shared_flag,
              soname_flag,
              exe_flags,
