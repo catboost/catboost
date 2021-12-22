@@ -109,14 +109,13 @@
 
 DEMANGLE_NAMESPACE_BEGIN
 
-template <class T, size_t N>
-class PODSmallVector {
+template <class T, size_t N> class PODSmallVector {
   static_assert(std::is_pod<T>::value,
                 "T is required to be a plain old data type");
 
-  T* First = nullptr;
-  T* Last = nullptr;
-  T* Cap = nullptr;
+  T *First = nullptr;
+  T *Last = nullptr;
+  T *Cap = nullptr;
   T Inline[N] = {0};
 
   bool isInline() const { return First == Inline; }
@@ -130,13 +129,13 @@ class PODSmallVector {
   void reserve(size_t NewCap) {
     size_t S = size();
     if (isInline()) {
-      auto* Tmp = static_cast<T*>(std::malloc(NewCap * sizeof(T)));
+      auto *Tmp = static_cast<T *>(std::malloc(NewCap * sizeof(T)));
       if (Tmp == nullptr)
         std::terminate();
       std::copy(First, Last, Tmp);
       First = Tmp;
     } else {
-      First = static_cast<T*>(std::realloc(First, NewCap * sizeof(T)));
+      First = static_cast<T *>(std::realloc(First, NewCap * sizeof(T)));
       if (First == nullptr)
         std::terminate();
     }
@@ -147,10 +146,10 @@ class PODSmallVector {
 public:
   PODSmallVector() : First(Inline), Last(First), Cap(Inline + N) {}
 
-  PODSmallVector(const PODSmallVector&) = delete;
-  PODSmallVector& operator=(const PODSmallVector&) = delete;
+  PODSmallVector(const PODSmallVector &) = delete;
+  PODSmallVector &operator=(const PODSmallVector &) = delete;
 
-  PODSmallVector(PODSmallVector&& Other) : PODSmallVector() {
+  PODSmallVector(PODSmallVector &&Other) : PODSmallVector() {
     if (Other.isInline()) {
       std::copy(Other.begin(), Other.end(), First);
       Last = First + Other.size();
@@ -164,7 +163,7 @@ public:
     Other.clearInline();
   }
 
-  PODSmallVector& operator=(PODSmallVector&& Other) {
+  PODSmallVector &operator=(PODSmallVector &&Other) {
     if (Other.isInline()) {
       if (!isInline()) {
         std::free(First);
@@ -191,12 +190,14 @@ public:
     return *this;
   }
 
-  void push_back(const T& Elem) {
+  // NOLINTNEXTLINE(readability-identifier-naming)
+  void push_back(const T &Elem) {
     if (Last == Cap)
       reserve(size() * 2);
     *Last++ = Elem;
   }
 
+  // NOLINTNEXTLINE(readability-identifier-naming)
   void pop_back() {
     assert(Last != First && "Popping empty vector!");
     --Last;
@@ -207,16 +208,16 @@ public:
     Last = First + Index;
   }
 
-  T* begin() { return First; }
-  T* end() { return Last; }
+  T *begin() { return First; }
+  T *end() { return Last; }
 
   bool empty() const { return First == Last; }
   size_t size() const { return static_cast<size_t>(Last - First); }
-  T& back() {
+  T &back() {
     assert(Last != First && "Calling back() on empty vector!");
     return *(Last - 1);
   }
-  T& operator[](size_t Index) {
+  T &operator[](size_t Index) {
     assert(Index < size() && "Invalid access!");
     return *(begin() + Index);
   }
@@ -651,14 +652,14 @@ class ReferenceType : public Node {
   // rule here is rvalue ref to rvalue ref collapses to a rvalue ref, and any
   // other combination collapses to a lvalue ref.
   //
-  // A combination of a TemplateForwardReference and a back-ref Substitution 
+  // A combination of a TemplateForwardReference and a back-ref Substitution
   // from an ill-formed string may have created a cycle; use cycle detection to
   // avoid looping forever.
   std::pair<ReferenceKind, const Node *> collapse(OutputStream &S) const {
     auto SoFar = std::make_pair(RK, Pointee);
     // Track the chain of nodes for the Floyd's 'tortoise and hare'
     // cycle-detection algorithm, since getSyntaxNode(S) is impure
-    PODSmallVector<const Node*, 8> Prev;
+    PODSmallVector<const Node *, 8> Prev;
     for (;;) {
       const Node *SN = SoFar.second->getSyntaxNode(S);
       if (SN->getKind() != KReferenceType)
