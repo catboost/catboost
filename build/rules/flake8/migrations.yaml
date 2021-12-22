@@ -789,7 +789,6 @@ migrations:
     - yabs/server/cs/pylibs/settings
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/trivial_cron
-    - yabs/server/libs/internal_ver/depgrapher/lib
     - yabs/server/libs/py_markdown_strings
     - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-11503
@@ -3384,7 +3383,6 @@ migrations:
     - rt-research/common/bindings/jupiter_canonizer/ut/lib
     - rtmapreduce/mrtasks/bs_fast_stat/tests
     - rtmapreduce/mrtasks/cocaine_log/tests
-    - rtmapreduce/mrtasks/create_market_requests/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
     - rtmapreduce/mrtasks/orgvisits/tests
@@ -3524,7 +3522,6 @@ migrations:
     - yweb/news/mr_indexer/tests
     - yweb/news/rank/rtmr_visits_exporter/tests
     - yweb/news/rtmr/user_story_visits/tests
-    - yweb/news/rtmr/visits_aggregation/tests
     - yweb/peoplesearch/rtysearch/lib/profile_dumper/tests/tests
     - yweb/peoplesearch/rtysearch/rtyindexer/tests
     - yweb/peoplesearch/social_users/lib/common/tests/tests
