@@ -151,6 +151,17 @@ namespace NObjectFactory {
             return keys;
         }
 
+        template <class TDerivedProduct>
+        static TSet<TKey> GetRegisteredKeys() {
+            TSet<TKey> registeredKeys(GetRegisteredKeys());
+            TSet<TKey> fileredKeys;
+            std::copy_if(registeredKeys.begin(), registeredKeys.end(), std::inserter(fileredKeys, fileredKeys.end()), [](const TKey& key) {
+                THolder<TProduct> objectHolder(Construct(key));
+                return !!dynamic_cast<const TDerivedProduct*>(objectHolder.Get());
+            });
+            return fileredKeys;
+        }
+
         template <class Product>
         class TRegistrator {
         public:
