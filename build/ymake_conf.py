@@ -2044,7 +2044,7 @@ class LD(Linker):
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG $ICF_FLAG $LINKER_TIME_TRACE_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
-        soname_flag = '-Wl,{option},${{nopath:TARGET}}$MODULE_VERSION'.format(option=self.soname_option)
+        soname_flag = '-Wl,{option},${{_SONAME}}'.format(option=self.soname_option)
         shared_flag = '-shared'
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
         if self.whole_archive:
