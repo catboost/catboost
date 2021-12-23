@@ -3643,7 +3643,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/pages
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/shares
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/stats
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb/subscriptions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/tasks
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/ugcdb
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb/underside
@@ -3660,7 +3659,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/object_answers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/recipes
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/resources
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/subscriptions
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/teasers
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/toloka
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/trashcan
