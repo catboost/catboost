@@ -275,4 +275,13 @@ Y_UNIT_TEST_SUITE(TLzTest) {
 
         UNIT_ASSERT_EQUAL(is->ReadAll(), "123456789");
     }
+
+    Y_UNIT_TEST(TestYQ609) {
+        auto data = NResource::Find("/yq_609.data");
+
+        TMemoryInput input(data.Data(), data.Size());
+
+        TLz4Decompress d(&input);
+        UNIT_ASSERT_EXCEPTION(d.ReadAll(), TDecompressorError);
+    }
 }

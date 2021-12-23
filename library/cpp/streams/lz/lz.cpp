@@ -3,6 +3,7 @@
 #include <util/system/yassert.h>
 #include <util/system/byteorder.h>
 #include <util/memory/addstorage.h>
+#include <util/generic/buffer.h>
 #include <util/generic/utility.h>
 #include <util/generic/singleton.h>
 #include <util/generic/yexception.h>
@@ -192,8 +193,8 @@ public:
         , Version_(CheckVer(Load<ui32>()))
         , BlockSize_(Load<ui16>())
         , OutBufSize_(TDecompressor::Hint(BlockSize_))
-        , Tmp_(::operator new(2 * OutBufSize_))
-        , In_((char*)Tmp_.Get())
+        , Tmp_(2 * OutBufSize_)
+        , In_(Tmp_.Data())
         , Out_(In_ + OutBufSize_)
     {
         this->InitFromStream(Slave_);
@@ -236,6 +237,9 @@ public:
         TMemoryInput header(tmp, sizeof(tmp));
 
         const ui16 len = GLoad<ui16>(&header);
+        if (len > Tmp_.Capacity()) {
+            ythrow TDecompressorError() << "invalid len inside block header";
+        }
         const ui8 compressed = GLoad<ui8>(&header);
 
         if (compressed > 1) {
@@ -267,7 +271,7 @@ protected:
     const ui32 Version_;
     const ui16 BlockSize_;
     const size_t OutBufSize_;
-    THolder<void> Tmp_;
+    TBuffer Tmp_;
     char* In_;
     char* Out_;
 };
