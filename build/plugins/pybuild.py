@@ -487,7 +487,7 @@ def onpy_srcs(unit, *args):
     std_protos_path = 'contrib/libs/protobuf_std'
     use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes' or upath.startswith(std_protos_path)
     proto_path_pref = std_protos_path if use_vanilla_protoc else arcadia_protos_path
-    google_lib = os.path.join(proto_path_pref, GOOGLE_LIB)
+    google_lib = '/'.join([proto_path_pref, GOOGLE_LIB])
 
     if protos:
         if not upath.startswith((google_lib, '/'.join([proto_path_pref, BUILTIN_PROTO]))):
