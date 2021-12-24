@@ -2375,6 +2375,8 @@ class MSVCCompiler(MSVC, Compiler):
         ]
 
         defines = [
+            '/DARCADIA_ROOT=${ARCADIA_ROOT}',
+            '/DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '/DFAKEID=$CPP_FAKEID',
             '/DWIN32',
             '/D_WIN32',
