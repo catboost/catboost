@@ -19,7 +19,7 @@ def pack_dir(dir_path, dest_path):
             break
     else:
         with tarfile.open(dest_path, 'w') as out:
-            out.add(dir_path, arcname='.')
+            out.add(dir_path, arcname=os.path.basename(dir_path))
 
 
 def unpack_dir(tared_dir, dest_path):
