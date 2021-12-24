@@ -105,6 +105,7 @@ bool THttp2Options::AnyResponseIsNotError = false;
 bool THttp2Options::TcpKeepAlive = false;
 i32 THttp2Options::LimitRequestsPerConnection = -1;
 bool THttp2Options::QuickAck = false;
+bool THttp2Options::UseAsyncSendRequest = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -115,7 +116,8 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
     else HTTP2_TRY_SET(TDuration, InputDeadline)
     else HTTP2_TRY_SET(TDuration, OutputDeadline)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, AnyResponseIsNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else HTTP2_TRY_SET(i32, LimitRequestsPerConnection) else HTTP2_TRY_SET(bool, QuickAck) else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, AnyResponseIsNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else HTTP2_TRY_SET(i32, LimitRequestsPerConnection) else HTTP2_TRY_SET(bool, QuickAck)
+    else HTTP2_TRY_SET(bool, UseAsyncSendRequest) else {
         return false;
     }
     return true;
@@ -719,22 +721,30 @@ namespace {
         }
 
         void SendRequest(const THttpRequestBuffersPtr& bfs, TErrorCode& ec) { //throw std::bad_alloc
-            size_t amount = AS_.WriteSome(*bfs->GetIOvec(), ec);
+            if (!THttp2Options::UseAsyncSendRequest) {
+                size_t amount = AS_.WriteSome(*bfs->GetIOvec(), ec);
 
-            if (ec && ec.Value() != EAGAIN && ec.Value() != EWOULDBLOCK && ec.Value() != EINPROGRESS) {
-                return;
-            }
-            ec.Assign(0);
+                if (ec && ec.Value() != EAGAIN && ec.Value() != EWOULDBLOCK && ec.Value() != EINPROGRESS) {
+                    return;
+                }
+                ec.Assign(0);
 
-            bfs->GetIOvec()->Proceed(amount);
+                bfs->GetIOvec()->Proceed(amount);
 
-            if (bfs->GetIOvec()->Complete()) {
-                RequestWritten_ = true;
-                StartRead();
+                if (bfs->GetIOvec()->Complete()) {
+                    RequestWritten_ = true;
+                    StartRead();
+                } else {
+                    SendRequestAsync(bfs);
+                }
             } else {
-                NAsio::TTcpSocket::TSendedData sd(bfs.Release());
-                AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3), THttp2Options::OutputDeadline);
+                SendRequestAsync(bfs);
             }
+        }
+
+        void SendRequestAsync(const THttpRequestBuffersPtr& bfs) {
+            NAsio::TTcpSocket::TSendedData sd(bfs.Release());
+            AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3), THttp2Options::OutputDeadline);
         }
 
         void OnWrite(const TErrorCode& err, size_t amount, IHandlingContext& ctx) {
