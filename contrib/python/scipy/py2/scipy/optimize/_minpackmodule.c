@@ -46,9 +46,9 @@ PyObject *PyInit__minpack(void)
     return m;
 }
 #else
-PyMODINIT_FUNC init5scipy8optimize8_minpack(void) {
+PyMODINIT_FUNC init_minpack(void) {
   PyObject *m, *d, *s;
-  m = Py_InitModule("scipy.optimize._minpack", minpack_module_methods);
+  m = Py_InitModule("_minpack", minpack_module_methods);
   import_array();
   d = PyModule_GetDict(m);
 

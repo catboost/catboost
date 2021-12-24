@@ -302,7 +302,7 @@ static PyObject *IIRsymorder1(PyObject *NPY_UNUSED(dummy), PyObject *args)
   thetype = PyArray_MIN(thetype, NPY_CDOUBLE);
   a_sig = (PyArrayObject *)PyArray_FromObject(sig, thetype, 1, 1);
   
-  if ((a_sig == NULL)) goto fail;
+  if (a_sig == NULL) goto fail;
   
   out = (PyArrayObject *)PyArray_SimpleNew(1, PyArray_DIMS(a_sig), thetype);
   if (out == NULL) goto fail;
@@ -426,7 +426,7 @@ static PyObject *IIRsymorder2(PyObject *NPY_UNUSED(dummy), PyObject *args)
   thetype = PyArray_MIN(thetype, NPY_DOUBLE);
   a_sig = (PyArrayObject *)PyArray_FromObject(sig, thetype, 1, 1);
   
-  if ((a_sig == NULL)) goto fail;
+  if (a_sig == NULL) goto fail;
   
   out = (PyArrayObject *)PyArray_SimpleNew(1, PyArray_DIMS(a_sig), thetype);
   if (out == NULL) goto fail;
@@ -509,11 +509,11 @@ PyObject *PyInit_spline(void)
     return m;
 }
 #else
-PyMODINIT_FUNC init5scipy6signal6spline(void) {
+PyMODINIT_FUNC initspline(void) {
     PyObject *m, *d, *s;
 	
     /* Create the module and add the functions */
-    m = Py_InitModule("scipy.signal.spline", toolbox_module_methods);
+    m = Py_InitModule("spline", toolbox_module_methods);
     
     /* Import the C API function pointers for the Array Object*/
     import_array();

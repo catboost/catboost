@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file memory.c
  * \brief Precision-independent memory-related routines
  *
@@ -111,7 +121,7 @@ SetIWork(int m, int n, int panel_size, int *iworkptr, int **segrep,
 void
 copy_mem_int(int howmany, void *old, void *new)
 {
-    int i;
+    register int i;
     int *iold = old;
     int *inew = new;
     for (i = 0; i < howmany; i++) inew[i] = iold[i];
@@ -143,7 +153,7 @@ int *intMalloc(int n)
 int *intCalloc(int n)
 {
     int *buf;
-    int i;
+    register int i;
     buf = (int *) SUPERLU_MALLOC(n * sizeof(int));
     if ( !buf ) {
 	ABORT("SUPERLU_MALLOC fails for buf in intCalloc()");

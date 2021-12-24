@@ -1,35 +1,29 @@
-        subroutine idd_random_transf_inverse(x,y,w)
+        subroutine idz_random_transf0_inv(nsteps,x,y,n,w2,albetas,
+     1      gammas,iixs)
         implicit real *8 (a-h,o-z)
         save
-        dimension x(*),y(*),w(*)
+        complex *16 x(*),y(*),w2(*),gammas(n,*)
+        dimension albetas(2,n,*),iixs(n,*)
 c
-c       applies rapidly a random orthogonal matrix
-c       to the user-specified real vector x, 
-c       using the data in array w stored there by a preceding 
-c       call to routine idd_random_transf_init.
-c       The transformation applied by the present routine is
-c       the inverse of the transformation applied
-c       by routine idd_random_transf.
+c       routine idz_random_transf_inverse serves as a memory wrapper
+c       for the present routine; please see routine
+c       idz_random_transf_inverse for documentation.
 c
-c       input:
-c       x -- the vector of length n to which the random matrix is
-c            to be applied
-c       w -- array containing all initialization data
+        do 1200 i=1,n
 c
-c       output:
-c       y -- the result of applying the random matrix to x
+        w2(i)=x(i)
+ 1200 continue
 c
+        do 2000 ijk=nsteps,1,-1
 c
-c        . . . allocate memory
+        call idz_random_transf00_inv(w2,y,n,albetas(1,1,ijk),
+     1      gammas(1,ijk),iixs(1,ijk) )
 c
-        ialbetas=w(1)
-        iixs=w(2)
-        nsteps=w(3)
-        iww=w(4)
-        n=w(5)
+        do 1400 j=1,n
 c
-        call idd_random_transf0_inv(nsteps,x,y,n,w(iww),
-     1      w(ialbetas),w(iixs))
+        w2(j)=y(j)
+ 1400 continue
+ 2000 continue
 c
         return
         end

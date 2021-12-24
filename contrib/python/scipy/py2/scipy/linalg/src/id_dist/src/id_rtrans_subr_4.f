@@ -1,34 +1,36 @@
-        subroutine idz_random_transf(x,y,w)
+        subroutine idz_random_transf00_inv(x,y,n,albetas,gammas,ixs)
         implicit real *8 (a-h,o-z)
         save
-        complex *16 x(*),y(*)
-        dimension w(*)
+        complex *16 x(*),y(*),gammas(*),a,b
+        dimension albetas(2,*),ixs(*)
 c
-c       applies rapidly a random unitary matrix
-c       to the user-specified vector x, 
-c       using the data in array w stored there by a preceding 
-c       call to routine idz_random_transf_init.
+c       implements one step of the random transform
+c       required by routine idz_random_transf0_inv
+c       (please see the latter).
 c
-c       input:
-c       x -- the vector of length n to which the random matrix is
-c            to be applied
-c       w -- array containing all initialization data
+c        implement 2 \times 2 matrices
 c
-c       output:
-c       y -- the result of applying the random matrix to x
+        do 1600 i=n-1,1,-1
 c
+        alpha=albetas(1,i)
+        beta=albetas(2,i)
 c
-c        . . . allocate memory
+        a=x(i)
+        b=x(i+1)
 c
-        ialbetas=w(1)
-        iixs=w(2)
-        nsteps=w(3)
-        iww=w(4)
-        n=w(5)
-        igammas=w(6)
+        x(i)=alpha*a-beta*b
+        x(i+1)=beta*a+alpha*b
+ 1600 continue
 c
-        call idz_random_transf0(nsteps,x,y,n,w(iww),w(ialbetas),
-     1      w(igammas),w(iixs))
+c        implement the permutation
+c        and divide by the random numbers on the unit circle
+c        (or, equivalently, multiply by their conjugates)
+c
+        do 1800 i=1,n
+c
+        j=ixs(i)
+        y(j)=x(i)*conjg(gammas(i))
+ 1800 continue
 c
         return
         end

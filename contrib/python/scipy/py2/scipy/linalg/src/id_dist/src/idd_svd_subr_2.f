@@ -1,34 +1,39 @@
-        subroutine idd_permuter(krank,ind,m,n,a)
+        subroutine idd_retriever(m,n,a,krank,r)
 c
-c       permutes the columns of a according to ind obtained
-c       from routine iddr_qrpiv or iddp_qrpiv, assuming that
-c       a = q r from iddr_qrpiv or iddp_qrpiv.
+c       extracts R in the QR decomposition specified by the output a
+c       of the routine iddr_qrpiv or iddp_qrpiv
 c
 c       input:
-c       krank -- rank specified to routine iddr_qrpiv
-c                or obtained from routine iddp_qrpiv
-c       ind -- indexing array obtained from routine iddr_qrpiv
-c              or iddp_qrpiv
 c       m -- first dimension of a
-c       n -- second dimension of a
-c       a -- matrix to be rearranged
+c       n -- second dimension of a and r
+c       a -- output of routine iddr_qrpiv or iddp_qrpiv
+c       krank -- rank specified to routine iddr_qrpiv,
+c                or output by routine iddp_qrpiv
 c
 c       output:
-c       a -- rearranged matrix
+c       r -- triangular factor in the QR decomposition specified
+c            by the output a of the routine iddr_qrpiv or iddp_qrpiv
 c
         implicit none
-        integer k,krank,m,n,j,ind(krank)
-        real*8 rswap,a(m,n)
+        integer m,n,j,k,krank
+        real*8 a(m,n),r(krank,n)
 c
 c
-        do k = krank,1,-1
-          do j = 1,m
+c       Copy a into r and zero out the appropriate
+c       Householder vectors that are stored in one triangle of a.
 c
-            rswap = a(j,k)
-            a(j,k) = a(j,ind(k))
-            a(j,ind(k)) = rswap
-c
+        do k = 1,n
+          do j = 1,krank
+            r(j,k) = a(j,k)
           enddo ! j
+        enddo ! k
+c
+        do k = 1,n
+          if(k .lt. krank) then
+            do j = k+1,krank
+              r(j,k) = 0
+            enddo ! j
+          endif
         enddo ! k
 c
 c
@@ -38,3 +43,29 @@ c
 c
 c
 c
+        subroutine idd_transer(m,n,a,at)
+c
+c       forms the transpose at of a.
+c
+c       input:
+c       m -- first dimension of a and second dimension of at
+c       n -- second dimension of a and first dimension of at
+c       a -- matrix to be transposed
+c
+c       output:
+c       at -- transpose of a
+c
+        implicit none
+        integer m,n,j,k
+        real*8 a(m,n),at(n,m)
+c
+c
+        do k = 1,n
+          do j = 1,m
+            at(k,j) = a(j,k)
+          enddo ! j
+        enddo ! k
+c
+c
+        return
+        end

@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file sreadhb.c
  * \brief Read a matrix stored in Harwell-Boeing format
@@ -82,7 +92,7 @@
 /*! \brief Eat up the rest of the current line */
 int sDumpLine(FILE *fp)
 {
-    int c;
+    register int c;
     while ((c = fgetc(fp)) != '\n') ;
     return 0;
 }
@@ -129,7 +139,7 @@ int sParseFloatFormat(char *buf, int *num, int *size)
 
 static int ReadVector(FILE *fp, int n, int *where, int perline, int persize)
 {
-    int i, j, item;
+    register int i, j, item;
     char tmp, buf[100];
     
     i = 0;
@@ -149,7 +159,7 @@ static int ReadVector(FILE *fp, int n, int *where, int perline, int persize)
 
 int sReadValues(FILE *fp, int n, float *destination, int perline, int persize)
 {
-    int i, j, k, s;
+    register int i, j, k, s;
     char tmp, buf[100];
     
     i = 0;
@@ -180,7 +190,7 @@ int sReadValues(FILE *fp, int n, float *destination, int perline, int persize)
 static void
 FormFullA(int n, int *nonz, float **nzval, int **rowind, int **colptr)
 {
-    int i, j, k, col, new_nnz;
+    register int i, j, k, col, new_nnz;
     int *t_rowind, *t_colptr, *al_rowind, *al_colptr, *a_rowind, *a_colptr;
     int *marker;
     float *t_val, *al_val, *a_val;
@@ -276,7 +286,7 @@ sreadhb(FILE *fp, int *nrow, int *ncol, int *nonz,
 	float **nzval, int **rowind, int **colptr)
 {
 
-    int i, numer_lines = 0, rhscrd = 0;
+    register int i, numer_lines = 0, rhscrd = 0;
     int tmp, colnum, colsize, rownum, rowsize, valnum, valsize;
     char buf[100], type[4], key[10];
     int sym;

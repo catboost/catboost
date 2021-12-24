@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ilu_zcopy_to_ucol.c
  * \brief Copy a computed column of U to the compressed data structure
@@ -22,8 +32,8 @@ extern void zcopy_(int *, doublecomplex [], int *, doublecomplex [], int *);
 static doublecomplex *A;  /* used in _compare_ only */
 static int _compare_(const void *a, const void *b)
 {
-    int *x = (int *)a, *y = (int *)b;
-    double xx = z_abs1(&A[*x]), yy = z_abs1(&A[*y]);
+    register int *x = (int *)a, *y = (int *)b;
+    register double xx = z_abs1(&A[*x]), yy = z_abs1(&A[*y]);
     if (xx > yy) return -1;
     else if (xx < yy) return 1;
     else return 0;
@@ -63,8 +73,8 @@ ilu_zcopy_to_ucol(
     int       *usub, *xusub;
     int       nzumax;
     int       m; /* number of entries in the nonzero U-segments */
-    double d_max = 0.0, d_min = 1.0 / dmach("Safe minimum");
-    double tmp;
+    register double d_max = 0.0, d_min = 1.0 / dmach("Safe minimum");
+    register double tmp;
     doublecomplex zero = {0.0, 0.0};
     int i_1 = 1;
 

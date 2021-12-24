@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file util.c
  * \brief Utility functions
  * 
@@ -244,7 +254,7 @@ ilu_countnz(const int n, int *nnzL, int *nnzU, GlobalLU_t *Glu)
 void
 fixupL(const int n, const int *perm_r, GlobalLU_t *Glu)
 {
-    int nsuper, fsupc, nextl, i, j, k, jstrt;
+    register int nsuper, fsupc, nextl, i, j, k, jstrt;
     int          *xsup, *lsub, *xlsub;
 
     if ( n <= 1 ) return;
@@ -295,7 +305,7 @@ void print_panel_seg(int n, int w, int jcol, int nseg,
 void
 StatInit(SuperLUStat_t *stat)
 {
-    int i, w, panel_size, relax;
+    register int i, w, panel_size, relax;
 
     panel_size = sp_ienv(1);
     relax = sp_ienv(2);
@@ -378,7 +388,7 @@ LUSolveFlops(SuperLUStat_t *stat)
  */
 void ifill(int *a, int alen, int ival)
 {
-    int i;
+    register int i;
     for (i = 0; i < alen; i++) a[i] = ival;
 }
 
@@ -390,7 +400,7 @@ void ifill(int *a, int alen, int ival)
 
 void super_stats(int nsuper, int *xsup)
 {
-    int nsup1 = 0;
+    register int nsup1 = 0;
     int    i, isize, whichb, bl, bh;
     int    bucket[NBUCKS];
     int    max_sup_size = 0;
@@ -478,7 +488,7 @@ int print_int_vec(char *what, int n, int *vec)
 
 int slu_PrintInt10(char *name, int len, int *x)
 {
-    int i;
+    register int i;
     
     printf("%10s:", name);
     for (i = 0; i < len; ++i)

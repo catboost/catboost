@@ -2,10 +2,10 @@ C
 C      ALGORITHM 733, COLLECTED ALGORITHMS FROM ACM.
 C      TRANSACTIONS ON MATHEMATICAL SOFTWARE,
 C      VOL. 20, NO. 3, SEPTEMBER, 1994, PP. 262-281.
-C      http://doi.acm.org/10.1145/192115.192124
+C      https://doi.org/10.1145/192115.192124
 C
 C
-C      http://permalink.gmane.org/gmane.comp.python.scientific.devel/6725
+C      https://web.archive.org/web/20170106155705/http://permalink.gmane.org/gmane.comp.python.scientific.devel/6725
 C      ------
 C      From: Deborah Cotton <cotton@hq.acm.org>
 C      Date: Fri, 14 Sep 2007 12:35:55 -0500
@@ -35,7 +35,10 @@ C
 ************************************************************************
 
       SUBROUTINE slsqp (m, meq, la, n, x, xl, xu, f, c, g, a,
-     *                  acc, iter, mode, w, l_w, jw, l_jw)
+     *                  acc, iter, mode, w, l_w, jw, l_jw,
+     *                  alpha, f0, gs, h1, h2, h3, h4, t, t0, tol,
+     *                  iexact, incons, ireset, itermx, line, 
+     *                  n1, n2, n3)
 
 C   SLSQP       S EQUENTIAL  L EAST  SQ UARES  P ROGRAMMING
 C            TO SOLVE GENERAL NONLINEAR OPTIMIZATION PROBLEMS
@@ -112,7 +115,7 @@ C*                   ON EXIT : REQUIRED ACCURACY FOR SOLUTION OBTAINED *
 C*                1: FUNCTION EVALUATION, (F&C)                        *
 C*                                                                     *
 C*                   FAILURE MODES:                                    *
-C*                2: NUMBER OF EQUALITY CONTRAINTS LARGER THAN N       *
+C*                2: NUMBER OF EQUALITY CONSTRAINTS LARGER THAN N      *
 C*                3: MORE THAN 3*N ITERATIONS IN LSQ SUBPROBLEM        *
 C*                4: INEQUALITY CONSTRAINTS INCOMPATIBLE               *
 C*                5: SINGULAR MATRIX E IN LSQ SUBPROBLEM               *
@@ -198,7 +201,7 @@ C*  which should be referenced if the user publishes results of SLSQP  *
 C*                                                                     *
 C*  DATE:           APRIL - OCTOBER, 1981.                             *
 C*  STATUS:         DECEMBER, 31-ST, 1984.                             *
-C*  STATUS:         MARCH   , 21-ST, 1987, REVISED TO FORTAN 77        *
+C*  STATUS:         MARCH   , 21-ST, 1987, REVISED TO FORTRAN 77       *
 C*  STATUS:         MARCH   , 20-th, 1989, REVISED TO MS-FORTRAN       *
 C*  STATUS:         APRIL   , 14-th, 1989, HESSE   in-line coded       *
 C*  STATUS:         FEBRUARY, 28-th, 1991, FORTRAN/2 Version 1.04      *
@@ -214,10 +217,14 @@ C*                                                                     *
 C***********************************************************************
 
       INTEGER          il, im, ir, is, iter, iu, iv, iw, ix, l_w, l_jw,
-     *                 jw(l_jw), la, m, meq, mineq, mode, n, n1
+     *                 jw(l_jw), la, m, meq, mineq, mode, n
 
       DOUBLE PRECISION acc, a(la,n+1), c(la), f, g(n+1),
      *                 x(n), xl(n), xu(n), w(l_w)
+
+      INTEGER          iexact, incons, ireset, itermx, line, n1, n2, n3
+
+      DOUBLE PRECISION alpha, f0, gs, h1, h2, h3, h4, t, t0, tol
 
 c     dim(W) =         N1*(N1+1) + MEQ*(N1+1) + MINEQ*(N1+1)  for LSQ
 c                    +(N1-MEQ+1)*(MINEQ+2) + 2*MINEQ          for LSI
@@ -254,12 +261,18 @@ C   PREPARE DATA FOR CALLING SQPBDY  -  INITIAL ADDRESSES IN W
       iw = iv + n1
 
       CALL slsqpb  (m, meq, la, n, x, xl, xu, f, c, g, a, acc, iter,
-     * mode, w(ir), w(il), w(ix), w(im), w(is), w(iu), w(iv), w(iw), jw)
-
+     * mode, w(ir), w(il), w(ix), w(im), w(is), w(iu), w(iv), w(iw), jw,
+     * alpha, f0, gs, h1, h2, h3, h4, t, t0, tol,
+     * iexact, incons, ireset, itermx, line, 
+     * n1, n2, n3)
+ 
       END
 
       SUBROUTINE slsqpb (m, meq, la, n, x, xl, xu, f, c, g, a, acc,
-     *                   iter, mode, r, l, x0, mu, s, u, v, w, iw)
+     *                   iter, mode, r, l, x0, mu, s, u, v, w, iw,
+     *                   alpha, f0, gs, h1, h2, h3, h4, t, t0, tol,
+     *                   iexact, incons, ireset, itermx, line, 
+     *                   n1, n2, n3)
 
 C   NONLINEAR PROGRAMMING BY SOLVING SEQUENTIALLY QUADRATIC PROGRAMS
 
@@ -269,6 +282,7 @@ C                      BODY SUBROUTINE FOR SLSQP
 
       INTEGER          iw(*), i, iexact, incons, ireset, iter, itermx,
      *                 k, j, la, line, m, meq, mode, n, n1, n2, n3
+      LOGICAL          badlin
 
       DOUBLE PRECISION a(la,n+1), c(la), g(n+1), l((n+1)*(n+2)/2),
      *                 mu(la), r(m+n+n+2), s(n+1), u(n+1), v(n+1), w(*),
@@ -282,11 +296,12 @@ c                     +(N1-MEQ+1)*(MINEQ+2) + 2*MINEQ
 c                     +(N1+MINEQ)*(N1-MEQ) + 2*MEQ + N1       for LSEI
 c                      with MINEQ = M - MEQ + 2*N1  &  N1 = N+1
 
-      SAVE             alpha, f0, gs, h1, h2, h3, h4, t, t0, tol,
-     *                 iexact, incons, ireset, itermx, line, n1, n2, n3
-
       DATA             ZERO /0.0d0/, one /1.0d0/, alfmin /1.0d-1/,
      *                 hun /1.0d+2/, ten /1.0d+1/, two /2.0d0/
+
+C     The badlin flag keeps track whether the SQP problem on the current
+C     iteration was inconsistent or not.
+      badlin = .false.
 
       IF (mode) 260, 100, 220
 
@@ -336,13 +351,19 @@ C   SEARCH DIRECTION AS SOLUTION OF QP - SUBPROBLEM
       CALL lsq (m, meq, n , n3, la, l, g, a, c, u, v, s, r, w, iw, mode)
 
 C   AUGMENTED PROBLEM FOR INCONSISTENT LINEARIZATION
+C
+C   If it turns out that the original SQP problem is inconsistent,
+C   disallow termination with convergence on this iteration,
+C   even if the augmented problem was solved.
 
+      badlin = .false.
       IF (mode.EQ.6) THEN
           IF (n.EQ.meq) THEN
               mode = 4
           ENDIF
       ENDIF
       IF (mode.EQ.4) THEN
+          badlin = .true.
           DO 140 j=1,m
              IF (j.LE.meq) THEN
                  a(j,n1) = -c(j)
@@ -399,7 +420,7 @@ C   UPDATE MULTIPLIERS FOR L1-TEST
 C   CHECK CONVERGENCE
 
       mode = 0
-      IF (h1.LT.acc .AND. h2.LT.acc) GO TO 330
+      IF (h1.LT.acc .AND. h2.LT.acc .AND. .NOT. badlin) GO TO 330
       h1 = ZERO
       DO 180 j=1,m
          IF (j.LE.meq) THEN
@@ -470,7 +491,8 @@ C   CHECK CONVERGENCE
          ENDIF
          h3 = h3 + MAX(-c(j),h1)
   250 CONTINUE
-      IF ((ABS(f-f0).LT.acc .OR. dnrm2_(n,s,1).LT.acc) .AND. h3.LT.acc)
+      IF ((ABS(f-f0).LT.acc .OR. dnrm2_(n,s,1).LT.acc) .AND. h3.LT.acc
+     *     .AND. .NOT. badlin)
      *   THEN
             mode = 0
          ELSE
@@ -481,7 +503,8 @@ C   CHECK CONVERGENCE
 C   CHECK relaxed CONVERGENCE in case of positive directional derivative
 
   255 CONTINUE
-      IF ((ABS(f-f0).LT.tol .OR. dnrm2_(n,s,1).LT.tol) .AND. h3.LT.tol)
+      IF ((ABS(f-f0).LT.tol .OR. dnrm2_(n,s,1).LT.tol) .AND. h3.LT.tol
+     *     .AND. .NOT. badlin)
      *   THEN
             mode = 0
          ELSE
@@ -1069,7 +1092,7 @@ C  END OF SUBROUTINE LDP
    50                               END
 
 
-c     SUBROUTINE nnls (a, mda, m, n, b, x, rnorm, w, z, INDEX, mode)
+      SUBROUTINE nnls (a, mda, m, n, b, x, rnorm, w, z, INDEX, mode)
 
 C     C.L.LAWSON AND R.J.HANSON, JET PROPULSION LABORATORY:
 C     'SOLVING LEAST SQUARES PROBLEMS'. PRENTICE-HALL.1974
@@ -1112,153 +1135,153 @@ C            2    THE DIMENSIONS OF THE PROBLEM ARE WRONG,
 C                 EITHER M <= 0 OR N <= 0.
 C            3    ITERATION COUNT EXCEEDED, MORE THAN 3*N ITERATIONS.
 
-c     INTEGER          i,ii,ip,iter,itmax,iz,izmax,iz1,iz2,j,jj,jz,
-c    *                 k,l,m,mda,mode,n,npp1,nsetp,INDEX(n)
+      INTEGER          i,ii,ip,iter,itmax,iz,izmax,iz1,iz2,j,jj,jz,
+     *                 k,l,m,mda,mode,n,npp1,nsetp,INDEX(n)
 
-c     DOUBLE PRECISION a(mda,n),b(m),x(n),w(n),z(m),asave,diff,
-c    *                 factor,ddot_sl,ZERO,one,wmax,alpha,
-c    *                 c,s,t,u,v,up,rnorm,unorm,dnrm2_
+      DOUBLE PRECISION a(mda,n),b(m),x(n),w(n),z(m),asave,diff,
+     *                 factor,ddot_sl,ZERO,one,wmax,alpha,
+     *                 c,s,t,u,v,up,rnorm,unorm,dnrm2_
 
-c     diff(u,v)=       u-v
+      diff(u,v)=       u-v
 
-c     DATA             ZERO,one,factor/0.0d0,1.0d0,1.0d-2/
+      DATA             ZERO,one,factor/0.0d0,1.0d0,1.0d-2/
 
 c     revised          Dieter Kraft, March 1983
 
-c     mode=2
-c     IF(m.LE.0.OR.n.LE.0)            GOTO 290
-c     mode=1
-c     iter=0
-c     itmax=3*n
+      mode=2
+      IF(m.LE.0.OR.n.LE.0)            GOTO 290
+      mode=1
+      iter=0
+      itmax=3*n
 
 C STEP ONE (INITIALIZE)
 
-c     DO 100 i=1,n
-c 100    INDEX(i)=i
-c     iz1=1
-c     iz2=n
-c     nsetp=0
-c     npp1=1
-c     x(1)=ZERO
-c     CALL dcopy_(n,x(1),0,x,1)
+      DO 100 i=1,n
+  100    INDEX(i)=i
+      iz1=1
+      iz2=n
+      nsetp=0
+      npp1=1
+      x(1)=ZERO
+      CALL dcopy_(n,x(1),0,x,1)
 
 C STEP TWO (COMPUTE DUAL VARIABLES)
 C .....ENTRY LOOP A
 
-c 110 IF(iz1.GT.iz2.OR.nsetp.GE.m)    GOTO 280
-c     DO 120 iz=iz1,iz2
-c        j=INDEX(iz)
-c 120    w(j)=ddot_sl(m-nsetp,a(npp1,j),1,b(npp1),1)
+  110 IF(iz1.GT.iz2.OR.nsetp.GE.m)    GOTO 280
+      DO 120 iz=iz1,iz2
+         j=INDEX(iz)
+  120    w(j)=ddot_sl(m-nsetp,a(npp1,j),1,b(npp1),1)
 
 C STEP THREE (TEST DUAL VARIABLES)
 
-c 130 wmax=ZERO
-c     DO 140 iz=iz1,iz2
-c     j=INDEX(iz)
-c        IF(w(j).LE.wmax)             GOTO 140
-c        wmax=w(j)
-c        izmax=iz
-c 140 CONTINUE
+  130 wmax=ZERO
+      DO 140 iz=iz1,iz2
+      j=INDEX(iz)
+         IF(w(j).LE.wmax)             GOTO 140
+         wmax=w(j)
+         izmax=iz
+  140 CONTINUE
 
 C .....EXIT LOOP A
 
-c     IF(wmax.LE.ZERO)                GOTO 280
-c     iz=izmax
-c     j=INDEX(iz)
+      IF(wmax.LE.ZERO)                GOTO 280
+      iz=izmax
+      j=INDEX(iz)
 
 C STEP FOUR (TEST INDEX J FOR LINEAR DEPENDENCY)
 
-c     asave=a(npp1,j)
-c     CALL h12(1,npp1,npp1+1,m,a(1,j),1,up,z,1,1,0)
-c     unorm=dnrm2_(nsetp,a(1,j),1)
-c     t=factor*ABS(a(npp1,j))
-c     IF(diff(unorm+t,unorm).LE.ZERO) GOTO 150
-c     CALL dcopy_(m,b,1,z,1)
-c     CALL h12(2,npp1,npp1+1,m,a(1,j),1,up,z,1,1,1)
-c     IF(z(npp1)/a(npp1,j).GT.ZERO)   GOTO 160
-c 150 a(npp1,j)=asave
-c     w(j)=ZERO
-c                                     GOTO 130
+      asave=a(npp1,j)
+      CALL h12(1,npp1,npp1+1,m,a(1,j),1,up,z,1,1,0)
+      unorm=dnrm2_(nsetp,a(1,j),1)
+      t=factor*ABS(a(npp1,j))
+      IF(diff(unorm+t,unorm).LE.ZERO) GOTO 150
+      CALL dcopy_(m,b,1,z,1)
+      CALL h12(2,npp1,npp1+1,m,a(1,j),1,up,z,1,1,1)
+      IF(z(npp1)/a(npp1,j).GT.ZERO)   GOTO 160
+  150 a(npp1,j)=asave
+      w(j)=ZERO
+                                      GOTO 130
 C STEP FIVE (ADD COLUMN)
 
-c 160 CALL dcopy_(m,z,1,b,1)
-c     INDEX(iz)=INDEX(iz1)
-c     INDEX(iz1)=j
-c     iz1=iz1+1
-c     nsetp=npp1
-c     npp1=npp1+1
-c     DO 170 jz=iz1,iz2
-c        jj=INDEX(jz)
-c 170    CALL h12(2,nsetp,npp1,m,a(1,j),1,up,a(1,jj),1,mda,1)
-c     k=MIN(npp1,mda)
-c     w(j)=ZERO
-c     CALL dcopy_(m-nsetp,w(j),0,a(k,j),1)
+  160 CALL dcopy_(m,z,1,b,1)
+      INDEX(iz)=INDEX(iz1)
+      INDEX(iz1)=j
+      iz1=iz1+1
+      nsetp=npp1
+      npp1=npp1+1
+      DO 170 jz=iz1,iz2
+         jj=INDEX(jz)
+  170    CALL h12(2,nsetp,npp1,m,a(1,j),1,up,a(1,jj),1,mda,1)
+      k=MIN(npp1,mda)
+      w(j)=ZERO
+      CALL dcopy_(m-nsetp,w(j),0,a(k,j),1)
 
 C STEP SIX (SOLVE LEAST SQUARES SUB-PROBLEM)
 C .....ENTRY LOOP B
 
-c 180 DO 200 ip=nsetp,1,-1
-c        IF(ip.EQ.nsetp)              GOTO 190
-c        CALL daxpy_sl(ip,-z(ip+1),a(1,jj),1,z,1)
-c 190    jj=INDEX(ip)
-c 200    z(ip)=z(ip)/a(ip,jj)
-c     iter=iter+1
-c     IF(iter.LE.itmax)               GOTO 220
-c 210 mode=3
-c                                     GOTO 280
+  180 DO 200 ip=nsetp,1,-1
+         IF(ip.EQ.nsetp)              GOTO 190
+         CALL daxpy_sl(ip,-z(ip+1),a(1,jj),1,z,1)
+  190    jj=INDEX(ip)
+  200    z(ip)=z(ip)/a(ip,jj)
+      iter=iter+1
+      IF(iter.LE.itmax)               GOTO 220
+  210 mode=3
+                                      GOTO 280
 C STEP SEVEN TO TEN (STEP LENGTH ALGORITHM)
 
-c 220 alpha=one
-c     jj=0
-c     DO 230 ip=1,nsetp
-c        IF(z(ip).GT.ZERO)            GOTO 230
-c        l=INDEX(ip)
-c        t=-x(l)/(z(ip)-x(l))
-c        IF(alpha.LT.t)               GOTO 230
-c        alpha=t
-c        jj=ip
-c 230 CONTINUE
-c     DO 240 ip=1,nsetp
-c        l=INDEX(ip)
-c 240    x(l)=(one-alpha)*x(l) + alpha*z(ip)
+  220 alpha=one
+      jj=0
+      DO 230 ip=1,nsetp
+         IF(z(ip).GT.ZERO)            GOTO 230
+         l=INDEX(ip)
+         t=-x(l)/(z(ip)-x(l))
+         IF(alpha.LT.t)               GOTO 230
+         alpha=t
+         jj=ip
+  230 CONTINUE
+      DO 240 ip=1,nsetp
+         l=INDEX(ip)
+  240    x(l)=(one-alpha)*x(l) + alpha*z(ip)
 
 C .....EXIT LOOP B
 
-c     IF(jj.EQ.0)                     GOTO 110
+      IF(jj.EQ.0)                     GOTO 110
 
 C STEP ELEVEN (DELETE COLUMN)
 
-c     i=INDEX(jj)
-c 250 x(i)=ZERO
-c     jj=jj+1
-c     DO 260 j=jj,nsetp
-c        ii=INDEX(j)
-c        INDEX(j-1)=ii
-c        CALL dsrotg(a(j-1,ii),a(j,ii),c,s)
-c        t=a(j-1,ii)
-c        CALL dsrot(n,a(j-1,1),mda,a(j,1),mda,c,s)
-c        a(j-1,ii)=t
-c        a(j,ii)=ZERO
-c 260    CALL dsrot(1,b(j-1),1,b(j),1,c,s)
-c     npp1=nsetp
-c     nsetp=nsetp-1
-c     iz1=iz1-1
-c     INDEX(iz1)=i
-c     IF(nsetp.LE.0)                  GOTO 210
-c     DO 270 jj=1,nsetp
-c        i=INDEX(jj)
-c        IF(x(i).LE.ZERO)             GOTO 250
-c 270 CONTINUE
-c     CALL dcopy_(m,b,1,z,1)
-c                                     GOTO 180
+      i=INDEX(jj)
+  250 x(i)=ZERO
+      jj=jj+1
+      DO 260 j=jj,nsetp
+         ii=INDEX(j)
+         INDEX(j-1)=ii
+         CALL dsrotg(a(j-1,ii),a(j,ii),c,s)
+         t=a(j-1,ii)
+         CALL dsrot(n,a(j-1,1),mda,a(j,1),mda,c,s)
+         a(j-1,ii)=t
+         a(j,ii)=ZERO
+  260    CALL dsrot(1,b(j-1),1,b(j),1,c,s)
+      npp1=nsetp
+      nsetp=nsetp-1
+      iz1=iz1-1
+      INDEX(iz1)=i
+      IF(nsetp.LE.0)                  GOTO 210
+      DO 270 jj=1,nsetp
+         i=INDEX(jj)
+         IF(x(i).LE.ZERO)             GOTO 250
+  270 CONTINUE
+      CALL dcopy_(m,b,1,z,1)
+                                      GOTO 180
 C STEP TWELVE (SOLUTION)
 
-c 280 k=MIN(npp1,m)
-c     rnorm=dnrm2_(m-nsetp,b(k),1)
-c     IF(npp1.GT.m) THEN
-c        w(1)=ZERO
-c        CALL dcopy_(n,w(1),0,w,1)
-c     ENDIF
+  280 k=MIN(npp1,m)
+      rnorm=dnrm2_(m-nsetp,b(k),1)
+      IF(npp1.GT.m) THEN
+         w(1)=ZERO
+         CALL dcopy_(n,w(1),0,w,1)
+      ENDIF
 
 C END OF SUBROUTINE NNLS
 
@@ -1392,7 +1415,7 @@ C   REORDER SOLUTION ACCORDING TO PREVIOUS COLUMN INTERCHANGES
   270 krank=k
       END
 
-c     SUBROUTINE h12 (mode,lpivot,l1,m,u,iue,up,c,ice,icv,ncv)
+      SUBROUTINE h12 (mode,lpivot,l1,m,u,iue,up,c,ice,icv,ncv)
 
 C     C.L.LAWSON AND R.J.HANSON, JET PROPULSION LABORATORY, 1973 JUN 12
 C     TO APPEAR IN 'SOLVING LEAST SQUARES PROBLEMS', PRENTICE-HALL, 1974
@@ -1422,56 +1445,56 @@ C     ICV    STORAGE INCREMENT BETWEEN VECTORS IN C().
 C     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED.
 C            IF NCV <= 0 NO OPERATIONS WILL BE DONE ON C().
 
-c     INTEGER          incr, ice, icv, iue, lpivot, l1, mode, ncv
-c     INTEGER          i, i2, i3, i4, j, m
-c     DOUBLE PRECISION u,up,c,cl,clinv,b,sm,one,ZERO
-c     DIMENSION        u(iue,*), c(*)
-c     DATA             one/1.0d+00/, ZERO/0.0d+00/
+      INTEGER          incr, ice, icv, iue, lpivot, l1, mode, ncv
+      INTEGER          i, i2, i3, i4, j, m
+      DOUBLE PRECISION u,up,c,cl,clinv,b,sm,one,ZERO
+      DIMENSION        u(iue,*), c(*)
+      DATA             one/1.0d+00/, ZERO/0.0d+00/
 
-c     IF (0.GE.lpivot.OR.lpivot.GE.l1.OR.l1.GT.m) GOTO 80
-c     cl=ABS(u(1,lpivot))
-c     IF (mode.EQ.2)                              GOTO 30
+      IF (0.GE.lpivot.OR.lpivot.GE.l1.OR.l1.GT.m) GOTO 80
+      cl=ABS(u(1,lpivot))
+      IF (mode.EQ.2)                              GOTO 30
 
 C     ****** CONSTRUCT THE TRANSFORMATION ******
 
-c         DO 10 j=l1,m
-c            sm=ABS(u(1,j))
-c  10     cl=MAX(sm,cl)
-c     IF (cl.LE.ZERO)                             GOTO 80
-c     clinv=one/cl
-c     sm=(u(1,lpivot)*clinv)**2
-c         DO 20 j=l1,m
-c  20     sm=sm+(u(1,j)*clinv)**2
-c     cl=cl*SQRT(sm)
-c     IF (u(1,lpivot).GT.ZERO) cl=-cl
-c     up=u(1,lpivot)-cl
-c     u(1,lpivot)=cl
-c                                                 GOTO 40
+          DO 10 j=l1,m
+             sm=ABS(u(1,j))
+   10     cl=MAX(sm,cl)
+      IF (cl.LE.ZERO)                             GOTO 80
+      clinv=one/cl
+      sm=(u(1,lpivot)*clinv)**2
+          DO 20 j=l1,m
+   20     sm=sm+(u(1,j)*clinv)**2
+      cl=cl*SQRT(sm)
+      IF (u(1,lpivot).GT.ZERO) cl=-cl
+      up=u(1,lpivot)-cl
+      u(1,lpivot)=cl
+                                                  GOTO 40
 C     ****** APPLY THE TRANSFORMATION  I+U*(U**T)/B  TO C ******
 
-c  30 IF (cl.LE.ZERO)                             GOTO 80
-c  40 IF (ncv.LE.0)                               GOTO 80
-c     b=up*u(1,lpivot)
-c     IF (b.GE.ZERO)                              GOTO 80
-c     b=one/b
-c     i2=1-icv+ice*(lpivot-1)
-c     incr=ice*(l1-lpivot)
-c         DO 70 j=1,ncv
-c         i2=i2+icv
-c         i3=i2+incr
-c         i4=i3
-c         sm=c(i2)*up
-c             DO 50 i=l1,m
-c             sm=sm+c(i3)*u(1,i)
-c  50         i3=i3+ice
-c         IF (sm.EQ.ZERO)                         GOTO 70
-c         sm=sm*b
-c         c(i2)=c(i2)+sm*up
-c             DO 60 i=l1,m
-c             c(i4)=c(i4)+sm*u(1,i)
-c  60         i4=i4+ice
-c  70     CONTINUE
-c  80                                             END
+   30 IF (cl.LE.ZERO)                             GOTO 80
+   40 IF (ncv.LE.0)                               GOTO 80
+      b=up*u(1,lpivot)
+      IF (b.GE.ZERO)                              GOTO 80
+      b=one/b
+      i2=1-icv+ice*(lpivot-1)
+      incr=ice*(l1-lpivot)
+          DO 70 j=1,ncv
+          i2=i2+icv
+          i3=i2+incr
+          i4=i3
+          sm=c(i2)*up
+              DO 50 i=l1,m
+              sm=sm+c(i3)*u(1,i)
+   50         i3=i3+ice
+          IF (sm.EQ.ZERO)                         GOTO 70
+          sm=sm*b
+          c(i2)=c(i2)+sm*up
+              DO 60 i=l1,m
+              c(i4)=c(i4)+sm*u(1,i)
+   60         i4=i4+ice
+   70     CONTINUE
+   80                                             END
 
       SUBROUTINE ldl (n,a,z,sigma,w)
 C   LDL     LDL' - RANK-ONE - UPDATE

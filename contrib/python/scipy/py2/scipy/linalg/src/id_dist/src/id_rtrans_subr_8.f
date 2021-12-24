@@ -1,29 +1,58 @@
-        subroutine idz_random_transf0_inv(nsteps,x,y,n,w2,albetas,
-     1      gammas,iixs)
+        subroutine idz_random_transf_init00(n,albetas,gammas,ixs)
         implicit real *8 (a-h,o-z)
         save
-        complex *16 x(*),y(*),w2(*),gammas(n,*)
-        dimension albetas(2,n,*),iixs(n,*)
+        dimension albetas(2,*),gammas(*),ixs(*)
 c
-c       routine idz_random_transf_inverse serves as a memory wrapper
-c       for the present routine; please see routine
-c       idz_random_transf_inverse for documentation.
+c       constructs one stage of the random transform
+c       initialized by routine idz_random_transf_init0
+c       (please see the latter).
 c
-        do 1200 i=1,n
+        done=1
+        twopi=2*4*atan(done)
 c
-        w2(i)=x(i)
- 1200 continue
+c        construct the random permutation
 c
-        do 2000 ijk=nsteps,1,-1
+        ifrepeat=0
+        call id_randperm(n,ixs)
 c
-        call idz_random_transf00_inv(w2,y,n,albetas(1,1,ijk),
-     1      gammas(1,ijk),iixs(1,ijk) )
+c        construct the random variables
 c
-        do 1400 j=1,n
+        call id_srand(2*n,albetas)
+        call id_srand(2*n,gammas)
 c
-        w2(j)=y(j)
+        do 1300 i=1,n
+c
+        albetas(1,i)=2*albetas(1,i)-1
+        albetas(2,i)=2*albetas(2,i)-1
+        gammas(2*i-1)=2*gammas(2*i-1)-1
+        gammas(2*i)=2*gammas(2*i)-1
+ 1300 continue
+c
+c        construct the random 2 \times 2 transformations
+c
+        do 1400 i=1,n
+c
+        d=albetas(1,i)**2+albetas(2,i)**2
+        d=1/sqrt(d)
+        albetas(1,i)=albetas(1,i)*d
+        albetas(2,i)=albetas(2,i)*d
  1400 continue
- 2000 continue
+c
+c        construct the random multipliers on the unit circle
+c
+        do 1500 i=1,n
+c
+        d=gammas(2*i-1)**2+gammas(2*i)**2
+        d=1/sqrt(d)
+c
+c        fill the real part
+c
+        gammas(2*i-1)=gammas(2*i-1)*d
+c
+c        fill the imaginary part
+c
+        gammas(2*i)=gammas(2*i)*d
+ 1500 continue
 c
         return
         end

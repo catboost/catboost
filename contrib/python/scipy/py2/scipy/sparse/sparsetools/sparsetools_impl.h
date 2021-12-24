@@ -2,6 +2,7 @@
  * Do not edit manually or check into VCS.
  */
 NPY_VISIBILITY_HIDDEN PyObject *bsr_diagonal_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *bsr_tocsr_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_scale_rows_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_scale_columns_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *bsr_sort_indices_method(PyObject *, PyObject *);
@@ -25,6 +26,7 @@ NPY_VISIBILITY_HIDDEN PyObject *csr_matmat_pass2_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_diagonal_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_tocsc_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_tobsr_method(PyObject *, PyObject *);
+NPY_VISIBILITY_HIDDEN PyObject *csr_todense_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_matvec_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_matvecs_method(PyObject *, PyObject *);
 NPY_VISIBILITY_HIDDEN PyObject *csr_elmul_csr_method(PyObject *, PyObject *);
@@ -76,6 +78,7 @@ NPY_VISIBILITY_HIDDEN PyObject *cs_graph_components_method(PyObject *, PyObject 
 
 static struct PyMethodDef sparsetools_methods[] = {
         {"bsr_diagonal", (PyCFunction)bsr_diagonal_method, METH_VARARGS, NULL},
+        {"bsr_tocsr", (PyCFunction)bsr_tocsr_method, METH_VARARGS, NULL},
         {"bsr_scale_rows", (PyCFunction)bsr_scale_rows_method, METH_VARARGS, NULL},
         {"bsr_scale_columns", (PyCFunction)bsr_scale_columns_method, METH_VARARGS, NULL},
         {"bsr_sort_indices", (PyCFunction)bsr_sort_indices_method, METH_VARARGS, NULL},
@@ -99,6 +102,7 @@ static struct PyMethodDef sparsetools_methods[] = {
         {"csr_diagonal", (PyCFunction)csr_diagonal_method, METH_VARARGS, NULL},
         {"csr_tocsc", (PyCFunction)csr_tocsc_method, METH_VARARGS, NULL},
         {"csr_tobsr", (PyCFunction)csr_tobsr_method, METH_VARARGS, NULL},
+        {"csr_todense", (PyCFunction)csr_todense_method, METH_VARARGS, NULL},
         {"csr_matvec", (PyCFunction)csr_matvec_method, METH_VARARGS, NULL},
         {"csr_matvecs", (PyCFunction)csr_matvecs_method, METH_VARARGS, NULL},
         {"csr_elmul_csr", (PyCFunction)csr_elmul_csr_method, METH_VARARGS, NULL},

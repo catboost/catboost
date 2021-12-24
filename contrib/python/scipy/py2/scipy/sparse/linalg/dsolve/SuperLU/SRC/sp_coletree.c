@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file sp_coletree.c
  * \brief Tree layout and computation routines
  *
@@ -49,7 +59,7 @@
 static 
 int *mxCallocInt(int n)
 {
-    int i;
+    register int i;
     int *buf;
 
     buf = (int *) SUPERLU_MALLOC( n * sizeof(int) );
@@ -100,7 +110,7 @@ int find (
 	  int *pp
 	  )
 {
-    int p, gp;
+    register int p, gp;
     
     p = pp[i];
     gp = pp[p];

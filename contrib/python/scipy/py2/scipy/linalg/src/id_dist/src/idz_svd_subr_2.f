@@ -1,21 +1,34 @@
-        subroutine idz_realcomp(n,a,b)
+        subroutine idz_permuter(krank,ind,m,n,a)
 c
-c       copies the real*8 array a into the complex*16 array b.
+c       permutes the columns of a according to ind obtained
+c       from routine idzr_qrpiv or idzp_qrpiv, assuming that
+c       a = q r from idzr_qrpiv or idzp_qrpiv.
 c
 c       input:
-c       n -- length of a and b
-c       a -- real*8 array to be copied into b
+c       krank -- rank specified to routine idzr_qrpiv
+c                or obtained from routine idzp_qrpiv
+c       ind -- indexing array obtained from routine idzr_qrpiv
+c              or idzp_qrpiv
+c       m -- first dimension of a
+c       n -- second dimension of a
+c       a -- matrix to be rearranged
 c
 c       output:
-c       b -- complex*16 copy of a
+c       a -- rearranged matrix
 c
-        integer n,k
-        real*8 a(n)
-        complex*16 b(n)
+        implicit none
+        integer k,krank,m,n,j,ind(krank)
+        complex*16 cswap,a(m,n)
 c
 c
-        do k = 1,n
-          b(k) = a(k)
+        do k = krank,1,-1
+          do j = 1,m
+c
+            cswap = a(j,k)
+            a(j,k) = a(j,ind(k))
+            a(j,ind(k)) = cswap
+c
+          enddo ! j
         enddo ! k
 c
 c

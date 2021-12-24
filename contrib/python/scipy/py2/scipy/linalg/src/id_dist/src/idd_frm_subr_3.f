@@ -1,19 +1,19 @@
-        subroutine idd_permute(n,ind,x,y)
+        subroutine idd_subselect(n,ind,m,x,y)
 c
-c       copy the entries of x into y, rearranged according
-c       to the permutation specified by ind.
+c       copies into y the entries of x indicated by ind.
 c
 c       input:
-c       n -- length of ind, x, and y
-c       ind -- permutation of n objects
-c       x -- vector to be permuted
+c       n -- number of entries of x to copy into y
+c       ind -- indices of the entries in x to copy into y
+c       m -- length of x
+c       x -- vector whose entries are to be copied
 c
 c       output:
-c       y -- permutation of x
+c       y -- collection of entries of x specified by ind
 c
         implicit none
-        integer n,ind(n),k
-        real*8 x(n),y(n)
+        integer n,ind(n),m,k
+        real*8 x(m),y(n)
 c
 c
         do k = 1,n

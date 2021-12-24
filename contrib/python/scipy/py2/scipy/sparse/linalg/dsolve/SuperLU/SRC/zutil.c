@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file zutil.c
  * \brief Matrix utility functions
@@ -155,7 +165,7 @@ zCompRow_to_CompCol(int m, int n, int nnz,
 		    doublecomplex *a, int *colind, int *rowptr,
 		    doublecomplex **at, int **rowind, int **colptr)
 {
-    int i, j, col, relpos;
+    register int i, j, col, relpos;
     int *marker;
 
     /* Allocate storage for another copy of the matrix. */
@@ -192,7 +202,7 @@ void
 zPrint_CompCol_Matrix(char *what, SuperMatrix *A)
 {
     NCformat     *Astore;
-    int i,n;
+    register int i,n;
     double       *dp;
     
     printf("\nCompCol matrix %s:\n", what);
@@ -215,7 +225,7 @@ void
 zPrint_SuperNode_Matrix(char *what, SuperMatrix *A)
 {
     SCformat     *Astore;
-    int i, j, k, c, d, n, nsup;
+    register int i, j, k, c, d, n, nsup;
     double       *dp;
     int *col_to_sup, *sup_to_col, *rowind, *rowind_colptr;
     
@@ -265,7 +275,7 @@ void
 zPrint_Dense_Matrix(char *what, SuperMatrix *A)
 {
     DNformat     *Astore = (DNformat *) A->Store;
-    int i, j, lda = Astore->lda;
+    register int i, j, lda = Astore->lda;
     double       *dp;
     
     printf("\nDense matrix %s:\n", what);
@@ -384,7 +394,7 @@ zFillRHS(trans_t trans, int nrhs, doublecomplex *x, int ldx,
 void 
 zfill(doublecomplex *a, int alen, doublecomplex dval)
 {
-    int i;
+    register int i;
     for (i = 0; i < alen; i++) a[i] = dval;
 }
 

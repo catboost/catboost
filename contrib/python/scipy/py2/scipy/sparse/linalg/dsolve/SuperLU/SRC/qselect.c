@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file qselect.c
  * \brief Quickselect: returns the k-th (zero-based) largest value in A[].
@@ -13,8 +23,8 @@
 
 double dqselect(int n, double A[], int k)
 {
-    int i, j, p;
-    double val;
+    register int i, j, p;
+    register double val;
 
     k = SUPERLU_MAX(k, 0);
     k = SUPERLU_MIN(k, n - 1);
@@ -44,8 +54,8 @@ double dqselect(int n, double A[], int k)
 
 float sqselect(int n, float A[], int k)
 {
-    int i, j, p;
-    float val;
+    register int i, j, p;
+    register float val;
 
     k = SUPERLU_MAX(k, 0);
     k = SUPERLU_MIN(k, n - 1);

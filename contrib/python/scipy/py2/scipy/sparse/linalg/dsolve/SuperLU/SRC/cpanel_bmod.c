@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file cpanel_bmod.c
  * \brief Performs numeric block updates
@@ -80,17 +90,17 @@ cpanel_bmod (
     complex       alpha, beta;
 #endif
 
-    int k, ksub;
+    register int k, ksub;
     int          fsupc, nsupc, nsupr, nrow;
     int          krep, krep_ind;
     complex       ukj, ukj1, ukj2;
     int          luptr, luptr1, luptr2;
     int          segsze;
     int          block_nrow;  /* no of rows in a block row */
-    int lptr;	      /* Points to the row subscripts of a supernode */
+    register int lptr;	      /* Points to the row subscripts of a supernode */
     int          kfnz, irow, no_zeros; 
-    int isub, isub1, i;
-    int jj;	      /* Index through each column in the panel */
+    register int isub, isub1, i;
+    register int jj;	      /* Index through each column in the panel */
     int          *xsup, *supno;
     int          *lsub, *xlsub;
     complex       *lusup;
@@ -102,8 +112,8 @@ cpanel_bmod (
     complex      zero = {0.0, 0.0};
     complex      one = {1.0, 0.0};
     complex      comp_temp, comp_temp1;
-    int ldaTmp;
-    int r_ind, r_hi;
+    register int ldaTmp;
+    register int r_ind, r_hi;
     int  maxsuper, rowblk, colblk;
     flops_t  *ops = stat->ops;
     

@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ilu_ccopy_to_ucol.c
  * \brief Copy a computed column of U to the compressed data structure
@@ -22,8 +32,8 @@ extern void ccopy_(int *, complex [], int *, complex [], int *);
 static complex *A;  /* used in _compare_ only */
 static int _compare_(const void *a, const void *b)
 {
-    int *x = (int *)a, *y = (int *)b;
-    float xx = c_abs1(&A[*x]), yy = c_abs1(&A[*y]);
+    register int *x = (int *)a, *y = (int *)b;
+    register float xx = c_abs1(&A[*x]), yy = c_abs1(&A[*y]);
     if (xx > yy) return -1;
     else if (xx < yy) return 1;
     else return 0;
@@ -63,8 +73,8 @@ ilu_ccopy_to_ucol(
     int       *usub, *xusub;
     int       nzumax;
     int       m; /* number of entries in the nonzero U-segments */
-    float d_max = 0.0, d_min = 1.0 / smach("Safe minimum");
-    double tmp;
+    register float d_max = 0.0, d_min = 1.0 / smach("Safe minimum");
+    register double tmp;
     complex zero = {0.0, 0.0};
     int i_1 = 1;
 

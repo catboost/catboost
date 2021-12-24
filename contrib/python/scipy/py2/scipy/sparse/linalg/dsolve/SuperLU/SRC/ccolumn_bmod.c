@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ccolumn_bmod.c
  *  \brief performs numeric block updates
@@ -81,8 +91,8 @@ ccolumn_bmod (
     int          fsupc, nsupc, nsupr, segsze;
     int          nrow;	  /* No of rows in the matrix of matrix-vector */
     int          jcolp1, jsupno, k, ksub, krep, krep_ind, ksupno;
-    int lptr, kfnz, isub, irow, i;
-    int no_zeros, new_next; 
+    register int lptr, kfnz, isub, irow, i;
+    register int no_zeros, new_next; 
     int          ufirst, nextlu;
     int          fst_col; /* First column within small LU update */
     int          d_fsupc; /* Distance between the first column of the current

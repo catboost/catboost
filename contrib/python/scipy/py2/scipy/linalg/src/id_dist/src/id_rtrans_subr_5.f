@@ -1,37 +1,26 @@
-        subroutine idz_random_transf_inverse(x,y,w)
+        subroutine idd_random_transf0(nsteps,x,y,n,w2,albetas,iixs)
         implicit real *8 (a-h,o-z)
         save
-        complex *16 x(*),y(*)
-        dimension w(*)
+        dimension x(*),y(*),w2(*),albetas(2,n,*),iixs(n,*)
 c
-c       applies rapidly a random unitary matrix
-c       to the user-specified vector x,
-c       using the data in array w stored there by a preceding 
-c       call to routine idz_random_transf_init.
-c       The transformation applied by the present routine is
-c       the inverse of the transformation applied
-c       by routine idz_random_transf.
+c       routine idd_random_transf serves as a memory wrapper
+c       for the present routine; please see routine idd_random_transf
+c       for documentation.
 c
-c       input:
-c       x -- the vector of length n to which the random matrix is
-c            to be applied
-c       w -- array containing all initialization data
+        do 1200 i=1,n
 c
-c       output:
-c       y -- the result of applying the random matrix to x
+        w2(i)=x(i)
+ 1200 continue
 c
+        do 2000 ijk=1,nsteps
 c
-c        . . . allocate memory
+        call idd_random_transf00(w2,y,n,albetas(1,1,ijk),iixs(1,ijk) )
 c
-        ialbetas=w(1)
-        iixs=w(2)
-        nsteps=w(3)
-        iww=w(4)
-        n=w(5)
-        igammas=w(6)
+        do 1400 j=1,n
 c
-        call idz_random_transf0_inv(nsteps,x,y,n,w(iww),
-     1      w(ialbetas),w(igammas),w(iixs))
+        w2(j)=y(j)
+ 1400 continue
+ 2000 continue
 c
         return
         end

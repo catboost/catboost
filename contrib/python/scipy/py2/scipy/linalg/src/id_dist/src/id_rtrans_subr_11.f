@@ -1,37 +1,35 @@
-        subroutine idd_random_transf00(x,y,n,albetas,ixs)
+        subroutine idd_random_transf_init00(n,albetas,ixs)
         implicit real *8 (a-h,o-z)
         save
-        dimension x(*),y(*),albetas(2,*),ixs(*)
+        dimension albetas(2,*),ixs(*)
 c
-c       implements one step of the random transform
-c       required by routine idd_random_transf0 (please see the latter).
+c       constructs one stage of the random transform
+c       initialized by routine idd_random_transf_init0
+c       (please see the latter).
 c
-c        implement the permutation
+c        construct the random permutation
 c
-        do 1600 i=1,n
+        ifrepeat=0
+        call id_randperm(n,ixs)
 c
-        j=ixs(i)
-        y(i)=x(j)
- 1600 continue
+c        construct the random variables
 c
-c        implement 2 \times 2 matrices
+        call id_srand(2*n,albetas)
 c
-        do 1800 i=1,n-1
+        do 1300 i=1,n
 c
-        alpha=albetas(1,i)
-        beta=albetas(2,i)
+        albetas(1,i)=2*albetas(1,i)-1
+        albetas(2,i)=2*albetas(2,i)-1
+ 1300 continue
 c
-        a=y(i)
-        b=y(i+1)
+c        construct the random 2 \times 2 transformations
 c
-        y(i)=alpha*a+beta*b
-        y(i+1)=-beta*a+alpha*b
- 1800 continue
+        do 1400 i=1,n
 c
+        d=albetas(1,i)**2+albetas(2,i)**2
+        d=1/sqrt(d)
+        albetas(1,i)=albetas(1,i)*d
+        albetas(2,i)=albetas(2,i)*d
+ 1400 continue
         return
         end
-c
-c 
-c 
-c 
-c 

@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ilu_dpivotL.c
  * \brief Performs numerical pivoting
@@ -70,15 +80,15 @@ ilu_dpivotL(
     int		 nsupc;  /* no of columns in the supernode */
     int		 nsupr;  /* no of rows in the supernode */
     int		 lptr;	 /* points to the starting subscript of the supernode */
-    int	 pivptr;
+    register int	 pivptr;
     int		 old_pivptr, diag, ptr0;
-    double  pivmax, rtemp;
+    register double  pivmax, rtemp;
     double	 thresh;
     double	 temp;
     double	 *lu_sup_ptr;
     double	 *lu_col_ptr;
     int		 *lsub_ptr;
-    int	 isub, icol, k, itemp;
+    register int	 isub, icol, k, itemp;
     int		 *lsub, *xlsub;
     double	 *lusup;
     int		 *xlusup;

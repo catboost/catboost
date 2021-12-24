@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file smyblas2.c
  * \brief Level 2 Blas operations
@@ -29,8 +39,8 @@ void slsolve ( int ldm, int ncol, float *M, float *rhs )
     int k;
     float x0, x1, x2, x3, x4, x5, x6, x7;
     float *M0;
-    float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
-    int firstcol = 0;
+    register float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
+    register int firstcol = 0;
 
     M0 = &M[0];
 
@@ -164,8 +174,8 @@ float *Mxvec;	/* in/out */
 {
     float vi0, vi1, vi2, vi3, vi4, vi5, vi6, vi7;
     float *M0;
-    float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
-    int firstcol = 0;
+    register float *Mki0, *Mki1, *Mki2, *Mki3, *Mki4, *Mki5, *Mki6, *Mki7;
+    register int firstcol = 0;
     int k;
 
     M0 = &M[0];

@@ -48,7 +48,7 @@ static int get_thunk_case(int I_typenum, int T_typenum)
     return -1;
 }
 
-static Py_ssize_t csr_matmat_pass1_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_matmat_pass1_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -63,7 +63,7 @@ static Py_ssize_t csr_matmat_pass1_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_matmat_pass2_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_matmat_pass2_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -174,118 +174,118 @@ static Py_ssize_t csr_matmat_pass2_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_diagonal_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_diagonal_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
         case 1:
-            (void)csr_diagonal<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 2:
-            (void)csr_diagonal<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 3:
-            (void)csr_diagonal<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 4:
-            (void)csr_diagonal<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 5:
-            (void)csr_diagonal<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 6:
-            (void)csr_diagonal<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 7:
-            (void)csr_diagonal<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 8:
-            (void)csr_diagonal<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 9:
-            (void)csr_diagonal<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 10:
-            (void)csr_diagonal<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 11:
-            (void)csr_diagonal<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 12:
-            (void)csr_diagonal<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 13:
-            (void)csr_diagonal<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 14:
-            (void)csr_diagonal<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 15:
-            (void)csr_diagonal<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 16:
-            (void)csr_diagonal<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 17:
-            (void)csr_diagonal<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], *(const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int32*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
         case 19:
-            (void)csr_diagonal<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_bool_wrapper*)a[5], (npy_bool_wrapper*)a[6]);
             return 0;
         case 20:
-            (void)csr_diagonal<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_byte*)a[5], (npy_byte*)a[6]);
             return 0;
         case 21:
-            (void)csr_diagonal<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ubyte*)a[5], (npy_ubyte*)a[6]);
             return 0;
         case 22:
-            (void)csr_diagonal<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_short*)a[5], (npy_short*)a[6]);
             return 0;
         case 23:
-            (void)csr_diagonal<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ushort*)a[5], (npy_ushort*)a[6]);
             return 0;
         case 24:
-            (void)csr_diagonal<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_int*)a[5], (npy_int*)a[6]);
             return 0;
         case 25:
-            (void)csr_diagonal<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_uint*)a[5], (npy_uint*)a[6]);
             return 0;
         case 26:
-            (void)csr_diagonal<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_long*)a[5], (npy_long*)a[6]);
             return 0;
         case 27:
-            (void)csr_diagonal<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulong*)a[5], (npy_ulong*)a[6]);
             return 0;
         case 28:
-            (void)csr_diagonal<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longlong*)a[5], (npy_longlong*)a[6]);
             return 0;
         case 29:
-            (void)csr_diagonal<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_ulonglong*)a[5], (npy_ulonglong*)a[6]);
             return 0;
         case 30:
-            (void)csr_diagonal<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_float*)a[5], (npy_float*)a[6]);
             return 0;
         case 31:
-            (void)csr_diagonal<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_double*)a[5], (npy_double*)a[6]);
             return 0;
         case 32:
-            (void)csr_diagonal<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_longdouble*)a[5], (npy_longdouble*)a[6]);
             return 0;
         case 33:
-            (void)csr_diagonal<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cfloat_wrapper*)a[5], (npy_cfloat_wrapper*)a[6]);
             return 0;
         case 34:
-            (void)csr_diagonal<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_cdouble_wrapper*)a[5], (npy_cdouble_wrapper*)a[6]);
             return 0;
         case 35:
-            (void)csr_diagonal<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            (void)csr_diagonal<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], *(const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int64*)a[4], (const npy_clongdouble_wrapper*)a[5], (npy_clongdouble_wrapper*)a[6]);
             return 0;
     default:
         throw std::runtime_error("internal error: invalid argument typenums");
     }
 }
 
-static Py_ssize_t csr_tocsc_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_tocsc_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -396,7 +396,7 @@ static Py_ssize_t csr_tocsc_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_tobsr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_tobsr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -507,7 +507,118 @@ static Py_ssize_t csr_tobsr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_matvec_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_todense_thunk(int I_typenum, int T_typenum, void **a)
+{
+    int j = get_thunk_case(I_typenum, T_typenum);
+    switch (j) {
+        case 1:
+            (void)csr_todense<npy_int32,npy_bool_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            return 0;
+        case 2:
+            (void)csr_todense<npy_int32,npy_byte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            return 0;
+        case 3:
+            (void)csr_todense<npy_int32,npy_ubyte>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            return 0;
+        case 4:
+            (void)csr_todense<npy_int32,npy_short>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            return 0;
+        case 5:
+            (void)csr_todense<npy_int32,npy_ushort>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            return 0;
+        case 6:
+            (void)csr_todense<npy_int32,npy_int>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            return 0;
+        case 7:
+            (void)csr_todense<npy_int32,npy_uint>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            return 0;
+        case 8:
+            (void)csr_todense<npy_int32,npy_long>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            return 0;
+        case 9:
+            (void)csr_todense<npy_int32,npy_ulong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            return 0;
+        case 10:
+            (void)csr_todense<npy_int32,npy_longlong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            return 0;
+        case 11:
+            (void)csr_todense<npy_int32,npy_ulonglong>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            return 0;
+        case 12:
+            (void)csr_todense<npy_int32,npy_float>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            return 0;
+        case 13:
+            (void)csr_todense<npy_int32,npy_double>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            return 0;
+        case 14:
+            (void)csr_todense<npy_int32,npy_longdouble>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            return 0;
+        case 15:
+            (void)csr_todense<npy_int32,npy_cfloat_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            return 0;
+        case 16:
+            (void)csr_todense<npy_int32,npy_cdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            return 0;
+        case 17:
+            (void)csr_todense<npy_int32,npy_clongdouble_wrapper>(*(const npy_int32*)a[0], *(const npy_int32*)a[1], (const npy_int32*)a[2], (const npy_int32*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            return 0;
+        case 19:
+            (void)csr_todense<npy_int64,npy_bool_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_bool_wrapper*)a[4], (npy_bool_wrapper*)a[5]);
+            return 0;
+        case 20:
+            (void)csr_todense<npy_int64,npy_byte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_byte*)a[4], (npy_byte*)a[5]);
+            return 0;
+        case 21:
+            (void)csr_todense<npy_int64,npy_ubyte>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ubyte*)a[4], (npy_ubyte*)a[5]);
+            return 0;
+        case 22:
+            (void)csr_todense<npy_int64,npy_short>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_short*)a[4], (npy_short*)a[5]);
+            return 0;
+        case 23:
+            (void)csr_todense<npy_int64,npy_ushort>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ushort*)a[4], (npy_ushort*)a[5]);
+            return 0;
+        case 24:
+            (void)csr_todense<npy_int64,npy_int>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_int*)a[4], (npy_int*)a[5]);
+            return 0;
+        case 25:
+            (void)csr_todense<npy_int64,npy_uint>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_uint*)a[4], (npy_uint*)a[5]);
+            return 0;
+        case 26:
+            (void)csr_todense<npy_int64,npy_long>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_long*)a[4], (npy_long*)a[5]);
+            return 0;
+        case 27:
+            (void)csr_todense<npy_int64,npy_ulong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulong*)a[4], (npy_ulong*)a[5]);
+            return 0;
+        case 28:
+            (void)csr_todense<npy_int64,npy_longlong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longlong*)a[4], (npy_longlong*)a[5]);
+            return 0;
+        case 29:
+            (void)csr_todense<npy_int64,npy_ulonglong>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_ulonglong*)a[4], (npy_ulonglong*)a[5]);
+            return 0;
+        case 30:
+            (void)csr_todense<npy_int64,npy_float>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_float*)a[4], (npy_float*)a[5]);
+            return 0;
+        case 31:
+            (void)csr_todense<npy_int64,npy_double>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_double*)a[4], (npy_double*)a[5]);
+            return 0;
+        case 32:
+            (void)csr_todense<npy_int64,npy_longdouble>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_longdouble*)a[4], (npy_longdouble*)a[5]);
+            return 0;
+        case 33:
+            (void)csr_todense<npy_int64,npy_cfloat_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cfloat_wrapper*)a[4], (npy_cfloat_wrapper*)a[5]);
+            return 0;
+        case 34:
+            (void)csr_todense<npy_int64,npy_cdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_cdouble_wrapper*)a[4], (npy_cdouble_wrapper*)a[5]);
+            return 0;
+        case 35:
+            (void)csr_todense<npy_int64,npy_clongdouble_wrapper>(*(const npy_int64*)a[0], *(const npy_int64*)a[1], (const npy_int64*)a[2], (const npy_int64*)a[3], (const npy_clongdouble_wrapper*)a[4], (npy_clongdouble_wrapper*)a[5]);
+            return 0;
+    default:
+        throw std::runtime_error("internal error: invalid argument typenums");
+    }
+}
+
+static PY_LONG_LONG csr_matvec_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -618,7 +729,7 @@ static Py_ssize_t csr_matvec_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_matvecs_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_matvecs_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -729,7 +840,7 @@ static Py_ssize_t csr_matvecs_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_elmul_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_elmul_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -840,7 +951,7 @@ static Py_ssize_t csr_elmul_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_eldiv_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_eldiv_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -951,7 +1062,7 @@ static Py_ssize_t csr_eldiv_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_plus_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_plus_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1062,7 +1173,7 @@ static Py_ssize_t csr_plus_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_minus_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_minus_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1173,7 +1284,7 @@ static Py_ssize_t csr_minus_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_maximum_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_maximum_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1284,7 +1395,7 @@ static Py_ssize_t csr_maximum_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_minimum_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_minimum_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1395,7 +1506,7 @@ static Py_ssize_t csr_minimum_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_ne_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_ne_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1506,7 +1617,7 @@ static Py_ssize_t csr_ne_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_lt_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_lt_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1617,7 +1728,7 @@ static Py_ssize_t csr_lt_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_gt_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_gt_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1728,7 +1839,7 @@ static Py_ssize_t csr_gt_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_le_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_le_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1839,7 +1950,7 @@ static Py_ssize_t csr_le_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_ge_csr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_ge_csr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -1950,7 +2061,7 @@ static Py_ssize_t csr_ge_csr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_scale_rows_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_scale_rows_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2061,7 +2172,7 @@ static Py_ssize_t csr_scale_rows_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_scale_columns_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_scale_columns_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2172,7 +2283,7 @@ static Py_ssize_t csr_scale_columns_thunk(int I_typenum, int T_typenum, void **a
     }
 }
 
-static Py_ssize_t csr_sort_indices_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_sort_indices_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2283,7 +2394,7 @@ static Py_ssize_t csr_sort_indices_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_eliminate_zeros_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_eliminate_zeros_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2394,7 +2505,7 @@ static Py_ssize_t csr_eliminate_zeros_thunk(int I_typenum, int T_typenum, void *
     }
 }
 
-static Py_ssize_t csr_sum_duplicates_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_sum_duplicates_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2505,7 +2616,7 @@ static Py_ssize_t csr_sum_duplicates_thunk(int I_typenum, int T_typenum, void **
     }
 }
 
-static Py_ssize_t get_csr_submatrix_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG get_csr_submatrix_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2616,7 +2727,7 @@ static Py_ssize_t get_csr_submatrix_thunk(int I_typenum, int T_typenum, void **a
     }
 }
 
-static Py_ssize_t csr_sample_values_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_sample_values_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2727,7 +2838,7 @@ static Py_ssize_t csr_sample_values_thunk(int I_typenum, int T_typenum, void **a
     }
 }
 
-static Py_ssize_t csr_count_blocks_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_count_blocks_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2740,7 +2851,7 @@ static Py_ssize_t csr_count_blocks_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_sample_offsets_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_sample_offsets_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2753,7 +2864,7 @@ static Py_ssize_t csr_sample_offsets_thunk(int I_typenum, int T_typenum, void **
     }
 }
 
-static Py_ssize_t expandptr_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG expandptr_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2768,7 +2879,7 @@ static Py_ssize_t expandptr_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t test_throw_error_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG test_throw_error_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2781,7 +2892,7 @@ static Py_ssize_t test_throw_error_thunk(int I_typenum, int T_typenum, void **a)
     }
 }
 
-static Py_ssize_t csr_has_sorted_indices_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_has_sorted_indices_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2794,7 +2905,7 @@ static Py_ssize_t csr_has_sorted_indices_thunk(int I_typenum, int T_typenum, voi
     }
 }
 
-static Py_ssize_t csr_has_canonical_format_thunk(int I_typenum, int T_typenum, void **a)
+static PY_LONG_LONG csr_has_canonical_format_thunk(int I_typenum, int T_typenum, void **a)
 {
     int j = get_thunk_case(I_typenum, T_typenum);
     switch (j) {
@@ -2822,7 +2933,7 @@ csr_matmat_pass2_method(PyObject *self, PyObject *args)
 NPY_VISIBILITY_HIDDEN PyObject *
 csr_diagonal_method(PyObject *self, PyObject *args)
 {
-    return call_thunk('v', "iiIIT*T", csr_diagonal_thunk, args);
+    return call_thunk('v', "iiiIIT*T", csr_diagonal_thunk, args);
 }
 
 NPY_VISIBILITY_HIDDEN PyObject *
@@ -2835,6 +2946,12 @@ NPY_VISIBILITY_HIDDEN PyObject *
 csr_tobsr_method(PyObject *self, PyObject *args)
 {
     return call_thunk('v', "iiiiIIT*I*I*T", csr_tobsr_thunk, args);
+}
+
+NPY_VISIBILITY_HIDDEN PyObject *
+csr_todense_method(PyObject *self, PyObject *args)
+{
+    return call_thunk('v', "iiIIT*T", csr_todense_thunk, args);
 }
 
 NPY_VISIBILITY_HIDDEN PyObject *

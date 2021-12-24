@@ -836,7 +836,7 @@ C-----------------------------------------------------------------------
 C Interrupting and Restarting
 C
 C If the integration of a given problem by DVODE is to be
-C interrrupted and then later continued, such as when restarting
+C interrupted and then later continued, such as when restarting
 C an interrupted run or alternating between two or more ODE problems,
 C the user should save, following the return from the last DVODE call
 C prior to the interruption, the contents of the call sequence
@@ -1022,10 +1022,10 @@ C            systems of linear algebraic equations.
 C  DGBTRF and DGBTRS   are routines from LAPACK for solving banded
 C            linear systems.
 C  DAXPY, DSCAL, and DCOPY are basic linear algebra modules (BLAS).
-C  D1MACHODE    sets the unit roundoff of the machine.
+C  D1MACH    sets the unit roundoff of the machine.
 C  XERRWD, XSETUN, XSETF, and IXSAV handle the printing of all
 C            error messages and warnings.  XERRWD is machine-dependent.
-C Note..  DVNORM, D1MACHODE, and IXSAV are function routines.
+C Note..  DVNORM, D1MACH, and IXSAV are function routines.
 C All the others are subroutines.
 C
 C The intrinsic and external routines used by the DVODE package are..
@@ -1062,7 +1062,7 @@ C
 C
 C Type declaration for function subroutines called ---------------------
 C
-      DOUBLE PRECISION D1MACHODE, DVNORM
+      DOUBLE PRECISION D1MACH, DVNORM
 C
       DIMENSION MORD(2)
 C-----------------------------------------------------------------------
@@ -1084,7 +1084,7 @@ C
 C The variables stored in the internal COMMON blocks are as follows..
 C
 C ACNRM  = Weighted r.m.s. norm of accumulated correction vectors.
-C CCMXJ  = Threshhold on DRC for updating the Jacobian. (See DRC.)
+C CCMXJ  = Threshold on DRC for updating the Jacobian. (See DRC.)
 C CONP   = The saved value of TQ(5).
 C CRATE  = Estimated corrector convergence rate constant.
 C DRC    = Relative change in H*RL1 since last DVJAC call.
@@ -1127,7 +1127,7 @@ C                  HMIN, HMXI, N, METH, MITER, and/or matrix parameters.
 C          On return, DVSTEP sets JSTART = 1.
 C JSV    = Integer flag for Jacobian saving, = sign(MF).
 C KFLAG  = A completion code from DVSTEP with the following meanings..
-C               0      the step was succesful.
+C               0      the step was successful.
 C              -1      the requested error could not be achieved.
 C              -2      corrector convergence could not be achieved.
 C              -3, -4  fatal error in VNLS (can not occur here).
@@ -1310,7 +1310,7 @@ C It contains all remaining initializations, the initial call to F,
 C and the calculation of the initial step size.
 C The error weights in EWT are inverted after being loaded.
 C-----------------------------------------------------------------------
- 100  UROUND = D1MACHODE(4)
+ 100  UROUND = D1MACH(4)
       TN = T
       IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 110
       TCRIT = RWORK(1)
@@ -1508,11 +1508,8 @@ C Then Y is loaded from YH, and T is set to TN.
 C The optional output is loaded into the work arrays before returning.
 C-----------------------------------------------------------------------
 C The maximum number of steps was taken before reaching TOUT. ----------
- 500  MSG = 'DVODE--  At current T (=R1), MXSTEP (=I1) steps   '
-      CALL XERRWD (MSG, 50, 201, 1, 0, 0, 0, 0, ZERO, ZERO)
-      MSG = '      taken on this call before reaching TOUT     '
-      CALL XERRWD (MSG, 50, 201, 1, 1, MXSTEP, 0, 1, TN, ZERO)
-      ISTATE = -1
+c Error message removed, see gh-7888
+ 500  ISTATE = -1
       GO TO 580
 C EWT(i) .le. 0.0 for some i (not at start of problem). ----------------
  510  EWTI = RWORK(LEWT+I-1)
@@ -3499,24 +3496,24 @@ C
       RETURN
 C----------------------- End of Function DVNORM ------------------------
       END
-*DECK D1MACHODE
-      DOUBLE PRECISION FUNCTION D1MACHODE (IDUM)
+*DECK D1MACH
+      DOUBLE PRECISION FUNCTION D1MACH (IDUM)
       INTEGER IDUM
 C-----------------------------------------------------------------------
 C This routine computes the unit roundoff of the machine.
 C This is defined as the smallest positive machine number
 C u such that  1.0 + u .ne. 1.0
 C
-C Subroutines/functions called by D1MACHODE.. None
+C Subroutines/functions called by D1MACH.. None
 C-----------------------------------------------------------------------
       DOUBLE PRECISION U, COMP
       U = 1.0D0
  10   U = U*0.5D0
       COMP = 1.0D0 + U
       IF (COMP .NE. 1.0D0) GO TO 10
-      D1MACHODE = U*2.0D0
+      D1MACH = U*2.0D0
       RETURN
-C----------------------- End of Function D1MACHODE ------------------------
+C----------------------- End of Function D1MACH ------------------------
       END
 *DECK XERRWD
       SUBROUTINE XERRWD (MSG, NMES, NERR, LEVEL, NI, I1, I2, NR, R1, R2)

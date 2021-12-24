@@ -326,9 +326,9 @@ PyObject *PyInit_moduleTNC(void)
     return PyModule_Create(&moduledef);
 }
 #else
-PyMODINIT_FUNC init5scipy8optimize9moduleTNC(void)
+PyMODINIT_FUNC initmoduleTNC(void)
 {
-  (void) Py_InitModule("scipy.optimize.moduleTNC", moduleTNC_methods);
+  (void) Py_InitModule("moduleTNC", moduleTNC_methods);
   import_array();
 }
 #endif

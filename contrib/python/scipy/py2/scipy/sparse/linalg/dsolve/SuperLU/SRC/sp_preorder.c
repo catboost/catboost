@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file sp_preorder.c
  * \brief Permute and performs functions on columns of orginal matrix
  */
@@ -65,7 +75,7 @@ sp_preorder(superlu_options_t *options,  SuperMatrix *A, int *perm_c,
     NCformat  *Astore;
     NCPformat *ACstore;
     int       *iwork, *post;
-     int n, i;
+    register  int n, i;
 
     n = A->ncol;
     
@@ -190,7 +200,7 @@ sp_preorder(superlu_options_t *options,  SuperMatrix *A, int *perm_c,
 
 int check_perm(char *what, int n, int *perm)
 {
-    int i;
+    register int i;
     int          *marker;
     /*marker = (int *) calloc(n, sizeof(int));*/
     marker = (int *) malloc(n * sizeof(int));

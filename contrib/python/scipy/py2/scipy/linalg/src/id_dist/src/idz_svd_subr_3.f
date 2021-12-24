@@ -1,34 +1,39 @@
-        subroutine idz_permuter(krank,ind,m,n,a)
+        subroutine idz_retriever(m,n,a,krank,r)
 c
-c       permutes the columns of a according to ind obtained
-c       from routine idzr_qrpiv or idzp_qrpiv, assuming that
-c       a = q r from idzr_qrpiv or idzp_qrpiv.
+c       extracts R in the QR decomposition specified by the output a
+c       of the routine idzr_qrpiv or idzp_qrpiv
 c
 c       input:
-c       krank -- rank specified to routine idzr_qrpiv
-c                or obtained from routine idzp_qrpiv
-c       ind -- indexing array obtained from routine idzr_qrpiv
-c              or idzp_qrpiv
 c       m -- first dimension of a
-c       n -- second dimension of a
-c       a -- matrix to be rearranged
+c       n -- second dimension of a and r
+c       a -- output of routine idzr_qrpiv or idzp_qrpiv
+c       krank -- rank specified to routine idzr_qrpiv,
+c                or output by routine idzp_qrpiv
 c
 c       output:
-c       a -- rearranged matrix
+c       r -- triangular factor in the QR decomposition specified
+c            by the output a of the routine idzr_qrpiv or idzp_qrpiv
 c
         implicit none
-        integer k,krank,m,n,j,ind(krank)
-        complex*16 cswap,a(m,n)
+        integer m,n,j,k,krank
+        complex*16 a(m,n),r(krank,n)
 c
 c
-        do k = krank,1,-1
-          do j = 1,m
+c       Copy a into r and zero out the appropriate
+c       Householder vectors that are stored in one triangle of a.
 c
-            cswap = a(j,k)
-            a(j,k) = a(j,ind(k))
-            a(j,ind(k)) = cswap
-c
+        do k = 1,n
+          do j = 1,krank
+            r(j,k) = a(j,k)
           enddo ! j
+        enddo ! k
+c
+        do k = 1,n
+          if(k .lt. krank) then
+            do j = k+1,krank
+              r(j,k) = 0
+            enddo ! j
+          endif
         enddo ! k
 c
 c
@@ -38,3 +43,29 @@ c
 c
 c
 c
+        subroutine idz_adjer(m,n,a,aa)
+c
+c       forms the adjoint aa of a.
+c
+c       input:
+c       m -- first dimension of a and second dimension of aa
+c       n -- second dimension of a and first dimension of aa
+c       a -- matrix whose adjoint is to be taken
+c
+c       output:
+c       aa -- adjoint of a
+c
+        implicit none
+        integer m,n,j,k
+        complex*16 a(m,n),aa(n,m)
+c
+c
+        do k = 1,n
+          do j = 1,m
+            aa(k,j) = conjg(a(j,k))
+          enddo ! j
+        enddo ! k
+c
+c
+        return
+        end

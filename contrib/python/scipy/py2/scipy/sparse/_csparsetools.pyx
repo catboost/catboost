@@ -6,6 +6,8 @@
 Fast snippets for LIL matrices.
 """
 
+from __future__ import absolute_import
+
 cimport cython
 cimport numpy as cnp
 import numpy as np

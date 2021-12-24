@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 /*! @file relax_snode.c
  * \brief Identify initial relaxed supernodes
  *
@@ -42,8 +52,8 @@ relax_snode (
 	     )
 {
 
-    int j, parent;
-    int snode_start;	/* beginning of a snode */
+    register int j, parent;
+    register int snode_start;	/* beginning of a snode */
     
     ifill (relax_end, n, EMPTY);
     for (j = 0; j < n; j++) descendants[j] = 0;

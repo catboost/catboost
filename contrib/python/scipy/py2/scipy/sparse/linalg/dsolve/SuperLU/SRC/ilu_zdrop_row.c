@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ilu_zdrop_row.c
  * \brief Drop small rows from L
@@ -24,7 +34,7 @@ extern int izamax_(int *, doublecomplex [], int *);
 static double *A;  /* used in _compare_ only */
 static int _compare_(const void *a, const void *b)
 {
-    int *x = (int *)a, *y = (int *)b;
+    register int *x = (int *)a, *y = (int *)b;
     if (A[*x] - A[*y] > 0.0) return -1;
     else if (A[*x] - A[*y] < 0.0) return 1;
     else return 0;
@@ -58,17 +68,17 @@ int ilu_zdrop_row(
 			     * if lastc == 1, there is one more column after
 			     * the working supernode. */ )
 {
-    int i, j, k, m1;
-    int nzlc; /* number of nonzeros in column last+1 */
-    int xlusup_first, xlsub_first;
+    register int i, j, k, m1;
+    register int nzlc; /* number of nonzeros in column last+1 */
+    register int xlusup_first, xlsub_first;
     int m, n; /* m x n is the size of the supernode */
     int r = 0; /* number of dropped rows */
-    double *temp;
-    doublecomplex *lusup = (doublecomplex *) Glu->lusup;
-    int *lsub = Glu->lsub;
-    int *xlsub = Glu->xlsub;
-    int *xlusup = Glu->xlusup;
-    double d_max = 0.0, d_min = 1.0;
+    register double *temp;
+    register doublecomplex *lusup = (doublecomplex *) Glu->lusup;
+    register int *lsub = Glu->lsub;
+    register int *xlsub = Glu->xlsub;
+    register int *xlusup = Glu->xlusup;
+    register double d_max = 0.0, d_min = 1.0;
     int    drop_rule = options->ILU_DropRule;
     milu_t milu = options->ILU_MILU;
     norm_t nrm = options->ILU_Norm;

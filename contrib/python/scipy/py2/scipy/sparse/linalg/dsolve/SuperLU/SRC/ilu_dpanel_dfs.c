@@ -1,3 +1,13 @@
+/*! \file
+Copyright (c) 2003, The Regents of the University of California, through
+Lawrence Berkeley National Laboratory (subject to receipt of any required 
+approvals from U.S. Dept. of Energy) 
+
+All rights reserved. 
+
+The source code is distributed under BSD license, see the file License.txt
+at the top-level directory.
+*/
 
 /*! @file ilu_dpanel_dfs.c
  * \brief Peforms a symbolic factorization on a panel of symbols and
@@ -78,7 +88,7 @@ ilu_dpanel_dfs(
     int       *xsup, *supno;
     int       *lsub, *xlsub;
     double    *amax_col;
-    double tmp;
+    register double tmp;
 
     /* Initialize pointers */
     Astore     = A->Store;
