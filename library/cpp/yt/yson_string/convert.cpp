@@ -84,6 +84,11 @@ TYsonString ConvertToYsonString<TStringBuf>(const TStringBuf& value)
     return TYsonString(buffer.Slice(buffer.Begin(), ptr));
 }
 
+TYsonString ConvertToYsonString(const char* value)
+{
+    return ConvertToYsonString(TStringBuf(value));
+}
+
 template <>
 TYsonString ConvertToYsonString<float>(const float& value)
 {

@@ -11,11 +11,11 @@ namespace {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <class T, class U>
+template <class T, class R = T, class U>
 void Check(const U& value)
 {
     auto str = ConvertToYsonString(static_cast<T>(value));
-    auto anotherValue = ConvertFromYsonString<T>(str);
+    auto anotherValue = ConvertFromYsonString<R>(str);
     EXPECT_EQ(static_cast<T>(value), anotherValue);
 }
 
@@ -32,6 +32,8 @@ TEST(TConvertTest, Basic)
     Check<ui64>(13);
     Check<TString>("");
     Check<TString>("hello");
+    Check<TStringBuf, TString>("hello");
+    Check<const char*, TString>("hello");
     Check<float>(3.14);
     Check<double>(3.14);
     Check<bool>(true);

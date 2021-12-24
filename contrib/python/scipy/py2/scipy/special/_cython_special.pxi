@@ -7,15 +7,7 @@ from numpy cimport (
     NPY_CFLOAT, NPY_CDOUBLE, NPY_CLONGDOUBLE,
     NPY_INT, NPY_LONG)
 
-cdef extern from "numpy/ufuncobject.h":
-    int PyUFunc_getfperr() nogil
-
-cdef public int wrap_PyUFunc_getfperr() nogil:
-    """
-    Call PyUFunc_getfperr in a context where PyUFunc_API array is initialized;
-    this avoids messing with the UNIQUE_SYMBOL #defines
-    """
-    return PyUFunc_getfperr()
+cdef extern int wrap_PyUFunc_getfperrg()
 
 cdef extern from "numpy/npy_math.h":
     double NPY_NAN

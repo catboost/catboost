@@ -44,6 +44,7 @@ template <>
 TYsonString ConvertToYsonString<TString>(const TString& value);
 template <>
 TYsonString ConvertToYsonString<TStringBuf>(const TStringBuf& value);
+TYsonString ConvertToYsonString(const char* value);
 
 template <>
 TYsonString ConvertToYsonString<float>(const float& value);
