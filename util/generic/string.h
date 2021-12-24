@@ -138,6 +138,17 @@ public:
         return this->operator=(static_cast<TChar>(other));
     }
 
+    /*
+     * WARN:
+     * Though references are copyable types according to the standard,
+     * the behavior of this explicit default specification is different from the one
+     * implemented by the assignment operator above.
+     *
+     * An attempt to explicitly delete it will break valid invocations like
+     * auto c = flag ? s[i] : s[j];
+     */
+    TBasicCharRef(const TBasicCharRef&) = default;
+
 private:
     TStringType& S_;
     size_t Pos_;
