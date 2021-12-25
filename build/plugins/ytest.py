@@ -29,6 +29,7 @@ VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
+SPLIT_FACTOR_TEST_FILES_MAX_VALUE = 4250
 PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
 DEFAULT_TIDY_CONFIG = "build/config/tests/clang_tidy/config.yaml"
 DEFAULT_TIDY_CONFIGS_MAP = {}  # project_path -> path_to_config
@@ -273,6 +274,8 @@ def validate_test(unit, kw):
     if valid_kw.get('SPLIT-FACTOR'):
         if valid_kw.get('FORK-MODE') == 'none':
             errors.append('SPLIT_FACTOR must be use with FORK_TESTS() or FORK_SUBTESTS() macro')
+
+        value = 1
         try:
             value = int(valid_kw.get('SPLIT-FACTOR'))
             if value <= 0:
@@ -281,6 +284,12 @@ def validate_test(unit, kw):
                 raise ValueError("the maximum allowed value is {}".format(SPLIT_FACTOR_MAX_VALUE))
         except ValueError as e:
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
+
+        if valid_kw.get('FORK-TEST-FILES') and size != consts.TestSize.Large:
+            nfiles = count_entries(valid_kw.get('TEST-FILES'))
+            if nfiles * value > SPLIT_FACTOR_TEST_FILES_MAX_VALUE:
+                errors.append('Too much chunks generated:{} (limit: {}). Remove FORK_TEST_FILES() macro or reduce SPLIT_FACTOR({}).'.format(
+                    nfiles * value, SPLIT_FACTOR_TEST_FILES_MAX_VALUE, value))
 
     unit_path = get_norm_unit_path(unit)
     if not is_fat and "ya:noretries" in tags and not is_ytexec_run \
@@ -328,6 +337,14 @@ def serialize_list(lst):
 
 def deserialize_list(val):
     return filter(None, val.replace('"', "").split(";"))
+
+
+def count_entries(x):
+    # see (de)serialize_list
+    assert x is None or isinstance(x, str), type(x)
+    if not x:
+        return 0
+    return x.count(";") + 1
 
 
 def get_values_list(unit, key):
