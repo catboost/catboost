@@ -1,7 +1,6 @@
       SUBROUTINE DCOSQB (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N
-      DOUBLE PRECISION :: X(*), WSAVE(*), TSQRT2, X1
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(*)       ,WSAVE(*)
       DATA TSQRT2 /2.82842712474619009760D0/
       IF (N.lt.2) GO TO 101
       IF (N.eq.2) GO TO 102
@@ -17,9 +16,8 @@
       END
 
       SUBROUTINE DCOSQB1 (N,X,W,XH)
-      IMPLICIT NONE
-      INTEGER :: N, I, K, KC, MODN, NP2, NS2
-      DOUBLE PRECISION :: X(1), W(1), XH(1), XIM1
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(1)       ,W(1)       ,XH(1)
       NS2 = (N+1)/2
       NP2 = N+2
       DO 101 I=3,N,2

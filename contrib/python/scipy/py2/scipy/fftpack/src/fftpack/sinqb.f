@@ -1,7 +1,5 @@
       SUBROUTINE SINQB (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, K, KC, NS2
-      REAL :: X(*), WSAVE(*), XHOLD
+      DIMENSION       X(*)       ,WSAVE(*)
       IF (N .GT. 1) GO TO 101
       X(1) = 4.*X(1)
       RETURN

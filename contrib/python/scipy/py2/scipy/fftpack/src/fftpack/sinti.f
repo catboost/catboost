@@ -1,7 +1,5 @@
       SUBROUTINE SINTI (N,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, K, NP1, NS2
-      REAL :: WSAVE(*), DT, PI
+      DIMENSION       WSAVE(*)
       DATA PI /3.14159265358979/
       IF (N .LE. 1) RETURN
       NS2 = N/2

@@ -1,8 +1,6 @@
       SUBROUTINE DCOST (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, I, K, KC, MODN, NM1, NP1, NS2
-      DOUBLE PRECISION :: X(*), WSAVE(*), C1, T1, T2, TX2, X1H, X1P3
-      DOUBLE PRECISION :: XI, XIM2
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(*)       ,WSAVE(*)
       NM1 = N-1
       NP1 = N+1
       NS2 = N/2

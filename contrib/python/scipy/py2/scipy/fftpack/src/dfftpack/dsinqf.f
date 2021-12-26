@@ -1,7 +1,6 @@
       SUBROUTINE DSINQF (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, K, KC, NS2
-      DOUBLE PRECISION :: X(1), WSAVE(1), XHOLD
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(1)       ,WSAVE(1)
       IF (N .EQ. 1) RETURN
       NS2 = N/2
       DO 101 K=1,NS2

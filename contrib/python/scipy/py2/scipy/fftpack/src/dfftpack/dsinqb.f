@@ -1,7 +1,6 @@
       SUBROUTINE DSINQB (N,X,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N, K, KC, NS2
-      DOUBLE PRECISION :: X(1), WSAVE(1), XHOLD
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DIMENSION       X(1)       ,WSAVE(1)
       IF (N .GT. 1) GO TO 101
       X(1) = 4.0D0*X(1)
       RETURN

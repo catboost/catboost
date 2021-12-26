@@ -1,5 +1,4 @@
-      recursive
-     *subroutine r1mpyq(m,n,a,lda,v,w)
+      subroutine r1mpyq(m,n,a,lda,v,w)
       integer m,n,lda
       double precision a(lda,n),v(n),w(n)
 c     **********

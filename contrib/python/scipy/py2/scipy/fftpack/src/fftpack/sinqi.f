@@ -1,7 +1,5 @@
       SUBROUTINE SINQI (N,WSAVE)
-      IMPLICIT NONE
-      INTEGER :: N
-      REAL :: WSAVE(*)
+      DIMENSION       WSAVE(*)
       CALL COSQI (N,WSAVE)
       RETURN
       END
