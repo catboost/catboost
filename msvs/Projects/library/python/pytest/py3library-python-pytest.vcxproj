@@ -482,6 +482,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pickleshare\py3contrib-python-pickleshare.vcxproj">
       <Project>{5135ADBD-B3FA-8F19-B851-2EE2D4BDDCFB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3\pypython-pluggy-py3.vcxproj">
+      <Project>{D66229F6-9947-B054-7738-D354BB57CF34}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3contrib-python-pluggy.vcxproj">
       <Project>{8D7C2B39-EB57-DAD1-BEFC-79BDCA46798E}</Project>
     </ProjectReference>

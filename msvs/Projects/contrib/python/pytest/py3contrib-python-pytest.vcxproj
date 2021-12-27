@@ -2092,6 +2092,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.vcxproj">
       <Project>{94265A2F-8C00-014C-3814-76F9E1A8BCD3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3\pypython-pluggy-py3.vcxproj">
+      <Project>{D66229F6-9947-B054-7738-D354BB57CF34}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pluggy\py3contrib-python-pluggy.vcxproj">
       <Project>{8D7C2B39-EB57-DAD1-BEFC-79BDCA46798E}</Project>
     </ProjectReference>

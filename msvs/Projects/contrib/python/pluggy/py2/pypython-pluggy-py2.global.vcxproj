@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{BB06FBED-AFC4-24E5-48A3-6DAF8960486C}</ProjectGUID>
+    <ProjectGUID>{D3497026-9B6C-F904-006A-83504CE159DE}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-pluggy.global</ProjectName>
+    <ProjectName>pypython-pluggy-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-pluggy.global</TargetName>
+    <TargetName>pypython-pluggy-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pluggy\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BB06FBED-AFC4-24E5-48A3-6DAF8960486C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D3497026-9B6C-F904-006A-83504CE159DE\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\b9599b7cd2c262d6cd74ac5f3a.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\py2\420fbb14c0c30888976136224c.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pluggy\py2\ff4f709f7ea82609fdc16d33a6.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp" "_64e24082b238b72bb0382b014d=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_d07971e4a40b39a63bc6b0c232=resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_8aa4916de97b738f7a8e444eb4=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/top_level.txt" "_3b369e7878c728c5ae1c687354=resfs/file/contrib/python/pluggy/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/420fbb14c0c30888976136224c.cpp" "_116c9d0623bb3a49dbf26efe3a=/py_modules/pluggy.__init__" "_63a4a26478b3b7977e49844de5=resfs/src//py_modules/pluggy.__init__" "_59b50fb8ca02c8da1df0abffcd=/py_code/pluggy.__init__" "_21405cad8207304f13c453464d=/py_modules/pluggy._tracing" "_96e1dad18db5ab6c8236dc4e9d=resfs/src//py_modules/pluggy._tracing" "_d5ac6d162cab9ff178956fb9a1=/py_code/pluggy._tracing" "_a349f7cc0c966aca05a817eb10=/py_modules/pluggy._version" "_7e99d4e617bee1488bc0f6aa3c=resfs/src//py_modules/pluggy._version" "_fae1c07d652f69b1fc9e2e5c33=/py_code/pluggy._version" "_7b02f044a8db0d4c16a61dc49b=/py_modules/pluggy.callers" "_d738633fcc95695b2d74995a39=resfs/src//py_modules/pluggy.callers" "_72fbd7f0f593e98516453937a6=/py_code/pluggy.callers" "_0e9274aff283f7e8e73c2f4504=/py_modules/pluggy.hooks" "_8a444cccf05fb379614821d2f2=resfs/src//py_modules/pluggy.hooks" "_a09c8a680f712043f495af8921=/py_code/pluggy.hooks" "_72c031f48534f931b92def2d19=/py_modules/pluggy.manager" "_34ae68066e959a53405e952c90=resfs/src//py_modules/pluggy.manager" "_dcece78b6a72bcbb09d140ca75=/py_code/pluggy.manager"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/b9599b7cd2c262d6cd74ac5f3a.cpp" "_d94af1076d23c3ca3246af41d3=/py_modules/pluggy.__init__" "_3407912912fcd8d7c608996a4a=resfs/src//py_modules/pluggy.__init__" "_21ba672561320b42882d97e65a=/py_code/pluggy.__init__" "_272f27981879f00847ee2d41fe=/py_modules/pluggy._tracing" "_fcdb4fb223fa546fb279a7db04=resfs/src//py_modules/pluggy._tracing" "_5f393d38e85202fadf5f8e3eb7=/py_code/pluggy._tracing" "_73ca20b68d35b7b1c548b7e4ef=/py_modules/pluggy._version" "_368a37298411de6a1d73329b02=resfs/src//py_modules/pluggy._version" "_e75837926543c35e9dc4d0b52c=/py_code/pluggy._version" "_3494e892239585676f9ea19647=/py_modules/pluggy.callers" "_cf2b5c30c340d537512b8d6e8c=resfs/src//py_modules/pluggy.callers" "_12ec5844f68ce2bec133e177f1=/py_code/pluggy.callers" "_1258781cca5cdc9042f96407c9=/py_modules/pluggy.hooks" "_8bc353d0e2bc4a8447fd7ee90e=resfs/src//py_modules/pluggy.hooks" "_5877b74899a48bd6d1ccb5e87e=/py_code/pluggy.hooks" "_60e43d3d0125ba1d695e23fe47=/py_modules/pluggy.manager" "_1449ee421503680031e53299a4=resfs/src//py_modules/pluggy.manager" "_1f75b51459bd7ee4b8530b5cfd=/py_code/pluggy.manager"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/ff4f709f7ea82609fdc16d33a6.cpp" "_c1467da271b8828adbb3434744=resfs/src/resfs/file/contrib/python/pluggy/py2/.dist-info/METADATA" "_8787771ad05357544ce26347f1=resfs/file/contrib/python/pluggy/py2/.dist-info/METADATA" "_d0d6c2d6117c75f1119b3e1e62=resfs/src/resfs/file/contrib/python/pluggy/py2/.dist-info/top_level.txt" "_e109c43758e0b5af846642c39c=resfs/file/contrib/python/pluggy/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp" "_64e24082b238b72bb0382b014d=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_d07971e4a40b39a63bc6b0c232=resfs/file/contrib/python/pluggy/.dist-info/METADATA" "_8aa4916de97b738f7a8e444eb4=resfs/src/resfs/file/contrib/python/pluggy/.dist-info/top_level.txt" "_3b369e7878c728c5ae1c687354=resfs/file/contrib/python/pluggy/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/420fbb14c0c30888976136224c.cpp" "_116c9d0623bb3a49dbf26efe3a=/py_modules/pluggy.__init__" "_63a4a26478b3b7977e49844de5=resfs/src//py_modules/pluggy.__init__" "_59b50fb8ca02c8da1df0abffcd=/py_code/pluggy.__init__" "_21405cad8207304f13c453464d=/py_modules/pluggy._tracing" "_96e1dad18db5ab6c8236dc4e9d=resfs/src//py_modules/pluggy._tracing" "_d5ac6d162cab9ff178956fb9a1=/py_code/pluggy._tracing" "_a349f7cc0c966aca05a817eb10=/py_modules/pluggy._version" "_7e99d4e617bee1488bc0f6aa3c=resfs/src//py_modules/pluggy._version" "_fae1c07d652f69b1fc9e2e5c33=/py_code/pluggy._version" "_7b02f044a8db0d4c16a61dc49b=/py_modules/pluggy.callers" "_d738633fcc95695b2d74995a39=resfs/src//py_modules/pluggy.callers" "_72fbd7f0f593e98516453937a6=/py_code/pluggy.callers" "_0e9274aff283f7e8e73c2f4504=/py_modules/pluggy.hooks" "_8a444cccf05fb379614821d2f2=resfs/src//py_modules/pluggy.hooks" "_a09c8a680f712043f495af8921=/py_code/pluggy.hooks" "_72c031f48534f931b92def2d19=/py_modules/pluggy.manager" "_34ae68066e959a53405e952c90=resfs/src//py_modules/pluggy.manager" "_dcece78b6a72bcbb09d140ca75=/py_code/pluggy.manager"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pluggy\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/b9599b7cd2c262d6cd74ac5f3a.cpp" "_d94af1076d23c3ca3246af41d3=/py_modules/pluggy.__init__" "_3407912912fcd8d7c608996a4a=resfs/src//py_modules/pluggy.__init__" "_21ba672561320b42882d97e65a=/py_code/pluggy.__init__" "_272f27981879f00847ee2d41fe=/py_modules/pluggy._tracing" "_fcdb4fb223fa546fb279a7db04=resfs/src//py_modules/pluggy._tracing" "_5f393d38e85202fadf5f8e3eb7=/py_code/pluggy._tracing" "_73ca20b68d35b7b1c548b7e4ef=/py_modules/pluggy._version" "_368a37298411de6a1d73329b02=resfs/src//py_modules/pluggy._version" "_e75837926543c35e9dc4d0b52c=/py_code/pluggy._version" "_3494e892239585676f9ea19647=/py_modules/pluggy.callers" "_cf2b5c30c340d537512b8d6e8c=resfs/src//py_modules/pluggy.callers" "_12ec5844f68ce2bec133e177f1=/py_code/pluggy.callers" "_1258781cca5cdc9042f96407c9=/py_modules/pluggy.hooks" "_8bc353d0e2bc4a8447fd7ee90e=resfs/src//py_modules/pluggy.hooks" "_5877b74899a48bd6d1ccb5e87e=/py_code/pluggy.hooks" "_60e43d3d0125ba1d695e23fe47=/py_modules/pluggy.manager" "_1449ee421503680031e53299a4=resfs/src//py_modules/pluggy.manager" "_1f75b51459bd7ee4b8530b5cfd=/py_code/pluggy.manager"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pluggy/py2/ff4f709f7ea82609fdc16d33a6.cpp" "_c1467da271b8828adbb3434744=resfs/src/resfs/file/contrib/python/pluggy/py2/.dist-info/METADATA" "_8787771ad05357544ce26347f1=resfs/file/contrib/python/pluggy/py2/.dist-info/METADATA" "_d0d6c2d6117c75f1119b3e1e62=resfs/src/resfs/file/contrib/python/pluggy/py2/.dist-info/top_level.txt" "_e109c43758e0b5af846642c39c=resfs/file/contrib/python/pluggy/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pluggy/2ef87a6139c9ca267781d51419.cpp	$B/contrib/python/pluggy/b9599b7cd2c262d6cd74ac5f3a.cpp	</Message>
+      <Message>$B/contrib/python/pluggy/py2/420fbb14c0c30888976136224c.cpp	$B/contrib/python/pluggy/py2/ff4f709f7ea82609fdc16d33a6.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\2ef87a6139c9ca267781d51419.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\b9599b7cd2c262d6cd74ac5f3a.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pluggy\py2\420fbb14c0c30888976136224c.cpp;$(SolutionDir)$(Configuration)\contrib\python\pluggy\py2\ff4f709f7ea82609fdc16d33a6.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
