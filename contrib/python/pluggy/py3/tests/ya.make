@@ -1,4 +1,4 @@
-PY23_TEST()
+PY3TEST()
 
 
 
@@ -8,7 +8,6 @@ PEERDIR (
 
 TEST_SRCS(
     conftest.py
-    test_deprecations.py
     test_details.py
     test_helpers.py
     test_hookcaller.py
