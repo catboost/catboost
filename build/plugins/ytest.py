@@ -438,6 +438,7 @@ def onadd_ytest(unit, *args):
     test_size = ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or ''
     test_tags = serialize_list(_get_test_tags(unit, spec_args))
     test_timeout = ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or ''
+    test_requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
 
     if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
@@ -446,6 +447,8 @@ def onadd_ytest(unit, *args):
             test_size = 'SMALL'
             test_tags = ''
             test_timeout = "60"
+            test_requirements = []
+            unit.set(["TEST_YT_SPEC_VALUE", ""])
         else:
             return
 
@@ -492,7 +495,7 @@ def onadd_ytest(unit, *args):
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
         'SIZE': test_size,
         'TAG': test_tags,
-        'REQUIREMENTS': serialize_list(spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
+        'REQUIREMENTS': serialize_list(test_requirements),
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
