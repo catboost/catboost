@@ -138,6 +138,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\iterator\library-cpp-iterator.vcxproj">
+      <Project>{0B926EA6-E7DF-2487-70E8-A4F00F4F0523}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\quote\cpp-string_utils-quote.vcxproj">
       <Project>{722B6806-67C9-1169-6ED9-AF9509BBCB17}</Project>
     </ProjectReference>
