@@ -32,6 +32,10 @@ public:
         CollectHeaders_ = false;
     }
 
+    inline void SetGzipAllowMultipleStreams(bool allow) noexcept {
+        GzipAllowMultipleStreams_ = allow;
+    }
+
     /// @return true on end parsing (GetExtraDataSize() return amount not used bytes)
     /// throw exception on bad http format (unsupported encoding, etc)
     /// sz == 0 signaling end of input stream
@@ -127,6 +131,7 @@ private:
     TParser Parser_; //current parser (stage)
     TMessageType MessageType_ = Response;
     bool CollectHeaders_ = true;
+    bool GzipAllowMultipleStreams_ = true;
 
     // parsed data
     const char* Data_ = nullptr;
