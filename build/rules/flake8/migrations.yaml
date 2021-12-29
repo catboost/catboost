@@ -435,8 +435,6 @@ migrations:
     - market/yamarec/metarouter/tests
     - market/yamarec/metarouter/yamarec_metarouter
     - market/yamarec/performance/utils
-    - market/yamarec/rt-logger/yamarec_rt_logger
-    - market/yamarec/rt-logger/yamarec_rt_logger/log_parsers
     - mds/s3/s3_mds_proxy
     - mds/s3/s3_mds_proxy/s3mds/helpers/config
     - mds/s3/s3_mds_proxy/s3mds/idm/roles
@@ -2843,7 +2841,6 @@ migrations:
     - voicetech/asr/pipeline/language_models/general_logs
     - voicetech/asr/pipeline/language_models/linear_lm_merge
     - voicetech/asr/pipeline/language_models/quasar_lm
-    - voicetech/asr/pipeline/language_models/special_lm_build
     - voicetech/asr/pipeline/language_models/tools/run_lm_pipeline
     - voicetech/asr/pipeline/train_pytorch/lib
     - voicetech/asr/tools/ctc_visualize
@@ -3672,7 +3669,6 @@ migrations:
     - quality/mapreduce/tests/common
     - ads/factor_check/features/tests
     - ads/libs/py_ml_factors/mt/baseline_model
-    - ads/libs/py_ml_factors/mt/rsya_factors
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
     - quality/user_sessions/createlib/qb3/tests/create
     - billing/agency_rewards/tests_platform
