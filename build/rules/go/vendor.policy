@@ -1017,6 +1017,11 @@ ALLOW .* -> vendor/github.com/icza/bitio
 # CONTRIB-2420 Syslog server/parser
 ALLOW .* -> vendor/gopkg.in/mcuadros/go-syslog.v2
 
+# CONTRIB-2412
+ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
+ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
+ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
