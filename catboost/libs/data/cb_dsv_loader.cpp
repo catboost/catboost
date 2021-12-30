@@ -157,7 +157,7 @@ namespace NCB {
 
         auto& columnsDescription = DataMetaInfo.ColumnsInfo->Columns;
 
-        auto parseBlock = [&](TString& line, int lineIdx) {
+        auto parseLine = [&](TString& line, int lineIdx) {
             const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
 
             ui32 featureId = 0;
@@ -318,7 +318,7 @@ namespace NCB {
             }
         };
 
-        AsyncRowProcessor.ProcessBlock(parseBlock);
+        AsyncRowProcessor.ProcessBlock(parseLine);
 
         if (BaselineReader.Inited()) {
             auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {
