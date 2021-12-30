@@ -9,6 +9,7 @@ SRCS(
 
 PEERDIR(
     contrib/libs/tbb
+    library/cpp/threading/future
 )
 
 END()
