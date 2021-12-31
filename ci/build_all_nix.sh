@@ -66,11 +66,6 @@ tar -cvzf catboost-R-$(uname).tgz catboost
 
 cd ../python-package
 
-PY35=3.5.5
-pyenv install -s $PY35
-pyenv shell $PY35
-python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
-
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36

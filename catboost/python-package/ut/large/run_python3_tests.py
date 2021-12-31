@@ -16,7 +16,7 @@ def pytest_generate_tests(metafunc):
 
     tests = []
 
-    for py_ver in "3.5", "3.6":
+    for py_ver in ["3.6"]:
         python_bin, python_env = prepare_all(py_ver)
 
         update_env(python_env)
