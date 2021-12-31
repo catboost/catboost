@@ -15,7 +15,8 @@ from argparse import ArgumentParser
 sys.dont_write_bytecode = True
 
 PL_LINUX = 'manylinux1_x86_64'
-PL_MACOS = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
+PL_MACOS_X86_64 = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
+PL_MACOS_ARM_64 = 'macosx_11_0_arm64.macosx_12_0_arm64'
 PL_WIN = 'win_amd64'
 
 
@@ -87,7 +88,7 @@ def gen_platform():
     value = distutils.util.get_platform().replace("linux", "manylinux1")
     value = value.replace('-', '_').replace('.', '_')
     if 'macosx' in value:
-        value = PL_MACOS
+        value = PL_MACOS_X86_64
     return value
 
 
@@ -107,7 +108,10 @@ def transform_platform(platform):
     if 'linux' in platform:
         return PL_LINUX
     elif 'darwin' in platform:
-        return PL_MACOS
+        if 'arm64' in platform:
+           return PL_MACOS_ARM64
+        else:
+           return PL_MACOS_X86_64
     elif 'win' in platform:
         return PL_WIN
     else:
