@@ -797,7 +797,6 @@
   - gelf.h
   - gnuregex.h
   - kafs.h
-  - libelf.h
   - login_cap.h
   - machine/_inttypes.h
   - machine/_stdint.h
