@@ -11,6 +11,8 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 
 import org.apache.spark.sql._
+import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
+import org.apache.spark.ml.feature.{StringIndexer,VectorAssembler}
 import org.apache.spark.ml.linalg._
 import org.apache.spark.sql.types._
 
@@ -1465,5 +1467,56 @@ class CatBoostRegressorTest {
     val predictions = model.transform(evalPool.data)
 
     TestHelpers.assertEqualsWithPrecision(expectedPredictions, predictions, Seq("groupId", "sampleId"))
+  }
+
+  @Test 
+  @throws(classOf[Exception])
+  def testModelSerializationInPipeline() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName);
+    
+    val srcData = Seq(
+      Row(0.12, "query0", 0.1, "Male", 0.2, "Germany", 0.11),
+      Row(0.22, "query0", 0.97, "Female", 0.82, "Russia", 0.33),
+      Row(0.34, "query1", 0.13, "Male", 0.22, "USA", 0.23),
+      Row(0.42, "Query 2", 0.14, "Male", 0.18, "Finland", 0.1),
+      Row(0.01, "Query 2", 0.9, "Female", 0.67, "USA", 0.17),
+      Row(0.0, "Query 2", 0.66, "Female", 0.1, "UK", 0.31)
+    )
+    val srcDataSchema = StructType(
+      Seq(
+        StructField("Label", DoubleType),
+        StructField("GroupId", StringType),
+        StructField("float0", DoubleType),
+        StructField("Gender1", StringType),
+        StructField("float2", DoubleType),
+        StructField("Country3", StringType),
+        StructField("float4", DoubleType)
+      )
+    )
+    val df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), srcDataSchema)
+
+    var indexers = mutable.Seq.empty[PipelineStage]
+    for (catFeature <- Seq("Gender1", "Country3")) {
+      indexers = indexers :+ (new StringIndexer().setInputCol(catFeature).setOutputCol(catFeature + "Index"))
+    }
+    val assembler = new VectorAssembler()
+      .setInputCols(Array("float0", "Gender1Index", "float2", "Country3Index", "float4"))
+      .setOutputCol("features")
+    val regressor = new CatBoostRegressor()
+      .setLabelCol("Label")
+      .setIterations(20)
+
+    val pipeline = new Pipeline().setStages((indexers :+ assembler :+ regressor).toArray)
+    val pipelineModel = pipeline.fit(df)
+
+    val modelPath = new java.io.File(
+      temporaryFolder.newFolder(TestHelpers.getCurrentMethodName),
+      "serialized_pipeline_model"
+    )
+
+    pipelineModel.write.overwrite.save(modelPath.toString)
+    val loadedPipelineModel = PipelineModel.load(modelPath.toString)
+
+    TestHelpers.assertEqualsWithPrecision(pipelineModel.transform(df), loadedPipelineModel.transform(df))
   }
 }
