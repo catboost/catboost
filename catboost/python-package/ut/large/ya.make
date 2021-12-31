@@ -21,6 +21,7 @@ DEPENDS(
     catboost/tools/model_comparator
 )
 DATA(
+    arcadia/library/python/hnsw/ut/data
     arcadia/catboost/pytest/data
     arcadia/catboost/python-package/ut/medium
 )
