@@ -69,6 +69,8 @@ ALLOW .* -> kikimr/public/lib/json_value
 ALLOW .* -> kikimr/public/lib/yson_value
 ALLOW .* -> kikimr/public/lib/ydb_cli
 
+ALLOW .* -> kikimr/yndx/api
+
 ALLOW cloud/blockstore -> kikimr/blockstore
 ALLOW cloud/blockstore -> kikimr/core
 ALLOW cloud/blockstore -> kikimr/driver_lib/run
