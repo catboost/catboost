@@ -20,13 +20,15 @@
     // that some functions are called from particular threads.
     #define YT_ENABLE_THREAD_AFFINITY_CHECK
 
-
     // This define enables tracking of BIND callbacks location.
     #define YT_ENABLE_BIND_LOCATION_TRACKING
 
     // This define enables checking that all required protobuf fields are present
     // during serialization.
     #define YT_VALIDATE_REQUIRED_PROTO_FIELDS
+
+    // Detects deadlocks caused by recursive acquisitions of (non-recursive) spin locks.
+    #define YT_ENABLE_SPIN_LOCK_OWNERSHIP_TRACKING
 #endif
 
 // Configure SSE usage.
