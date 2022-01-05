@@ -1,17 +1,19 @@
 #pragma once
 
 #include <util/generic/strbuf.h>
+
 #include <util/system/defaults.h>
 
 #include <library/cpp/yt/yson_string/public.h>
 
 namespace NYT::NYson {
+
 ////////////////////////////////////////////////////////////////////////////////
 
 //! A SAX-like interface for parsing a YSON stream.
-struct IYsonConsumer {
-    virtual ~IYsonConsumer() {
-    }
+struct IYsonConsumer
+{
+    virtual ~IYsonConsumer() = default;
 
     //! The current item is a string scalar (IStringNode).
     /*!
