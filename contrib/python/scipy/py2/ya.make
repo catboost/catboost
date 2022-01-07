@@ -43,6 +43,8 @@ NO_CHECK_IMPORTS(
 CFLAGS(
     -Dc_sqrt=SuperLU_c_sqrt
     -Dc_exp=SuperLU_c_exp
+    -Dchla_transtype__=chla_transtype_
+    -Dchla_transtypewrp_=chla_transtypewrp__
 )
 
 IF (OS_WINDOWS)
@@ -57,7 +59,10 @@ SRCS(
     scipy/_build_utils/src/wrap_g77_abi_c.c
     scipy/_build_utils/src/wrap_g77_abi_f.f
     scipy/_lib/_fpumode.c
+    scipy/fftpack/_fftpackmodule.c
+    scipy/fftpack/convolvemodule.c
     scipy/fftpack/src/convolve.c
+    scipy/fftpack/src/dct.c
     scipy/fftpack/src/dfftpack/dcosqb.f
     scipy/fftpack/src/dfftpack/dcosqf.f
     scipy/fftpack/src/dfftpack/dcosqi.f
@@ -82,6 +87,7 @@ SRCS(
     scipy/fftpack/src/dfftpack/zffti.f
     scipy/fftpack/src/dfftpack/zffti1.f
     scipy/fftpack/src/drfft.c
+    scipy/fftpack/src/dst.c
     scipy/fftpack/src/fftpack/cfftb.f
     scipy/fftpack/src/fftpack/cfftb1.f
     scipy/fftpack/src/fftpack/cfftf.f
@@ -108,10 +114,12 @@ SRCS(
     scipy/fftpack/src/zfft.c
     scipy/fftpack/src/zfftnd.c
     scipy/fftpack/src/zrfft.c
+    scipy/integrate/_dopmodule.c
     scipy/integrate/_odepackmodule.c
     scipy/integrate/_quadpackmodule.c
     scipy/integrate/dop/dop853.f
     scipy/integrate/dop/dopri5.f
+    scipy/integrate/lsodamodule.c
     scipy/integrate/mach/d1mach.f
     scipy/integrate/mach/xerror.f
     scipy/integrate/odepack/blkdta000.f
@@ -166,6 +174,7 @@ SRCS(
     scipy/integrate/quadpack/dqwgtc.f
     scipy/integrate/quadpack/dqwgtf.f
     scipy/integrate/quadpack/dqwgts.f
+    scipy/integrate/vodemodule.c
     scipy/interpolate/fitpack/bispeu.f
     scipy/interpolate/fitpack/bispev.f
     scipy/interpolate/fitpack/clocur.f
@@ -253,7 +262,15 @@ SRCS(
     scipy/interpolate/fitpack/surfit.f
     scipy/interpolate/src/_fitpackmodule.c
     scipy/interpolate/src/_interpolate.cpp
+    scipy/interpolate/src/dfitpack-f2pywrappers.f
+    scipy/interpolate/src/dfitpackmodule.c
     scipy/linalg/_blas_subroutine_wrappers.f
+    scipy/linalg/_fblas-f2pywrappers.f
+    scipy/linalg/_fblasmodule.c
+    scipy/linalg/_flapack-f2pywrappers.f
+    scipy/linalg/_flapackmodule.c
+    scipy/linalg/_flinalgmodule.c
+    scipy/linalg/_interpolativemodule.c
     scipy/linalg/_lapack_subroutine_wrappers.f
     scipy/linalg/src/det.f
     scipy/linalg/src/id_dist/src/dfft_subr_0.f
@@ -388,8 +405,10 @@ SRCS(
     scipy/optimize/_trlib/trlib_leftmost.c
     scipy/optimize/_trlib/trlib_quadratic_zero.c
     scipy/optimize/_trlib/trlib_tri_factor.c
+    scipy/optimize/cobyla/_cobylamodule.c
     scipy/optimize/cobyla/cobyla2.f
     scipy/optimize/cobyla/trstlp.f
+    scipy/optimize/lbfgsb_src/_lbfgsbmodule.c
     scipy/optimize/lbfgsb_src/lbfgsb.f
     scipy/optimize/lbfgsb_src/linpack.f
     scipy/optimize/lbfgsb_src/timer.f
@@ -418,7 +437,10 @@ SRCS(
     scipy/optimize/minpack/rwupdt.f
     scipy/optimize/minpack2/dcsrch.f
     scipy/optimize/minpack2/dcstep.f
+    scipy/optimize/minpack2/minpack2module.c
+    scipy/optimize/nnls/_nnlsmodule.c
     scipy/optimize/nnls/nnls.f
+    scipy/optimize/slsqp/_slsqpmodule.c
     scipy/optimize/slsqp/slsqp_optmz.f
     scipy/optimize/tnc/moduleTNC.c
     scipy/optimize/tnc/tnc.c
@@ -428,7 +450,9 @@ SRCS(
     scipy/signal/S_bspline_util.c
     scipy/signal/Z_bspline_util.c
     scipy/signal/bspline_util.c
+    scipy/signal/correlate_nd.c
     scipy/signal/firfilter.c
+    scipy/signal/lfilter.c
     scipy/signal/medianfilter.c
     scipy/signal/sigtoolsmodule.c
     scipy/signal/splinemodule.c
@@ -690,6 +714,16 @@ SRCS(
     scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f
     scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f
     scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f
+    scipy/sparse/linalg/eigen/arpack/_arpack-f2pywrappers.f
+    scipy/sparse/linalg/eigen/arpack/_arpackmodule.c
+    scipy/sparse/linalg/isolve/iterative/BiCGREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/BiCGSTABREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/CGREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/CGSREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/GMRESREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/QMRREVCOM.f
+    scipy/sparse/linalg/isolve/iterative/_iterativemodule.c
+    scipy/sparse/linalg/isolve/iterative/getbreak.f
     scipy/sparse/sparsetools/bsr.cxx
     scipy/sparse/sparsetools/csc.cxx
     scipy/sparse/sparsetools/csr.cxx
@@ -724,6 +758,7 @@ SRCS(
     scipy/spatial/src/distance_wrap.c
     scipy/special/Faddeeva.cc
     scipy/special/_faddeeva.cxx
+    scipy/special/_logit.c
     scipy/special/_wright.cxx
     scipy/special/amos/dgamln.f
     scipy/special/amos/zabs.f
@@ -897,10 +932,14 @@ SRCS(
     scipy/special/sf_error.c
     scipy/special/specfun/specfun.f
     scipy/special/specfun_wrappers.c
+    scipy/special/specfunmodule.c
     scipy/special/wright.cc
+    scipy/stats/mvn-f2pywrappers.f
+    scipy/stats/mvnmodule.c
     scipy/stats/statlib/ansari.f
     scipy/stats/statlib/spearman.f
     scipy/stats/statlib/swilk.f
+    scipy/stats/statlibmodule.c
 )
 
 PY_SRCS(
