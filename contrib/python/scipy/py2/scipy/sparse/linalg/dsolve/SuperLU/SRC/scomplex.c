@@ -29,56 +29,56 @@ at the top-level directory.
 
 
 /*! \brief Complex Division c = a/b */
-void c_div(complex *c, complex *a, complex *b)
-{
-    float ratio, den;
-    float abr, abi, cr, ci;
-  
-    if( (abr = b->r) < 0.)
-	abr = - abr;
-    if( (abi = b->i) < 0.)
-	abi = - abi;
-    if( abr <= abi ) {
-	if (abi == 0) {
-	    fprintf(stderr, "z_div.c: division by zero\n");
-            exit(-1);
-	}	  
-	ratio = b->r / b->i ;
-	den = b->i * (1 + ratio*ratio);
-	cr = (a->r*ratio + a->i) / den;
-	ci = (a->i*ratio - a->r) / den;
-    } else {
-	ratio = b->i / b->r ;
-	den = b->r * (1 + ratio*ratio);
-	cr = (a->r + a->i*ratio) / den;
-	ci = (a->i - a->r*ratio) / den;
-    }
-    c->r = cr;
-    c->i = ci;
-}
-
+//void c_div(complex *c, complex *a, complex *b)
+//{
+//    float ratio, den;
+//    float abr, abi, cr, ci;
+//  
+//    if( (abr = b->r) < 0.)
+//	abr = - abr;
+//    if( (abi = b->i) < 0.)
+//	abi = - abi;
+//    if( abr <= abi ) {
+//	if (abi == 0) {
+//	    fprintf(stderr, "z_div.c: division by zero\n");
+//            exit(-1);
+//	}	  
+//	ratio = b->r / b->i ;
+//	den = b->i * (1 + ratio*ratio);
+//	cr = (a->r*ratio + a->i) / den;
+//	ci = (a->i*ratio - a->r) / den;
+//    } else {
+//	ratio = b->i / b->r ;
+//	den = b->r * (1 + ratio*ratio);
+//	cr = (a->r + a->i*ratio) / den;
+//	ci = (a->i - a->r*ratio) / den;
+//    }
+//    c->r = cr;
+//    c->i = ci;
+//}
+//
 
 /*! \brief Returns sqrt(z.r^2 + z.i^2) */
-double c_abs(complex *z)
-{
-    float temp;
-    float real = z->r;
-    float imag = z->i;
-
-    if (real < 0) real = -real;
-    if (imag < 0) imag = -imag;
-    if (imag > real) {
-	temp = real;
-	real = imag;
-	imag = temp;
-    }
-    if ((real+imag) == real) return(real);
-  
-    temp = imag/real;
-    temp = real*sqrt(1.0 + temp*temp);  /*overflow!!*/
-    return (temp);
-}
-
+//double c_abs(complex *z)
+//{
+//    float temp;
+//    float real = z->r;
+//    float imag = z->i;
+//
+//    if (real < 0) real = -real;
+//    if (imag < 0) imag = -imag;
+//    if (imag > real) {
+//	temp = real;
+//	real = imag;
+//	imag = temp;
+//    }
+//    if ((real+imag) == real) return(real);
+//  
+//    temp = imag/real;
+//    temp = real*sqrt(1.0 + temp*temp);  /*overflow!!*/
+//    return (temp);
+//}
+//
 
 /*! \brief Approximates the abs. Returns abs(z.r) + abs(z.i) */
 double c_abs1(complex *z)
@@ -103,17 +103,17 @@ void c_exp(complex *r, complex *z)
 }
 
 /*! \brief Return the complex conjugate */
-void r_cnjg(complex *r, complex *z)
-{
-    r->r = z->r;
-    r->i = -z->i;
-}
+//void r_cnjg(complex *r, complex *z)
+//{
+//    r->r = z->r;
+//    r->i = -z->i;
+//}
 
 /*! \brief Return the imaginary part */
-double r_imag(complex *z)
-{
-    return (z->i);
-}
+//double r_imag(complex *z)
+//{
+//    return (z->i);
+//}
 
 
 /*! \brief SIGN functions for complex number. Returns z/abs(z) */

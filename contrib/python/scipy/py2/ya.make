@@ -38,6 +38,7 @@ NO_LINT()
 
 NO_CHECK_IMPORTS(
     scipy.misc.pilutil
+    scipy.special._precompute.struve_convergence
 )
 
 CFLAGS(
@@ -45,6 +46,8 @@ CFLAGS(
     -Dc_exp=SuperLU_c_exp
     -Dchla_transtype__=chla_transtype_
     -Dchla_transtypewrp_=chla_transtypewrp__
+    -DUNDERSCORE_G77
+    -fcommon
 )
 
 IF (OS_WINDOWS)
@@ -934,12 +937,48 @@ SRCS(
     scipy/special/specfun_wrappers.c
     scipy/special/specfunmodule.c
     scipy/special/wright.cc
-    scipy/stats/mvn-f2pywrappers.f
-    scipy/stats/mvnmodule.c
     scipy/stats/statlib/ansari.f
     scipy/stats/statlib/spearman.f
     scipy/stats/statlib/swilk.f
     scipy/stats/statlibmodule.c
+)
+
+PY_REGISTER(
+    scipy._lib._fpumode
+    scipy.fftpack._fftpack
+    scipy.fftpack.convolve
+    scipy.integrate._dop
+    scipy.integrate._odepack
+    scipy.integrate._quadpack
+    scipy.integrate.lsoda
+    scipy.integrate.vode
+    scipy.interpolate._fitpack
+    scipy.interpolate._interpolate
+    scipy.interpolate.dfitpack
+    scipy.linalg._fblas
+    scipy.linalg._flapack
+    scipy.linalg._flinalg
+    scipy.linalg._interpolative
+    scipy.ndimage._ctest
+    scipy.ndimage._nd_image
+    scipy.odr.__odrpack
+    scipy.optimize._cobyla
+    scipy.optimize._lbfgsb
+    scipy.optimize._minpack
+    scipy.optimize._nnls
+    scipy.optimize._slsqp
+    scipy.optimize._zeros
+    scipy.optimize.minpack2
+    scipy.optimize.moduleTNC
+    scipy.signal.sigtools
+    scipy.signal.spline
+    scipy.sparse._sparsetools
+    scipy.sparse.linalg.dsolve._superlu
+    scipy.sparse.linalg.eigen.arpack._arpack
+    scipy.sparse.linalg.isolve._iterative
+    scipy.spatial._distance_wrap
+    scipy.special.specfun
+    scipy.stats.statlib
 )
 
 PY_SRCS(
@@ -966,7 +1005,6 @@ PY_SRCS(
     scipy/cluster/hierarchy.py
     scipy/cluster/setup.py
     scipy/cluster/vq.py
-    scipy/conftest.py
     scipy/constants/__init__.py
     scipy/constants/codata.py
     scipy/constants/constants.py
@@ -999,7 +1037,6 @@ PY_SRCS(
     scipy/interpolate/_pade.py
     scipy/interpolate/fitpack.py
     scipy/interpolate/fitpack2.py
-    scipy/interpolate/interpnd_info.py
     scipy/interpolate/interpolate.py
     scipy/interpolate/interpolate_wrapper.py
     scipy/interpolate/ndgriddata.py
@@ -1029,7 +1066,6 @@ PY_SRCS(
     scipy/io/setup.py
     scipy/io/wavfile.py
     scipy/linalg/__init__.py
-    scipy/linalg/_cython_signature_generator.py
     scipy/linalg/_decomp_ldl.py
     scipy/linalg/_decomp_polar.py
     scipy/linalg/_decomp_qz.py
@@ -1220,7 +1256,6 @@ PY_SRCS(
     scipy/spatial/transform/setup.py
     scipy/special/__init__.py
     scipy/special/_ellip_harm.py
-    scipy/special/_generate_pyx.py
     scipy/special/_logsumexp.py
     scipy/special/_mptestutils.py
     scipy/special/_precompute/__init__.py
@@ -1280,8 +1315,8 @@ PY_SRCS(
     scipy/linalg/_solve_toeplitz.pyx
     scipy/linalg/cython_blas.pyx
     scipy/linalg/cython_lapack.pyx
-    scipy/ndimage/src/_cytest.pyx
-    scipy/ndimage/src/_ni_label.pyx
+    scipy/ndimage/_cytest.pyx
+    scipy/ndimage/_ni_label.pyx
     scipy/optimize/_group_columns.pyx
     scipy/optimize/_lsq/givens_elimination.pyx
     scipy/optimize/_trlib/_trlib.pyx
