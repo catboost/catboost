@@ -10,7 +10,7 @@
 
 import re
 
-from pygments.lexer import RegexLexer, include, bygroups, using, this
+from pygments.lexer import RegexLexer, include, bygroups, using, this, words
 from pygments.token import Keyword, Punctuation, Comment, Operator, Name,\
     String, Number, Whitespace
 
@@ -36,15 +36,15 @@ class CypherLexer(RegexLexer):
     tokens = {
         'root': [
             include('comment'),
-            include('keywords'),
             include('clauses'),
+            include('keywords'),
             include('relations'),
             include('strings'),
             include('whitespace'),
             include('barewords'),
         ],
         'comment': [
-            (r'^.*//.*\n', Comment.Single),
+            (r'^.*//.*$', Comment.Single),
         ],
         'keywords': [
             (r'(create|order|match|limit|set|skip|start|return|with|where|'
@@ -52,15 +52,36 @@ class CypherLexer(RegexLexer):
         ],
         'clauses': [
             # based on https://neo4j.com/docs/cypher-refcard/3.3/
-            (r'(all|any|as|asc|ascending|assert|call|case|create|'
-             r'create\s+index|create\s+unique|delete|desc|descending|'
-             r'distinct|drop\s+constraint\s+on|drop\s+index\s+on|end|'
-             r'ends\s+with|fieldterminator|foreach|in|is\s+node\s+key|'
-             r'is\s+null|is\s+unique|limit|load\s+csv\s+from|match|merge|none|'
-             r'not|null|on\s+match|on\s+create|optional\s+match|order\s+by|'
-             r'remove|return|set|skip|single|start|starts\s+with|then|union|'
-             r'union\s+all|unwind|using\s+periodic\s+commit|yield|where|when|'
-             r'with)\b', Keyword),
+            (r'(create)(\s+)(index|unique)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(drop)(\s+)(contraint|index)(\s+)(on)\b',
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword)),
+            (r'(ends)(\s+)(with)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(is)(\s+)(node)(\s+)(key)\b',
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword)),
+            (r'(is)(\s+)(null|unique)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(load)(\s+)(csv)(\s+)(from)\b',
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword)),
+            (r'(on)(\s+)(match|create)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(optional)(\s+)(match)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(order)(\s+)(by)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(starts)(\s+)(with)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(union)(\s+)(all)\b',
+                bygroups(Keyword, Whitespace, Keyword)),
+            (r'(using)(\s+)(periodic)(\s+)(commit)\b',
+                bygroups(Keyword, Whitespace, Keyword, Whitespace, Keyword)),
+            (words((
+                'all', 'any', 'as', 'asc', 'ascending', 'assert', 'call', 'case', 'create', 
+                'delete', 'desc', 'descending', 'distinct', 'end', 'fieldterminator', 
+                'foreach', 'in', 'limit', 'match', 'merge', 'none', 'not', 'null', 
+                'remove', 'return', 'set', 'skip', 'single', 'start', 'then', 'union', 
+                'unwind', 'yield', 'where', 'when', 'with'), suffix=r'\b'), Keyword),
         ],
         'relations': [
             (r'(-\[)(.*?)(\]->)', bygroups(Operator, using(this), Operator)),

@@ -9,7 +9,7 @@
 """
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Name, Literal, String, Text, Punctuation
+from pygments.token import Name, Literal, String, Text, Punctuation, Whitespace
 
 __all__ = ["SmartGameFormatLexer"]
 
@@ -31,7 +31,7 @@ class SmartGameFormatLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'[\s():;]', Punctuation),
+            (r'[():;]+', Punctuation),
             # tokens:
             (r'(A[BW]|AE|AN|AP|AR|AS|[BW]L|BM|[BW]R|[BW]S|[BW]T|CA|CH|CP|CR|'
              r'DD|DM|DO|DT|EL|EV|EX|FF|FG|G[BW]|GC|GM|GN|HA|HO|ID|IP|IT|IY|KM|'
@@ -55,6 +55,7 @@ class SmartGameFormatLexer(RegexLexer):
             (r'(\[)([\w\s#()+,\-.:?]+)(\])',
              bygroups(Punctuation, String, Punctuation)),
             (r'(\[)(\s.*)(\])',
-             bygroups(Punctuation, Text, Punctuation)),
+             bygroups(Punctuation, Whitespace, Punctuation)),
+            (r'\s+', Whitespace)
         ],
     }

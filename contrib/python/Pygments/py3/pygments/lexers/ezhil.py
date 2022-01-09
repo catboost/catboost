@@ -9,9 +9,9 @@
 """
 
 import re
-from pygments.lexer import RegexLexer, include, words
+from pygments.lexer import RegexLexer, include, words, bygroups
 from pygments.token import Keyword, Text, Comment, Name
-from pygments.token import String, Number, Punctuation, Operator
+from pygments.token import String, Number, Punctuation, Operator, Whitespace
 
 __all__ = ['EzhilLexer']
 
@@ -33,7 +33,7 @@ class EzhilLexer(RegexLexer):
     tokens = {
         'root': [
             include('keywords'),
-            (r'#.*\n', Comment.Single),
+            (r'#.*$', Comment.Single),
             (r'[@+/*,^\-%]|[!<>=]=?|&&?|\|\|?', Operator),
             ('இல்', Operator.Word),
             (words(('assert', 'max', 'min',
@@ -45,7 +45,7 @@ class EzhilLexer(RegexLexer):
                     'exp', 'log', 'log10', 'exit',
                     ), suffix=r'\b'), Name.Builtin),
             (r'(True|False)\b', Keyword.Constant),
-            (r'[^\S\n]+', Text),
+            (r'[^\S\n]+', Whitespace),
             include('identifier'),
             include('literal'),
             (r'[(){}\[\]:;.]', Punctuation),

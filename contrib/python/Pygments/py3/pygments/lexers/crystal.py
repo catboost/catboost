@@ -11,9 +11,9 @@
 import re
 
 from pygments.lexer import ExtendedRegexLexer, include, \
-    bygroups, default, LexerContext, words
+    bygroups, default, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
+    Number, Punctuation, Error, Whitespace
 
 __all__ = ['CrystalLexer']
 
@@ -177,12 +177,12 @@ class CrystalLexer(ExtendedRegexLexer):
             (words(['true', 'false', 'nil'], suffix=r'\b'), Keyword.Constant),
             # start of function, class and module names
             (r'(module|lib)(\s+)([a-zA-Z_]\w*(?:::[a-zA-Z_]\w*)*)',
-             bygroups(Keyword, Text, Name.Namespace)),
+             bygroups(Keyword, Whitespace, Name.Namespace)),
             (r'(def|fun|macro)(\s+)((?:[a-zA-Z_]\w*::)*)',
-             bygroups(Keyword, Text, Name.Namespace), 'funcname'),
+             bygroups(Keyword, Whitespace, Name.Namespace), 'funcname'),
             (r'def(?=[*%&^`~+-/\[<>=])', Keyword, 'funcname'),
             (r'(annotation|class|struct|union|type|alias|enum)(\s+)((?:[a-zA-Z_]\w*::)*)',
-             bygroups(Keyword, Text, Name.Namespace), 'classname'),
+             bygroups(Keyword, Whitespace, Name.Namespace), 'classname'),
             # https://crystal-lang.org/api/toplevel.html
             (words('''
                 instance_sizeof offsetof pointerof sizeof typeof
@@ -228,11 +228,11 @@ class CrystalLexer(ExtendedRegexLexer):
              r'(?<=^match\s)|'
              r'(?<=^if\s)|'
              r'(?<=^elsif\s)'
-             r')(\s*)(/)', bygroups(Text, String.Regex), 'multiline-regex'),
+             r')(\s*)(/)', bygroups(Whitespace, String.Regex), 'multiline-regex'),
             # multiline regex (in method calls or subscripts)
             (r'(?<=\(|,|\[)/', String.Regex, 'multiline-regex'),
             # multiline regex (this time the funny no whitespace rule)
-            (r'(\s+)(/)(?![\s=])', bygroups(Text, String.Regex),
+            (r'(\s+)(/)(?![\s=])', bygroups(Whitespace, String.Regex),
              'multiline-regex'),
             # lex numbers and ignore following regular expressions which
             # are division operators in fact (grrrr. i hate that. any
@@ -243,24 +243,24 @@ class CrystalLexer(ExtendedRegexLexer):
             # stupid example:
             #   x>=0?n[x]:""
             (r'(0o[0-7]+(?:_[0-7]+)*(?:_?[iu][0-9]+)?)\b(\s*)([/?])?',
-             bygroups(Number.Oct, Text, Operator)),
+             bygroups(Number.Oct, Whitespace, Operator)),
             (r'(0x[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)*(?:_?[iu][0-9]+)?)\b(\s*)([/?])?',
-             bygroups(Number.Hex, Text, Operator)),
+             bygroups(Number.Hex, Whitespace, Operator)),
             (r'(0b[01]+(?:_[01]+)*(?:_?[iu][0-9]+)?)\b(\s*)([/?])?',
-             bygroups(Number.Bin, Text, Operator)),
+             bygroups(Number.Bin, Whitespace, Operator)),
             # 3 separate expressions for floats because any of the 3 optional
             # parts makes it a float
             (r'((?:0(?![0-9])|[1-9][\d_]*)(?:\.\d[\d_]*)(?:e[+-]?[0-9]+)?'
              r'(?:_?f[0-9]+)?)(\s*)([/?])?',
-             bygroups(Number.Float, Text, Operator)),
+             bygroups(Number.Float, Whitespace, Operator)),
             (r'((?:0(?![0-9])|[1-9][\d_]*)(?:\.\d[\d_]*)?(?:e[+-]?[0-9]+)'
              r'(?:_?f[0-9]+)?)(\s*)([/?])?',
-             bygroups(Number.Float, Text, Operator)),
+             bygroups(Number.Float, Whitespace, Operator)),
             (r'((?:0(?![0-9])|[1-9][\d_]*)(?:\.\d[\d_]*)?(?:e[+-]?[0-9]+)?'
              r'(?:_?f[0-9]+))(\s*)([/?])?',
-             bygroups(Number.Float, Text, Operator)),
+             bygroups(Number.Float, Whitespace, Operator)),
             (r'(0\b|[1-9][\d]*(?:_\d+)*(?:_?[iu][0-9]+)?)\b(\s*)([/?])?',
-             bygroups(Number.Integer, Text, Operator)),
+             bygroups(Number.Integer, Whitespace, Operator)),
             # Names
             (r'@@[a-zA-Z_]\w*', Name.Variable.Class),
             (r'@[a-zA-Z_]\w*', Name.Variable.Instance),
@@ -280,7 +280,7 @@ class CrystalLexer(ExtendedRegexLexer):
             (r'\{\{', String.Interpol, 'in-macro-expr'),
             # annotations
             (r'(@\[)(\s*)([A-Z]\w*(::[A-Z]\w*)*)',
-             bygroups(Operator, Text, Name.Decorator), 'in-annot'),
+             bygroups(Operator, Whitespace, Name.Decorator), 'in-annot'),
             # this is needed because Crystal attributes can look
             # like keywords (class) or like this: ` ?!?
             (words(CRYSTAL_OPERATORS, prefix=r'(\.|::)'),
@@ -293,7 +293,7 @@ class CrystalLexer(ExtendedRegexLexer):
              r'!~|&&?|\|\||\.{1,3})', Operator),
             (r'[-+/*%=<>&!^|~]=?', Operator),
             (r'[(){};,/?:\\]', Punctuation),
-            (r'\s+', Text)
+            (r'\s+', Whitespace)
         ],
         'funcname': [
             (r'(?:([a-zA-Z_]\w*)(\.))?'
@@ -305,7 +305,7 @@ class CrystalLexer(ExtendedRegexLexer):
         'classname': [
             (r'[A-Z_]\w*', Name.Class),
             (r'(\()(\s*)([A-Z_]\w*)(\s*)(\))',
-             bygroups(Punctuation, Text, Name.Class, Text, Punctuation)),
+             bygroups(Punctuation, Whitespace, Name.Class, Whitespace, Punctuation)),
             default('#pop')
         ],
         'in-intp': [

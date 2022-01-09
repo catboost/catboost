@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, bygroups
 from pygments.token import Keyword, Text, Comment, Name, String, Number, \
-    Punctuation
+    Punctuation, Whitespace
 
 __all__ = ['SmaliLexer']
 
@@ -45,13 +45,13 @@ class SmaliLexer(RegexLexer):
             include('whitespace')
         ],
         'directive': [
-            (r'^[ \t]*\.(class|super|implements|field|subannotation|annotation|'
+            (r'^([ \t]*)(\.(?:class|super|implements|field|subannotation|annotation|'
              r'enum|method|registers|locals|array-data|packed-switch|'
              r'sparse-switch|catchall|catch|line|parameter|local|prologue|'
-             r'epilogue|source)', Keyword),
-            (r'^[ \t]*\.end (field|subannotation|annotation|method|array-data|'
-             'packed-switch|sparse-switch|parameter|local)', Keyword),
-            (r'^[ \t]*\.restart local', Keyword),
+             r'epilogue|source))', bygroups(Whitespace, Keyword)),
+            (r'^([ \t]*)(\.end)( )(field|subannotation|annotation|method|array-data|'
+             'packed-switch|sparse-switch|parameter|local)', bygroups(Whitespace, Keyword, Whitespace, Keyword)),
+            (r'^([ \t]*)(\.restart)( )(local)', bygroups(Whitespace, Keyword, Whitespace, Keyword)),
         ],
         'access-modifier': [
             (r'(public|private|protected|static|final|synchronized|bridge|'
@@ -60,12 +60,12 @@ class SmaliLexer(RegexLexer):
              r'transient)', Keyword),
         ],
         'whitespace': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
         ],
         'instruction': [
             (r'\b[vp]\d+\b', Name.Builtin),  # registers
-            (r'\b[a-z][A-Za-z0-9/-]+\s+', Text),  # instructions
+            (r'(\b[a-z][A-Za-z0-9/-]+)(\s+)', bygroups(Text, Whitespace)),  # instructions
         ],
         'literal': [
             (r'".*"', String),

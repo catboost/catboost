@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, include, this, using, words
 from pygments.token import Comment, Keyword, Literal, Name, Number, \
-    Operator, Punctuation, String, Text
+    Operator, Punctuation, String, Text, Whitespace
 
 __all__ = ['BnfLexer', 'AbnfLexer', 'JsgfLexer', 'PegLexer']
 
@@ -117,7 +117,7 @@ class AbnfLexer(RegexLexer):
             (words(_core_rules, suffix=r'\b'), Keyword),
 
             # nonterminals (ALPHA *(ALPHA / DIGIT / "-"))
-            (r'[a-zA-Z][a-zA-Z0-9-]+\b', Name.Class),
+            (r'[a-zA-Z][a-zA-Z0-9-]*\b', Name.Class),
 
             # operators
             (r'(=/|=|/)', Operator),
@@ -126,7 +126,7 @@ class AbnfLexer(RegexLexer):
             (r'[\[\]()]', Punctuation),
 
             # fallback
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
     }
@@ -154,11 +154,11 @@ class JsgfLexer(RegexLexer):
         'comments': [
             (r'/\*\*(?!/)', Comment.Multiline, 'documentation comment'),
             (r'/\*[\w\W]*?\*/', Comment.Multiline),
-            (r'//.*', Comment.Single),
+            (r'//.*$', Comment.Single),
         ],
         'non-comments': [
             (r'\A#JSGF[^;]*', Comment.Preproc),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r';', Punctuation),
             (r'[=|()\[\]*+]', Operator),
             (r'/[^/]+/', Number.Float),
@@ -183,29 +183,29 @@ class JsgfLexer(RegexLexer):
         ],
         'grammar name': [
             (r';', Punctuation, '#pop'),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\.', Punctuation),
             (r'[^;\s.]+', Name.Namespace),
         ],
         'rulename': [
             (r'>', Punctuation, '#pop'),
             (r'\*', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'([^.>]+)(\s*)(\.)', bygroups(Name.Namespace, Text, Punctuation)),
             (r'[^.>]+', Name.Constant),
         ],
         'documentation comment': [
             (r'\*/', Comment.Multiline, '#pop'),
-            (r'(^\s*\*?\s*)(@(?:example|see)\s+)'
+            (r'^(\s*)(\*?)(\s*)(@(?:example|see))(\s+)'
              r'([\w\W]*?(?=(?:^\s*\*?\s*@|\*/)))',
-             bygroups(Comment.Multiline, Comment.Special,
-                      using(this, state='example'))),
+             bygroups(Whitespace,Comment.Multiline, Whitespace, Comment.Special,
+                      Whitespace, using(this, state='example'))),
             (r'(^\s*\*?\s*)(@\S*)',
              bygroups(Comment.Multiline, Comment.Special)),
             (r'[^*\n@]+|\w|\W', Comment.Multiline),
         ],
         'example': [
-            (r'\n\s*\*', Comment.Multiline),
+            (r'(\n\s*)(\*)', bygroups(Whitespace, Comment.Multiline)),
             include('non-comments'),
             (r'.', Comment.Multiline),
         ],
@@ -241,7 +241,7 @@ class PegLexer(RegexLexer):
     tokens = {
         'root': [
             # Comments
-            (r'#.*', Comment.Single),
+            (r'#.*$', Comment.Single),
 
             # All operators
             (r'<-|[←:=/|&!?*+^↑~]', Operator),

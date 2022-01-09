@@ -38,9 +38,6 @@ class ParaisoDarkStyle(Style):
     background_color = BACKGROUND
     highlight_color = SELECTION
 
-    background_color = BACKGROUND
-    highlight_color = SELECTION
-
     styles = {
         # No corresponding class for the following:
         Text:                      FOREGROUND,  # class:  ''

@@ -10,7 +10,7 @@
 
 from pygments.lexer import RegexLexer, bygroups, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['ChapelLexer']
 
@@ -60,8 +60,8 @@ class ChapelLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),
 
             (r'//(.*?)\n', Comment.Single),
@@ -72,10 +72,10 @@ class ChapelLexer(RegexLexer):
             (words(known_types, suffix=r'\b'), Keyword.Type),
             (words((*type_modifiers, *other_keywords), suffix=r'\b'), Keyword),
 
-            (r'(iter)((?:\s)+)', bygroups(Keyword, Text), 'procname'),
-            (r'(proc)((?:\s)+)', bygroups(Keyword, Text), 'procname'),
-            (r'(operator)((?:\s)+)', bygroups(Keyword, Text), 'procname'),
-            (r'(class|interface|module|record|union)(\s+)', bygroups(Keyword, Text),
+            (r'(iter)(\s+)', bygroups(Keyword, Whitespace), 'procname'),
+            (r'(proc)(\s+)', bygroups(Keyword, Whitespace), 'procname'),
+            (r'(operator)(\s+)', bygroups(Keyword, Whitespace), 'procname'),
+            (r'(class|interface|module|record|union)(\s+)', bygroups(Keyword, Whitespace),
              'classname'),
 
             # imaginary integers

@@ -61,6 +61,7 @@ __all__ = ['PostgresLexer', 'PlPgsqlLexer', 'PostgresConsoleLexer',
            'SqliteConsoleLexer', 'RqlLexer']
 
 line_re  = re.compile('.*?\n')
+sqlite_prompt_re = re.compile(r'^(?:sqlite|   ...)>(?= )')
 
 language_re = re.compile(r"\s+LANGUAGE\s+'?(\w+)'?", re.IGNORECASE)
 
@@ -161,7 +162,7 @@ class PostgresLexer(PostgresBase, RegexLexer):
     flags = re.IGNORECASE
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'--.*\n?', Comment.Single),
             (r'/\*', Comment.Multiline, 'multiline-comments'),
             (r'(' + '|'.join(s.replace(" ", r"\s+")
@@ -254,7 +255,7 @@ class PsqlRegexLexer(PostgresBase, RegexLexer):
         (r'\\[^\s]+', Keyword.Pseudo, 'psql-command'))
     tokens['psql-command'] = [
         (r'\n', Text, 'root'),
-        (r'\s+', Text),
+        (r'\s+', Whitespace),
         (r'\\[^\s]+', Keyword.Pseudo),
         (r""":(['"]?)[a-z]\w*\b\1""", Name.Variable),
         (r"'(''|[^'])*'", String.Single),
@@ -381,7 +382,7 @@ class SqlLexer(RegexLexer):
     flags = re.IGNORECASE
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'--.*\n?', Comment.Single),
             (r'/\*', Comment.Multiline, 'multiline-comments'),
             (words((
@@ -495,6 +496,9 @@ class SqlLexer(RegexLexer):
         ]
     }
 
+    def analyse_text(self, text):
+        return
+
 
 class TransactSqlLexer(RegexLexer):
     """
@@ -596,7 +600,7 @@ class MySqlLexer(RegexLexer):
     flags = re.IGNORECASE
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # Comments
             (r'(?:#|--\s+).*', Comment.Single),
@@ -652,14 +656,14 @@ class MySqlLexer(RegexLexer):
 
             # Exceptions; these words tokenize differently in different contexts.
             (r'\b(set)(?!\s*\()', Keyword),
-            (r'\b(character)(\s+)(set)\b', bygroups(Keyword, Text, Keyword)),
+            (r'\b(character)(\s+)(set)\b', bygroups(Keyword, Whitespace, Keyword)),
             # In all other known cases, "SET" is tokenized by MYSQL_DATATYPES.
 
             (words(MYSQL_CONSTANTS, prefix=r'\b', suffix=r'\b'), Name.Constant),
             (words(MYSQL_DATATYPES, prefix=r'\b', suffix=r'\b'), Keyword.Type),
             (words(MYSQL_KEYWORDS, prefix=r'\b', suffix=r'\b'), Keyword),
             (words(MYSQL_FUNCTIONS, prefix=r'\b', suffix=r'\b(\s*)(\()'),
-             bygroups(Name.Function, Text, Punctuation)),
+             bygroups(Name.Function, Whitespace, Punctuation)),
 
             # Schema object names
             #
@@ -782,9 +786,12 @@ class SqliteConsoleLexer(Lexer):
         insertions = []
         for match in line_re.finditer(data):
             line = match.group()
-            if line.startswith('sqlite> ') or line.startswith('   ...> '):
+            prompt_match = sqlite_prompt_re.match(line)
+            if prompt_match is not None:
                 insertions.append((len(curcode),
-                                   [(0, Generic.Prompt, line[:8])]))
+                                   [(0, Generic.Prompt, line[:7])]))
+                insertions.append((len(curcode),
+                                   [(7, Whitespace, ' ')]))
                 curcode += line[8:]
             else:
                 if curcode:
@@ -817,7 +824,7 @@ class RqlLexer(RegexLexer):
     flags = re.IGNORECASE
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'(DELETE|SET|INSERT|UNION|DISTINCT|WITH|WHERE|BEING|OR'
              r'|AND|NOT|GROUPBY|HAVING|ORDERBY|ASC|DESC|LIMIT|OFFSET'
              r'|TODAY|NOW|TRUE|FALSE|NULL|EXISTS)\b', Keyword),

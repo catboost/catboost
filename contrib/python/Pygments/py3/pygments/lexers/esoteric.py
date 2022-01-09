@@ -8,11 +8,9 @@
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, include, words
+from pygments.lexer import RegexLexer, include, words, bygroups
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
-
-import re
+    Number, Punctuation, Error, Whitespace
 
 __all__ = ['BrainfuckLexer', 'BefungeLexer', 'RedcodeLexer', 'CAmkESLexer',
            'CapDLLexer', 'AheuiLexer']
@@ -100,7 +98,7 @@ class BefungeLexer(RegexLexer):
             (r'[#;]', Comment),                   # Trampoline... depends on direction hit
             (r'[pg&~=@iotsy]', Keyword),          # Misc
             (r'[()A-Z]', Comment),                # Fingerprints
-            (r'\s+', Text),                       # Whitespace doesn't matter
+            (r'\s+', Whitespace),                 # Whitespace doesn't matter
         ],
     }
 
@@ -119,12 +117,13 @@ class CAmkESLexer(RegexLexer):
     tokens = {
         'root': [
             # C pre-processor directive
-            (r'^\s*#.*\n', Comment.Preproc),
+            (r'^(\s*)(#.*)(\n)', bygroups(Whitespace, Comment.Preproc, 
+                Whitespace)),
 
             # Whitespace, comments
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'/\*(.|\n)*?\*/', Comment),
-            (r'//.*\n', Comment),
+            (r'//.*$', Comment),
 
             (r'[\[(){},.;\]]', Punctuation),
             (r'[~!%^&*+=|?:<>/-]', Operator),
@@ -152,10 +151,12 @@ class CAmkESLexer(RegexLexer):
                 Keyword.Reserved),
 
             # CAmkES-level include
-            (r'import\s+(<[^>]*>|"[^"]*");', Comment.Preproc),
+            (r'(import)(\s+)((?:<[^>]*>|"[^"]*");)',
+                bygroups(Comment.Preproc, Whitespace, Comment.Preproc)),
 
             # C-level include
-            (r'include\s+(<[^>]*>|"[^"]*");', Comment.Preproc),
+            (r'(include)(\s+)((?:<[^>]*>|"[^"]*");)',
+                bygroups(Comment.Preproc, Whitespace, Comment.Preproc)),
 
             # Literals
             (r'0[xX][\da-fA-F]+', Number.Hex),
@@ -191,12 +192,13 @@ class CapDLLexer(RegexLexer):
     tokens = {
         'root': [
             # C pre-processor directive
-            (r'^\s*#.*\n', Comment.Preproc),
+            (r'^(\s*)(#.*)(\n)',
+                bygroups(Whitespace, Comment.Preproc, Whitespace)),
 
             # Whitespace, comments
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'/\*(.|\n)*?\*/', Comment),
-            (r'(//|--).*\n', Comment),
+            (r'(//|--).*$', Comment),
 
             (r'[<>\[(){},:;=\]]', Punctuation),
             (r'\.\.', Punctuation),
@@ -248,7 +250,7 @@ class RedcodeLexer(RegexLexer):
     tokens = {
         'root': [
             # Whitespace:
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r';.*$', Comment.Single),
             # Lexemes:
             #  Identifiers

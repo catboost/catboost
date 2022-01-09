@@ -37,6 +37,7 @@ class BashLexer(RegexLexer):
     filenames = ['*.sh', '*.ksh', '*.bash', '*.ebuild', '*.eclass',
                  '*.exheres-0', '*.exlib', '*.zsh',
                  '.bashrc', 'bashrc', '.bash_*', 'bash_*', 'zshrc', '.zshrc',
+                 '.kshrc', 'kshrc',
                  'PKGBUILD']
     mimetypes = ['application/x-sh', 'application/x-shellscript', 'text/x-shellscript']
 

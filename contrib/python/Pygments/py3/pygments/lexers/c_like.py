@@ -51,14 +51,14 @@ class PikeLexer(CppLexer):
              r'array|multiset|program|function|lambda|mixed|'
              r'[a-z_][a-z0-9_]*_t)\b',
              Keyword.Type),
-            (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (r'[~!%^&*+=|?:<>/@-]', Operator),
             inherit,
         ],
         'classname': [
             (r'[a-zA-Z_]\w*', Name.Class, '#pop'),
             # template specification
-            (r'\s*(?=>)', Text, '#pop'),
+            (r'\s*(?=>)', Whitespace, '#pop'),
         ],
     }
 
@@ -104,7 +104,7 @@ class ClayLexer(RegexLexer):
     mimetypes = ['text/x-clay']
     tokens = {
         'root': [
-            (r'\s', Text),
+            (r'\s+', Whitespace),
             (r'//.*?$', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
             (r'\b(public|private|import|as|record|variant|instance'
@@ -169,7 +169,7 @@ class ECLexer(CLexer):
             (words(('uint', 'uint16', 'uint32', 'uint64', 'bool', 'byte',
                     'unichar', 'int64'), suffix=r'\b'),
              Keyword.Type),
-            (r'(class)(\s+)', bygroups(Keyword, Text), 'classname'),
+            (r'(class)(\s+)', bygroups(Keyword, Whitespace), 'classname'),
             (r'(null|value|this)\b', Name.Builtin),
             inherit,
         ]
@@ -190,8 +190,8 @@ class ValaLexer(RegexLexer):
     tokens = {
         'whitespace': [
             (r'^\s*#if\s+0', Comment.Preproc, 'if0'),
-            (r'\n', Text),
-            (r'\s+', Text),
+            (r'\n', Whitespace),
+            (r'\s+', Whitespace),
             (r'\\\n', Text),  # line continuation
             (r'//(\n|(.|\n)*?[^\\]\n)', Comment.Single),
             (r'/(\\\n)?[*](.|\n)*?[*](\\\n)?/', Comment.Multiline),
@@ -226,10 +226,10 @@ class ValaLexer(RegexLexer):
                 'public', 'ref', 'requires', 'signal', 'static', 'throws', 'unowned',
                 'var', 'virtual', 'volatile', 'weak', 'yields'), suffix=r'\b'),
              Keyword.Declaration),
-            (r'(namespace|using)(\s+)', bygroups(Keyword.Namespace, Text),
+            (r'(namespace|using)(\s+)', bygroups(Keyword.Namespace, Whitespace),
              'namespace'),
             (r'(class|errordomain|interface|struct)(\s+)',
-             bygroups(Keyword.Declaration, Text), 'class'),
+             bygroups(Keyword.Declaration, Whitespace), 'class'),
             (r'(\.)([a-zA-Z_]\w*)',
              bygroups(Operator, Name.Attribute)),
             # void is an actual keyword, others are in glib-2.0.vapi

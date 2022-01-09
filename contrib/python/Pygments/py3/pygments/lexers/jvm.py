@@ -37,6 +37,8 @@ class JavaLexer(RegexLexer):
 
     tokens = {
         'root': [
+            (r'(^\s*)((?:(?:public|private|protected|static|strictfp)(?:\s+))*)(record)\b',
+             bygroups(Text, using(this), Keyword.Declaration), 'class'),
             (r'[^\S\n]+', Text),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
@@ -52,14 +54,13 @@ class JavaLexer(RegexLexer):
              bygroups(using(this), Name.Function, Text, Punctuation)),
             (r'@[^\W\d][\w.]*', Name.Decorator),
             (r'(abstract|const|enum|extends|final|implements|native|private|'
-             r'protected|public|static|strictfp|super|synchronized|throws|'
-             r'transient|volatile)\b', Keyword.Declaration),
+             r'protected|public|sealed|static|strictfp|super|synchronized|throws|'
+             r'transient|volatile|yield)\b', Keyword.Declaration),
             (r'(boolean|byte|char|double|float|int|long|short|void)\b',
              Keyword.Type),
             (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text),
-             'class'),
+            (r'(class|interface)\b', Keyword.Declaration, 'class'),
             (r'(var)(\s+)', bygroups(Keyword.Declaration, Text),
              'var'),
             (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text),
@@ -89,6 +90,7 @@ class JavaLexer(RegexLexer):
             (r'\n', Text)
         ],
         'class': [
+            (r'\s+', Text),
             (r'([^\W\d]|\$)[\w$]*', Name.Class, '#pop')
         ],
         'var': [
