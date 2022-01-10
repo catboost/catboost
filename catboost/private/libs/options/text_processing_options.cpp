@@ -123,8 +123,9 @@ namespace NCatboostOptions {
         TString calcerName;
 
         if (options.IsString()) {
+            const TString& calcerDescription = options.GetString();
             TStringBuf name, calcersOptions;
-            TStringBuf(options.GetString()).Split(':', name, calcersOptions);
+            TStringBuf(calcerDescription).Split(':', name, calcersOptions);
             calcerName = name;
             CalcerOptions->InsertValue("calcer_type", calcerName);
             for (TStringBuf stringParam : StringSplitter(calcersOptions).Split(':')) {
