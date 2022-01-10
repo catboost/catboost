@@ -3204,11 +3204,6 @@ TVector<TParamSet> TAUCMetric::ValidParamSets() {
 };
 
 
-THolder<IMetric> MakeBinClassAucMetric(const TLossParams& params) {
-    return MakeHolder<TAUCMetric>(params, NCatboostOptions::GetAucType(params.GetParamsMap()));
-}
-
-
 THolder<IMetric> MakeMultiClassAucMetric(const TLossParams& params, int positiveClass) {
     return MakeHolder<TAUCMetric>(params, positiveClass);
 }
