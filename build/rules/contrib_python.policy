@@ -141,7 +141,7 @@ ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
 ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
-ALLOW passport/python/social -> contrib/python/MySQL-python
+ALLOW passport/backend/social -> contrib/python/MySQL-python
 ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
@@ -528,10 +528,10 @@ ALLOW passport/python/core/serializers/eav/query -> contrib/python/sqlalchemy/sq
 ALLOW passport/python/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/takeout/celery/celery_tasks -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/commands -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
