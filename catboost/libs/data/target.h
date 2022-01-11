@@ -312,7 +312,7 @@ namespace NCB {
         TMaybeData<TConstArrayRef<float>> GetOneDimensionalTarget(const TString& name = "") const { // [targetIdx][objectIdx]
             const auto target = GetTarget(name);
             if (target) {
-                CB_ENSURE(target->size() == 1, "Attempt to use multidimintional target as one-dimensional");
+                CB_ENSURE(target->size() == 1, "Attempt to use multi-dimensional target as one-dimensional");
                 return target.GetRef()[0];
             } else {
                 return Nothing();
