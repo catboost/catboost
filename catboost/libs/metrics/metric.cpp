@@ -3684,7 +3684,6 @@ namespace {
     struct TBrierScoreMetric final: public TAdditiveSingleTargetMetric {
         explicit TBrierScoreMetric(const TLossParams& params)
             : TAdditiveSingleTargetMetric(ELossFunction::BrierScore, params) {
-            UseWeights.MakeIgnored();
         }
         static TVector<TParamSet> ValidParamSets();
         TMetricHolder EvalSingleThread(
