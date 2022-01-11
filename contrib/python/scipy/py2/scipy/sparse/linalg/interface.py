@@ -47,7 +47,7 @@ import warnings
 import numpy as np
 
 from scipy.sparse import isspmatrix
-from scipy.sparse.sputils import isshape, isintlike
+from scipy.sparse.sputils import isshape, isintlike, asmatrix
 
 __all__ = ['LinearOperator', 'aslinearoperator']
 
@@ -222,7 +222,7 @@ class LinearOperator(object):
         y = self._matvec(x)
 
         if isinstance(x, np.matrix):
-            y = np.asmatrix(y)
+            y = asmatrix(y)
         else:
             y = np.asarray(y)
 
@@ -269,7 +269,7 @@ class LinearOperator(object):
         y = self._rmatvec(x)
 
         if isinstance(x, np.matrix):
-            y = np.asmatrix(y)
+            y = asmatrix(y)
         else:
             y = np.asarray(y)
 
@@ -329,7 +329,7 @@ class LinearOperator(object):
         Y = self._matmat(X)
 
         if isinstance(Y, np.matrix):
-            Y = np.asmatrix(Y)
+            Y = asmatrix(Y)
 
         return Y
 
