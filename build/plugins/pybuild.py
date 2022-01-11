@@ -485,7 +485,7 @@ def onpy_srcs(unit, *args):
     use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes'
     if use_vanilla_protoc:
         cpp_runtime_path = 'contrib/libs/protobuf_std'
-        py_runtime_path = cpp_runtime_path + '/python/google_lib'
+        py_runtime_path = 'contrib/python/protobuf_std'
         builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
     else:
         cpp_runtime_path = 'contrib/libs/protobuf'
