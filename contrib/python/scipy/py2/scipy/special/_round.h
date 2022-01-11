@@ -49,7 +49,7 @@ double add_round_down(double a, double b)
 
 
 /* Helper code for testing _round.h. */
-#if __STDC_VERSION__ >= 199901L
+#if 1
 /* We have C99 */
 #include <fenv.h>
 #else

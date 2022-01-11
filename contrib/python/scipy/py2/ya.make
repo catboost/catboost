@@ -63,9 +63,6 @@ IF (OS_WINDOWS)
 ENDIF()
 
 SRCS(
-    scipy/_build_utils/src/wrap_dummy_g77_abi.f
-    scipy/_build_utils/src/wrap_g77_abi_c.c
-    scipy/_build_utils/src/wrap_g77_abi_f.f
     scipy/_lib/_fpumode.c
     scipy/fftpack/_fftpackmodule.c
     scipy/fftpack/convolvemodule.c
@@ -947,6 +944,17 @@ SRCS(
     scipy/stats/statlib/swilk.f
     scipy/stats/statlibmodule.c
 )
+
+IF (HAVE_MKL)
+    SRCS(
+        scipy/_build_utils/src/wrap_g77_abi_c.c
+        scipy/_build_utils/src/wrap_g77_abi_f.f
+    )
+ELSE()
+    SRCS(
+        scipy/_build_utils/src/wrap_dummy_g77_abi.f
+    )
+ENDIF()
 
 PY_REGISTER(
     scipy._lib._fpumode
