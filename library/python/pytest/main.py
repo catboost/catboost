@@ -47,7 +47,10 @@ def main():
         if name.startswith(prefix) and not name.endswith('.conftest')
     ]
 
-    doctest_packages = (__res.find("PY_DOCTEST_PACKAGES") or "").split()
+    doctest_packages = __res.find("PY_DOCTEST_PACKAGES") or ""
+    if isinstance(doctest_packages, bytes):
+        doctest_packages = doctest_packages.decode('utf-8')
+    doctest_packages = doctest_packages.split()
 
     def is_doctest_module(name):
         for package in doctest_packages:
