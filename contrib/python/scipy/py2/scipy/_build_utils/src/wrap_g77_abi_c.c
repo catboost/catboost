@@ -1,6 +1,6 @@
 #include "cblas.h"
 
-#define WRAP_F77(a) a##_
+#define WRAP_F77(a) a##__
 
 /* This intermediate C-file is necessary also for the Fortran wrapper:
    - The cblas_* functions cannot be called from Fortran directly
