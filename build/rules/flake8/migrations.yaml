@@ -564,7 +564,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners/generate_filtered_links
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
-    - saas/tools/devops/fban
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
     - saas/tools/devops/lib23/tests/py23
@@ -1791,7 +1790,6 @@ migrations:
     - cloud/gauthling/yc_requests/lib
     - cloud/mdb/dbaas-internal-api-image/dbaas_internal_api/utils/dataproc_joblog
     - comdep_analytics/telephony
-    - contrib/python/ipython/py2
     - crowdsourcing/thirium-mitm-proxy
     - cv/cbir_search/onto_validation/grep_onto_state
     - cv/imageproc/faces/video_face_recognition/face_recognition_stream_viewer
@@ -2225,10 +2223,6 @@ migrations:
     - passport/python/library/historydbloader
     - passport/python/logbroker_client/core
     - passport/python/meltingpot/core/meltingpot
-    - passport/python/oauth/settings/admin_settings
-    - passport/python/oauth/settings/api_settings
-    - passport/python/oauth/settings/tvm_settings
-    - passport/python/perimeter_api/settings
     - passport/python/tools/rm_attrs
     - payplatform/balance_support_dev/dev_kpi_counter
     - payplatform/balance_support_dev/support_kpi_counter
