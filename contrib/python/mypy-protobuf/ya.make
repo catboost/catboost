@@ -7,7 +7,7 @@ VERSION(2.10)
 LICENSE(Apache-2.0)
 
 PEERDIR(
-    contrib/libs/protobuf/python/google_lib
+    contrib/python/protobuf
 )
 
 NO_LINT()

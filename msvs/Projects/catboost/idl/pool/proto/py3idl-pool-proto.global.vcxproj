@@ -149,9 +149,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj">
-      <Project>{EBFCFEB6-7F53-5434-3E5A-016929A7E62D}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\Include\py3libs-python-Include.vcxproj">
       <Project>{979D0A38-9505-F3B3-16F9-58B713DAE389}</Project>
     </ProjectReference>
@@ -175,6 +172,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\bin\protoc-gen-mypy\protoc-gen-mypy.vcxproj">
       <Project>{336B97B1-38C2-9545-9D85-D0A972FD767D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.vcxproj">
+      <Project>{BC3B1922-65C9-FCC5-22AF-D5DB13CB02AB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3contrib-python-protobuf.vcxproj">
+      <Project>{3BC67343-9A22-4450-A847-E1332EFC5D5B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
       <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>

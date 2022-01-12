@@ -36,6 +36,7 @@ RECURSE(
     pickleshare
     pluggy
     prompt-toolkit
+    protobuf
     ptyprocess
     py
     Pygments

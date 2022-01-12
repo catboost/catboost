@@ -37,7 +37,7 @@ CFLAGS(
 )
 
 IF (OS_ANDROID)
-    EXTRALIBS(-llog)
+    EXTRALIBS(log)
 ENDIF()
 
 SRCS(
