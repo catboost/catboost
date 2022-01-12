@@ -7301,14 +7301,12 @@
         },
         "appteka": {
             "formula": {
-                "sandbox_id": [
-                    2688373947
-                ],
-                "match": ""
+                "sandbox_id": 1181451323,
+                "match": "appteka"
             },
             "executable": {
                 "appteka": [
-                    "appteka-archive/appteka"
+                    "appteka/appteka"
                 ]
             }
         },
