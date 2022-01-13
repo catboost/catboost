@@ -6,9 +6,8 @@ data-ui/arcanum
 data-ui/idm
 data-ui/sandbox
 data-ui/unity
-direct/frontend
-direct/frontend-packages
-direct/yfa
+direct/frontend/services
+direct/frontend/packages
 drive/pyback
 fintech/frontend
 frontend
