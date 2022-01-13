@@ -22,6 +22,6 @@ SRCS(
 
 END()
 
-RECURSE(
+RECURSE_FOR_TESTS(
     ut
 )

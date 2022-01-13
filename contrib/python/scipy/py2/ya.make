@@ -395,7 +395,6 @@ SRCS(
     scipy/ndimage/src/ni_support.c
     scipy/odr/__odrpack.c
     scipy/odr/odrpack/d_lpk.f
-    scipy/odr/odrpack/d_lpkbls.f
     scipy/odr/odrpack/d_mprec.f
     scipy/odr/odrpack/d_odr.f
     scipy/odr/odrpack/d_test.f
