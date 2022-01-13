@@ -51,11 +51,11 @@ cdef extern from "setjmp.h" nogil:
     void longjmp(jmp_buf STATE, int VALUE) nogil
 
 # Define the clockwise constant
-cdef extern from "qhull_src/src/user_r.h":
+cdef extern from "qhull/src/user_r.h":
     cdef enum:
         qh_ORIENTclock
 
-cdef extern from "qhull_src/src/qset_r.h":
+cdef extern from "qhull/src/qset_r.h":
     ctypedef union setelemT:
         void *p
         int i
@@ -67,7 +67,7 @@ cdef extern from "qhull_src/src/qset_r.h":
     int qh_setsize(qhT *, setT *set) nogil
     void qh_setappend(qhT *, setT **setp, void *elem) nogil
 
-cdef extern from "qhull_src/src/libqhull_r.h":
+cdef extern from "qhull/src/libqhull_r.h":
     ctypedef double realT
     ctypedef double coordT
     ctypedef double pointT
@@ -161,7 +161,7 @@ cdef extern from "qhull_src/src/libqhull_r.h":
     setT *qh_pointvertex(qhT *) nogil
     realT *qh_readpoints(qhT *, int* num, int *dim, boolT* ismalloc) nogil
     void qh_zero(qhT *, void *errfile) nogil
-    int qh_new_qhull(qhT *, int dim, int numpoints, realT *points,
+    int qh_new_qhull_feaspoint(qhT *, int dim, int numpoints, realT *points,
                      boolT ismalloc, char* qhull_cmd, void *outfile,
                      void *errfile, coordT* feaspoint) nogil
     int qh_pointid(qhT *, pointT *point) nogil
@@ -172,7 +172,7 @@ cdef extern from "qhull_src/src/libqhull_r.h":
     void qh_setdelaunay(qhT *, int dim, int count, pointT *points) nogil
     coordT* qh_sethalfspace_all(qhT *, int dim, int count, coordT* halfspaces, pointT *feasible)
 
-cdef extern from "qhull_src/src/io_r.h":
+cdef extern from "qhull/src/io_r.h":
     ctypedef enum qh_RIDGE:
         qh_RIDGEall
         qh_RIDGEinner
@@ -187,14 +187,14 @@ cdef extern from "qhull_src/src/io_r.h":
     void qh_order_vertexneighbors(qhT *, vertexT *vertex) nogil
     int qh_compare_facetvisit(const void *p1, const void *p2) nogil
 
-cdef extern from "qhull_src/src/geom_r.h":
+cdef extern from "qhull/src/geom_r.h":
     pointT *qh_facetcenter(qhT *, setT *vertices) nogil
     double qh_getarea(qhT *, facetT *facetlist) nogil
 
-cdef extern from "qhull_src/src/poly_r.h":
+cdef extern from "qhull/src/poly_r.h":
     void qh_check_maxout(qhT *) nogil
 
-cdef extern from "qhull_src/src/mem_r.h":
+cdef extern from "qhull/src/mem_r.h":
     void qh_memfree(qhT *, void *object, int insize)
 
 from libc.string cimport memcpy
@@ -344,7 +344,7 @@ cdef class _Qhull:
                 coord = <coordT*>interior_point.data
             else:
                 coord = NULL
-            exitcode = qh_new_qhull(self._qh, self.ndim, self.numpoints,
+            exitcode = qh_new_qhull_feaspoint(self._qh, self.ndim, self.numpoints,
                                     <realT*>points.data, 0,
                                     options_c, NULL, self._messages.handle, coord)
 

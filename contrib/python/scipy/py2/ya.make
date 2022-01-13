@@ -743,23 +743,6 @@ SRCS(
     scipy/spatial/ckdtree/src/query_ball_tree.cxx
     scipy/spatial/ckdtree/src/query_pairs.cxx
     scipy/spatial/ckdtree/src/sparse_distances.cxx
-    scipy/spatial/qhull_src/src/geom2_r.c
-    scipy/spatial/qhull_src/src/geom_r.c
-    scipy/spatial/qhull_src/src/global_r.c
-    scipy/spatial/qhull_src/src/io_r.c
-    scipy/spatial/qhull_src/src/libqhull_r.c
-    scipy/spatial/qhull_src/src/mem_r.c
-    scipy/spatial/qhull_src/src/merge_r.c
-    scipy/spatial/qhull_src/src/poly2_r.c
-    scipy/spatial/qhull_src/src/poly_r.c
-    scipy/spatial/qhull_src/src/qset_r.c
-    scipy/spatial/qhull_src/src/random_r.c
-    scipy/spatial/qhull_src/src/rboxlib_r.c
-    scipy/spatial/qhull_src/src/stat_r.c
-    scipy/spatial/qhull_src/src/user_r.c
-    scipy/spatial/qhull_src/src/usermem_r.c
-    scipy/spatial/qhull_src/src/userprintf_r.c
-    scipy/spatial/qhull_src/src/userprintf_rbox_r.c
     scipy/spatial/src/distance_wrap.c
     scipy/special/Faddeeva.cc
     scipy/special/_faddeeva.cxx
