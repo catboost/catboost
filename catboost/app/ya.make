@@ -53,8 +53,8 @@ IF(OPENSOURCE)
     RESTRICT_LICENSES(
         DENY REQUIRE_DISCLOSURE FORBIDDEN
         EXCEPT
-            contrib/libs/linux-headers # ARCADIAWGSUP-12
-            contrib/libs/intel/mkl
+            contrib/libs/linux-headers # DTCC-725
+            contrib/libs/intel/mkl # DTCC-730
     )
 ELSE()
     PEERDIR(
