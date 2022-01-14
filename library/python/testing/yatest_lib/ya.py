@@ -173,7 +173,7 @@ class Ya(object):
         return dict(self._test_params)
 
     def get_context(self, key):
-        return self._context[key]
+        return self._context.get(key)
 
     def _detect_source_root(self):
         root = None
