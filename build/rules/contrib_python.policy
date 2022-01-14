@@ -29,7 +29,7 @@ ALLOW library/python/tools_mongodb_cache -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common/fanout -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/tests -> contrib/python/django/django-1.11
-ALLOW passport/python/contrib/django_contrib_comments -> contrib/python/django/django-1.11
+ALLOW passport/backend/contrib/django_contrib_comments -> contrib/python/django/django-1.11
 ALLOW plus/gift/pdfgen -> contrib/python/django/django-1.11
 ALLOW plus/utils/tests -> contrib/python/django/django-1.11
 ALLOW quality/functionality/chats/common/bots -> contrib/python/django/django-1.11
@@ -531,8 +531,7 @@ ALLOW passport/backend/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/backend/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/backend/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/backend/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/takeout/celery/celery_tasks -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/commands -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW passport/python/vault/api/tests_highload/access -> contrib/python/sqlalchemy/sqlalchemy-1.2

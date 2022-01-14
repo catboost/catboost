@@ -2210,20 +2210,20 @@ migrations:
     - passport/backend/api
     - passport/backend/core/yasms/test
     - passport/backend/library/historydbloader
+    - passport/backend/logbroker_client/core
     - passport/backend/meltingpot/core/meltingpot
-    - passport/python/configs/golovan
-    - passport/python/contrib/cassandra
-    - passport/python/contrib/django_contrib_comments
-    - passport/python/contrib/elementflow
-    - passport/python/contrib/formencode
-    - passport/python/contrib/gsm0338
-    - passport/python/contrib/nose_parameterized
-    - passport/python/contrib/oauthlib
-    - passport/python/contrib/py-radix
-    - passport/python/contrib/py2casefold
-    - passport/python/contrib/pyisemail
-    - passport/python/logbroker_client/core
-    - passport/python/tools/rm_attrs
+    - passport/backend/configs/golovan
+    - passport/backend/contrib/cassandra
+    - passport/backend/contrib/django_contrib_comments
+    - passport/backend/contrib/elementflow
+    - passport/backend/contrib/formencode
+    - passport/backend/contrib/gsm0338
+    - passport/backend/contrib/nose_parameterized
+    - passport/backend/contrib/oauthlib
+    - passport/backend/contrib/py-radix
+    - passport/backend/contrib/py2casefold
+    - passport/backend/contrib/pyisemail
+    - passport/backend/tools/rm_attrs
     - payplatform/balance_support_dev/dev_kpi_counter
     - payplatform/balance_support_dev/support_kpi_counter
     - payplatform/findep/findepstbot
@@ -3256,10 +3256,10 @@ migrations:
     - nirvana/valhalla/tests
     - ofd/notifier/tests/test_unit/test_sender/test_event_types
     - ofd/notifier/tests/test_unit/test_sender/test_notification_types
-    - passport/python/logbroker_client/account_events/tests
-    - passport/python/logbroker_client/oauth/tests
-    - passport/python/logbroker_client/xiva/tests
-    - passport/python/tools/metrics/ut
+    - passport/backend/logbroker_client/account_events/tests
+    - passport/backend/logbroker_client/oauth/tests
+    - passport/backend/logbroker_client/xiva/tests
+    - passport/backend/tools/metrics/ut
     - passport/python/vault/cli/yav/tests
     - quality/ab_testing/scripts/exp_veles/exp_mr_server/scripts/ut
     - quality/ab_testing/tools/postgres_local/tests
