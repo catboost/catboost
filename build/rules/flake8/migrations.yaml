@@ -1219,7 +1219,7 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - passport/python/api/tests/views/bundle/change_avatar
+    - passport/backend/api/tests/views/bundle/change_avatar
     - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/bert/utils/fs
@@ -1584,7 +1584,7 @@ migrations:
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
-    - passport/python/api/tests/views/bundle/change_avatar
+    - passport/backend/api/tests/views/bundle/change_avatar
     - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
@@ -2207,10 +2207,10 @@ migrations:
     - passport/backend/adm_api/common
     - passport/backend/adm_api/settings
     - passport/backend/adm_api/tests/views
+    - passport/backend/api
     - passport/backend/core/yasms/test
     - passport/backend/library/historydbloader
     - passport/backend/meltingpot/core/meltingpot
-    - passport/python/api
     - passport/python/configs/golovan
     - passport/python/contrib/cassandra
     - passport/python/contrib/django_contrib_comments
