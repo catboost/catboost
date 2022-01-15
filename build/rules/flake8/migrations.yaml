@@ -51,7 +51,6 @@ migrations:
     - ads/sandbox_scripts/clean_mapreduce/ut
     - ads/sandbox_scripts/join_yabar
     - ads/targeting/bsmr-scripts/ut_fat
-    - ads/tools/mr_select/lib
     - ads/tools/mranalyze
     - ads/tools/yt_operations_analyzer
     - ads/watchman/contrib/apispec-patched
@@ -88,7 +87,6 @@ migrations:
     - billing/dcs/dcs
     - billing/dcs/dcs/temporary/butils
     - billing/dcs/dcs/temporary/butils/application
-    - catboost/yandex_specific/tools/performance_evaluation/lib
     - cloud/bootstrap/db/src/admin
     - cloud/iam/codegen/python/codegen
     - cloud/netinfra/rknfilter/yc_rkn_s3tools
@@ -287,9 +285,6 @@ migrations:
     - education/lib/nirvana/operations/yt_nodes_deep_diff
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-515
     - education/schoolbook/analytics/adhoc/ANALITICSEDU-687
-    - entity/ontodb/robot/tools/extdata_import/khl/lib
-    - entity/ontodb/robot/tools/extdata_import/wiki_pagecounts/lib
-    - entity/ontodb/robot/tools/extdata_import/ytv/lib/ut
     - entity/ontodb/tasks/backup_yt_tables/lib
     - entity/ontodb/tasks/clean_old_data
     - entity/ontodb/tasks/import_museums/lib
@@ -771,7 +766,6 @@ migrations:
     - yabs/analytics/anomaly_analyzer/src
     - yabs/chat_bot/bot
     - yabs/event-utils
-    - yabs/nanpu/tests/qabs_nanpu_pytest
     - yabs/outdoor/libs/confirmed_booking
     - yabs/python-libs/common
     - yabs/qa/b2b_utils/bsserver_b2b/engine/bs_utils
@@ -905,7 +899,6 @@ migrations:
     - ads/quality/embedding/tsar_tensor/ft_pool/lib
     - ads/quality/ltp/libs/build_pool
     - ads/sandbox_scripts/ggmonitor
-    - ads/tools/mr_select/lib
     - alice/analytics/wer/g2p
     - alice/hollywood/tests/perf_test
     - alice/megamind/tests/library
@@ -1511,7 +1504,6 @@ migrations:
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
     - yabs/sbyt/ytstatcollector/advmachine/tests
-    - yabs/sbyt/ytstatcollector/direct_feed/tests/banners_log_splitter
     - yabs/sbyt/ytstatcollector/moderation/tests
     - yabs/server/cs/pylibs/advmachine_export
     - yabs/server/cs/test/cs_import/yt_banner_with_history
@@ -2051,7 +2043,6 @@ migrations:
     - library/python/solomon
     - library/python/startrek_python_client
     - library/python/statface_client
-    - library/python/testing/yatest_lib
     - library/python/tools_mongodb_cache
     - library/python/tvm2
     - library/python/windows
@@ -3146,7 +3137,6 @@ migrations:
     - dj/lib/shard2/yt_prepare/ut/run_test
     - dj/tools/rthub_profiles/profile_update_triggers/profile_update_trigger_rtmr/tests
     - entity/ontodb/robot/tests/integration
-    - entity/ontodb/robot/tools/extdata_import/wiki_dumps/lib/ut
     - entity/ontodb/tasks/watson_converter/lib/ut
     - entity/recommender/nirvana/operations/build_static_profiles/ut
     - entity/recommender/nirvana/operations/build_tops_profiles/ut
@@ -3429,7 +3419,6 @@ migrations:
     - weather/workers/apply/yt/apply/tests
     - weather/workers/common/location_indices/tests
     - yabs/indoor/tests
-    - yabs/nanpu/tests
     - yabs/rmp/backend/tests/lib/zora
     - yabs/server/libs/py_decrypt_predictions/test
     - yabs/server/libs/py_pibf/test
