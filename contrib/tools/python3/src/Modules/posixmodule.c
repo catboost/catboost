@@ -5883,6 +5883,7 @@ parse_posix_spawn_flags(PyObject *module, const char *func_name, PyObject *setpg
 
     }
 
+#ifdef HAVE_SIGSET_T
    if (setsigmask) {
         sigset_t set;
         if (!_Py_Sigset_Converter(setsigmask, &set)) {
@@ -5908,6 +5909,13 @@ parse_posix_spawn_flags(PyObject *module, const char *func_name, PyObject *setpg
         }
         all_flags |= POSIX_SPAWN_SETSIGDEF;
     }
+#else
+    if (setsigmask || setsigdef) {
+        PyErr_SetString(PyExc_NotImplementedError,
+                        "sigset is not supported on this platform");
+        goto fail;
+    }
+#endif
 
     if (scheduler) {
 #ifdef POSIX_SPAWN_SETSCHEDULER
