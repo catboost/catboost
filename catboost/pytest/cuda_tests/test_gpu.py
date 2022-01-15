@@ -58,7 +58,6 @@ def diff_tool(threshold=2e-7):
     return get_limited_precision_dsv_diff_tool(threshold, True)
 
 
-@pytest.fixture(scope='module', autouse=True)
 def skipif_no_cuda():
     for flag in pytest.config.option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
