@@ -12816,6 +12816,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3contrib-python-numpy.vcxproj">
       <Project>{FA301ACA-9DC7-C37A-FCD9-C0464CED7425}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\py3python-scipy-py2.vcxproj">
+      <Project>{423A435F-0FC2-7296-7046-F358878AA28E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3contrib-python-scipy.vcxproj">
       <Project>{A57F658E-50AA-391E-E485-F24502684666}</Project>
     </ProjectReference>
