@@ -31,7 +31,7 @@ def extract_macro_calls2(unit, macro_value_name):
     return calls
 
 
-def onrun_java_program(unit, *args):
+def on_run_jbuild_program(unit, *args):
     args = list(args)
     """
     Custom code generation
