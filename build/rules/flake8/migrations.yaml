@@ -2904,7 +2904,6 @@ migrations:
     - yabs/umbrella/mapreduce_antifraud/rtb_antifraud_launcher
     - yabs/umbrella/mapreduce_antifraud/serp_no_clicks_users
     - yabs/vh/cms-pgaas/thumb_selector
-    - ydo/tools/spontaneous/feedback_requests
     - yql/cli
     - yql/library/python
     - yql/library/test_framework/recipe
