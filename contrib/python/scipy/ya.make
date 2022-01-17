@@ -6,7 +6,7 @@ LICENSE(BSD-3-Clause)
 
 VERSION(0.18.1)
 
-IF (SCIPY12)
+IF (NOT SCIPY0)
     PEERDIR(contrib/python/scipy/py2)
 ELSE()
 
