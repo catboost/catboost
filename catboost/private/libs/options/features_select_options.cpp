@@ -15,30 +15,52 @@ NCatboostOptions::TFeaturesSelectOptions::TFeaturesSelectOptions()
 {
 }
 
-void NCatboostOptions::TFeaturesSelectOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(
-        options, &FeaturesForSelect, &NumberOfFeaturesToSelect, &Steps, &TrainFinalModel,
-        &ResultPath, &Algorithm, &ShapCalcType
-    );
-}
-
-void NCatboostOptions::TFeaturesSelectOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(
-        options, FeaturesForSelect, NumberOfFeaturesToSelect, Steps, TrainFinalModel,
-        ResultPath, Algorithm, ShapCalcType
-    );
-}
-
 bool NCatboostOptions::TFeaturesSelectOptions::operator==(const TFeaturesSelectOptions& rhs) const {
-    const auto& options = std::tie(FeaturesForSelect, NumberOfFeaturesToSelect, Steps,
-                                   TrainFinalModel, ResultPath, Algorithm, ShapCalcType);
-    const auto& rhsOptions = std::tie(rhs.FeaturesForSelect, rhs.NumberOfFeaturesToSelect, rhs.Steps,
-                                      rhs.TrainFinalModel, rhs.ResultPath, rhs.Algorithm, rhs.ShapCalcType);
+    const auto& options = std::tie(
+        FeaturesForSelect,
+        NumberOfFeaturesToSelect,
+        Steps,
+        TrainFinalModel,
+        ResultPath,
+        Algorithm,
+        ShapCalcType);
+    const auto& rhsOptions = std::tie(
+        rhs.FeaturesForSelect,
+        rhs.NumberOfFeaturesToSelect,
+        rhs.Steps,
+        rhs.TrainFinalModel,
+        rhs.ResultPath,
+        rhs.Algorithm,
+        rhs.ShapCalcType);
     return options == rhsOptions;
 }
 
 bool NCatboostOptions::TFeaturesSelectOptions::operator!=(const TFeaturesSelectOptions& rhs) const {
     return !(rhs == *this);
+}
+
+void NCatboostOptions::TFeaturesSelectOptions::Load(const NJson::TJsonValue& options) {
+    CheckedLoad(
+        options,
+        &FeaturesForSelect,
+        &NumberOfFeaturesToSelect,
+        &Steps,
+        &TrainFinalModel,
+        &ResultPath,
+        &Algorithm,
+        &ShapCalcType);
+}
+
+void NCatboostOptions::TFeaturesSelectOptions::Save(NJson::TJsonValue* options) const {
+    SaveFields(
+        options,
+        FeaturesForSelect,
+        NumberOfFeaturesToSelect,
+        Steps,
+        TrainFinalModel,
+        ResultPath,
+        Algorithm,
+        ShapCalcType);
 }
 
 void NCatboostOptions::TFeaturesSelectOptions::CheckAndUpdateSteps() {
