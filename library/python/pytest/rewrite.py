@@ -3,6 +3,8 @@ from __future__ import print_function
 
 import ast
 
+import py
+
 from _pytest.assertion import rewrite
 
 from __res import importer
@@ -61,7 +63,7 @@ def _rewrite_test(config, name):
         # Let this pop up again in the real import.
         state.trace("failed to parse: %r" % (path,))
         return None
-    rewrite.rewrite_asserts(tree, path, config)
+    rewrite.rewrite_asserts(tree, py.path.local(path), config)
     try:
         co = compile(tree, path, "exec", dont_inherit=True)
     except SyntaxError:

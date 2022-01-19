@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 exception classes and constants handling test outcomes
 as well as functions creating them
@@ -7,6 +8,8 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+
+from packaging.version import Version
 
 
 class OutcomeException(BaseException):
@@ -49,13 +52,13 @@ class Failed(OutcomeException):
     __module__ = "builtins"
 
 
-class Exit(KeyboardInterrupt):
+class Exit(Exception):
     """ raised for immediate program exits (no tracebacks/summaries)"""
 
     def __init__(self, msg="unknown reason", returncode=None):
         self.msg = msg
         self.returncode = returncode
-        KeyboardInterrupt.__init__(self, msg)
+        super(Exit, self).__init__(msg)
 
 
 # exposed helper methods
@@ -63,7 +66,7 @@ class Exit(KeyboardInterrupt):
 
 def exit(msg, returncode=None):
     """
-    Exit testing process as if KeyboardInterrupt was triggered.
+    Exit testing process.
 
     :param str msg: message to display upon exit.
     :param int returncode: return code to be used when exiting pytest.
@@ -80,7 +83,8 @@ def skip(msg="", **kwargs):
     Skip an executing test with the given message.
 
     This function should be called only during testing (setup, call or teardown) or
-    during collection by using the ``allow_module_level`` flag.
+    during collection by using the ``allow_module_level`` flag.  This function can
+    be called in doctests as well.
 
     :kwarg bool allow_module_level: allows this function to be called at
         module level, skipping the rest of the module. Default to False.
@@ -89,12 +93,14 @@ def skip(msg="", **kwargs):
         It is better to use the :ref:`pytest.mark.skipif ref` marker when possible to declare a test to be
         skipped under certain conditions like mismatching platforms or
         dependencies.
+        Similarly, use the ``# doctest: +SKIP`` directive (see `doctest.SKIP
+        <https://docs.python.org/3/library/doctest.html#doctest.SKIP>`_)
+        to skip a doctest statically.
     """
     __tracebackhide__ = True
     allow_module_level = kwargs.pop("allow_module_level", False)
     if kwargs:
-        keys = [k for k in kwargs.keys()]
-        raise TypeError("unexpected keyword arguments: {}".format(keys))
+        raise TypeError("unexpected keyword arguments: {}".format(sorted(kwargs)))
     raise Skipped(msg=msg, allow_module_level=allow_module_level)
 
 
@@ -137,16 +143,21 @@ def xfail(reason=""):
 xfail.Exception = XFailed
 
 
-def importorskip(modname, minversion=None):
-    """ return imported module if it has at least "minversion" as its
-    __version__ attribute.  If no minversion is specified the a skip
-    is only triggered if the module can not be imported.
+def importorskip(modname, minversion=None, reason=None):
+    """Imports and returns the requested module ``modname``, or skip the current test
+    if the module cannot be imported.
+
+    :param str modname: the name of the module to import
+    :param str minversion: if given, the imported module ``__version__`` attribute must be
+        at least this minimal version, otherwise the test is still skipped.
+    :param str reason: if given, this reason is shown as the message when the module
+        cannot be imported.
     """
     import warnings
 
     __tracebackhide__ = True
     compile(modname, "", "eval")  # to catch syntaxerrors
-    should_skip = False
+    import_exc = None
 
     with warnings.catch_warnings():
         # make sure to ignore ImportWarnings that might happen because
@@ -155,25 +166,19 @@ def importorskip(modname, minversion=None):
         warnings.simplefilter("ignore")
         try:
             __import__(modname)
-        except ImportError:
+        except ImportError as exc:
             # Do not raise chained exception here(#1485)
-            should_skip = True
-    if should_skip:
-        raise Skipped("could not import %r" % (modname,), allow_module_level=True)
+            import_exc = exc
+    if import_exc:
+        if reason is None:
+            reason = "could not import %r: %s" % (modname, import_exc)
+        raise Skipped(reason, allow_module_level=True)
     mod = sys.modules[modname]
     if minversion is None:
         return mod
     verattr = getattr(mod, "__version__", None)
     if minversion is not None:
-        try:
-            from pkg_resources import parse_version as pv
-        except ImportError:
-            raise Skipped(
-                "we have a required version for %r but can not import "
-                "pkg_resources to parse version strings." % (modname,),
-                allow_module_level=True,
-            )
-        if verattr is None or pv(verattr) < pv(minversion):
+        if verattr is None or Version(verattr) < Version(minversion):
             raise Skipped(
                 "module %r has __version__ %r, required is: %r"
                 % (modname, verattr, minversion),

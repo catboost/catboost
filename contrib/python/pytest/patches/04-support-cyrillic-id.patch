@@ -1,26 +1,26 @@
 --- contrib/python/pytest/_pytest/compat.py	(index)
 +++ contrib/python/pytest/_pytest/compat.py	(working tree)
-@@ -223,7 +223,7 @@ if _PY3:
+@@ -243,7 +243,7 @@ if _PY3:
          if isinstance(val, bytes):
-             return _bytes_to_ascii(val)
+             ret = _bytes_to_ascii(val)
          else:
--            return val.encode("unicode_escape").decode("ascii")
-+            return val
+-            ret = val.encode("unicode_escape").decode("ascii")
++            ret = val
+         return _translate_non_printable(ret)
  
  
- else:
-@@ -241,11 +241,11 @@ else:
+@@ -262,11 +262,11 @@ else:
          """
          if isinstance(val, bytes):
              try:
--                return val.encode("ascii")
-+                return val.encode("utf-8")
+-                ret = val.decode("ascii")
++                ret = val.decode("utf-8")
              except UnicodeDecodeError:
--                return val.encode("string-escape")
-+                return val.decode("utf-8", "ignore").encode("utf-8", "replace")
+-                ret = val.encode("string-escape").decode("ascii")
++                ret = valdecode("utf-8", "ignore")
          else:
--            return val.encode("unicode-escape")
-+            return val.encode("utf-8", "replace")
+-            ret = val.encode("unicode-escape").decode("ascii")
++            ret = val.encode("utf-8", "replace").decode("utf-8")
+         return _translate_non_printable(ret)
  
  
- class _PytestWrapper(object):

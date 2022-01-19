@@ -1,6 +1,6 @@
 --- contrib/python/pytest/_pytest/assertion/rewrite.py	(index)
 +++ contrib/python/pytest/_pytest/assertion/rewrite.py	(working tree)
-@@ -3,6 +3,9 @@ from __future__ import absolute_import
+@@ -4,6 +4,9 @@ from __future__ import absolute_import
  from __future__ import division
  from __future__ import print_function
  

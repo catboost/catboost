@@ -12,6 +12,9 @@ _lock = threading.Lock()
 
 def _get_ya_config():
     try:
+        import library.python.pytest.plugins.ya as ya_plugin
+        if ya_plugin.pytest_config is not None:
+            return ya_plugin.pytest_config
         import pytest
         return pytest.config
     except (ImportError, AttributeError):

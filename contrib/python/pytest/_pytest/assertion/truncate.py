@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Utilities for truncating assertion output.
 
@@ -11,7 +12,6 @@ from __future__ import print_function
 import os
 
 import six
-
 
 DEFAULT_MAX_LINES = 8
 DEFAULT_MAX_CHARS = 8 * 80

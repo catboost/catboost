@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Utilities for assertion debugging"""
 from __future__ import absolute_import
 from __future__ import division
@@ -5,11 +6,13 @@ from __future__ import print_function
 
 import pprint
 
-import py
 import six
 
 import _pytest._code
 from ..compat import Sequence
+from _pytest import outcomes
+from _pytest._io.saferepr import saferepr
+from _pytest.compat import ATTRS_EQ_FIELD
 
 # The _reprcompare attribute on the util module is used by the new assertion
 # interpretation code and assertion rewriter to detect this plugin was
@@ -102,32 +105,45 @@ except NameError:
     basestring = str
 
 
+def issequence(x):
+    return isinstance(x, Sequence) and not isinstance(x, basestring)
+
+
+def istext(x):
+    return isinstance(x, basestring)
+
+
+def isdict(x):
+    return isinstance(x, dict)
+
+
+def isset(x):
+    return isinstance(x, (set, frozenset))
+
+
+def isdatacls(obj):
+    return getattr(obj, "__dataclass_fields__", None) is not None
+
+
+def isattrs(obj):
+    return getattr(obj, "__attrs_attrs__", None) is not None
+
+
+def isiterable(obj):
+    try:
+        iter(obj)
+        return not istext(obj)
+    except TypeError:
+        return False
+
+
 def assertrepr_compare(config, op, left, right):
     """Return specialised explanations for some operators/operands"""
     width = 80 - 15 - len(op) - 2  # 15 chars indentation, 1 space around op
-    left_repr = py.io.saferepr(left, maxsize=int(width // 2))
-    right_repr = py.io.saferepr(right, maxsize=width - len(left_repr))
+    left_repr = saferepr(left, maxsize=int(width // 2))
+    right_repr = saferepr(right, maxsize=width - len(left_repr))
 
     summary = u"%s %s %s" % (ecu(left_repr), op, ecu(right_repr))
-
-    def issequence(x):
-        return isinstance(x, Sequence) and not isinstance(x, basestring)
-
-    def istext(x):
-        return isinstance(x, basestring)
-
-    def isdict(x):
-        return isinstance(x, dict)
-
-    def isset(x):
-        return isinstance(x, (set, frozenset))
-
-    def isiterable(obj):
-        try:
-            iter(obj)
-            return not istext(obj)
-        except TypeError:
-            return False
 
     verbose = config.getoption("verbose")
     explanation = None
@@ -142,6 +158,11 @@ def assertrepr_compare(config, op, left, right):
                     explanation = _compare_eq_set(left, right, verbose)
                 elif isdict(left) and isdict(right):
                     explanation = _compare_eq_dict(left, right, verbose)
+                elif type(left) == type(right) and (isdatacls(left) or isattrs(left)):
+                    type_fn = (isdatacls, isattrs)
+                    explanation = _compare_eq_cls(left, right, verbose, type_fn)
+                elif verbose > 0:
+                    explanation = _compare_eq_verbose(left, right)
                 if isiterable(left) and isiterable(right):
                     expl = _compare_eq_iterable(left, right, verbose)
                     if explanation is not None:
@@ -151,11 +172,13 @@ def assertrepr_compare(config, op, left, right):
         elif op == "not in":
             if istext(left) and istext(right):
                 explanation = _notin_text(left, right, verbose)
+    except outcomes.Exit:
+        raise
     except Exception:
         explanation = [
             u"(pytest_assertion plugin: representation of details failed.  "
             u"Probably an object has a faulty __repr__.)",
-            six.text_type(_pytest._code.ExceptionInfo()),
+            six.text_type(_pytest._code.ExceptionInfo.from_current()),
         ]
 
     if not explanation:
@@ -164,8 +187,8 @@ def assertrepr_compare(config, op, left, right):
     return [summary] + explanation
 
 
-def _diff_text(left, right, verbose=False):
-    """Return the explanation for the diff between text or bytes
+def _diff_text(left, right, verbose=0):
+    """Return the explanation for the diff between text or bytes.
 
     Unless --verbose is used this will skip leading and trailing
     characters which are identical to keep the diff minimal.
@@ -191,7 +214,7 @@ def _diff_text(left, right, verbose=False):
         left = escape_for_readable_diff(left)
     if isinstance(right, bytes):
         right = escape_for_readable_diff(right)
-    if not verbose:
+    if verbose < 1:
         i = 0  # just in case left or right has zero length
         for i in range(min(len(left), len(right))):
             if left[i] != right[i]:
@@ -227,7 +250,19 @@ def _diff_text(left, right, verbose=False):
     return explanation
 
 
-def _compare_eq_iterable(left, right, verbose=False):
+def _compare_eq_verbose(left, right):
+    keepends = True
+    left_lines = repr(left).splitlines(keepends)
+    right_lines = repr(right).splitlines(keepends)
+
+    explanation = []
+    explanation += [u"-" + line for line in left_lines]
+    explanation += [u"+" + line for line in right_lines]
+
+    return explanation
+
+
+def _compare_eq_iterable(left, right, verbose=0):
     if not verbose:
         return [u"Use -v to get the full diff"]
     # dynamic import to speedup pytest
@@ -250,43 +285,55 @@ def _compare_eq_iterable(left, right, verbose=False):
     return explanation
 
 
-def _compare_eq_sequence(left, right, verbose=False):
+def _compare_eq_sequence(left, right, verbose=0):
     explanation = []
-    for i in range(min(len(left), len(right))):
+    len_left = len(left)
+    len_right = len(right)
+    for i in range(min(len_left, len_right)):
         if left[i] != right[i]:
             explanation += [u"At index %s diff: %r != %r" % (i, left[i], right[i])]
             break
-    if len(left) > len(right):
-        explanation += [
-            u"Left contains more items, first extra item: %s"
-            % py.io.saferepr(left[len(right)])
-        ]
-    elif len(left) < len(right):
-        explanation += [
-            u"Right contains more items, first extra item: %s"
-            % py.io.saferepr(right[len(left)])
-        ]
+    len_diff = len_left - len_right
+
+    if len_diff:
+        if len_diff > 0:
+            dir_with_more = "Left"
+            extra = saferepr(left[len_right])
+        else:
+            len_diff = 0 - len_diff
+            dir_with_more = "Right"
+            extra = saferepr(right[len_left])
+
+        if len_diff == 1:
+            explanation += [u"%s contains one more item: %s" % (dir_with_more, extra)]
+        else:
+            explanation += [
+                u"%s contains %d more items, first extra item: %s"
+                % (dir_with_more, len_diff, extra)
+            ]
     return explanation
 
 
-def _compare_eq_set(left, right, verbose=False):
+def _compare_eq_set(left, right, verbose=0):
     explanation = []
     diff_left = left - right
     diff_right = right - left
     if diff_left:
         explanation.append(u"Extra items in the left set:")
         for item in diff_left:
-            explanation.append(py.io.saferepr(item))
+            explanation.append(saferepr(item))
     if diff_right:
         explanation.append(u"Extra items in the right set:")
         for item in diff_right:
-            explanation.append(py.io.saferepr(item))
+            explanation.append(saferepr(item))
     return explanation
 
 
-def _compare_eq_dict(left, right, verbose=False):
+def _compare_eq_dict(left, right, verbose=0):
     explanation = []
-    common = set(left).intersection(set(right))
+    set_left = set(left)
+    set_right = set(right)
+    common = set_left.intersection(set_right)
     same = {k: left[k] for k in common if left[k] == right[k]}
     if same and verbose < 2:
         explanation += [u"Omitting %s identical items, use -vv to show" % len(same)]
@@ -297,31 +344,71 @@ def _compare_eq_dict(left, right, verbose=False):
     if diff:
         explanation += [u"Differing items:"]
         for k in diff:
-            explanation += [
-                py.io.saferepr({k: left[k]}) + " != " + py.io.saferepr({k: right[k]})
-            ]
-    extra_left = set(left) - set(right)
-    if extra_left:
-        explanation.append(u"Left contains more items:")
+            explanation += [saferepr({k: left[k]}) + " != " + saferepr({k: right[k]})]
+    extra_left = set_left - set_right
+    len_extra_left = len(extra_left)
+    if len_extra_left:
+        explanation.append(
+            u"Left contains %d more item%s:"
+            % (len_extra_left, "" if len_extra_left == 1 else "s")
+        )
         explanation.extend(
             pprint.pformat({k: left[k] for k in extra_left}).splitlines()
         )
-    extra_right = set(right) - set(left)
-    if extra_right:
-        explanation.append(u"Right contains more items:")
+    extra_right = set_right - set_left
+    len_extra_right = len(extra_right)
+    if len_extra_right:
+        explanation.append(
+            u"Right contains %d more item%s:"
+            % (len_extra_right, "" if len_extra_right == 1 else "s")
+        )
         explanation.extend(
             pprint.pformat({k: right[k] for k in extra_right}).splitlines()
         )
     return explanation
 
 
-def _notin_text(term, text, verbose=False):
+def _compare_eq_cls(left, right, verbose, type_fns):
+    isdatacls, isattrs = type_fns
+    if isdatacls(left):
+        all_fields = left.__dataclass_fields__
+        fields_to_check = [field for field, info in all_fields.items() if info.compare]
+    elif isattrs(left):
+        all_fields = left.__attrs_attrs__
+        fields_to_check = [
+            field.name for field in all_fields if getattr(field, ATTRS_EQ_FIELD)
+        ]
+
+    same = []
+    diff = []
+    for field in fields_to_check:
+        if getattr(left, field) == getattr(right, field):
+            same.append(field)
+        else:
+            diff.append(field)
+
+    explanation = []
+    if same and verbose < 2:
+        explanation.append(u"Omitting %s identical items, use -vv to show" % len(same))
+    elif same:
+        explanation += [u"Matching attributes:"]
+        explanation += pprint.pformat(same).splitlines()
+    if diff:
+        explanation += [u"Differing attributes:"]
+        for field in diff:
+            explanation += [
+                (u"%s: %r != %r") % (field, getattr(left, field), getattr(right, field))
+            ]
+    return explanation
+
+
+def _notin_text(term, text, verbose=0):
     index = text.find(term)
     head = text[:index]
     tail = text[index + len(term) :]
     correct_text = head + tail
     diff = _diff_text(correct_text, text, verbose)
-    newdiff = [u"%s is contained here:" % py.io.saferepr(term, maxsize=42)]
+    newdiff = [u"%s is contained here:" % saferepr(term, maxsize=42)]
     for line in diff:
         if line.startswith(u"Skipping"):
             continue

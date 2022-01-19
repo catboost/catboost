@@ -28,6 +28,7 @@ RECURSE(
     more-itertools
     mypy-protobuf
     numpy
+    packaging
     pandas
     parso
     path.py
@@ -40,6 +41,7 @@ RECURSE(
     ptyprocess
     py
     Pygments
+    pyparsing
     pytest
     pytz
     scandir

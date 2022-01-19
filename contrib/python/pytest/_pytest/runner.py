@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """ basic collect and runtest protocol implementations """
 from __future__ import absolute_import
 from __future__ import division
@@ -8,13 +9,15 @@ import os
 import sys
 from time import time
 
+import attr
 import six
 
 from .reports import CollectErrorRepr
 from .reports import CollectReport
 from .reports import TestReport
 from _pytest._code.code import ExceptionInfo
-from _pytest.outcomes import skip
+from _pytest.compat import safe_str
+from _pytest.outcomes import Exit
 from _pytest.outcomes import Skipped
 from _pytest.outcomes import TEST_OUTCOME
 
@@ -85,9 +88,9 @@ def runtestprotocol(item, log=True, nextitem=None):
     rep = call_and_report(item, "setup", log)
     reports = [rep]
     if rep.passed:
-        if item.config.option.setupshow:
+        if item.config.getoption("setupshow", False):
             show_test_item(item)
-        if not item.config.option.setuponly:
+        if not item.config.getoption("setuponly", False):
             reports.append(call_and_report(item, "call", log))
     reports.append(call_and_report(item, "teardown", log, nextitem=nextitem))
     # after all teardown hooks have been called
@@ -181,7 +184,7 @@ def call_and_report(item, when, log=True, **kwds):
 def check_interactive_exception(call, report):
     return call.excinfo and not (
         hasattr(report, "wasxfail")
-        or call.excinfo.errisinstance(skip.Exception)
+        or call.excinfo.errisinstance(Skipped)
         or call.excinfo.errisinstance(bdb.BdbQuit)
     )
 
@@ -189,87 +192,66 @@ def check_interactive_exception(call, report):
 def call_runtest_hook(item, when, **kwds):
     hookname = "pytest_runtest_" + when
     ihook = getattr(item.ihook, hookname)
-    return CallInfo(
-        lambda: ihook(item=item, **kwds),
-        when=when,
-        treat_keyboard_interrupt_as_exception=item.config.getvalue("usepdb"),
+    reraise = (Exit,)
+    if not item.config.getoption("usepdb", False):
+        reraise += (KeyboardInterrupt,)
+    return CallInfo.from_call(
+        lambda: ihook(item=item, **kwds), when=when, reraise=reraise
     )
 
 
+@attr.s(repr=False)
 class CallInfo(object):
     """ Result/Exception info a function invocation. """
 
-    #: None or ExceptionInfo object.
-    excinfo = None
+    _result = attr.ib()
+    # Optional[ExceptionInfo]
+    excinfo = attr.ib()
+    start = attr.ib()
+    stop = attr.ib()
+    when = attr.ib()
 
-    def __init__(self, func, when, treat_keyboard_interrupt_as_exception=False):
+    @property
+    def result(self):
+        if self.excinfo is not None:
+            raise AttributeError("{!r} has no valid result".format(self))
+        return self._result
+
+    @classmethod
+    def from_call(cls, func, when, reraise=None):
         #: context of invocation: one of "setup", "call",
         #: "teardown", "memocollect"
-        self.when = when
-        self.start = time()
+        start = time()
+        excinfo = None
         try:
-            self.result = func()
-        except KeyboardInterrupt:
-            if treat_keyboard_interrupt_as_exception:
-                self.excinfo = ExceptionInfo()
-            else:
-                self.stop = time()
-                raise
+            result = func()
         except:  # noqa
-            self.excinfo = ExceptionInfo()
-        self.stop = time()
+            excinfo = ExceptionInfo.from_current()
+            if reraise is not None and excinfo.errisinstance(reraise):
+                raise
+            result = None
+        stop = time()
+        return cls(start=start, stop=stop, when=when, result=result, excinfo=excinfo)
 
     def __repr__(self):
-        if self.excinfo:
-            status = "exception: %s" % str(self.excinfo.value)
+        if self.excinfo is not None:
+            status = "exception"
+            value = self.excinfo.value
         else:
-            result = getattr(self, "result", "<NOTSET>")
-            status = "result: %r" % (result,)
-        return "<CallInfo when=%r %s>" % (self.when, status)
+            # TODO: investigate unification
+            value = repr(self._result)
+            status = "result"
+        return "<CallInfo when={when!r} {status}: {value}>".format(
+            when=self.when, value=safe_str(value), status=status
+        )
 
 
 def pytest_runtest_makereport(item, call):
-    when = call.when
-    duration = call.stop - call.start
-    keywords = {x: 1 for x in item.keywords}
-    excinfo = call.excinfo
-    sections = []
-    if not call.excinfo:
-        outcome = "passed"
-        longrepr = None
-    else:
-        if not isinstance(excinfo, ExceptionInfo):
-            outcome = "failed"
-            longrepr = excinfo
-        elif excinfo.errisinstance(skip.Exception):
-            outcome = "skipped"
-            r = excinfo._getreprcrash()
-            longrepr = (str(r.path), r.lineno, r.message)
-        else:
-            outcome = "failed"
-            if call.when == "call":
-                longrepr = item.repr_failure(excinfo)
-            else:  # exception in setup or teardown
-                longrepr = item._repr_failure_py(
-                    excinfo, style=item.config.option.tbstyle
-                )
-    for rwhen, key, content in item._report_sections:
-        sections.append(("Captured %s %s" % (key, rwhen), content))
-    return TestReport(
-        item.nodeid,
-        item.location,
-        keywords,
-        outcome,
-        longrepr,
-        when,
-        sections,
-        duration,
-        user_properties=item.user_properties,
-    )
+    return TestReport.from_item_and_call(item, call)
 
 
 def pytest_make_collect_report(collector):
-    call = CallInfo(lambda: list(collector.collect()), "collect")
+    call = CallInfo.from_call(lambda: list(collector.collect()), "collect")
     longrepr = None
     if not call.excinfo:
         outcome = "passed"

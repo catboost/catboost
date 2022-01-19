@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -122,18 +123,13 @@ class Source(object):
         """ return True if source is parseable, heuristically
             deindenting it by default.
         """
-        from parser import suite as syntax_checker
-
         if deindent:
             source = str(self.deindent())
         else:
             source = str(self)
         try:
-            # compile(source+'\n', "x", "exec")
-            syntax_checker(source + "\n")
-        except KeyboardInterrupt:
-            raise
-        except Exception:
+            ast.parse(source)
+        except (SyntaxError, ValueError, TypeError):
             return False
         else:
             return True
@@ -203,7 +199,9 @@ def compile_(source, filename=None, mode="exec", flags=0, dont_inherit=0):
 
 def getfslineno(obj):
     """ Return source location (path, lineno) for the given object.
-    If the source cannot be determined return ("", -1)
+    If the source cannot be determined return ("", -1).
+
+    The line number is 0-based.
     """
     from .code import Code
 
@@ -237,9 +235,7 @@ def getfslineno(obj):
 def findsource(obj):
     try:
         sourcelines, lineno = inspect.findsource(obj)
-    except py.builtin._sysex:
-        raise
-    except:  # noqa
+    except Exception:
         return None, -1
     source = Source()
     source.lines = [line.rstrip() for line in sourcelines]
