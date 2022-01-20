@@ -291,14 +291,38 @@ def pytest_configure(config):
         signal.signal(signal.SIGUSR2, _graceful_shutdown)
 
 
+session_should_exit = False
+
+
+def _graceful_shutdown_on_log(should_exit):
+    if should_exit:
+        pytest.exit("Graceful shutdown requested")
+
+
+def pytest_runtest_logreport(report):
+    _graceful_shutdown_on_log(session_should_exit)
+
+
+def pytest_runtest_logstart(nodeid, location):
+    _graceful_shutdown_on_log(session_should_exit)
+
+
+def pytest_runtest_logfinish(nodeid, location):
+    _graceful_shutdown_on_log(session_should_exit)
+
+
 def _graceful_shutdown(*args):
+    global session_should_exit
+    session_should_exit = True
     try:
         import library.python.coverage
         library.python.coverage.stop_coverage_tracing()
     except ImportError:
         pass
     traceback.print_stack(file=sys.stderr)
-    pytest.exit("Graceful shutdown requested")
+    capman = pytest_config.pluginmanager.getplugin("capturemanager")
+    capman.suspend(in_=True)
+    _graceful_shutdown_on_log(capman._current_item is not None)
 
 
 def _get_rusage():
