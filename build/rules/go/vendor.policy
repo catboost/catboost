@@ -914,6 +914,18 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger/model
 ALLOW yt/jaeger/plugin -> vendor/github.com/gogo/protobuf
 ALLOW yt/jaeger/plugin -> vendor/github.com/hashicorp/go-plugin
 
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/agent
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/docs
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/cmd/flags
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/pkg/config
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/pkg/version
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/thrift-gen/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/ports
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/jaegertracing/jaeger/model/converter/thrift/jaeger
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/spf13/viper
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/gogo
+
 # CONTRIB-1518 client for monkey-patched Apache Pulsar by TuyaInc. responsible: jock@
 ALLOW alice/iot/adapters/tuya_adapter -> vendor/github.com/TuyaInc/tuya_pulsar_sdk_go
 ALLOW alice/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logrus
