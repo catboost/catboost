@@ -1,5 +1,5 @@
---- contrib/python/pytest/_pytest/python.py	(index)
-+++ contrib/python/pytest/_pytest/python.py	(working tree)
+--- contrib/python/pytest/py2/_pytest/python.py	(index)
++++ contrib/python/pytest/py2/_pytest/python.py	(working tree)
 @@ -1204,6 +1204,33 @@ def _idval(val, argname, idx, idfn, item, config):
      return str(argname) + str(idx)
  
