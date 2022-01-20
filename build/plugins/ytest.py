@@ -394,7 +394,7 @@ def get_tidy_config_map(unit):
 def get_default_tidy_config(unit):
     unit_path = get_norm_unit_path(unit)
     for project_prefix, config_path in DEFAULT_TIDY_CONFIGS_MAP.items():
-        if project_prefix.startswith(unit_path):
+        if unit_path.startswith(project_prefix):
             return config_path
     return DEFAULT_TIDY_CONFIG
 
