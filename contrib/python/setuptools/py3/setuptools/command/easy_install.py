@@ -6,7 +6,7 @@ A tool for doing automatic download/extract/build of distutils-based Python
 packages.  For detailed documentation, see the accompanying EasyInstall.txt
 file, or visit the `EasyInstall home page`__.
 
-__ https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html
+__ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 """
 
@@ -153,6 +153,12 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
+        warnings.warn(
+            "easy_install command is deprecated. "
+            "Use build and pip and other standards-based tools.",
+            EasyInstallDeprecationWarning,
+        )
+
         # the --user option seems to be an opt-in one,
         # so the default should be False.
         self.user = 0
@@ -513,7 +519,7 @@ class easy_install(Command):
         For information on other options, you may wish to consult the
         documentation at:
 
-          https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html
+          https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
         Please make the appropriate changes for your system and try again.
         """).lstrip()  # noqa
@@ -1306,7 +1312,7 @@ class easy_install(Command):
         * You can set up the installation directory to support ".pth" files by
           using one of the approaches described here:
 
-          https://setuptools.readthedocs.io/en/latest/deprecated/easy_install.html#custom-installation-locations
+          https://setuptools.pypa.io/en/latest/deprecated/easy_install.html#custom-installation-locations
 
 
         Please make the appropriate changes for your system and try again.
@@ -1508,7 +1514,7 @@ def extract_wininst_cfg(dist_filename):
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
-            cfg.readfp(io.StringIO(config))
+            cfg.read_file(io.StringIO(config))
         except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -2263,7 +2269,10 @@ def get_win_launcher(type):
     """
     launcher_fn = '%s.exe' % type
     if is_64bit():
-        launcher_fn = launcher_fn.replace(".", "-64.")
+        if get_platform() == "win-arm64":
+            launcher_fn = launcher_fn.replace(".", "-arm64.")
+        else:
+            launcher_fn = launcher_fn.replace(".", "-64.")
     else:
         launcher_fn = launcher_fn.replace(".", "-32.")
     return resource_string('setuptools', launcher_fn)

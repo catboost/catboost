@@ -313,6 +313,10 @@ static void UpdateIndices(
     NPar::ILocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices) {
 
+    if (indices.empty()) {
+        return;
+    }
+
     TIndexType defaultIndexValue = 0;
 
     TVector<std::function<void(TIndexRange<ui32>)>> updateBlockCallbacks;
@@ -585,9 +589,9 @@ static TVector<const TOnlineCtrBase*> GetOnlineCtrs(
     const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
 
     if (std::holds_alternative<TSplitTree>(tree)) {
-        return GetOnlineCtrs(fold, Get<TSplitTree>(tree));
+        return GetOnlineCtrs(fold, std::get<TSplitTree>(tree));
     } else {
-        return GetOnlineCtrs(fold, Get<TNonSymmetricTreeStructure>(tree));
+        return GetOnlineCtrs(fold, std::get<TNonSymmetricTreeStructure>(tree));
     }
 }
 
@@ -641,9 +645,9 @@ static void BuildIndicesForDataset(
     };
 
     if (std::holds_alternative<TSplitTree>(treeVariant)) {
-        buildIndices(Get<TSplitTree>(treeVariant));
+        buildIndices(std::get<TSplitTree>(treeVariant));
     } else {
-        buildIndices(Get<TNonSymmetricTreeStructure>(treeVariant));
+        buildIndices(std::get<TNonSymmetricTreeStructure>(treeVariant));
     }
 }
 

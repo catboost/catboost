@@ -112,6 +112,22 @@ class BuiltinMetric(object):
             label, approx, str(self), weight, group_id, group_weight, subgroup_id, pairs, thread_count
         )
 
+    def is_max_optimal(self):
+        """
+        Returns
+        ----------
+        bool : True if metric is maximizable, False otherwise
+        """
+        return _catboost.is_maximizable_metric(str(self))
+
+    def is_min_optimal(self):
+        """
+        Returns
+        ----------
+        bool :  True if metric is minimizable, False otherwise
+        """
+        return _catboost.is_minimizable_metric(str(self))
+
 
 class _MetricGenerator(type):
     def __new__(mcs, name, parents, attrs):

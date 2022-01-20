@@ -210,7 +210,9 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#if defined(ARCADIA_ROOT)
 #include <util/generic/string.h>
+#endif
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
@@ -281,8 +283,10 @@ class RE2 {
 #endif
   RE2(const StringPiece& pattern);
   RE2(const StringPiece& pattern, const Options& options);
+#if defined(ARCADIA_ROOT)
   // ambiguity resolution.
   RE2(const TString& pattern) : RE2(StringPiece(pattern)) {}
+#endif
   ~RE2();
 
   // Returns whether RE2 was created properly.
@@ -460,6 +464,7 @@ class RE2 {
   static bool Replace(std::string* str,
                       const RE2& re,
                       const StringPiece& rewrite);
+#if defined(ARCADIA_ROOT)
   static bool Replace(TString *str,
                       const RE2& pattern,
                       const StringPiece& rewrite) {
@@ -468,6 +473,7 @@ class RE2 {
     *str = tmp;
     return res;
   }
+#endif
 
   // Like Replace(), except replaces successive non-overlapping occurrences
   // of the pattern in the string with the rewrite. E.g.
@@ -486,6 +492,7 @@ class RE2 {
                            const RE2& re,
                            const StringPiece& rewrite);
 
+#if defined(ARCADIA_ROOT)
   static int GlobalReplace(TString* str,
                             const RE2& pattern,
                             const StringPiece& rewrite) {
@@ -494,6 +501,7 @@ class RE2 {
     *str = tmp;
     return res;
   }
+#endif
 
   // Like Replace, except that if the pattern matches, "rewrite"
   // is copied into "out" with substitutions.  The non-matching
@@ -508,6 +516,7 @@ class RE2 {
                       const StringPiece& rewrite,
                       std::string* out);
 
+#if defined(ARCADIA_ROOT)
   static bool Extract(const StringPiece& text,
                       const RE2& pattern,
                       const StringPiece& rewrite,
@@ -517,6 +526,7 @@ class RE2 {
     *out = tmp;
     return res;
   }
+#endif
 
   // Escapes all potentially meaningful regexp characters in
   // 'unquoted'.  The returned string, used as a regular expression,
@@ -611,6 +621,7 @@ class RE2 {
     return CheckRewriteString(rewrite, static_cast<std::string*>(error));
   }
 
+#if defined(ARCADIA_ROOT)
   bool CheckRewriteString(const StringPiece& rewrite, TString* error) const {
     if (error) {
       std::string tmp;
@@ -621,6 +632,7 @@ class RE2 {
       return CheckRewriteString(rewrite, nullptr);
     }
   }
+#endif
 
   // Returns the maximum submatch needed for the rewrite to be done by
   // Replace(). E.g. if rewrite == "foo \\2,\\1", returns 2.
@@ -835,7 +847,9 @@ template <typename T> struct Parse3ary : public std::false_type {};
 template <> struct Parse3ary<void> : public std::true_type {};
 template <> struct Parse3ary<std::string> : public std::true_type {};
 template <> struct Parse3ary<StringPiece> : public std::true_type {};
+#if defined(ARCADIA_ROOT)
 template <> struct Parse3ary<TString> : public std::true_type {};
+#endif
 template <> struct Parse3ary<char> : public std::true_type {};
 template <> struct Parse3ary<signed char> : public std::true_type {};
 template <> struct Parse3ary<unsigned char> : public std::true_type {};
@@ -1013,8 +1027,11 @@ namespace hooks {
 // thread_local, but for the sake of brevity, we lump together all versions
 // of Apple platforms that aren't macOS. If an iOS application really needs
 // the context pointee someday, we can get more specific then...
+//
+// As per https://github.com/google/re2/issues/325, thread_local support in
+// MinGW seems to be buggy. (FWIW, Abseil folks also avoid it.)
 #define RE2_HAVE_THREAD_LOCAL
-#if defined(__APPLE__) && !TARGET_OS_OSX
+#if (defined(__APPLE__) && !TARGET_OS_OSX) || defined(__MINGW32__)
 #undef RE2_HAVE_THREAD_LOCAL
 #endif
 

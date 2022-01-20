@@ -94,6 +94,8 @@ class Profile final {
 
     int depth;
     void* stack[kMaxStackDepth];
+
+    void* user_data;
   };
 
   void Iterate(absl::FunctionRef<void(const Sample&)> f) const;
@@ -313,9 +315,13 @@ class MallocExtension final {
 
   // Gets the guarded sampling rate.  Returns a value < 0 if unknown.
   static int64_t GetGuardedSamplingRate();
-  // Sets the guarded sampling rate for sampled allocations.  Guarded samples
-  // provide probablistic protections against buffer underflow, overflow, and
-  // use-after-free.
+  // Sets the guarded sampling rate for sampled allocations.  TCMalloc samples
+  // approximately every rate bytes allocated, subject to implementation
+  // limitations in GWP-ASan.
+  //
+  // Guarded samples provide probablistic protections against buffer underflow,
+  // overflow, and use-after-free when GWP-ASan is active (via calling
+  // ActivateGuardedSampling).
   static void SetGuardedSamplingRate(int64_t rate);
 
   // Switches TCMalloc to guard sampled allocations for underflow, overflow, and
@@ -464,6 +470,20 @@ class MallocExtension final {
   // Specifies the release rate from the page heap.  ProcessBackgroundActions
   // must be called for this to be operative.
   static void SetBackgroundReleaseRate(BytesPerSecond rate);
+
+  // Enables fork support.
+  // Allocator will continue to function correctly in the child, after calling fork().
+  static void EnableForkSupport();
+
+  using CreateSampleUserDataCallback = void*();
+  using CopySampleUserDataCallback = void*(void*);
+  using DestroySampleUserDataCallback = void(void*);
+
+  // Sets callbacks for lifetime control of custom user data attached to allocation samples
+  static void SetSampleUserDataCallbacks(
+    CreateSampleUserDataCallback create,
+    CopySampleUserDataCallback copy,
+    DestroySampleUserDataCallback destroy);
 };
 
 }  // namespace tcmalloc
@@ -531,7 +551,6 @@ tcmalloc::sized_ptr_t tcmalloc_size_returning_operator_new_nothrow(
 // Aligned size returning new is only supported for libc++ because of issues
 // with libstdcxx.so linkage. See http://b/110969867 for background.
 #if defined(__cpp_aligned_new)
-#define TCMALLOC_HAS_ALIGNED_SIZE_RETURNING_NEW
 
 // Identical to `tcmalloc_size_returning_operator_new` except that the returned
 // memory is aligned according to the `alignment` argument.

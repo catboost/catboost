@@ -23,7 +23,7 @@
 #include <util/system/types.h>
 
 #include <utility>
-
+#include <typeindex>
 
 namespace NCB {
 
@@ -35,7 +35,7 @@ namespace NCB {
         virtual TString GetAfterColumnDelimiter() const {
             return "\t";
         }
-        virtual size_t GetOutputType() = 0;
+        virtual std::type_index GetOutputType() = 0;
         virtual ~IColumnPrinter() = default;
     };
 
@@ -73,8 +73,8 @@ namespace NCB {
             *outStream << Header;
         }
 
-        size_t GetOutputType() override {
-            return GetOutputTypeIndex<T>();
+        std::type_index GetOutputType() override {
+            return typeid(T);
         }
 
     private:
@@ -98,8 +98,8 @@ namespace NCB {
             *result = Weights[docIndex];
         }
 
-        size_t GetOutputType() override {
-            return GetOutputTypeIndex<float>();
+        std::type_index GetOutputType() override {
+            return typeid(float);
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -136,8 +136,8 @@ namespace NCB {
             *outStream << Header;
         }
 
-        size_t GetOutputType() override {
-            return GetOutputTypeIndex<T>();
+        std::type_index GetOutputType() override {
+            return typeid(T);
         }
 
         TString GetAfterColumnDelimiter() const override {
@@ -169,19 +169,15 @@ namespace NCB {
         void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
             TStringStream value;
             PrinterPtr->OutputFeatureColumnByIndex(&value, DocIdOffset + docIndex, FeatureId);
-            if (GetOutputType() == GetOutputTypeIndex<double>()) {
-                *result = FromString<double>(value.Str());
-            } else {
-                *result = value.Str();
-            }
+            *result = value.Str();
         }
 
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << ColumnName;
         }
 
-        size_t GetOutputType() override {
-            return PrinterPtr->GetOutputFeatureType(FeatureId);
+        std::type_index GetOutputType() override {
+            return typeid(TString);
         }
 
     private:
@@ -216,8 +212,8 @@ namespace NCB {
             *outStream << Header;
         }
 
-        size_t GetOutputType() override {
-            return GetOutputTypeIndex<TString>();
+        std::type_index GetOutputType() override {
+            return typeid(TString);
         }
 
     private:
@@ -260,11 +256,11 @@ namespace NCB {
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << Header;
         }
-        size_t GetOutputType() override {
+        std::type_index GetOutputType() override {
             if (PredictionType == EPredictionType::Class) {
-                return GetOutputTypeIndex<TString>();
+                return typeid(TString);
             } else {
-                return GetOutputTypeIndex<double>();
+                return typeid(double);
             }
         }
 
@@ -316,23 +312,23 @@ namespace NCB {
         void GetValue(size_t docIndex, TColumnPrinterOuputType* result) override {
             TStringStream value;
             OutputValue(&value, docIndex);
-            if (GetOutputType() == GetOutputTypeIndex<double>()) {
+            if (GetOutputType() == typeid(double)) {
                 *result = FromString<double>(value.Str());
             } else {
                 *result = value.Str();
             }
         }
 
-        size_t GetOutputType() override {
+        std::type_index GetOutputType() override {
             switch (ColumnType) {
                 case EColumn::Label:
                 case EColumn::Weight:
                 case EColumn::GroupWeight:
-                    return GetOutputTypeIndex<double>();
+                    return typeid(double);
                 case EColumn::SampleId:
                 case EColumn::GroupId:
                 case EColumn::SubgroupId:
-                    return GetOutputTypeIndex<TString>();
+                    return typeid(TString);
                 default:
                     CB_ENSURE(false, "Unknown output columnType");
             }
@@ -379,8 +375,8 @@ namespace NCB {
             }
         }
 
-        size_t GetOutputType() override {
-            return NeedToGenerate ? GetOutputTypeIndex<ui64>() : GetOutputTypeIndex<TString>();
+        std::type_index GetOutputType() override {
+            return NeedToGenerate ? typeid(ui64) : typeid(TString);
         }
 
     private:

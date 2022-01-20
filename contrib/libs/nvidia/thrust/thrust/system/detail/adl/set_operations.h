@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/set_operations.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_SET_OPERATIONS_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/set_operations.h>
-#include __THRUST_HOST_SYSTEM_SET_OPERATIONS_HEADER
-#undef __THRUST_HOST_SYSTEM_SET_OPERATIONS_HEADER
+#include <thrust/system/cpp/detail/set_operations.h>
 
 #define __THRUST_DEVICE_SYSTEM_SET_OPERATIONS_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/set_operations.h>
 #include __THRUST_DEVICE_SYSTEM_SET_OPERATIONS_HEADER

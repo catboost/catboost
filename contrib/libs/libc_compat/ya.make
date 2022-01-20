@@ -3,9 +3,9 @@
 LIBRARY()
 
 LICENSE(
-    BSD-1-Clause
-    BSD-2-Clause
-    BSD-3-Clause
+    BSD-1-Clause AND
+    BSD-2-Clause AND
+    BSD-3-Clause AND
     ISC
 )
 
@@ -42,7 +42,9 @@ IF (OS_ANDROID)
         SRCS(
             ifaddrs.c
         )
-        ADDINCL(GLOBAL contrib/libs/libc_compat/include/ifaddrs)
+        ADDINCL(
+            GLOBAL contrib/libs/libc_compat/include/ifaddrs
+        )
     ENDIF()
     IF (ANDROID_API < 21)
         SRCS(
@@ -64,7 +66,9 @@ IF (OS_DARWIN)
 ENDIF()
 
 IF (OS_WINDOWS)
-    ADDINCL(GLOBAL contrib/libs/libc_compat/include/windows)
+    ADDINCL(
+        GLOBAL contrib/libs/libc_compat/include/windows
+    )
     SRCS(
         reallocarray.c
         stpcpy.c
@@ -76,6 +80,15 @@ IF (OS_WINDOWS)
     )
 ENDIF()
 
+IF (OS_LINUX)
+    ADDINCL(
+        GLOBAL contrib/libs/libc_compat/include/readpassphrase
+    )
+    SRCS(
+        readpassphrase.c
+    )
+ENDIF()
+
 IF (OS_LINUX AND NOT MUSL)
     IF (OS_SDK == "ubuntu-12")
         ADDINCL(
@@ -83,11 +96,15 @@ IF (OS_LINUX AND NOT MUSL)
             GLOBAL contrib/libs/libc_compat/include/uchar
         )
     ENDIF()
-    IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14")
-        ADDINCL(GLOBAL contrib/libs/libc_compat/include/random)
+    IF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14" OR OS_SDK == "ubuntu-16")
+        ADDINCL(
+            GLOBAL contrib/libs/libc_compat/include/random
+        )
         SRCS(
             # getrandom was added in glibc=2.25
             getrandom.c
+            # memfd_create was added in glibc=2.27
+            memfd_create.c
         )
     ENDIF()
     IF (OS_SDK != "ubuntu-20")

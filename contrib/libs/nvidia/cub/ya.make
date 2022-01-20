@@ -2,15 +2,19 @@
 
 LIBRARY()
 
-
-
-VERSION(1.13.0)
-
 LICENSE(BSD-3-Clause)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-ADDINCL(GLOBAL contrib/libs/nvidia/cub)
+
+
+VERSION(1.13.0)
+
+ORIGINAL_SOURCE(https://github.com/NVIDIA/cub/archive/1.13.0.tar.gz)
+
+ADDINCL(
+    GLOBAL contrib/libs/nvidia/cub
+)
 
 NO_COMPILER_WARNINGS()
 

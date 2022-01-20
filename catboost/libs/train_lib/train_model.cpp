@@ -96,6 +96,7 @@ static TDataProviders LoadPools(
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
     TConstArrayRef<TDatasetSubset> testDatasetSubsets,
+    bool forceUnitAutoPairWeights,
     TVector<NJson::TJsonValue>* classLabels,
     NPar::ILocalExecutor* const executor,
     TProfileInfo* profile
@@ -114,6 +115,7 @@ static TDataProviders LoadPools(
         !cvMode,
         trainDatasetSubset,
         testDatasetSubsets,
+        forceUnitAutoPairWeights,
         classLabels,
         executor,
         profile);
@@ -618,7 +620,7 @@ static void SaveModel(
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
             Y_ASSERT(std::holds_alternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]));
-            TVector<TSplit> splits = Get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
+            TVector<TSplit> splits = std::get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
             for (const auto& split : splits) {
                 modelSplits.push_back(getModelSplit(split));
             }
@@ -634,7 +636,7 @@ static void SaveModel(
             ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             Y_ASSERT(std::holds_alternative<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]));
-            const auto& structure = Get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
+            const auto& structure = std::get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
             auto tree = BuildTree(
                 structure.GetRoot(),
                 structure.GetNodes(),
@@ -1067,6 +1069,7 @@ static void TrainModel(
         haveLearnFeaturesInMemory || poolLoadOptions, "Learn dataset is not loaded, and load options are not provided");
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
+        /*trainDataCanBeEmpty*/ false,
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
         outputOptions.AllowWriteFiles(),
@@ -1093,6 +1096,7 @@ static void TrainModel(
                 TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
                 std::move(testObjectsGroupings),
                 *trainingData.Learn->MetaInfo.FeaturesLayout,
+                labelConverter,
                 &rand
             );
         } else {
@@ -1242,6 +1246,7 @@ void TrainModel(
         objectsOrder,
         TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
         testDatasetSubsets,
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         localExecutorHolder.Get(),
         &profile);
@@ -1253,11 +1258,8 @@ void TrainModel(
 
     TMaybe<TPrecomputedOnlineCtrData> precomputedSingleOnlineCtrDataForSingleFold;
     if (loadOptions.PrecomputedMetadataFile) {
-        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrData(
-            catBoostOptions.GetTaskType(),
-            loadOptions,
-            localExecutorHolder.Get(),
-            &profile
+        precomputedSingleOnlineCtrDataForSingleFold = ReadPrecomputedOnlineCtrMetaData(
+            loadOptions
         );
     }
 
@@ -1477,6 +1479,7 @@ static void ModelBasedEval(
 
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
+        /*trainDataCanBeEmpty*/ false,
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         outputOptions.AllowWriteFiles(),
@@ -1542,6 +1545,7 @@ void ModelBasedEval(
         /*testDatasetSubsets*/ TVector<TDatasetSubset>(
             loadOptions.TestSetPaths.size(),
             TDatasetSubset::MakeColumns()),
+        catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
         &classLabels,
         &executor,
         &profile);

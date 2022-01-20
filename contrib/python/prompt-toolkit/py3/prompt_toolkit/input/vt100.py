@@ -3,7 +3,7 @@ import io
 import sys
 import termios
 import tty
-from asyncio import AbstractEventLoop, get_event_loop
+from asyncio import AbstractEventLoop
 from typing import (
     Callable,
     ContextManager,
@@ -16,6 +16,8 @@ from typing import (
     Tuple,
     Union,
 )
+
+from prompt_toolkit.eventloop import get_event_loop
 
 from ..key_binding import KeyPress
 from .base import Input
@@ -167,7 +169,18 @@ def _attached_input(
             loop.remove_reader(fd)
         callback()
 
-    loop.add_reader(fd, callback_wrapper)
+    try:
+        loop.add_reader(fd, callback_wrapper)
+    except PermissionError:
+        # For `EPollSelector`, adding /dev/null to the event loop will raise
+        # `PermisisonError` (that doesn't happen for `SelectSelector`
+        # apparently). Whenever we get a `PermissionError`, we can raise
+        # `EOFError`, because there's not more to be read anyway. `EOFError` is
+        # an exception that people expect in
+        # `prompt_toolkit.application.Application.run()`.
+        # To reproduce, do: `ptpython 0< /dev/null 1< /dev/null`
+        raise EOFError
+
     _current_callbacks[loop, fd] = callback
 
     try:

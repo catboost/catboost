@@ -120,12 +120,21 @@ class CPUCache {
   // identify the cl to steal from.
   void StealFromOtherCache(int cpu, int max_populated_cpu, size_t bytes);
 
+  // Tries to reclaim inactive per-CPU caches. It iterates through the set of
+  // populated cpu caches and reclaims the caches that:
+  // (1) had same number of used bytes since the last interval,
+  // (2) had no change in the number of misses since the last interval.
+  void TryReclaimingCaches();
+
   // Empty out the cache on <cpu>; move all objects to the central
   // cache.  (If other threads run concurrently on that cpu, we can't
   // guarantee it will be fully empty on return, but if the cpu is
   // unused, this will eliminate stranded memory.)  Returns the number
   // of bytes we sent back.  This function is thread safe.
   uint64_t Reclaim(int cpu);
+
+  // Reports number of times the <cpu> has been reclaimed.
+  uint64_t GetNumReclaims(int cpu) const;
 
   // Determine number of bits we should use for allocating per-cpu cache
   // The amount of per-cpu cache is 2 ^ kPerCpuShift
@@ -143,12 +152,20 @@ class CPUCache {
   // Reports total cache underflows and overflows for <cpu>.
   CpuCacheMissStats GetTotalCacheMissStats(int cpu) const;
 
+  // Reports the cache underflows and overflows for <cpu> that were recorded at
+  // the end of the previous interval. It also records current underflows and
+  // overflows in the reclaim underflow and overflow stats.
+  CpuCacheMissStats GetReclaimCacheMissStats(int cpu) const;
+
   // Reports cache underflows and overflows for <cpu> this interval.
   CpuCacheMissStats GetIntervalCacheMissStats(int cpu) const;
 
   // Report statistics
   void Print(Printer* out) const;
   void PrintInPbtxt(PbtxtRegion* region) const;
+
+  void AcquireInternalLocks();
+  void ReleaseInternalLocks();
 
  private:
   // Per-size-class freelist resizing info.
@@ -197,13 +214,23 @@ class CPUCache {
     std::atomic<size_t> total_underflows;
     // tracks number of overflows on deallocate.
     std::atomic<size_t> total_overflows;
-    // tracks number of underflows recorded as of the end of the last interval.
-    std::atomic<size_t> prev_underflows;
-    // tracks number of overflows recorded as of the end of the last interval.
-    std::atomic<size_t> prev_overflows;
+    // tracks number of underflows recorded as of the end of the last shuffle
+    // interval.
+    std::atomic<size_t> shuffle_underflows;
+    // tracks number of overflows recorded as of the end of the last shuffle
+    // interval.
+    std::atomic<size_t> shuffle_overflows;
     // total cache space available on this CPU. This tracks the total
     // allocated and unallocated bytes on this CPU cache.
     std::atomic<size_t> capacity;
+    // Number of underflows as of the end of the last resize interval.
+    std::atomic<size_t> reclaim_underflows;
+    // Number of overflows as of the end of the last resize interval.
+    std::atomic<size_t> reclaim_overflows;
+    // Used bytes in the cache as of the end of the last resize interval.
+    std::atomic<uint64_t> reclaim_used_bytes;
+    // Tracks number of times this CPU has been reclaimed.
+    std::atomic<size_t> num_reclaims;
   };
   struct ResizeInfo : ResizeInfoUnpadded {
     char pad[ABSL_CACHELINE_SIZE -
@@ -211,6 +238,7 @@ class CPUCache {
   };
   // Tracking data for each CPU's cache resizing efforts.
   ResizeInfo* resize_ = nullptr;
+
   // Track whether we are lazily initializing slabs.  We cannot use the latest
   // value in Parameters, as it can change after initialization.
   bool lazy_slabs_ = false;

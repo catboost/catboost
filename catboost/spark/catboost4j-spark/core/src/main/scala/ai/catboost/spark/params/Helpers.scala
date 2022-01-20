@@ -322,7 +322,6 @@ private[spark] object Helpers {
 
   def processSnapshotIntervalParam(params: mutable.HashMap[String, Any]) : JObject = {
     if (params.contains("snapshotInterval")) {
-      println("params.contains('snapshotInterval')")
       JObject() ~ (
         "snapshot_interval" -> JLong(params("snapshotInterval").asInstanceOf[java.time.Duration].getSeconds)
       )
@@ -344,6 +343,8 @@ private[spark] object Helpers {
 
     "spark_partition_count" -> null,
     "worker_initialization_timeout" -> null,
+    "worker_max_failures" -> null,
+    "connect_timeout" -> null,
 
     // processed in separate functions
     "class_weights_map" -> null,

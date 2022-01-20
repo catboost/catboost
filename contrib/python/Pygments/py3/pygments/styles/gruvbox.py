@@ -10,7 +10,7 @@
 """
 
 from pygments.style import Style
-from pygments.token import Keyword, Name, Comment, String, Error, \
+from pygments.token import Token, Keyword, Name, Comment, String, Error, \
      Number, Operator, Generic
 
 
@@ -23,6 +23,8 @@ class GruvboxDarkStyle(Style):
     highlight_color = '#ebdbb2'
 
     styles = {
+        Token:              '#dddddd',
+
         Comment:            'italic #928374',
         Comment.PreProc:    '#8ec07c',
         Comment.Special:    'bold italic #ebdbb2',

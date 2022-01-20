@@ -1,5 +1,6 @@
 #include "saveload.h"
 
+#include <util/generic/overloaded.h>
 #include <util/stream/input.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
@@ -22,7 +23,7 @@ namespace {
         str = TStringBuf(data, size);
     }
 
-    using TConstAnyEventPtr = TVariant<
+    using TConstAnyEventPtr = std::variant<
         const TDurationBeginEvent*,
         const TDurationEndEvent*,
         const TDurationCompleteEvent*,
@@ -63,7 +64,7 @@ namespace {
             static const TEventArgs emptyArgs;
 
             ::Save(out, static_cast<i8>(Event.index()));
-            Visit(TSavePtrVisitor{out}, Event);
+            std::visit(TSavePtrVisitor{out}, Event);
             if (Args) {
                 ::Save(out, *Args);
             } else {
@@ -83,28 +84,31 @@ namespace {
     };
 }
 
-#define CHECK_EVENT_TAG_I8(type) static_assert( \
-    TVariantIndexV<type, TAnyEvent> <= 127 && TVariantIndexV<type, TAnyEvent> != std::variant_npos && \
-    TVariantIndexV<const type*, TConstAnyEventPtr> <= 127 && \
-    TVariantIndexV<const type*, TConstAnyEventPtr> != std::variant_npos, \
-    "tag of " #type " is too big")
+template <size_t I, class T>
+void LoadAlternativeIf(IInputStream* in, TMemoryPool& pool, T& variant, size_t i) {
+    if (i == I) {
+        auto& x = variant.template emplace<I>();
+        if constexpr (std::is_same_v<decltype(x), TStringBuf&>) {
+            ::LoadStr(in, x, pool);
+        } else {
+            ::Load(in, x, pool);
+        }
+    }
+}
 
-#define CHECK_ARG_TAG_I8(type) static_assert( \
-    TVariantIndexV<type, TEventArgs::TArg::TValue> <= 127 && \
-    TVariantIndexV<type, TEventArgs::TArg::TValue> != std::variant_npos, \
-    "tag of " #type " is too big")
+template <class T, size_t... Is>
+void LoadVariant(IInputStream* in, TMemoryPool& pool, T& variant, std::index_sequence<Is...>) {
+    i8 tag = 0;
+    ::Load(in, tag);
 
-CHECK_EVENT_TAG_I8(TDurationBeginEvent);
-CHECK_EVENT_TAG_I8(TDurationEndEvent);
-CHECK_EVENT_TAG_I8(TDurationCompleteEvent);
-CHECK_EVENT_TAG_I8(TInstantEvent);
-CHECK_EVENT_TAG_I8(TAsyncEvent);
-CHECK_EVENT_TAG_I8(TCounterEvent);
-CHECK_EVENT_TAG_I8(TMetadataEvent);
+    Y_ENSURE_EX(tag >= 0 && size_t(tag) < std::variant_size_v<T>, TSerializeException() << "Invalid variant tag: " << tag);
+    (LoadAlternativeIf<Is>(in, pool, variant, tag), ...);
+}
 
-CHECK_ARG_TAG_I8(i64);
-CHECK_ARG_TAG_I8(double);
-CHECK_ARG_TAG_I8(TStringBuf);
+template <class T>
+void LoadVariant(IInputStream* in, TMemoryPool& pool, T& variant) {
+    LoadVariant(in, pool, variant, std::make_index_sequence<std::variant_size_v<T>>());
+}
 
 TSaveLoadTraceConsumer::TSaveLoadTraceConsumer(IOutputStream* stream)
     : Stream(stream)
@@ -132,41 +136,19 @@ void TSaveLoadTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventA
 }
 
 void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::TArg& v) {
-    // TODO: saveload for TVariant (?)
+    // TODO: saveload for std::variant (?)
 
     ::SaveStr(out, v.Name);
 
     i8 tag = v.Value.index();
     ::Save(out, tag);
-    Visit(TSaveVisitor{out}, v.Value);
+    std::visit(TSaveVisitor{out}, v.Value);
 }
 
 void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, TMemoryPool& pool) {
-    using TValue = TEventArgs::TArg::TValue;
-
     ::LoadStr(in, v.Name, pool);
 
-    i8 tag = 0;
-    ::Load(in, tag);
-    switch (tag) {
-        case TVariantIndexV<TStringBuf, TValue>:
-            v.Value = TStringBuf();
-            ::LoadStr(in, Get<TStringBuf>(v.Value), pool);
-            break;
-
-        case TVariantIndexV<i64, TValue>:
-            v.Value = i64();
-            ::Load(in, Get<i64>(v.Value));
-            break;
-
-        case TVariantIndexV<double, TValue>:
-            v.Value = double();
-            ::Load(in, Get<double>(v.Value));
-            break;
-
-        default:
-            ythrow TSerializeException() << "Invalid variant tag: " << tag;
-    }
+    LoadVariant(in, pool, v.Value);
 }
 
 void TSerializer<TEventArgs>::Save(IOutputStream* out, const TEventArgs& v) {
@@ -252,31 +234,10 @@ void TSerializer<TMetadataEvent>::Load(IInputStream* in, TMetadataEvent& v, TMem
 }
 
 void TSerializer<TEventWithArgs>::Save(IOutputStream* out, const TEventWithArgs& v) {
-    Visit(TSaveAnyEventVisitor{out, &v.Args}, v.Event);
+    std::visit(TSaveAnyEventVisitor{out, &v.Args}, v.Event);
 }
 
 void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMemoryPool& pool) {
-    i8 tag = 0;
-    ::Load(in, tag);
-    switch (tag) {
-#define CASE(type)                            \
-    case TVariantIndexV<type, TAnyEvent>:     \
-        v.Event = type();                     \
-        ::Load(in, Get<type>(v.Event), pool); \
-        break;
-
-        CASE(TDurationBeginEvent)
-        CASE(TDurationEndEvent)
-        CASE(TDurationCompleteEvent)
-        CASE(TInstantEvent)
-        CASE(TAsyncEvent)
-        CASE(TCounterEvent)
-        CASE(TMetadataEvent)
-
-#undef CASE
-
-        default:
-            ythrow TSerializeException() << "Invalid variant tag: " << tag;
-    }
+    LoadVariant(in, pool, v.Event);
     ::Load(in, v.Args, pool);
 }

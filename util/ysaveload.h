@@ -9,6 +9,11 @@
 #include <util/stream/output.h>
 #include <util/stream/input.h>
 
+#ifndef __NVCC__
+    // cuda is compiled in C++14 mode at the time
+    #include <variant>
+#endif
+
 template <typename T>
 class TSerializeTypeTraits {
 public:
@@ -365,6 +370,10 @@ template <>
 class TSerializer<TUtf16String>: public TVectorSerializer<TUtf16String> {
 };
 
+template <class TChar>
+class TSerializer<std::basic_string<TChar>>: public TVectorSerializer<std::basic_string<TChar>> {
+};
+
 template <class T, class A>
 class TSerializer<TDeque<T, A>>: public TVectorSerializer<TDeque<T, A>> {
 };
@@ -630,9 +639,7 @@ public:
     }
 };
 
-#if _LIBCPP_STD_VER >= 17
-
-    #include <variant>
+#ifndef __NVCC__
 
 namespace NPrivate {
     template <class Variant, class T, size_t I>
@@ -651,7 +658,7 @@ struct TSerializer<std::variant<Args...>> {
 
     static void Save(IOutputStream* os, const TVar& v) {
         ::Save<ui8>(os, v.index());
-        Visit([os](const auto& data) {
+        std::visit([os](const auto& data) {
             ::Save(os, data);
         }, v);
     }

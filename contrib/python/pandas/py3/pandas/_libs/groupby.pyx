@@ -483,7 +483,8 @@ def group_add(add_t[:, ::1] out,
               int64_t[::1] counts,
               ndarray[add_t, ndim=2] values,
               const intp_t[:] labels,
-              Py_ssize_t min_count=0) -> None:
+              Py_ssize_t min_count=0,
+              bint datetimelike=False) -> None:
     """
     Only aggregates on axis=0 using Kahan summation
     """
@@ -545,7 +546,14 @@ def group_add(add_t[:, ::1] out,
                     val = values[i, j]
 
                     # not nan
-                    if val == val:
+                    # With dt64/td64 values, values have been cast to float64
+                    #  instead if int64 for group_add, but the logic
+                    #  is otherwise the same as in _treat_as_na
+                    if val == val and not (
+                        add_t is float64_t
+                        and datetimelike
+                        and val == <float64_t>NPY_NAT
+                    ):
                         nobs[lab, j] += 1
                         y = val - compensation[lab, j]
                         t = sumx[lab, j] + y
@@ -669,10 +677,45 @@ def group_mean(floating[:, ::1] out,
                int64_t[::1] counts,
                ndarray[floating, ndim=2] values,
                const intp_t[::1] labels,
-               Py_ssize_t min_count=-1) -> None:
+               Py_ssize_t min_count=-1,
+               bint is_datetimelike=False,
+               const uint8_t[:, ::1] mask=None,
+               uint8_t[:, ::1] result_mask=None
+               ) -> None:
+    """
+    Compute the mean per label given a label assignment for each value.
+    NaN values are ignored.
+
+    Parameters
+    ----------
+    out : np.ndarray[floating]
+        Values into which this method will write its results.
+    counts : np.ndarray[int64]
+        A zeroed array of the same shape as labels,
+        populated by group sizes during algorithm.
+    values : np.ndarray[floating]
+        2-d array of the values to find the mean of.
+    labels : np.ndarray[np.intp]
+        Array containing unique label for each group, with its
+        ordering matching up to the corresponding record in `values`.
+    min_count : Py_ssize_t
+        Only used in add and prod. Always -1.
+    is_datetimelike : bool
+        True if `values` contains datetime-like entries.
+    mask : ndarray[bool, ndim=2], optional
+        Not used.
+    result_mask : ndarray[bool, ndim=2], optional
+        Not used.
+
+    Notes
+    -----
+    This method modifies the `out` parameter rather than returning an object.
+    `counts` is modified to hold group sizes
+    """
+
     cdef:
         Py_ssize_t i, j, N, K, lab, ncounts = len(counts)
-        floating val, count, y, t
+        floating val, count, y, t, nan_val
         floating[:, ::1] sumx, compensation
         int64_t[:, ::1] nobs
         Py_ssize_t len_values = len(values), len_labels = len(labels)
@@ -682,12 +725,13 @@ def group_mean(floating[:, ::1] out,
     if len_values != len_labels:
         raise ValueError("len(index) != len(labels)")
 
-    nobs = np.zeros((<object>out).shape, dtype=np.int64)
     # the below is equivalent to `np.zeros_like(out)` but faster
+    nobs = np.zeros((<object>out).shape, dtype=np.int64)
     sumx = np.zeros((<object>out).shape, dtype=(<object>out).base.dtype)
     compensation = np.zeros((<object>out).shape, dtype=(<object>out).base.dtype)
 
     N, K = (<object>values).shape
+    nan_val = NPY_NAT if is_datetimelike else NAN
 
     with nogil:
         for i in range(N):
@@ -699,7 +743,7 @@ def group_mean(floating[:, ::1] out,
             for j in range(K):
                 val = values[i, j]
                 # not nan
-                if val == val:
+                if val == val and not (is_datetimelike and val == NPY_NAT):
                     nobs[lab, j] += 1
                     y = val - compensation[lab, j]
                     t = sumx[lab, j] + y
@@ -710,7 +754,7 @@ def group_mean(floating[:, ::1] out,
             for j in range(K):
                 count = nobs[i, j]
                 if nobs[i, j] == 0:
-                    out[i, j] = NAN
+                    out[i, j] = nan_val
                 else:
                     out[i, j] = sumx[i, j] / count
 

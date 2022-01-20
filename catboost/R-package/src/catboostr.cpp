@@ -20,6 +20,7 @@
 #include <catboost/private/libs/documents_importance/docs_importance.h>
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/private/libs/options/cross_validation_params.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/cast.h>
@@ -36,8 +37,7 @@
 #undef SIZEOF_SIZE_T
 #endif
 
-#include <R.h>
-#include <Rinternals.h>
+#include "catboostr.h"
 
 using namespace NCB;
 
@@ -92,12 +92,6 @@ public:
     }                                                               \
     if (threw_error) Rf_error(buffer_R_errmsg);                     \
     return R_NilValue;                                              \
-
-#if defined(_WIN32)
-#define EXPORT_FUNCTION __declspec(dllexport) SEXP
-#else
-#define EXPORT_FUNCTION SEXP
-#endif
 
 typedef TDataProvider* TPoolHandle;
 typedef TDataProviderPtr TPoolPtr;
@@ -291,6 +285,7 @@ EXPORT_FUNCTION CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
                                            asLogical(verboseParam),
+                                           /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels=*/Nothing());
     R_SetExternalPtrAddr(result, poolPtr.Get());
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
@@ -545,6 +540,15 @@ EXPORT_FUNCTION CatBoostIsOblivious_R(SEXP modelParam) {
     R_API_END();
 }
 
+EXPORT_FUNCTION CatBoostIsGroupwiseMetric_R(SEXP modelParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    result = ScalarLogical(static_cast<int>(IsGroupwiseMetric(model->GetLossFunctionName())));
+    R_API_END();
+    return result;
+}
+
 EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     SEXP uw_token = PROTECT(R_MakeUnwindCont());
     R_API_BEGIN();
@@ -612,7 +616,7 @@ EXPORT_FUNCTION CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetP
                 }
             );
         } else {
-            TConstArrayRef<TString> stringTargetPart = Get<TVector<TString>>((*target)[targetIdx]);
+            TConstArrayRef<TString> stringTargetPart = std::get<TVector<TString>>((*target)[targetIdx]);
 
             for (size_t i = offset; i < sliceEnd; ++i) {
                 rows[i - offset][targetIdx] = FromString<double>(stringTargetPart[i]);

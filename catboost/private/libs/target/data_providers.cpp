@@ -36,6 +36,7 @@ namespace NCB {
         bool isRealTarget,
         bool isClass,
         bool isMultiClass,
+        bool isMultiLabel,
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,
@@ -48,16 +49,18 @@ namespace NCB {
         }
 
         auto rawTarget = *maybeRawTarget;
+        const auto targetDim = rawTarget.size();
 
         THolder<ITargetConverter> targetConverter = MakeTargetConverter(
             isRealTarget,
             isClass,
             isMultiClass,
+            isMultiLabel,
             targetBorder,
+            targetDim,
             classCountUnknown ? Nothing() : TMaybe<ui32>(*classCount),
             inputClassLabels);
 
-        const auto targetDim = rawTarget.size();
         TVector<TSharedVector<float>> trainingTarget(targetDim);
         for (auto targetIdx : xrange(targetDim)) {
             trainingTarget[targetIdx] = MakeAtomicShared<TVector<float>>(TVector<float>());
@@ -232,8 +235,10 @@ namespace NCB {
 
     TVector<TPair> GeneratePairs(
         const TObjectsGrouping& objectsGrouping,
+        const TMaybe<TSharedWeights<float>>& weights,
         TConstArrayRef<float> targetData,
         int maxPairsCount,
+        bool skipMinMaxPairsCheck,
         TRestorableFastRng64* rand)
     {
         CB_ENSURE(
@@ -243,7 +248,7 @@ namespace NCB {
 
         auto minMaxTarget = MinMaxElement(targetData.begin(), targetData.end());
         CB_ENSURE(
-            *minMaxTarget.first != *minMaxTarget.second,
+            skipMinMaxPairsCheck || *minMaxTarget.first != *minMaxTarget.second,
             "Target data is constant. Cannot generate pairs."
         );
 
@@ -251,6 +256,7 @@ namespace NCB {
 
         GeneratePairLogitPairs(
             objectsGrouping,
+            weights,
             targetData,
             maxPairsCount,
             rand,
@@ -304,7 +310,7 @@ namespace NCB {
 
         if (pairs) {
             if (hasUngroupedPairs) {
-                TConstArrayRef<TPair> ungroupedPairs = Get<TConstArrayRef<TPair>>(*pairs);
+                TConstArrayRef<TPair> ungroupedPairs = std::get<TConstArrayRef<TPair>>(*pairs);
                 for (const auto& pair : ungroupedPairs) {
                     ui32 groupIdx = objectToGroupIdxMap[pair.WinnerId];
                     /* it has been already checked on RawTargetData creation that WinnerId and LoserId
@@ -318,7 +324,7 @@ namespace NCB {
                         pair.Weight);
                 }
             } else {
-                TConstArrayRef<TPairInGroup> groupedPairs = Get<TConstArrayRef<TPairInGroup>>(*pairs);
+                TConstArrayRef<TPairInGroup> groupedPairs = std::get<TConstArrayRef<TPairInGroup>>(*pairs);
                 for (const auto& pair : groupedPairs) {
                     result[pair.GroupIdx].Competitors[pair.WinnerIdxInGroup].emplace_back(
                         pair.LoserIdxInGroup,
@@ -332,10 +338,14 @@ namespace NCB {
 
 
     TTargetCreationOptions MakeTargetCreationOptions(
-        const TRawTargetDataProvider& rawData,
+        bool dataHasWeights,
+        ui32 dataTargetDimension,
+        bool dataHasGroups,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo
+        bool knownIsClassification,
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck
     ) {
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
             return AnyOf(
@@ -349,11 +359,13 @@ namespace NCB {
         bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
         bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
-        bool hasMultiRegressionMetrics = isAnyOfMetrics(IsMultiRegressionMetric);
+        bool hasMultiRegressionOrSurvivalMetrics = isAnyOfMetrics(IsMultiRegressionMetric)
+                                                || isAnyOfMetrics(IsSurvivalRegressionMetric);
+        bool hasMultiLabelOnlyMetrics = isAnyOfMetrics(IsMultiLabelOnlyMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
-        if (!rawData.GetWeights().IsTrivial() && isAnyOfMetrics(UsesPairsForCalculation)) {
+        if (dataHasWeights && isAnyOfMetrics(UsesPairsForCalculation)) {
             CATBOOST_WARNING_LOG << "Pairwise losses don't support object weights." << '\n';
         }
 
@@ -365,12 +377,14 @@ namespace NCB {
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
         bool classTargetData = (
+            knownIsClassification ||
             hasClassificationOnlyMetrics ||
             knownClassCount ||
             (inputClassificationInfo.ClassWeights.size() > 0) ||
             (inputClassificationInfo.ClassLabels.size() > 0) ||
             inputClassificationInfo.TargetBorder
         );
+        bool multiLabelTargetData = classTargetData && (hasMultiLabelOnlyMetrics || dataTargetDimension > 1);
 
         bool multiClassTargetData = false;
 
@@ -385,18 +399,21 @@ namespace NCB {
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiRegressionMetric(metricLossFunction),
-                        "Non-Multiclassification and Non-Multiregression compatible metric (" << metricLossFunction
+                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiTargetMetric(metricLossFunction),
+                        "Non-Multiclassification and Non-MultiTarget compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
-                multiClassTargetData = !hasMultiRegressionMetrics;
+                multiClassTargetData = !hasMultiRegressionOrSurvivalMetrics;
                 if (multiClassTargetData && !knownClassCount) {
+                    classTargetData = true;
+
                     // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
             }
         } else if (hasMultiClassOnlyMetrics ||
+            multiLabelTargetData ||
             (knownClassCount && *knownClassCount > 2) ||
             (inputClassificationInfo.ClassWeights.size() > 2) ||
             (inputClassificationInfo.ClassLabels.size() > 2))
@@ -424,22 +441,44 @@ namespace NCB {
         TTargetCreationOptions options = {
             /*IsClass*/ classTargetData,
             /*IsMultiClass*/ multiClassTargetData,
+            /*IsMultiLabel*/ multiLabelTargetData,
             /*CreateBinClassTarget*/ (
                 hasBinClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
+                || (!hasMultiRegressionOrSurvivalMetrics && !hasMultiClassOnlyMetrics && !multiClassTargetData && classCount == 2)
             ),
             /*CreateMultiClassTarget*/ (
                 hasMultiClassOnlyMetrics
-                || (!hasMultiRegressionMetrics && !hasBinClassOnlyMetrics && (multiClassTargetData || classCount > 2))
+                || (!hasMultiRegressionOrSurvivalMetrics && !hasBinClassOnlyMetrics && !multiLabelTargetData && (multiClassTargetData || classCount > 2))
             ),
+            /*CreateMultiLabelTarget*/ multiLabelTargetData,
             /*CreateGroups*/ (
                 hasGroupwiseMetrics
-                || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
+                || (dataHasGroups && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
+            /*SkipMinMaxPairsCheck*/ skipMinMaxPairsCheck,
             /*MaxPairsCount*/ maxPairsCount
         };
         return options;
+    }
+
+    TTargetCreationOptions MakeTargetCreationOptions(
+        const TRawTargetDataProvider& rawData,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<ui32> knownModelApproxDimension,
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck
+    ) {
+        return MakeTargetCreationOptions(
+            !rawData.GetWeights().IsTrivial(),
+            rawData.GetTargetDimension(),
+            !rawData.GetObjectsGrouping()->IsTrivial(),
+            metricDescriptions,
+            knownModelApproxDimension,
+            /*knownIsClassification*/ false,
+            inputClassificationInfo,
+            skipMinMaxPairsCheck
+        );
     }
 
 
@@ -513,6 +552,34 @@ namespace NCB {
         }
     }
 
+    void UpdateTargetProcessingParams(
+        const TInputClassificationInfo& inputClassificationInfo,
+        const TTargetCreationOptions& targetCreationOptions,
+        TMaybe<ui32> knownApproxDimension,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
+        bool* isRealTarget,
+        TMaybe<ui32>* knownClassCount,
+        TInputClassificationInfo* updatedInputClassificationInfo
+    ) {
+        *knownClassCount = inputClassificationInfo.KnownClassCount;
+        *updatedInputClassificationInfo = inputClassificationInfo;
+
+        *isRealTarget = !updatedInputClassificationInfo->TargetBorder;
+        if (targetCreationOptions.IsClass) {
+            *isRealTarget
+                = mainLossFunction
+                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy ||
+                        mainLossFunction->GetLossFunction() == ELossFunction::MultiCrossEntropy);
+            if (*isRealTarget) {
+                updatedInputClassificationInfo->TargetBorder = Nothing();
+            }
+
+            if (!*isRealTarget && !*knownClassCount && knownApproxDimension && (*knownApproxDimension > 1)) {
+                *knownClassCount = knownApproxDimension;
+            }
+        }
+    }
+
 
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
@@ -530,25 +597,25 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) ||
-                IsSurvivalRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                IsMultiTargetObjective(mainLossFunction->GetLossFunction()) ||
                 rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression and survival objectives work with multidimensional target"
+                "Currently only multi-regression, multilabel and survival objectives work with multidimensional target"
             );
         }
 
-        TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
+        bool isRealTarget;
+        TMaybe<ui32> knownClassCount;
+        TInputClassificationInfo updatedInputClassificationInfo;
 
-        bool isRealTarget = !inputClassificationInfo.TargetBorder;
-        if (targetCreationOptions.IsClass) {
-            isRealTarget
-                = mainLossFunction
-                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy);
-
-            if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
-                knownClassCount = knownModelApproxDimension;
-            }
-        }
+        UpdateTargetProcessingParams(
+            inputClassificationInfo,
+            targetCreationOptions,
+            knownModelApproxDimension,
+            mainLossFunction,
+            &isRealTarget,
+            &knownClassCount,
+            &updatedInputClassificationInfo
+        );
 
         ui32 classCount = knownClassCount.GetOrElse(0);
 
@@ -558,9 +625,10 @@ namespace NCB {
             isRealTarget,
             targetCreationOptions.IsClass,
             targetCreationOptions.IsMultiClass,
-            inputClassificationInfo.TargetBorder,
+            targetCreationOptions.IsMultiLabel,
+            updatedInputClassificationInfo.TargetBorder,
             !knownClassCount,
-            inputClassificationInfo.ClassLabels,
+            updatedInputClassificationInfo.ClassLabels,
             &outputClassificationInfo->ClassLabels,
             localExecutor,
             &classCount
@@ -572,7 +640,9 @@ namespace NCB {
         }
 
         classCount = (ui32)GetClassesCount((int)classCount, outputClassificationInfo->ClassLabels);
-        bool createClassTarget = targetCreationOptions.CreateBinClassTarget || targetCreationOptions.CreateMultiClassTarget;
+        bool createClassTarget = targetCreationOptions.CreateBinClassTarget
+                              || targetCreationOptions.CreateMultiClassTarget
+                              || targetCreationOptions.CreateMultiLabelTarget;
         TProcessedTargetData processedTargetData;
 
         /*
@@ -620,32 +690,45 @@ namespace NCB {
             }
         }
 
+        if (targetCreationOptions.CreateMultiLabelTarget) {
+            CB_ENSURE(
+                metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
+                "Multi label classification loss/metrics require label data"
+            );
+            if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
+                (*outputClassificationInfo->LabelConverter)->InitializeMultiClass(classCount);
+            }
+            if (!maybeConvertedTarget.empty()) {
+                processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
+            }
+        }
+
         if (!maybeConvertedTarget.empty()) {
             processedTargetData.Targets.emplace("", maybeConvertedTarget);
         }
 
         // Weights
         {
-            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
-                inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
+            if (createClassTarget && (!updatedInputClassificationInfo.ClassWeights.empty() ||
+                updatedInputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
             {
                 auto targetClasses = !maybeConvertedTarget.empty()
                     ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0])
                     : Nothing();
 
                 TConstArrayRef<float> classWeights = targetClasses
-                    ? inputClassificationInfo.ClassWeights
+                    ? updatedInputClassificationInfo.ClassWeights
                     : TConstArrayRef<float>();
 
                 TVector<float> autoClassWeights;
                 if (targetClasses && classWeights.empty() &&
-                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
+                    updatedInputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
                 {
                     classWeights = autoClassWeights = CalculateClassWeights(
                         *targetClasses,
                         rawData.GetWeights(),
                         targetCreationOptions.CreateMultiClassTarget ? classCount : ui32(2),
-                        inputClassificationInfo.AutoClassWeightsType,
+                        updatedInputClassificationInfo.AutoClassWeightsType,
                         localExecutor);
 
                     if (outputClassificationInfo->ClassWeights) {
@@ -708,10 +791,16 @@ namespace NCB {
                 std::visit([&](const auto& pairs) { pairsRef = MakeConstArrayRef(pairs); }, *maybePairs);
             } else if (targetCreationOptions.CreatePairs) {
                 CB_ENSURE(rawData.GetTarget(), "Pool labels are not provided. Cannot generate pairs.");
+                TMaybe<TSharedWeights<float>> autoPairWeight;
+                if (!rawData.IsForceUnitAutoPairWeights()) {
+                    autoPairWeight = processedTargetData.Weights.at("");
+                }
                 generatedPairs = GeneratePairs(
                     *rawData.GetObjectsGrouping(),
+                    autoPairWeight,
                     *maybeConvertedTarget[0],
                     *targetCreationOptions.MaxPairsCount,
+                    targetCreationOptions.SkipMinMaxPairsCheck,
                     rand);
 
                 pairsRef = MakeConstArrayRef(generatedPairs);
@@ -724,7 +813,7 @@ namespace NCB {
             if (rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs) {
                 ui32 docCount = rawData.GetObjectCount();
                 TVector<ui32> fakeGroupsBounds;
-                ConstructConnectedComponents(docCount, Get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
+                ConstructConnectedComponents(docCount, std::get<TConstArrayRef<TPair>>(*pairsRef), &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
                 TVector<TGroupBounds> groups;
                 groups.reserve(fakeGroupsBounds.size());
                 ui32 leftBound = 0;
@@ -817,7 +906,8 @@ namespace NCB {
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
-        bool metricsThatRequireTargetCanBeSkipped) {
+        bool metricsThatRequireTargetCanBeSkipped,
+        bool skipMinMaxPairsCheck) {
 
         TVector<NCatboostOptions::TLossDescription> updatedMetricsDescriptions(
             metricDescriptions.begin(),
@@ -944,7 +1034,8 @@ namespace NCB {
             srcData.RawTargetData,
             updatedMetricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            skipMinMaxPairsCheck
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,

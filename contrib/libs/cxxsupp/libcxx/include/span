@@ -22,6 +22,12 @@ inline constexpr size_t dynamic_extent = numeric_limits<size_t>::max();
 template <class ElementType, size_t Extent = dynamic_extent>
     class span;
 
+template<class ElementType, size_t Extent>
+  inline constexpr bool ranges::enable_view<span<ElementType, Extent>> = true;
+
+template<class ElementType, size_t Extent>
+    inline constexpr bool ranges::enable_borrowed_range<span<ElementType, Extent>> = true;
+
 // [span.objectrep], views of object representation
 template <class ElementType, size_t Extent>
     span<const byte, ((Extent == dynamic_extent) ? dynamic_extent :
@@ -32,7 +38,6 @@ template <class ElementType, size_t Extent>
         (sizeof(ElementType) * Extent))> as_writable_bytes(span<ElementType, Extent> s) noexcept;
 
 
-namespace std {
 template <class ElementType, size_t Extent = dynamic_extent>
 class span {
 public:
@@ -123,10 +128,16 @@ template<class Container>
 */
 
 #include <__config>
+#include <__debug>
+#include <__iterator/wrap_iter.h>
+#include <__ranges/enable_borrowed_range.h>
+#include <__ranges/enable_view.h>
 #include <array>        // for array
 #include <cstddef>      // for byte
 #include <iterator>     // for iterators
+#include <limits>
 #include <type_traits>  // for remove_cv, etc
+#include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -168,19 +179,19 @@ template <class _Tp, class _ElementType>
 struct __is_span_compatible_container<_Tp, _ElementType,
         void_t<
         // is not a specialization of span
-            typename enable_if<!__is_span<_Tp>::value, nullptr_t>::type,
+            enable_if_t<!__is_span<_Tp>::value, nullptr_t>,
         // is not a specialization of array
-            typename enable_if<!__is_std_array<_Tp>::value, nullptr_t>::type,
+            enable_if_t<!__is_std_array<_Tp>::value, nullptr_t>,
         // is_array_v<Container> is false,
-            typename enable_if<!is_array_v<_Tp>, nullptr_t>::type,
+            enable_if_t<!is_array_v<_Tp>, nullptr_t>,
         // data(cont) and size(cont) are well formed
             decltype(data(declval<_Tp>())),
             decltype(size(declval<_Tp>())),
         // remove_pointer_t<decltype(data(cont))>(*)[] is convertible to ElementType(*)[]
-            typename enable_if<
+            enable_if_t<
                 is_convertible_v<remove_pointer_t<decltype(data(declval<_Tp &>()))>(*)[],
                                  _ElementType(*)[]>,
-                nullptr_t>::type
+                nullptr_t>
         >>
     : public true_type {};
 
@@ -197,7 +208,11 @@ public:
     using const_pointer          = const _Tp *;
     using reference              = _Tp &;
     using const_reference        = const _Tp &;
-    using iterator               =  __wrap_iter<pointer>;
+#if (_LIBCPP_DEBUG_LEVEL == 2) || defined(_LIBCPP_ABI_SPAN_POINTER_ITERATORS)
+    using iterator               = pointer;
+#else
+    using iterator               = __wrap_iter<pointer>;
+#endif
     using reverse_iterator       = _VSTD::reverse_iterator<iterator>;
 
     static constexpr size_type extent = _Extent;
@@ -372,7 +387,11 @@ public:
     using const_pointer          = const _Tp *;
     using reference              = _Tp &;
     using const_reference        = const _Tp &;
-    using iterator               =  __wrap_iter<pointer>;
+#if (_LIBCPP_DEBUG_LEVEL == 2) || defined(_LIBCPP_ABI_SPAN_POINTER_ITERATORS)
+    using iterator               = pointer;
+#else
+    using iterator               = __wrap_iter<pointer>;
+#endif
     using reverse_iterator       = _VSTD::reverse_iterator<iterator>;
 
     static constexpr size_type extent = dynamic_extent;
@@ -505,16 +524,30 @@ public:
     _LIBCPP_INLINE_VISIBILITY constexpr reverse_iterator        rbegin() const noexcept { return reverse_iterator(end()); }
     _LIBCPP_INLINE_VISIBILITY constexpr reverse_iterator          rend() const noexcept { return reverse_iterator(begin()); }
 
-    _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> __as_bytes() const noexcept
-    { return {reinterpret_cast<const byte *>(data()), size_bytes()}; }
+    inline _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> __as_bytes() const noexcept;
 
-    _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> __as_writable_bytes() const noexcept
-    { return {reinterpret_cast<byte *>(data()), size_bytes()}; }
+    inline _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> __as_writable_bytes() const noexcept;
 
 private:
     pointer   __data;
     size_type __size;
 };
+
+template<typename _Tp>
+inline _LIBCPP_INLINE_VISIBILITY span<const byte, dynamic_extent> span<_Tp, dynamic_extent>::__as_bytes() const noexcept
+{ return {reinterpret_cast<const byte *>(data()), size_bytes()}; }
+
+template<typename _Tp>
+inline _LIBCPP_INLINE_VISIBILITY span<byte, dynamic_extent> span<_Tp, dynamic_extent>::__as_writable_bytes() const noexcept
+{ return {reinterpret_cast<byte *>(data()), size_bytes()}; }
+
+#if !defined(_LIBCPP_HAS_NO_RANGES)
+template <class _Tp, size_t _Extent>
+inline constexpr bool ranges::enable_borrowed_range<span<_Tp, _Extent> > = true;
+
+template <class _ElementType, size_t _Extent>
+inline constexpr bool ranges::enable_view<span<_ElementType, _Extent>> = true;
+#endif // !defined(_LIBCPP_HAS_NO_RANGES)
 
 //  as_bytes & as_writable_bytes
 template <class _Tp, size_t _Extent>

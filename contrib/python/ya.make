@@ -4,8 +4,8 @@ RECURSE(
     atomicwrites
     attrs
     backcall
-    backports-shutil_get_terminal_size
-    certifi
+    backports.functools-lru-cache
+    backports.shutil-get-terminal-size
     colorama
     configparser
     contextlib2
@@ -13,12 +13,13 @@ RECURSE(
     decorator
     enum34
     faulthandler
+    filelock
     funcsigs
     graphviz
     importlib-metadata
     ipdb
     ipython
-    ipython_genutils
+    ipython-genutils
     jedi
     Jinja2
     joblib
@@ -27,6 +28,7 @@ RECURSE(
     more-itertools
     mypy-protobuf
     numpy
+    packaging
     pandas
     parso
     path.py
@@ -35,9 +37,11 @@ RECURSE(
     pickleshare
     pluggy
     prompt-toolkit
+    protobuf
     ptyprocess
     py
     Pygments
+    pyparsing
     pytest
     pytz
     scandir

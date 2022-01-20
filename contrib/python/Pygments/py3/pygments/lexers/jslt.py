@@ -4,8 +4,8 @@
 
     Lexers for the JSLT language
 
-    :copyright: Copyright 2021 by the Pygments team, see AUTHORS
-    :license: BSD, see LICENSE for details
+    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, combined, words

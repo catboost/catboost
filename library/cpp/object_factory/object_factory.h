@@ -126,6 +126,17 @@ namespace NObjectFactory {
             return result;
         }
 
+        static THolder<TProduct> VerifiedConstruct(const TKey& key) {
+            auto result = MakeHolder(key);
+            Y_VERIFY(result, "Construct by factory failed");
+            return result;
+        }
+
+        template<class... Args>
+        static THolder<TProduct> MakeHolder(Args&&... args) {
+            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
+        }
+
         static bool Has(const TKey& key) {
             return Singleton<TObjectFactory<TProduct, TKey>>()->HasImpl(key);
         }
@@ -138,6 +149,17 @@ namespace NObjectFactory {
             TSet<TKey> keys;
             Singleton<TObjectFactory<TProduct, TKey>>()->GetKeys(keys);
             return keys;
+        }
+
+        template <class TDerivedProduct>
+        static TSet<TKey> GetRegisteredKeys() {
+            TSet<TKey> registeredKeys(GetRegisteredKeys());
+            TSet<TKey> fileredKeys;
+            std::copy_if(registeredKeys.begin(), registeredKeys.end(), std::inserter(fileredKeys, fileredKeys.end()), [](const TKey& key) {
+                THolder<TProduct> objectHolder(Construct(key));
+                return !!dynamic_cast<const TDerivedProduct*>(objectHolder.Get());
+            });
+            return fileredKeys;
         }
 
         template <class Product>
@@ -172,6 +194,18 @@ namespace NObjectFactory {
 
         static TProduct* Construct(const TKey& key, TArgs... args) {
             return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
+        }
+
+        template <class... Args>
+        static THolder<TProduct> VerifiedConstruct(Args&&... args) {
+            auto result = MakeHolder(std::forward<Args>(args)...);
+            Y_VERIFY(result, "Construct by factory failed");
+            return result;
+        }
+
+        template<class... Args>
+        static THolder<TProduct> MakeHolder(Args&&... args) {
+            return THolder<TProduct>(Construct(std::forward<Args>(args)...));
         }
 
         static void GetRegisteredKeys(TSet<TKey>& keys) {

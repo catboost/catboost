@@ -1,6 +1,7 @@
 #include "zlib.h"
 
 #include <util/memory/addstorage.h>
+#include <util/generic/scope.h>
 #include <util/generic/utility.h>
 
 #include <contrib/libs/zlib/zlib.h>

@@ -17,7 +17,7 @@ default:
   fit__learn-set: Required parameter (the path must be specified).
   fit__ostr__output-path: object_importances.tsv
   fit__decay__pfound: '0.85'
-  fit__decay__yetirank: '0.99'
+  fit__decay__yetirank: '0.85'
   fit__top__allmetrics: –1
   fit__permutations: '10'
   autoclass__weights__none: None
@@ -79,7 +79,7 @@ default:
   fit--target_border_type: MinEntropy
   fit--feature_border_type: GreedyLogSum
   fit--ctr_type: Borders
-  fit--counter-calc-method: Full
+  fit--counter-calc-method: SkipTest
   fit--auto_stop_pval: 0 (the overfitting detection is turned off)
   fit--od-wait: '20'
   fit--od-type-inctodec: IncToDec
@@ -269,6 +269,8 @@ default:
   error-function__RecallAtK: RecallAt
   error-function__PrecisionAtK: PrecisionAt
   error-function__idcg: iDCG
+  error-function__MultiLogloss: MultiLogloss
+  error-function__MultiCrossEntropy: MultiCrossEntropy
   prediction-type--Probability: Probability
   prediction-type--Exponent: Exponent
   prediction-type--LogProbability: LogProbability
@@ -347,6 +349,7 @@ default:
   dl__return-value: Return value
   r-package: R package
   python-package: Python package
+  catboost-spark: CatBoost for Apache Spark
   dl--args: Arguments
   dl--example: Examples
   installation--git-clone: 'git clone https://github.com/catboost/catboost.git'
@@ -522,6 +525,8 @@ default:
   loss-functions__params__auc__type__Classic: Classic
   loss-functions__params__auc__ranking__type__default: Classic
   loss-functions__params__auc__type__Ranking: Ranking
+  loss-functions__params__accuracy__type__Classic: Classic
+  loss-functions__params__accuracy__type__PerClass: PerClass
   loss-functions__params__denominator: denominator
   loss-functions__params__delta: delta
   loss-functions__params__smoothness: smoothness
@@ -530,6 +535,7 @@ default:
   loss-functions__params__beta: beta
   loss-functions__params__sigma: sigma
   loss-functions__params__border: border
+  loss-functions__params__border__default: '0'
   loss-functions__params__decay: decay
   loss-functions__params__permutations: permutations
   loss-functions__params__top: top

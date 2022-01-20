@@ -27,7 +27,6 @@ ALLOW maps/wikimap/mapspro/services/mrc -> maps/libs/deprecated/localeutils
 ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/deprecated/localeutils
 
 # Use maps/libs/geolib instead
-ALLOW maps/hotspots/spotsvis/core -> maps/libs/deprecated/coordtrans
 ALLOW maps/streetview/backoffice/lib -> maps/libs/deprecated/coordtrans_pymod
 
 # Use std::chrono or util/datetime instead
@@ -56,6 +55,7 @@ ALLOW .* -> maps/libs/s3mds
 ALLOW .* -> maps/libs/sql_chemistry
 ALLOW .* -> maps/libs/st
 ALLOW .* -> maps/libs/tile
+ALLOW .* -> maps/libs/ttl_cache
 ALLOW .* -> maps/pylibs/local_postgres
 
 # Fix current PEERDIRs and prevent any further growth
@@ -102,6 +102,7 @@ ALLOW taxi/graph/libs/mapmatcher -> maps/libs/succinct_rtree/serialization
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/common
 ALLOW taxi/graph/libs/mapmatcher -> maps/routing/turn_penalties
 ALLOW taxi/graph/libs/mapmatcher -> maps/tools/easyview/lib/io
+ALLOW taxi/graph/libs/mapmatcher -> maps/analyzer/libs/guidance
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/common
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/graph-spatial
 ALLOW taxi/graph/libs/nearest_edges -> maps/libs/jams/router
@@ -136,7 +137,7 @@ ALLOW taxi/graph/tools/find-one-way-gates -> maps/tools/easyview/lib/io
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/analyzer/libs/track_generator
 ALLOW taxi/graph/tools/generate-graph-tracks -> maps/libs/mms
 ALLOW taxi/graph/tools/lib -> maps/libs/road_graph
-ALLOW taxi/graph/tools/taxi-adjust-track-by-guidance -> maps/analyzer/libs/guidance
+ALLOW taxi/graph/tools/ -> maps/tools/easyview/pylib
 ALLOW taxi/tools/dorblu/lib -> maps/libs/common
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/bson
 ALLOW taxi/tools/dorblu/lib -> maps/libs/deprecated/mongo
@@ -160,12 +161,15 @@ ALLOW maps_adv/ -> maps_adv/
 ALLOW smb/ -> maps_adv/
 DENY .* -> maps_adv/
 
-ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/common
-ALLOW sdc/bindings/revision_manager -> maps/wikimap/mapspro/libs/revision
+ALLOW sdg/library/python/revision_manager -> maps/wikimap/mapspro/libs/common
+ALLOW sdg/library/python/revision_manager -> maps/wikimap/mapspro/libs/revision
 
 # Ydo libs can use some maps stuff
 ALLOW ydo/libs/dispatch -> maps/libs/pbstream
 ALLOW ydo/libs/dispatch -> maps/libs/kdtree
+
+# use of privacy_detector
+ALLOW toloka -> maps/wikimap/mapspro/services/mrc/libs/
 
 # Do not allow PEERDIRs into maps unless such PEERDIRs have be explicitly allowed above
 DENY .* -> maps/

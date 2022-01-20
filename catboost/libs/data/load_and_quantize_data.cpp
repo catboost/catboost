@@ -784,6 +784,11 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         classLabels = &emptyClassLabels;
     }
 
+    NJson::TJsonValue jsonParams;
+    NJson::TJsonValue outputJsonParams;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+
     auto datasetLoader = GetProcessor<IDatasetLoader>(
         poolPath, // for choosing processor
         // processor args
@@ -804,6 +809,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 *blockSize,
                 loadSubset,
                 /*LoadColumnsAsString*/ false,
+                catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
                 localExecutor}});
 
     CB_ENSURE(
@@ -812,11 +818,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     CB_ENSURE_INTERNAL(
         datasetLoader->GetVisitorType() == EDatasetVisitorType::RawObjectsOrder,
         "dataset should be loaded by RawObjectsOrder loader");
-
-    NJson::TJsonValue jsonParams;
-    NJson::TJsonValue outputJsonParams;
-    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
-    NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 

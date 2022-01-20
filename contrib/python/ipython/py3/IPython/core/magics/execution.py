@@ -532,7 +532,18 @@ python-profiler package from non-free.""")
         
           %run [-n -i -e -G]
                [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
-               ( -m mod | file ) [args]
+               ( -m mod | filename ) [args]
+
+        The filename argument should be either a pure Python script (with
+        extension ``.py``), or a file with custom IPython syntax (such as
+        magics). If the latter, the file can be either a script with ``.ipy``
+        extension, or a Jupyter notebook with ``.ipynb`` extension. When running
+        a Jupyter notebook, the output from print statements and other
+        displayed objects will appear in the terminal (even matplotlib figures
+        will open, if a terminal-compliant backend is being used). Note that,
+        at the system command line, the ``jupyter run`` command offers similar
+        functionality for executing notebooks (albeit currently with some
+        differences in supported options).
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
@@ -1244,22 +1255,25 @@ python-profiler package from non-free.""")
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
 
-          Note that the time needed by Python to compile the given expression
-          will be reported if it is more than 0.1s.  In this example, the
-          actual exponentiation is done by Python at compilation time, so while
-          the expression can take a noticeable amount of time to compute, that
-          time is purely due to the compilation:
 
-          In [5]: %time 3**9999;
-          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-          Wall time: 0.00 s
+        .. note::
+            The time needed by Python to compile the given expression will be
+            reported if it is more than 0.1s.
 
-          In [6]: %time 3**999999;
-          CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-          Wall time: 0.00 s
-          Compiler : 0.78 s
-          """
+            In the example below, the actual exponentiation is done by Python
+            at compilation time, so while the expression can take a noticeable
+            amount of time to compute, that time is purely due to the
+            compilation::
 
+                In [5]: %time 3**9999;
+                CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+                Wall time: 0.00 s
+
+                In [6]: %time 3**999999;
+                CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+                Wall time: 0.00 s
+                Compiler : 0.78 s
+        """
         # fail immediately if the given expression can't be compiled
         
         if line and cell:

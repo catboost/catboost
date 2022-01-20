@@ -12,6 +12,10 @@
 
 #include <util/generic/maybe.h>
 
+
+class TLabelConverter;
+
+
 class TMasterContext {
 public:
     TMasterContext(const NCatboostOptions::TSystemOptions& systemOptions);
@@ -24,6 +28,7 @@ void SetTrainDataFromQuantizedPools(
     NCB::TObjectsGrouping&& learnObjectsGrouping,
     TVector<NCB::TObjectsGrouping>&& testObjectsGroupings,
     const NCB::TFeaturesLayout& featuresLayout,
+    const TLabelConverter& labelConverter,
     TRestorableFastRng64* rand
 );
 void SetTrainDataFromMaster(

@@ -323,7 +323,7 @@ class _UnixSelectorEventLoop(selector_events.BaseSelectorEventLoop):
             server._start_serving()
             # Skip one loop iteration so that all 'loop.add_reader'
             # go through.
-            await tasks.sleep(0, loop=self)
+            await tasks.sleep(0)
 
         return server
 
@@ -1383,7 +1383,7 @@ class ThreadedChildWatcher(AbstractChildWatcher):
     def remove_child_handler(self, pid):
         # asyncio never calls remove_child_handler() !!!
         # The method is no-op but is implemented because
-        # abstract base classe requires it
+        # abstract base classes require it.
         return True
 
     def attach_loop(self, loop):

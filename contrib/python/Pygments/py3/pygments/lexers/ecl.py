@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, include, bygroups, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['ECLLexer']
 
@@ -39,7 +39,7 @@ class ECLLexer(RegexLexer):
             include('statements'),
         ],
         'whitespace': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\/\/.*', Comment.Single),
             (r'/(\\\n)?\*(.|\n)*?\*(\\\n)?/', Comment.Multiline),
         ],
@@ -67,7 +67,7 @@ class ECLLexer(RegexLexer):
             (r'((?:ASCII|BIG_ENDIAN|BOOLEAN|DATA|DECIMAL|EBCDIC|INTEGER|PATTERN|'
              r'QSTRING|REAL|RECORD|RULE|SET OF|STRING|TOKEN|UDECIMAL|UNICODE|'
              r'UNSIGNED|VARSTRING|VARUNICODE)\d*)(\s+)',
-             bygroups(Keyword.Type, Text)),
+             bygroups(Keyword.Type, Whitespace)),
         ],
         'keywords': [
             (words((

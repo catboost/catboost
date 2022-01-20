@@ -134,14 +134,14 @@ def get_macosx_target_ver():
     """Return the version of macOS for which we are building.
 
     The target version defaults to the version in sysconfig latched at time
-    the Python interpreter was built, unless overriden by an environment
+    the Python interpreter was built, unless overridden by an environment
     variable. If neither source has a value, then None is returned"""
 
     syscfg_ver = get_macosx_target_ver_from_syscfg()
     env_ver = os.environ.get(MACOSX_VERSION_VAR)
 
     if env_ver:
-        # Validate overriden version against sysconfig version, if have both.
+        # Validate overridden version against sysconfig version, if have both.
         # Ensure that the deployment target of the build process is not less
         # than 10.3 if the interpreter was built for 10.3 or later.  This
         # ensures extension modules are built with correct compatibility
@@ -242,28 +242,41 @@ def check_environ ():
 
 
 def subst_vars (s, local_vars):
-    """Perform shell/Perl-style variable substitution on 'string'.  Every
-    occurrence of '$' followed by a name is considered a variable, and
-    variable is substituted by the value found in the 'local_vars'
-    dictionary, or in 'os.environ' if it's not in 'local_vars'.
+    """
+    Perform variable substitution on 'string'.
+    Variables are indicated by format-style braces ("{var}").
+    Variable is substituted by the value found in the 'local_vars'
+    dictionary or in 'os.environ' if it's not in 'local_vars'.
     'os.environ' is first checked/augmented to guarantee that it contains
     certain values: see 'check_environ()'.  Raise ValueError for any
     variables not found in either 'local_vars' or 'os.environ'.
     """
     check_environ()
-    def _subst (match, local_vars=local_vars):
-        var_name = match.group(1)
-        if var_name in local_vars:
-            return str(local_vars[var_name])
-        else:
-            return os.environ[var_name]
-
+    lookup = dict(os.environ)
+    lookup.update((name, str(value)) for name, value in local_vars.items())
     try:
-        return re.sub(r'\$([a-zA-Z_][a-zA-Z_0-9]*)', _subst, s)
+        return _subst_compat(s).format_map(lookup)
     except KeyError as var:
-        raise ValueError("invalid variable '$%s'" % var)
+        raise ValueError(f"invalid variable {var}")
 
 # subst_vars ()
+
+
+def _subst_compat(s):
+    """
+    Replace shell/Perl-style variable substitution with
+    format-style. For compatibility.
+    """
+    def _subst(match):
+        return f'{{{match.group(1)}}}'
+    repl = re.sub(r'\$([a-zA-Z_][a-zA-Z_0-9]*)', _subst, s)
+    if repl != s:
+        import warnings
+        warnings.warn(
+            "shell/Perl-style substitions are deprecated",
+            DeprecationWarning,
+        )
+    return repl
 
 
 def grok_environment_error (exc, prefix="error: "):

@@ -10,7 +10,6 @@ RECURSE(
     binsaver/ut_util
     blockcodecs
     blockcodecs/fuzz
-    blockcodecs/ut
     build_info
     cache
     cgiparam
@@ -53,6 +52,7 @@ RECURSE(
     grid_creator/ut
     hnsw
     http
+    iterator
     json
     json/fast_sax
     json/flex_buffers
@@ -127,11 +127,12 @@ RECURSE(
     yson/json
     yson/node
     yson/node/pybind
+    yt
 )
 
 IF (OS_LINUX)
     RECURSE(
-    
+    ytalloc
 )
 ENDIF()
 

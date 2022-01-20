@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(7.27.0)
+VERSION(7.31.1)
 
 LICENSE(BSD-3-Clause)
 
@@ -207,6 +207,8 @@ PY_SRCS(
     IPython/testing/plugin/show_refs.py
     IPython/testing/plugin/simple.py
     IPython/testing/plugin/simplevars.py
+    IPython/testing/plugin/test_ipdoctest.py
+    IPython/testing/plugin/test_refs.py
     IPython/testing/skipdoctest.py
     IPython/testing/tools.py
     IPython/utils/PyColorize.py

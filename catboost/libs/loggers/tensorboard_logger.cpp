@@ -6,7 +6,7 @@ uint32_t Mask(uint32_t crc) {
 
 int TTensorBoardLogger::Write(tensorboard::Event& event) {
     TString buf;
-    event.SerializeToString(&buf);
+    Y_PROTOBUF_SUPPRESS_NODISCARD event.SerializeToString(&buf);
     uint64_t bufLen = static_cast<uint64_t>(buf.size());
     uint32_t lenCrc = Mask(Crc32c((char*)&bufLen, sizeof(uint64_t)));
     uint32_t dataCrc = Mask(Crc32c(buf.c_str(), buf.size()));

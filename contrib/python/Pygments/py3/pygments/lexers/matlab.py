@@ -3262,7 +3262,7 @@ class ScilabLexer(RegexLexer):
             (r'\.\*|\*|\+|\.\^|\.\\|\.\/|\/|\\', Operator),
 
             # punctuation:
-            (r'[\[\](){}@.,=:;]', Punctuation),
+            (r'[\[\](){}@.,=:;]+', Punctuation),
 
             (r'"[^"]*"', String),
 
@@ -3276,6 +3276,7 @@ class ScilabLexer(RegexLexer):
             (r'\d+', Number.Integer),
 
             (r'[a-zA-Z_]\w*', Name),
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
         'string': [

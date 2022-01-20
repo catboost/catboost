@@ -596,7 +596,7 @@ public:
         return TBase::Empty() ? TBase::End() : this->FindByItem(TBase::List.GetOldest());
     }
 
-    size_t TotalSize() {
+    size_t TotalSize() const {
         return TBase::List.GetTotalSize();
     }
 };

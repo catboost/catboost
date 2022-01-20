@@ -63,6 +63,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 {% endcut %}
 
 {% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+
 The input training dataset in the form of a two-dimensional feature matrix.
 
 {% endcut %}
@@ -701,8 +702,7 @@ The initial model must have the same problem type as the one being solved in the
 
 **Possible types**
 
-{% cut "{{ [catboost.CatBoost](../concepts/python-reference_catboost.md), [catboost.CatBoostClassifier](../concepts/python-reference_catboostclassifier.md), [catboost.CatBoostRegressor](../concepts/python-reference_catboostregressor.md) }}" %}
-
+{% cut "catboost.CatBoost, catboost.CatBoostClassifier, catboost.CatBoostRegressor" %}
 
 The initial model object.
 

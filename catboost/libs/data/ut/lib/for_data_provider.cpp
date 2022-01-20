@@ -99,7 +99,7 @@ namespace NCB {
         if (const auto* lhsDenseData = std::get_if<TVector<T>>(&lhs)) {
             return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
-            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
+            const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
             using TColumn = ITypedFeatureValuesHolder<T, ValuesType>;
             if (const auto* rhsSparseArrayHolder
                     = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<TColumn>*>(&rhs))
@@ -128,7 +128,7 @@ namespace NCB {
             return Equal<T>(rhs.template ExtractValues<T>(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             using TColumn = IQuantizedFeatureValuesHolder<T, ValuesType>;
-            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
+            const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
             if (const auto* rhsSparseArrayHolder
                            = dynamic_cast<const TSparseCompressedValuesHolderImpl<TColumn>*>(&rhs))
             {
@@ -183,7 +183,7 @@ namespace NCB {
                         EqualWithNans<float>
                     );
                 } else {
-                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<float, ui32>>(lhs);
+                    const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<float, ui32>>(lhs);
 
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TFloatSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
@@ -219,7 +219,7 @@ namespace NCB {
                         }
                         return hashedCategoricalValues;
                     } else {
-                        const auto& sparseData = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(
+                        const auto& sparseData = std::get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(
                             *expectedData.Objects.CatFeatures[catFeatureIdx]
                         );
 
@@ -287,7 +287,7 @@ namespace NCB {
                         rhsValues.end()
                     );
                 } else {
-                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(lhs);
+                    const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(lhs);
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TStringTextSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
                     const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
@@ -480,6 +480,7 @@ namespace NCB {
             MakeIntrusive<TObjectsGrouping>(expectedObjectsGrouping),
             TRawTargetData(expectedData),
             true,
+            /*forceUnitAutoPairWeights*/ true,
             Nothing()
         );
 

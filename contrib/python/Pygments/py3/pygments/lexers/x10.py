@@ -8,11 +8,8 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
 from pygments.lexer import RegexLexer
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Error
+from pygments.token import Text, Comment, Keyword, String
 
 __all__ = ['X10Lexer']
 

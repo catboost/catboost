@@ -1,6 +1,6 @@
 # Processing unit settings
 
-### task_type {#task_type}
+## task_type {#task_type}
 
 Command line: `--task-type`
 
@@ -25,7 +25,7 @@ Possible values:
 {{ cpu-gpu }}
 
 
-### devices {#devices}
+## devices {#devices}
 
 Command line: `--devices`
 

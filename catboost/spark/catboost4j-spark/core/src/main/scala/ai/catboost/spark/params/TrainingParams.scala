@@ -32,6 +32,26 @@ trait TrainingParamsTrait
   setDefault(workerInitializationTimeout, java.time.Duration.ofMinutes(10))
 
   @ParamGetterSetter
+  final val workerMaxFailures: IntParam = new IntParam(
+    this,
+    "workerMaxFailures",
+    "Number of individual CatBoost workers failures before giving up training. "
+    + "Should be greater than or equal to 1. Default is 4"
+  )
+
+  setDefault(workerMaxFailures, 4)
+
+  @ParamGetterSetter
+  final val connectTimeout: DurationParam = new DurationParam(
+    this,
+    "connectTimeout",
+    "Timeout to wait while establishing socket connections between TrainingDriver and workers."
+    + "Default is 1 minute"
+  )
+
+  setDefault(connectTimeout, java.time.Duration.ofMinutes(1))
+
+  @ParamGetterSetter
   final val lossFunction: Param[String] = new Param[String](
     this,
     "lossFunction",

@@ -19,10 +19,13 @@ namespace NCB {
     struct TTargetCreationOptions {
         bool IsClass;
         bool IsMultiClass;
+        bool IsMultiLabel;
         bool CreateBinClassTarget;
         bool CreateMultiClassTarget;
+        bool CreateMultiLabelTarget;
         bool CreateGroups;
         bool CreatePairs;
+        bool SkipMinMaxPairsCheck;
         TMaybe<ui32> MaxPairsCount;
     };
 
@@ -53,10 +56,21 @@ namespace NCB {
     };
 
     TTargetCreationOptions MakeTargetCreationOptions(
+        bool dataHasWeights,
+        ui32 dataTargetDimension,
+        bool dataHasGroups,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<ui32> knownModelApproxDimension,
+        bool knownIsClassification,
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck=false);
+
+    TTargetCreationOptions MakeTargetCreationOptions(
         const TRawTargetDataProvider &rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo);
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool skipMinMaxPairsCheck=false);
 
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
@@ -97,7 +111,8 @@ namespace NCB {
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
         NPar::ILocalExecutor* localExecutor,
-        bool metricsThatRequireTargetCanBeSkipped=false);
+        bool metricsThatRequireTargetCanBeSkipped=false,
+        bool skipMinMaxPairsCheck=false);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
@@ -113,12 +128,22 @@ namespace NCB {
         const TWeights<float>& groupWeights,
         TMaybe<TRawPairsDataRef> pairs);
 
+    void UpdateTargetProcessingParams(
+        const TInputClassificationInfo& inputClassificationInfo,
+        const TTargetCreationOptions& targetCreationOptions,
+        TMaybe<ui32> knownApproxDimension,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
+        bool* isRealTarget,
+        TMaybe<ui32>* knownClassCount,
+        TInputClassificationInfo* updatedInputClassificationInfo);
+
     TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         ERawTargetType targetType,
         bool isRealTarget,
         bool isClass,
         bool isMultiClass,
+        bool isMultiLabel,
         TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<NJson::TJsonValue> inputClassLabels,

@@ -11,10 +11,12 @@
 #define _LIBCPP___TREE
 
 #include <__config>
+#include <__utility/forward.h>
+#include <algorithm>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <stdexcept>
-#include <algorithm>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -714,7 +716,7 @@ public:
 };
 
 template <class _VoidPtr>
-class __tree_node_base
+class _LIBCPP_STANDALONE_DEBUG __tree_node_base
     : public __tree_node_base_types<_VoidPtr>::__end_node_type
 {
     typedef __tree_node_base_types<_VoidPtr> _NodeBaseTypes;
@@ -736,13 +738,13 @@ public:
     }
 
 private:
-  ~__tree_node_base() _LIBCPP_EQUAL_DELETE;
-  __tree_node_base(__tree_node_base const&) _LIBCPP_EQUAL_DELETE;
-  __tree_node_base& operator=(__tree_node_base const&) _LIBCPP_EQUAL_DELETE;
+  ~__tree_node_base() = delete;
+  __tree_node_base(__tree_node_base const&) = delete;
+  __tree_node_base& operator=(__tree_node_base const&) = delete;
 };
 
 template <class _Tp, class _VoidPtr>
-class __tree_node
+class _LIBCPP_STANDALONE_DEBUG __tree_node
     : public __tree_node_base<_VoidPtr>
 {
 public:
@@ -751,9 +753,9 @@ public:
     __node_value_type __value_;
 
 private:
-  ~__tree_node() _LIBCPP_EQUAL_DELETE;
-  __tree_node(__tree_node const&) _LIBCPP_EQUAL_DELETE;
-  __tree_node& operator=(__tree_node const&) _LIBCPP_EQUAL_DELETE;
+  ~__tree_node() = delete;
+  __tree_node(__tree_node const&) = delete;
+  __tree_node& operator=(__tree_node const&) = delete;
 };
 
 
@@ -1610,7 +1612,7 @@ template <class _Tp, class _Compare, class _Allocator>
 __tree<_Tp, _Compare, _Allocator>&
 __tree<_Tp, _Compare, _Allocator>::operator=(const __tree& __t)
 {
-    if (this != &__t)
+    if (this != _VSTD::addressof(__t))
     {
         value_comp() = __t.value_comp();
         __copy_assign_alloc(__t);
@@ -2410,7 +2412,7 @@ __tree<_Tp, _Compare, _Allocator>::__node_handle_merge_multi(_Tree& __source)
     }
 }
 
-#endif  // _LIBCPP_STD_VER > 14
+#endif // _LIBCPP_STD_VER > 14
 
 template <class _Tp, class _Compare, class _Allocator>
 typename __tree<_Tp, _Compare, _Allocator>::iterator
@@ -2743,4 +2745,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP___TREE
+#endif // _LIBCPP___TREE

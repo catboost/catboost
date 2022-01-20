@@ -31,6 +31,10 @@ class sdist(sdist_add_defaults, orig.sdist):
         ('dist-dir=', 'd',
          "directory to put the source distribution archive(s) in "
          "[default: dist]"),
+        ('owner=', 'u',
+         "Owner name used when creating a tar file [default: current user]"),
+        ('group=', 'g',
+         "Group name used when creating a tar file [default: current group]"),
     ]
 
     negative_opt = {}
@@ -110,12 +114,15 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     def _safe_data_files(self, build_py):
         """
-        Extracting data_files from build_py is known to cause
-        infinite recursion errors when `include_package_data`
-        is enabled, so suppress it in that case.
+        Since the ``sdist`` class is also used to compute the MANIFEST
+        (via :obj:`setuptools.command.egg_info.manifest_maker`),
+        there might be recursion problems when trying to obtain the list of
+        data_files and ``include_package_data=True`` (which in turn depends on
+        the files included in the MANIFEST).
+
+        To avoid that, ``manifest_maker`` should be able to overwrite this
+        method and avoid recursive attempts to build/analyze the MANIFEST.
         """
-        if self.distribution.include_package_data:
-            return ()
         return build_py.data_files
 
     def _add_data_files(self, data_files):

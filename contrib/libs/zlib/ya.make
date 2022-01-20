@@ -6,11 +6,15 @@ LIBRARY()
 
 VERSION(1.2.11)
 
+ORIGINAL_SOURCE(https://www.zlib.net/fossils/zlib-1.2.11.tar.gz)
+
 LICENSE(Zlib)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-ADDINCL(GLOBAL contrib/libs/zlib/include)
+ADDINCL(
+    GLOBAL contrib/libs/zlib/include
+)
 
 NO_COMPILER_WARNINGS()
 

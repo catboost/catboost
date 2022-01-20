@@ -248,7 +248,7 @@ TMinMax<double> ApplyModelForMinMax(
     NPar::ILocalExecutor* executor)
 {
     CB_ENSURE(model.GetTreeCount(), "Bad usage: empty model");
-    CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multiregression model, dim=" << model.GetDimensionsCount());
+    CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multitarget model, dim=" << model.GetDimensionsCount());
     FixupTreeEnd(model.GetTreeCount(), treeBegin, &treeEnd);
     CB_ENSURE(objectsData.GetObjectCount(), "Bad usage: empty dataset");
 

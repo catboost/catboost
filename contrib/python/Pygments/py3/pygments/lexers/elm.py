@@ -8,8 +8,9 @@
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, words, include
-from pygments.token import Comment, Keyword, Name, Number, Punctuation, String, Text
+from pygments.lexer import RegexLexer, words, include, bygroups
+from pygments.token import Comment, Keyword, Name, Number, Punctuation, String, \
+    Text, Whitespace
 
 __all__ = ['ElmLexer']
 
@@ -49,16 +50,18 @@ class ElmLexer(RegexLexer):
             (r'--.*', Comment.Single),
 
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # Strings
             (r'"', String, 'doublequote'),
 
             # Modules
-            (r'^\s*module\s*', Keyword.Namespace, 'imports'),
+            (r'^(\s*)(module)(\s*)', bygroups(Whitespace, Keyword.Namespace,
+                Whitespace), 'imports'),
 
             # Imports
-            (r'^\s*import\s*', Keyword.Namespace, 'imports'),
+            (r'^(\s*)(import)(\s*)', bygroups(Whitespace, Keyword.Namespace,
+                Whitespace), 'imports'),
 
             # Shaders
             (r'\[glsl\|.*', Name.Entity, 'shader'),
@@ -115,6 +118,6 @@ class ElmLexer(RegexLexer):
         'shader': [
             (r'\|(?!\])', Name.Entity),
             (r'\|\]', Name.Entity, '#pop'),
-            (r'.*\n', Name.Entity),
+            (r'(.*)(\n)', bygroups(Name.Entity, Whitespace)),
         ],
     }

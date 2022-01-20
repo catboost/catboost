@@ -3,8 +3,9 @@
 #define _LIBCPP_SPLIT_BUFFER
 
 #include <__config>
-#include <type_traits>
+#include <__utility/forward.h>
 #include <algorithm>
+#include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -16,17 +17,8 @@ _LIBCPP_PUSH_MACROS
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-template <bool>
-class __split_buffer_common
-{
-protected:
-    void __throw_length_error() const;
-    void __throw_out_of_range() const;
-};
-
 template <class _Tp, class _Allocator = allocator<_Tp> >
 struct __split_buffer
-    : private __split_buffer_common<true>
 {
 private:
     __split_buffer(const __split_buffer&);
@@ -255,7 +247,7 @@ __split_buffer<_Tp, _Allocator>::__construct_at_end(_InputIter __first, _InputIt
             size_type __old_cap = __end_cap() - __first_;
             size_type __new_cap = _VSTD::max<size_type>(2 * __old_cap, 8);
             __split_buffer __buf(__new_cap, 0, __a);
-            for (pointer __p = __begin_; __p != __end_; ++__p, ++__buf.__end_)
+            for (pointer __p = __begin_; __p != __end_; ++__p, (void) ++__buf.__end_)
                 __alloc_traits::construct(__buf.__alloc(),
                         _VSTD::__to_address(__buf.__end_), _VSTD::move(*__p));
             swap(__buf);
@@ -275,7 +267,7 @@ typename enable_if
 __split_buffer<_Tp, _Allocator>::__construct_at_end(_ForwardIterator __first, _ForwardIterator __last)
 {
     _ConstructTransaction __tx(&this->__end_, _VSTD::distance(__first, __last));
-    for (; __tx.__pos_ != __tx.__end_; ++__tx.__pos_, ++__first) {
+    for (; __tx.__pos_ != __tx.__end_; ++__tx.__pos_, (void) ++__first) {
         __alloc_traits::construct(this->__alloc(),
             _VSTD::__to_address(__tx.__pos_), *__first);
     }
@@ -452,7 +444,7 @@ __split_buffer<_Tp, _Allocator>::shrink_to_fit() _NOEXCEPT
 #ifndef _LIBCPP_NO_EXCEPTIONS
         try
         {
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
             __split_buffer<value_type, __alloc_rr&> __t(size(), 0, __alloc());
             __t.__construct_at_end(move_iterator<pointer>(__begin_),
                                    move_iterator<pointer>(__end_));
@@ -466,7 +458,7 @@ __split_buffer<_Tp, _Allocator>::shrink_to_fit() _NOEXCEPT
         catch (...)
         {
         }
-#endif  // _LIBCPP_NO_EXCEPTIONS
+#endif // _LIBCPP_NO_EXCEPTIONS
     }
 }
 
@@ -633,4 +625,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP_SPLIT_BUFFER
+#endif // _LIBCPP_SPLIT_BUFFER

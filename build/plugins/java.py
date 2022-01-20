@@ -31,7 +31,7 @@ def extract_macro_calls2(unit, macro_value_name):
     return calls
 
 
-def onrun_java_program(unit, *args):
+def on_run_jbuild_program(unit, *args):
     args = list(args)
     """
     Custom code generation
@@ -76,10 +76,18 @@ def ongenerate_script(unit, *args):
 
 def onjava_module(unit, *args):
     args_delim = unit.get('ARGS_DELIM')
+    idea_only = True if 'IDEA_ONLY' in args else False
+
+    if idea_only:
+        if unit.get('YA_IDE_IDEA') != 'yes':
+            return
+        if unit.get('YMAKE_JAVA_MODULES') != 'yes':
+            return
 
     data = {
         'BUNDLE_NAME': unit.name(),
         'PATH': unit.path(),
+        'IDEA_ONLY': 'yes' if idea_only else 'no',
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
@@ -118,7 +126,11 @@ def onjava_module(unit, *args):
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
     }
+    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and unit.get('JDK_VERSION') in ('15', '16', '17'):
+        data['ENABLE_PREVIEW'] = extract_macro_calls(unit, 'ENABLE_PREVIEW_VALUE', args_delim)
+
     if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
         data['SAVE_JAVAC_GENERATED_SRCS_DIR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_DIR', args_delim)
         data['SAVE_JAVAC_GENERATED_SRCS_TAR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_TAR', args_delim)
@@ -207,28 +219,6 @@ def onjava_module(unit, *args):
         if external:
             unit.onpeerdir(external)
 
-    dep_veto = extract_macro_calls(unit, 'JAVA_DEPENDENCIES_CONFIGURATION_VALUE', args_delim)
-    if dep_veto:
-        dep_veto = set(dep_veto[0])
-        if (unit.get('IGNORE_JAVA_DEPENDENCIES_CONFIGURATION') or '').lower() != 'yes':
-            for veto in map(str.upper, dep_veto):
-                if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
-                    data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
-                elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
-                    data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT':
-                    data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM':
-                    data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
-                    data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
-                elif veto.upper() == 'REQUIRE_DM':
-                    data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
-                else:
-                    ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
-                        ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
-                    )))
-
     for k, v in data.items():
         if not v:
             data.pop(k)
@@ -236,7 +226,7 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
+    if not idea_only and unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         unit.on_add_classpath_clash_check()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
@@ -273,15 +263,23 @@ def on_check_java_srcdir(unit, *args):
     args = list(args)
     for arg in args:
         if not '$' in arg:
-            abs_srcdir = unit.resolve(os.path.join("$S/", unit.get('MODDIR'), arg))
+            arc_srcdir = os.path.join(unit.get('MODDIR'), arg)
+            abs_srcdir = unit.resolve(os.path.join("$S/", arc_srcdir))
             if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-                ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+                ymake.report_configure_error(
+                    'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]$S/{}[[rst]]',
+                    missing_dir=arc_srcdir
+                )
+            return
         srcdir = unit.resolve_arc_path(arg)
         if srcdir and not srcdir.startswith('$S'):
             continue
         abs_srcdir = unit.resolve(srcdir) if srcdir else unit.resolve(arg)
         if not os.path.exists(abs_srcdir) or not os.path.isdir(abs_srcdir):
-            ymake.report_configure_error('SRCDIR {} does not exists or not a directory'.format(abs_srcdir))
+            ymake.report_configure_error(
+                'Trying to set a [[alt1]]JAVA_SRCS[[rst]] for a missing directory: [[imp]]{}[[rst]]',
+                missing_dir=srcdir
+            )
 
 
 def on_fill_jar_copy_resources_cmd(unit, *args):
@@ -375,3 +373,11 @@ def parse_words(words):
 def on_ymake_generate_script(unit, *args):
     for out, tmpl, props in parse_words(list(args)):
         unit.on_add_gen_java_script([out, tmpl] + list(props))
+
+def on_jdk_version_macro_check(unit, *args):
+    if len(args) != 1:
+        unit.message(["error", "Invalid syntax. Single argument required."])
+    jdk_version = args[0]
+    availible_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
+    if jdk_version not in availible_versions:
+        unit.message(["error", "Invalid jdk version: {}. {} are availible".format(jdk_version, availible_versions)])

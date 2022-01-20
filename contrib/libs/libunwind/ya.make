@@ -6,11 +6,12 @@ LIBRARY()
 
 VERSION(12.0.0-post-2021-05-08-de1843e51a76c5628dc93c0507a4fb8e7be52482)
 
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/de1843e51a76c5628dc93c0507a4fb8e7be52482.tar.gz)
+
 LICENSE(
-    Apache-2.0
-    Apache-2.0 WITH LLVM-exception
-    LLVM-exception
-    MIT
+    Apache-2.0 AND
+    Apache-2.0 WITH LLVM-exception AND
+    MIT AND
     NCSA
 )
 
@@ -18,7 +19,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 DISABLE(USE_LTO)
 
-ADDINCL(contrib/libs/libunwind/include)
+ADDINCL(
+    contrib/libs/libunwind/include
+)
 
 NO_RUNTIME()
 
@@ -37,7 +40,9 @@ CFLAGS(
 )
 
 IF (SANITIZER_TYPE == memory)
-    CFLAGS(-fPIC)
+    CFLAGS(
+        -fPIC
+    )
 ENDIF()
 
 SRCS(
@@ -59,4 +64,6 @@ ENDIF()
 
 END()
 
-RECURSE_FOR_TESTS(ut)
+RECURSE_FOR_TESTS(
+    ut
+)

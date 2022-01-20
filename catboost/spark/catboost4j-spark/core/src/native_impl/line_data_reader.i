@@ -10,6 +10,11 @@
 
 %feature("director") NCB::ILineDataReader;
 
+%catches(yexception) ILineDataReader::GetDataLineCount(bool estimate = false);
+%catches(yexception) ILineDataReader::GetHeader();
+%catches(yexception) ILineDataReader::ReadLine(TString* line, ui64* lineIdx = nullptr);
+%catches(yexception) ILineDataReader::ReadLine(TString*, TString*, ui64* lineIdx = nullptr);
+
 namespace NCB {
     struct TDsvFormatOptions {
     public:

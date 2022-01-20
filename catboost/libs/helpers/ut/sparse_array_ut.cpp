@@ -437,7 +437,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
 
                 TSparseArrayIndexing<ui32> result = builder.Build();
                 const TSparseSubsetIndices<ui32>& sparseSubsetIndices
-                   = Get<TSparseSubsetIndices<ui32>>(result.GetImpl());
+                   = std::get<TSparseSubsetIndices<ui32>>(result.GetImpl());
 
                 UNIT_ASSERT(Equal(*sparseSubsetIndices, TVector<ui32>{3, 12, 14, 15}));
             }
@@ -450,7 +450,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
 
                 TSparseArrayIndexing<ui32> result = builder.Build();
                 const TSparseSubsetBlocks<ui32>& sparseSubsetBlocks
-                    = Get<TSparseSubsetBlocks<ui32>>(result.GetImpl());
+                    = std::get<TSparseSubsetBlocks<ui32>>(result.GetImpl());
 
                 UNIT_ASSERT(Equal(*sparseSubsetBlocks.BlockStarts, TVector<ui32>{3, 12, 14}));
                 UNIT_ASSERT(Equal(*sparseSubsetBlocks.BlockLengths, TVector<ui32>{2, 1, 3}));
@@ -467,7 +467,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
 
                 TSparseArrayIndexing<ui32> result = builder.Build();
                 const TSparseSubsetHybridIndex<ui32>& sparseSubsetHybridIndex
-                    = Get<TSparseSubsetHybridIndex<ui32>>(result.GetImpl());
+                    = std::get<TSparseSubsetHybridIndex<ui32>>(result.GetImpl());
 
                 UNIT_ASSERT_VALUES_EQUAL(sparseSubsetHybridIndex.BlockIndices, (TVector<ui32>{0, 2, 7}));
                 UNIT_ASSERT_VALUES_EQUAL(
@@ -958,7 +958,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>()));
             checkNonDefaultValues(subsetSparseArray, TVector<float>());
         }
@@ -974,7 +974,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, sparseSubsetIndices));
             checkNonDefaultValues(subsetSparseArray, nonDefaultValues);
         }
@@ -987,7 +987,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT((*indices).empty());
             checkNonDefaultValues(subsetSparseArray, TVector<float>());
         }
@@ -1000,7 +1000,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
             checkNonDefaultValues(subsetSparseArray, TVector<float>{0.1f, 4.2f});
         }
@@ -1013,7 +1013,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{3, 5, 6}));
             checkNonDefaultValues(subsetSparseArray, TVector<float>{4.2f, 9.0f, 0.88f});
         }
@@ -1029,7 +1029,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Blocks
             );
 
-            auto indexBlocks = Get<TSparseSubsetBlocks<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indexBlocks = std::get<TSparseSubsetBlocks<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indexBlocks.BlockStarts, TVector<ui32>{0, 4, 8}));
             UNIT_ASSERT(Equal<ui32>(*indexBlocks.BlockLengths, TVector<ui32>{3, 2, 1}));
             checkNonDefaultValues(subsetSparseArray, TVector<float>{2.11f, 0.88f, 0.7f, 0.1f, 0.32f, 4.2f});
@@ -1046,7 +1046,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Blocks
             );
 
-            auto indexBlocks = Get<TSparseSubsetBlocks<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indexBlocks = std::get<TSparseSubsetBlocks<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indexBlocks.BlockStarts, TVector<ui32>{0, 4, 8}));
             UNIT_ASSERT(Equal<ui32>(*indexBlocks.BlockLengths, TVector<ui32>{3, 2, 1}));
             checkNonDefaultValues(subsetSparseArray, TVector<float>{2.11f, 0.88f, 0.7f, 0.1f, 0.32f, 4.2f});
@@ -1092,7 +1092,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::HybridIndex
             );
 
-            auto hybridIndex = Get<TSparseSubsetHybridIndex<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto hybridIndex = std::get<TSparseSubsetHybridIndex<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT_VALUES_EQUAL(hybridIndex.BlockIndices, (TVector<ui32>{0, 2, 4}));
             UNIT_ASSERT_VALUES_EQUAL(
                 hybridIndex.BlockBitmaps,
@@ -1166,7 +1166,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, sparseSubsetIndices));
             CheckNonDefaultValues(subsetSparseArray, nonDefaultValues);
         }
@@ -1179,7 +1179,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT((*indices).empty());
             CheckNonDefaultValues(subsetSparseArray, TVector<ui32>());
         }
@@ -1192,7 +1192,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
             CheckNonDefaultValues(subsetSparseArray, TVector<float>{0.17f, 0.0f});
         }
@@ -1205,7 +1205,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
             CheckNonDefaultValues(subsetSparseArray, TVector<float>{0.17f, 0.0f});
         }
@@ -1265,7 +1265,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, sparseSubsetIndices));
             checkNonDefaultValues(subsetSparseArray, nonDefaultValues);
         }
@@ -1278,7 +1278,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT((*indices).empty());
             checkNonDefaultValues(subsetSparseArray, TVector<ui8>());
         }
@@ -1291,7 +1291,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::Undefined
             );
 
-            auto indices = Get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto indices = std::get<TSparseSubsetIndices<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT(Equal<ui32>(*indices, TVector<ui32>{0, 1}));
             checkNonDefaultValues(subsetSparseArray, TVector<ui8>{0xFF, 0xEF});
         }
@@ -1338,7 +1338,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 ESparseArrayIndexingType::HybridIndex
             );
 
-            auto hybridIndex = Get<TSparseSubsetHybridIndex<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
+            auto hybridIndex = std::get<TSparseSubsetHybridIndex<ui32>>(subsetSparseArray.GetIndexing()->GetImpl());
             UNIT_ASSERT_VALUES_EQUAL(hybridIndex.BlockIndices, (TVector<ui32>{0, 2, 4}));
             UNIT_ASSERT_VALUES_EQUAL(
                 hybridIndex.BlockBitmaps,

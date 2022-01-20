@@ -1,13 +1,13 @@
 LIBRARY()
 
 LICENSE(
-    Apache-2.0
-    BSD-2-Clause
-    BSD-3-Clause
-    BSD-Source-Code
-    CC0-1.0
-    OpenSSL
-    Public-Domain
+    Apache-2.0 AND
+    BSD-2-Clause AND
+    BSD-3-Clause AND
+    BSD-Source-Code AND
+    CC0-1.0 AND
+    OpenSSL AND
+    Public-Domain AND
     Snprintf
 )
 
@@ -102,11 +102,15 @@ IF (NOT WINDOWS_I686)
 ENDIF()
 
 IF (NOT IOS_I386 AND NOT ANDROID_I686 AND NOT WINDOWS_I686)
-    CFLAGS(-DKECCAK1600_ASM)
+    CFLAGS(
+        -DKECCAK1600_ASM
+    )
 ENDIF()
 
 IF (NOT IOS_ARMV7 AND NOT ANDROID_ARMV7 AND NOT LINUX_ARMV7)
-    CFLAGS(-DVPAES_ASM)
+    CFLAGS(
+        -DVPAES_ASM
+    )
 ENDIF()
 
 IF (NOT OS_WINDOWS)
@@ -130,11 +134,15 @@ IF (OS_DARWIN AND ARCH_X86_64 OR OS_LINUX AND ARCH_X86_64 OR OS_WINDOWS AND ARCH
 ENDIF()
 
 IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64)
-    CFLAGS(-DOPENSSL_USE_NODELETE)
+    CFLAGS(
+        -DOPENSSL_USE_NODELETE
+    )
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_X86_64)
-    CFLAGS(-D_REENTRANT)
+    CFLAGS(
+        -D_REENTRANT
+    )
 ENDIF()
 
 IF (OS_DARWIN AND ARCH_ARM64)
@@ -169,15 +177,21 @@ IF (OS_WINDOWS)
 ENDIF()
 
 IF (SANITIZER_TYPE == memory)
-    CFLAGS(-DPURIFY)
+    CFLAGS(
+        -DPURIFY
+    )
 ENDIF()
 
 IF (MUSL)
-    CFLAGS(-DOPENSSL_NO_ASYNC)
+    CFLAGS(
+        -DOPENSSL_NO_ASYNC
+    )
 ENDIF()
 
 IF (ARCH_TYPE_32)
-    CFLAGS(-DOPENSSL_NO_EC_NISTP_64_GCC_128)
+    CFLAGS(
+        -DOPENSSL_NO_EC_NISTP_64_GCC_128
+    )
 ENDIF()
 
 IF (ARCH_X86_64 AND NOT MSVC)
@@ -924,7 +938,9 @@ IF (OS_LINUX AND ARCH_ARM7)
         # XXX: This is a workarond for 'out of range immediate fixup value'
         # error with clang integrated assembler:
         # https://github.com/openssl/openssl/issues/7878
-        CFLAGS(-mno-thumb)
+        CFLAGS(
+            -mno-thumb
+        )
     ENDIF()
     CFLAGS(
         -DOPENSSL_PIC
@@ -990,7 +1006,6 @@ IF (OS_LINUX AND ARCH_PPC64LE)
         ../asm/ppc64le/crypto/aes/vpaes-ppc.s
         ../asm/ppc64le/crypto/bn/bn-ppc.s
         ../asm/ppc64le/crypto/bn/ppc-mont.s
-        ../asm/ppc64le/crypto/bn/ppc64-mont.s
         ../asm/ppc64le/crypto/chacha/chacha-ppc.s
         ../asm/ppc64le/crypto/ec/ecp_nistz256-ppc64.s
         ../asm/ppc64le/crypto/ec/x25519-ppc64.s
@@ -1367,7 +1382,9 @@ IF (OS_ANDROID AND ARCH_ARM7)
         # XXX: This is a workarond for 'out of range immediate fixup value'
         # error with clang integrated assembler:
         # https://github.com/openssl/openssl/issues/7878
-        CFLAGS(-mno-thumb)
+        CFLAGS(
+            -mno-thumb
+        )
     ENDIF()
     CFLAGS(
         -DOPENSSL_PIC
@@ -1405,7 +1422,9 @@ IF (OS_ANDROID AND ARCH_ARM7)
 ENDIF()
 
 IF (OS_ANDROID AND ARCH_ARM64)
-    CFLAGS(-DOPENSSL_PIC)
+    CFLAGS(
+        -DOPENSSL_PIC
+    )
     SRCS(
         ../asm/android/arm64/crypto/ec/ecp_nistz256-armv8.S
         ../asm/android/arm64/crypto/poly1305/poly1305-armv8.S

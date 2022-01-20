@@ -1,6 +1,6 @@
 # How training is performed
 
-The goal of training is to select the _model_$y$, depending on a set of _features_$x_{i}$, that best solves the given problem (regression, classification, or multiclassification) for any input _object_. This model is found by using a _training dataset_, which is a set of objects with known features and label values. Accuracy is checked on the _validation dataset_, which has data in the same format as in the training dataset, but it is only used for evaluating the quality of training (it is not used for training).
+The goal of training is to select the _model_ $y$, depending on a set of _features_ $x_{i}$, that best solves the given problem (regression, classification, or multiclassification) for any input _object_. This model is found by using a _training dataset_, which is a set of objects with known features and label values. Accuracy is checked on the _validation dataset_, which has data in the same format as in the training dataset, but it is only used for evaluating the quality of training (it is not used for training).
 
 {{ product }} is based on gradient boosted decision trees. During training, a set of decision trees is built consecutively. Each successive tree is built with reduced loss compared to the previous trees.
 

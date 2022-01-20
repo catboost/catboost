@@ -32,7 +32,7 @@ from prompt_toolkit.formatted_text.utils import (
     split_lines,
 )
 from prompt_toolkit.lexers import Lexer, SimpleLexer
-from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
+from prompt_toolkit.mouse_events import MouseButton, MouseEvent, MouseEventType
 from prompt_toolkit.search import SearchState
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.utils import get_cwidth
@@ -48,22 +48,11 @@ from .processors import (
 )
 
 if TYPE_CHECKING:
-    from prompt_toolkit.key_binding.key_bindings import KeyBindingsBase
+    from prompt_toolkit.key_binding.key_bindings import (
+        KeyBindingsBase,
+        NotImplementedOrNone,
+    )
     from prompt_toolkit.utils import Event
-
-    # The only two return values for a mouse hander are `None` and
-    # `NotImplemented`. For the type checker it's best to annotate this as
-    # `object`. (The consumer never expects a more specific instance: checking
-    # for NotImplemented can be done using `is NotImplemented`.)
-    NotImplementedOrNone = object
-    # Other non-working options are:
-    # * Optional[Literal[NotImplemented]]
-    #      --> Doesn't work, Literal can't take an Any.
-    # * None
-    #      --> Doesn't work. We can't assign the result of a function that
-    #          returns `None` to a variable.
-    # * Any
-    #      --> Works, but too broad.
 
 
 __all__ = [
@@ -858,8 +847,15 @@ class BufferControl(UIControl):
                     buffer.exit_selection()
                     buffer.cursor_position = index
 
-                elif mouse_event.event_type == MouseEventType.MOUSE_DOWN_MOVE:
-                    if buffer.selection_state is None:
+                elif (
+                    mouse_event.event_type == MouseEventType.MOUSE_MOVE
+                    and mouse_event.button != MouseButton.NONE
+                ):
+                    # Click and drag to highlight a selection
+                    if (
+                        buffer.selection_state is None
+                        and abs(buffer.cursor_position - index) > 0
+                    ):
                         buffer.start_selection(selection_type=SelectionType.CHARACTERS)
                     buffer.cursor_position = index
 

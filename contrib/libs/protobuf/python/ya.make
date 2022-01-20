@@ -1,8 +1,8 @@
 PACKAGE()
 
-LICENSE(BSD-3-Clause)
+WITHOUT_LICENSE_TEXTS()
 
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+LICENSE(BSD-3-Clause)
 
 
 

@@ -15,7 +15,7 @@ Y_UNIT_TEST(BrierScoreTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBrierScoreMetric(TLossParams());
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BrierScore, TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.03749999999999999, 1e-5);
@@ -26,7 +26,7 @@ Y_UNIT_TEST(BrierScoreTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBrierScoreMetric(TLossParams());
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BrierScore, TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-5);
@@ -37,7 +37,7 @@ Y_UNIT_TEST(BrierScoreTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBrierScoreMetric(TLossParams());
+        const auto metric = std::move(CreateSingleTargetMetric(ELossFunction::BrierScore, TLossParams(), /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-5);

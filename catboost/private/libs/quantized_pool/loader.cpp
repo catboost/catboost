@@ -89,6 +89,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         GroupWeightsPath.Inited(),
         TimestampsPath.Inited(),
         PairsPath.Inited(),
+        args.CommonArgs.ForceUnitAutoPairWeights,
         baselineReader.GetBaselineCount(),
         args.CommonArgs.FeatureNamesPath,
         PoolMetaInfoPath);

@@ -17,11 +17,11 @@ namespace NCoro::NStack {
     };
 
     struct TPoolAllocatorSettings {
-        TContExecutor* Executor = nullptr;
-        uint64_t RssPagesToKeep = 3;
-        uint64_t SmallStackRssPagesToKeep = 3; // for stack less than SmallStackMaxSizeInPages
+        uint64_t RssPagesToKeep = 1;
+        uint64_t SmallStackRssPagesToKeep = 1; // for stack less than SmallStackMaxSizeInPages
+        uint64_t ReleaseRate = 2;
 #if !defined(_san_enabled_) && defined(NDEBUG)
-        uint64_t StacksPerChunk = 64;
+        uint64_t StacksPerChunk = 256;
 #else
         uint64_t StacksPerChunk = 2;
 #endif

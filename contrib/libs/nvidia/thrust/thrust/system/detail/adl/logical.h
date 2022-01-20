@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/logical.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_LOGICAL_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/logical.h>
-#include __THRUST_HOST_SYSTEM_LOGICAL_HEADER
-#undef __THRUST_HOST_SYSTEM_LOGICAL_HEADER
+#include <thrust/system/cpp/detail/logical.h>
 
 #define __THRUST_DEVICE_SYSTEM_LOGICAL_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/logical.h>
 #include __THRUST_DEVICE_SYSTEM_LOGICAL_HEADER

@@ -1,6 +1,6 @@
-Metadata-Version: 2.0
+Metadata-Version: 2.1
 Name: pytz
-Version: 2021.1
+Version: 2021.3
 Summary: World timezone definitions, modern and historical
 Home-page: http://pythonhosted.org/pytz
 Author: Stuart Bishop
@@ -237,8 +237,8 @@ during DST transition ambiguous periods to resolve that ambiguity.
 
 >>> print(tz.utcoffset(normal, is_dst=False))
 -1 day, 21:30:00
->>> tz.dst(normal, is_dst=False)
-datetime.timedelta(0, 3600)
+>>> tz.dst(normal, is_dst=False).seconds
+3600
 >>> tz.tzname(normal, is_dst=False)
 'NDT'
 

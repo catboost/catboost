@@ -11,10 +11,9 @@
 #define _LIBCPP___MUTEX_BASE
 
 #include <__config>
+#include <__threading_support>
 #include <chrono>
 #include <system_error>
-#include <__threading_support>
-
 #include <time.h>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
@@ -69,9 +68,9 @@ extern _LIBCPP_EXPORTED_FROM_ABI const adopt_lock_t  adopt_lock;
 
 #else
 
-/* _LIBCPP_INLINE_VAR */ constexpr defer_lock_t  defer_lock  = defer_lock_t();
-/* _LIBCPP_INLINE_VAR */ constexpr try_to_lock_t try_to_lock = try_to_lock_t();
-/* _LIBCPP_INLINE_VAR */ constexpr adopt_lock_t  adopt_lock  = adopt_lock_t();
+/* inline */ constexpr defer_lock_t  defer_lock  = defer_lock_t();
+/* inline */ constexpr try_to_lock_t try_to_lock = try_to_lock_t();
+/* inline */ constexpr adopt_lock_t  adopt_lock  = adopt_lock_t();
 
 #endif
 
@@ -97,8 +96,8 @@ public:
     ~lock_guard() _LIBCPP_THREAD_SAFETY_ANNOTATION(release_capability()) {__m_.unlock();}
 
 private:
-    lock_guard(lock_guard const&) _LIBCPP_EQUAL_DELETE;
-    lock_guard& operator=(lock_guard const&) _LIBCPP_EQUAL_DELETE;
+    lock_guard(lock_guard const&) = delete;
+    lock_guard& operator=(lock_guard const&) = delete;
 };
 
 template <class _Mutex>
@@ -190,8 +189,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     bool owns_lock() const _NOEXCEPT {return __owns_;}
     _LIBCPP_INLINE_VISIBILITY
-    _LIBCPP_EXPLICIT
-        operator bool () const _NOEXCEPT {return __owns_;}
+    explicit operator bool() const _NOEXCEPT {return __owns_;}
     _LIBCPP_INLINE_VISIBILITY
     mutex_type* mutex() const _NOEXCEPT {return __m_;}
 };
@@ -526,4 +524,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP___MUTEX_BASE
+#endif // _LIBCPP___MUTEX_BASE

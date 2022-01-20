@@ -29,7 +29,7 @@ ALLOW library/python/tools_mongodb_cache -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common/fanout -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/src/bots/common -> contrib/python/django/django-1.11
 ALLOW mssngr/botplatform/tests -> contrib/python/django/django-1.11
-ALLOW passport/python/contrib/django_contrib_comments -> contrib/python/django/django-1.11
+ALLOW passport/backend/contrib/django_contrib_comments -> contrib/python/django/django-1.11
 ALLOW plus/gift/pdfgen -> contrib/python/django/django-1.11
 ALLOW plus/utils/tests -> contrib/python/django/django-1.11
 ALLOW quality/functionality/chats/common/bots -> contrib/python/django/django-1.11
@@ -140,25 +140,9 @@ ALLOW dict/ontodb/tools/fields_diff/lib -> contrib/python/MySQL-python
 ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
 ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
-ALLOW passport/python/adm_api -> contrib/python/MySQL-python
-ALLOW passport/python/api -> contrib/python/MySQL-python
-ALLOW passport/python/core/serializers/eav/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/db/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/db/read_api/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/dbmanager/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/frodo/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/mailer/faker/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/models/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/models/phones/faker/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/processor/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/serializers/domain/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/serializers/tests -> contrib/python/MySQL-python
-ALLOW passport/python/core/yasms -> contrib/python/MySQL-python
-ALLOW passport/python/dbscripts -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
-ALLOW passport/python/social -> contrib/python/MySQL-python
-ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
+ALLOW passport/backend/social -> contrib/python/MySQL-python
+ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
 # avia task to migrate from MySQL-python https://st.yandex-team.ru/RASPTICKETS-18201
@@ -238,7 +222,7 @@ ALLOW mds/s3/s3_mds_proxy -> contrib/python/pycrypto
 ALLOW metrika/core -> contrib/python/pycrypto
 ALLOW mlp/mail -> contrib/python/pycrypto
 ALLOW mssngr/router/tools/export_legacy_messages -> contrib/python/pycrypto
-ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/pycrypto
+ALLOW passport/infra/daemons/blackbox/ut/totp_manual/tests -> contrib/python/pycrypto
 ALLOW quality/functionality/turbo/merger/ut/medium -> contrib/python/pycrypto
 ALLOW samogon -> contrib/python/pycrypto
 ALLOW sandbox/common -> contrib/python/pycrypto
@@ -275,8 +259,8 @@ ALLOW travel/avia -> contrib/python/pymqi
 DENY .* -> contrib/python/pymqi
 
 # https://st.yandex-team.ru/CONTRIB-1839
-ALLOW datalens/backend/app/dls -> contrib/python/Quart
-DENY .* -> contrib/python/Quart
+ALLOW datalens/backend/app/dls -> contrib/python/quart
+DENY .* -> contrib/python/quart
 
 # https://st.yandex-team.ru/CONTRIB-2012
 ALLOW maps/geomarketing -> contrib/python/facebook-business
@@ -349,7 +333,7 @@ ALLOW billing/balance -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcsaap/backend/celery_app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcs/dcs -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/dcs/tools/devserver -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW billing/dwh/grocery -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW billing/dwh/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/nirvana_reports/tools/simple_email_report/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/snout/yb_snout_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW billing/snout/yb_snout_proxy -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -360,7 +344,7 @@ ALLOW cloud/support/mdb-support-bot -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/databases -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/fastapi-utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/gino -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW contrib/python/graphene-sqlalchemy/graphene_sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW contrib/python/graphene-sqlalchemy/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/luigi -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sentry-sdk/sentry_sdk/integrations/sqlalchemy -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW contrib/python/sqlalchemy/sqlalchemy-1.2/sqlalchemy/testing -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -534,30 +518,29 @@ ALLOW ofd/notifier/tests/test_unit/libconftest -> contrib/python/sqlalchemy/sqla
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_channels -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_event_types -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW ofd/notifier/tests/test_unit/test_sender/test_notification_types -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/db/faker -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/dbmanager -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/db/read_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/serializers/domain -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/serializers/domain/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core/serializers/eav/query -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/takeout/celery/celery_tasks -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests/commands -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests_highload/access -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests_highload/secrets -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests/views/secrets -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api/tests/views -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/vault/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW passport/python/yasms/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/db/faker -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/dbmanager -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/db/read_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/serializers/domain -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/serializers/domain/tests -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core/serializers/eav/query -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/core -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/library/errors -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/proxy2 -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/social/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/qa/test_user_service/tus_api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests/commands -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests/common -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests_highload/access -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests_highload/secrets -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests/views/secrets -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api/tests/views -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/backend/vault/api -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/scripts/ems -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/tools/postgres_local/tests_recipe -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/ab_testing/tools/postgres_local -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -566,6 +549,7 @@ ALLOW quality/functionality/turbo/forms/app/lib -> contrib/python/sqlalchemy/sql
 ALLOW quality/functionality/turbo/forms/job/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/functionality/turbo/json_api/app/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quality/functionality/turbo/json_api/job/lib -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quasar/db/orm -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/app -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/blueprints -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
@@ -708,10 +692,10 @@ DENY .* -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW education/ -> contrib/python/dataclasses-json
 DENY .* -> contrib/python/dataclasses-json
 
-# stringcase is a transitive dependency of dataclasses-json. Do not use it
-ALLOW contrib/python/dataclasses-json -> contrib/python/stringcase
-DENY .* -> contrib/python/stringcase
-
 # https://st.yandex-team.ru/CONTRIB-2222
 ALLOW browser/infra/.* -> contrib/python/hurry.filesize
 DENY .* -> contrib/python/hurry.filesize
+
+# https://st.yandex-team.ru/CONTRIB-2338
+ALLOW noc/.* -> contrib/python/asyncssh
+DENY .* -> contrib/python/asyncssh

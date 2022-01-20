@@ -42,7 +42,7 @@ class HtmlLexer(RegexLexer):
             ('[^<&]+', Text),
             (r'&\S*?;', Name.Entity),
             (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),
-            ('<!--', Comment, 'comment'),
+            (r'<!--(.|\n)*?-->', Comment.Multiline),
             (r'<\?.*?\?>', Comment.Preproc),
             ('<![^>]*>', Comment.Preproc),
             (r'(<)(\s*)(script)(\s*)',
@@ -58,11 +58,6 @@ class HtmlLexer(RegexLexer):
             (r'(<)(\s*)(/)(\s*)([\w:.-]+)(\s*)(>)',
              bygroups(Punctuation, Text, Punctuation, Text, Name.Tag, Text,
                       Punctuation)),
-        ],
-        'comment': [
-            ('[^-]+', Comment),
-            ('-->', Comment, '#pop'),
-            ('-', Comment),
         ],
         'tag': [
             (r'\s+', Text),
@@ -213,17 +208,12 @@ class XmlLexer(RegexLexer):
         'root': [
             ('[^<&]+', Text),
             (r'&\S*?;', Name.Entity),
-            (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),
-            ('<!--', Comment, 'comment'),
+            (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),            
+            (r'<!--(.|\n)*?-->', Comment.Multiline),
             (r'<\?.*?\?>', Comment.Preproc),
             ('<![^>]*>', Comment.Preproc),
             (r'<\s*[\w:.-]+', Name.Tag, 'tag'),
             (r'<\s*/\s*[\w:.-]+\s*>', Name.Tag),
-        ],
-        'comment': [
-            ('[^-]+', Comment),
-            ('-->', Comment, '#pop'),
-            ('-', Comment),
         ],
         'tag': [
             (r'\s+', Text),

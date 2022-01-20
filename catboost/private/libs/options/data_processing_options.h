@@ -4,7 +4,7 @@
 #include "enums.h"
 #include "binarization_options.h"
 #include "text_processing_options.h"
-#include "runtime_embedding_options.h"
+#include "embedding_processing_options.h"
 #include "unimplemented_aware_option.h"
 
 #include <catboost/libs/helpers/sparse_array.h>
@@ -45,6 +45,7 @@ namespace NCatboostOptions {
 
         TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled
         TOption<NCB::ESparseArrayIndexingType> DevSparseArrayIndexingType;
+        TOption<bool> ForceUnitAutoPairWeights;
 
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
         TCpuOnlyOption<bool> DevLeafwiseScoring;

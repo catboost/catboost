@@ -227,34 +227,6 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_standard_layout<TNonStdLayoutClass4>::value);
     }
 
-    Y_UNIT_TEST(TestIsStdPod) {
-        UNIT_ASSERT(std::is_pod<TPodClass>::value);
-        UNIT_ASSERT(!std::is_pod<TNonPodClass>::value);
-        UNIT_ASSERT(std::is_pod<int>::value);
-        UNIT_ASSERT(std::is_pod<float>::value);
-        UNIT_ASSERT(std::is_pod<double>::value);
-        UNIT_ASSERT(std::is_pod<char>::value);
-        UNIT_ASSERT(std::is_pod<long>::value);
-    }
-
-    template <typename T>
-    void TestAllTypeTraitFlagsSet() {
-        UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
-        UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
-    }
-
-    Y_UNIT_TEST(TestUserTypeTrait) {
-        TestAllTypeTraitFlagsSet<int>();
-        TestAllTypeTraitFlagsSet<float>();
-        TestAllTypeTraitFlagsSet<double>();
-        TestAllTypeTraitFlagsSet<char>();
-        TestAllTypeTraitFlagsSet<long>();
-        TestAllTypeTraitFlagsSet<TPodClass>();
-
-        UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseSerializable);
-        UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseCopyable);
-    }
-
     template <class T>
     using TTrySum = decltype(std::declval<T>() + std::declval<T>());
 

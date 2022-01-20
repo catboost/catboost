@@ -29,12 +29,26 @@ from enum import Enum
 from py4j.java_gateway import JavaObject
 
 from pyspark import keyword_only, SparkContext
-from pyspark.ml.classification import JavaClassificationModel
 """
     )
 
-    if (sparkCompatVersion.startsWith("3.")) {
-        out.println("from pyspark.ml.regression import JavaRegressionModel")
+    sparkCompatVersion match {
+      case "3.0" => out.println(s"""
+from pyspark.ml.classification import JavaProbabilisticClassificationModel
+from pyspark.ml.regression import JavaRegressionModel
+"""
+        )
+      case "3.1" => out.println(s"""
+from pyspark.ml.classification import _JavaProbabilisticClassificationModel
+from pyspark.ml.regression import _JavaRegressionModel
+"""
+        )
+      case _ => out.println(s"""
+from pyspark.ml.classification import JavaClassificationModel
+from pyspark.ml.util import JavaPredictionModel
+from pyspark.ml.wrapper import JavaModel
+"""
+      )
     }
 
     out.println(
@@ -45,15 +59,6 @@ from pyspark.ml.param import Param, Params
 from pyspark.ml.util import JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
 """
     )
-
-    if (!sparkCompatVersion.startsWith("3.")) {
-      out.println(
-        s"""
-from pyspark.ml.util import JavaPredictionModel
-from pyspark.ml.wrapper import JavaModel
-"""
-      )
-    }
 
     out.println(
       s"""
@@ -127,7 +132,7 @@ def _py2java(sc, obj):
             'swigToEnum'
         )(obj.value)
     if isinstance(obj, datetime.timedelta):
-        return sc._jvm.java.time.Duration.ofMillis(obj.microseconds // 1000)
+        return sc._jvm.java.time.Duration.ofMillis(obj // datetime.timedelta(milliseconds=1))
     if isinstance(obj, JavaParams):
         return obj._to_java()
     if isinstance(obj, collections.OrderedDict):
@@ -208,7 +213,6 @@ class CatBoostMLReader(JavaMLReader):
     val enumParamReg = """.*EnumParam\[([\w\.]+)\]""".r
     
     for (member <- universe.typeOf[Params].members) {
-      //println(s"member.name=${member.name.toString.trim}, member.typeSignature.typeSymbol.name.toString='${member.typeSignature.typeSymbol.name.toString}'");
       val pyType = member.typeSignature.typeSymbol.name.toString match {
         case "BooleanParam" => Some("bool")
         case "IntParam" => Some("int")
@@ -235,7 +239,6 @@ class CatBoostMLReader(JavaMLReader):
       } 
       pyType match {
         case Some(pyType) => { 
-          //println(s"Add: '${member.typeSignature.toString}': ${member.name.toString.trim} ${pyType}");
           result += (member.name.toString.trim -> pyType) 
         }
         case None => ()
@@ -337,17 +340,13 @@ class $enumName(Enum):
     params.params.filter(p => p.name != "classWeights").map(
       param => {
         val nameInMethods = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, param.name)
-        val defaultValueDescription = params.getDefault(param) match {
-          case Some(value) => s", default: ${value.toString}"
-          case None => ""
-        }
         s"""
     def get${nameInMethods}(self):
         "\""
         Returns
         -------
         ${paramNameToPythonTypeMap(param.name)}
-            ${param.doc} ${defaultValueDescription}
+            ${param.doc}
         "\""
         return self.getOrDefault(self.${param.name})
 
@@ -355,7 +354,7 @@ class $enumName(Enum):
         "\""
         Parameters
         ----------
-        value: ${paramNameToPythonTypeMap(param.name)}${defaultValueDescription}
+        value : ${paramNameToPythonTypeMap(param.name)}
             ${param.doc}
         "\""
         self._set(${param.name}=value)
@@ -378,8 +377,7 @@ class $enumName(Enum):
 
         Parameters
         ----------
-
-${generateParamsDocStrings(params, tabShift=3)}
+${generateParamsDocStrings(params, tabShift=2)}
         "\""
         if hasattr(self, "_input_kwargs"):
             kwargs = self._input_kwargs
@@ -399,9 +397,9 @@ ${generateParamsGettersAndSetters(params)}
       s"""
 class $pyClassName(JavaParams):
     "\""
-    Init Parameters
+    Parameters
     ----------
-${generateParamsDocStrings(params, tabShift=2)}
+${generateParamsDocStrings(params, tabShift=1)}
     "\""
 
     @keyword_only
@@ -421,13 +419,16 @@ ${generateParamsPart(params, paramsKeywordArgs)}
     )
   }
   
-  def generateForwardedAccessors(accessors: Seq[String]) : String = {
-    accessors.map(
-      accessor => s"""
+  def generateForwardedAccessors(accessors: Seq[(String, String)]) : String = {
+    accessors.map{
+      case (accessor, docString) => s"""
     def $accessor(self):
+        "\""
+        $docString
+        "\""
         return self._call_java("$accessor")
 """
-    ).mkString("\n")
+    }.mkString("\n")
   }
   
   def generatePoolWrapper(out: PrintWriter) = {
@@ -435,12 +436,12 @@ ${generateParamsPart(params, paramsKeywordArgs)}
     
     val paramsKeywordArgs = generateParamsKeywordArgs(pool)
     val forwardedAccessors = Seq(
-      "isQuantized",
-      "getFeatureCount",
-      "getFeatureNames",
-      "count",
-      "pairsCount",
-      "getBaselineCount"
+      ("isQuantized","Returns whether the main `data` has already been quantized."),
+      ("getFeatureCount", "Returns the number of features."),
+      ("getFeatureNames", "Returns the list of feature names."),
+      ("count", "Returns the number of rows in the main `data` DataFrame."),
+      ("pairsCount", "Returns the number of rows in the `pairsData` DataFrame."),
+      ("getBaselineCount", "Returns the dimension of the baseline data (0 if not specified).")
     )
     
     out.println(
@@ -479,10 +480,17 @@ ${generateForwardedAccessors(forwardedAccessors)}
 
     @property
     def data(self):
+        "\""
+        DataFrame with the main data (features, label, (optionally) weight etc.)
+        "\""
         return self._call_java("data")
 
     @property
     def pairsData(self):
+        "\""
+        DataFrame with the pairs data (groupId, winnerId, loserId and optionally weight).
+        Can be None.
+        "\""
         return self._call_java("pairsData")
 
     def quantize(self, quantizationParams = None):
@@ -503,8 +511,8 @@ ${generateForwardedAccessors(forwardedAccessors)}
     def load(sparkSession, dataPathWithScheme, columnDescription=None, poolLoadParams=None, pairsDataPathWithScheme=None):
         "\""
         Load dataset in one of CatBoost's natively supported formats:
-          dsv - https://catboost.ai/docs/concepts/input-data_values-file.html
-          libsvm - https://catboost.ai/docs/concepts/input-data_libsvm.html
+           * dsv - https://catboost.ai/docs/concepts/input-data_values-file.html
+           * libsvm - https://catboost.ai/docs/concepts/input-data_libsvm.html
         
         Parameters
         ----------
@@ -602,9 +610,9 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
     def fit(self, trainDataset, evalDatasets=None):
         "\""
         Extended variant of standard Estimator's fit method
-         that accepts CatBoost's Pool s and allows to specify additional
-         datasets for computing evaluation metrics and overfitting detection similarily to CatBoost's other APIs.
-         
+        that accepts CatBoost's Pool s and allows to specify additional
+        datasets for computing evaluation metrics and overfitting detection similarily to CatBoost's other APIs.
+        
         Parameters
         ---------- 
         trainDataset : Pool or DataFrame
@@ -649,10 +657,11 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
     "\""
     $modelDoc
     "\""
-    def __init__(self, java_model):
+    def __init__(self, java_model=None):
         super($modelClassName, self).__init__(java_model)
 ${generateParamsInitialization(modelAsParams)}
-        self._transfer_params_from_java()
+        if java_model is not None:
+            self._transfer_params_from_java()
 
 ${generateParamsPart(model, modelParamsKeywordArgs)}
 
@@ -668,8 +677,8 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
     def saveNativeModel(self, fileName, format=EModelType.CatboostBinary, exportParameters=None, pool=None):
         "\""
         Save the model to a local file.
-        See https://catboost.ai/docs/concepts/python-reference_catboostclassifier_save_model.html 
-          for detailed parameters description
+        See https://catboost.ai/docs/concepts/python-reference_catboostclassifier_save_model.html
+        for detailed parameters description
         "\""
         return self._call_java("saveNativeModel", fileName, format, exportParameters, pool)
 
@@ -678,14 +687,14 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         "\""
         Load the model from a local file.
         See https://catboost.ai/docs/concepts/python-reference_catboostclassifier_load_model.html
-          for detailed parameters description
+        for detailed parameters description
         "\""
         sc = SparkContext._active_spark_context
         java_model = sc._jvm.ai.catboost.spark.$modelClassName.loadNativeModel(fileName, _py2java(sc, format))
         return $modelClassName(java_model)
 
 
-    def transformPool(pool):
+    def transformPool(self, pool):
         "\""
         This function is useful when the dataset has been already quantized but works with any Pool
         "\""
@@ -705,17 +714,17 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         data : Pool
             if fstrType is PredictionDiff it is required and must contain 2 samples
             if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
-             with flag to store no leaf weights.
+            with flag to store no leaf weights.
             otherwise it can be null
         calcType : ECalcTypeShapValues
             Used only for PredictionValuesChange. 
             Possible values:
-            - Regular
-                Calculate regular SHAP values
-            - Approximate
-                Calculate approximate SHAP values
-            - Exact
-                Calculate exact SHAP values
+              - Regular
+                 Calculate regular SHAP values
+              - Approximate
+                 Calculate approximate SHAP values
+              - Exact
+                 Calculate exact SHAP values
 
         Returns
         -------
@@ -737,17 +746,19 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         data : Pool
             if fstrType is PredictionDiff it is required and must contain 2 samples
             if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
-             with flag to store no leaf weights.
+            with flag to store no leaf weights.
             otherwise it can be null
         calcType : ECalcTypeShapValues
             Used only for PredictionValuesChange. 
             Possible values:
-            - Regular
-                Calculate regular SHAP values
-            - Approximate
-                Calculate approximate SHAP values
-            - Exact
-                Calculate exact SHAP values
+
+              - Regular
+                 Calculate regular SHAP values
+              - Approximate
+                 Calculate approximate SHAP values
+              - Exact
+                 Calculate exact SHAP values
+
         Returns
         -------
         list of FeatureImportance
@@ -770,25 +781,26 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
             dataset to calculate SHAP values for
         preCalcMode : EPreCalcShapValues
             Possible values:
-            - Auto
-                Use direct SHAP Values calculation only if data size is smaller than average leaves number
-                (the best of two strategies below is chosen).
-            - UsePreCalc
-                Calculate SHAP Values for every leaf in preprocessing. Final complexity is
-                O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
-                D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
-                This is much faster (because of a smaller constant) than direct calculation when N >> L
-            - NoPreCalc
-                Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
-                is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+               - Auto
+                  Use direct SHAP Values calculation only if data size is smaller than average leaves number
+                  (the best of two strategies below is chosen).
+               - UsePreCalc
+                  Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+                  O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+                  D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+                  This is much faster (because of a smaller constant) than direct calculation when N >> L
+               - NoPreCalc
+                  Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+                  is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
         calcType : ECalcTypeShapValues
             Possible values:
-            - Regular
-                Calculate regular SHAP values
-            - Approximate
-                Calculate approximate SHAP values
-            - Exact
-                Calculate exact SHAP values
+
+              - Regular
+                 Calculate regular SHAP values
+              - Approximate
+                 Calculate approximate SHAP values
+              - Exact
+                 Calculate exact SHAP values
         referenceData : Pool
             reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
             if referenceData is not null, then Independent Tree SHAP values are calculated
@@ -834,6 +846,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
             pair of features names to calculate SHAP interaction values for.
         preCalcMode : EPreCalcShapValues
             Possible values:
+
             - Auto
                 Use direct SHAP Values calculation only if data size is smaller than average leaves number
                 (the best of two strategies below is chosen).
@@ -847,12 +860,13 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
                 is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
         calcType : ECalcTypeShapValues
             Possible values:
-            - Regular
-                Calculate regular SHAP values
-            - Approximate
-                Calculate approximate SHAP values
-            - Exact
-                Calculate exact SHAP values
+
+              - Regular
+                  Calculate regular SHAP values
+              - Approximate
+                  Calculate approximate SHAP values
+              - Exact
+                  Calculate exact SHAP values
         outputColumns : list of str
             columns from data to add to output DataFrame, if None - add all columns
 
@@ -984,7 +998,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostRegressor, 
           new CatBoostRegressionModel(new native_impl.TFullModel()), 
-          if (sparkCompatVersion.startsWith("3.")) { "JavaRegressionModel" } else { "JavaPredictionModel" },
+          sparkCompatVersion match {
+            case "3.0" => "JavaRegressionModel"
+            case "3.1" => "_JavaRegressionModel"
+            case _ => "JavaPredictionModel"
+          },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
           sparkCompatVersion,
@@ -993,7 +1011,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostClassifier, 
           new CatBoostClassificationModel(new native_impl.TFullModel()),
-          "JavaClassificationModel", 
+          sparkCompatVersion match {
+            case "3.0" => "JavaProbabilisticClassificationModel"
+            case "3.1" => "_JavaProbabilisticClassificationModel"
+            case _ => "JavaClassificationModel"
+          },
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
           sparkCompatVersion,

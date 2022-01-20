@@ -1,7 +1,6 @@
 import collections
 import csv
 import json
-import itertools
 import os
 import random
 import shutil
@@ -12,11 +11,16 @@ import numpy as np
 from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
+    'append_params_to_cmdline',
     'binary_path',
     'compare_evals',
     'compare_evals_with_precision',
     'compare_fit_evals_with_precision',
     'compare_metrics_with_diff',
+    'format_crossvalidation',
+    'get_limited_precision_dsv_diff_tool',
+    'get_limited_precision_json_diff_tool',
+    'get_limited_precision_numpy_diff_tool',
     'generate_random_labeled_dataset',
     'generate_concatenated_random_labeled_dataset',
     'generate_dataset_with_num_and_cat_features',
@@ -297,21 +301,37 @@ def compare_evals(fit_eval, calc_eval, skip_header=False):
 
 
 def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, atol=1e-8, skip_last_column_in_fit=True):
-    array_fit = np.loadtxt(fit_eval, delimiter='\t', skiprows=1, ndmin=2)
-    array_calc = np.loadtxt(calc_eval, delimiter='\t', skiprows=1, ndmin=2)
-    header_fit = open(fit_eval, "r").readline().split()
-    header_calc = open(calc_eval, "r").readline().split()
+    df_fit = read_csv(fit_eval, sep='\t')
     if skip_last_column_in_fit:
-        array_fit = np.delete(array_fit, np.s_[-1], 1)
-        header_fit = header_fit[:-1]
-    if header_fit != header_calc:
+        df_fit = df_fit.iloc[:, :-1]
+
+    df_calc = read_csv(calc_eval, sep='\t')
+
+    if np.any(df_fit.columns != df_calc.columns):
+        sys.stderr.write('column sets differ: {}, {}'.format(df_fit.columns, df_calc.columns))
         return False
-    is_close = np.isclose(array_fit, array_calc, rtol=rtol, atol=atol)
-    if np.all(is_close):
-        return True
-    for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
-        sys.stderr.write("index: {} {} != {}\n".format(i, array_fit[i], array_calc[i]))
-    return False
+
+    def print_diff(column, row_idx):
+        sys.stderr.write(
+            "column: {}, index: {} {} != {}\n".format(
+                column,
+                row_idx,
+                df_fit[column][row_idx],
+                df_calc[column][row_idx]
+            )
+        )
+
+    for column in df_fit.columns:
+        if column in ['SampleId', 'Label']:
+            if (df_fit[column] != df_calc[column]).any():
+                print_diff(column, np.where(df_fit[column] != df_calc[column])[0])
+                return False
+        else:
+            is_close = np.isclose(df_fit[column].to_numpy(), df_calc[column].to_numpy(), rtol=rtol, atol=atol)
+            if np.any(is_close == 0):
+                print_diff(column, np.where(is_close == 0)[0])
+                return False
+    return True
 
 
 def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6, atol=1e-8):
@@ -354,3 +374,51 @@ def load_pool_features_as_df(pool_file, cd_file):
     columns_metadata = read_cd(cd_file, data_file=pool_file, canonize_column_types=True)
     data = load_dataset_as_dataframe(pool_file, columns_metadata)
     return (data['features'], columns_metadata['cat_feature_indices'])
+
+
+def append_params_to_cmdline(cmd, params):
+    if isinstance(params, dict):
+        for param in params.items():
+            key = "{}".format(param[0])
+            value = "{}".format(param[1])
+            cmd.append(key)
+            cmd.append(value)
+    else:
+        for param in params:
+            cmd.append(param)
+
+
+def format_crossvalidation(is_inverted, n, k):
+    cv_type = 'Inverted' if is_inverted else 'Classical'
+    return '{}:{};{}'.format(cv_type, n, k)
+
+
+def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
+    ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
+    if have_header:
+        diff_tool += ['--have-header']
+    return diff_tool
+
+
+def get_limited_precision_json_diff_tool(diff_limit):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_json_diff/limited_precision_json_diff"),
+    ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
+    return diff_tool
+
+
+def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
+    diff_tool = [
+        binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
+    ]
+    if rtol is not None:
+        diff_tool += ['--rtol', str(rtol)]
+    if atol is not None:
+        diff_tool += ['--atol', str(atol)]
+    return diff_tool

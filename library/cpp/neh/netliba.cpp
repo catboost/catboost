@@ -11,14 +11,11 @@
 #include <library/cpp/dns/cache.h>
 
 #include <util/generic/hash.h>
-#include <util/generic/hash_set.h>
 #include <util/generic/singleton.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
-#include <util/network/ip.h>
 #include <util/string/cast.h>
 #include <util/system/yassert.h>
-#include <util/thread/factory.h>
 
 #include <atomic>
 
@@ -30,7 +27,7 @@ namespace NNeh {
 
     bool TNetLibaOptions::Set(TStringBuf name, TStringBuf value) {
 #define NETLIBA_TRY_SET(optType, optName)     \
-    if (name == AsStringBuf(#optName)) {      \
+    if (name == TStringBuf(#optName)) {      \
         optName = FromString<optType>(value); \
     }
 

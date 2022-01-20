@@ -5,7 +5,6 @@
 
 #include <library/cpp/sse/sse.h>
 #include <library/cpp/testing/common/env.h>
-#include <util/system/platform.h>
 #include <util/system/compiler.h>
 #include <util/generic/utility.h>
 #include <util/system/cpu_id.h>
@@ -255,3 +254,21 @@ TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, si
 }
 
 #endif // ARCADIA_SSE
+
+namespace NDotProduct {
+    void DisableAvx2() {
+#ifdef ARCADIA_SSE
+        NDotProductImpl::DotProductI8Impl = &DotProductSse;
+        NDotProductImpl::DotProductUi8Impl = &DotProductSse;
+        NDotProductImpl::DotProductI32Impl = &DotProductSse;
+        NDotProductImpl::DotProductFloatImpl = &DotProductSse;
+        NDotProductImpl::DotProductDoubleImpl = &DotProductSse;
+#else
+        NDotProductImpl::DotProductI8Impl = &DotProductSimple;
+        NDotProductImpl::DotProductUi8Impl = &DotProductSimple;
+        NDotProductImpl::DotProductI32Impl = &DotProductSimple;
+        NDotProductImpl::DotProductFloatImpl = &DotProductSimple;
+        NDotProductImpl::DotProductDoubleImpl = &DotProductSimple;
+#endif
+    }
+}

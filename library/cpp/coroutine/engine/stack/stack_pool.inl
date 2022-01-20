@@ -26,7 +26,7 @@ namespace NCoro::NStack {
         Y_ASSERT(Guard_.GetSize() < StackSize_); // stack has enough space to place guard
         Y_ASSERT(stackSizeInPages >= RssPagesToKeep_);
 
-        Storage_ = MakeHolder<TStorage>(settings.Executor, StackSize_, RssPagesToKeep_);
+        Storage_ = MakeHolder<TStorage>(StackSize_, RssPagesToKeep_, settings.ReleaseRate);
 
         AllocNewMemoryChunk();
     }

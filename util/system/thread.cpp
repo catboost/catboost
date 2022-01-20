@@ -9,12 +9,21 @@
 #include "yassert.h"
 #include <utility>
 
-#if !defined(_win_)
+#if defined(_glibc_)
+    #if !__GLIBC_PREREQ(2, 30)
+        #include <sys/syscall.h>
+    #endif
+#endif
+
+#if defined(_unix_)
     #include <pthread.h>
-#else
+    #include <sys/types.h>
+#elif defined(_win_)
     #include "dynlib.h"
     #include <util/charset/wide.h>
     #include <util/generic/scope.h>
+#else
+    #error "FIXME"
 #endif
 
 bool SetHighestThreadPriority() {
@@ -317,6 +326,30 @@ TThread::TId TThread::Id() const noexcept {
 
 TThread::TId TThread::CurrentThreadId() noexcept {
     return SystemCurrentThreadId();
+}
+
+TThread::TId TThread::CurrentThreadNumericId() noexcept {
+#if defined(_win_)
+    return GetCurrentThreadId();
+#elif defined(_darwin_)
+    // There is no gettid() on MacOS and SYS_gettid returns completely unrelated numbers.
+    // See: http://elliotth.blogspot.com/2012/04/gettid-on-mac-os.html
+    uint64_t threadId;
+    pthread_threadid_np(nullptr, &threadId);
+    return threadId;
+#elif defined(_musl_) || defined(_bionic_)
+    // both musl and android libc provide gettid() function
+    return gettid();
+#elif defined(_glibc_)
+    #if __GLIBC_PREREQ(2, 30)
+    return gettid();
+    #else
+    // gettid() was introduced in glibc=2.30, previous versions lack neat syscall wrapper
+    return syscall(SYS_gettid);
+    #endif
+#else
+    #error "Implement me"
+#endif
 }
 
 TThread::TId TThread::ImpossibleThreadId() noexcept {

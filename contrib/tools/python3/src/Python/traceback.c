@@ -719,6 +719,26 @@ _Py_DumpASCII(int fd, PyObject *text)
         truncated = 0;
     }
 
+    // Is an ASCII string?
+    if (ascii->state.ascii) {
+        assert(kind == PyUnicode_1BYTE_KIND);
+        char *str = data;
+
+        int need_escape = 0;
+        for (i=0; i < size; i++) {
+            ch = str[i];
+            if (!(' ' <= ch && ch <= 126)) {
+                need_escape = 1;
+                break;
+            }
+        }
+        if (!need_escape) {
+            // The string can be written with a single write() syscall
+            _Py_write_noraise(fd, str, size);
+            goto done;
+        }
+    }
+
     for (i=0; i < size; i++) {
         if (kind != PyUnicode_WCHAR_KIND)
             ch = PyUnicode_READ(kind, data, i);
@@ -742,6 +762,8 @@ _Py_DumpASCII(int fd, PyObject *text)
             _Py_DumpHexadecimal(fd, ch, 8);
         }
     }
+
+done:
     if (truncated) {
         PUTS(fd, "...");
     }
@@ -799,7 +821,10 @@ dump_traceback(int fd, PyThreadState *tstate, int write_header)
         PUTS(fd, "Stack (most recent call first):\n");
     }
 
-    frame = PyThreadState_GetFrame(tstate);
+    // Use a borrowed reference. Avoid Py_INCREF/Py_DECREF, since this function
+    // can be called in a signal handler by the faulthandler module which must
+    // not modify Python objects.
+    frame = tstate->frame;
     if (frame == NULL) {
         PUTS(fd, "<no Python frame>\n");
         return;
@@ -808,17 +833,14 @@ dump_traceback(int fd, PyThreadState *tstate, int write_header)
     depth = 0;
     while (1) {
         if (MAX_FRAME_DEPTH <= depth) {
-            Py_DECREF(frame);
             PUTS(fd, "  ...\n");
             break;
         }
         if (!PyFrame_Check(frame)) {
-            Py_DECREF(frame);
             break;
         }
         dump_frame(fd, frame);
-        PyFrameObject *back = PyFrame_GetBack(frame);
-        Py_DECREF(frame);
+        PyFrameObject *back = frame->f_back;
 
         if (back == NULL) {
             break;

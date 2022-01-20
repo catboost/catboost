@@ -2,9 +2,10 @@
 
 This section contains basic information regarding the supported metrics for various machine learning problems.
 - [Regression](loss-functions-regression.md)
-- [Multiregression: objectives and metrics](loss-functions-multiregression.md)
+- [Multiregression](loss-functions-multiregression.md)
 - [Classification](loss-functions-classification.md)
 - [Multiclassification](loss-functions-multiclassification.md)
+- [Multilabel classification](loss-functions-multilabel-classification.md)
 - [Ranking](loss-functions-ranking.md)
 
 Refer to the [Variables used in formulas](loss-functions-variables-used.md) section for the description of commonly used variables in the listed metrics.

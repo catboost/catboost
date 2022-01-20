@@ -360,9 +360,14 @@ void GuardedPageAllocator::MaybeRightAlign(size_t slot, size_t size,
 
   // If alignment == 0, the necessary alignment is never larger than the size
   // rounded up to the next power of 2.  We use this fact to minimize alignment
-  // padding between the end of small allocations and their guard pages.  For
-  // allocations larger than kAlignment, we're safe aligning to kAlignment.
-  size_t default_alignment = std::min(absl::bit_ceil(size), kAlignment);
+  // padding between the end of small allocations and their guard pages.
+  //
+  // For allocations larger than the greater of kAlignment and
+  // __STDCPP_DEFAULT_NEW_ALIGNMENT__, we're safe aligning to that value.
+  size_t default_alignment =
+      std::min(absl::bit_ceil(size),
+               std::max(kAlignment,
+                        static_cast<size_t>(__STDCPP_DEFAULT_NEW_ALIGNMENT__)));
 
   // Ensure valid alignment.
   alignment = std::max(alignment, default_alignment);

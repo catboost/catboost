@@ -14,7 +14,7 @@ import copy
 from pygments.lexer import ExtendedRegexLexer, RegexLexer, include, bygroups, \
     default, words, inherit
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['CssLexer', 'SassLexer', 'ScssLexer', 'LessCssLexer']
 
@@ -279,7 +279,7 @@ class CssLexer(RegexLexer):
             include('basics'),
         ],
         'basics': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'/\*(?:.|\n)*?\*/', Comment),
             (r'\{', Punctuation, 'content'),
             (r'(\:{1,2})([\w-]+)', bygroups(Punctuation, Name.Decorator)),
@@ -301,23 +301,23 @@ class CssLexer(RegexLexer):
             (r'\}', Punctuation, '#pop:2'),
         ],
         'content': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\}', Punctuation, '#pop'),
             (r';', Punctuation),
             (r'^@.*?$', Comment.Preproc),
 
             (words(_vendor_prefixes,), Keyword.Pseudo),
             (r'('+r'|'.join(_css_properties)+r')(\s*)(\:)',
-             bygroups(Keyword, Text, Punctuation), 'value-start'),
-            (r'([-]+[a-zA-Z_][\w-]*)(\s*)(\:)', bygroups(Name.Variable, Text, Punctuation),
+             bygroups(Keyword, Whitespace, Punctuation), 'value-start'),
+            (r'([-]+[a-zA-Z_][\w-]*)(\s*)(\:)', bygroups(Name.Variable, Whitespace, Punctuation),
              'value-start'),
-            (r'([a-zA-Z_][\w-]*)(\s*)(\:)', bygroups(Name, Text, Punctuation),
+            (r'([a-zA-Z_][\w-]*)(\s*)(\:)', bygroups(Name, Whitespace, Punctuation),
              'value-start'),
 
             (r'/\*(?:.|\n)*?\*/', Comment),
         ],
         'value-start': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (words(_vendor_prefixes,), Name.Builtin.Pseudo),
             include('urls'),
             (r'('+r'|'.join(_functional_notation_keyword_values)+r')(\()',
@@ -343,7 +343,7 @@ class CssLexer(RegexLexer):
             (r'\}', Punctuation, '#pop:2'),
         ],
         'function-start': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'[-]+([\w+]+[-]*)+', Name.Variable),
             include('urls'),
             (words(_vendor_prefixes,), Keyword.Pseudo),
@@ -389,7 +389,7 @@ class CssLexer(RegexLexer):
 
 common_sass_tokens = {
     'value': [
-        (r'[ \t]+', Text),
+        (r'[ \t]+', Whitespace),
         (r'[!$][\w-]+', Name.Variable),
         (r'url\(', String.Other, 'string-url'),
         (r'[a-z_-][\w-]*(?=\()', Name.Function),
@@ -451,7 +451,7 @@ common_sass_tokens = {
     ],
 
     'selector': [
-        (r'[ \t]+', Text),
+        (r'[ \t]+', Whitespace),
         (r'\:', Name.Decorator, 'pseudo-class'),
         (r'\.', Name.Class, 'class'),
         (r'\#', Name.Namespace, 'id'),
@@ -508,7 +508,7 @@ common_sass_tokens = {
 
 def _indentation(lexer, match, ctx):
     indentation = match.group(0)
-    yield match.start(), Text, indentation
+    yield match.start(), Whitespace, indentation
     ctx.last_indentation = indentation
     ctx.pos = match.end()
 
@@ -553,7 +553,7 @@ class SassLexer(ExtendedRegexLexer):
 
     tokens = {
         'root': [
-            (r'[ \t]*\n', Text),
+            (r'[ \t]*\n', Whitespace),
             (r'[ \t]*', _indentation),
         ],
 
@@ -565,8 +565,8 @@ class SassLexer(ExtendedRegexLexer):
             (r'@import', Keyword, 'import'),
             (r'@for', Keyword, 'for'),
             (r'@(debug|warn|if|while)', Keyword, 'value'),
-            (r'(@mixin)( [\w-]+)', bygroups(Keyword, Name.Function), 'value'),
-            (r'(@include)( [\w-]+)', bygroups(Keyword, Name.Decorator), 'value'),
+            (r'(@mixin)( )([\w-]+)', bygroups(Keyword, Whitespace, Name.Function), 'value'),
+            (r'(@include)( )([\w-]+)', bygroups(Keyword, Whitespace, Name.Decorator), 'value'),
             (r'@extend', Keyword, 'selector'),
             (r'@[\w-]+', Keyword, 'selector'),
             (r'=[\w-]+', Name.Function, 'value'),
@@ -580,31 +580,31 @@ class SassLexer(ExtendedRegexLexer):
 
         'single-comment': [
             (r'.+', Comment.Single),
-            (r'\n', Text, 'root'),
+            (r'\n', Whitespace, 'root'),
         ],
 
         'multi-comment': [
             (r'.+', Comment.Multiline),
-            (r'\n', Text, 'root'),
+            (r'\n', Whitespace, 'root'),
         ],
 
         'import': [
-            (r'[ \t]+', Text),
+            (r'[ \t]+', Whitespace),
             (r'\S+', String),
-            (r'\n', Text, 'root'),
+            (r'\n', Whitespace, 'root'),
         ],
 
         'old-style-attr': [
             (r'[^\s:="\[]+', Name.Attribute),
             (r'#\{', String.Interpol, 'interpolation'),
-            (r'[ \t]*=', Operator, 'value'),
+            (r'([ \t]*)(=)', bygroups(Whitespace, Operator), 'value'),
             default('value'),
         ],
 
         'new-style-attr': [
             (r'[^\s:="\[]+', Name.Attribute),
             (r'#\{', String.Interpol, 'interpolation'),
-            (r'[ \t]*[=:]', Operator, 'value'),
+            (r'([ \t]*)([=:])', bygroups(Whitespace, Operator), 'value'),
         ],
 
         'inline-comment': [
@@ -615,8 +615,8 @@ class SassLexer(ExtendedRegexLexer):
     }
     for group, common in common_sass_tokens.items():
         tokens[group] = copy.copy(common)
-    tokens['value'].append((r'\n', Text, 'root'))
-    tokens['selector'].append((r'\n', Text, 'root'))
+    tokens['value'].append((r'\n', Whitespace, 'root'))
+    tokens['selector'].append((r'\n', Whitespace, 'root'))
 
 
 class ScssLexer(RegexLexer):
@@ -632,7 +632,7 @@ class ScssLexer(RegexLexer):
     flags = re.IGNORECASE | re.DOTALL
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'//.*?\n', Comment.Single),
             (r'/\*.*?\*/', Comment.Multiline),
             (r'@import', Keyword, 'value'),
@@ -641,7 +641,7 @@ class ScssLexer(RegexLexer):
             (r'(@mixin)( [\w-]+)', bygroups(Keyword, Name.Function), 'value'),
             (r'(@include)( [\w-]+)', bygroups(Keyword, Name.Decorator), 'value'),
             (r'@extend', Keyword, 'selector'),
-            (r'(@media)(\s+)', bygroups(Keyword, Text), 'value'),
+            (r'(@media)(\s+)', bygroups(Keyword, Whitespace), 'value'),
             (r'@[\w-]+', Keyword, 'selector'),
             (r'(\$[\w-]*\w)([ \t]*:)', bygroups(Name.Variable, Operator), 'value'),
             # TODO: broken, and prone to infinite loops.
@@ -665,8 +665,8 @@ class ScssLexer(RegexLexer):
     }
     for group, common in common_sass_tokens.items():
         tokens[group] = copy.copy(common)
-    tokens['value'].extend([(r'\n', Text), (r'[;{}]', Punctuation, '#pop')])
-    tokens['selector'].extend([(r'\n', Text), (r'[;{}]', Punctuation, '#pop')])
+    tokens['value'].extend([(r'\n', Whitespace), (r'[;{}]', Punctuation, '#pop')])
+    tokens['selector'].extend([(r'\n', Whitespace), (r'[;{}]', Punctuation, '#pop')])
 
 
 class LessCssLexer(CssLexer):

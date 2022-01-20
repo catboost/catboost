@@ -146,7 +146,16 @@
             "1"
         ],
         "class_weights" : [ ],
+        "embedding_processing_options" : {
+            "embedding_processing" : {
+                "default" : [
+                    "LDA",
+                    "KNN"
+                ]
+            }
+        },
         "target_border" : null,
+        "force_unit_auto_pair_weights" : false,
         "dev_sparse_array_indexing" : "Indices",
         "auto_class_weights" : "None",
         "float_features_binarization" : {

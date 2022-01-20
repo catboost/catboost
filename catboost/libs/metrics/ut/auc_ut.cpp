@@ -210,7 +210,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         }
 
         const auto queryAUC = std::move(CreateMetricsFromDescription({description}, 1).front());
-        const auto metric = queryAUC->Eval(
+        const auto metric = dynamic_cast<const ISingleTargetEval*>(queryAUC.Get())->Eval(
             prediction,
             targets,
             weights,
@@ -381,7 +381,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
                 EPS
             );
         }
-        
+
         {
             TQueryInfo info(0, 3);
             TestQueryAuc(

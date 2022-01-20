@@ -1,3 +1,4 @@
+ALLOW contrib/clickhouse -> library/cpp/consistent_hashing
 ALLOW contrib -> contrib
 ALLOW contrib -> build
 ALLOW contrib -> library/python/resource
@@ -33,6 +34,7 @@ ALLOW contrib/python/transfer_manager_client -> transfer_manager/client
 ALLOW contrib/(deprecated/)?python/django -> library/python/django
 ALLOW contrib/(deprecated/)?python/django -> library/python/gunicorn
 ALLOW contrib/python/python-magic -> library/python/symbols/libmagic
+ALLOW contrib/python/typecode -> library/python/symbols/libmagic
 ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
 ALLOW contrib/libs/clang12/tools/extra/clang-tidy/tool -> library/cpp/clang_tidy
 ALLOW contrib/libs/inja -> library/cpp/scheme

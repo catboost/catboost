@@ -90,4 +90,7 @@ namespace NDotProduct {
             return DotProduct(l, r, length);
         }
     };
+
+    void DisableAvx2();
 }
+

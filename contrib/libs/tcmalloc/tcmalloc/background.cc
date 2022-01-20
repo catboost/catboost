@@ -93,6 +93,22 @@ void ShuffleCpuCaches() {
   Static::cpu_cache().ShuffleCpuCaches();
 }
 
+// Reclaims per-cpu caches. The CPU mask used in ReleasePerCpuMemoryToOS does
+// not provide useful information about virtual CPU state and hence, does not
+// reclaim memory when virtual CPUs are enabled.
+//
+// Here, we use heuristics that are based on cache usage and misses, to
+// determine if the caches have been recently inactive and if they may be
+// reclaimed.
+void ReclaimIdleCpuCaches() {
+  // Attempts reclaim only when per-CPU caches are in use.
+  if (!MallocExtension::PerCpuCachesActive()) {
+    return;
+  }
+
+  Static::cpu_cache().TryReclaimingCaches();
+}
+
 }  // namespace
 }  // namespace tcmalloc_internal
 }  // namespace tcmalloc
@@ -108,9 +124,19 @@ void MallocExtension_Internal_ProcessBackgroundActions() {
   absl::Time prev_time = absl::Now();
   constexpr absl::Duration kSleepTime = absl::Seconds(1);
 
+  // Reclaim inactive per-cpu caches once per kCpuCacheReclaimPeriod.
+  //
+  // We use a longer 30 sec reclaim period to make sure that caches are indeed
+  // idle. Reclaim drains entire cache, as opposed to cache shuffle for instance
+  // that only shrinks a cache by a few objects at a time. So, we might have
+  // larger performance degradation if we use a shorter reclaim interval and
+  // drain caches that weren't supposed to.
+  constexpr absl::Duration kCpuCacheReclaimPeriod = absl::Seconds(30);
+  absl::Time last_reclaim = absl::Now();
+
   // Shuffle per-cpu caches once per kCpuCacheShufflePeriod secs.
   constexpr absl::Duration kCpuCacheShufflePeriod = absl::Seconds(5);
-  absl::Time last_shuffle = absl::InfinitePast();
+  absl::Time last_shuffle = absl::Now();
 
   while (true) {
     absl::Time now = absl::Now();
@@ -122,7 +148,22 @@ void MallocExtension_Internal_ProcessBackgroundActions() {
       tcmalloc::MallocExtension::ReleaseMemoryToSystem(bytes_to_release);
     }
 
-    tcmalloc::tcmalloc_internal::ReleasePerCpuMemoryToOS();
+    const bool reclaim_idle_per_cpu_caches =
+        tcmalloc::tcmalloc_internal::Parameters::reclaim_idle_per_cpu_caches();
+
+    // If enabled, we use heuristics to determine if the per-cpu caches are
+    // inactive. If disabled, we use a more conservative approach, that uses
+    // allowed cpu masks, to reclaim cpu caches.
+    if (reclaim_idle_per_cpu_caches) {
+      // Try to reclaim per-cpu caches once every kCpuCacheReclaimPeriod
+      // when enabled.
+      if (now - last_reclaim >= kCpuCacheReclaimPeriod) {
+        tcmalloc::tcmalloc_internal::ReclaimIdleCpuCaches();
+        last_reclaim = now;
+      }
+    } else {
+      tcmalloc::tcmalloc_internal::ReleasePerCpuMemoryToOS();
+    }
 
     const bool shuffle_per_cpu_caches =
         tcmalloc::tcmalloc_internal::Parameters::shuffle_per_cpu_caches();

@@ -267,9 +267,8 @@ Omitted
 The method for [processing missing values](../../../concepts/algorithm-missing-values-processing.md) in the input dataset.
 
 Possible values:
-- — Missing values are not supported, their presence is interpreted as an error.
-- — Missing values are processed as the minimum value (less than all other values) for the feature. It is guaranteed that a split that separates missing values from all other values is considered when selecting trees.
-- — Missing values are processed as the maximum value (greater than all other values) for the feature. It is guaranteed that a split that separates missing values from all other values is considered when selecting trees.
+
+{% include [reusage-missing-values-mv-processing-methods](../reusage-missing-values/mv-processing-methods.md) %}
 
 Using the  {{ fit__nan_mode__min }} or {{ fit__nan_mode__max }} value of this parameter guarantees that a split between missing values and other values is considered when selecting a new split in the tree.
 
@@ -314,6 +313,8 @@ Format:
 - {{ error-function__MultiRMSE }}
 - {{ error-function--MultiClass }}
 - {{ error-function--MultiClassOneVsAll }}
+- {{ error-function__MultiLogloss }}
+- {{ error-function__MultiCrossEntropy }}
 - {{ error-function--MAPE }}
 - {{ error-function--Poisson }}
 - {{ error-function__PairLogit }}
@@ -2448,11 +2449,11 @@ Possible values:
 
 - {{ fit__model-format_CatboostBinary }}.
 - {{ fit__model-format_applecoreml }}(only datasets without categorical features are currently supported).
-- {{ fit__model-format_json }} (multiclassification models are not currently supported). Refer to the [CatBoost JSON model tutorial]({{ catboost-repo__json-tutorial }) for format details.
+- {{ fit__model-format_json }} (multiclassification models are not currently supported). Refer to the [CatBoost JSON model tutorial]({{ catboost-repo__json-tutorial }}) for format details.
 - {{ fit__model-format_python }} (multiclassification models are not currently supported).See the [Python](../../../concepts/python-reference_apply_catboost_model.md) section for details on applying the resulting model.
 - {{ fit__model-format_cpp }} (multiclassification models are not currently supported). See the [C++](../../../concepts/c-plus-plus-api_applycatboostmodel.md) section for details on applying the resulting model.
 - {{ fitpython__model-format_onnx }} — ONNX-ML format (only datasets without categorical features are currently supported). Refer to [https://onnx.ai/](https://onnx.ai/) for details. See the [ONNX](../../../concepts/apply-onnx-ml.md) section for details on applying the resulting model.
-- {{ fitpython__model-format_pmml }} — [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](../../../concepts/apply-pmml.md) section for details on applying the resulting model.
+- {{ fitpython__model-format_pmml }} — [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }}) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](../../../concepts/apply-pmml.md) section for details on applying the resulting model.
 
 
 

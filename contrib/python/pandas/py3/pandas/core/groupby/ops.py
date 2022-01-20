@@ -81,6 +81,7 @@ from pandas.core.arrays.masked import (
     BaseMaskedArray,
     BaseMaskedDtype,
 )
+from pandas.core.arrays.string_ import StringDtype
 import pandas.core.common as com
 from pandas.core.frame import DataFrame
 from pandas.core.generic import NDFrame
@@ -427,6 +428,26 @@ class WrappedCythonOp:
             cls = dtype.construct_array_type()
             return cls._from_sequence(res_values, dtype=dtype)
 
+        elif isinstance(values.dtype, StringDtype):
+            # StringArray
+            npvalues = values.to_numpy(object, na_value=np.nan)
+            res_values = self._cython_op_ndim_compat(
+                npvalues,
+                min_count=min_count,
+                ngroups=ngroups,
+                comp_ids=comp_ids,
+                mask=None,
+                **kwargs,
+            )
+            if self.how in ["rank"]:
+                # i.e. how in WrappedCythonOp.cast_blocklist, since
+                #  other cast_blocklist methods dont go through cython_operation
+                return res_values
+
+            dtype = self._get_result_dtype(orig_values.dtype)
+            cls = dtype.construct_array_type()
+            return cls._from_sequence(res_values, dtype=dtype)
+
         raise NotImplementedError(
             f"function is not implemented for this dtype: {values.dtype}"
         )
@@ -525,9 +546,10 @@ class WrappedCythonOp:
         elif is_bool_dtype(dtype):
             values = values.astype("int64")
         elif is_integer_dtype(dtype):
-            # e.g. uint8 -> uint64, int16 -> int64
-            dtype_str = dtype.kind + "8"
-            values = values.astype(dtype_str, copy=False)
+            # GH#43329 If the dtype is explicitly of type uint64 the type is not
+            # changed to prevent overflow.
+            if dtype != np.uint64:
+                values = values.astype(np.int64, copy=False)
         elif is_numeric:
             if not is_complex_dtype(dtype):
                 values = ensure_float64(values)
@@ -544,7 +566,7 @@ class WrappedCythonOp:
         result = maybe_fill(np.empty(out_shape, dtype=out_dtype))
         if self.kind == "aggregate":
             counts = np.zeros(ngroups, dtype=np.int64)
-            if self.how in ["min", "max"]:
+            if self.how in ["min", "max", "mean"]:
                 func(
                     result,
                     counts,
@@ -552,6 +574,16 @@ class WrappedCythonOp:
                     comp_ids,
                     min_count,
                     is_datetimelike=is_datetimelike,
+                )
+            elif self.how in ["add"]:
+                # We support datetimelike
+                func(
+                    result,
+                    counts,
+                    values,
+                    comp_ids,
+                    min_count,
+                    datetimelike=is_datetimelike,
                 )
             else:
                 func(result, counts, values, comp_ids, min_count)

@@ -548,7 +548,7 @@ decoding_fgets(char *s, int size, struct tok_state *tok)
                 "Non-UTF-8 code starting with '\\x%.2x' "
                 "in file %U on line %i, "
                 "but no encoding declared; "
-                "see http://python.org/dev/peps/pep-0263/ for details",
+                "see https://python.org/dev/peps/pep-0263/ for details",
                 badchar, tok->filename, tok->lineno + 1);
         return error_ret(tok);
     }
@@ -1752,7 +1752,6 @@ tok_get(struct tok_state *tok, const char **p_start, const char **p_end)
         c = tok_nextc(tok);
         if (c != '\n') {
             tok->done = E_LINECONT;
-            tok->cur = tok->inp;
             return ERRORTOKEN;
         }
         c = tok_nextc(tok);

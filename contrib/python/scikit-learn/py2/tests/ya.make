@@ -45,7 +45,7 @@ TEST_SRCS(
     # Depends on disabled scipy/misc/pilutil.py.
     #sklearn/datasets/tests/test_lfw.py
 
-    # Depends on contrib/python/scipy/scipy/misc data files.
+    # Depends on contrib/python/scipy/misc data files.
     #sklearn/feature_extraction/tests/test_image.py
 
     sklearn/cluster/tests/__init__.py

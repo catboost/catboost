@@ -17,6 +17,9 @@
 
 namespace std
 {
+// [rand.req.urng], uniform random bit generator requirements
+template<class G>
+concept uniform_random_bit_generator = see below; // C++20
 
 // Engines
 
@@ -36,7 +39,9 @@ public:
     static constexpr result_type default_seed = 1u;
 
     // constructors and seeding functions
-    explicit linear_congruential_engine(result_type s = default_seed);
+    explicit linear_congruential_engine(result_type s = default_seed);         // before C++20
+    linear_congruential_engine() : linear_congruential_engine(default_seed) {} // C++20
+    explicit linear_congruential_engine(result_type s);                        // C++20
     template<class Sseq> explicit linear_congruential_engine(Sseq& q);
     void seed(result_type s = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -96,7 +101,9 @@ public:
     static constexpr result_type default_seed = 5489u;
 
     // constructors and seeding functions
-    explicit mersenne_twister_engine(result_type value = default_seed);
+    explicit mersenne_twister_engine(result_type s = default_seed);      // before C++20
+    mersenne_twister_engine() : mersenne_twister_engine(default_seed) {} // C++20
+    explicit mersenne_twister_engine(result_type s);                     // C++20
     template<class Sseq> explicit mersenne_twister_engine(Sseq& q);
     void seed(result_type value = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -154,7 +161,9 @@ public:
     static constexpr result_type default_seed = 19780503u;
 
     // constructors and seeding functions
-    explicit subtract_with_carry_engine(result_type value = default_seed);
+    explicit subtract_with_carry_engine(result_type value = default_seed);     // before C++20
+    subtract_with_carry_engine() : subtract_with_carry_engine(default_seed) {} // C++20
+    explicit subtract_with_carry_engine(result_type value);                    // C++20
     template<class Sseq> explicit subtract_with_carry_engine(Sseq& q);
     void seed(result_type value = default_seed);
     template<class Sseq> void seed(Sseq& q);
@@ -385,7 +394,9 @@ public:
     static constexpr result_type max() { return numeric_limits<result_type>::max(); }
 
     // constructors
-    explicit random_device(const string& token = "/dev/urandom");
+    explicit random_device(const string& token = implementation-defined); // before C++20
+    random_device() : random_device(implementation-defined) {}            // C++20
+    explicit random_device(const string& token);                          // C++20
 
     // generating functions
     result_type operator()();
@@ -456,7 +467,10 @@ public:
 
     // constructors and reset functions
     explicit uniform_int_distribution(IntType a = 0,
-                                    IntType b = numeric_limits<IntType>::max());
+                                      IntType b = numeric_limits<IntType>::max()); // before C++20
+    uniform_int_distribution() : uniform_int_distribution(0) {}                    // C++20
+    explicit uniform_int_distribution(IntType a,
+                                      IntType b = numeric_limits<IntType>::max()); // C++20
     explicit uniform_int_distribution(const param_type& parm);
     void reset();
 
@@ -515,7 +529,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit uniform_real_distribution(RealType a = 0.0, RealType b = 1.0);
+    explicit uniform_real_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    uniform_real_distribution() : uniform_real_distribution(0.0) {}         // C++20
+    explicit uniform_real_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit uniform_real_distribution(const param_type& parm);
     void reset();
 
@@ -571,7 +587,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit bernoulli_distribution(double p = 0.5);
+    explicit bernoulli_distribution(double p = 0.5);          // before C++20
+    bernoulli_distribution() : bernoulli_distribution(0.5) {} // C++20
+    explicit bernoulli_distribution(double p);                // C++20
     explicit bernoulli_distribution(const param_type& parm);
     void reset();
 
@@ -628,7 +646,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit binomial_distribution(IntType t = 1, double p = 0.5);
+    explicit binomial_distribution(IntType t = 1, double p = 0.5); // before C++20
+    binomial_distribution() : binomial_distribution(1) {}          // C++20
+    explicit binomial_distribution(IntType t, double p = 0.5);     // C++20
     explicit binomial_distribution(const param_type& parm);
     void reset();
 
@@ -685,7 +705,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit geometric_distribution(double p = 0.5);
+    explicit geometric_distribution(double p = 0.5);          // before C++20
+    geometric_distribution() : geometric_distribution(0.5) {} // C++20
+    explicit geometric_distribution(double p);                // C++20
     explicit geometric_distribution(const param_type& parm);
     void reset();
 
@@ -742,7 +764,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit negative_binomial_distribution(result_type k = 1, double p = 0.5);
+    explicit negative_binomial_distribution(IntType k = 1, double p = 0.5); // before C++20
+    negative_binomial_distribution() : negative_binomial_distribution(1) {} // C++20
+    explicit negative_binomial_distribution(IntType k, double p = 0.5);     // C++20
     explicit negative_binomial_distribution(const param_type& parm);
     void reset();
 
@@ -799,7 +823,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit poisson_distribution(double mean = 1.0);
+    explicit poisson_distribution(double mean = 1.0);     // before C++20
+    poisson_distribution() : poisson_distribution(1.0) {} // C++20
+    explicit poisson_distribution(double mean);           // C++20
     explicit poisson_distribution(const param_type& parm);
     void reset();
 
@@ -855,7 +881,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit exponential_distribution(result_type lambda = 1.0);
+    explicit exponential_distribution(RealType lambda = 1.0);     // before C++20
+    exponential_distribution() : exponential_distribution(1.0) {} // C++20
+    explicit exponential_distribution(RealType lambda);           // C++20
     explicit exponential_distribution(const param_type& parm);
     void reset();
 
@@ -912,7 +940,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit gamma_distribution(result_type alpha = 1, result_type beta = 1);
+    explicit gamma_distribution(RealType alpha = 0.0, RealType beta = 1.0); // before C++20
+    gamma_distribution() : gamma_distribution(0.0) {}                       // C++20
+    explicit gamma_distribution(RealType alpha, RealType beta = 1.0);       // C++20
     explicit gamma_distribution(const param_type& parm);
     void reset();
 
@@ -970,7 +1000,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit weibull_distribution(result_type a = 1, result_type b = 1);
+    explicit weibull_distribution(RealType a = 1.0, RealType b = 1.0); // before C++20
+    weibull_distribution() : weibull_distribution(1.0) {}              // C++20
+    explicit weibull_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit weibull_distribution(const param_type& parm);
     void reset();
 
@@ -1028,7 +1060,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit extreme_value_distribution(result_type a = 0, result_type b = 1);
+    explicit extreme_value_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    extreme_value_distribution() : extreme_value_distribution(0.0) {}        // C++20
+    explicit extreme_value_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit extreme_value_distribution(const param_type& parm);
     void reset();
 
@@ -1086,7 +1120,9 @@ public:
     };
 
     // constructors and reset functions
-    explicit normal_distribution(result_type mean = 0, result_type stddev = 1);
+    explicit normal_distribution(RealType mean = 0.0, RealType stddev = 1.0); // before C++20
+    normal_distribution() : normal_distribution(0.0) {}                       // C++20
+    explicit normal_distribution(RealType mean, RealType stddev = 1.0);       // C++20
     explicit normal_distribution(const param_type& parm);
     void reset();
 
@@ -1144,7 +1180,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit lognormal_distribution(result_type m = 0, result_type s = 1);
+    explicit lognormal_distribution(RealType mean = 0.0, RealType stddev = 1.0); // before C++20
+    lognormal_distribution() : lognormal_distribution(0.0) {}                    // C++20
+    explicit lognormal_distribution(RealType mean, RealType stddev = 1.0);       // C++20
     explicit lognormal_distribution(const param_type& parm);
     void reset();
 
@@ -1201,7 +1239,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit chi_squared_distribution(result_type n = 1);
+    explicit chi_squared_distribution(RealType n = 1.0);          // before C++20
+    chi_squared_distribution() : chi_squared_distribution(1.0) {} // C++20
+    explicit chi_squared_distribution(RealType n);                // C++20
     explicit chi_squared_distribution(const param_type& parm);
     void reset();
 
@@ -1258,7 +1298,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit cauchy_distribution(result_type a = 0, result_type b = 1);
+    explicit cauchy_distribution(RealType a = 0.0, RealType b = 1.0); // before C++20
+    cauchy_distribution() : cauchy_distribution(0.0) {}               // C++20
+    explicit cauchy_distribution(RealType a, RealType b = 1.0);       // C++20
     explicit cauchy_distribution(const param_type& parm);
     void reset();
 
@@ -1316,7 +1358,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit fisher_f_distribution(result_type m = 1, result_type n = 1);
+    explicit fisher_f_distribution(RealType m = 1.0, RealType n = 1.0); // before C++20
+    fisher_f_distribution() : fisher_f_distribution(1.0) {}             // C++20
+    explicit fisher_f_distribution(RealType m, RealType n = 1.0);       // C++20
     explicit fisher_f_distribution(const param_type& parm);
     void reset();
 
@@ -1373,7 +1417,9 @@ public:
     };
 
     // constructor and reset functions
-    explicit student_t_distribution(result_type n = 1);
+    explicit student_t_distribution(RealType n = 1.0);        // before C++20
+    student_t_distribution() : student_t_distribution(1.0) {} // C++20
+    explicit student_t_distribution(RealType n);              // C++20
     explicit student_t_distribution(const param_type& parm);
     void reset();
 
@@ -1632,17 +1678,19 @@ class piecewise_linear_distribution
 */
 
 #include <__config>
+#include <__random/uniform_int_distribution.h>
+#include <algorithm>
+#include <cmath>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
-#include <cmath>
-#include <type_traits>
 #include <initializer_list>
-#include <limits>
-#include <algorithm>
-#include <numeric>
-#include <vector>
-#include <string>
 #include <iosfwd>
+#include <limits>
+#include <numeric>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -1653,6 +1701,20 @@ _LIBCPP_PUSH_MACROS
 
 
 _LIBCPP_BEGIN_NAMESPACE_STD
+
+#if _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
+
+// [rand.req.urng]
+template<class _Gen>
+concept uniform_random_bit_generator =
+  invocable<_Gen&> && unsigned_integral<invoke_result_t<_Gen&>> &&
+  requires {
+    { _Gen::min() } -> same_as<invoke_result_t<_Gen&>>;
+    { _Gen::max() } -> same_as<invoke_result_t<_Gen&>>;
+    requires bool_constant<(_Gen::min() < _Gen::max())>::value;
+  };
+
+#endif // _LIBCPP_STD_VER > 17 && !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 // __is_seed_sequence
 
@@ -1669,7 +1731,7 @@ struct __is_seed_sequence
 template <unsigned long long __a, unsigned long long __c,
           unsigned long long __m, unsigned long long _Mp,
           bool _MightOverflow = (__a != 0 && __m != 0 && __m-1 > (_Mp-__c)/__a),
-          bool _OverflowOK = ((__m|__m-1) > __m), // m = 2^n
+          bool _OverflowOK = ((__m | (__m-1)) > __m), // m = 2^n
           bool _SchrageOK = (__a != 0 && __m != 0 && __m % __a <= __m / __a)> // r <= q
 struct __lce_alg_picker
 {
@@ -1858,7 +1920,7 @@ private:
 
     static_assert(__m == 0 || __a < __m, "linear_congruential_engine invalid parameters");
     static_assert(__m == 0 || __c < __m, "linear_congruential_engine invalid parameters");
-    static_assert(_VSTD::is_unsigned<_UIntType>::value, "_UIntType must be unsigned type");
+    static_assert(is_unsigned<_UIntType>::value, "_UIntType must be unsigned type");
 public:
     static _LIBCPP_CONSTEXPR const result_type _Min = __c == 0u ? 1u: 0u;
     static _LIBCPP_CONSTEXPR const result_type _Max = __m - 1u;
@@ -1875,9 +1937,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 1u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit linear_congruential_engine(result_type __s = default_seed)
-        {seed(__s);}
+    linear_congruential_engine() : linear_congruential_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit linear_congruential_engine(result_type __s) { seed(__s); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit linear_congruential_engine(result_type __s = default_seed) {
+      seed(__s);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit linear_congruential_engine(_Sseq& __q,
@@ -2131,9 +2201,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 5489u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit mersenne_twister_engine(result_type __sd = default_seed)
-        {seed(__sd);}
+    mersenne_twister_engine() : mersenne_twister_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit mersenne_twister_engine(result_type __sd) { seed(__sd); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit mersenne_twister_engine(result_type __sd = default_seed) {
+      seed(__sd);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit mersenne_twister_engine(_Sseq& __q,
@@ -2589,9 +2667,17 @@ public:
     static _LIBCPP_CONSTEXPR const result_type default_seed = 19780503u;
 
     // constructors and seeding functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit subtract_with_carry_engine(result_type __sd = default_seed)
-        {seed(__sd);}
+    subtract_with_carry_engine() : subtract_with_carry_engine(default_seed) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit subtract_with_carry_engine(result_type __sd) { seed(__sd); }
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit subtract_with_carry_engine(result_type __sd = default_seed) {
+      seed(__sd);
+    }
+#endif
     template<class _Sseq>
         _LIBCPP_INLINE_VISIBILITY
         explicit subtract_with_carry_engine(_Sseq& __q,
@@ -2880,7 +2966,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     explicit discard_block_engine(_Engine&& __e)
         : __e_(_VSTD::move(__e)), __n_(0) {}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     explicit discard_block_engine(result_type __sd) : __e_(__sd), __n_(0) {}
     template<class _Sseq>
@@ -3100,7 +3186,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     explicit independent_bits_engine(_Engine&& __e)
         : __e_(_VSTD::move(__e)) {}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     explicit independent_bits_engine(result_type __sd) : __e_(__sd) {}
     template<class _Sseq>
@@ -3330,7 +3416,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     explicit shuffle_order_engine(_Engine&& __e)
         : __e_(_VSTD::move(__e)) {__init();}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     explicit shuffle_order_engine(result_type __sd) : __e_(__sd) {__init();}
     template<class _Sseq>
@@ -3539,7 +3625,12 @@ public:
     static _LIBCPP_CONSTEXPR result_type max() { return _Max;}
 
     // constructors
+#ifndef _LIBCPP_CXX03_LANG
+    random_device() : random_device("/dev/urandom") {}
+    explicit random_device(const string& __token);
+#else
     explicit random_device(const string& __token = "/dev/urandom");
+#endif
     ~random_device();
 
     // generating functions
@@ -3577,7 +3668,7 @@ public:
     template<class _Tp>
         _LIBCPP_INLINE_VISIBILITY
         seed_seq(initializer_list<_Tp> __il) {init(__il.begin(), __il.end());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     template<class _InputIterator>
         _LIBCPP_INLINE_VISIBILITY
@@ -3698,42 +3789,6 @@ generate_canonical(_URNG& __g)
     return _Sp / __base;
 }
 
-// uniform_int_distribution
-
-// in <algorithm>
-
-template <class _CharT, class _Traits, class _IT>
-basic_ostream<_CharT, _Traits>&
-operator<<(basic_ostream<_CharT, _Traits>& __os,
-           const uniform_int_distribution<_IT>& __x)
-{
-    __save_flags<_CharT, _Traits> __lx(__os);
-    typedef basic_ostream<_CharT, _Traits> _Ostream;
-    __os.flags(_Ostream::dec | _Ostream::left);
-    _CharT __sp = __os.widen(' ');
-    __os.fill(__sp);
-    return __os << __x.a() << __sp << __x.b();
-}
-
-template <class _CharT, class _Traits, class _IT>
-basic_istream<_CharT, _Traits>&
-operator>>(basic_istream<_CharT, _Traits>& __is,
-           uniform_int_distribution<_IT>& __x)
-{
-    typedef uniform_int_distribution<_IT> _Eng;
-    typedef typename _Eng::result_type result_type;
-    typedef typename _Eng::param_type param_type;
-    __save_flags<_CharT, _Traits> __lx(__is);
-    typedef basic_istream<_CharT, _Traits> _Istream;
-    __is.flags(_Istream::dec | _Istream::skipws);
-    result_type __a;
-    result_type __b;
-    __is >> __a >> __b;
-    if (!__is.fail())
-        __x.param(param_type(__a, __b));
-    return __is;
-}
-
 // uniform_real_distribution
 
 template<class _RealType = double>
@@ -3773,9 +3828,16 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    uniform_real_distribution() : uniform_real_distribution(0) {}
+    explicit uniform_real_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit uniform_real_distribution(result_type __a = 0, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit uniform_real_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -3891,9 +3953,15 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit bernoulli_distribution(double __p = 0.5)
-        : __p_(param_type(__p)) {}
+    bernoulli_distribution() : bernoulli_distribution(0.5) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit bernoulli_distribution(double __p) : __p_(param_type(__p)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit bernoulli_distribution(double __p = 0.5) : __p_(param_type(__p)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit bernoulli_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4009,9 +4077,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    binomial_distribution() : binomial_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit binomial_distribution(result_type __t, double __p = 0.5)
+        : __p_(param_type(__t, __p)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit binomial_distribution(result_type __t = 1, double __p = 0.5)
         : __p_(param_type(__t, __p)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit binomial_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4064,7 +4140,7 @@ inline _LIBCPP_INLINE_VISIBILITY double __libcpp_lgamma(double __d) {
 }
 
 template<class _IntType>
-binomial_distribution<_IntType>::param_type::param_type(const result_type __t, const double __p)
+binomial_distribution<_IntType>::param_type::param_type(result_type __t, double __p)
     : __t_(__t), __p_(__p)
 {
     if (0 < __p_ && __p_ < 1)
@@ -4191,9 +4267,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    exponential_distribution() : exponential_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit exponential_distribution(result_type __lambda)
+        : __p_(param_type(__lambda)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit exponential_distribution(result_type __lambda = 1)
         : __p_(param_type(__lambda)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit exponential_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4314,9 +4398,18 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit normal_distribution(result_type __mean = 0, result_type __stddev = 1)
+    normal_distribution() : normal_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit normal_distribution(result_type __mean, result_type __stddev = 1)
         : __p_(param_type(__mean, __stddev)), _V_hot_(false) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit normal_distribution(result_type __mean = 0,
+                                 result_type __stddev = 1)
+        : __p_(param_type(__mean, __stddev)), _V_hot_(false) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit normal_distribution(const param_type& __p)
         : __p_(__p), _V_hot_(false) {}
@@ -4494,9 +4587,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit lognormal_distribution(result_type __m = 0, result_type __s = 1)
+    lognormal_distribution() : lognormal_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit lognormal_distribution(result_type __m, result_type __s = 1)
         : __p_(param_type(__m, __s)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit lognormal_distribution(result_type __m = 0,
+                                    result_type __s = 1)
+        : __p_(param_type(__m, __s)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit lognormal_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -4614,8 +4716,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit poisson_distribution(double __mean = 1.0) : __p_(__mean) {}
+    poisson_distribution() : poisson_distribution(1.0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit poisson_distribution(double __mean)
+        : __p_(__mean) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit poisson_distribution(double __mean = 1.0)
+        : __p_(__mean) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit poisson_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -4843,9 +4954,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    weibull_distribution() : weibull_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit weibull_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit weibull_distribution(result_type __a = 1, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit weibull_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -4959,9 +5078,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit extreme_value_distribution(result_type __a = 0, result_type __b = 1)
+    extreme_value_distribution() : extreme_value_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit extreme_value_distribution(result_type __a, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit extreme_value_distribution(result_type __a = 0,
+                                        result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit extreme_value_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5082,9 +5210,18 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit gamma_distribution(result_type __alpha = 1, result_type __beta = 1)
+    gamma_distribution() : gamma_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit gamma_distribution(result_type __alpha, result_type __beta = 1)
         : __p_(param_type(__alpha, __beta)) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit gamma_distribution(result_type __alpha = 1,
+                                result_type __beta = 1)
+        : __p_(param_type(__alpha, __beta)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit gamma_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5256,9 +5393,18 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit negative_binomial_distribution(result_type __k = 1, double __p = 0.5)
+    negative_binomial_distribution() : negative_binomial_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit negative_binomial_distribution(result_type __k, double __p = 0.5)
         : __p_(__k, __p) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit negative_binomial_distribution(result_type __k = 1,
+                                            double __p = 0.5)
+        : __p_(__k, __p) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit negative_binomial_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -5389,8 +5535,17 @@ private:
 
 public:
     // constructors and reset functions
+#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
-    explicit geometric_distribution(double __p = 0.5) : __p_(__p) {}
+    geometric_distribution() : geometric_distribution(0.5) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit geometric_distribution(double __p)
+        : __p_(__p) {}
+#else
+    _LIBCPP_INLINE_VISIBILITY
+    explicit geometric_distribution(double __p = 0.5)
+        : __p_(__p) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit geometric_distribution(const param_type& __p) : __p_(__p) {}
     _LIBCPP_INLINE_VISIBILITY
@@ -5493,9 +5648,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    chi_squared_distribution() : chi_squared_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit chi_squared_distribution(result_type __n)
+        : __p_(param_type(__n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit chi_squared_distribution(result_type __n = 1)
         : __p_(param_type(__n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit chi_squared_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5605,9 +5768,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    cauchy_distribution() : cauchy_distribution(0) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit cauchy_distribution(result_type __a, result_type __b = 1)
+        : __p_(param_type(__a, __b)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit cauchy_distribution(result_type __a = 0, result_type __b = 1)
         : __p_(param_type(__a, __b)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit cauchy_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5730,9 +5901,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    fisher_f_distribution() : fisher_f_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit fisher_f_distribution(result_type __m, result_type __n = 1)
+        : __p_(param_type(__m, __n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit fisher_f_distribution(result_type __m = 1, result_type __n = 1)
         : __p_(param_type(__m, __n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit fisher_f_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5851,9 +6030,17 @@ private:
 
 public:
     // constructor and reset functions
+#ifndef _LIBCPP_CXX03_LANG
+    _LIBCPP_INLINE_VISIBILITY
+    student_t_distribution() : student_t_distribution(1) {}
+    _LIBCPP_INLINE_VISIBILITY
+    explicit student_t_distribution(result_type __n)
+        : __p_(param_type(__n)) {}
+#else
     _LIBCPP_INLINE_VISIBILITY
     explicit student_t_distribution(result_type __n = 1)
         : __p_(param_type(__n)) {}
+#endif
     _LIBCPP_INLINE_VISIBILITY
     explicit student_t_distribution(const param_type& __p)
         : __p_(__p) {}
@@ -5956,7 +6143,7 @@ public:
         _LIBCPP_INLINE_VISIBILITY
         param_type(initializer_list<double> __wl)
             : __p_(__wl.begin(), __wl.end()) {__init();}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
         template<class _UnaryOperation>
             param_type(size_t __nw, double __xmin, double __xmax,
                        _UnaryOperation __fw);
@@ -6003,7 +6190,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     discrete_distribution(initializer_list<double> __wl)
         : __p_(__wl) {}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     template<class _UnaryOperation>
         _LIBCPP_INLINE_VISIBILITY
         discrete_distribution(size_t __nw, double __xmin, double __xmax,
@@ -6085,8 +6272,7 @@ discrete_distribution<_IntType>::param_type::__init()
         if (__p_.size() > 1)
         {
             double __s = _VSTD::accumulate(__p_.begin(), __p_.end(), 0.0);
-            for (_VSTD::vector<double>::iterator __i = __p_.begin(), __e = __p_.end();
-                                                                       __i < __e; ++__i)
+            for (vector<double>::iterator __i = __p_.begin(), __e = __p_.end(); __i < __e; ++__i)
                 *__i /= __s;
             vector<double> __t(__p_.size() - 1);
             _VSTD::partial_sum(__p_.begin(), __p_.end() - 1, __t.begin());
@@ -6105,7 +6291,7 @@ vector<double>
 discrete_distribution<_IntType>::param_type::probabilities() const
 {
     size_t __n = __p_.size();
-    _VSTD::vector<double> __p(__n+1);
+    vector<double> __p(__n+1);
     _VSTD::adjacent_difference(__p_.begin(), __p_.end(), __p.begin());
     if (__n > 0)
         __p[__n] = 1 - __p_[__n-1];
@@ -6185,7 +6371,7 @@ public:
 #ifndef _LIBCPP_CXX03_LANG
         template<class _UnaryOperation>
             param_type(initializer_list<result_type> __bl, _UnaryOperation __fw);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
         template<class _UnaryOperation>
             param_type(size_t __nw, result_type __xmin, result_type __xmax,
                        _UnaryOperation __fw);
@@ -6242,7 +6428,7 @@ public:
         piecewise_constant_distribution(initializer_list<result_type> __bl,
                                         _UnaryOperation __fw)
         : __p_(__bl, __fw) {}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     template<class _UnaryOperation>
         _LIBCPP_INLINE_VISIBILITY
@@ -6397,7 +6583,7 @@ piecewise_constant_distribution<_RealType>::param_type::param_type(
     }
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template<class _RealType>
 template<class _UnaryOperation>
@@ -6511,7 +6697,7 @@ public:
 #ifndef _LIBCPP_CXX03_LANG
         template<class _UnaryOperation>
             param_type(initializer_list<result_type> __bl, _UnaryOperation __fw);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
         template<class _UnaryOperation>
             param_type(size_t __nw, result_type __xmin, result_type __xmax,
                        _UnaryOperation __fw);
@@ -6568,7 +6754,7 @@ public:
         piecewise_linear_distribution(initializer_list<result_type> __bl,
                                       _UnaryOperation __fw)
         : __p_(__bl, __fw) {}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     template<class _UnaryOperation>
         _LIBCPP_INLINE_VISIBILITY
@@ -6727,7 +6913,7 @@ piecewise_linear_distribution<_RealType>::param_type::param_type(
     }
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template<class _RealType>
 template<class _UnaryOperation>
@@ -6833,4 +7019,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif  // _LIBCPP_RANDOM
+#endif // _LIBCPP_RANDOM

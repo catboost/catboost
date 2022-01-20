@@ -16,18 +16,18 @@ namespace NCB {
             const NJson::TJsonValue& options)
             : TEmbeddingBaseEstimator(target, learnEmbeddings, testEmbedding)
         {
-            if (options.Has("ProjectionDimension")) {
-                ProjectionDim = FromString<int>(options["ProjectionDimension"].GetString());
+            if (options.Has("components")) {
+                ProjectionDim = FromString<int>(options["components"].GetString());
             } else {
                 ProjectionDim = Min(GetTarget().NumClasses - 1u, static_cast<ui32>(GetLearnDatasetPtr()->GetDimension()) - 1u);
             }
-            if (options.Has("Regularization")) {
-                RegParam = FromString<float>(options["Regularization"].GetString());
+            if (options.Has("reg")) {
+                RegParam = FromString<float>(options["reg"].GetString());
             } else {
                 RegParam = 0.00005;
             }
-            if (options.Has("ClassLikehode")) {
-                Likehood = FromString<bool>(options["Regularization"].GetString());
+            if (options.Has("likelihood")) {
+                Likehood = FromString<bool>(options["likelihood"].GetString());
             } else {
                 Likehood = false;
             }
@@ -82,8 +82,8 @@ namespace NCB {
             : TEmbeddingBaseEstimator(target, learnEmbeddings, testEmbedding)
         {
             ClassNum = GetTarget().NumClasses;
-            if (options.Has("NeighborsNumber")) {
-                kNum = FromString<int>(options["NeighborsNumber"].GetString());
+            if (options.Has("k")) {
+                kNum = FromString<int>(options["k"].GetString());
             } else {
                 kNum = 5;
             }

@@ -33,6 +33,7 @@ import tokenize
 import shutil
 import contextlib
 import tempfile
+import warnings
 
 import setuptools
 import distutils
@@ -116,6 +117,13 @@ def _open_setup_script(setup_script):
         return io.StringIO(u"from setuptools import setup; setup()")
 
     return getattr(tokenize, 'open', open)(setup_script)
+
+
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', 'setup.py install is deprecated')
+        yield
 
 
 class _BuildMetaBackend(object):
@@ -218,8 +226,9 @@ class _BuildMetaBackend(object):
 
     def build_wheel(self, wheel_directory, config_settings=None,
                     metadata_directory=None):
-        return self._build_with_temp_dir(['bdist_wheel'], '.whl',
-                                         wheel_directory, config_settings)
+        with suppress_known_deprecation():
+            return self._build_with_temp_dir(['bdist_wheel'], '.whl',
+                                             wheel_directory, config_settings)
 
     def build_sdist(self, sdist_directory, config_settings=None):
         return self._build_with_temp_dir(['sdist', '--formats', 'gztar'],

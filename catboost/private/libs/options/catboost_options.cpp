@@ -155,7 +155,9 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::Logloss:
-        case ELossFunction::CrossEntropy: {
+        case ELossFunction::CrossEntropy:
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy: {
             defaultNewtonIterations = 10;
             defaultGradientIterations = 40;
             defaultEstimationMethod = ELeavesEstimation::Newton;
@@ -209,7 +211,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
-        case ELossFunction::PythonUserDefinedMultiRegression:
+        case ELossFunction::PythonUserDefinedMultiTarget:
         case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
@@ -273,7 +275,10 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     }
     const bool useExact = EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
             && SystemOptions->IsSingleHost()
-            && (TaskType == ETaskType::GPU || !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty());
+            && (
+                (TaskType == ETaskType::GPU && BoostingOptions->BoostingType == EBoostingType::Plain)
+                || (TaskType == ETaskType::CPU && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty())
+            );
 
     if (useExact) {
         defaultEstimationMethod = ELeavesEstimation::Exact;
@@ -807,7 +812,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
-        case ELossFunction::PythonUserDefinedMultiRegression:
+        case ELossFunction::PythonUserDefinedMultiTarget:
         case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
@@ -834,7 +839,8 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             break;
         }
         case ELossFunction::StochasticFilter: {
-            NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::FilteredDCG);
+            NCatboostOptions::TLossDescription lossDescription;
+            lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
@@ -878,6 +884,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                     break;
                 case ELossFunction::PFound:
                     validParams = {"top", "decay", "hints"};
+                    break;
+                case ELossFunction::FilteredDCG:
+                    validParams = {"type", "denominator", "hints"};
                     break;
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);

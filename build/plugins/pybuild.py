@@ -8,7 +8,7 @@ from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ym
 
 YA_IDE_VENV_VAR = 'YA_IDE_VENV'
 PY_NAMESPACE_PREFIX = 'py/namespace'
-
+BUILTIN_PROTO = 'builtin_proto'
 
 def is_arc_src(src, unit):
     return (
@@ -16,6 +16,13 @@ def is_arc_src(src, unit):
         src.startswith('${CURDIR}/') or
         unit.resolve_arc_path(src).startswith('$S/')
     )
+
+def is_extended_source_search_enabled(path, unit):
+    if not is_arc_src(path, unit):
+        return False
+    if unit.get('NO_EXTENDED_SOURCE_SEARCH') == 'yes':
+        return False
+    return True
 
 def to_build_root(path, unit):
     if is_arc_src(path, unit):
@@ -122,6 +129,7 @@ def add_python_lint_checks(unit, py_ver, files):
             "taxi/uservices/",
             "travel/",
             "market/report/lite/",  # MARKETOUT-38662, deadline: 2021-08-12
+            "passport/backend/oauth/",  # PASSP-35982
         )
 
         upath = unit.path()[3:]
@@ -131,7 +139,7 @@ def add_python_lint_checks(unit, py_ver, files):
 
     if files and unit.get('LINT_LEVEL_VALUE') not in ("none", "none_internal"):
         resolved_files = get_resolved_files()
-        flake8_cfg = 'build/config/tests/flake8.conf'
+        flake8_cfg = 'build/config/tests/flake8/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
 
@@ -297,7 +305,7 @@ def onpy_srcs(unit, *args):
                         ymake.report_configure_error('PY_SRCS item starts with "/": {!r}'.format(arg))
                         continue
                     mod_name = stripext(arg).replace('/', '.')
-                    if py3 and path.endswith('.py') and is_arc_src(path, unit):
+                    if py3 and path.endswith('.py') and is_extended_source_search_enabled(path, unit):
                         # Dig out real path from the file path. Unit.path is not enough because of SRCDIR and ADDINCL
                         root_rel_path = rootrel_arc_src(path, unit)
                         mod_root_path = root_rel_path[:-(len(path) + 1)]
@@ -436,7 +444,7 @@ def onpy_srcs(unit, *args):
             mod_list_md5 = md5()
             for path, mod in pys:
                 mod_list_md5.update(mod)
-                if not (venv and is_arc_src(path, unit)):
+                if not (venv and is_extended_source_search_enabled(path, unit)):
                     dest = 'py/' + mod.replace('.', '/') + '.py'
                     if with_py:
                         res += ['DEST', dest, path]
@@ -475,9 +483,19 @@ def onpy_srcs(unit, *args):
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
+    use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes'
+    if use_vanilla_protoc:
+        cpp_runtime_path = 'contrib/libs/protobuf_std'
+        py_runtime_path = 'contrib/python/protobuf_std'
+        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
+    else:
+        cpp_runtime_path = 'contrib/libs/protobuf'
+        py_runtime_path = 'contrib/python/protobuf'
+        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
+
     if protos:
-        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+        if not upath.startswith(py_runtime_path) and not upath.startswith(builtin_proto_path):
+            unit.onpeerdir(py_runtime_path)
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
@@ -493,9 +511,7 @@ def onpy_srcs(unit, *args):
             unit.onpeerdir(['kernel/gazetteer/proto'])
 
     if evs:
-        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
-            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
-
+        unit.onpeerdir([cpp_runtime_path])
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 

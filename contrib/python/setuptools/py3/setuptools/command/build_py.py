@@ -67,6 +67,16 @@ class build_py(orig.build_py):
         self.analyze_manifest()
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
+    def get_data_files_without_manifest(self):
+        """
+        Generate list of ``(package,src_dir,build_dir,filenames)`` tuples,
+        but without triggering any attempt to analyze or build the manifest.
+        """
+        # Prevent eventual errors from unset `manifest_files`
+        # (that would otherwise be set by `analyze_manifest`)
+        self.__dict__.setdefault('manifest_files', {})
+        return list(map(self._get_pkg_data_files, self.packages or ()))
+
     def _get_pkg_data_files(self, package):
         # Locate package source directory
         src_dir = self.get_package_dir(package)

@@ -12,16 +12,17 @@
 #include <util/generic/cast.h>
 
 
-static NCatboostOptions::TCatBoostOptions GetCatBoostOptions(
-    const TString& plainJsonParamsAsString
-) throw (yexception) {
+NJson::TJsonValue ParseCatBoostPlainParamsToJson(const TString& plainJsonParamsAsString) {
     NJson::TJsonValue plainJsonParams;
     try {
         NJson::ReadJsonTree(plainJsonParamsAsString, &plainJsonParams, /*throwOnError*/ true);
     } catch (const std::exception& e) {
         throw TCatBoostException() << "Error while parsing params JSON: " << e.what();
     }
+    return plainJsonParams;
+}
 
+NCatboostOptions::TCatBoostOptions LoadCatBoostOptions(const NJson::TJsonValue& plainJsonParams) {
     NJson::TJsonValue jsonParams;
     NJson::TJsonValue outputJsonParams;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
@@ -38,8 +39,8 @@ static NCatboostOptions::TCatBoostOptions GetCatBoostOptions(
 void InitCatBoostOptions(
     const TString& plainJsonParamsAsString,
     NCatboostOptions::TCatBoostOptions* result
-) throw (yexception) {
-    *result = GetCatBoostOptions(plainJsonParamsAsString);
+) {
+    *result = LoadCatBoostOptions(ParseCatBoostPlainParamsToJson(plainJsonParamsAsString));
 }
 
 
@@ -47,8 +48,9 @@ i32 GetOneHotMaxSize(
     i32 maxCategoricalFeaturesUniqValuesOnLearn,
     bool hasLearnTarget,
     const TString& plainJsonParamsAsString
-) throw (yexception) {
-    NCatboostOptions::TCatBoostOptions catBoostOptions = GetCatBoostOptions(plainJsonParamsAsString);
+) {
+    NCatboostOptions::TCatBoostOptions catBoostOptions
+        = LoadCatBoostOptions(ParseCatBoostPlainParamsToJson(plainJsonParamsAsString));
 
     UpdateOneHotMaxSize(
         SafeIntegerCast<ui32>(maxCategoricalFeaturesUniqValuesOnLearn),

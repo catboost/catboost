@@ -426,6 +426,7 @@ namespace {
             // Quantizing training data
             *result = GetTrainingData(
                 data,
+                /*dataCanBeEmpty*/ false,
                 /*isLearnData*/ true,
                 /*datasetName*/ TStringBuf(),
                 /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo

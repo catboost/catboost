@@ -1,39 +1,30 @@
 #pragma once
 
+#include <library/cpp/yt/misc/enum.h>
 #include <util/generic/yexception.h>
 
-namespace NYT {
+#include <library/cpp/yt/yson_string/public.h>
+#include <library/cpp/yt/yson/public.h>
+
+namespace NYson {
+
     ////////////////////////////////////////////////////////////////////////////////
 
-    //! The data format.
-    enum EYsonFormat {
-        // Binary.
-        // Most compact but not human-readable.
-        YF_BINARY,
+    using NYT::NYson::EYsonFormat;
+    using NYT::NYson::EYsonType;
 
-        // Text.
-        // Not so compact but human-readable.
-        // Does not use indentation.
-        // Uses escaping for non-text characters.
-        YF_TEXT,
+    class TYsonStringBuf;
 
-        // Text with indentation.
-        // Extremely verbose but human-readable.
-        // Uses escaping for non-text characters.
-        YF_PRETTY
-    };
+    struct TYsonConsumerBase;
 
-    enum EYsonType {
-        YT_NODE,
-        YT_LIST_FRAGMENT,
-        YT_MAP_FRAGMENT
-    };
-
-    struct IYsonConsumer;
+    class TYsonWriter;
+    class TYsonParser;
+    class TStatelessYsonParser;
+    class TYsonListParser;
 
     class TYsonException
        : public yexception {};
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

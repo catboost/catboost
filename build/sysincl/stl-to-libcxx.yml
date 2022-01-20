@@ -46,6 +46,7 @@
 
 - includes:
   - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
+  - __undef_macros:            contrib/libs/cxxsupp/libcxx/include/__undef_macros
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
   - any:                       contrib/libs/cxxsupp/libcxx/include/any
   - array:                     contrib/libs/cxxsupp/libcxx/include/array
@@ -68,6 +69,7 @@
   - codecvt:                   contrib/libs/cxxsupp/libcxx/include/codecvt
   - compare:                   contrib/libs/cxxsupp/libcxx/include/compare
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
+  - concepts:                  contrib/libs/cxxsupp/libcxx/include/concepts
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
   - csignal:                   contrib/libs/cxxsupp/libcxx/include/csignal

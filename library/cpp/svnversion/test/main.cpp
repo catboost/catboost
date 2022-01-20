@@ -24,6 +24,7 @@ int main() {
     Cout << "GetBranch(): " << GetBranch() << Endl;
     Cout << "GetTag(): " << GetTag() << Endl;
     Cout << "GetArcadiaPatchNumber(): " << GetArcadiaPatchNumber() << Endl;
+    Cout << "GetVCSDirty(): " << GetVCSDirty() << Endl;
     return 0;
 }
 

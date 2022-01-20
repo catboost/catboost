@@ -1029,6 +1029,8 @@ void    qh_errexit(qhT *qh, int exitcode, facetT *facet, ridgeT *ridge);
 void    qh_errprint(qhT *qh, const char* string, facetT *atfacet, facetT *otherfacet, ridgeT *atridge, vertexT *atvertex);
 int     qh_new_qhull(qhT *qh, int dim, int numpoints, coordT *points, boolT ismalloc,
                 char *qhull_cmd, FILE *outfile, FILE *errfile);
+int     qh_new_qhull_feaspoint(qhT *qh, int dim, int numpoints, coordT *points, boolT ismalloc,
+                char *qhull_cmd, FILE *outfile, FILE *errfile, coordT* feaspoint);
 void    qh_printfacetlist(qhT *qh, facetT *facetlist, setT *facets, boolT printall);
 void    qh_printhelp_degenerate(qhT *qh, FILE *fp);
 void    qh_printhelp_narrowhull(qhT *qh, FILE *fp, realT minangle);

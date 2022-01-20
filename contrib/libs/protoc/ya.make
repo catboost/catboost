@@ -8,8 +8,10 @@ PROVIDES(protoc)
 
 VERSION(3.17.3)
 
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.17.3.tar.gz)
+
 LICENSE(
-    BSD-3-Clause
+    BSD-3-Clause AND
     Protobuf-License
 )
 
@@ -19,7 +21,9 @@ PEERDIR(
     contrib/libs/protobuf
 )
 
-ADDINCL(GLOBAL contrib/libs/protoc/src)
+ADDINCL(
+    GLOBAL contrib/libs/protoc/src
+)
 
 NO_COMPILER_WARNINGS()
 
@@ -66,7 +70,6 @@ SRCS(
     src/google/protobuf/compiler/csharp/csharp_source_generator_base.cc
     src/google/protobuf/compiler/csharp/csharp_wrapper_field.cc
     src/google/protobuf/compiler/importer.cc
-    src/google/protobuf/compiler/importer.h
     src/google/protobuf/compiler/java/java_context.cc
     src/google/protobuf/compiler/java/java_doc_comment.cc
     src/google/protobuf/compiler/java/java_enum.cc
@@ -111,7 +114,6 @@ SRCS(
     src/google/protobuf/compiler/objectivec/objectivec_oneof.cc
     src/google/protobuf/compiler/objectivec/objectivec_primitive_field.cc
     src/google/protobuf/compiler/parser.cc
-    src/google/protobuf/compiler/parser.h
     src/google/protobuf/compiler/perlxs/perlxs_generator.cc
     src/google/protobuf/compiler/perlxs/perlxs_helpers.cc
     src/google/protobuf/compiler/php/php_generator.cc

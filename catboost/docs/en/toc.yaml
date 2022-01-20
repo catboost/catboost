@@ -1,4 +1,4 @@
-title: CatBoost 2.0
+title: CatBoost
 href: index.yaml
 items:
   - name: Installation
@@ -31,6 +31,18 @@ items:
           - href: installation/python-installation-test-catboost.md
             name: "Test\_CatBoost"
         name: Python package installation
+      - items:
+          - href: concepts/spark-installation.md
+            name: Overview
+          - href: installation/spark-installation-maven.md
+            name: For Maven projects
+          - href: installation/spark-installation-sbt.md
+            name: For sbt projects
+          - href: installation/spark-installation-pyspark.md
+            name: For PySpark
+          - href: installation/spark-installation-build-from-source-maven.md
+            name: Build from source using Maven
+        name: CatBoost for Apache Spark installation
       - items:
           - href: concepts/r-installation.md
             name: Overview
@@ -573,6 +585,8 @@ items:
             name: set_pairs_weight
           - href: concepts/python-reference_pool_set_subgroup_id.md
             name: set_subgroup_id
+          - href: concepts/python-reference_pool_set_timestamp.md
+            name: set_timestamp
           - href: concepts/python-reference_pool_set_weight.md
             name: set_weight
           - href: concepts/python-reference_pool_slice.md
@@ -649,6 +663,28 @@ items:
         name: utils
       - href: concepts/python-usages-examples.md
         name: Usage examples
+  - name: CatBoost for Apache Spark
+    items:
+      - href: concepts/spark-overview.md
+        name: Overview
+      - items:
+          - href: concepts/spark-quickstart-scala.md
+            name: Scala
+          - href: concepts/spark-quickstart-python.md
+            name: Python
+        name: Quick start
+      - href: concepts/spark-cluster-configuration.md
+        name: Spark cluster configuration
+      - href: concepts/spark-api-documentation.md
+        name: API documentation
+      - href: concepts/spark-known-limitations.md
+        name: Known limitations
+      - items:
+          - href: concepts/spark-usages-examples-scala.md
+            name: Scala
+          - href: concepts/spark-usages-examples-python.md
+            name: Python
+        name: Usage examples
   - name: R package
     items:
       - href: concepts/r-quickstart.md
@@ -699,6 +735,8 @@ items:
         name: Select features
       - href: concepts/cli-sum-models.md
         name: Sum models
+      - href: concepts/cli-distributed-learning.md
+        name: Distributed learning
       - href: concepts/cli-usages-examples.md
         name: Usage examples
   - items:
@@ -729,6 +767,8 @@ items:
             name: Converting numerical CatBoost models to Matrixnet format
       - name: C/C++
         items:
+          - href: concepts/c-plus-plus-api.md
+            name: Overview
           - href: concepts/c-plus-plus-api_dynamic-c-pluplus-wrapper.md
             name: Evaluation library
           - href: concepts/c-plus-plus-api_header-only-evaluator.md
@@ -808,6 +848,8 @@ items:
         name: 'Classification'
       - href: concepts/loss-functions-multiclassification.md
         name: 'Multiclassification'
+      - href: concepts/loss-functions-multilabel-classification.md
+        name: 'Multilabel Classification'
       - href: concepts/loss-functions-ranking.md
         name: 'Ranking'
     name: Objectives and metrics

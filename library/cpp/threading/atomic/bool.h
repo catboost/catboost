@@ -6,9 +6,14 @@ namespace NAtomic {
     class TBool {
     public:
         TBool() noexcept = default;
+
         TBool(bool val) noexcept
             : Val_(val)
         {
+        }
+
+        TBool(const TBool& src) noexcept {
+            AtomicSet(Val_, AtomicGet(src.Val_));
         }
 
         operator bool() const noexcept {

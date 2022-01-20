@@ -65,11 +65,11 @@ All rights reserved.
   "license": "ISC",
 
 
-====================Json====================
+====================JSON====================
 Open Source Software Licensed Under the JSON License:
 
 
-====================Json====================
+====================JSON====================
 Terms of the JSON License:
 ---------------------------------------------------
 

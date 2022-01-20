@@ -183,3 +183,15 @@ inline void SumTransposedBlocks(
         }
     }
 }
+
+template <typename T>
+TVector<size_t> GetNonEmptyElementsIndices(const TVector<TVector<T>>& data) {
+    TVector<size_t> result;
+    result.reserve(data.size());
+    for (auto i : xrange(data.size())) {
+        if (!data[i].empty()) {
+            result.push_back(i);
+        }
+    }
+    return result;
+}

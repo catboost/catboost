@@ -109,24 +109,21 @@ template <size_t I, class T, size_t N> const T&& get(const array<T, N>&&) noexce
 */
 
 #include <__config>
+#include <__debug>
 #include <__tuple>
+#include <algorithm>
+#include <cstdlib> // for _LIBCPP_UNREACHABLE
+#include <iterator>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <iterator>
-#include <algorithm>
-#include <stdexcept>
-#include <cstdlib> // for _LIBCPP_UNREACHABLE
 #include <version>
-#include <__debug>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
 #endif
 
-
-
 _LIBCPP_BEGIN_NAMESPACE_STD
-
 
 template <class _Tp, size_t _Size>
 struct _LIBCPP_TEMPLATE_VIS array
@@ -359,9 +356,9 @@ struct _LIBCPP_TEMPLATE_VIS array<_Tp, 0>
 };
 
 
-#ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
+#if _LIBCPP_STD_VER >= 17
 template<class _Tp, class... _Args,
-         class = _EnableIf<__all<_IsSame<_Tp, _Args>::value...>::value>
+         class = enable_if_t<__all<_IsSame<_Tp, _Args>::value...>::value>
          >
 array(_Tp, _Args...)
   -> array<_Tp, 1 + sizeof...(_Args)>;
@@ -520,4 +517,4 @@ to_array(_Tp(&&__arr)[_Size]) noexcept(is_nothrow_move_constructible_v<_Tp>) {
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif  // _LIBCPP_ARRAY
+#endif // _LIBCPP_ARRAY

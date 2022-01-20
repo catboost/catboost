@@ -6,8 +6,6 @@
 extern "C" {
 #endif
 
-#include <contrib/tools/python3/src/Include/cpython/initconfig.h>
-
 PyAPI_FUNC(int) _PyInterpreterState_RequiresIDRef(PyInterpreterState *);
 PyAPI_FUNC(void) _PyInterpreterState_RequireIDRef(PyInterpreterState *, int);
 

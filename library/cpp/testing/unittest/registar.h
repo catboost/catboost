@@ -135,7 +135,7 @@ namespace NUnitTest {
         // Should execute a test whitin suite?
         virtual bool CheckAccessTest(TString /*suite*/, const char* /*name*/);
 
-        virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, const bool /*forceFork*/);
+        virtual void Run(std::function<void()> f, const TString& /*suite*/, const char* /*name*/, bool /*forceFork*/);
 
         // This process is forked for current test
         virtual bool GetIsForked() const;
@@ -219,11 +219,11 @@ namespace NUnitTest {
 
         void AtEnd();
 
-        void Run(std::function<void()> f, const TString suite, const char* name, const bool forceFork);
+        void Run(std::function<void()> f, const TString& suite, const char* name, bool forceFork);
 
         class TCleanUp {
         public:
-            TCleanUp(TTestBase* base);
+            explicit TCleanUp(TTestBase* base);
 
             ~TCleanUp();
 
@@ -363,12 +363,12 @@ public:                       \
 
 #define UNIT_FAIL_IMPL(R, M)                                                                                                                     \
     do {                                                                                                                                         \
-        ::NUnitTest::NPrivate::RaiseError(R, TStringBuilder() << R << " at " << __LOCATION__ << ", " << __PRETTY_FUNCTION__ << ": " << M, true); \
+        ::NUnitTest::NPrivate::RaiseError(R, ::TStringBuilder() << R << " at " << __LOCATION__ << ", " << __PRETTY_FUNCTION__ << ": " << M, true); \
     } while (false)
 
 #define UNIT_FAIL_NONFATAL_IMPL(R, M)                                                                                                             \
     do {                                                                                                                                          \
-        ::NUnitTest::NPrivate::RaiseError(R, TStringBuilder() << R << " at " << __LOCATION__ << ", " << __PRETTY_FUNCTION__ << ": " << M, false); \
+        ::NUnitTest::NPrivate::RaiseError(R, ::TStringBuilder() << R << " at " << __LOCATION__ << ", " << __PRETTY_FUNCTION__ << ": " << M, false); \
     } while (false)
 
 #define UNIT_FAIL(M) UNIT_FAIL_IMPL("forced failure", M)
@@ -378,7 +378,7 @@ public:                       \
 #define UNIT_ASSERT_TYPES_EQUAL(A, B)                                                                                                                                  \
     do {                                                                                                                                                               \
         if (!std::is_same<A, B>::value) {                                                                                                                              \
-            UNIT_FAIL_IMPL("types equal assertion failed", (TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")").data()); \
+            UNIT_FAIL_IMPL("types equal assertion failed", (::TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")").data()); \
         }                                                                                                                                                              \
     } while (false)
 
@@ -391,7 +391,7 @@ public:                       \
             const auto _es = ToString((long double)(E));                                                       \
             const auto _as = ToString((long double)(A));                                                       \
             const auto _ds = ToString((long double)(D));                                                       \
-            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
+            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("assertion failure", failMsg);                                                      \
         }                                                                                                      \
     } while (false)
@@ -405,19 +405,19 @@ public:                       \
         const auto _dd = (D);                                                                                                          \
         if (std::isnan((long double)_ed) && !std::isnan((long double)_ad)) {                                                           \
             const auto _as = ToString((long double)_ad);                                                                               \
-            auto&& failMsg = Sprintf("expected NaN, got %s %s", _as.data(), (TStringBuilder() << C).data());                           \
+            auto&& failMsg = Sprintf("expected NaN, got %s %s", _as.data(), (::TStringBuilder() << C).data());                           \
             UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
         }                                                                                                                              \
         if (!std::isnan((long double)_ed) && std::isnan((long double)_ad)) {                                                           \
             const auto _es = ToString((long double)_ed);                                                                               \
-            auto&& failMsg = Sprintf("expected %s, got NaN %s", _es.data(), (TStringBuilder() << C).data());                           \
+            auto&& failMsg = Sprintf("expected %s, got NaN %s", _es.data(), (::TStringBuilder() << C).data());                           \
             UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
         }                                                                                                                              \
         if (std::abs((_ed) - (_ad)) > (_dd)) {                                                                                         \
             const auto _es = ToString((long double)_ed);                                                                               \
             const auto _as = ToString((long double)_ad);                                                                               \
             const auto _ds = ToString((long double)_dd);                                                                               \
-            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
+            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("assertion failure", failMsg);                                                                              \
         }                                                                                                                              \
     } while (false)
@@ -430,7 +430,7 @@ public:                       \
         const TString _a(A);                                                                                 \
         const TString _b(B);                                                                                 \
         if (_a != _b) {                                                                                      \
-            auto&& failMsg = Sprintf("%s != %s %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
+            auto&& failMsg = Sprintf("%s != %s %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings equal assertion failed", failMsg);                                       \
         }                                                                                                    \
     } while (false)
@@ -442,7 +442,7 @@ public:                       \
         const TString _a(A);                                                                                                    \
         const TString _b(B);                                                                                                    \
         if (!_a.Contains(_b)) {                                                                                                 \
-            auto&& msg = Sprintf("\"%s\" does not contain \"%s\", %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
+            auto&& msg = Sprintf("\"%s\" does not contain \"%s\", %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings contains assertion failed", msg);                                                           \
         }                                                                                                                       \
     } while (false)
@@ -464,7 +464,7 @@ public:                       \
         const TString _a(A);                                                                             \
         const TString _b(B);                                                                             \
         if (_a == _b) {                                                                                  \
-            auto&& msg = Sprintf("%s == %s %s", ToString(_a).data(), ToString(_b).data(), (TStringBuilder() << C).data()); \
+            auto&& msg = Sprintf("%s == %s %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings unequal assertion failed", msg);                                     \
         }                                                                                                \
     } while (false)
@@ -475,7 +475,7 @@ public:                       \
 #define UNIT_ASSERT_C(A, C)                                                                             \
     do {                                                                                                \
         if (!(A)) {                                                                                     \
-            UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (::TStringBuilder() << C).data())); \
         }                                                                                               \
     } while (false)
 
@@ -485,7 +485,7 @@ public:                       \
 #define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                                  \
     do {                                                                                                              \
         if (!((A) == (B))) {                                                                                          \
-            UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                             \
     } while (false)
 
@@ -494,7 +494,7 @@ public:                       \
 #define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                                 \
     do {                                                                                                               \
         if ((A) == (B)) {                                                                                              \
-            UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (TStringBuilder() << C).data()));\
+            UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (::TStringBuilder() << C).data()));\
         }                                                                                                              \
     } while (false)
 
@@ -503,7 +503,7 @@ public:                       \
 #define UNIT_ASSERT_LT_C(A, B, C)                                                                                        \
     do {                                                                                                                 \
         if (!((A) < (B))) {                                                                                              \
-            UNIT_FAIL_IMPL("less-than assertion failed", Sprintf("%s < %s %s", #A, #B, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("less-than assertion failed", Sprintf("%s < %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                                \
     } while (false)
 
@@ -512,7 +512,7 @@ public:                       \
 #define UNIT_ASSERT_LE_C(A, B, C)                                                                                             \
     do {                                                                                                                      \
         if (!((A) <= (B))) {                                                                                                  \
-            UNIT_FAIL_IMPL("less-or-equal assertion failed", Sprintf("%s <= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("less-or-equal assertion failed", Sprintf("%s <= %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                                     \
     } while (false)
 
@@ -521,7 +521,7 @@ public:                       \
 #define UNIT_ASSERT_GT_C(A, B, C)                                                                                           \
     do {                                                                                                                    \
         if (!((A) > (B))) {                                                                                                 \
-            UNIT_FAIL_IMPL("greater-than assertion failed", Sprintf("%s > %s %s", #A, #B, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("greater-than assertion failed", Sprintf("%s > %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                                   \
     } while (false)
 
@@ -530,7 +530,7 @@ public:                       \
 #define UNIT_ASSERT_GE_C(A, B, C)                                                                        \
     do { \
         if (!((A) >= (B))) {                                                                                    \
-            UNIT_FAIL_IMPL("greater-or-equal assertion failed", Sprintf("%s >= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+            UNIT_FAIL_IMPL("greater-or-equal assertion failed", Sprintf("%s >= %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         } \
     } while (false)
 
@@ -634,7 +634,7 @@ public:                       \
         } catch (const ::NUnitTest::TAssertException&) {                                                                                                                 \
             throw;                                                                                                                                                       \
         } catch (...) {                                                                                                                                                  \
-            UNIT_FAIL_IMPL("exception-free assertion failed", Sprintf("%s throws %s\nException message: %s", #A, (TStringBuilder() << C).data(), CurrentExceptionMessage().data())); \
+            UNIT_FAIL_IMPL("exception-free assertion failed", Sprintf("%s throws %s\nException message: %s", #A, (::TStringBuilder() << C).data(), CurrentExceptionMessage().data())); \
         }                                                                                                                                                                \
     } while (false)
 
@@ -695,7 +695,7 @@ public:                       \
         TString _bsInd;                                                                                                                \
         bool _usePlainDiff;                                                                                                            \
         if (!::NUnitTest::NPrivate::CompareAndMakeStrings(A, B, _as, _asInd, _bs, _bsInd, _usePlainDiff, EQflag)) {                    \
-            auto&& failMsg = Sprintf("(%s %s %s) failed: (%s %s %s) %s", #A, EQstr, #B, _as.data(), NEQstr, _bs.data(), (TStringBuilder() << C).data()); \
+            auto&& failMsg = Sprintf("(%s %s %s) failed: (%s %s %s) %s", #A, EQstr, #B, _as.data(), NEQstr, _bs.data(), (::TStringBuilder() << C).data()); \
             if (EQflag && !_usePlainDiff) {                                                                                            \
                 failMsg += ", with diff:\n";                                                                                           \
                 failMsg += ::NUnitTest::ColoredDiff(_asInd, _bsInd);                                                                   \
@@ -790,13 +790,13 @@ public:                       \
 
         inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
             : Name_(name)
-            , Body_(body)
+            , Body_(std::move(body))
             , ForceFork_(forceFork)
         {
         }
 
         virtual ~TBaseTestCase() = default;
-        
+
         // Each test case is executed in 3 steps:
         //
         // 1. SetUp() (from fixture)
@@ -833,7 +833,7 @@ public:                       \
                 Parent->SetHandler();
             }
 
-            TInvokeGuard(TInvokeGuard&& guard)
+            TInvokeGuard(TInvokeGuard&& guard) noexcept
                 : Parent(guard.Parent)
             {
                 guard.Parent = nullptr;
@@ -895,7 +895,7 @@ public:                       \
     };
 
 #define UNIT_TEST_SUITE_REGISTRATION(T) \
-    static ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
+    static const ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
 
 #define Y_UNIT_TEST_SUITE_IMPL_F(N, T, F)                                                                          \
     namespace NTestSuite##N {                                                                                           \
@@ -919,7 +919,9 @@ public:                       \
                 return StaticName();                                                                                    \
             }                                                                                                           \
                                                                                                                         \
-            static void AddTest(const char* name, std::function<void(NUnitTest::TTestContext&)> body, bool forceFork) { \
+            static void AddTest(const char* name,                                                                       \
+                const std::function<void(NUnitTest::TTestContext&)>& body, bool forceFork)                              \
+            {                                                                                                           \
                 Tests().push_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork); });          \
             }                                                                                                           \
                                                                                                                         \
@@ -986,7 +988,7 @@ public:                       \
             TCurrentTest::AddTest(TTestCase##N::Create);    \
         }                                                   \
     };                                                      \
-    static TTestRegistration##N testRegistration##N;
+    static const TTestRegistration##N testRegistration##N;
 
 #define Y_UNIT_TEST_IMPL(N, FF, F)      \
     Y_UNIT_TEST_IMPL_REGISTER(N, FF, F) \

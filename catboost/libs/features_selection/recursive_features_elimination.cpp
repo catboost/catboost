@@ -13,6 +13,7 @@
 #include <catboost/private/libs/algo/full_model_saver.h>
 #include <catboost/private/libs/algo/helpers.h>
 #include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/path_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/hash_set.h>
@@ -303,12 +304,14 @@ namespace NCB {
         const TCatBoostOptions& catBoostOptions,
         const TOutputFilesOptions& outputFileOptions,
         const TLabelConverter& labelConverter,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TTrainingDataProviders& trainingData,
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         TFeaturesSelectionCallbacks* callbacks,
         NPar::ILocalExecutor* executor
     ) {
         TFullModel model;
-        TVector<TEvalResult> evalResults(trainingData.Test.ysize());
         THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
         TRestorableFastRng64 rnd(catBoostOptions.RandomSeed);
         const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
@@ -317,7 +320,7 @@ namespace NCB {
             catBoostOptions,
             outputFileOptions,
             /*objectiveDescriptor*/ Nothing(),
-            /*evalMetricDescriptor*/ Nothing(),
+            evalMetricDescriptor,
             trainingData,
             /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
             labelConverter,
@@ -329,8 +332,8 @@ namespace NCB {
             executor,
             &rnd,
             &model,
-            GetMutablePointers(evalResults),
-            /*metricsAndTimeHistory*/ nullptr,
+            evalResultPtrs,
+            /*metricsAndTimeHistory*/ metricsAndTimeHistory,
             /*dstLearnProgress*/ nullptr
         );
         return model;
@@ -341,10 +344,13 @@ namespace NCB {
         const TCatBoostOptions& catBoostOptions,
         const TOutputFilesOptions& initialOutputFileOptions,
         const TFeaturesSelectOptions& featuresSelectOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const NCB::TDataProviders& pools,
         const TLabelConverter& labelConverter,
         TTrainingDataProviders trainingData,
         TFullModel* dstModel,
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         NPar::ILocalExecutor* executor
     ) {
         auto outputFileOptions = initialOutputFileOptions;
@@ -363,8 +369,12 @@ namespace NCB {
             featuresSelectOptions,
             &summary);
 
-        if (outputFileOptions.SaveSnapshot() && NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
-            callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
+        if (outputFileOptions.SaveSnapshot()) {
+            const auto& absoluteSnapshotPath = MakeAbsolutePath(outputFileOptions.GetSnapshotFilename());
+            outputFileOptions.SetSnapshotFilename(absoluteSnapshotPath);
+            if (NFs::Exists(outputFileOptions.GetSnapshotFilename())) {
+                callbacks->LoadSnapshot(catBoostOptions.GetTaskType(), outputFileOptions.GetSnapshotFilename());
+            }
         }
         TFeaturesSelectionLossGraphBuilder lossGraphBuilder(&summary.LossGraph);
 
@@ -401,12 +411,16 @@ namespace NCB {
             ? trainingData.Learn->TargetData
             : trainingData.Test[0]->TargetData;
 
-        const auto trainModel = [&] () {
+        const auto trainModel = [&] (bool isFinal) {
+            TVector<TEvalResult> tempEvalResults(trainingData.Test.size());
             return TrainModel(
                 catBoostOptions,
                 outputFileOptions,
                 labelConverter,
+                evalMetricDescriptor,
                 trainingData,
+                isFinal ? evalResultPtrs : GetMutablePointers(tempEvalResults),
+                isFinal ? metricsAndTimeHistory : nullptr,
                 callbacks.Get(),
                 executor
             );
@@ -440,7 +454,7 @@ namespace NCB {
         for (auto step : xrange(alreadyPassedSteps, featuresSelectOptions.Steps.Get())) {
             CATBOOST_NOTICE_LOG << "Step #" << step + 1 << " out of " << featuresSelectOptions.Steps.Get() << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-" + ToString(step));
-            const TFullModel model = trainModel();
+            const TFullModel model = trainModel(/*isFinal*/ false);
             TVector<TVector<double>> approx = applyModel(model);
             double currentLossValue = calcLoss(approx);
 
@@ -495,7 +509,7 @@ namespace NCB {
         if (featuresSelectOptions.TrainFinalModel.Get()) {
             CATBOOST_NOTICE_LOG << "Train final model" << Endl;
             outputFileOptions.SetTrainDir(initialOutputFileOptions.GetTrainDir() + "/model-final");
-            const TFullModel finalModel = trainModel();
+            const TFullModel finalModel = trainModel(/*isFinal*/ true);
             const double lossValue = calcLoss(applyModel(finalModel));
 
             lossGraphBuilder.AddPrecisePoint(summary.EliminatedFeatures.size(), lossValue);

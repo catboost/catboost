@@ -6,6 +6,8 @@ RECURSE(
     jemalloc
     nalf
     system
+    mimalloc
+    mimalloc/link_test
 )
 
 IF (NOT OS_WINDOWS)

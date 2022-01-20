@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/temporary_buffer.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_TEMPORARY_BUFFER_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/temporary_buffer.h>
-#include __THRUST_HOST_SYSTEM_TEMPORARY_BUFFER_HEADER
-#undef __THRUST_HOST_SYSTEM_TEMPORARY_BUFFER_HEADER
+#include <thrust/system/cpp/detail/temporary_buffer.h>
 
 #define __THRUST_DEVICE_SYSTEM_TEMPORARY_BUFFER_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/temporary_buffer.h>
 #include __THRUST_DEVICE_SYSTEM_TEMPORARY_BUFFER_HEADER

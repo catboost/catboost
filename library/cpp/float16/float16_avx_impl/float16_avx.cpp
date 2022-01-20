@@ -7,6 +7,8 @@
 #include <util/system/cpu_id.h>
 #include <util/system/yassert.h>
 
+#include <cstring>
+
 bool NFloat16Impl::AreConversionIntrinsicsAvailableOnHost() {
 #ifdef _MSC_VER
     return false;

@@ -347,21 +347,31 @@ tokenizer_error(Parser *p)
             errtype = PyExc_IndentationError;
             msg = "too many levels of indentation";
             break;
-        case E_LINECONT:
-            col_offset = strlen(strtok(p->tok->buf, "\n")) - 1;
+        case E_LINECONT: {
+            col_offset = p->tok->cur - p->tok->buf - 1;
             msg = "unexpected character after line continuation character";
             break;
+        }
         default:
             msg = "unknown parsing error";
     }
 
-    RAISE_ERROR_KNOWN_LOCATION(p, errtype, p->tok->lineno, col_offset, msg);
+    RAISE_ERROR_KNOWN_LOCATION(p, errtype, p->tok->lineno,
+                               col_offset >= 0 ? col_offset : 0, msg);
     return -1;
 }
 
 void *
 _PyPegen_raise_error(Parser *p, PyObject *errtype, const char *errmsg, ...)
 {
+    if (p->fill == 0) {
+        va_list va;
+        va_start(va, errmsg);
+        _PyPegen_raise_error_known_location(p, errtype, 0, 0, errmsg, va);
+        va_end(va);
+        return NULL;
+    }
+
     Token *t = p->known_err_token != NULL ? p->known_err_token : p->tokens[p->fill - 1];
     Py_ssize_t col_offset;
     if (t->col_offset == -1) {
@@ -1223,7 +1233,7 @@ _PyPegen_run_parser_from_string(const char *str, int start_rule, PyObject *filen
     int exec_input = start_rule == Py_file_input;
 
     struct tok_state *tok;
-    if (flags == NULL || flags->cf_flags & PyCF_IGNORE_COOKIE) {
+    if (flags != NULL && flags->cf_flags & PyCF_IGNORE_COOKIE) {
         tok = PyTokenizer_FromUTF8(str, exec_input);
     } else {
         tok = PyTokenizer_FromString(str, exec_input);

@@ -5,7 +5,7 @@ meta:
   title: CatBoost
 links:
   - title: Training
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__training.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__training.png
     links:
       - title: Training
         href: features/training
@@ -24,7 +24,7 @@ links:
       - title: Text features
         href: features/text-features
   - title: Applying models
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__prediction.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__prediction.png
     links:
       - title: Regular prediction
         href: features/prediction
@@ -41,46 +41,46 @@ links:
       - title: Applying the model in ClickHouse
         href: features/catboost-with-clickhouse
   - title: Model analysis
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__quality.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__quality.png
     links:
       - title: Feature importances
         href: features/feature-importances-calculation
       - title: Object importances
         href: features/object-importances-calcution
   - title: Metrics
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__loss-functions.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__loss-functions.png
     links:
       - title: Implemented metrics
         href: features/loss-functions-desc
       - title: User-defined metrics
         href: features/custom-loss-functions
   - title: Metrics
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__recovery.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__recovery.png
     links:
       - title: Recovery
         href: features/snapshots
   - title: Visualization tools
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__visualization.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__visualization.png
     links:
       - title: Jupyter Notebook
         href: features/visualization_jupyter-notebook
       - title: TensorBoard
         href: features/visualization_tensorboard
   - title: Exporting models
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__exporting.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__exporting.png
     links:
       - title: CoreML
-        href: features/visualization_jupyter-notebook
+        href: concepts/export-coreml
       - title: Python or C++
-        href: features/visualization_tensorboard
+        href: features/export-model-to-python
       - title: JSON
-        href: features/visualization_jupyter-notebook
+        href: features/export-model-to-json
       - title: ONNX
-        href: features/visualization_tensorboard
+        href: concepts/apply-onnx-ml
       - title: PMML
-        href: features/visualization_tensorboard
+        href: concepts/apply-pmml
   - title: Educational materials
-    imgSrc: https://s3.mds.yandex.net/catboost-opensource/icon__learning.png
+    imgSrc: https://catboost-opensource.s3.yandex.net/icon__learning.png
     links:
       - title: Tutorials
         href: concepts/tutorials

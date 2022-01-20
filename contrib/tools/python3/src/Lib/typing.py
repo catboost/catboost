@@ -95,7 +95,7 @@ __all__ = [
     'NamedTuple',  # Not really a type.
     'TypedDict',  # Not really a type.
     'Generator',
- 
+
     # Other concrete types.
     'BinaryIO',
     'IO',
@@ -125,16 +125,16 @@ __all__ = [
 # legitimate imports of those modules.
 
 
-def _type_convert(arg):
+def _type_convert(arg, module=None):
     """For converting None to type(None), and strings to ForwardRef."""
     if arg is None:
         return type(None)
     if isinstance(arg, str):
-        return ForwardRef(arg)
+        return ForwardRef(arg, module=module)
     return arg
 
 
-def _type_check(arg, msg, is_argument=True):
+def _type_check(arg, msg, is_argument=True, module=None, *, is_class=False):
     """Check that the argument is a type, and return it (internal helper).
 
     As a special case, accept None and return type(None) instead. Also wrap strings
@@ -147,14 +147,16 @@ def _type_check(arg, msg, is_argument=True):
     We append the repr() of the actual value (truncated to 100 chars).
     """
     invalid_generic_forms = (Generic, Protocol)
-    if is_argument:
-        invalid_generic_forms = invalid_generic_forms + (ClassVar, Final)
+    if not is_class:
+        invalid_generic_forms += (ClassVar,)
+        if is_argument:
+            invalid_generic_forms += (Final,)
 
-    arg = _type_convert(arg)
+    arg = _type_convert(arg, module=module)
     if (isinstance(arg, _GenericAlias) and
             arg.__origin__ in invalid_generic_forms):
         raise TypeError(f"{arg} is not valid as type argument")
-    if arg in (Any, NoReturn):
+    if arg in (Any, NoReturn, Final):
         return arg
     if isinstance(arg, _SpecialForm) or arg in (Generic, Protocol):
         raise TypeError(f"Plain {arg} is not valid as type argument")
@@ -353,9 +355,10 @@ class _SpecialForm(_Final, _root=True):
 
 
 class _LiteralSpecialForm(_SpecialForm, _root=True):
-    @_tp_cache(typed=True)
     def __getitem__(self, parameters):
-        return self._getitem(self, parameters)
+        if not isinstance(parameters, tuple):
+            parameters = (parameters,)
+        return self._getitem(self, *parameters)
 
 
 @_SpecialForm
@@ -476,7 +479,8 @@ def Optional(self, parameters):
     return Union[arg, type(None)]
 
 @_LiteralSpecialForm
-def Literal(self, parameters):
+@_tp_cache(typed=True)
+def Literal(self, *parameters):
     """Special typing form to define literal types (a.k.a. value types).
 
     This form can be used to indicate to type checkers that the corresponding
@@ -499,9 +503,6 @@ def Literal(self, parameters):
     """
     # There is no '_type_check' call because arguments to Literal[...] are
     # values, not types.
-    if not isinstance(parameters, tuple):
-        parameters = (parameters,)
-
     parameters = _flatten_literal_params(parameters)
 
     try:
@@ -517,9 +518,10 @@ class ForwardRef(_Final, _root=True):
 
     __slots__ = ('__forward_arg__', '__forward_code__',
                  '__forward_evaluated__', '__forward_value__',
-                 '__forward_is_argument__')
+                 '__forward_is_argument__', '__forward_is_class__',
+                 '__forward_module__')
 
-    def __init__(self, arg, is_argument=True):
+    def __init__(self, arg, is_argument=True, module=None, *, is_class=False):
         if not isinstance(arg, str):
             raise TypeError(f"Forward reference must be a string -- got {arg!r}")
         try:
@@ -531,6 +533,8 @@ class ForwardRef(_Final, _root=True):
         self.__forward_evaluated__ = False
         self.__forward_value__ = None
         self.__forward_is_argument__ = is_argument
+        self.__forward_is_class__ = is_class
+        self.__forward_module__ = module
 
     def _evaluate(self, globalns, localns, recursive_guard):
         if self.__forward_arg__ in recursive_guard:
@@ -542,10 +546,15 @@ class ForwardRef(_Final, _root=True):
                 globalns = localns
             elif localns is None:
                 localns = globalns
-            type_ =_type_check(
+            if self.__forward_module__ is not None:
+                globalns = getattr(
+                    sys.modules.get(self.__forward_module__, None), '__dict__', globalns
+                )
+            type_ = _type_check(
                 eval(self.__forward_code__, globalns, localns),
                 "Forward references must evaluate to types.",
                 is_argument=self.__forward_is_argument__,
+                is_class=self.__forward_is_class__,
             )
             self.__forward_value__ = _eval_type(
                 type_, globalns, localns, recursive_guard | {self.__forward_arg__}
@@ -1074,9 +1083,34 @@ def _is_callable_members_only(cls):
     return all(callable(getattr(cls, attr, None)) for attr in _get_protocol_attrs(cls))
 
 
-def _no_init(self, *args, **kwargs):
-    if type(self)._is_protocol:
+def _no_init_or_replace_init(self, *args, **kwargs):
+    cls = type(self)
+
+    if cls._is_protocol:
         raise TypeError('Protocols cannot be instantiated')
+
+    # Already using a custom `__init__`. No need to calculate correct
+    # `__init__` to call. This can lead to RecursionError. See bpo-45121.
+    if cls.__init__ is not _no_init_or_replace_init:
+        return
+
+    # Initially, `__init__` of a protocol subclass is set to `_no_init_or_replace_init`.
+    # The first instantiation of the subclass will call `_no_init_or_replace_init` which
+    # searches for a proper new `__init__` in the MRO. The new `__init__`
+    # replaces the subclass' old `__init__` (ie `_no_init_or_replace_init`). Subsequent
+    # instantiation of the protocol subclass will thus use the new
+    # `__init__` and no longer call `_no_init_or_replace_init`.
+    for base in cls.__mro__:
+        init = base.__dict__.get('__init__', _no_init_or_replace_init)
+        if init is not _no_init_or_replace_init:
+            cls.__init__ = init
+            break
+    else:
+        # should not happen
+        cls.__init__ = object.__init__
+
+    cls.__init__(self, *args, **kwargs)
+
 
 
 def _allow_reckless_class_cheks():
@@ -1215,7 +1249,7 @@ class Protocol(Generic, metaclass=_ProtocolMeta):
                     issubclass(base, Generic) and base._is_protocol):
                 raise TypeError('Protocols can only inherit from other'
                                 ' protocols, got %r' % base)
-        cls.__init__ = _no_init
+        cls.__init__ = _no_init_or_replace_init
 
 
 class _AnnotatedAlias(_GenericAlias, _root=True):
@@ -1420,7 +1454,7 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
                 if value is None:
                     value = type(None)
                 if isinstance(value, str):
-                    value = ForwardRef(value, is_argument=False)
+                    value = ForwardRef(value, is_argument=False, is_class=True)
                 value = _eval_type(value, base_globals, localns)
                 hints[name] = value
         return hints if include_extras else {k: _strip_annotations(t) for k, t in hints.items()}
@@ -1452,7 +1486,13 @@ def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
         if value is None:
             value = type(None)
         if isinstance(value, str):
-            value = ForwardRef(value)
+            # class-level forward refs were handled above, this must be either
+            # a module-level annotation or a function argument annotation
+            value = ForwardRef(
+                value,
+                is_argument=not isinstance(obj, types.ModuleType),
+                is_class=False,
+            )
         value = _eval_type(value, globalns, localns)
         if name in defaults and defaults[name] is None:
             value = Optional[value]
@@ -1912,7 +1952,8 @@ class _TypedDictMeta(type):
         own_annotation_keys = set(own_annotations.keys())
         msg = "TypedDict('Name', {f0: t0, f1: t1, ...}); each t must be a type"
         own_annotations = {
-            n: _type_check(tp, msg) for n, tp in own_annotations.items()
+            n: _type_check(tp, msg, module=tp_dict.__module__)
+            for n, tp in own_annotations.items()
         }
         required_keys = set()
         optional_keys = set()

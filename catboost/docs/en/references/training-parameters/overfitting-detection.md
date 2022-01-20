@@ -1,6 +1,6 @@
 # Overfitting detection settings
 
-### early_stopping_rounds {#early_stopping_rounds}
+## early_stopping_rounds {#early_stopping_rounds}
 
 #### Description
 
@@ -18,7 +18,7 @@ False
 
 {{ cpu-gpu }}
 
-### od_type {#od_type}
+## od_type {#od_type}
 
 Command-line: `--od-type`
 
@@ -41,7 +41,7 @@ Possible values:
 
 {{ cpu-gpu }}
 
-### od_pval {#od_pval}
+## od_pval {#od_pval}
 
 Command-line: `--od-pval`
 
@@ -71,7 +71,7 @@ Do not use this parameter with the {{ fit--od-type-iter }} overfitting detector 
 
 {{ cpu-gpu }}
 
-### od_wait {#od_wait}
+## od_wait {#od_wait}
 
 Command-line: `--od-wait`
 

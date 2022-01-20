@@ -252,10 +252,10 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     Parameters
     ----------
     label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
-        Object labels.
+        Object labels with shape (n_objects,) or (n_object, n_target_dimension)
 
     approx : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
-        Object approxes.
+        Object approxes with shape (n_objects,) or (n_object, n_approx_dimension).
 
     metric : string
         Metric name.
@@ -289,12 +289,11 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     -------
     metric results : list with metric values.
     """
-    if len(label) > 0 and not isinstance(label[0], ARRAY_TYPES):
-        label = [label]
+    if len(label) > 0:
+        label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
     if len(approx) == 0:
         approx = [[]]
-    if not isinstance(approx[0], ARRAY_TYPES):
-        approx = [approx]
+    approx = np.transpose(approx) if isinstance(approx[0], ARRAY_TYPES) else [approx]
     return _eval_metric_util(label, approx, metric, weight, group_id, group_weight, subgroup_id, pairs, thread_count)
 
 

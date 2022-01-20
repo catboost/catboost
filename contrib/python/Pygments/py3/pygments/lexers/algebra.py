@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, words
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ['GAPLexer', 'MathematicaLexer', 'MuPADLexer', 'BCLexer']
 
@@ -194,10 +194,11 @@ class MuPADLexer(RegexLexer):
               (?:::[a-zA-Z_#][\w#]*|`[^`]*`)*''', Name.Variable),
             (r'[0-9]+(?:\.[0-9]*)?(?:e[0-9]+)?', Number),
             (r'\.[0-9]+(?:e[0-9]+)?', Number),
+            (r'\s+', Whitespace),
             (r'.', Text)
         ],
         'comment': [
-            (r'[^*/]', Comment.Multiline),
+            (r'[^/*]+', Comment.Multiline),
             (r'/\*', Comment.Multiline, '#push'),
             (r'\*/', Comment.Multiline, '#pop'),
             (r'[*/]', Comment.Multiline)

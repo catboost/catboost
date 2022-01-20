@@ -99,19 +99,6 @@ void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadP
             CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
         });
 
-    parser->AddLongOption("test-precomputed-set", "path to one or more precomputed test sets")
-        .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
-        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
-            for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
-                if (!path.Empty()) {
-                    loadParamsPtr->TestPrecomputedSetPaths.emplace_back(TString{path.Token()}, "");
-                    CB_ENSURE(!loadParamsPtr->TestPrecomputedSetPaths.back().Scheme.empty(),
-                              "Scheme is missing from precomputed test set path");
-                }
-            }
-            CB_ENSURE(!loadParamsPtr->TestPrecomputedSetPaths.empty(), "Empty precomputed test path");
-        });
-
     parser->AddLongOption("learn-pairs", "path to learn pairs")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
@@ -1149,19 +1136,33 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
             "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
         ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
-            NJson::TJsonValue featureCalcers;
-            featureCalcers.SetType(NJson::EJsonValueType::JSON_ARRAY);
-            for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
-                featureCalcers.AppendValue(oneConfig);
-            }
-            (*plainJsonPtr)["feature_calcers"] = featureCalcers;
+            ParseDigitizerDescriptions(descriptionLine, "calcer_type", &(*plainJsonPtr)["feature_calcers"]);
         });
 
     parser.AddLongOption("text-processing")
         .RequiredArgument("{...}")
-        .Help("Text processging json.")
+        .Help("Text processing json.")
         .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
             NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
+        });
+}
+
+static void BindEmbeddingFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+
+    parser.AddLongOption("embedding-calcers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
+              "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            ParseDigitizerDescriptions(descriptionLine, "calcer_type", &(*plainJsonPtr)["embedding_calcers"]);
+        });
+
+    parser.AddLongOption("embedding-processing")
+        .RequiredArgument("{...}")
+        .Help("Embedding processing json.")
+        .Handler1T<TString>([plainJsonPtr](const TString& embeddingProcessingLine) {
+            NJson::ReadJsonTree(embeddingProcessingLine, &(*plainJsonPtr)["embedding_processing"]);
         });
 }
 
@@ -1236,6 +1237,12 @@ void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* 
             (*plainJsonPtr)["auto_class_weights"] = ToString(classWeightsType);
         })
         .Help(autoClassWeightsHelp);
+
+    parser.AddLongOption("force-unit-auto-pair-weights", "Set weight to 1 for all auto-generated pairs rather than use group weight")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["force_unit_auto_pair_weights"] = true;
+        });
 
     const auto gpuCatFeatureStorageHelp = TString::Join(
         "GPU only. Must be one of: ",
@@ -1424,7 +1431,11 @@ static void ParseMetadata(int argc, const char* argv[], NLastGetopt::TOpts* pars
     }
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     if (!setModelMetadata) {
-        CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");
+        CB_ENSURE(
+            parserResult.GetFreeArgCount() == 0,
+            "freearg '" << parserResult.GetFreeArgs()[0] << "' is misplaced, "
+            "or a long option name is preceeded with single -; "
+            "to use freeargs, put --set-metadata-from-freeargs before the 1st freearg.");
     } else {
         auto freeArgs = parserResult.GetFreeArgs();
         auto freeArgCount = freeArgs.size();
@@ -1441,6 +1452,7 @@ void ParseCommandLine(int argc, const char* argv[],
                       TString* paramsPath,
                       NCatboostOptions::TPoolLoadParams* params) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1468,6 +1480,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1489,6 +1503,7 @@ void ParseModelBasedEvalCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1511,6 +1526,8 @@ void ParseModelBasedEvalCommandLine(
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1531,6 +1548,7 @@ void ParseFeatureEvalCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1553,6 +1571,8 @@ void ParseFeatureEvalCommandLine(
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
 
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
+
     BindDataProcessingParams(&parser, plainJsonPtr);
 
     BindBinarizationParams(&parser, plainJsonPtr);
@@ -1573,6 +1593,7 @@ void ParseFeaturesSelectCommandLine(
     NCatboostOptions::TPoolLoadParams* params
 ) {
     auto parser = NLastGetopt::TOpts();
+    parser.ArgPermutation_ = NLastGetopt::EArgPermutation::REQUIRE_ORDER;
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
@@ -1594,6 +1615,8 @@ void ParseFeaturesSelectCommandLine(
     BindCatFeatureParams(&parser, plainJsonPtr);
 
     BindTextFeaturesParams(&parser, plainJsonPtr);
+
+    BindEmbeddingFeaturesParams(&parser, plainJsonPtr);
 
     BindDataProcessingParams(&parser, plainJsonPtr);
 

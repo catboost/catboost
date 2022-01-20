@@ -81,7 +81,7 @@ inline const wchar32* SkipSymbol(const wchar32* begin, const wchar32* end) noexc
 inline wchar32 ReadSymbol(const wchar16* begin, const wchar16* end) noexcept {
     Y_ASSERT(begin < end);
     if (IsW16SurrogateLead(*begin)) {
-        if (begin + 1 != end && IsW16SurrogateTail(*(begin + 1)))
+        if (begin + 1 < end && IsW16SurrogateTail(*(begin + 1)))
             return ::NDetail::ReadSurrogatePair(begin);
 
         return BROKEN_RUNE;

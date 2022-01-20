@@ -11,7 +11,7 @@
 """
 
 from pygments.style import Style
-from pygments.token import Keyword, Name, Comment, String, Error, Text, \
+from pygments.token import Keyword, Name, Comment, String, Error, Token, \
      Number, Operator, Generic, Whitespace, Punctuation, Other, Literal
 
 class MonokaiStyle(Style):
@@ -24,7 +24,7 @@ class MonokaiStyle(Style):
 
     styles = {
         # No corresponding class for the following:
-        Text:                      "#f8f8f2", # class:  ''
+        Token:                     "#f8f8f2", # class:  ''
         Whitespace:                "",        # class: 'w'
         Error:                     "#960050 bg:#1e0010", # class: 'err'
         Other:                     "",        # class 'x'

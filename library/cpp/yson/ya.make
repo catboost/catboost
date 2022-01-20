@@ -2,6 +2,11 @@ LIBRARY()
 
 
 
+PEERDIR(
+    library/cpp/yt/misc
+    library/cpp/yt/yson
+)
+
 SRCS(
     consumer.cpp
     lexer.cpp

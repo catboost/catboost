@@ -12,6 +12,9 @@ _lock = threading.Lock()
 
 def _get_ya_config():
     try:
+        import library.python.pytest.plugins.ya as ya_plugin
+        if ya_plugin.pytest_config is not None:
+            return ya_plugin.pytest_config
         import pytest
         return pytest.config
     except (ImportError, AttributeError):
@@ -259,6 +262,8 @@ def _register_core(name, binary_path, core_path, bt_path, pbt_path):
     config = _get_ya_config()
 
     with _lock:
+        if not hasattr(config, 'test_cores_count'):
+            config.test_cores_count = 0
         config.test_cores_count += 1
         count_str = '' if config.test_cores_count == 1 else str(config.test_cores_count)
 

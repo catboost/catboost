@@ -8,12 +8,10 @@
     :license: BSD, see LICENSE for details.
 """
 
-import re
-
-from pygments.lexer import Lexer, RegexLexer, ExtendedRegexLexer, LexerContext, \
-    include, bygroups, inherit
+from pygments.lexer import Lexer, ExtendedRegexLexer, LexerContext, \
+    include, bygroups
 from pygments.token import Text, Comment, Keyword, Name, String, Number, \
-    Punctuation, Literal, Error
+    Punctuation, Literal, Error, Whitespace
 
 __all__ = ['YamlLexer', 'JsonLexer', 'JsonBareObjectLexer', 'JsonLdLexer']
 
@@ -170,9 +168,9 @@ class YamlLexer(ExtendedRegexLexer):
         # the root rules
         'root': [
             # ignored whitespaces
-            (r'[ ]+(?=#|$)', Text),
+            (r'[ ]+(?=#|$)', Whitespace),
             # line breaks
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             # a comment
             (r'#[^\n]*', Comment.Single),
             # the '%YAML' directive
@@ -183,25 +181,25 @@ class YamlLexer(ExtendedRegexLexer):
             (r'^(?:---|\.\.\.)(?=[ ]|$)', reset_indent(Name.Namespace),
              'block-line'),
             # indentation spaces
-            (r'[ ]*(?!\s|$)', save_indent(Text, start=True),
+            (r'[ ]*(?!\s|$)', save_indent(Whitespace, start=True),
              ('block-line', 'indentation')),
         ],
 
         # trailing whitespaces after directives or a block scalar indicator
         'ignored-line': [
             # ignored whitespaces
-            (r'[ ]+(?=#|$)', Text),
+            (r'[ ]+(?=#|$)', Whitespace),
             # a comment
             (r'#[^\n]*', Comment.Single),
             # line break
-            (r'\n', Text, '#pop:2'),
+            (r'\n', Whitespace, '#pop:2'),
         ],
 
         # the %YAML directive
         'yaml-directive': [
             # the version number
             (r'([ ]+)([0-9]+\.[0-9]+)',
-             bygroups(Text, Number), 'ignored-line'),
+             bygroups(Whitespace, Number), 'ignored-line'),
         ],
 
         # the %TAG directive
@@ -209,28 +207,28 @@ class YamlLexer(ExtendedRegexLexer):
             # a tag handle and the corresponding prefix
             (r'([ ]+)(!|![\w-]*!)'
              r'([ ]+)(!|!?[\w;/?:@&=+$,.!~*\'()\[\]%-]+)',
-             bygroups(Text, Keyword.Type, Text, Keyword.Type),
+             bygroups(Whitespace, Keyword.Type, Whitespace, Keyword.Type),
              'ignored-line'),
         ],
 
         # block scalar indicators and indentation spaces
         'indentation': [
             # trailing whitespaces are ignored
-            (r'[ ]*$', something(Text), '#pop:2'),
+            (r'[ ]*$', something(Whitespace), '#pop:2'),
             # whitespaces preceding block collection indicators
-            (r'[ ]+(?=[?:-](?:[ ]|$))', save_indent(Text)),
+            (r'[ ]+(?=[?:-](?:[ ]|$))', save_indent(Whitespace)),
             # block collection indicators
             (r'[?:-](?=[ ]|$)', set_indent(Punctuation.Indicator)),
             # the beginning a block line
-            (r'[ ]*', save_indent(Text), '#pop'),
+            (r'[ ]*', save_indent(Whitespace), '#pop'),
         ],
 
         # an indented line in the block context
         'block-line': [
             # the line end
-            (r'[ ]*(?=#|$)', something(Text), '#pop'),
+            (r'[ ]*(?=#|$)', something(Whitespace), '#pop'),
             # whitespaces separating tokens
-            (r'[ ]+', Text),
+            (r'[ ]+', Whitespace),
             # key with colon
             (r'''([^#,:?\[\]{}"'\n]+)(:)(?=[ ]|$)''',
              bygroups(Name.Tag, set_indent(Punctuation, implicit=True))),
@@ -283,9 +281,9 @@ class YamlLexer(ExtendedRegexLexer):
         # the content of a flow collection
         'flow-collection': [
             # whitespaces
-            (r'[ ]+', Text),
+            (r'[ ]+', Whitespace),
             # line breaks
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             # a comment
             (r'#[^\n]*', Comment.Single),
             # simple indicators
@@ -322,12 +320,12 @@ class YamlLexer(ExtendedRegexLexer):
         # block scalar lines
         'block-scalar-content': [
             # line break
-            (r'\n', Text),
+            (r'\n', Whitespace),
             # empty line
             (r'^[ ]+$',
-             parse_block_scalar_empty_line(Text, Name.Constant)),
+             parse_block_scalar_empty_line(Whitespace, Name.Constant)),
             # indentation spaces (we may leave the state here)
-            (r'^[ ]*', parse_block_scalar_indent(Text)),
+            (r'^[ ]*', parse_block_scalar_indent(Whitespace)),
             # line content
             (r'[\S\t ]+', Name.Constant),
         ],
@@ -347,10 +345,10 @@ class YamlLexer(ExtendedRegexLexer):
         # ignored and regular whitespaces in quoted scalars
         'quoted-scalar-whitespaces': [
             # leading and trailing whitespaces are ignored
-            (r'^[ ]+', Text),
-            (r'[ ]+$', Text),
+            (r'^[ ]+', Whitespace),
+            (r'[ ]+$', Whitespace),
             # line breaks are ignored
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             # other whitespaces are a part of the value
             (r'[ ]+', Name.Variable),
         ],
@@ -385,25 +383,25 @@ class YamlLexer(ExtendedRegexLexer):
         # the beginning of a new line while scanning a plain scalar
         'plain-scalar-in-block-context-new-line': [
             # empty lines
-            (r'^[ ]+$', Text),
+            (r'^[ ]+$', Whitespace),
             # line breaks
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             # document start and document end indicators
             (r'^(?=---|\.\.\.)', something(Name.Namespace), '#pop:3'),
             # indentation spaces (we may leave the block line state here)
-            (r'^[ ]*', parse_plain_scalar_indent(Text), '#pop'),
+            (r'^[ ]*', parse_plain_scalar_indent(Whitespace), '#pop'),
         ],
 
         # a plain scalar in the block context
         'plain-scalar-in-block-context': [
             # the scalar ends with the ':' indicator
-            (r'[ ]*(?=:[ ]|:$)', something(Text), '#pop'),
+            (r'[ ]*(?=:[ ]|:$)', something(Whitespace), '#pop'),
             # the scalar ends with whitespaces followed by a comment
-            (r'[ ]+(?=#)', Text, '#pop'),
+            (r'[ ]+(?=#)', Whitespace, '#pop'),
             # trailing whitespaces are ignored
-            (r'[ ]+$', Text),
+            (r'[ ]+$', Whitespace),
             # line breaks are ignored
-            (r'\n+', Text, 'plain-scalar-in-block-context-new-line'),
+            (r'\n+', Whitespace, 'plain-scalar-in-block-context-new-line'),
             # other whitespaces are a part of the value
             (r'[ ]+', Literal.Scalar.Plain),
             # regular non-whitespace characters
@@ -413,14 +411,14 @@ class YamlLexer(ExtendedRegexLexer):
         # a plain scalar is the flow context
         'plain-scalar-in-flow-context': [
             # the scalar ends with an indicator character
-            (r'[ ]*(?=[,:?\[\]{}])', something(Text), '#pop'),
+            (r'[ ]*(?=[,:?\[\]{}])', something(Whitespace), '#pop'),
             # the scalar ends with a comment
-            (r'[ ]+(?=#)', Text, '#pop'),
+            (r'[ ]+(?=#)', Whitespace, '#pop'),
             # leading and trailing whitespaces are ignored
-            (r'^[ ]+', Text),
-            (r'[ ]+$', Text),
+            (r'^[ ]+', Whitespace),
+            (r'[ ]+$', Whitespace),
             # line breaks are ignored
-            (r'\n+', Text),
+            (r'\n+', Whitespace),
             # other whitespaces are a part of the value
             (r'[ ]+', Name.Variable),
             # regular non-whitespace characters
@@ -529,9 +527,9 @@ class JsonLexer(Lexer):
                     continue
 
                 if queue:
-                    queue.append((start, Text, text[start:stop]))
+                    queue.append((start, Whitespace, text[start:stop]))
                 else:
-                    yield start, Text, text[start:stop]
+                    yield start, Whitespace, text[start:stop]
                 in_whitespace = False
                 # Fall through so the new character can be evaluated.
 
@@ -591,7 +589,13 @@ class JsonLexer(Lexer):
             elif character == ':':
                 # Yield from the queue. Replace string token types.
                 for _start, _token, _text in queue:
-                    if _token is Text:
+                    # There can be only two types of tokens before a ':':
+                    # Whitespace, or a quoted string. If it's a quoted string
+                    # we emit Name.Tag, otherwise, we yield the whitespace
+                    # tokens. In all other cases this is invalid JSON. This
+                    # allows for things like '"foo" "bar": "baz"' but we're not
+                    # a validating JSON lexer so it's acceptable
+                    if _token is Whitespace:
                         yield _start, _token, _text
                     elif _token is String.Double:
                         yield _start, Name.Tag, _text
@@ -626,7 +630,7 @@ class JsonLexer(Lexer):
         elif in_constant:
             yield start, Keyword.Constant, text[start:]
         elif in_whitespace:
-            yield start, Text, text[start:]
+            yield start, Whitespace, text[start:]
         elif in_punctuation:
             yield start, Punctuation, text[start:]
 

@@ -28,6 +28,7 @@ import subprocess
 import warnings
 from io import open as io_open
 
+from pathlib import Path
 from pickleshare import PickleShareDB
 
 from traitlets.config.configurable import SingletonConfigurable
@@ -42,7 +43,7 @@ from IPython.core.autocall import ExitAutocall
 from IPython.core.builtin_trap import BuiltinTrap
 from IPython.core.events import EventManager, available_events
 from IPython.core.compilerop import CachingCompiler, check_linecache_ipython
-from IPython.core.debugger import Pdb
+from IPython.core.debugger import InterruptiblePdb
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
@@ -892,56 +893,63 @@ class InteractiveShell(SingletonConfigurable):
         self.display_trap = DisplayTrap(hook=self.displayhook)
 
     def init_virtualenv(self):
-        """Add a virtualenv to sys.path so the user can import modules from it.
+        """Add the current virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
         virtualenv was built, and it ignores the --no-site-packages option. A
         warning will appear suggesting the user installs IPython in the
         virtualenv, but for many cases, it probably works well enough.
-        
         Adapted from code snippets online.
-        
         http://blog.ufsoft.org/2009/1/29/ipython-and-virtualenv
         """
         if 'VIRTUAL_ENV' not in os.environ:
             # Not in a virtualenv
             return
-        
-        p = os.path.normcase(sys.executable)
-        p_venv = os.path.normcase(os.environ['VIRTUAL_ENV'])
-
-        # executable path should end like /bin/python or \\scripts\\python.exe
-        p_exe_up2 = os.path.dirname(os.path.dirname(p))
-        if p_exe_up2 and os.path.exists(p_venv) and os.path.samefile(p_exe_up2, p_venv):
-            # Our exe is inside the virtualenv, don't need to do anything.
+        elif os.environ["VIRTUAL_ENV"] == "":
+            warn("Virtual env path set to '', please check if this is intended.")
             return
+
+        p = Path(sys.executable)
+        p_venv = Path(os.environ["VIRTUAL_ENV"])
 
         # fallback venv detection:
         # stdlib venv may symlink sys.executable, so we can't use realpath.
         # but others can symlink *to* the venv Python, so we can't just use sys.executable.
         # So we just check every item in the symlink tree (generally <= 3)
         paths = [p]
-        while os.path.islink(p):
-            p = os.path.normcase(os.path.join(os.path.dirname(p), os.readlink(p)))
-            paths.append(p)
+        while p.is_symlink():
+            p = Path(os.readlink(p))
+            paths.append(p.resolve())
         
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
-        if p_venv.startswith('\\cygdrive'):
-            p_venv = p_venv[11:]
-        elif len(p_venv) >= 2 and p_venv[1] == ':':
-            p_venv = p_venv[2:]
+        if p_venv.parts[1] == "cygdrive":
+            drive_name = p_venv.parts[2]
+            p_venv = (drive_name + ":/") / Path(*p_venv.parts[3:])
 
-        if any(p_venv in p for p in paths):
-            # Running properly in the virtualenv, don't need to do anything
+        if any(p_venv == p.parents[1] for p in paths):
+            # Our exe is inside or has access to the virtualenv, don't need to do anything.
             return
-        
-        warn("Attempting to work in a virtualenv. If you encounter problems, please "
-             "install IPython inside the virtualenv.")
+
         if sys.platform == "win32":
-            virtual_env = os.path.join(os.environ['VIRTUAL_ENV'], 'Lib', 'site-packages') 
+            virtual_env = str(Path(os.environ["VIRTUAL_ENV"], "Lib", "site-packages"))
         else:
-            virtual_env = os.path.join(os.environ['VIRTUAL_ENV'], 'lib',
-                       'python%d.%d' % sys.version_info[:2], 'site-packages')
-        
+            virtual_env_path = Path(
+                os.environ["VIRTUAL_ENV"], "lib", "python{}.{}", "site-packages"
+            )
+            p_ver = sys.version_info[:2]
+
+            # Predict version from py[thon]-x.x in the $VIRTUAL_ENV
+            re_m = re.search(r"\bpy(?:thon)?([23])\.(\d+)\b", os.environ["VIRTUAL_ENV"])
+            if re_m:
+                predicted_path = Path(str(virtual_env_path).format(*re_m.groups()))
+                if predicted_path.exists():
+                    p_ver = re_m.groups()
+
+            virtual_env = str(virtual_env_path).format(*p_ver)
+
+        warn(
+            "Attempting to work in a virtualenv. If you encounter problems, "
+            "please install IPython inside the virtualenv."
+        )
         import site
         sys.path.insert(0, virtual_env)
         site.addsitedir(virtual_env)
@@ -1804,8 +1812,13 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                return self.inspector._get_info(info.obj, oname, info=info,
-                            detail_level=detail_level
+                docformat = sphinxify if self.sphinxify_docstring else None
+                return self.inspector._get_info(
+                    info.obj,
+                    oname,
+                    info=info,
+                    detail_level=detail_level,
+                    formatter=docformat,
                 )
             else:
                 raise KeyError(oname)
@@ -1823,7 +1836,7 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to exception handling and tracebacks (not debugging)
     #-------------------------------------------------------------------------
 
-    debugger_cls = Pdb
+    debugger_cls = InterruptiblePdb
 
     def init_traceback_handlers(self, custom_exceptions):
         # Syntax error handler.
@@ -1885,6 +1898,9 @@ class InteractiveShell(SingletonConfigurable):
             To protect IPython from crashes, if your handler ever raises an
             exception or returns an invalid result, it will be immediately
             disabled.
+
+        Notes
+        -----
 
         WARNING: by putting in your own exception handler into IPython's main
         execution loop, you run a very good chance of nasty crashes.  This
@@ -2965,7 +2981,7 @@ class InteractiveShell(SingletonConfigurable):
         result: bool
             Whether the code needs to be run with a coroutine runner or not
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         if not self.autoawait:
             return False
@@ -3030,7 +3046,7 @@ class InteractiveShell(SingletonConfigurable):
         -------
         result : :class:`ExecutionResult`
 
-        .. versionadded: 7.0
+        .. versionadded:: 7.0
         """
         info = ExecutionInfo(
             raw_cell, store_history, silent, shell_futures)

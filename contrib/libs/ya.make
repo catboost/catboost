@@ -7,7 +7,6 @@ RECURSE(
     coreml
     crcutil
     cxxsupp/libcxx
-    cxxsupp/libcxx-filesystem
     cxxsupp/libcxxabi-parts
     expat
     fastlz
@@ -25,6 +24,7 @@ RECURSE(
     lz4
     lz4/generated
     lzmasdk
+    mimalloc
     nayuki_md5
     nvidia
     onnx
@@ -91,12 +91,6 @@ IF (OS_ANDROID)
 ENDIF()
 
 IF (OS_IOS AND ARCH_ARM64 OR OS_DARWIN)
-    RECURSE(
-    
-)
-ENDIF()
-
-IF (OS_LINUX AND ARCH_ARM64)
     RECURSE(
     
 )

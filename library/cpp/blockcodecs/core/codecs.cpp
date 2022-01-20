@@ -129,16 +129,20 @@ void ICodec::Decode(const TData& in, TBuffer& out) const {
 
 void ICodec::Encode(const TData& in, TString& out) const {
     const size_t maxLen = MaxCompressedLength(in);
+    out.ReserveAndResize(maxLen);
 
-    out.reserve(maxLen);
-    out.ReserveAndResize(Compress(in, out.begin()));
+    size_t actualLen = Compress(in, out.begin());
+    Y_ASSERT(actualLen <= maxLen);
+    out.resize(actualLen);
 }
 
 void ICodec::Decode(const TData& in, TString& out) const {
-    const size_t len = GetDecompressedLength(in);
+    const size_t maxLen = GetDecompressedLength(in);
+    out.ReserveAndResize(maxLen);
 
-    out.reserve(len);
-    out.ReserveAndResize(Decompress(in, out.begin()));
+    size_t actualLen = Decompress(in, out.begin());
+    Y_ASSERT(actualLen <= maxLen);
+    out.resize(actualLen);
 }
 
 ICodec::~ICodec() = default;

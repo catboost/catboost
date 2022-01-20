@@ -14,13 +14,13 @@
 
 
 1. Add conda-forge to your channels:
-    ```no-highlight
+    ```
     conda config --add channels conda-forge
     ```
-    
+
 1. Install {{ product }}:
-    ```no-highlight
+    ```
     conda install r-catboost
     ```
-    
+
 

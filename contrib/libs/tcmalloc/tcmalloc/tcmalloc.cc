@@ -423,6 +423,11 @@ static void DumpStats(Printer* out, int level) {
     }
 
     out->printf("------------------------------------------------\n");
+    out->printf("Transfer cache implementation: %s\n",
+                TransferCacheImplementationToLabel(
+                    Static::transfer_cache().implementation()));
+
+    out->printf("------------------------------------------------\n");
     out->printf("Transfer cache insert/remove hits/misses by size class\n");
     for (int cl = 1; cl < kNumClasses; ++cl) {
       out->printf(
@@ -564,6 +569,10 @@ namespace {
                        tc_stats[cl].remove_non_batch_misses);
       }
     }
+
+    region.PrintRaw("transfer_cache_implementation",
+                    TransferCacheImplementationToLabel(
+                        Static::transfer_cache().implementation()));
 
     if (UsePerCpuCache()) {
       Static::cpu_cache().PrintInPbtxt(&region);
@@ -1108,6 +1117,47 @@ extern "C" void MallocExtension_Internal_ReleaseMemoryToSystem(
   }
 }
 
+extern "C" void MallocExtension_EnableForkSupport() {
+  Static::EnableForkSupport();
+}
+
+void TCMallocPreFork() {
+  if (!Static::ForkSupportEnabled()) {
+    return;
+  }
+
+  if (Static::CPUCacheActive()) {
+    Static::cpu_cache().AcquireInternalLocks();
+  }
+  Static::transfer_cache().AcquireInternalLocks();
+  guarded_page_lock.Lock();
+  release_lock.Lock();
+  pageheap_lock.Lock();
+  AcquireSystemAllocLock();
+}
+
+void TCMallocPostFork() {
+  if (!Static::ForkSupportEnabled()) {
+    return;
+  }
+
+  ReleaseSystemAllocLock();
+  pageheap_lock.Unlock();  
+  guarded_page_lock.Unlock();
+  release_lock.Unlock();
+  Static::transfer_cache().ReleaseInternalLocks();
+  if (Static::CPUCacheActive()) {
+    Static::cpu_cache().ReleaseInternalLocks();
+  }
+}
+
+extern "C" void MallocExtension_SetSampleUserDataCallbacks(
+    MallocExtension::CreateSampleUserDataCallback create,
+    MallocExtension::CopySampleUserDataCallback copy,
+    MallocExtension::DestroySampleUserDataCallback destroy) {
+  Static::SetSampleUserDataCallbacks(create, copy, destroy);
+}
+
 // nallocx slow path.
 // Moved to a separate function because size_class_with_alignment is not inlined
 // which would cause nallocx to become non-leaf function with stack frame and
@@ -1457,6 +1507,7 @@ static void* SampleifyAllocation(size_t requested_size, size_t weight,
   tmp.requested_alignment = requested_alignment;
   tmp.allocated_size = allocated_size;
   tmp.weight = weight;
+  tmp.user_data = Static::CreateSampleUserData();
 
   {
     absl::base_internal::SpinLockHolder h(&pageheap_lock);
@@ -1586,6 +1637,7 @@ static void do_free_pages(void* ptr, const PageId p) {
                          1);
       }
       notify_sampled_alloc = true;
+      Static::DestroySampleUserData(st->user_data);
       Static::stacktrace_allocator().Delete(st);
     }
     if (IsSampledMemory(ptr)) {

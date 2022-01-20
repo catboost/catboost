@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/reduce.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_REDUCE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/reduce.h>
-#include __THRUST_HOST_SYSTEM_REDUCE_HEADER
-#undef __THRUST_HOST_SYSTEM_REDUCE_HEADER
+#include <thrust/system/cpp/detail/reduce.h>
 
 #define __THRUST_DEVICE_SYSTEM_REDUCE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/reduce.h>
 #include __THRUST_DEVICE_SYSTEM_REDUCE_HEADER

@@ -152,7 +152,7 @@ cdef public object PyCatboostExceptionType = <object>CatBoostError
 
 
 @cython.embedsignature(True)
-class MultiRegressionCustomMetric:
+class MultiTargetCustomMetric:
     def evaluate(self, approxes, targets, weights):
         """
         Evaluates metric value.
@@ -200,7 +200,7 @@ class MultiRegressionCustomMetric:
 
 
 @cython.embedsignature(True)
-class MultiRegressionCustomObjective:
+class MultiTargetCustomObjective:
     def calc_ders_multi(self, approxes, targets, weights):
         """
         Computes first derivative and Hessian matrix of the loss function with respect to the predicted value for each dimension.
@@ -411,16 +411,16 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
 
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TLocalExecutor local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawObjectsOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self, thread_count):
-        self.local_executor.RunAdditionalThreads(thread_count - 1)
+    def __cinit__(self, int thread_count):
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
-            &self.local_executor,
+            <ILocalExecutor*>self.local_executor.Get(),
             &self.data_provider_builder,
             &self.builder_visitor
         )
@@ -440,16 +440,16 @@ cdef class Py_ObjectsOrderBuilderVisitor:
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TLocalExecutor local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self, thread_count):
-        self.local_executor.RunAdditionalThreads(thread_count - 1)
+    def __cinit__(self, int thread_count):
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
-            &self.local_executor,
+            <ILocalExecutor*>self.local_executor.Get(),
             &self.data_provider_builder,
             &self.builder_visitor
         )
@@ -482,7 +482,8 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
-        bool_t verbose
+        bool_t verbose,
+        bool_t forceUnitAutoPAirweights
     ) nogil except +ProcessException
 
 
@@ -595,19 +596,19 @@ cdef extern from "catboost/libs/metrics/metric.h":
         void* CustomData
 
         ctypedef TMetricHolder (*TEvalFuncPtr)(
-            const TVector[TVector[double]]& approx,
-            const TConstArrayRef[float] target,
-            const TConstArrayRef[float] weight,
+            TConstArrayRef[TConstArrayRef[double]]& approx,
+            TConstArrayRef[float] target,
+            TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
-        ctypedef TMetricHolder (*TEvalMultiregressionFuncPtr)(
-            const TConstArrayRef[TVector[double]] approx,
-            const TConstArrayRef[TConstArrayRef[float]] target,
-            const TConstArrayRef[float] weight,
+        ctypedef TMetricHolder (*TEvalMultiTargetFuncPtr)(
+            TConstArrayRef[TConstArrayRef[double]] approx,
+            TConstArrayRef[TConstArrayRef[float]] target,
+            TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
 
         TMaybe[TEvalFuncPtr] EvalFunc
-        TMaybe[TEvalMultiregressionFuncPtr] EvalMultiregressionFunc
+        TMaybe[TEvalMultiTargetFuncPtr] EvalMultiTargetFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
@@ -638,7 +639,7 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             void* customData
         ) with gil
 
-        void (*CalcDersMultiRegression)(
+        void (*CalcDersMultiTarget)(
             TConstArrayRef[double] approx,
             TConstArrayRef[float] target,
             float weight,
@@ -1098,8 +1099,11 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
 cdef extern from "catboost/libs/features_selection/select_features.h" namespace "NCB":
     cdef TJsonValue SelectFeatures(
         const TJsonValue& params,
+        const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         const TDataProviders& pools,
-        TFullModel* dstModel
+        TFullModel* dstModel,
+        const TVector[TEvalResult*]& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) nogil except +ProcessException
 
 
@@ -1281,7 +1285,7 @@ cdef np.ndarray _CreateNumpyUI64ArrayView(const ui64* array, int count):
     return np.PyArray_SimpleNewFromData(1, dims, np.NPY_UINT64, <void*>array)
 
 
-cdef _ToPythonObjArrayOfArraysOfDoubles(const TVector[double]* values, int size, int begin, int end):
+cdef _ToPythonObjArrayOfArraysOfDoubles(const TConstArrayRef[double]* values, int size, int begin, int end):
     # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
     # numba doesn't like python lists, so using tuple instead
     return tuple(_CreateNumpyDoubleArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
@@ -1291,7 +1295,7 @@ cdef _ToPythonObjArrayOfArraysOfFloats(const TConstArrayRef[float]* values, int 
     return tuple(_CreateNumpyFloatArrayView(values[i].data() + begin, end - begin) for i in xrange(size))
 
 cdef TMetricHolder _MetricEval(
-    const TVector[TVector[double]]& approx,
+    TConstArrayRef[TConstArrayRef[double]]& approx,
     TConstArrayRef[float] target,
     TConstArrayRef[float] weight,
     int begin,
@@ -1322,8 +1326,8 @@ cdef TMetricHolder _MetricEval(
     holder.Stats[1] = weight_
     return holder
 
-cdef TMetricHolder _MultiregressionMetricEval(
-    TConstArrayRef[TVector[double]] approx,
+cdef TMetricHolder _MultiTargetMetricEval(
+    TConstArrayRef[TConstArrayRef[double]] approx,
     TConstArrayRef[TConstArrayRef[float]] target,
     TConstArrayRef[float] weight,
     int begin,
@@ -1448,7 +1452,7 @@ cdef void _ObjectiveCalcDersMultiClass(
                 dereference(der2).Data[index] = num
                 index += 1
 
-cdef void _ObjectiveCalcDersMultiRegression(
+cdef void _ObjectiveCalcDersMultiTarget(
     TConstArrayRef[double] approx,
     TConstArrayRef[float] target,
     float weight,
@@ -1567,8 +1571,8 @@ cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     _try_jit_methods(metricObject, custom_metric_methods_to_optimize)
     descriptor.CustomData = <void*>metricObject
-    if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
-        descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
+    if (issubclass(metricObject.__class__, MultiTargetCustomMetric)):
+        descriptor.EvalMultiTargetFunc = &_MultiTargetMetricEval
     else:
         descriptor.EvalFunc = &_MetricEval
     descriptor.GetDescriptionFunc = &_MetricGetDescription
@@ -1587,7 +1591,7 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     _try_jit_methods(objectiveObject, custom_objective_methods_to_optimize)
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
-    descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
+    descriptor.CalcDersMultiTarget = &_ObjectiveCalcDersMultiTarget
     descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
@@ -1695,13 +1699,13 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-            if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
-                params_to_json["loss_function"] = "PythonUserDefinedMultiRegression"
+            if (issubclass(params["loss_function"].__class__, MultiTargetCustomObjective)):
+                params_to_json["loss_function"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-            if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
-                params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
+            if (issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)):
+                params_to_json["eval_metric"] = "PythonUserDefinedMultiTarget"
 
         if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
             self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
@@ -1995,7 +1999,8 @@ cdef TFeaturesLayout* _init_features_layout(
     cat_features,
     text_features,
     embedding_features,
-    feature_names
+    feature_names,
+    feature_tags
 ) except*:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
@@ -2018,6 +2023,12 @@ cdef TFeaturesLayout* _init_features_layout(
     if feature_names is not None:
         for feature_name in feature_names:
             feature_names_vector.push_back(to_arcadia_string(str(feature_name)))
+
+    if feature_tags is not None:
+        for tag_name in feature_tags:
+            tag_key = to_arcadia_string(str(tag_name))
+            list_to_vector(feature_tags[tag_name]['features'], &feature_tags_map[tag_key].Features)
+            feature_tags_map[tag_key].Cost = feature_tags[tag_name]['cost']
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
@@ -2870,7 +2881,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.float64_t:
         data_np = cast_to_nparray(data, np.float64)
@@ -2880,7 +2891,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int8_t:
         data_np = cast_to_nparray(data, np.int8)
@@ -2890,7 +2901,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint8_t:
         data_np = cast_to_nparray(data, np.uint8)
@@ -2900,7 +2911,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int16_t:
         data_np = cast_to_nparray(data, np.int16)
@@ -2910,7 +2921,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint16_t:
         data_np = cast_to_nparray(data, np.uint16)
@@ -2920,7 +2931,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int32_t:
         data_np = cast_to_nparray(data, np.int32)
@@ -2930,7 +2941,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint32_t:
         data_np = cast_to_nparray(data, np.uint32)
@@ -2940,7 +2951,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.int64_t:
         data_np = cast_to_nparray(data, np.int64)
@@ -2950,7 +2961,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
 
     elif numpy_num_dtype == np.uint64_t:
         data_np = cast_to_nparray(data, np.uint64)
@@ -2960,7 +2971,7 @@ def _set_data_from_scipy_csr_sparse(
             indices_i32_ref,
             is_cat_feature_ref,
             builder_visitor,
-            <ILocalExecutor*>&py_builder_visitor.local_executor)
+            <ILocalExecutor*>py_builder_visitor.local_executor.Get())
     else:
         assert False, "CSR sparse arrays support only numeric data types"
 
@@ -3393,6 +3404,11 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
             one_dim_baseline.push_back(float(baseline[i][baseline_idx]))
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
+cdef _set_timestamp(timestamp, IBuilderVisitor* builder_visitor):
+    cdef int i
+    cdef int timestamps_len = len(timestamp)
+    for i in xrange(timestamps_len):
+        builder_visitor[0].AddTimestamp(i, <ui64>timestamp[i])
 
 
 @cython.boundscheck(False)
@@ -3494,7 +3510,7 @@ cdef class _PoolBase:
         if isinstance(label[0][0], numbers.Number):
             self.__target_data_holders = []
             for target_idx in range(target_count):
-                if isinstance(label, np.ndarray):
+                if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
                     target_array = np.ascontiguousarray(label[:, target_idx])
                 else:
                     target_array = np.empty(object_count, dtype=np.float32)
@@ -3575,6 +3591,7 @@ cdef class _PoolBase:
                 emptyIntVec,
                 EObjectsOrder_Undefined,
                 thread_count,
+                False,
                 False
             )
         self.__data_holders = None # free previously used resources
@@ -3593,6 +3610,7 @@ cdef class _PoolBase:
         subgroup_id,
         pairs_weight,
         baseline,
+        timestamp,
         thread_count):
 
         cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
@@ -3676,6 +3694,8 @@ cdef class _PoolBase:
             _set_group_weight_features_order(group_weight, builder_visitor)
         if subgroup_id is not None:
             _set_subgroup_id(subgroup_id, builder_visitor)
+        if timestamp is not None:
+            _set_timestamp(timestamp, builder_visitor)
 
         builder_visitor[0].Finish()
 
@@ -3695,6 +3715,7 @@ cdef class _PoolBase:
         subgroup_id,
         pairs_weight,
         baseline,
+        timestamp,
         thread_count):
 
         cdef Py_ObjectsOrderBuilderVisitor py_builder_visitor = Py_ObjectsOrderBuilderVisitor(thread_count)
@@ -3730,6 +3751,8 @@ cdef class _PoolBase:
             _set_group_weight(group_weight, builder_visitor)
         if subgroup_id is not None:
             _set_subgroup_id(subgroup_id, builder_visitor)
+        if timestamp is not None:
+            _set_timestamp(timestamp, builder_visitor)
 
         builder_visitor[0].Finish()
 
@@ -3738,7 +3761,8 @@ cdef class _PoolBase:
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
-                     group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count):
+                     group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
+                     thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
@@ -3755,7 +3779,7 @@ cdef class _PoolBase:
         data_meta_info.HasGroupWeight = group_weight is not None
         data_meta_info.HasSubgroupIds = subgroup_id is not None
         data_meta_info.HasWeights = weight is not None
-        data_meta_info.HasTimestamp = False
+        data_meta_info.HasTimestamp = timestamp is not None
         data_meta_info.HasPairs = pairs is not None
 
         data_meta_info.FeaturesLayout = _init_features_layout(
@@ -3763,7 +3787,8 @@ cdef class _PoolBase:
             cat_features,
             text_features,
             embedding_features,
-            feature_names
+            feature_names,
+            feature_tags
         )
 
         do_use_raw_data_in_features_order = False
@@ -3795,6 +3820,7 @@ cdef class _PoolBase:
                 subgroup_id,
                 pairs_weight,
                 baseline,
+                timestamp,
                 thread_count
             )
         else:
@@ -3809,6 +3835,7 @@ cdef class _PoolBase:
                 subgroup_id,
                 pairs_weight,
                 baseline,
+                timestamp,
                 thread_count
             )
 
@@ -3889,6 +3916,14 @@ cdef class _PoolBase:
 
         self.__pool.Get()[0].SetBaseline(
             TBaselineArrayRef(baseline_matrix_view.data(), baseline_matrix_view.size())
+        )
+
+    cpdef _set_timestamp(self, timestamp):
+        cdef TVector[ui64] timestamp_vector
+        for value in timestamp:
+            timestamp_vector.push_back(<ui64>value)
+        self.__pool.Get()[0].SetTimestamps(
+            TConstArrayRef[ui64](timestamp_vector.data(), timestamp_vector.size())
         )
 
     cpdef _set_feature_names(self, feature_names):
@@ -4008,7 +4043,7 @@ cdef class _PoolBase:
         feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
-        cdef TLocalExecutor local_executor
+        cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         cdef TFeaturesLayout* features_layout =self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()
         cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
@@ -4018,12 +4053,10 @@ cdef class _PoolBase:
         if features_layout[0].GetExternalFeatureCount() != features_layout[0].GetFloatFeatureCount():
             raise CatBoostError('Pool has non-numeric features, get_features supports only numeric features')
 
-        local_executor.RunAdditionalThreads(thread_count - 1)
-
         data = np.empty(self.shape, dtype=np.float32)
 
         for factor in range(self.num_col()):
-            self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>&local_executor, data)
+            self._get_feature(raw_objects_data_provider, factor, <ILocalExecutor*>local_executor.Get(), data)
 
         return data
 
@@ -4327,6 +4360,10 @@ cdef _get_model_class_labels(const TFullModel& model):
     return labels
 
 
+cdef _get_loss_function_name(const TFullModel& model):
+    return to_native_str(model.GetLossFunctionName())
+
+
 cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
@@ -4583,7 +4620,7 @@ cdef class _CatBoost:
         return metrics, [to_native_str(name) for name in metric_names]
 
     cpdef _get_loss_function_name(self):
-        return to_native_str(self.__model.GetLossFunctionName())
+        return _get_loss_function_name(dereference(self.__model))
 
     cpdef _calc_partial_dependence(self, _PoolBase pool, features, int thread_count):
         thread_count = UpdateThreadCount(thread_count);
@@ -4977,6 +5014,8 @@ cdef class _CatBoost:
         dataProviders.Learn = train_pool.__pool
         if test_pool:
             dataProviders.Test.push_back(test_pool.__pool)
+        self._reserve_test_evals(dataProviders.Test.size())
+        self._clear_test_evals()
 
         cdef TJsonValue summary_json
         with nogil:
@@ -4984,8 +5023,11 @@ cdef class _CatBoost:
             try:
                 summary_json = SelectFeatures(
                     prep_params.tree,
+                    prep_params.customMetricDescriptor,
                     dataProviders,
-                    self.__model
+                    self.__model,
+                    self.__test_evals,
+                    &self.__metrics_history,
                 )
             finally:
                 ResetPythonInterruptHandler()
@@ -5300,9 +5342,15 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
     cdef size_t objectCount
     cdef size_t objectIdx
+    cdef size_t dim
+    cdef size_t dimIdx
     cdef TConstArrayRef[double] raws1d
 
     if predictionType == string_to_prediction_type('Class'):
+        loss_function = _get_loss_function_name(model[0])
+        if loss_function in ('MultiLogloss', 'MultiCrossEntropy'):
+            return _2d_vector_of_double_to_np_array(raws).astype(int)
+
         assert (raws.size() == 1)
         raws1d = TConstArrayRef[double](raws[0])
         objectCount = raws1d.size()
@@ -5346,7 +5394,7 @@ cdef class _StagedPredictIterator:
     cdef TVector[TVector[double]] __approx
     cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef TLocalExecutor __executor
+    cdef THolder[TTbbLocalExecutor] __executor
     cdef TModelCalcerOnPool* __modelCalcerOnPool
     cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
@@ -5359,14 +5407,14 @@ cdef class _StagedPredictIterator:
         self.eval_period = eval_period
         self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
-        self.__executor.RunAdditionalThreads(self.thread_count - 1)
+        self.__executor = MakeHolder[TTbbLocalExecutor](thread_count)
 
     cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
         self.__model = model
         self.__modelCalcerOnPool = new TModelCalcerOnPool(
             dereference(self.__model),
             pool.__pool.Get()[0].ObjectsData,
-            <ILocalExecutor*>&self.__executor
+            <ILocalExecutor*>self.__executor.Get()
         )
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = pool.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline
@@ -5735,6 +5783,10 @@ cpdef is_regression_objective(loss_name):
 
 cpdef is_multiregression_objective(loss_name):
     return IsMultiRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_multitarget_objective(loss_name):
+    return IsMultiTargetObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_survivalregression_objective(loss_name):

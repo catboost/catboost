@@ -140,7 +140,7 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
     fileName: String, 
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostRegressionModel = {
-    new CatBoostRegressionModel(native_impl.native_impl.ReadModelWrapper(fileName, format))
+    new CatBoostRegressionModel(native_impl.native_impl.ReadModel(fileName, format))
   }
 }
 

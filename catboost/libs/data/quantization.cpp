@@ -950,7 +950,7 @@ namespace NCB {
                 = std::get_if<TIndexedSubset<ui32>>(&incrementalDenseIndexing.SrcSubsetIndexing))
             {
                 TConstArrayRef<ui32> dstIndices
-                    = Get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
+                    = std::get<TIndexedSubset<ui32>>(incrementalDenseIndexing.DstIndexing);
 
                 denseSrcFeature->GetData()->CloneWithNewSubsetIndexing(
                     &incrementalDenseIndexing.SrcSubsetIndexing
@@ -2489,6 +2489,7 @@ namespace NCB {
                 objectsGrouping,
                 std::move(*data),
                 false,
+                data->MetaInfo.ForceUnitAutoPairWeights,
                 localExecutor
             );
         }
@@ -2532,7 +2533,7 @@ namespace NCB {
             std::move(dataMetaInfo),
             std::move(rawObjectsDataProvider),
             objectsGrouping,
-            TRawTargetDataProvider(objectsGrouping, std::move(dummyData), true, nullptr)
+            TRawTargetDataProvider(objectsGrouping, std::move(dummyData), true, /*forceUnitAutoPairWeights*/ true, nullptr)
         );
 
         auto quantizedDataProvider = Quantize(

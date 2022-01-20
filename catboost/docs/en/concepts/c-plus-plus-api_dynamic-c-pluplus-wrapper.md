@@ -18,7 +18,7 @@ Perform the following steps to build the library:
     - Shared library
 
         ```bash
-        ya make -r catboost/libs/model_interface
+        ./ya make -r catboost/libs/model_interface
         ```
 
         Or (Linux-only):
@@ -54,9 +54,8 @@ The {{ product }} model can be loaded from a file or initialized from the buffer
 
 
 #### Related information
+
 [Source code and a CMake usage example](https://github.com/catboost/catboost/tree/master/catboost/libs/model_interface)
-
-
 
 ## C API {#c-api}
 

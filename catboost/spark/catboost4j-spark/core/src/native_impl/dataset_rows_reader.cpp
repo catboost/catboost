@@ -345,7 +345,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
     bool hasHeader,
     i32 blockSize,
     i32 threadCount
-) throw (yexception) {
+) {
     THolder<ILineDataReader> lineReaderHolder(lineReader);
 
     CB_ENSURE(threadCount >= 1, "threadCount must be >= 1");
@@ -382,6 +382,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
             SafeIntegerCast<ui32>(blockSize),
             /*loadSubset*/ TDatasetSubset(),
             /*LoadColumnsAsString*/ false,
+            /*ForceUnitAutoPairWeights*/ false,
             &LocalExecutor
         }
     };
@@ -401,7 +402,7 @@ TRawDatasetRowsReader::TRawDatasetRowsReader(
     VisitorHolder = std::move(visitorHolder);
 }
 
-i32 TRawDatasetRowsReader::ReadNextBlock() throw (yexception) {
+i32 TRawDatasetRowsReader::ReadNextBlock() {
     if (Loader->DoBlock(Visitor)) {
         return Visitor->GetBlockSize();
     } else {
@@ -409,7 +410,7 @@ i32 TRawDatasetRowsReader::ReadNextBlock() throw (yexception) {
     }
 }
 
-const TRawDatasetRow& TRawDatasetRowsReader::GetRow(i32 objectIdx) throw (yexception) {
+const TRawDatasetRow& TRawDatasetRowsReader::GetRow(i32 objectIdx) {
     return Visitor->GetRow(objectIdx);
 }
 

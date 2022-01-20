@@ -4,6 +4,8 @@ LICENSE(SMLNJ)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
+VERSION(2014-07-11)
+
 
 
 NO_COMPILER_WARNINGS()

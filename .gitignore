@@ -36,7 +36,7 @@ catboost/libs/model_interface/*.dylib*
 
 catboost/pytest/catboost-pytest
 
-catboost/tools/limited_precision_dsv_diff/
+catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
 
 catboost/tutorials/apply_model/rust/target/
 catboost/tools/limited_precision_json_diff/limited_precision_json_diff

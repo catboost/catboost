@@ -2,6 +2,7 @@
 
 #TODO(kizill): split this into subscripts to make it prettier
 
+eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 
@@ -17,12 +18,12 @@ fi
 
 function python_version {
     case `$1 --version 2>&1` in
-        Python*2.7*) echo 2.7 ;;
         Python*3.5*) echo 3.5 ;;
         Python*3.6*) echo 3.6 ;;
         Python*3.7*) echo 3.7 ;;
         Python*3.8*) echo 3.8 ;;
         Python*3.9*) echo 3.9 ;;
+        Python*3.10*) echo 3.10 ;;
         *) echo "Cannot determine python version" ; exit 1 ;;
     esac
 }
@@ -65,16 +66,6 @@ tar -cvzf catboost-R-$(uname).tgz catboost
 
 cd ../python-package
 
-PY27=2.7.14
-pyenv install -s $PY27
-pyenv shell $PY27
-python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config 
-
-PY35=3.5.5
-pyenv install -s $PY35
-pyenv shell $PY35
-python mk_wheel.py --build-widget=no $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
-
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36
@@ -93,6 +84,11 @@ python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/b
 PY39=3.9.0
 pyenv install -s $PY39
 pyenv shell $PY39
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+
+PY310=3.10.0
+pyenv install -s $PY310
+pyenv shell $PY310
 python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 

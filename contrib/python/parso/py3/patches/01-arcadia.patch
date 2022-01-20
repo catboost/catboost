@@ -1,5 +1,5 @@
---- a/parso/cache.py	(index)
-+++ b/parso/cache.py	(working tree)
+--- contrib/python/parso/py3/parso/cache.py	(index)
++++ contrib/python/parso/py3/parso/cache.py	(working tree)
 @@ -135,6 +135,8 @@ def load_module(hashed_grammar, file_io, cache_path=None):
  def _load_from_file_system(hashed_grammar, path, p_time, cache_path=None):
      cache_path = _get_hashed_path(hashed_grammar, path, cache_path=cache_path)
@@ -9,8 +9,8 @@
          if p_time > os.path.getmtime(cache_path):
              # Cache is outdated
              return None
---- a/parso/file_io.py	(index)
-+++ b/parso/file_io.py	(working tree)
+--- contrib/python/parso/py3/parso/file_io.py	(index)
++++ contrib/python/parso/py3/parso/file_io.py	(working tree)
 @@ -2,6 +2,8 @@ import os
  from pathlib import Path
  from typing import Union
@@ -30,8 +30,8 @@
          with open(self.path, 'rb') as f:
              return f.read()
  
---- a/parso/grammar.py	(index)
-+++ b/parso/grammar.py	(working tree)
+--- contrib/python/parso/py3/parso/grammar.py	(index)
++++ contrib/python/parso/py3/parso/grammar.py	(working tree)
 @@ -1,5 +1,6 @@
  import hashlib
  import os
@@ -56,8 +56,8 @@
              message = "Python version %s.%s is currently not supported." % (
                  version_info.major, version_info.minor
              )
---- a/tests/conftest.py	(index)
-+++ b/tests/conftest.py	(working tree)
+--- contrib/python/parso/py3/tests/conftest.py	(index)
++++ contrib/python/parso/py3/tests/conftest.py	(working tree)
 @@ -6,6 +6,7 @@ import os
  from pathlib import Path
  
@@ -75,8 +75,8 @@
  
          cases = list(colllect_normalizer_tests(base_dir))
          metafunc.parametrize(
---- a/tests/test_cache.py	(index)
-+++ b/tests/test_cache.py	(working tree)
+--- contrib/python/parso/py3/tests/test_cache.py	(index)
++++ contrib/python/parso/py3/tests/test_cache.py	(working tree)
 @@ -34,6 +34,7 @@ def isolated_parso_cache(monkeypatch, tmpdir):
      return cache_path
  

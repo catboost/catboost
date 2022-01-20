@@ -217,7 +217,6 @@
   - json_valueiterator.inl
   - value.h
   - pthread/mit/sys/timers.h
-  - ../src/config.h
   - sljit/sljitLir.c
   - pcre_printint.c
   #ifdef defined(emacs) && CONTRIB && TRASH
@@ -798,7 +797,6 @@
   - gelf.h
   - gnuregex.h
   - kafs.h
-  - libelf.h
   - login_cap.h
   - machine/_inttypes.h
   - machine/_stdint.h

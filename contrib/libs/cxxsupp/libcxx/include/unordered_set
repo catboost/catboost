@@ -387,12 +387,15 @@ template <class Value, class Hash, class Pred, class Alloc>
 */
 
 #include <__config>
+#include <__debug>
+#include <__functional/is_transparent.h>
 #include <__hash_table>
 #include <__node_handle>
+#include <__utility/forward.h>
+#include <compare>
 #include <functional>
+#include <iterator> // __libcpp_erase_if_container
 #include <version>
-
-#include <__debug>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -411,9 +414,9 @@ public:
     // types
     typedef _Value                                                     key_type;
     typedef key_type                                                   value_type;
-    typedef typename __identity<_Hash>::type                           hasher;
-    typedef typename __identity<_Pred>::type                           key_equal;
-    typedef typename __identity<_Alloc>::type                          allocator_type;
+    typedef __identity_t<_Hash>                                        hasher;
+    typedef __identity_t<_Pred>                                        key_equal;
+    typedef __identity_t<_Alloc>                                       allocator_type;
     typedef value_type&                                                reference;
     typedef const value_type&                                          const_reference;
     static_assert((is_same<value_type, typename allocator_type::value_type>::value),
@@ -512,7 +515,7 @@ public:
                                   const hasher& __hf, const allocator_type& __a)
         : unordered_set(__il, __n, __hf, key_equal(), __a) {}
 #endif
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     ~unordered_set() {
         static_assert(sizeof(__diagnose_unordered_container_requirements<_Value, _Hash, _Pred>(0)), "");
@@ -530,7 +533,7 @@ public:
         _NOEXCEPT_(is_nothrow_move_assignable<__table>::value);
     _LIBCPP_INLINE_VISIBILITY
     unordered_set& operator=(initializer_list<value_type> __il);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     allocator_type get_allocator() const _NOEXCEPT
@@ -595,7 +598,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     void insert(initializer_list<value_type> __il)
         {insert(__il.begin(), __il.end());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     pair<iterator, bool> insert(const value_type& __x)
         {return __table_.__insert_unique(__x);}
@@ -703,49 +706,48 @@ public:
     iterator       find(const key_type& __k)       {return __table_.find(__k);}
     _LIBCPP_INLINE_VISIBILITY
     const_iterator find(const key_type& __k) const {return __table_.find(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, iterator>
-        find(const _K2& __k)       {return __table_.find(__k);}
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, const_iterator>
-        find(const _K2& __k) const {return __table_.find(__k);}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    iterator       find(const _K2& __k)            {return __table_.find(__k);}
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    const_iterator find(const _K2& __k) const      {return __table_.find(__k);}
+#endif // _LIBCPP_STD_VER > 17
+
     _LIBCPP_INLINE_VISIBILITY
     size_type count(const key_type& __k) const {return __table_.__count_unique(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, size_type>
-        count(const _K2& __k) const {return __table_.__count_unique(__k);}
-    #endif // _LIBCPP_STD_VER > 17
-    #if _LIBCPP_STD_VER > 17
-        _LIBCPP_INLINE_VISIBILITY
-        bool contains(const key_type& __k) const {return find(__k) != end();}
+#if _LIBCPP_STD_VER > 17
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    size_type count(const _K2& __k) const      {return __table_.__count_unique(__k);}
+#endif // _LIBCPP_STD_VER > 17
 
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, bool>
-        contains(const _K2& __k) const {return find(__k) != end();}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    _LIBCPP_INLINE_VISIBILITY
+    bool contains(const key_type& __k) const {return find(__k) != end();}
+
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    bool contains(const _K2& __k) const      {return find(__k) != end();}
+#endif // _LIBCPP_STD_VER > 17
+
     _LIBCPP_INLINE_VISIBILITY
     pair<iterator, iterator>             equal_range(const key_type& __k)
         {return __table_.__equal_range_unique(__k);}
     _LIBCPP_INLINE_VISIBILITY
     pair<const_iterator, const_iterator> equal_range(const key_type& __k) const
         {return __table_.__equal_range_unique(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, pair<iterator, iterator>>
-        equal_range(const _K2& __k)       {return __table_.__equal_range_unique(__k);}
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, pair<const_iterator, const_iterator>>
-        equal_range(const _K2& __k) const {return __table_.__equal_range_unique(__k);}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    pair<iterator, iterator>             equal_range(const _K2& __k)
+        {return __table_.__equal_range_unique(__k);}
+    template <class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    pair<const_iterator, const_iterator> equal_range(const _K2& __k) const
+        {return __table_.__equal_range_unique(__k);}
+#endif // _LIBCPP_STD_VER > 17
 
     _LIBCPP_INLINE_VISIBILITY
     size_type bucket_count() const _NOEXCEPT {return __table_.bucket_count();}
@@ -792,19 +794,19 @@ public:
     bool __subscriptable(const const_iterator* __i, ptrdiff_t __n) const
         {return __table_.__addable(__i, __n);}
 
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
 
 };
 
-#ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
+#if _LIBCPP_STD_VER >= 17
 template<class _InputIterator,
          class _Hash = hash<__iter_value_type<_InputIterator>>,
          class _Pred = equal_to<__iter_value_type<_InputIterator>>,
          class _Allocator = allocator<__iter_value_type<_InputIterator>>,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<!__is_allocator<_Pred>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<!__is_allocator<_Pred>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(_InputIterator, _InputIterator, typename allocator_traits<_Allocator>::size_type = 0,
               _Hash = _Hash(), _Pred = _Pred(), _Allocator = _Allocator())
   -> unordered_set<__iter_value_type<_InputIterator>, _Hash, _Pred, _Allocator>;
@@ -812,16 +814,16 @@ unordered_set(_InputIterator, _InputIterator, typename allocator_traits<_Allocat
 template<class _Tp, class _Hash = hash<_Tp>,
          class _Pred = equal_to<_Tp>,
          class _Allocator = allocator<_Tp>,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<!__is_allocator<_Pred>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<!__is_allocator<_Pred>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type = 0,
               _Hash = _Hash(), _Pred = _Pred(), _Allocator = _Allocator())
   -> unordered_set<_Tp, _Hash, _Pred, _Allocator>;
 
 template<class _InputIterator, class _Allocator,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(_InputIterator, _InputIterator,
               typename allocator_traits<_Allocator>::size_type, _Allocator)
   -> unordered_set<__iter_value_type<_InputIterator>,
@@ -830,9 +832,9 @@ unordered_set(_InputIterator, _InputIterator,
                    _Allocator>;
 
 template<class _InputIterator, class _Hash, class _Allocator,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(_InputIterator, _InputIterator,
               typename allocator_traits<_Allocator>::size_type, _Hash, _Allocator)
   -> unordered_set<__iter_value_type<_InputIterator>, _Hash,
@@ -840,14 +842,14 @@ unordered_set(_InputIterator, _InputIterator,
                    _Allocator>;
 
 template<class _Tp, class _Allocator,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type, _Allocator)
   -> unordered_set<_Tp, hash<_Tp>, equal_to<_Tp>, _Allocator>;
 
 template<class _Tp, class _Hash, class _Allocator,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_set(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type, _Hash, _Allocator)
   -> unordered_set<_Tp, _Hash, equal_to<_Tp>, _Allocator>;
 #endif
@@ -1039,7 +1041,7 @@ unordered_set<_Value, _Hash, _Pred, _Alloc>::operator=(
     return *this;
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>
 template <class _InputIterator>
@@ -1069,7 +1071,7 @@ inline _LIBCPP_INLINE_VISIBILITY
     typename unordered_set<_Value, _Hash, _Pred, _Alloc>::size_type
     erase_if(unordered_set<_Value, _Hash, _Pred, _Alloc>& __c,
              _Predicate __pred) {
-  return __libcpp_erase_if_container(__c, __pred);
+  return _VSTD::__libcpp_erase_if_container(__c, __pred);
 }
 #endif
 
@@ -1109,9 +1111,9 @@ public:
     // types
     typedef _Value                                                     key_type;
     typedef key_type                                                   value_type;
-    typedef typename __identity<_Hash>::type                           hasher;
-    typedef typename __identity<_Pred>::type                           key_equal;
-    typedef typename __identity<_Alloc>::type                          allocator_type;
+    typedef __identity_t<_Hash>                                        hasher;
+    typedef __identity_t<_Pred>                                        key_equal;
+    typedef __identity_t<_Alloc>                                       allocator_type;
     typedef value_type&                                                reference;
     typedef const value_type&                                          const_reference;
     static_assert((is_same<value_type, typename allocator_type::value_type>::value),
@@ -1208,7 +1210,7 @@ public:
     unordered_multiset(initializer_list<value_type> __il, size_type __n, const hasher& __hf, const allocator_type& __a)
       : unordered_multiset(__il, __n, __hf, key_equal(), __a) {}
 #endif
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     ~unordered_multiset() {
         static_assert(sizeof(__diagnose_unordered_container_requirements<_Value, _Hash, _Pred>(0)), "");
@@ -1225,7 +1227,7 @@ public:
     unordered_multiset& operator=(unordered_multiset&& __u)
         _NOEXCEPT_(is_nothrow_move_assignable<__table>::value);
     unordered_multiset& operator=(initializer_list<value_type> __il);
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     allocator_type get_allocator() const _NOEXCEPT
@@ -1269,7 +1271,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     void insert(initializer_list<value_type> __il)
         {insert(__il.begin(), __il.end());}
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     iterator insert(const value_type& __x) {return __table_.__insert_multi(__x);}
@@ -1369,49 +1371,48 @@ public:
     iterator       find(const key_type& __k)       {return __table_.find(__k);}
     _LIBCPP_INLINE_VISIBILITY
     const_iterator find(const key_type& __k) const {return __table_.find(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, iterator>
-        find(const _K2& __k)       {return __table_.find(__k);}
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, const_iterator>
-        find(const _K2& __k) const {return __table_.find(__k);}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    iterator       find(const _K2& __k)            {return __table_.find(__k);}
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    const_iterator find(const _K2& __k) const      {return __table_.find(__k);}
+#endif // _LIBCPP_STD_VER > 17
+
     _LIBCPP_INLINE_VISIBILITY
     size_type count(const key_type& __k) const {return __table_.__count_multi(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, size_type>
-        count(const _K2& __k) const {return __table_.__count_multi(__k);}
-    #endif // _LIBCPP_STD_VER > 17
-    #if _LIBCPP_STD_VER > 17
-        _LIBCPP_INLINE_VISIBILITY
-        bool contains(const key_type& __k) const {return find(__k) != end();}
+#if _LIBCPP_STD_VER > 17
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    size_type count(const _K2& __k) const      {return __table_.__count_multi(__k);}
+#endif // _LIBCPP_STD_VER > 17
 
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, bool>
-        contains(const _K2& __k) const {return find(__k) != end();}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    _LIBCPP_INLINE_VISIBILITY
+    bool contains(const key_type& __k) const {return find(__k) != end();}
+
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    bool contains(const _K2& __k) const      {return find(__k) != end();}
+#endif // _LIBCPP_STD_VER > 17
+
     _LIBCPP_INLINE_VISIBILITY
     pair<iterator, iterator>             equal_range(const key_type& __k)
         {return __table_.__equal_range_multi(__k);}
     _LIBCPP_INLINE_VISIBILITY
     pair<const_iterator, const_iterator> equal_range(const key_type& __k) const
         {return __table_.__equal_range_multi(__k);}
-    #if _LIBCPP_STD_VER > 17
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, pair<iterator, iterator>>
-        equal_range(const _K2& __k)       {return __table_.__equal_range_multi(__k);}
-        template <typename _K2>
-        _LIBCPP_INLINE_VISIBILITY
-        _EnableIf<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value, pair<const_iterator, const_iterator>>
-        equal_range(const _K2& __k) const {return __table_.__equal_range_multi(__k);}
-    #endif // _LIBCPP_STD_VER > 17
+#if _LIBCPP_STD_VER > 17
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    pair<iterator, iterator>             equal_range(const _K2& __k)
+        {return __table_.__equal_range_multi(__k);}
+    template<class _K2, enable_if_t<__is_transparent<hasher, _K2>::value && __is_transparent<key_equal, _K2>::value>* = nullptr>
+    _LIBCPP_INLINE_VISIBILITY
+    pair<const_iterator, const_iterator> equal_range(const _K2& __k) const
+        {return __table_.__equal_range_multi(__k);}
+#endif // _LIBCPP_STD_VER > 17
 
     _LIBCPP_INLINE_VISIBILITY
     size_type bucket_count() const _NOEXCEPT {return __table_.bucket_count();}
@@ -1458,35 +1459,35 @@ public:
     bool __subscriptable(const const_iterator* __i, ptrdiff_t __n) const
         {return __table_.__addable(__i, __n);}
 
-#endif  // _LIBCPP_DEBUG_LEVEL == 2
+#endif // _LIBCPP_DEBUG_LEVEL == 2
 
 };
 
-#ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
+#if _LIBCPP_STD_VER >= 17
 template<class _InputIterator,
          class _Hash = hash<__iter_value_type<_InputIterator>>,
          class _Pred = equal_to<__iter_value_type<_InputIterator>>,
          class _Allocator = allocator<__iter_value_type<_InputIterator>>,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<!__is_allocator<_Pred>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<!__is_allocator<_Pred>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(_InputIterator, _InputIterator, typename allocator_traits<_Allocator>::size_type = 0,
               _Hash = _Hash(), _Pred = _Pred(), _Allocator = _Allocator())
   -> unordered_multiset<__iter_value_type<_InputIterator>, _Hash, _Pred, _Allocator>;
 
 template<class _Tp, class _Hash = hash<_Tp>,
          class _Pred = equal_to<_Tp>, class _Allocator = allocator<_Tp>,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<!__is_allocator<_Pred>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<!__is_allocator<_Pred>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type = 0,
               _Hash = _Hash(), _Pred = _Pred(), _Allocator = _Allocator())
   -> unordered_multiset<_Tp, _Hash, _Pred, _Allocator>;
 
 template<class _InputIterator, class _Allocator,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(_InputIterator, _InputIterator, typename allocator_traits<_Allocator>::size_type, _Allocator)
   -> unordered_multiset<__iter_value_type<_InputIterator>,
                    hash<__iter_value_type<_InputIterator>>,
@@ -1494,9 +1495,9 @@ unordered_multiset(_InputIterator, _InputIterator, typename allocator_traits<_Al
                    _Allocator>;
 
 template<class _InputIterator, class _Hash, class _Allocator,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(_InputIterator, _InputIterator, typename allocator_traits<_Allocator>::size_type,
               _Hash, _Allocator)
   -> unordered_multiset<__iter_value_type<_InputIterator>, _Hash,
@@ -1504,14 +1505,14 @@ unordered_multiset(_InputIterator, _InputIterator, typename allocator_traits<_Al
                    _Allocator>;
 
 template<class _Tp, class _Allocator,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type, _Allocator)
   -> unordered_multiset<_Tp, hash<_Tp>, equal_to<_Tp>, _Allocator>;
 
 template<class _Tp, class _Hash, class _Allocator,
-         class = _EnableIf<!__is_allocator<_Hash>::value>,
-         class = _EnableIf<!is_integral<_Hash>::value>,
-         class = _EnableIf<__is_allocator<_Allocator>::value>>
+         class = enable_if_t<!__is_allocator<_Hash>::value>,
+         class = enable_if_t<!is_integral<_Hash>::value>,
+         class = enable_if_t<__is_allocator<_Allocator>::value>>
 unordered_multiset(initializer_list<_Tp>, typename allocator_traits<_Allocator>::size_type, _Hash, _Allocator)
   -> unordered_multiset<_Tp, _Hash, equal_to<_Tp>, _Allocator>;
 #endif
@@ -1705,7 +1706,7 @@ unordered_multiset<_Value, _Hash, _Pred, _Alloc>::operator=(
     return *this;
 }
 
-#endif  // _LIBCPP_CXX03_LANG
+#endif // _LIBCPP_CXX03_LANG
 
 template <class _Value, class _Hash, class _Pred, class _Alloc>
 template <class _InputIterator>
@@ -1735,7 +1736,7 @@ inline _LIBCPP_INLINE_VISIBILITY
     typename unordered_multiset<_Value, _Hash, _Pred, _Alloc>::size_type
     erase_if(unordered_multiset<_Value, _Hash, _Pred, _Alloc>& __c,
              _Predicate __pred) {
-  return __libcpp_erase_if_container(__c, __pred);
+  return _VSTD::__libcpp_erase_if_container(__c, __pred);
 }
 #endif
 
@@ -1773,4 +1774,4 @@ operator!=(const unordered_multiset<_Value, _Hash, _Pred, _Alloc>& __x,
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif  // _LIBCPP_UNORDERED_SET
+#endif // _LIBCPP_UNORDERED_SET

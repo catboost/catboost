@@ -28,7 +28,7 @@
 
 namespace NCB {
 
-    static TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
+    TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;
@@ -64,6 +64,7 @@ namespace NCB {
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
+        bool dataCanBeEmpty,
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
@@ -172,7 +173,7 @@ namespace NCB {
             inputClassificationInfo
         );
 
-        CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");
+        CB_ENSURE(dataCanBeEmpty || srcData->RawTargetData.GetObjectCount() > 0, "Dataset " << datasetName  << " is empty");
 
         trainingData->TargetData = CreateTargetDataProvider(
             srcData->RawTargetData,
@@ -404,6 +405,7 @@ namespace NCB {
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
+        bool trainDataCanBeEmpty,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
         bool allowWriteFiles,
@@ -420,7 +422,8 @@ namespace NCB {
         TMaybe<float> targetBorder = params->DataProcessingOptions->TargetBorder;
         trainingData.Learn = GetTrainingData(
             std::move(srcData.Learn),
-            /*isLearnData*/ !params->SystemOptions->IsWorker(),
+            trainDataCanBeEmpty,
+            /*isLearnData*/ true,
             "learn",
             bordersFile,
             /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles && srcData.Test.empty(),
@@ -441,6 +444,7 @@ namespace NCB {
             trainingData.Test.push_back(
                 GetTrainingData(
                     std::move(srcData.Test[testIdx]),
+                    /*dataCanBeEmpty*/ true,
                     /*isLearnData*/ false,
                     TStringBuilder() << "test #" << testIdx,
                     Nothing(), // borders already loaded

@@ -15,6 +15,7 @@
 #include "bitops.h"
 #include "explicit_type.h"
 #include "reserve.h"
+#include "singleton.h"
 #include "strbase.h"
 #include "strbuf.h"
 #include "string_hash.h"
@@ -78,9 +79,15 @@ struct TStdString: public TRefCountHolder, public B {
     }
 
     static TStdString* NullStr() noexcept {
+    #ifdef _LIBCPP_VERSION
         return (TStdString*)NULL_STRING_REPR;
+    #else
+        return Singleton<TStdString>();
+    #endif
     }
 
+private:
+    friend TStringPtrOps<TStdString>;
     inline void Ref() noexcept {
         C.Inc();
     }
@@ -130,6 +137,17 @@ public:
     TBasicCharRef& operator=(const TBasicCharRef& other) {
         return this->operator=(static_cast<TChar>(other));
     }
+
+    /*
+     * WARN:
+     * Though references are copyable types according to the standard,
+     * the behavior of this explicit default specification is different from the one
+     * implemented by the assignment operator above.
+     *
+     * An attempt to explicitly delete it will break valid invocations like
+     * auto c = flag ? s[i] : s[j];
+     */
+    TBasicCharRef(const TBasicCharRef&) = default;
 
 private:
     TStringType& S_;
@@ -209,7 +227,7 @@ protected:
     }
 
     size_t RefCount() const noexcept {
-        return S_->RefCount();
+        return S_.RefCount();
     }
 #endif
 
@@ -314,7 +332,7 @@ public:
     using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
     using TBase::rend;    //!< const_reverse_iterator TStringBase::rend() const
 
-    inline size_t reserve() const noexcept {
+    inline size_t capacity() const noexcept {
 #ifdef TSTRING_IS_STD_STRING
         return Storage_.capacity();
 #else
@@ -324,10 +342,6 @@ public:
 
         return S_->capacity();
 #endif
-    }
-
-    inline size_t capacity() const noexcept {
-        return reserve();
     }
 
     TCharType* Detach() {
@@ -424,6 +438,8 @@ public:
         : TBasicString(pc, TBase::StrLen(pc))
     {
     }
+    // TODO thegeorg@: uncomment and fix clients
+    // TBasicString(std::nullptr_t) = delete;
 
     TBasicString(const TCharType* pc, size_t n)
 #ifdef TSTRING_IS_STD_STRING
@@ -433,6 +449,7 @@ public:
 #endif
     {
     }
+    TBasicString(std::nullptr_t, size_t) = delete;
 
     TBasicString(const TCharType* pc, size_t pos, size_t n)
         : TBasicString(pc + pos, n)
@@ -684,6 +701,7 @@ public:
     TBasicString& operator=(const TCharType* s) {
         return assign(s);
     }
+    TBasicString& operator=(std::nullptr_t) = delete;
 
     TBasicString& operator=(TExplicitType<TCharType> ch) {
         return assign(ch);

@@ -1,6 +1,6 @@
 # CTR settings
 
-### simple_ctr {#simple_ctr}
+## simple_ctr {#simple_ctr}
 
 #### Description
 
@@ -31,7 +31,7 @@ Format:
 {{ cpu-gpu }}
 
 
-### combinations_ctr {#combinations_ctr}
+## combinations_ctr {#combinations_ctr}
 
 #### Description
 
@@ -57,7 +57,7 @@ Format:
 
 
 
-### per_feature_ctr {#per_feature_ctr}
+## per_feature_ctr {#per_feature_ctr}
 
 #### Description
 
@@ -81,7 +81,7 @@ Format:
 {{ cpu-gpu }}
 
 
-### ctr_target_border_count {#ctr_target_border_count}
+## ctr_target_border_count {#ctr_target_border_count}
 
 #### Description
 
@@ -108,7 +108,7 @@ The value of the `{{ ctr-types__TargetBorderCount }}` component overrides this p
 {{ cpu-gpu }}
 
 
-### counter_calc_method {#counter_calc_method}
+## counter_calc_method {#counter_calc_method}
 
 #### Description
 
@@ -130,7 +130,7 @@ None ({{ fit--counter-calc-method }} is used)
 
 {{ cpu-gpu }}
 
-### max_ctr_complexity {#max_ctr_complexity}
+## max_ctr_complexity {#max_ctr_complexity}
 
 #### Description
 
@@ -153,7 +153,7 @@ Each resulting combination consists of one or more categorical features and can 
 
 
 
-### ctr_leaf_count_limit {#ctr_leaf_count_limit}
+## ctr_leaf_count_limit {#ctr_leaf_count_limit}
 
 #### Description
 
@@ -182,7 +182,7 @@ None
 
 {{ calcer_type__cpu }}
 
-### store_all_simple_ctr {#store_all_simple_ctr}
+## store_all_simple_ctr {#store_all_simple_ctr}
 
 #### Description
 
@@ -205,7 +205,7 @@ None (set to False)
 
 {{ calcer_type__cpu }}
 
-### final_ctr_computation_mode {#final_ctr_computation_mode}
+## final_ctr_computation_mode {#final_ctr_computation_mode}
 
 #### Description
 

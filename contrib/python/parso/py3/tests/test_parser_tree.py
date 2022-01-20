@@ -6,6 +6,7 @@ import pytest
 
 from parso import parse
 from parso.python import tree
+from parso.tree import search_ancestor
 
 
 class TestsFunctionAndLambdaParsing:
@@ -239,3 +240,27 @@ def test_with_stmt_get_test_node_from_name():
         for name in with_stmt.get_defined_names(include_setitem=True)
     ]
     assert tests == ["A", "B", "C", "D"]
+
+
+sample_module = parse('x + y')
+sample_node = sample_module.children[0]
+sample_leaf = sample_node.children[0]
+
+
+@pytest.mark.parametrize(
+    'node,node_types,expected_ancestor', [
+        (sample_module, ('file_input',), None),
+        (sample_node, ('arith_expr',), None),
+        (sample_node, ('file_input', 'eval_input'), sample_module),
+        (sample_leaf, ('name',), None),
+        (sample_leaf, ('arith_expr',), sample_node),
+        (sample_leaf, ('file_input',), sample_module),
+        (sample_leaf, ('file_input', 'arith_expr'), sample_node),
+        (sample_leaf, ('shift_expr',), None),
+        (sample_leaf, ('name', 'shift_expr',), None),
+        (sample_leaf, (), None),
+    ]
+)
+def test_search_ancestor(node, node_types, expected_ancestor):
+    assert node.search_ancestor(*node_types) is expected_ancestor
+    assert search_ancestor(node, *node_types) is expected_ancestor  # deprecated

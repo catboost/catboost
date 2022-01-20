@@ -1,9 +1,9 @@
 LIBRARY()
 
 LICENSE(
-    BSD-3-Clause
-    ISC
-    Json
+    BSD-3-Clause AND
+    ISC AND
+    JSON AND
     MIT
 )
 
@@ -13,6 +13,8 @@ VERSION(1.1.0)
 
 
 
-ADDINCL(contrib/libs/rapidjson/include)
+ADDINCL(
+    contrib/libs/rapidjson/include
+)
 
 END()

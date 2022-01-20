@@ -120,7 +120,7 @@ decode_unicode_with_escapes(Parser *parser, const char *s, size_t len, Token *t)
     s = buf;
 
     const char *first_invalid_escape;
-    v = _PyUnicode_DecodeUnicodeEscape(s, len, NULL, &first_invalid_escape);
+    v = _PyUnicode_DecodeUnicodeEscapeInternal(s, len, NULL, NULL, &first_invalid_escape);
 
     if (v != NULL && first_invalid_escape != NULL) {
         if (warn_invalid_escape_sequence(parser, *first_invalid_escape, t) < 0) {
@@ -284,49 +284,48 @@ _PyPegen_parsestr(Parser *p, int *bytesmode, int *rawmode, PyObject **result,
 /* Fix locations for the given node and its children.
 
    `parent` is the enclosing node.
+   `expr_start` is the starting position of the expression (pointing to the open brace).
    `n` is the node which locations are going to be fixed relative to parent.
    `expr_str` is the child node's string representation, including braces.
 */
 static bool
-fstring_find_expr_location(Token *parent, char *expr_str, int *p_lines, int *p_cols)
+fstring_find_expr_location(Token *parent, const char* expr_start, char *expr_str, int *p_lines, int *p_cols)
 {
     *p_lines = 0;
     *p_cols = 0;
+    assert(expr_start != NULL && *expr_start == '{');
     if (parent && parent->bytes) {
         char *parent_str = PyBytes_AsString(parent->bytes);
         if (!parent_str) {
             return false;
         }
-        char *substr = strstr(parent_str, expr_str);
-        if (substr) {
-            // The following is needed, in order to correctly shift the column
-            // offset, in the case that (disregarding any whitespace) a newline
-            // immediately follows the opening curly brace of the fstring expression.
-            bool newline_after_brace = 1;
-            char *start = substr + 1;
-            while (start && *start != '}' && *start != '\n') {
-                if (*start != ' ' && *start != '\t' && *start != '\f') {
-                    newline_after_brace = 0;
-                    break;
-                }
-                start++;
+        // The following is needed, in order to correctly shift the column
+        // offset, in the case that (disregarding any whitespace) a newline
+        // immediately follows the opening curly brace of the fstring expression.
+        bool newline_after_brace = 1;
+        const char *start = expr_start + 1;
+        while (start && *start != '}' && *start != '\n') {
+            if (*start != ' ' && *start != '\t' && *start != '\f') {
+                newline_after_brace = 0;
+                break;
             }
+            start++;
+        }
 
-            // Account for the characters from the last newline character to our
-            // left until the beginning of substr.
-            if (!newline_after_brace) {
-                start = substr;
-                while (start > parent_str && *start != '\n') {
-                    start--;
-                }
-                *p_cols += (int)(substr - start);
+        // Account for the characters from the last newline character to our
+        // left until the beginning of expr_start.
+        if (!newline_after_brace) {
+            start = expr_start;
+            while (start > parent_str && *start != '\n') {
+                start--;
             }
-            /* adjust the start based on the number of newlines encountered
-               before the f-string expression */
-            for (char* p = parent_str; p < substr; p++) {
-                if (*p == '\n') {
-                    (*p_lines)++;
-                }
+            *p_cols += (int)(expr_start - start);
+        }
+        /* adjust the start based on the number of newlines encountered
+           before the f-string expression */
+        for (const char *p = parent_str; p < expr_start; p++) {
+            if (*p == '\n') {
+                (*p_lines)++;
             }
         }
     }
@@ -370,7 +369,7 @@ fstring_compile_expr(Parser *p, const char *expr_start, const char *expr_end,
 
     len = expr_end - expr_start;
     /* Allocate 3 extra bytes: open paren, close paren, null byte. */
-    str = PyMem_Malloc(len + 3);
+    str = PyMem_Calloc(len + 3, sizeof(char));
     if (str == NULL) {
         PyErr_NoMemory();
         return NULL;
@@ -378,18 +377,11 @@ fstring_compile_expr(Parser *p, const char *expr_start, const char *expr_end,
 
     // The call to fstring_find_expr_location is responsible for finding the column offset
     // the generated AST nodes need to be shifted to the right, which is equal to the number
-    // of the f-string characters before the expression starts. In order to correctly compute
-    // this offset, strstr gets called in fstring_find_expr_location which only succeeds
-    // if curly braces appear before and after the f-string expression (exactly like they do
-    // in the f-string itself), hence the following lines.
-    str[0] = '{';
+    // of the f-string characters before the expression starts.
     memcpy(str+1, expr_start, len);
-    str[len+1] = '}';
-    str[len+2] = 0;
-
     int lines, cols;
-    if (!fstring_find_expr_location(t, str, &lines, &cols)) {
-        PyMem_FREE(str);
+    if (!fstring_find_expr_location(t, expr_start-1, str+1, &lines, &cols)) {
+        PyMem_Free(str);
         return NULL;
     }
 

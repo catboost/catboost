@@ -6,6 +6,8 @@ LIBRARY()
 
 LICENSE(Apache-2.0)
 
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
     contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
@@ -17,6 +19,8 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
     contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/types
+    contrib/restricted/abseil-cpp/absl/types/internal
     contrib/restricted/abseil-cpp/absl/types/bad_optional_access
     contrib/restricted/abseil-cpp/absl/types/bad_variant_access
 )

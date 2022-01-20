@@ -1,10 +1,13 @@
 #pragma once
 
+#include <catboost/private/libs/options/loss_description.h>
+
 #include <catboost/libs/data/data_provider.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
+#include <util/generic/vector.h>
 #include <util/system/types.h>
 
 
@@ -24,8 +27,13 @@ namespace NPar {
 namespace NCB {
     struct TPathWithScheme;
 
+    TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
+        const NCatboostOptions::TCatBoostOptions& params);
+
+
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
+        bool dataCanBeEmpty,
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
@@ -42,6 +50,7 @@ namespace NCB {
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
+        bool dataCanBeEmpty,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
         bool allowWriteFiles,

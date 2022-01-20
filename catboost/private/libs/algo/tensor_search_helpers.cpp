@@ -216,6 +216,9 @@ THolder<IDerCalcer> BuildError(
             return MakeHolder<TMultiClassError>(isStoreExpApprox);
         case ELossFunction::MultiClassOneVsAll:
             return MakeHolder<TMultiClassOneVsAllError>(isStoreExpApprox);
+        case ELossFunction::MultiLogloss:
+        case ELossFunction::MultiCrossEntropy:
+            return MakeHolder<TMultiCrossEntropyError>();
         case ELossFunction::PairLogit:
             return MakeHolder<TPairLogitError>(isStoreExpApprox);
         case ELossFunction::PairLogitPairwise:
@@ -265,13 +268,14 @@ THolder<IDerCalcer> BuildError(
             const size_t numEstimations = NCatboostOptions::GetParamOrDefault(lossParams, "num_estimations", size_t(1));
             const double mu = NCatboostOptions::GetParamOrDefault(lossParams, "mu", 0.0);
             const double nu = NCatboostOptions::GetParamOrDefault(lossParams, "nu", 0.01);
-            const double lambda = NCatboostOptions::GetParamOrDefault(lossParams, "lambda", 1.0);
+            const double defaultLambda = targetMetric == ELossFunction::FilteredDCG ? 0.0 : 1.0;
+            const double lambda = NCatboostOptions::GetParamOrDefault(lossParams, "lambda", defaultLambda);
             return MakeHolder<TStochasticRankError>(targetMetric, lossParams, sigma, numEstimations, mu, nu, lambda);
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
-        case ELossFunction::PythonUserDefinedMultiRegression:
-            return MakeHolder<TMultiRegressionCustomError>(params, descriptor);
+        case ELossFunction::PythonUserDefinedMultiTarget:
+            return MakeHolder<TMultiTargetCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
             return MakeHolder<TUserDefinedPerObjectError>(
                     params.LossFunctionDescription->GetLossParamsMap(),

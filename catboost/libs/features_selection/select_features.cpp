@@ -104,6 +104,7 @@ namespace NCB {
 
         TTrainingDataProviders trainingData = GetTrainingData(
             pools,
+            /*trainDataCanBeEmpty*/ false,
             /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
             /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
             outputFileOptions.AllowWriteFiles(),
@@ -125,8 +126,11 @@ namespace NCB {
         TOutputFilesOptions outputFileOptions,
         const TPoolLoadParams* poolLoadParams,
         const TFeaturesSelectOptions& featuresSelectOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
         TFullModel* dstModel,
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
         NPar::ILocalExecutor* executor
     ) {
         TSetLogging inThisScope(catBoostOptions.LoggingLevel);
@@ -172,6 +176,7 @@ namespace NCB {
                     TObjectsGrouping(*trainingData.Learn->ObjectsGrouping),
                     std::move(testObjectsGroupings),
                     *trainingData.Learn->MetaInfo.FeaturesLayout,
+                    labelConverter,
                     &rand
                 );
             } else {
@@ -201,10 +206,13 @@ namespace NCB {
             catBoostOptions,
             outputFileOptions,
             featuresSelectOptions,
+            evalMetricDescriptor,
             pools,
             labelConverter,
             trainingData,
             dstModel,
+            evalResultPtrs,
+            metricsAndTimeHistory,
             executor
         );
 
@@ -222,8 +230,11 @@ namespace NCB {
 
     NJson::TJsonValue SelectFeatures(
         const NJson::TJsonValue& plainJsonParams,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TDataProviders& pools,
-        TFullModel* dstModel
+        TFullModel* dstModel,
+        const TVector<TEvalResult*>& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) {
         NJson::TJsonValue catBoostJsonOptions;
         NJson::TJsonValue outputOptionsJson;
@@ -248,8 +259,11 @@ namespace NCB {
             outputFileOptions,
             /*poolLoadParams*/ nullptr,
             featuresSelectOptions,
+            evalMetricDescriptor,
             pools,
             dstModel,
+            testApproxes,
+            metricsAndTimeHistory,
             &executor
         );
         return ToJson(summary);

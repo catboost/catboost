@@ -2,7 +2,7 @@
 
 These parameters are only for Command-line.
 
-### -f, --learn-set {#-f}
+## -f, --learn-set {#-f}
 
 #### Description
 
@@ -18,7 +18,7 @@ The path to the input file{% if audience == "internal" %} or table{% endif %} th
 
 {{ cpu-gpu }}
 
-### -t, --test-set {#-t}
+## -t, --test-set {#-t}
 
 #### Description
 
@@ -46,7 +46,7 @@ Only a single validation dataset can be input if the training is performed on GP
 
 {% endnote %}
 
-### --cd, --column-description {#--cd}
+## --cd, --column-description {#--cd}
 
 #### Description
 
@@ -66,7 +66,7 @@ If omitted, it is assumed that the first column in the file with the dataset des
 
 {{ cpu-gpu }}
 
-### --learn-pairs {#--learn-pairs}
+## --learn-pairs {#--learn-pairs}
 
 #### Description
 
@@ -84,7 +84,7 @@ Omitted.
 
 {{ cpu-gpu }}
 
-### --test-pairs {#--test-pairs}
+## --test-pairs {#--test-pairs}
 
 #### Description
 
@@ -102,7 +102,7 @@ Omitted.
 
 {{ cpu-gpu }}
 
-### --learn-group-weights {#--learn-group-weights}
+## --learn-group-weights {#--learn-group-weights}
 
 #### Description
 
@@ -120,7 +120,7 @@ Omitted (group weights are either read from the dataset description or set to 1 
 
 {{ cpu-gpu }}
 
-### --test-group-weights {#--test-group-weights}
+## --test-group-weights {#--test-group-weights}
 
 #### Description
 
@@ -138,7 +138,21 @@ Omitted (group weights are either read from the dataset description or set to 1 
 
 {{ cpu-gpu }}
 
-### --learn-baseline {#--learn-baseline}
+## --force-unit-auto-pair-weights {#--force-unit-auto-pair-weights}
+
+#### Description
+
+For each auto-generated pair in pairwise losses, set the pair weight equal to one.
+
+**{{ cli__params-table__title__default }}:**
+
+Omitted (for each auto-generated pair, the weight is set equal to the weight of the group containing the elements of the pair)
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+{{ cpu-gpu }}
+
+## --learn-baseline {#--learn-baseline}
 
 #### Description
 
@@ -152,7 +166,7 @@ Omitted
 
 {{ cpu-gpu }}
 
-### --test-baseline {#--test-baseline}
+## --test-baseline {#--test-baseline}
 
 #### Description
 
@@ -166,7 +180,7 @@ Omitted
 
 {{ cpu-gpu }}
 
-### --delimiter {#--delimiter}
+## --delimiter {#--delimiter}
 
 #### Description
 
@@ -184,7 +198,7 @@ Only single char delimiters are supported. If the specified value contains more 
 
 {{ cpu-gpu }}
 
-### --has-header {#--has-header}
+## --has-header {#--has-header}
 
 #### Description
 
@@ -201,7 +215,7 @@ False (the first line is supposed to have the same data as the rest of them)
 {{ cpu-gpu }}
 
 
-### --params-file {#--params-files}
+## --params-file {#--params-files}
 
 #### Description
 
@@ -227,16 +241,15 @@ Omitted
 {{ cpu-gpu }}
 
 
-### --nan-mode {#--nan-mode}
+## --nan-mode {#--nan-mode}
 
 #### Description
 
 The method for [processing missing values](../../concepts/algorithm-missing-values-processing.md) in the input dataset.
 
 Possible values:
-- — Missing values are not supported, their presence is interpreted as an error.
-- — Missing values are processed as the minimum value (less than all other values) for the feature. It is guaranteed that a split that separates missing values from all other values is considered when selecting trees.
-- — Missing values are processed as the maximum value (greater than all other values) for the feature. It is guaranteed that a split that separates missing values from all other values is considered when selecting trees.
+
+{% include [reusage-missing-values-mv-processing-methods](../../_includes/work_src/reusage-missing-values/mv-processing-methods.md) %}
 
 Using the  {{ fit__nan_mode__min }} or {{ fit__nan_mode__max }} value of this parameter guarantees that a split between missing values and other values is considered when selecting a new split in the tree.
 

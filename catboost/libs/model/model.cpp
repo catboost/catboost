@@ -1480,7 +1480,7 @@ namespace {
                 "Feature type mismatch: Categorical != Float for flat feature index: " <<
                 other.Position.FlatIndex
             );
-            TFeatureType& feature = Get<TFeatureType>(FeatureVariant);
+            TFeatureType& feature = std::get<TFeatureType>(FeatureVariant);
             CB_ENSURE(feature.Position.FlatIndex == other.Position.FlatIndex);
             CB_ENSURE(
                 feature.Position.Index == other.Position.Index,

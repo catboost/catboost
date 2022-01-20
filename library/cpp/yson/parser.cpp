@@ -6,13 +6,13 @@
 #include <util/stream/input.h>
 #include <util/generic/buffer.h>
 
-namespace NYT {
+namespace NYson {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TYsonParser::TImpl {
     public:
         TImpl(
-            IYsonConsumer* consumer,
+            NYT::NYson::IYsonConsumer* consumer,
             IInputStream* stream,
             EYsonType type,
             bool enableLinePositionInfo,
@@ -27,7 +27,7 @@ namespace NYT {
 
         void Parse() {
             TBuffer buffer(64 << 10);
-            ParseYsonStreamImpl<IYsonConsumer, TStreamReader>(
+            ParseYsonStreamImpl<NYT::NYson::IYsonConsumer, TStreamReader>(
                 TStreamReader(Stream_, buffer.Data(), buffer.Capacity()),
                 Consumer_,
                 Type_,
@@ -36,7 +36,7 @@ namespace NYT {
         }
 
     private:
-        IYsonConsumer* Consumer_;
+        NYT::NYson::IYsonConsumer* Consumer_;
         IInputStream* Stream_;
         EYsonType Type_;
         bool EnableLinePositionInfo_;
@@ -46,7 +46,7 @@ namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     TYsonParser::TYsonParser(
-        IYsonConsumer* consumer,
+        NYT::NYson::IYsonConsumer* consumer,
         IInputStream* stream,
         EYsonType type,
         bool enableLinePositionInfo,
@@ -70,17 +70,17 @@ namespace NYT {
 
     public:
         TImpl(
-            IYsonConsumer* consumer,
+            NYT::NYson::IYsonConsumer* consumer,
             bool enableLinePositionInfo,
             TMaybe<ui64> memoryLimit)
             : Impl(
                   enableLinePositionInfo
-                      ? static_cast<TStatelessYsonParserImplBase*>(new TStatelessYsonParserImpl<IYsonConsumer, true>(consumer, memoryLimit))
-                      : static_cast<TStatelessYsonParserImplBase*>(new TStatelessYsonParserImpl<IYsonConsumer, false>(consumer, memoryLimit)))
+                      ? static_cast<TStatelessYsonParserImplBase*>(new TStatelessYsonParserImpl<NYT::NYson::IYsonConsumer, true>(consumer, memoryLimit))
+                      : static_cast<TStatelessYsonParserImplBase*>(new TStatelessYsonParserImpl<NYT::NYson::IYsonConsumer, false>(consumer, memoryLimit)))
                   {
         }
 
-        void Parse(const TStringBuf& data, EYsonType type = YT_NODE) {
+        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) {
             Impl->Parse(data, type);
         }
     };
@@ -88,7 +88,7 @@ namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     TStatelessYsonParser::TStatelessYsonParser(
-        IYsonConsumer* consumer,
+        NYT::NYson::IYsonConsumer* consumer,
         bool enableLinePositionInfo,
         TMaybe<ui64> memoryLimit)
         : Impl(new TImpl(consumer, enableLinePositionInfo, memoryLimit))
@@ -106,11 +106,11 @@ namespace NYT {
 
     void ParseYsonStringBuffer(
         const TStringBuf& buffer,
-        IYsonConsumer* consumer,
+        NYT::NYson::IYsonConsumer* consumer,
         EYsonType type,
         bool enableLinePositionInfo,
         TMaybe<ui64> memoryLimit) {
-        ParseYsonStreamImpl<IYsonConsumer, TStringReader>(
+        ParseYsonStreamImpl<NYT::NYson::IYsonConsumer, TStringReader>(
             TStringReader(buffer.begin(), buffer.end()),
             consumer,
             type,
@@ -123,7 +123,7 @@ namespace NYT {
     class TYsonListParser::TImpl {
     public:
         TImpl(
-            IYsonConsumer* consumer,
+            NYT::NYson::IYsonConsumer* consumer,
             IInputStream* stream,
             bool enableLinePositionInfo,
             TMaybe<ui64> memoryLimit = Nothing())
@@ -140,14 +140,14 @@ namespace NYT {
             if (!Impl_) {
                 Impl_.Reset(
                     EnableLinePositionInfo_
-                        ? static_cast<TYsonListParserImplBase*>(new TYsonListParserImpl<IYsonConsumer, TStreamReader, true>(Reader_, Consumer_, MemoryLimit_))
-                        : static_cast<TYsonListParserImplBase*>(new TYsonListParserImpl<IYsonConsumer, TStreamReader, false>(Reader_, Consumer_, MemoryLimit_)));
+                        ? static_cast<TYsonListParserImplBase*>(new TYsonListParserImpl<NYT::NYson::IYsonConsumer, TStreamReader, true>(Reader_, Consumer_, MemoryLimit_))
+                        : static_cast<TYsonListParserImplBase*>(new TYsonListParserImpl<NYT::NYson::IYsonConsumer, TStreamReader, false>(Reader_, Consumer_, MemoryLimit_)));
             }
             return Impl_->Parse();
         }
 
     private:
-        IYsonConsumer* Consumer_;
+        NYT::NYson::IYsonConsumer* Consumer_;
         IInputStream* Stream_;
         bool EnableLinePositionInfo_;
         TMaybe<ui64> MemoryLimit_;
@@ -159,7 +159,7 @@ namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     TYsonListParser::TYsonListParser(
-        IYsonConsumer* consumer,
+        NYT::NYson::IYsonConsumer* consumer,
         IInputStream* stream,
         bool enableLinePositionInfo,
         TMaybe<ui64> memoryLimit)
@@ -176,4 +176,4 @@ namespace NYT {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-}
+} // namespace NYson

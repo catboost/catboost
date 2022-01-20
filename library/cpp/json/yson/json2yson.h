@@ -5,14 +5,14 @@
 #include <library/cpp/yson/writer.h>
 
 namespace NJson2Yson {
-    class TJsonBuilderImpl: public NYT::TYsonConsumerBase {
+    class TJsonBuilderImpl: public NYson::TYsonConsumerBase {
     public:
         TJsonBuilderImpl(NJson::TJsonCallbacks* parserCallbacks)
             : ParserCallbacks_(parserCallbacks)
         {
         }
 
-        void OnStringScalar(const TStringBuf& value) override {
+        void OnStringScalar(TStringBuf value) override {
             ParserCallbacks_->OnString(value);
         }
 
@@ -51,7 +51,7 @@ namespace NJson2Yson {
             ParserCallbacks_->OnOpenMap();
         }
 
-        void OnKeyedItem(const TStringBuf& key) override {
+        void OnKeyedItem(TStringBuf key) override {
             ParserCallbacks_->OnMapKey(key);
         }
 
@@ -78,7 +78,7 @@ namespace NJson2Yson {
         {
         }
 
-        void OnStringScalar(const TStringBuf& value) override {
+        void OnStringScalar(TStringBuf value) override {
             if (AttributesDepth == 0) {
                 TBase::OnStringScalar(value);
             }
@@ -138,7 +138,7 @@ namespace NJson2Yson {
             }
         }
 
-        void OnKeyedItem(const TStringBuf& key) override {
+        void OnKeyedItem(TStringBuf key) override {
             if (AttributesDepth == 0) {
                 TBase::OnKeyedItem(key);
             }
@@ -172,7 +172,7 @@ namespace NJson2Yson {
     bool DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue, bool throwOnError = false);
     bool DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue, bool throwOnError = false);
 
-    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter);
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYson::TYsonWriter* ysonWriter);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result);
     TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue);

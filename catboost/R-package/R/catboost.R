@@ -3,7 +3,7 @@
 #' @importFrom utils tail
 #' @importFrom utils write.table
 #' @importFrom utils download.file
-#' @useDynLib libcatboostr
+#' @useDynLib libcatboostr, .registration = TRUE
 NULL
 
 
@@ -140,12 +140,12 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
   if (text_columns == 0 && float_and_cat_columns == 0)
       stop("Data has no columns")
 
-  if (!is.double(label) && !is.integer(label) && !is.null(label))
-      stop("Unsupported label type, expecting double or int, got: ", typeof(label))
   if (!is.null(label) && !is.matrix(label))
       label <- as.matrix(label)
+  if (!is.double(label) && !is.integer(label) && !is.null(label))
+      stop("Unsupported label type, expecting double or int, got: ", typeof(label))
   if (!is.null(label) && !is.double(label))
-      label <- as.matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+      label <- matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
   if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
       stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
 
@@ -448,7 +448,7 @@ print.catboost.Pool <- function(x, ...) {
 print.catboost.Model <- function(x, ...) {
     cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
     cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
-    cat(sprintf("Fit to %d features\n", NROW(x$feature_importances)))
+    cat(sprintf("Fit to %d feature(s)\n", x$feature_count))
     if (is.null.handle(x$cpp_obj$handle))
         cat("(Handle is incomplete)\n")
     return(invisible(x))
@@ -1534,12 +1534,18 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model <- create.model.base(handle, raw)
 
     if (catboost._is_oblivious(model)) {
-        model$feature_importances <- catboost.get_feature_importance(model)
-        rownames(model$feature_importances) <- colnames(learn_pool)
+        if (catboost._is_groupwise_metric(model)) {
+            # too expensive
+        } else {
+            model$feature_importances <- catboost.get_feature_importance(model)
+            rownames(model$feature_importances) <- colnames(learn_pool)
+        }
     }
 
+    plain_params <- catboost.get_plain_params(model)
     model$tree_count <- catboost.ntrees(model)
-    model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
+    model$learning_rate <- plain_params$learning_rate
+    model$feature_count <- ncol(learn_pool) - length(plain_params$ignored_features)
     return(model)
 }
 
@@ -1599,7 +1605,8 @@ prepare_train_export_parameters <- function(params) {
     }
 
     if (!is.null(params$ignored_features)) {
-        params$ignored_features <- as.character(params$ignored_features)
+        # treat parameter AsIs to avoid conversion from 1-element array to atomic value
+        params$ignored_features <- I(as.character(params$ignored_features))
     }
 
     return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
@@ -1965,20 +1972,16 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' @seealso \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html?lang=en}
 catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, prediction_type = "VirtEnsembles",
                                     ntree_end = 0L, virtual_ensembles_count = 10, thread_count = -1) {
-    if (!inherits(model, "catboost.Model"))
-        stop("Expected catboost.Model, got: ", class(model))
+    catboost.restore_handle(model)
     if (!inherits(pool, "catboost.Pool"))
         stop("Expected catboost.Pool, got: ", class(pool))
     if (is.null.handle(pool))
         stop("Pool object is invalid.")
 
-    if (is.null.handle(model$handle))
-        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
-    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$handle, pool,
+    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$cpp_obj$handle, pool,
                         verbose, prediction_type, ntree_end, virtual_ensembles_count, thread_count)
-
     objects_count <- nrow(pool)
-    if (prediction_type == "VirtEnsembles"){
+    if (prediction_type == "VirtEnsembles") {
         document_predict_size <- length(prediction) / virtual_ensembles_count / objects_count
         prediction <- aperm(
                             array(prediction,
@@ -2004,6 +2007,7 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #' @param pool The input dataset.
 #'
 #' The feature importance for the training dataset is calculated if this argument is not specified.
+#' Models with ranking metrics require pool argument to calculate feature importance.
 #'
 #' Default value: NULL
 #' @param type The feature importance type.
@@ -2067,6 +2071,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
             dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
         }
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
+        # TODO: incorrect pool and ignored_features lead to incorrect column names; testing length is not enough
         if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
@@ -2214,6 +2219,12 @@ catboost.ntrees <- function(model) {
     return(num_trees)
 }
 
+catboost._is_groupwise_metric <- function(model) {
+    catboost.restore_handle(model)
+    is_groupwise_metric <- .Call("CatBoostIsGroupwiseMetric_R", model$cpp_obj$handle)
+    return(is_groupwise_metric)
+}
+
 
 catboost._is_oblivious <- function(model) {
     catboost.restore_handle(model)
@@ -2326,8 +2337,7 @@ catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_
   train_dir <- params[['train_dir']]
   if (is.null(params[['train_dir']]))
     train_dir <- 'catboost_info'
-
-  result <- .Call("CatBoostEvalMetrics_R", model$handle, pool, metrics,
+  result <- .Call("CatBoostEvalMetrics_R", model$cpp_obj$handle, pool, metrics,
                   ntree_start, ntree_end, eval_period,
                   thread_count, tmp_dir, train_dir)
 

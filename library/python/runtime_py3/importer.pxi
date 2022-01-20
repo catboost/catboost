@@ -25,17 +25,21 @@ YA_IDE_VENV = __resource.find(res_ya_ide_venv)
 Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search) or YA_IDE_VENV
 
 
-def _get_source_root():
-    env_value = _os.environ.get(env_source_root)
-    if env_value or not YA_IDE_VENV:
-        return env_value
-
+def _init_venv():
     if not _path_isabs(executable):
         raise RuntimeError('path in sys.executable is not absolute: {}'.format(executable))
 
     # Creative copy-paste from site.py
     exe_dir, _ = _path_split(executable)
     site_prefix, _ = _path_split(exe_dir)
+    libpath = _path_join(site_prefix, 'lib',
+                           'python%d.%d' % sys.version_info[:2],
+                           'site-packages')
+    sys.path.insert(0, libpath)
+
+    # emulate site.venv()
+    sys.prefix = site_prefix
+    sys.exec_prefix = site_prefix
 
     conf_basename = 'pyvenv.cfg'
     candidate_confs = [
@@ -57,6 +61,14 @@ def _get_source_root():
                 if key == cfg_source_root:
                     return value
     raise RuntimeError('{} key not found in {}'.format(cfg_source_root, virtual_conf))
+
+
+def _get_source_root():
+    env_value = _os.environ.get(env_source_root)
+    if env_value or not YA_IDE_VENV:
+        return env_value
+
+    return _init_venv()
 
 
 Y_PYTHON_SOURCE_ROOT = _get_source_root()
@@ -407,6 +419,8 @@ class ArcadiaSourceFinder:
                     if package_name in self.module_path_cache:
                         break
                     self.module_path_cache.setdefault(package_name, set())
+        for package_name in self.module_path_cache.keys():
+            self._add_parent_dirs(package_name, visited=set())
 
     def get_module_path(self, fullname):
         """
@@ -493,6 +507,20 @@ class ArcadiaSourceFinder:
             self.module_path_cache[fullname] = self._find_module_in_paths(find_package_only, parent_paths, tail)
         return self.module_path_cache[fullname]
 
+    def _add_parent_dirs(self, package_name, visited):
+        if not package_name or package_name in visited:
+            return
+        visited.add(package_name)
+
+        parent, _, tail = package_name.rpartition('.')
+        self._add_parent_dirs(parent, visited)
+
+        paths = self.module_path_cache[package_name]
+        for parent_path in self.module_path_cache[parent]:
+            rel_path = _path_join(parent_path, tail)
+            if self._path_is_simple_dir(_path_join(self.source_root, rel_path)):
+                paths.add(rel_path)
+
 
 def excepthook(*args, **kws):
     # traceback module cannot be imported at module level, because interpreter
@@ -503,10 +531,7 @@ def excepthook(*args, **kws):
     return traceback.print_exception(*args, **kws)
 
 
-sys.meta_path.insert(0, BuiltinSubmoduleImporter)
-
 importer = ResourceImporter()
-sys.meta_path.insert(0, importer)
 
 
 def executable_path_hook(path):
@@ -519,9 +544,19 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
-if executable not in sys.path:
-    sys.path.insert(0, executable)
-sys.path_hooks.insert(0, executable_path_hook)
+if YA_IDE_VENV:
+    sys.meta_path.append(importer)
+    sys.meta_path.append(BuiltinSubmoduleImporter)
+    if executable not in sys.path:
+        sys.path.append(executable)
+    sys.path_hooks.append(executable_path_hook)
+else:
+    sys.meta_path.insert(0, BuiltinSubmoduleImporter)
+    sys.meta_path.insert(0, importer)
+    if executable not in sys.path:
+        sys.path.insert(0, executable)
+    sys.path_hooks.insert(0, executable_path_hook)
+
 sys.path_importer_cache[executable] = importer
 
 # Indicator that modules and resources are built-in rather than on the file system.

@@ -4,6 +4,9 @@ Implements the Distutils 'install' command."""
 
 import sys
 import os
+import contextlib
+import sysconfig
+import itertools
 
 from distutils import log
 from distutils.core import Command
@@ -20,68 +23,99 @@ from site import USER_SITE
 HAS_USER_SITE = True
 
 WINDOWS_SCHEME = {
-    'purelib': '$base/Lib/site-packages',
-    'platlib': '$base/Lib/site-packages',
-    'headers': '$base/Include/$dist_name',
-    'scripts': '$base/Scripts',
-    'data'   : '$base',
+    'purelib': '{base}/Lib/site-packages',
+    'platlib': '{base}/Lib/site-packages',
+    'headers': '{base}/Include/{dist_name}',
+    'scripts': '{base}/Scripts',
+    'data'   : '{base}',
 }
 
 INSTALL_SCHEMES = {
-    'unix_prefix': {
-        'purelib': '$base/lib/python$py_version_short/site-packages',
-        'platlib': '$platbase/$platlibdir/python$py_version_short/site-packages',
-        'headers': '$base/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+    'posix_prefix': {
+        'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}/site-packages',
+        'headers': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
-    'unix_home': {
-        'purelib': '$base/lib/python',
-        'platlib': '$base/$platlibdir/python',
-        'headers': '$base/include/python/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+    'posix_home': {
+        'purelib': '{base}/lib/{implementation_lower}',
+        'platlib': '{base}/{platlibdir}/{implementation_lower}',
+        'headers': '{base}/include/{implementation_lower}/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
     'nt': WINDOWS_SCHEME,
     'pypy': {
-        'purelib': '$base/site-packages',
-        'platlib': '$base/site-packages',
-        'headers': '$base/include/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+        'purelib': '{base}/site-packages',
+        'platlib': '{base}/site-packages',
+        'headers': '{base}/include/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
     'pypy_nt': {
-        'purelib': '$base/site-packages',
-        'platlib': '$base/site-packages',
-        'headers': '$base/include/$dist_name',
-        'scripts': '$base/Scripts',
-        'data'   : '$base',
+        'purelib': '{base}/site-packages',
+        'platlib': '{base}/site-packages',
+        'headers': '{base}/include/{dist_name}',
+        'scripts': '{base}/Scripts',
+        'data'   : '{base}',
         },
     }
 
 # user site schemes
 if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
-        'purelib': '$usersite',
-        'platlib': '$usersite',
-        'headers': '$userbase/Python$py_version_nodot/Include/$dist_name',
-        'scripts': '$userbase/Python$py_version_nodot/Scripts',
-        'data'   : '$userbase',
+        'purelib': '{usersite}',
+        'platlib': '{usersite}',
+        'headers': '{userbase}/{implementation}{py_version_nodot}/Include/{dist_name}',
+        'scripts': '{userbase}/{implementation}{py_version_nodot}/Scripts',
+        'data'   : '{userbase}',
         }
 
-    INSTALL_SCHEMES['unix_user'] = {
-        'purelib': '$usersite',
-        'platlib': '$usersite',
+    INSTALL_SCHEMES['posix_user'] = {
+        'purelib': '{usersite}',
+        'platlib': '{usersite}',
         'headers':
-            '$userbase/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$userbase/bin',
-        'data'   : '$userbase',
+            '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+        'scripts': '{userbase}/bin',
+        'data'   : '{userbase}',
         }
 
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
 SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
+
+
+def _load_sysconfig_schemes():
+    with contextlib.suppress(AttributeError):
+        return {
+            scheme: sysconfig.get_paths(scheme, expand=False)
+            for scheme in sysconfig.get_scheme_names()
+        }
+
+
+def _load_schemes():
+    """
+    Extend default schemes with schemes from sysconfig.
+    """
+
+    sysconfig_schemes = _load_sysconfig_schemes() or {}
+
+    return {
+        scheme: {
+            **INSTALL_SCHEMES.get(scheme, {}),
+            **sysconfig_schemes.get(scheme, {}),
+        }
+        for scheme in set(itertools.chain(INSTALL_SCHEMES, sysconfig_schemes))
+    }
+
+
+def _get_implementation():
+    if hasattr(sys, 'pypy_version_info'):
+        return 'PyPy'
+    else:
+        return 'Python'
 
 
 class install(Command):
@@ -278,7 +312,7 @@ class install(Command):
         # input a heady brew of prefix, exec_prefix, home, install_base,
         # install_platbase, user-supplied versions of
         # install_{purelib,platlib,lib,scripts,data,...}, and the
-        # INSTALL_SCHEME dictionary above.  Phew!
+        # install schemes.  Phew!
 
         self.dump_dirs("pre-finalize_{unix,other}")
 
@@ -313,6 +347,8 @@ class install(Command):
                             'exec_prefix': exec_prefix,
                             'abiflags': abiflags,
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+                            'implementation_lower': _get_implementation().lower(),
+                            'implementation': _get_implementation(),
                            }
 
         if HAS_USER_SITE:
@@ -327,6 +363,8 @@ class install(Command):
         # everything else.
         self.config_vars['base'] = self.install_base
         self.config_vars['platbase'] = self.install_platbase
+        self.config_vars['installed_base'] = (
+            sysconfig.get_config_vars()['installed_base'])
 
         if DEBUG:
             from pprint import pprint
@@ -423,18 +461,23 @@ class install(Command):
                 raise DistutilsPlatformError(
                     "User base directory is not specified")
             self.install_base = self.install_platbase = self.install_userbase
-            self.select_scheme("unix_user")
+            self.select_scheme("posix_user")
         elif self.home is not None:
             self.install_base = self.install_platbase = self.home
-            self.select_scheme("unix_home")
+            self.select_scheme("posix_home")
         else:
             if self.prefix is None:
                 if self.exec_prefix is not None:
                     raise DistutilsOptionError(
                           "must not supply exec-prefix without prefix")
 
-                self.prefix = os.path.normpath(sys.prefix)
-                self.exec_prefix = os.path.normpath(sys.exec_prefix)
+                # Allow Fedora to add components to the prefix
+                _prefix_addition = getattr(sysconfig, '_prefix_addition', "")
+
+                self.prefix = (
+                    os.path.normpath(sys.prefix) + _prefix_addition)
+                self.exec_prefix = (
+                    os.path.normpath(sys.exec_prefix) + _prefix_addition)
 
             else:
                 if self.exec_prefix is None:
@@ -442,7 +485,7 @@ class install(Command):
 
             self.install_base = self.prefix
             self.install_platbase = self.exec_prefix
-            self.select_scheme("unix_prefix")
+            self.select_scheme("posix_prefix")
 
     def finalize_other(self):
         """Finalizes options for non-posix platforms"""
@@ -454,7 +497,7 @@ class install(Command):
             self.select_scheme(os.name + "_user")
         elif self.home is not None:
             self.install_base = self.install_platbase = self.home
-            self.select_scheme("unix_home")
+            self.select_scheme("posix_home")
         else:
             if self.prefix is None:
                 self.prefix = os.path.normpath(sys.prefix)
@@ -470,12 +513,13 @@ class install(Command):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
         if (hasattr(sys, 'pypy_version_info') and
+                sys.version_info < (3, 8) and
                 not name.endswith(('_user', '_home'))):
             if os.name == 'nt':
                 name = 'pypy_nt'
             else:
                 name = 'pypy'
-        scheme = INSTALL_SCHEMES[name]
+        scheme = _load_schemes()[name]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key
             if getattr(self, attrname) is None:

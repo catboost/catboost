@@ -196,6 +196,11 @@ namespace NCB {
             RawTargetData.SetWeights(weights);
             MetaInfo.HasWeights = true;
         }
+
+        void SetTimestamps(TConstArrayRef<ui64> timestamps) { // [objectIdx]
+            ObjectsData->SetTimestamps(timestamps);
+            MetaInfo.HasTimestamp = true;
+        }
     };
 
     using TDataProvider = TDataProviderTemplate<TObjectsDataProvider>;
@@ -220,6 +225,7 @@ namespace NCB {
         TMaybe<TObjectsGroupingPtr> objectsGrouping, // if undefined ObjectsGrouping created from data
         TBuilderData<typename TTObjectsDataProvider::TData>&& builderData,
         bool skipCheck,
+        bool forceUnitAutoPairWeights,
         NPar::ILocalExecutor* localExecutor
     ) {
         if (!skipCheck) {
@@ -262,6 +268,7 @@ namespace NCB {
                     *objectsGrouping,
                     std::move(builderData.TargetData),
                     skipCheck,
+                    forceUnitAutoPairWeights,
                     localExecutor
                 );
             }
