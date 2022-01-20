@@ -143,9 +143,14 @@ struct TConstructHelper
     {
         auto* refCounter = reinterpret_cast<TRefCounter*>(static_cast<char*>(ptr) + RefCounterOffset);
         new (refCounter) TRefCounter();
-        auto* result = new(reinterpret_cast<T*>(refCounter + 1)) T(std::forward<As>(args)...);
-        CustomInitialize(result);
-        return result;
+        auto* object = reinterpret_cast<T*>(refCounter + 1);
+        if constexpr (std::is_constructible_v<T, As...>) {
+            new(object) T(std::forward<As>(args)...);
+        } else {
+            new(object) T{std::forward<As>(args)...};
+        }
+        CustomInitialize(object);
+        return object;
     }
 };
 
@@ -159,9 +164,9 @@ struct TConstructHelper<T, true>
     Y_FORCE_INLINE static TRefCountedWrapper<T>* Construct(void* ptr, As&&... args)
     {
         using TDerived = TRefCountedWrapper<T>;
-        auto* result = new(static_cast<TDerived*>(ptr)) TDerived(std::forward<As>(args)...);
-        CustomInitialize(result);
-        return result;
+        auto* object = new(static_cast<TDerived*>(ptr)) TDerived(std::forward<As>(args)...);
+        CustomInitialize(object);
+        return object;
     }
 };
 
