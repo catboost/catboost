@@ -59,13 +59,13 @@ def run_nvidia_smi():
 
 # params is either dict or iterable
 # devices used only if task_type == 'GPU'
-def execute_catboost_fit(task_type, params, devices='0', stdout=None, timeout=None, env=None):
+def execute_catboost(mode, task_type, params, devices='0', stdout=None, timeout=None, env=None):
     if task_type not in ('CPU', 'GPU'):
         raise Exception('task_type must be "CPU" or "GPU"')
 
     cmd = [
         get_catboost_binary_path(),
-        'fit',
+        mode,
         '--task-type', task_type
     ]
 
@@ -89,6 +89,10 @@ def execute_catboost_fit(task_type, params, devices='0', stdout=None, timeout=No
     mkl_cbwr_env = dict(env) if env else dict()
     mkl_cbwr_env.update(MKL_CBWR='SSE4_2')
     yatest.common.execute(cmd, stdout=stdout, timeout=timeout, env=mkl_cbwr_env)
+
+
+def execute_catboost_fit(task_type, params, devices='0', stdout=None, timeout=None, env=None):
+    execute_catboost('fit', task_type, params, devices, stdout, timeout, env)
 
 
 # cd_path should be None for yt-search-proto pools
@@ -117,7 +121,7 @@ def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 
 
-def execute_dist_train(cmd):
+def execute_catboost_dist(mode, cmd):
     hosts_path = yatest.common.test_output_path('hosts.txt')
     with yatest.common.network.PortManager() as pm:
         port0 = pm.get_port()
@@ -132,12 +136,17 @@ def execute_dist_train(cmd):
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        execute_catboost_fit(
+        execute_catboost(
+            mode,
             'CPU',
             cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
         )
         worker0.wait()
         worker1.wait()
+
+
+def execute_dist_train(cmd):
+    execute_catboost_dist('fit', cmd)
 
 
 @pytest.fixture(scope="module")

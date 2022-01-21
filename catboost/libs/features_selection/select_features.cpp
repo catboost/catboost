@@ -4,6 +4,7 @@
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/feature_names_converter.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/train_lib/train_model.h>
@@ -45,10 +46,6 @@ namespace NCB {
         const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
         for (const ui32 feature : featuresForSelect) {
             CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
-            CB_ENSURE(
-                !pools.Learn->MetaInfo.FeaturesLayout->GetExternalFeatureMetaInfo(feature).IsIgnored,
-                "Tested feature " << feature << " should not be ignored"
-            );
         }
     }
 
@@ -120,6 +117,52 @@ namespace NCB {
         return trainingData;
     }
 
+    static TDataProviderPtr LoadSubsetForFstrCalc(
+        const TDataProviderPtr srcPool,
+        const TCatBoostOptions& catBoostOptions,
+        const TPoolLoadParams* poolLoadParams,
+        NPar::ILocalExecutor* executor
+    ) {
+        CATBOOST_DEBUG_LOG << "Loading fstr pool..." << Endl;
+        const ui32 totalDocumentCount = srcPool->GetObjectCount();
+        const ui32 minSubsetDocumentCount = SafeIntegerCast<ui32>(
+            GetMaxObjectCountForFstrCalc(
+                totalDocumentCount,
+                SafeIntegerCast<i64>(srcPool->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount())
+            )
+        );
+
+        ui32 subsetDocumentCount = 0;
+        if (srcPool->ObjectsGrouping->IsTrivial()) {
+            subsetDocumentCount = minSubsetDocumentCount;
+        } else {
+            ui32 lastGroupIdx = 0;
+            while (srcPool->ObjectsGrouping->GetGroup(lastGroupIdx).End < minSubsetDocumentCount) {
+                lastGroupIdx += 1;
+            }
+            subsetDocumentCount = srcPool->ObjectsGrouping->GetGroup(lastGroupIdx).End;
+        }
+
+        auto classLabels = catBoostOptions.DataProcessingOptions->ClassLabels.Get();
+        return ReadDataset(
+            catBoostOptions.GetTaskType(),
+            poolLoadParams->LearnSetPath,
+            poolLoadParams->PairsFilePath,
+            poolLoadParams->GroupWeightsFilePath,
+            poolLoadParams->TimestampsFilePath,
+            poolLoadParams->BaselineFilePath,
+            poolLoadParams->FeatureNamesPath,
+            poolLoadParams->PoolMetaInfoPath,
+            poolLoadParams->ColumnarPoolFormatParams,
+            poolLoadParams->IgnoredFeatures,
+            catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ? EObjectsOrder::Ordered : EObjectsOrder::Undefined,
+            TDatasetSubset::MakeRange(0, subsetDocumentCount),
+            catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
+            &classLabels,
+            executor
+        );
+    }
+
 
     TFeaturesSelectionSummary SelectFeatures(
         TCatBoostOptions catBoostOptions,
@@ -144,6 +187,16 @@ namespace NCB {
         TLabelConverter labelConverter;
         TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 
+        TDataProviderPtr srcPool = pools.Test.empty() ? pools.Learn : pools.Test[0];
+        TMaybe<TPathWithScheme> srcPoolPath = poolLoadParams
+            ? MakeMaybe(pools.Test.empty() ? poolLoadParams->LearnSetPath : poolLoadParams->TestSetPaths[0])
+            : Nothing();
+        const bool haveFeaturesInMemory = HaveFeaturesInMemory(catBoostOptions, srcPoolPath);
+        TDataProviderPtr fstrPool = haveFeaturesInMemory
+            ? GetSubsetForFstrCalc(srcPool, executor)
+            : LoadSubsetForFstrCalc(srcPool, catBoostOptions, poolLoadParams, executor);
+        CATBOOST_DEBUG_LOG << "Fstr pool size: " << fstrPool->GetObjectCount() << Endl;
+
         auto trainingData = QuantizePools(
             poolLoadParams,
             outputFileOptions,
@@ -158,8 +211,6 @@ namespace NCB {
             catBoostOptions,
             poolLoadParams ? MakeMaybe(poolLoadParams->LearnSetPath) : Nothing()
         );
-        // TODO(ilyzhin) support distributed training with quantized pool
-        CB_ENSURE(haveLearnFeaturesInMemory, "Features selection doesn't support distributed training with quantized pool yet.");
 
         THolder<TMasterContext> masterContext;
 
@@ -207,7 +258,7 @@ namespace NCB {
             outputFileOptions,
             featuresSelectOptions,
             evalMetricDescriptor,
-            pools,
+            fstrPool,
             labelConverter,
             trainingData,
             dstModel,
