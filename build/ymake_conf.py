@@ -1346,9 +1346,19 @@ class GnuCompiler(Compiler):
                 # It looks like there is no way to enable aligned allocation in gcc
             ]
 
-        self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
+        self.c_warnings = [
+            # Enable default warnings subset
+            '-Wall',
+            '-Wextra',
+        ]
         self.cxx_warnings = [
+            # Issue a warning if certain overload is hidden due to inheritance
             '-Woverloaded-virtual',
+        ]
+
+        # Disable some warnings which will fail compilation at the time
+        self.c_warnings += [
+            '-Wno-parentheses'
         ]
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
@@ -1410,43 +1420,27 @@ class GnuCompiler(Compiler):
             self.cxx_warnings += [
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-undefined-var-template',
+                '-Wno-return-std-move',
+                '-Wno-address-of-packed-member',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-enum-compare-switch',
+                '-Wno-pessimizing-move',
+                '-Wno-range-loop-construct',
+                '-Wno-reorder-init-list',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-deprecated-volatile',
             ]
 
-            if self.tc.version_at_least(7):
-                self.cxx_warnings.append('-Wno-return-std-move')
+            self.c_warnings += [
+                '-Wno-implicit-const-int-float-conversion',
+                # For nvcc to accept the above.
+                '-Wno-unknown-warning-option',
+            ]
 
-            if self.tc.version_at_least(8):
-                self.cxx_warnings.extend((
-                    '-Wno-address-of-packed-member',
-                    '-Wno-defaulted-function-deleted',
-                    '-Wno-enum-compare-switch',
-                ))
-
-            if self.tc.version_at_least(10):
-                # See https://releases.llvm.org/10.0.0/tools/clang/docs/ReleaseNotes.html#major-new-features
-                # Useful warnings that should be enabled ASAP:
-                self.c_warnings.extend((
-                    '-Wno-unknown-warning-option',  # For nvcc to accept the above.
-                ))
-                self.cxx_warnings.extend((
-                    '-Wno-pessimizing-move',
-                    '-Wno-range-loop-construct',
-                    '-Wno-reorder-init-list',
-                ))
-
-            if self.tc.version_at_least(11):
-                self.c_warnings += [
-                    '-Wno-implicit-const-int-float-conversion',
-                ]
-                self.cxx_warnings += [
-                    '-Wno-deprecated-anon-enum-enum-conversion',
-                    '-Wno-deprecated-enum-enum-conversion',
-                    '-Wno-deprecated-enum-float-conversion',
-                    '-Wno-ambiguous-reversed-operator',
-                    '-Wno-deprecated-volatile',
-                ]
-
-        if self.tc.is_gcc and self.tc.version_at_least(4, 9):
+        elif self.tc.is_gcc:
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
 
