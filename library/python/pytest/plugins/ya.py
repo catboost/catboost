@@ -22,8 +22,9 @@ import pytest
 import six
 
 import _pytest
-import _pytest.outcomes
 import _pytest.mark
+import _pytest.outcomes
+import _pytest.skipping
 
 from _pytest.warning_types import PytestUnhandledCoroutineWarning
 
@@ -366,7 +367,7 @@ def _collect_test_rusage(item):
 def _get_item_tags(item):
     tags = []
     for key, value in item.keywords.items():
-        if key == 'pytestmark':
+        if key == 'pytestmark' and isinstance(value, list):
             for mark in value:
                 tags.append(mark.name)
         elif isinstance(value, _pytest.mark.MarkDecorator):
@@ -539,37 +540,8 @@ def pytest_pyfunc_call(pyfuncitem):
     return True
 
 
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-
-    def makereport(item, call):
-        when = call.when
-        duration = call.stop-call.start
-        keywords = item.keywords
-        excinfo = call.excinfo
-        sections = []
-        if not call.excinfo:
-            outcome = "passed"
-            longrepr = None
-        else:
-            if not isinstance(excinfo, _pytest._code.code.ExceptionInfo):
-                outcome = "failed"
-                longrepr = excinfo
-            elif excinfo.errisinstance(pytest.skip.Exception):
-                outcome = "skipped"
-                r = excinfo._getreprcrash()
-                longrepr = (str(r.path), r.lineno, r.message)
-            else:
-                outcome = "failed"
-                if call.when == "call":
-                    longrepr = item.repr_failure(excinfo)
-                else:  # exception in setup or teardown
-                    longrepr = item._repr_failure_py(excinfo, style=item.config.option.tbstyle)
-        for rwhen, key, content in item._report_sections:
-            sections.append(("Captured std%s %s" % (key, rwhen), content))
-        if outcome == "failed":
-            yatest_logger.error(longrepr)
-        return _pytest.runner.TestReport(item.nodeid, item.location, keywords, outcome, longrepr, when, sections, duration)
-
     def logreport(report, result, call):
         test_item = TestItem(report, result, pytest_config.option.test_suffix)
         if not pytest_config.suite_metrics and context.Ctx.get("YA_PYTEST_START_TIMESTAMP"):
@@ -577,6 +549,10 @@ def pytest_runtest_makereport(item, call):
             pytest_config.ya_trace_reporter.dump_suite_metrics()
 
         pytest_config.ya_trace_reporter.on_log_report(test_item)
+
+        if report.outcome == "failed":
+            yatest_logger.error(report.longrepr)
+
         if report.when == "call":
             _collect_test_rusage(item)
             pytest_config.ya_trace_reporter.on_finish_test_case(test_item)
@@ -595,53 +571,16 @@ def pytest_runtest_makereport(item, call):
                 pytest_config.ya_trace_reporter.on_finish_test_case(test_item, duration_only=True)
             pytest_config.ya_trace_reporter.on_finish_test_class(test_item)
 
-    rep = makereport(item, call)
+    outcome = yield
+    rep = outcome.get_result()
+    result = None
     if hasattr(item, 'retval') and item.retval is not None:
         result = item.retval
         if not pytest_config.from_ya_test:
             ti = TestItem(rep, result, pytest_config.option.test_suffix)
             tr = pytest_config.pluginmanager.getplugin('terminalreporter')
             tr.write_line("{} - Validating canonical data is not supported when running standalone binary".format(ti), yellow=True, bold=True)
-    else:
-        result = None
-
-    # taken from arcadia/contrib/python/pytest/_pytest/skipping.py
-    try:
-        # unitttest special case, see setting of _unexpectedsuccess
-        if hasattr(item, '_unexpectedsuccess'):
-            if rep.when == "call":
-                # we need to translate into how pytest encodes xpass
-                rep.wasxfail = "reason: " + repr(item._unexpectedsuccess)
-                rep.outcome = "failed"
-            return rep
-        if not (call.excinfo and call.excinfo.errisinstance(pytest.xfail.Exception)):
-            evalxfail = getattr(item, '_evalxfail', None)
-            if not evalxfail:
-                return
-        if call.excinfo and call.excinfo.errisinstance(pytest.xfail.Exception):
-            if not item.config.getvalue("runxfail"):
-                rep.wasxfail = "reason: " + call.excinfo.value.msg
-                rep.outcome = "skipped"
-                return rep
-        evalxfail = item._evalxfail
-        if not rep.skipped:
-            if not item.config.option.runxfail:
-                if evalxfail.wasvalid() and evalxfail.istrue():
-                    if call.excinfo:
-                        if evalxfail.invalidraise(call.excinfo.value):
-                            rep.outcome = "failed"
-                            return rep
-                        else:
-                            rep.outcome = "skipped"
-                    elif call.when == "call":
-                        rep.outcome = "failed"
-                    else:
-                        return rep
-                    rep.wasxfail = evalxfail.getexplanation()
-                    return rep
-    finally:
-        logreport(rep, result, call)
-    return rep
+    logreport(rep, result, call)
 
 
 def pytest_make_parametrize_id(config, val, argname):
@@ -709,22 +648,25 @@ class TestItem(object):
                 self.set_error(report.when + " failed:\n" + self._error)
         else:
             self.set_error("")
-        if report.outcome == "passed":
+
+        report_teststatus = _pytest.skipping.pytest_report_teststatus(report)
+        if report_teststatus is not None:
+            report_teststatus = report_teststatus[0]
+
+        if report_teststatus == 'xfailed':
+            self._status = 'xfail'
+            self.set_error(report.wasxfail, 'imp')
+        elif report_teststatus == 'xpassed':
+            self._status = 'xpass'
+            self.set_error("Test unexpectedly passed")
+        elif report.skipped:
+            self._status = 'skipped'
+            self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
+        elif report.passed:
             self._status = 'good'
             self.set_error("")
-        elif report.outcome == "skipped":
-            if hasattr(report, 'wasxfail'):
-                self._status = 'xfail'
-                self.set_error(report.wasxfail, 'imp')
-            else:
-                self._status = 'skipped'
-                self.set_error(yatest_lib.tools.to_utf8(report.longrepr[-1]))
-        elif report.outcome == "failed":
-            if hasattr(report, 'wasxfail'):
-                self._status = 'xpass'
-                self.set_error("Test unexpectedly passed")
-            else:
-                self._status = 'fail'
+        else:
+            self._status = 'fail'
 
     @property
     def status(self):
