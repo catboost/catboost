@@ -8,6 +8,11 @@ VERSION(1.2.11)
 
 ORIGINAL_SOURCE(https://www.zlib.net/fossils/zlib-1.2.11.tar.gz)
 
+OPENSOURCE_EXPORT_REPLACEMENT(
+    CMAKE ZLIB
+    CMAKE_TARGET ZLIB::ZLIB
+    CONAN zlib/1.2.11
+)
 LICENSE(Zlib)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
