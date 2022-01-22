@@ -1429,7 +1429,6 @@ class GnuCompiler(Compiler):
                 '-Wno-return-std-move',
                 '-Wno-address-of-packed-member',
                 '-Wno-defaulted-function-deleted',
-                '-Wno-enum-compare-switch',
                 '-Wno-pessimizing-move',
                 '-Wno-range-loop-construct',
                 '-Wno-reorder-init-list',
