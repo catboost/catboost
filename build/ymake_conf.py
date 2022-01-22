@@ -591,7 +591,7 @@ class Build(object):
     def _get_toolchain_options(self):
         type_ = self.params['params']['type']
 
-        if self.params['params'].get('local'):
+        if self.params['params'].get('local') and type_ == 'xcode':
             detector = CompilerDetector()
             detector.detect(self.params['params']['c_compiler'], self.params['params']['cxx_compiler'])
             emit('LOCAL_XCODE_TOOLS', 'yes')
@@ -1266,14 +1266,20 @@ class GnuToolchain(Toolchain):
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
             elif self.tc.params.get('local'):
                 if target.is_apple:
-                    if target.is_ios:
-                        ios_sdk = subprocess.check_output(['xcrun', '--show-sdk-path', '-sdk', 'iphoneos'])
-                        self.setup_sdk(project='build/platform/ios_sdk', var='{}'.format(ios_sdk))
-                        self.platform_projects.append('build/platform/macos_system_stl')
-                    if target.is_macos:
-                        macos_sdk = subprocess.check_output(['xcrun', '--show-sdk-path', '-sdk', 'macosx'])
-                        self.setup_sdk(project='build/platform/macos_sdk', var='{}'.format(macos_sdk))
-                        self.platform_projects.append('build/platform/macos_system_stl')
+                    if not tc.os_sdk_local:
+                        if target.is_ios:
+                            self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                            self.platform_projects.append('build/platform/macos_system_stl')
+                        if target.is_macos:
+                            self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                            self.platform_projects.append('build/platform/macos_system_stl')
+                    else:
+                        if target.is_iossim:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'iphonesimulator', '--show-sdk-path']).strip())
+                        elif target.is_ios:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'iphoneos', '--show-sdk-path']).strip())
+                        elif target.is_macos:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'macosx', '--show-sdk-path']).strip())
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
