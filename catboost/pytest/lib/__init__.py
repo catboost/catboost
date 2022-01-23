@@ -5,6 +5,7 @@ import tempfile
 import time
 import yatest.common
 import yatest.common.network
+import yatest.common.runtime
 from .common_helpers import *  # noqa
 import zipfile
 
@@ -21,7 +22,7 @@ def data_file(*path):
 
 @yatest.common.misc.lazy
 def get_cuda_setup_error():
-    for flag in pytest.config.option.flags:
+    for flag in yatest.common.runtime._get_ya_config().option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return flag
 
