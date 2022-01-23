@@ -896,7 +896,7 @@ class CallSpec2(object):
 
     @property
     def id(self):
-        return "-".join(map(safe_str, filter(None, self._idlist)))
+        return "-".join(map(safe_str, self._idlist))
 
     def setmulti2(self, valtypes, argnames, valset, id, marks, scopenum, param_index):
         for arg, val in zip(argnames, valset):
