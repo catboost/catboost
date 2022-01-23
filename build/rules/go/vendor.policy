@@ -809,6 +809,46 @@ ALLOW .* -> vendor/github.com/ydb-platform/ydb-go-yc-metadata
 # CONTRIB-2099
 ALLOW .* -> vendor/github.com/haivision/srtgo
 
+# CONTRIB-2307
+ALLOW .* -> vendor/github.com/airbusgeo/godal
+ALLOW .* -> vendor/github.com/airbusgeo/osio
+
+# CONTRIB-2167
+ALLOW .* -> vendor/github.com/jarcoal/httpmock
+
+# CONTRIB-2423
+ALLOW .* -> vendor/github.com/godror/godror
+
+# CONTRIB-2439
+ALLOW .* -> vendor/github.com/elimity-com/scim
+
+# CONTRIB-2363 JSON Schema
+ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema
+
+# CONTRIB-2356 Django-syntax like template-engine
+ALLOW .* -> vendor/github.com/flosch/pongo2/v4
+
+# CONTRIB-2355 Minifiers for web formats
+DENY .* -> vendor/github.com/tdewolff/minify/v2/cmd
+ALLOW .* -> vendor/github.com/tdewolff/minify/v2
+
+# CONTRIB-2354 Simple image processing package
+ALLOW .* -> vendor/github.com/disintegration/imaging
+
+# CONTRIB-2376 HAProxy Native Golang Client
+ALLOW .* -> vendor/github.com/haproxytech/client-native/v2
+ALLOW .* -> vendor/github.com/haproxytech/config-parser/v4
+ALLOW .* -> vendor/github.com/haproxytech/go-logger
+
+# CONTRIB-2416 Bit Reader/Writer
+ALLOW .* -> vendor/github.com/icza/bitio
+
+# CONTRIB-2420 Syslog server/parser
+ALLOW .* -> vendor/gopkg.in/mcuadros/go-syslog.v2
+
+# CONTRIB-2448 filesystem xattr support
+ALLOW .* -> vendor/github.com/pkg/xattr
+
 #
 # Tools
 #
@@ -970,50 +1010,13 @@ ALLOW transfer_manager/go/pkg/source/eventhub -> vendor/github.com/Azure/azure-a
 ALLOW trust/psp/core/go -> vendor/github.com/gorilla/mux
 ALLOW trust/psp/core/handler -> vendor/github.com/gorilla/mux
 
-# CONTRIB-2307
-ALLOW .* -> vendor/github.com/airbusgeo/godal
-ALLOW .* -> vendor/github.com/airbusgeo/osio
-
-# CONTRIB-2167
-ALLOW .* -> vendor/github.com/jarcoal/httpmock
-
 # CONTRIB-2337 Cloud GPU migration: validator for structs and fields
 ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
-
-# CONTRIB-2363 JSON Schema
-ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema
-
-# CONTRIB-2356 Django-syntax like template-engine
-ALLOW .* -> vendor/github.com/flosch/pongo2/v4
-
-# CONTRIB-2355 Minifiers for web formats
-DENY .* -> vendor/github.com/tdewolff/minify/v2/cmd
-ALLOW .* -> vendor/github.com/tdewolff/minify/v2
-
-# CONTRIB-2354 Simple image processing package
-ALLOW .* -> vendor/github.com/disintegration/imaging
-
-# CONTRIB-2376 HAProxy Native Golang Client
-ALLOW .* -> vendor/github.com/haproxytech/client-native/v2
-ALLOW .* -> vendor/github.com/haproxytech/config-parser/v4
-ALLOW .* -> vendor/github.com/haproxytech/go-logger
-
-# CONTRIB-2416 Bit Reader/Writer
-ALLOW .* -> vendor/github.com/icza/bitio
-
-# CONTRIB-2420 Syslog server/parser
-ALLOW .* -> vendor/gopkg.in/mcuadros/go-syslog.v2
 
 # CONTRIB-2412
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
 ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
-
-# CONTRIB-2423
-ALLOW .* -> vendor/github.com/godror/godror
-
-# CONTRIB-2439
-ALLOW .* -> vendor/github.com/elimity-com/scim
 
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
