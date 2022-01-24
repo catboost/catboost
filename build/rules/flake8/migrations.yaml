@@ -1028,7 +1028,6 @@ migrations:
     - modadvert/libs/http
     - modadvert/libs/laas/workers/domain_threats
     - modadvert/libs/laas/workers/features_from_href
-    - modadvert/libs/utils/codegeneration/ut
     - modadvert/libs/utils/dictutils/ut
     - modadvert/programs/cv_app/libs
     - modadvert/tools/accept_campaigns
