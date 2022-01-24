@@ -10,7 +10,17 @@ from scipy._lib._fpumode import get_fpu_mode
 from scipy._lib._testutils import FPUModeChangeWarning
 
 
+def pytest_configure(config):
+    # Copied from pytest.ini (unsupported in arcadia).
+    config.addinivalue_line('markers', 'slow: mark test as slow')
+    config.addinivalue_line('markers', 'xslow: mark test as extremely slow (not run unless explicitly requested)')
+
+
 def pytest_runtest_setup(item):
+    # Go to arcadia source route to access data files.
+    import yatest.common as yc
+    os.chdir(yc.source_path(''))
+
     if LooseVersion(pytest.__version__) >= LooseVersion("3.6.0"):
         mark = item.get_closest_marker("xslow")
     else:

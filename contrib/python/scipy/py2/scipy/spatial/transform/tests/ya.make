@@ -25,13 +25,7 @@ NO_CHECK_IMPORTS()
 
 TEST_SRCS(
     __init__.py
-    test_connected_components.py
-    test_conversions.py
-    test_graph_laplacian.py
-    test_reordering.py
-    test_shortest_path.py
-    test_spanning_tree.py
-    test_traversal.py
+    test_rotation.py
 )
 
 END()
