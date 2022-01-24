@@ -3329,7 +3329,6 @@ migrations:
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
-    - quality/user_sessions/createlib/qb3/tests/create
     - quality/user_sessions/createlib/tests
     - quality/userdata/prep/tests
     - quality/ytlib/ytweave/tests
@@ -3637,7 +3636,6 @@ migrations:
     - ads/factor_check/features/tests
     - ads/libs/py_ml_factors/mt/baseline_model
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
-    - quality/user_sessions/createlib/qb3/tests/create
     - billing/agency_rewards/tests_platform
     - balancer/test/functional/instance
     - balancer/test/functional/aab_cookie_verify
