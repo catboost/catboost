@@ -10,4 +10,6 @@ PEERDIR(
     catboost/idl/pool/proto
 )
 
+REQUIREMENTS(ram:12)
+
 END()

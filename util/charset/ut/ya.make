@@ -12,4 +12,6 @@ SRCS(
 
 INCLUDE(${ARCADIA_ROOT}/util/tests/ya_util_tests.inc)
 
+REQUIREMENTS(ram:17)
+
 END()
