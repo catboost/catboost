@@ -2474,7 +2474,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-microsoft-include',
                 '-Wno-parentheses',
                 '-Wno-pragma-pack',
-                '-Wno-return-type',
                 '-Wno-tautological-constant-out-of-range-compare',
                 '-Wno-unknown-argument',
                 '-Wno-unknown-warning-option',
