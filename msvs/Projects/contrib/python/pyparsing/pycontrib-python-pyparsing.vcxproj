@@ -20,7 +20,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -77,143 +77,7 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_61447c278906b80b48a7e0811d.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_61447c278906b80b48a7e0811d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_61447c278906b80b48a7e0811d.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/pyparsing.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\.dist-info\METADATA">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.yasm" "-" "contrib/python/pyparsing/.dist-info/METADATA" "_2f5f3d773f46493463130035ee.rodata" "$(SolutionDir)../contrib/python/pyparsing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_4acec60c8a372c85fdc0c213e1.rodata" "-" "contrib/python/pyparsing/.dist-info/top_level.txt" "_5111c829e4abe8fec7d2fd0ca2.rodata" "$(SolutionDir)../contrib/python/pyparsing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ffb4ac37d4968ea96572970af5.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.yasm" "-" "contrib/python/pyparsing/.dist-info/METADATA" "_2f5f3d773f46493463130035ee.rodata" "$(SolutionDir)../contrib/python/pyparsing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_4acec60c8a372c85fdc0c213e1.rodata" "-" "contrib/python/pyparsing/.dist-info/top_level.txt" "_5111c829e4abe8fec7d2fd0ca2.rodata" "$(SolutionDir)../contrib/python/pyparsing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_ffb4ac37d4968ea96572970af5.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_61447c278906b80b48a7e0811d.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pyparsing\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_61447c278906b80b48a7e0811d.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_4acec60c8a372c85fdc0c213e1.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_ffb4ac37d4968ea96572970af5.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_f67b5c58f4578f23be0be39d77.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_6802243c71f8bacddc40a3844f.rodata" "-" "contrib/python/pyparsing/pyparsing.py" "_c315079c99027032109eef519e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/_f67b5c58f4578f23be0be39d77.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_6802243c71f8bacddc40a3844f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_f67b5c58f4578f23be0be39d77.rodata;</Outputs>
-    </CustomBuild>
-  </ItemGroup>
+  <ItemGroup/>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
@@ -259,6 +123,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py2\pypython-pyparsing-py2.vcxproj">
+      <Project>{636DFF33-4DD4-5B5D-AB87-CD994F706CBA}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -270,9 +137,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
@@ -297,12 +161,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
-      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
-      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
