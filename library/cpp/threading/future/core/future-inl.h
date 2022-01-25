@@ -961,6 +961,12 @@ namespace NThreading {
     inline TFuture<T> MakeFuture() {
         struct TCache {
             TFuture<T> Instance{new NImpl::TFutureState<T>(Default<T>())};
+
+            TCache() {
+                // Immediately advance state from ValueSet to ValueRead.
+                // This should prevent corrupting shared value with an ExtractValue() call.
+                Y_UNUSED(Instance.GetValue());
+            }
         };
         return Singleton<TCache>()->Instance;
     }
