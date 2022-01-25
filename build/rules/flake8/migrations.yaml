@@ -813,7 +813,6 @@ migrations:
     - yaphone/localization_admin/src/models/details
     - yaphone/localization_admin/src/models/support_info
     - yp/scheduler_simulator/simtool
-    - yql/library/udf/tz
     - yql/tools/docs/custom_mkdocs
     - yql/tools/docs/wiki2markdown
     - yql/tools/mrjob/test
@@ -2305,7 +2304,6 @@ migrations:
     - quality/user_sessions/tools/yt_pack
     - quality/user_sessions/tools/yt_transfer_yt
     - razladki/razladki
-    - rem/client
     - rem/python
     - robot/catfilter/viewer
     - robot/fast_ban/fill_ban
@@ -3478,7 +3476,6 @@ migrations:
     - yweb/freshness/rtmr_metrics/fresh_surplus/tests
     - yweb/news/bindings/python/url/test
     - yweb/news/mr_indexer/tests
-    - yweb/news/rank/rtmr_visits_exporter/tests
     - yweb/news/rtmr/user_story_visits/tests
     - yweb/peoplesearch/rtysearch/lib/profile_dumper/tests/tests
     - yweb/peoplesearch/rtysearch/rtyindexer/tests
