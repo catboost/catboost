@@ -152,9 +152,9 @@ ALLOW yql/providers/pq/provider -> kikimr/yq/libs/common
 
 ALLOW yql/tools/yqlworker/dq/worker_manager -> kikimr/core/kqp
 
-ALLOW yql/dq/actors/compute -> kikimr/core/kqp/runtime
-ALLOW yql/dq/actors/compute -> kikimr/core/kqp/common
-ALLOW yql/dq/actors/compute -> kikimr/core/protos
+ALLOW ydb/library/yql/dq/actors/compute -> kikimr/core/kqp/runtime
+ALLOW ydb/library/yql/dq/actors/compute -> kikimr/core/kqp/common
+ALLOW ydb/library/yql/dq/actors/compute -> kikimr/core/protos
 
 ALLOW yql/ -> kikimr/library/mkql_proto
 ALLOW yql/ -> kikimr/library/binary_json
