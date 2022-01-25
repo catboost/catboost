@@ -1,6 +1,6 @@
 --- contrib/python/pytest/py3/_pytest/python.py	(index)
 +++ contrib/python/pytest/py3/_pytest/python.py	(working tree)
-@@ -1204,6 +1204,33 @@ def _idval(val, argname, idx, idfn, item, config):
+@@ -1192,6 +1192,33 @@ def _idval(val, argname, idx, idfn, item, config):
      return str(argname) + str(idx)
  
  
@@ -31,6 +31,6 @@
 +
 +# XXX limit testnames in the name of sanity and readability
 +@limit_idval(limit=500)
- def _idvalset(idx, parameterset, argnames, idfn, ids, item, config):
-     if parameterset.id is not None:
-         return parameterset.id
+ def _idvalset(
+     idx: int,
+     parameterset: ParameterSet,

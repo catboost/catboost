@@ -1,21 +1,21 @@
-# -*- coding: utf-8 -*-
 """ discovery and running of std-library "unittest" style tests. """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import sys
 import traceback
 
 import _pytest._code
 import pytest
 from _pytest.compat import getimfunc
+from _pytest.compat import is_async_function
 from _pytest.config import hookimpl
+from _pytest.outcomes import exit
 from _pytest.outcomes import fail
 from _pytest.outcomes import skip
 from _pytest.outcomes import xfail
 from _pytest.python import Class
 from _pytest.python import Function
+from _pytest.runner import CallInfo
+from _pytest.skipping import skipped_by_mark_key
+from _pytest.skipping import unexpectedsuccess_key
 
 
 def pytest_pycollect_makeitem(collector, name, obj):
@@ -26,7 +26,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
     except Exception:
         return
     # yes, so let's collect it
-    return UnitTestCase(name, parent=collector)
+    return UnitTestCase.from_parent(collector, name=name, obj=obj)
 
 
 class UnitTestCase(Class):
@@ -41,7 +41,7 @@ class UnitTestCase(Class):
         if not getattr(cls, "__test__", True):
             return
 
-        skipped = getattr(cls, "__unittest_skip__", False)
+        skipped = _is_skipped(cls)
         if not skipped:
             self._inject_setup_teardown_fixtures(cls)
             self._inject_setup_class_fixture()
@@ -54,7 +54,7 @@ class UnitTestCase(Class):
             if not getattr(x, "__test__", True):
                 continue
             funcobj = getimfunc(x)
-            yield TestCaseFunction(name, parent=self, callobj=funcobj)
+            yield TestCaseFunction.from_parent(self, name=name, callobj=funcobj)
             foundsomething = True
 
         if not foundsomething:
@@ -62,7 +62,8 @@ class UnitTestCase(Class):
             if runtest is not None:
                 ut = sys.modules.get("twisted.trial.unittest", None)
                 if ut is None or runtest != ut.TestCase.runTest:
-                    yield TestCaseFunction("runTest", parent=self)
+                    # TODO: callobj consistency
+                    yield TestCaseFunction.from_parent(self, name="runTest")
 
     def _inject_setup_teardown_fixtures(self, cls):
         """Injects a hidden auto-use fixture to invoke setUpClass/setup_method and corresponding
@@ -88,7 +89,7 @@ def _make_xunit_fixture(obj, setup_name, teardown_name, scope, pass_self):
 
     @pytest.fixture(scope=scope, autouse=True)
     def fixture(self, request):
-        if getattr(self, "__unittest_skip__", None):
+        if _is_skipped(self):
             reason = self.__unittest_skip_why__
             pytest.skip(reason)
         if setup is not None:
@@ -112,26 +113,17 @@ class TestCaseFunction(Function):
     _testcase = None
 
     def setup(self):
+        # a bound method to be called during teardown() if set (see 'runtest()')
+        self._explicit_tearDown = None
         self._testcase = self.parent.obj(self.name)
-        self._fix_unittest_skip_decorator()
         self._obj = getattr(self._testcase, self.name)
         if hasattr(self, "_request"):
             self._request._fillfixtures()
 
-    def _fix_unittest_skip_decorator(self):
-        """
-        The @unittest.skip decorator calls functools.wraps(self._testcase)
-        The call to functools.wraps() fails unless self._testcase
-        has a __name__ attribute. This is usually automatically supplied
-        if the test is a function or method, but we need to add manually
-        here.
-
-        See issue #1169
-        """
-        if sys.version_info[0] == 2:
-            setattr(self._testcase, "__name__", self.name)
-
     def teardown(self):
+        if self._explicit_tearDown is not None:
+            self._explicit_tearDown()
+            self._explicit_tearDown = None
         self._testcase = None
         self._obj = None
 
@@ -172,6 +164,11 @@ class TestCaseFunction(Function):
         self.__dict__.setdefault("_excinfo", []).append(excinfo)
 
     def addError(self, testcase, rawexcinfo):
+        try:
+            if isinstance(rawexcinfo[1], exit.Exception):
+                exit(rawexcinfo[1].msg)
+        except TypeError:
+            pass
         self._addexcinfo(rawexcinfo)
 
     def addFailure(self, testcase, rawexcinfo):
@@ -181,7 +178,7 @@ class TestCaseFunction(Function):
         try:
             skip(reason)
         except skip.Exception:
-            self._skipped_by_mark = True
+            self._store[skipped_by_mark_key] = True
             self._addexcinfo(sys.exc_info())
 
     def addExpectedFailure(self, testcase, rawexcinfo, reason=""):
@@ -191,7 +188,7 @@ class TestCaseFunction(Function):
             self._addexcinfo(sys.exc_info())
 
     def addUnexpectedSuccess(self, testcase, reason=""):
-        self._unexpectedsuccess = reason
+        self._store[unexpectedsuccess_key] = reason
 
     def addSuccess(self, testcase):
         pass
@@ -199,34 +196,41 @@ class TestCaseFunction(Function):
     def stopTest(self, testcase):
         pass
 
-    def _handle_skip(self):
-        # implements the skipping machinery (see #2137)
-        # analog to pythons Lib/unittest/case.py:run
-        testMethod = getattr(self._testcase, self._testcase._testMethodName)
-        if getattr(self._testcase.__class__, "__unittest_skip__", False) or getattr(
-            testMethod, "__unittest_skip__", False
-        ):
-            # If the class or method was skipped.
-            skip_why = getattr(
-                self._testcase.__class__, "__unittest_skip_why__", ""
-            ) or getattr(testMethod, "__unittest_skip_why__", "")
-            try:  # PY3, unittest2 on PY2
-                self._testcase._addSkip(self, self._testcase, skip_why)
-            except TypeError:  # PY2
-                if sys.version_info[0] != 2:
-                    raise
-                self._testcase._addSkip(self, skip_why)
-            return True
-        return False
+    def _expecting_failure(self, test_method) -> bool:
+        """Return True if the given unittest method (or the entire class) is marked
+        with @expectedFailure"""
+        expecting_failure_method = getattr(
+            test_method, "__unittest_expecting_failure__", False
+        )
+        expecting_failure_class = getattr(self, "__unittest_expecting_failure__", False)
+        return bool(expecting_failure_class or expecting_failure_method)
 
     def runtest(self):
-        if self.config.pluginmanager.get_plugin("pdbinvoke") is None:
-            self._testcase(result=self)
+        from _pytest.debugging import maybe_wrap_pytest_function_for_tracing
+
+        maybe_wrap_pytest_function_for_tracing(self)
+
+        # let the unittest framework handle async functions
+        if is_async_function(self.obj):
+            self._testcase(self)
         else:
-            # disables tearDown and cleanups for post mortem debugging (see #1890)
-            if self._handle_skip():
-                return
-            self._testcase.debug()
+            # when --pdb is given, we want to postpone calling tearDown() otherwise
+            # when entering the pdb prompt, tearDown() would have probably cleaned up
+            # instance variables, which makes it difficult to debug
+            # arguably we could always postpone tearDown(), but this changes the moment where the
+            # TestCase instance interacts with the results object, so better to only do it
+            # when absolutely needed
+            if self.config.getoption("usepdb") and not _is_skipped(self.obj):
+                self._explicit_tearDown = self._testcase.tearDown
+                setattr(self._testcase, "tearDown", lambda *args: None)
+
+            # we need to update the actual bound method with self.obj, because
+            # wrap_pytest_function_for_tracing replaces self.obj by a wrapper
+            setattr(self._testcase, self.name, self.obj)
+            try:
+                self._testcase(result=self)
+            finally:
+                delattr(self._testcase, self.name)
 
     def _prunetraceback(self, excinfo):
         Function._prunetraceback(self, excinfo)
@@ -246,6 +250,14 @@ def pytest_runtest_makereport(item, call):
                 del call.result
             except AttributeError:
                 pass
+
+    unittest = sys.modules.get("unittest")
+    if unittest and call.excinfo and call.excinfo.errisinstance(unittest.SkipTest):
+        # let's substitute the excinfo with a pytest.skip one
+        call2 = CallInfo.from_call(
+            lambda: pytest.skip(str(call.excinfo.value)), call.when
+        )
+        call.excinfo = call2.excinfo
 
 
 # twisted trial support
@@ -289,3 +301,8 @@ def check_testcase_implements_trial_reporter(done=[]):
 
     classImplements(TestCaseFunction, IReporter)
     done.append(1)
+
+
+def _is_skipped(obj) -> bool:
+    """Return True if the given object has been marked with @unittest.skip"""
+    return bool(getattr(obj, "__unittest_skip__", False))

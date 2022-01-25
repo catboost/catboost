@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import pytest
 
 
@@ -21,7 +16,8 @@ def pytest_addoption(parser):
 def pytest_fixture_setup(fixturedef, request):
     # Will return a dummy fixture if the setuponly option is provided.
     if request.config.option.setupplan:
-        fixturedef.cached_result = (None, None, None)
+        my_cache_key = fixturedef.cache_key(request)
+        fixturedef.cached_result = (None, my_cache_key, None)
         return fixturedef.cached_result
 
 

@@ -1,25 +1,31 @@
-# -*- coding: utf-8 -*-
 """ basic collect and runtest protocol implementations """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import bdb
 import os
 import sys
 from time import time
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import attr
-import six
 
 from .reports import CollectErrorRepr
 from .reports import CollectReport
 from .reports import TestReport
+from _pytest._code.code import ExceptionChainRepr
 from _pytest._code.code import ExceptionInfo
-from _pytest.compat import safe_str
+from _pytest.compat import TYPE_CHECKING
+from _pytest.nodes import Collector
+from _pytest.nodes import Node
 from _pytest.outcomes import Exit
 from _pytest.outcomes import Skipped
 from _pytest.outcomes import TEST_OUTCOME
+
+if TYPE_CHECKING:
+    from typing import Type
+    from typing_extensions import Literal
 
 #
 # pytest plugin hooks
@@ -34,7 +40,7 @@ def pytest_addoption(parser):
         default=None,
         metavar="N",
         help="show N slowest setup/test durations (N=0 for all).",
-    ),
+    )
 
 
 def pytest_terminal_summary(terminalreporter):
@@ -63,7 +69,7 @@ def pytest_terminal_summary(terminalreporter):
             tr.write_line("")
             tr.write_line("(0.00 durations hidden.  Use -vv to show these durations.)")
             break
-        tr.write_line("%02.2fs %-8s %s" % (rep.duration, rep.when, rep.nodeid))
+        tr.write_line("{:02.2f}s {:<8} {}".format(rep.duration, rep.when, rep.nodeid))
 
 
 def pytest_sessionstart(session):
@@ -106,8 +112,8 @@ def show_test_item(item):
     tw = item.config.get_terminal_writer()
     tw.line()
     tw.write(" " * 8)
-    tw.write(item._nodeid)
-    used_fixtures = sorted(item._fixtureinfo.name2fixturedefs.keys())
+    tw.write(item.nodeid)
+    used_fixtures = sorted(getattr(item, "fixturenames", []))
     if used_fixtures:
         tw.write(" (fixtures used: {})".format(", ".join(used_fixtures)))
 
@@ -119,18 +125,22 @@ def pytest_runtest_setup(item):
 
 def pytest_runtest_call(item):
     _update_current_test_var(item, "call")
-    sys.last_type, sys.last_value, sys.last_traceback = (None, None, None)
+    try:
+        del sys.last_type
+        del sys.last_value
+        del sys.last_traceback
+    except AttributeError:
+        pass
     try:
         item.runtest()
-    except Exception:
+    except Exception as e:
         # Store trace info to allow postmortem debugging
-        type, value, tb = sys.exc_info()
-        tb = tb.tb_next  # Skip *this* frame
-        sys.last_type = type
-        sys.last_value = value
-        sys.last_traceback = tb
-        del type, value, tb  # Get rid of these in this frame
-        raise
+        sys.last_type = type(e)
+        sys.last_value = e
+        assert e.__traceback__ is not None
+        # Skip *this* frame
+        sys.last_traceback = e.__traceback__.tb_next
+        raise e
 
 
 def pytest_runtest_teardown(item, nextitem):
@@ -170,7 +180,9 @@ def pytest_report_teststatus(report):
 # Implementation
 
 
-def call_and_report(item, when, log=True, **kwds):
+def call_and_report(
+    item, when: "Literal['setup', 'call', 'teardown']", log=True, **kwds
+):
     call = call_runtest_hook(item, when, **kwds)
     hook = item.ihook
     report = hook.pytest_runtest_makereport(item=item, call=call)
@@ -189,10 +201,16 @@ def check_interactive_exception(call, report):
     )
 
 
-def call_runtest_hook(item, when, **kwds):
-    hookname = "pytest_runtest_" + when
-    ihook = getattr(item.ihook, hookname)
-    reraise = (Exit,)
+def call_runtest_hook(item, when: "Literal['setup', 'call', 'teardown']", **kwds):
+    if when == "setup":
+        ihook = item.ihook.pytest_runtest_setup
+    elif when == "call":
+        ihook = item.ihook.pytest_runtest_call
+    elif when == "teardown":
+        ihook = item.ihook.pytest_runtest_teardown
+    else:
+        assert False, "Unhandled runtest hook case: {}".format(when)
+    reraise = (Exit,)  # type: Tuple[Type[BaseException], ...]
     if not item.config.getoption("usepdb", False):
         reraise += (KeyboardInterrupt,)
     return CallInfo.from_call(
@@ -201,12 +219,11 @@ def call_runtest_hook(item, when, **kwds):
 
 
 @attr.s(repr=False)
-class CallInfo(object):
+class CallInfo:
     """ Result/Exception info a function invocation. """
 
     _result = attr.ib()
-    # Optional[ExceptionInfo]
-    excinfo = attr.ib()
+    excinfo = attr.ib(type=Optional[ExceptionInfo])
     start = attr.ib()
     stop = attr.ib()
     when = attr.ib()
@@ -218,7 +235,7 @@ class CallInfo(object):
         return self._result
 
     @classmethod
-    def from_call(cls, func, when, reraise=None):
+    def from_call(cls, func, when, reraise=None) -> "CallInfo":
         #: context of invocation: one of "setup", "call",
         #: "teardown", "memocollect"
         start = time()
@@ -234,34 +251,32 @@ class CallInfo(object):
         return cls(start=start, stop=stop, when=when, result=result, excinfo=excinfo)
 
     def __repr__(self):
-        if self.excinfo is not None:
-            status = "exception"
-            value = self.excinfo.value
-        else:
-            # TODO: investigate unification
-            value = repr(self._result)
-            status = "result"
-        return "<CallInfo when={when!r} {status}: {value}>".format(
-            when=self.when, value=safe_str(value), status=status
-        )
+        if self.excinfo is None:
+            return "<CallInfo when={!r} result: {!r}>".format(self.when, self._result)
+        return "<CallInfo when={!r} excinfo={!r}>".format(self.when, self.excinfo)
 
 
 def pytest_runtest_makereport(item, call):
     return TestReport.from_item_and_call(item, call)
 
 
-def pytest_make_collect_report(collector):
+def pytest_make_collect_report(collector: Collector) -> CollectReport:
     call = CallInfo.from_call(lambda: list(collector.collect()), "collect")
     longrepr = None
     if not call.excinfo:
         outcome = "passed"
     else:
-        from _pytest import nose
-
-        skip_exceptions = (Skipped,) + nose.get_skip_exceptions()
-        if call.excinfo.errisinstance(skip_exceptions):
+        skip_exceptions = [Skipped]
+        unittest = sys.modules.get("unittest")
+        if unittest is not None:
+            # Type ignored because unittest is loaded dynamically.
+            skip_exceptions.append(unittest.SkipTest)  # type: ignore
+        if call.excinfo.errisinstance(tuple(skip_exceptions)):
             outcome = "skipped"
-            r = collector._repr_failure_py(call.excinfo, "line").reprcrash
+            r_ = collector._repr_failure_py(call.excinfo, "line")
+            assert isinstance(r_, ExceptionChainRepr), repr(r_)
+            r = r_.reprcrash
+            assert r
             longrepr = (str(r.path), r.lineno, r.message)
         else:
             outcome = "failed"
@@ -272,22 +287,19 @@ def pytest_make_collect_report(collector):
     rep = CollectReport(
         collector.nodeid, outcome, longrepr, getattr(call, "result", None)
     )
-    rep.call = call  # see collect_one_node
+    rep.call = call  # type: ignore # see collect_one_node
     return rep
 
 
-class SetupState(object):
+class SetupState:
     """ shared state for setting up/tearing down test items or collectors. """
 
     def __init__(self):
-        self.stack = []
-        self._finalizers = {}
+        self.stack = []  # type: List[Node]
+        self._finalizers = {}  # type: Dict[Node, List[Callable[[], None]]]
 
     def addfinalizer(self, finalizer, colitem):
-        """ attach a finalizer to the given colitem.
-        if colitem is None, this will add a finalizer that
-        is called at the end of teardown_all().
-        """
+        """ attach a finalizer to the given colitem. """
         assert colitem and not isinstance(colitem, tuple)
         assert callable(finalizer)
         # assert colitem in self.stack  # some unit tests don't setup stack :/
@@ -304,22 +316,19 @@ class SetupState(object):
             fin = finalizers.pop()
             try:
                 fin()
-            except TEST_OUTCOME:
+            except TEST_OUTCOME as e:
                 # XXX Only first exception will be seen by user,
                 #     ideally all should be reported.
                 if exc is None:
-                    exc = sys.exc_info()
+                    exc = e
         if exc:
-            six.reraise(*exc)
+            raise exc
 
     def _teardown_with_finalization(self, colitem):
         self._callfinalizers(colitem)
-        if hasattr(colitem, "teardown"):
-            colitem.teardown()
+        colitem.teardown()
         for colitem in self._finalizers:
-            assert (
-                colitem is None or colitem in self.stack or isinstance(colitem, tuple)
-            )
+            assert colitem in self.stack
 
     def teardown_all(self):
         while self.stack:
@@ -339,13 +348,13 @@ class SetupState(object):
                 break
             try:
                 self._pop_and_teardown()
-            except TEST_OUTCOME:
+            except TEST_OUTCOME as e:
                 # XXX Only first exception will be seen by user,
                 #     ideally all should be reported.
                 if exc is None:
-                    exc = sys.exc_info()
+                    exc = e
         if exc:
-            six.reraise(*exc)
+            raise exc
 
     def prepare(self, colitem):
         """ setup objects along the collector chain to the test-method
@@ -356,14 +365,15 @@ class SetupState(object):
         # check if the last collection node has raised an error
         for col in self.stack:
             if hasattr(col, "_prepare_exc"):
-                six.reraise(*col._prepare_exc)
+                exc = col._prepare_exc
+                raise exc
         for col in needed_collectors[len(self.stack) :]:
             self.stack.append(col)
             try:
                 col.setup()
-            except TEST_OUTCOME:
-                col._prepare_exc = sys.exc_info()
-                raise
+            except TEST_OUTCOME as e:
+                col._prepare_exc = e
+                raise e
 
 
 def collect_one_node(collector):

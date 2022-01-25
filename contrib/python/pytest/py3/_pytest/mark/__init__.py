@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 """ generic mechanism for marking and selecting python functions. """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from typing import Optional
 
 from .legacy import matchkeyword
 from .legacy import matchmark
@@ -13,9 +10,15 @@ from .structures import MARK_GEN
 from .structures import MarkDecorator
 from .structures import MarkGenerator
 from .structures import ParameterSet
+from _pytest.config import Config
+from _pytest.config import hookimpl
 from _pytest.config import UsageError
+from _pytest.store import StoreKey
 
 __all__ = ["Mark", "MarkDecorator", "MarkGenerator", "get_empty_parameterset_mark"]
+
+
+old_mark_config_key = StoreKey[Optional[Config]]()
 
 
 def param(*values, **kw):
@@ -56,7 +59,8 @@ def pytest_addoption(parser):
         "-k 'not test_method and not test_other' will eliminate the matches. "
         "Additionally keywords are matched to classes and functions "
         "containing extra names in their 'extra_keyword_matches' set, "
-        "as well as functions which have names assigned directly to them.",
+        "as well as functions which have names assigned directly to them. "
+        "The matching is case-insensitive.",
     )
 
     group._addoption(
@@ -79,6 +83,7 @@ def pytest_addoption(parser):
     parser.addini(EMPTY_PARAMETERSET_OPTION, "default marker for empty parametersets")
 
 
+@hookimpl(tryfirst=True)
 def pytest_cmdline_main(config):
     import _pytest.config
 
@@ -94,9 +99,6 @@ def pytest_cmdline_main(config):
             tw.line()
         config._ensure_unconfigure()
         return 0
-
-
-pytest_cmdline_main.tryfirst = True
 
 
 def deselect_by_keyword(items, config):
@@ -150,7 +152,7 @@ def pytest_collection_modifyitems(items, config):
 
 
 def pytest_configure(config):
-    config._old_mark_config = MARK_GEN._config
+    config._store[old_mark_config_key] = MARK_GEN._config
     MARK_GEN._config = config
 
     empty_parameterset = config.getini(EMPTY_PARAMETERSET_OPTION)
@@ -163,4 +165,4 @@ def pytest_configure(config):
 
 
 def pytest_unconfigure(config):
-    MARK_GEN._config = getattr(config, "_old_mark_config", None)
+    MARK_GEN._config = config._store.get(old_mark_config_key, None)

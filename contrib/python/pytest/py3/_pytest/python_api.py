@@ -1,41 +1,36 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import
-
+import inspect
 import math
 import pprint
-import sys
-import warnings
+from collections.abc import Iterable
+from collections.abc import Mapping
+from collections.abc import Sized
 from decimal import Decimal
+from itertools import filterfalse
 from numbers import Number
+from types import TracebackType
+from typing import Any
+from typing import Callable
+from typing import cast
+from typing import Generic
+from typing import Optional
+from typing import Pattern
+from typing import Tuple
+from typing import TypeVar
+from typing import Union
 
 from more_itertools.more import always_iterable
-from six.moves import filterfalse
-from six.moves import zip
 
 import _pytest._code
-from _pytest import deprecated
-from _pytest.compat import isclass
-from _pytest.compat import Iterable
-from _pytest.compat import Mapping
-from _pytest.compat import Sized
+from _pytest.compat import overload
 from _pytest.compat import STRING_TYPES
+from _pytest.compat import TYPE_CHECKING
 from _pytest.outcomes import fail
 
+if TYPE_CHECKING:
+    from typing import Type  # noqa: F401 (used in type string)
+
+
 BASE_TYPE = (type, STRING_TYPES)
-
-
-def _cmp_raises_type_error(self, other):
-    """__cmp__ implementation which raises TypeError. Used
-    by Approx base classes to implement only == and != and raise a
-    TypeError for other comparisons.
-
-    Needed in Python 2 only, Python 3 all it takes is not implementing the
-    other operators at all.
-    """
-    __tracebackhide__ = True
-    raise TypeError(
-        "Comparison operators other than == and != not supported by approx objects"
-    )
 
 
 def _non_numeric_type_error(value, at):
@@ -50,7 +45,7 @@ def _non_numeric_type_error(value, at):
 # builtin pytest.approx helper
 
 
-class ApproxBase(object):
+class ApproxBase:
     """
     Provide shared utilities for making approximate comparisons between numbers
     or sequences of numbers.
@@ -76,13 +71,11 @@ class ApproxBase(object):
             a == self._approx_scalar(x) for a, x in self._yield_comparisons(actual)
         )
 
-    __hash__ = None
+    # Ignore type because of https://github.com/python/mypy/issues/4266.
+    __hash__ = None  # type: ignore
 
     def __ne__(self, actual):
         return not (actual == self)
-
-    if sys.version_info[0] == 2:
-        __cmp__ = _cmp_raises_type_error
 
     def _approx_scalar(self, x):
         return ApproxScalar(x, rel=self.rel, abs=self.abs, nan_ok=self.nan_ok)
@@ -121,9 +114,6 @@ class ApproxNumpy(ApproxBase):
     def __repr__(self):
         list_scalars = _recursive_list_map(self._approx_scalar, self.expected.tolist())
         return "approx({!r})".format(list_scalars)
-
-    if sys.version_info[0] == 2:
-        __cmp__ = _cmp_raises_type_error
 
     def __eq__(self, actual):
         import numpy as np
@@ -226,35 +216,32 @@ class ApproxScalar(ApproxBase):
     Perform approximate comparisons where the expected value is a single number.
     """
 
-    DEFAULT_ABSOLUTE_TOLERANCE = 1e-12
-    DEFAULT_RELATIVE_TOLERANCE = 1e-6
+    # Using Real should be better than this Union, but not possible yet:
+    # https://github.com/python/typeshed/pull/3108
+    DEFAULT_ABSOLUTE_TOLERANCE = 1e-12  # type: Union[float, Decimal]
+    DEFAULT_RELATIVE_TOLERANCE = 1e-6  # type: Union[float, Decimal]
 
     def __repr__(self):
         """
         Return a string communicating both the expected value and the tolerance
-        for the comparison being made, e.g. '1.0 +- 1e-6'.  Use the unicode
-        plus/minus symbol if this is python3 (it's too hard to get right for
-        python2).
+        for the comparison being made, e.g. '1.0 ± 1e-6', '(3+4j) ± 5e-6 ∠ ±180°'.
         """
-        if isinstance(self.expected, complex):
-            return str(self.expected)
 
         # Infinities aren't compared using tolerances, so don't show a
-        # tolerance.
-        if math.isinf(self.expected):
+        # tolerance. Need to call abs to handle complex numbers, e.g. (inf + 1j)
+        if math.isinf(abs(self.expected)):
             return str(self.expected)
 
         # If a sensible tolerance can't be calculated, self.tolerance will
         # raise a ValueError.  In this case, display '???'.
         try:
             vetted_tolerance = "{:.1e}".format(self.tolerance)
+            if isinstance(self.expected, complex) and not math.isinf(self.tolerance):
+                vetted_tolerance += " ∠ ±180°"
         except ValueError:
             vetted_tolerance = "???"
 
-        if sys.version_info[0] == 2:
-            return "{} +- {}".format(self.expected, vetted_tolerance)
-        else:
-            return u"{} \u00b1 {}".format(self.expected, vetted_tolerance)
+        return "{} ± {}".format(self.expected, vetted_tolerance)
 
     def __eq__(self, actual):
         """
@@ -288,7 +275,8 @@ class ApproxScalar(ApproxBase):
         # Return true if the two numbers are within the tolerance.
         return abs(self.expected - actual) <= self.tolerance
 
-    __hash__ = None
+    # Ignore type because of https://github.com/python/mypy/issues/4266.
+    __hash__ = None  # type: ignore
 
     @property
     def tolerance(self):
@@ -552,8 +540,33 @@ def _is_numpy_array(obj):
 
 # builtin pytest.raises helper
 
+_E = TypeVar("_E", bound=BaseException)
 
-def raises(expected_exception, *args, **kwargs):
+
+@overload
+def raises(
+    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+    *,
+    match: "Optional[Union[str, Pattern]]" = ...
+) -> "RaisesContext[_E]":
+    ...  # pragma: no cover
+
+
+@overload  # noqa: F811
+def raises(  # noqa: F811
+    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+    func: Callable,
+    *args: Any,
+    **kwargs: Any
+) -> _pytest._code.ExceptionInfo[_E]:
+    ...  # pragma: no cover
+
+
+def raises(  # noqa: F811
+    expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+    *args: Any,
+    **kwargs: Any
+) -> Union["RaisesContext[_E]", _pytest._code.ExceptionInfo[_E]]:
     r"""
     Assert that a code block/function call raises ``expected_exception``
     or raise a failure exception otherwise.
@@ -564,10 +577,12 @@ def raises(expected_exception, *args, **kwargs):
         string that may contain `special characters`__, the pattern can
         first be escaped with ``re.escape``.
 
-    __ https://docs.python.org/3/library/re.html#regular-expression-syntax
+        (This is only used when ``pytest.raises`` is used as a context manager,
+        and passed through to the function otherwise.
+        When using ``pytest.raises`` as a function, you can use:
+        ``pytest.raises(Exc, func, match="passed on").match("my pattern")``.)
 
-    :kwparam message: **(deprecated since 4.1)** if specified, provides a custom failure message
-        if the exception is not raised. See :ref:`the deprecation docs <raises message deprecated>` for a workaround.
+        __ https://docs.python.org/3/library/re.html#regular-expression-syntax
 
     .. currentmodule:: _pytest._code
 
@@ -596,14 +611,6 @@ def raises(expected_exception, *args, **kwargs):
         ...     raise ValueError("value must be 42")
         >>> assert exc_info.type is ValueError
         >>> assert exc_info.value.args[0] == "value must be 42"
-
-    .. deprecated:: 4.1
-
-        In the context manager form you may use the keyword argument
-        ``message`` to specify a custom failure message that will be displayed
-        in case the ``pytest.raises`` check fails. This has been deprecated as it
-        is considered error prone as users often mean to use ``match`` instead.
-        See :ref:`the deprecation docs <raises message deprecated>` for a workaround.
 
     .. note::
 
@@ -665,79 +672,80 @@ def raises(expected_exception, *args, **kwargs):
         the exception --> current frame stack --> local variables -->
         ``ExceptionInfo``) which makes Python keep all objects referenced
         from that cycle (including all local variables in the current
-        frame) alive until the next cyclic garbage collection run. See the
-        official Python ``try`` statement documentation for more detailed
-        information.
-
+        frame) alive until the next cyclic garbage collection run.
+        More detailed information can be found in the official Python
+        documentation for :ref:`the try statement <python:try>`.
     """
     __tracebackhide__ = True
-    for exc in filterfalse(isclass, always_iterable(expected_exception, BASE_TYPE)):
-        msg = (
-            "exceptions must be old-style classes or"
-            " derived from BaseException, not %s"
-        )
+    for exc in filterfalse(
+        inspect.isclass, always_iterable(expected_exception, BASE_TYPE)  # type: ignore[arg-type]  # noqa: F821
+    ):
+        msg = "exceptions must be derived from BaseException, not %s"
         raise TypeError(msg % type(exc))
 
     message = "DID NOT RAISE {}".format(expected_exception)
-    match_expr = None
 
     if not args:
-        if "message" in kwargs:
-            message = kwargs.pop("message")
-            warnings.warn(deprecated.RAISES_MESSAGE_PARAMETER, stacklevel=2)
-        if "match" in kwargs:
-            match_expr = kwargs.pop("match")
+        match = kwargs.pop("match", None)
         if kwargs:
             msg = "Unexpected keyword arguments passed to pytest.raises: "
             msg += ", ".join(sorted(kwargs))
+            msg += "\nUse context-manager form instead?"
             raise TypeError(msg)
-        return RaisesContext(expected_exception, message, match_expr)
-    elif isinstance(args[0], str):
-        warnings.warn(deprecated.RAISES_EXEC, stacklevel=2)
-        (code,) = args
-        assert isinstance(code, str)
-        frame = sys._getframe(1)
-        loc = frame.f_locals.copy()
-        loc.update(kwargs)
-        # print "raises frame scope: %r" % frame.f_locals
-        try:
-            code = _pytest._code.Source(code).compile(_genframe=frame)
-            exec(code, frame.f_globals, loc)
-            # XXX didn't mean f_globals == f_locals something special?
-            #     this is destroyed here ...
-        except expected_exception:
-            return _pytest._code.ExceptionInfo.from_current()
+        return RaisesContext(expected_exception, message, match)
     else:
         func = args[0]
+        if not callable(func):
+            raise TypeError(
+                "{!r} object (type: {}) must be callable".format(func, type(func))
+            )
         try:
             func(*args[1:], **kwargs)
-        except expected_exception:
-            return _pytest._code.ExceptionInfo.from_current()
+        except expected_exception as e:
+            # We just caught the exception - there is a traceback.
+            assert e.__traceback__ is not None
+            return _pytest._code.ExceptionInfo.from_exc_info(
+                (type(e), e, e.__traceback__)
+            )
     fail(message)
 
 
-raises.Exception = fail.Exception
+raises.Exception = fail.Exception  # type: ignore
 
 
-class RaisesContext(object):
-    def __init__(self, expected_exception, message, match_expr):
+class RaisesContext(Generic[_E]):
+    def __init__(
+        self,
+        expected_exception: Union["Type[_E]", Tuple["Type[_E]", ...]],
+        message: str,
+        match_expr: Optional[Union[str, "Pattern"]] = None,
+    ) -> None:
         self.expected_exception = expected_exception
         self.message = message
         self.match_expr = match_expr
-        self.excinfo = None
+        self.excinfo = None  # type: Optional[_pytest._code.ExceptionInfo[_E]]
 
-    def __enter__(self):
+    def __enter__(self) -> _pytest._code.ExceptionInfo[_E]:
         self.excinfo = _pytest._code.ExceptionInfo.for_later()
         return self.excinfo
 
-    def __exit__(self, *tp):
+    def __exit__(
+        self,
+        exc_type: Optional["Type[BaseException]"],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> bool:
         __tracebackhide__ = True
-        if tp[0] is None:
+        if exc_type is None:
             fail(self.message)
-        self.excinfo.__init__(tp)
-        suppress_exception = issubclass(self.excinfo.type, self.expected_exception)
-        if sys.version_info[0] == 2 and suppress_exception:
-            sys.exc_clear()
-        if self.match_expr is not None and suppress_exception:
+        assert self.excinfo is not None
+        if not issubclass(exc_type, self.expected_exception):
+            return False
+        # Cast to narrow the exception type now that it's verified.
+        exc_info = cast(
+            Tuple["Type[_E]", _E, TracebackType], (exc_type, exc_val, exc_tb)
+        )
+        self.excinfo.fill_unfilled(exc_info)
+        if self.match_expr is not None:
             self.excinfo.match(self.match_expr)
-        return suppress_exception
+        return True
