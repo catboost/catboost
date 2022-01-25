@@ -2437,7 +2437,13 @@ class MSVCCompiler(MSVC, Compiler):
         ]
 
         if self.tc.use_clang:
-            flags.append('-fcase-insensitive-paths')
+            flags += [
+                # Allow <windows.h> to be included via <Windows.h> in case-sensitive file-systems.
+                '-fcase-insensitive-paths',
+                # Enable standard-conforming behavior and generate duplicate symbol error in case of duplicated global constants.
+                # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85678#c0
+                '-fno-common',
+            ]
             if target.is_x86:
                 flags.append('-m32')
             if target.is_x86_64:
@@ -2483,7 +2489,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-ambiguous-delete',
             ]
             if self.tc.version_at_least(2019):
-                flags += ['-fcommon']  # heretic: fix LNK2005 errors in scipy
                 cxx_warnings += [
                     '-Wno-deprecated-volatile',
                     '-Wno-deprecated-anon-enum-enum-conversion',
