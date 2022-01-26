@@ -1057,25 +1057,10 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         }
         DBG(Cerr << "process finished" << Endl);
 
-#if defined(_win_)
-        for (auto& threadHolder : streamThreads)
-            threadHolder->Join();
-        for (const auto pump : pumps) {
-            if (!pump.InternalError.empty())
-                throw yexception() << pump.InternalError;
-        }
-#else
-        // Now let's read remaining stdout/stderr
-        while (output && (bytes = pi->OutputFd.Read(buffer.Data(), buffer.Capacity())) > 0) {
-            DBG(Cerr << bytes << " more bytes of output: " << Endl);
-            output->Write(buffer.Data(), bytes);
-        }
-        while (error && (bytes = pi->ErrorFd.Read(buffer.Data(), buffer.Capacity())) > 0) {
-            DBG(Cerr << bytes << " more bytes of error" << Endl);
-            error->Write(buffer.Data(), bytes);
-        }
-#endif
-        // What's the reason of process exit
+        // What's the reason of process exit.
+        // We need to set exit code before waiting for input thread
+        // Otherwise there is no way for input stream provider to discover
+        // that process has exited and stream shouldn't wait for new data.
         bool cleanExit = false;
         TMaybe<int> processExitCode;
 #if defined(_unix_)
@@ -1103,6 +1088,25 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
         } else {
             AtomicSet(pi->Parent->ExecutionStatus, SHELL_ERROR);
         }
+
+#if defined(_win_)
+        for (auto& threadHolder : streamThreads)
+            threadHolder->Join();
+        for (const auto pump : pumps) {
+            if (!pump.InternalError.empty())
+                throw yexception() << pump.InternalError;
+        }
+#else
+        // Now let's read remaining stdout/stderr
+        while (output && (bytes = pi->OutputFd.Read(buffer.Data(), buffer.Capacity())) > 0) {
+            DBG(Cerr << bytes << " more bytes of output: " << Endl);
+            output->Write(buffer.Data(), bytes);
+        }
+        while (error && (bytes = pi->ErrorFd.Read(buffer.Data(), buffer.Capacity())) > 0) {
+            DBG(Cerr << bytes << " more bytes of error" << Endl);
+            error->Write(buffer.Data(), bytes);
+        }
+#endif
     } catch (const yexception& e) {
         // Some error in watch occured, set result to error
         AtomicSet(pi->Parent->ExecutionStatus, SHELL_INTERNAL_ERROR);
