@@ -84,10 +84,8 @@ class CatBoostClassificationModel (
   )
 
   override def copy(extra: ParamMap): CatBoostClassificationModel = {
-    val newModel = defaultCopy[CatBoostClassificationModel](extra)
-    newModel.nativeModel = this.nativeModel
-    newModel.nativeDimension = this.nativeDimension
-    newModel
+    val that = new CatBoostClassificationModel(this.uid, this.nativeModel, this.nativeDimension)
+    this.copyValues(that, extra).asInstanceOf[CatBoostClassificationModel]
   }
 
   override def numClasses: Int = {

@@ -79,10 +79,8 @@ class CatBoostRegressionModel (
   )
 
   override def copy(extra: ParamMap): CatBoostRegressionModel = {
-    val newModel = defaultCopy[CatBoostRegressionModel](extra)
-    newModel.nativeModel = this.nativeModel
-    newModel.nativeDimension = this.nativeDimension
-    newModel
+    val that = new CatBoostRegressionModel(this.uid, this.nativeModel, this.nativeDimension)
+    this.copyValues(that, extra).asInstanceOf[CatBoostRegressionModel]
   }
 
   /**
