@@ -41,6 +41,7 @@ IF (OS_ANDROID)
 ENDIF()
 
 SRCS(
+    GLOBAL src/google/protobuf/generated_message_util.cc
     src/google/protobuf/any.cc
     src/google/protobuf/any.pb.cc
     src/google/protobuf/any_lite.cc
@@ -61,7 +62,6 @@ SRCS(
     src/google/protobuf/generated_message_reflection.cc
     src/google/protobuf/generated_message_table_driven.cc
     src/google/protobuf/generated_message_table_driven_lite.cc
-    src/google/protobuf/generated_message_util.cc
     src/google/protobuf/implicit_weak_message.cc
     src/google/protobuf/io/coded_stream.cc
     src/google/protobuf/io/gzip_stream.cc

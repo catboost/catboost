@@ -3,6 +3,8 @@
 # $ # this message
 # $ # =======================
 # $     # comments (all commentaries should starts with some number of spaces and # symbol)
+# $ IGNORE_FILES {file1.ext1} {file2.ext2} - (optional) ignore listed files when generating license macro and credits
+# $
 # ${action} {license id} {license text hash}
 # $BELONGS ./ya/make/file/relative/path/1/ya.make ./ya/make/2/ya.make
 # ${all_file_action} filename
