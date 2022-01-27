@@ -4,6 +4,8 @@ LICENSE(BSD-3-Clause)
 
 
 
+NO_COMPILER_WARNINGS()
+
 ADDINCL(
     contrib/python/numpy/include/numpy/core/include
     contrib/python/numpy/include/numpy/core/include/numpy
