@@ -15,10 +15,10 @@ ALLOW saas/library/hash_to_block_mode -> contrib/restricted/cityhash-1.0.2
 ALLOW clickhouse -> contrib/restricted/dragonbox
 
 # same rules for restricted set of sources in YQL
-ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/cityhash-1.0.2
-ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/boost
-ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/dragonbox
-ALLOW yql/udfs/common/clickhouse/client -> contrib/restricted/fast_float
+ALLOW ydb/library/yql/udfs/common/clickhouse/client -> contrib/restricted/cityhash-1.0.2
+ALLOW ydb/library/yql/udfs/common/clickhouse/client -> contrib/restricted/boost
+ALLOW ydb/library/yql/udfs/common/clickhouse/client -> contrib/restricted/dragonbox
+ALLOW ydb/library/yql/udfs/common/clickhouse/client -> contrib/restricted/fast_float
 
 # fast_float is a faster alternative to double-conversion for float parsing.
 # ClickHouse uses the best libraries for performance, that's why it changes them with insane speed.
