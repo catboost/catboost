@@ -2494,7 +2494,6 @@ class MSVCCompiler(MSVC, Compiler):
                     '-Wno-ambiguous-reversed-operator',
                     '-Wno-deprecated-enum-float-conversion',
                     '-Wno-reorder-init-list',
-                    '-Wno-implicit-const-int-float-conversion',
                     '-Wno-pointer-to-int-cast',  # didn't fail on linux
                 ]
 
