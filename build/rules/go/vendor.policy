@@ -849,6 +849,9 @@ ALLOW .* -> vendor/gopkg.in/mcuadros/go-syslog.v2
 # CONTRIB-2448 filesystem xattr support
 ALLOW .* -> vendor/github.com/pkg/xattr
 
+# CONTRIB-2452
+ALLOW .* -> vendor/github.com/scim2/filter-parser/v2
+
 #
 # Tools
 #
