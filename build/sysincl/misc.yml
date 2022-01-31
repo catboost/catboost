@@ -453,3 +453,7 @@
 - source_filter: "^cloud/iam/token_agent/daemon"
   includes:
     - contrib/libs/grpc/include/grpcpp/impl/codegen/server_context_impl.h
+
+- source_filter: "^contrib/libs/libyang"
+  includes:
+    - in.h: contrib/libs/libyang/libyang/in.h
