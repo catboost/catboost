@@ -140,8 +140,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl-strings-internal.vcxproj">
-      <Project>{EC596CF4-D927-3A82-31A7-3C88B519515A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
+      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\str_format\strings-internal-str_format.vcxproj">
       <Project>{2E18B11E-ACFF-6D83-BF6B-AF719B38A32D}</Project>

@@ -95,6 +95,32 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\charconv.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\escaping.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\char_map.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\charconv_bigint.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\charconv_parse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_navigator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_reader.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_consume.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_flat.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_ring.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_functions.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_handle.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_sample_token.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_statistics.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_update_scope.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_update_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\escaping.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\memutil.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\ostringstream.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\resize_uninitialized.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\stl_type_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\str_join_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\str_split_internal.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\string_constant.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\utf8.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\match.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\numbers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\str_cat.h"/>
@@ -133,8 +159,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\numeric\abseil-cpp-absl-numeric.vcxproj">
       <Project>{712179CD-DCD3-3049-EA4D-D416593142EB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl-strings-internal.vcxproj">
-      <Project>{EC596CF4-D927-3A82-31A7-3C88B519515A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
+      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

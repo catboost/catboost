@@ -78,10 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\wyhash.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\low_level_hash.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\city.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\wyhash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\hash\internal\low_level_hash.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
