@@ -15,6 +15,12 @@ PEERDIR(
     contrib/python/wcwidth
 )
 
+IF (OS_WINDOWS)
+    PEERDIR(
+        contrib/python/atomicwrites
+    )
+ENDIF()
+
 NO_LINT()
 
 NO_CHECK_IMPORTS(
