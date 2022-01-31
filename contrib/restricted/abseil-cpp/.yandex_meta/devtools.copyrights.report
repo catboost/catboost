@@ -30,7 +30,7 @@
 # =======================
 
 KEEP     COPYRIGHT_SERVICE_LABEL 02e3ff10f74acdb217118846c5465fc1
-BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/internal/ya.make absl/types/ya.make absl/utility/ya.make ya.make
+BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/memory/ya.make absl/meta/ya.make absl/numeric/ya.make absl/strings/internal/str_format/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make absl/synchronization/ya.make absl/time/ya.make absl/types/internal/ya.make absl/types/ya.make absl/utility/ya.make ya.make
     License text:
         // Copyright 2017 The Abseil Authors.
     Scancode info:
@@ -99,6 +99,7 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/debugging/internal/elf_mem_image.h [2:2]
         absl/debugging/internal/stacktrace_arm-inl.inc [1:1]
         absl/debugging/internal/stacktrace_config.h [2:2]
+        absl/debugging/internal/stacktrace_emscripten-inl.inc [1:1]
         absl/debugging/internal/stacktrace_generic-inl.inc [1:1]
         absl/debugging/internal/stacktrace_powerpc-inl.inc [1:1]
         absl/debugging/internal/stacktrace_win32-inl.inc [1:1]
@@ -263,7 +264,7 @@ BELONGS absl/time/ya.make
         absl/time/internal/cctz/src/zone_info_source.cc [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 2277624a2da390a98ec17138cb6dc2a5
-BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functional/ya.make absl/status/ya.make absl/types/internal/ya.make ya.make
+BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functional/ya.make absl/status/ya.make absl/strings/ya.make absl/types/internal/ya.make ya.make
     License text:
         // Copyright 2019 The Abseil Authors.
     Scancode info:
@@ -271,10 +272,6 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functio
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        absl/base/internal/exponential_biased.cc [1:1]
-        absl/base/internal/exponential_biased.h [1:1]
-        absl/base/internal/periodic_sampler.cc [1:1]
-        absl/base/internal/periodic_sampler.h [1:1]
         absl/base/internal/scoped_set_env.cc [1:1]
         absl/base/internal/scoped_set_env.h [2:2]
         absl/base/internal/thread_annotations.h [1:1]
@@ -307,6 +304,10 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functio
         absl/flags/usage_config.h [2:2]
         absl/functional/function_ref.h [1:1]
         absl/functional/internal/function_ref.h [1:1]
+        absl/profiling/internal/exponential_biased.cc [1:1]
+        absl/profiling/internal/exponential_biased.h [1:1]
+        absl/profiling/internal/periodic_sampler.cc [1:1]
+        absl/profiling/internal/periodic_sampler.h [1:1]
         absl/random/internal/mock_helpers.h [2:2]
         absl/random/internal/mock_overload_set.h [2:2]
         absl/random/internal/uniform_helper.h [1:1]
@@ -315,6 +316,15 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functio
         absl/status/status.h [1:1]
         absl/status/status_payload_printer.cc [1:1]
         absl/status/status_payload_printer.h [1:1]
+        absl/strings/internal/cordz_functions.cc [1:1]
+        absl/strings/internal/cordz_functions.h [1:1]
+        absl/strings/internal/cordz_handle.cc [1:1]
+        absl/strings/internal/cordz_handle.h [1:1]
+        absl/strings/internal/cordz_info.cc [1:1]
+        absl/strings/internal/cordz_info.h [1:1]
+        absl/strings/internal/cordz_sample_token.cc [1:1]
+        absl/strings/internal/cordz_sample_token.h [1:1]
+        absl/strings/internal/cordz_statistics.h [1:1]
         absl/types/internal/conformance_archetype.h [1:1]
         absl/types/internal/conformance_profile.h [1:1]
         absl/types/internal/conformance_testing.h [1:1]
@@ -324,7 +334,7 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/flags/ya.make absl/functio
         absl/types/internal/transform_args.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 3fb410b721d46624abdaeb2473ffa5d6
-BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/functional/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/time/ya.make absl/types/internal/ya.make absl/types/ya.make ya.make
+BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make absl/debugging/ya.make absl/functional/ya.make absl/hash/internal/ya.make absl/hash/ya.make absl/strings/ya.make absl/time/ya.make absl/types/internal/ya.make absl/types/ya.make ya.make
     License text:
         // Copyright 2018 The Abseil Authors.
     Scancode info:
@@ -394,6 +404,7 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make
         absl/hash/internal/hash.cc [1:1]
         absl/hash/internal/hash.h [1:1]
         absl/hash/internal/spy_hash_state.h [1:1]
+        absl/profiling/internal/sample_recorder.h [1:1]
         absl/random/bit_gen_ref.h [2:2]
         absl/random/internal/distribution_caller.h [2:2]
         absl/random/internal/pcg_engine.h [1:1]
@@ -420,7 +431,7 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/internal/ya.make
         absl/types/variant.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 58e60221a225d38384f3c66b2400cc91
-BELONGS absl/numeric/ya.make absl/strings/internal/ya.make ya.make
+BELONGS absl/debugging/internal/ya.make absl/numeric/ya.make absl/strings/ya.make ya.make
     License text:
         // Copyright 2021 The Abseil Authors.
     Scancode info:
@@ -430,9 +441,25 @@ BELONGS absl/numeric/ya.make absl/strings/internal/ya.make ya.make
     Files with this license:
         absl/cleanup/cleanup.h [1:1]
         absl/cleanup/internal/cleanup.h [1:1]
+        absl/debugging/internal/stacktrace_riscv-inl.inc [1:1]
+        absl/flags/internal/flag_msvc.inc [2:2]
         absl/numeric/internal/representation.h [1:1]
+        absl/strings/cordz_test_helpers.h [1:1]
         absl/strings/internal/cord_internal.h [1:1]
+        absl/strings/internal/cord_rep_btree.cc [1:1]
+        absl/strings/internal/cord_rep_btree.h [1:1]
+        absl/strings/internal/cord_rep_btree_navigator.cc [1:1]
+        absl/strings/internal/cord_rep_btree_navigator.h [1:1]
+        absl/strings/internal/cord_rep_btree_reader.cc [1:1]
+        absl/strings/internal/cord_rep_btree_reader.h [1:1]
+        absl/strings/internal/cord_rep_consume.cc [1:1]
+        absl/strings/internal/cord_rep_consume.h [1:1]
         absl/strings/internal/cord_rep_ring_reader.h [1:1]
+        absl/strings/internal/cord_rep_test_util.h [1:1]
+        absl/strings/internal/cordz_update_scope.h [1:1]
+        absl/strings/internal/cordz_update_tracker.h [1:1]
+    Belongs difference:
+        - absl/flags/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 6499e2ad737f62db5558c81fbd2749a7
 BELONGS ya.make
@@ -446,7 +473,7 @@ BELONGS ya.make
         absl/random/internal/nanobenchmark.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL d34864d3c7c7a5ffae3d414344aa54a8
-BELONGS absl/base/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/internal/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/internal/str_format/ya.make absl/strings/internal/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make
+BELONGS absl/base/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/internal/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/internal/str_format/ya.make absl/strings/ya.make absl/synchronization/internal/ya.make
     License text:
         // Copyright 2020 The Abseil Authors.
     Scancode info:
@@ -458,6 +485,7 @@ BELONGS absl/base/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/in
         absl/base/internal/strerror.cc [1:1]
         absl/base/internal/strerror.h [1:1]
         absl/debugging/symbolize_darwin.inc [1:1]
+        absl/debugging/symbolize_emscripten.inc [1:1]
         absl/flags/commandlineflag.cc [2:2]
         absl/flags/commandlineflag.h [2:2]
         absl/flags/internal/commandlineflag.cc [2:2]
@@ -466,8 +494,8 @@ BELONGS absl/base/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/in
         absl/flags/internal/sequence_lock.h [2:2]
         absl/flags/reflection.cc [2:2]
         absl/flags/reflection.h [2:2]
-        absl/hash/internal/wyhash.cc [1:1]
-        absl/hash/internal/wyhash.h [1:1]
+        absl/hash/internal/low_level_hash.cc [1:1]
+        absl/hash/internal/low_level_hash.h [1:1]
         absl/numeric/bits.h [1:1]
         absl/numeric/internal/bits.h [1:1]
         absl/status/internal/statusor_internal.h [1:1]

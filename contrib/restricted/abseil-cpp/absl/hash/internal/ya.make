@@ -29,7 +29,7 @@ CFLAGS(
 )
 
 SRCS(
-    wyhash.cc
+    low_level_hash.cc
 )
 
 END()
