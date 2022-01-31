@@ -2482,7 +2482,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-undefined-var-template',
-                '-Wno-ambiguous-delete',
             ]
             if self.tc.version_at_least(2019):
                 cxx_warnings += [
