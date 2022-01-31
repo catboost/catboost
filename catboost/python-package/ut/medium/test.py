@@ -1180,6 +1180,17 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
+def test_predict_on_gpu(task_type):
+    if task_type == 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(iterations=10, task_type='GPU', devices='0')
+    model.fit(pool)
+    cpu_prediction = np.array(model.predict(pool, task_type='CPU'))
+    gpu_prediction = np.array(model.predict(pool, task_type='GPU'))
+    assert np.abs(cpu_prediction - gpu_prediction).max() < 1e-9
+
+
 def test_model_pickling(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
