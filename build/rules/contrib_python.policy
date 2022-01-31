@@ -32,6 +32,7 @@ ALLOW mssngr/botplatform/tests -> contrib/python/django/django-1.11
 ALLOW passport/backend/contrib/django_contrib_comments -> contrib/python/django/django-1.11
 ALLOW plus/gift/pdfgen -> contrib/python/django/django-1.11
 ALLOW plus/utils/tests -> contrib/python/django/django-1.11
+ALLOW quality/antifraud/viewers/antifraud_viewer/lib -> contrib/python/django/django-1.11
 ALLOW quality/functionality/chats/common/bots -> contrib/python/django/django-1.11
 ALLOW quality/functionality/chats/feedback/src/feedback -> contrib/python/django/django-1.11
 ALLOW quality/functionality/chats/ycm/src/ycm -> contrib/python/django/django-1.11
