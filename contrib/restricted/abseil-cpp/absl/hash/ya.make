@@ -20,9 +20,9 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/strings
     contrib/restricted/abseil-cpp/absl/strings/internal
     contrib/restricted/abseil-cpp/absl/types
-    contrib/restricted/abseil-cpp/absl/types/internal
     contrib/restricted/abseil-cpp/absl/types/bad_optional_access
     contrib/restricted/abseil-cpp/absl/types/bad_variant_access
+    contrib/restricted/abseil-cpp/absl/types/internal
 )
 
 ADDINCL(
