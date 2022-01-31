@@ -7,8 +7,10 @@ import test_helpers
 import pool_test_helpers
 
 from pyspark.ml import Pipeline, PipelineModel
+import pyspark.ml.evaluation
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.linalg import Vectors, VectorUDT
+import pyspark.ml.tuning
 from pyspark.sql import Row
 from pyspark.sql.types import *
 
@@ -374,3 +376,58 @@ def testModelSerializationInPipeline():
     loadedPipelineModel.transform(df).show(truncate=False)
 
     shutil.rmtree(serializationDir)
+
+
+def testWithCrossValidator():
+    spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
+    import catboost_spark
+
+    featureNames = ["f1", "f2", "f3"]
+
+    srcDataSchema = pool_test_helpers.createSchema(
+        [
+            ("features", VectorUDT()),
+            ("label", DoubleType())
+        ],
+        featureNames,
+        addFeatureNamesMetadata=True
+    )
+
+    srcData = [
+        Row(Vectors.dense(0.1, 0.2, 0.11), 1.0),
+        Row(Vectors.dense(0.97, 0.82, 0.33), 2.0),
+        Row(Vectors.dense(0.13, 0.22, 0.23), 2.0),
+        Row(Vectors.dense(0.14, 0.18, 0.1), 1.0),
+        Row(Vectors.dense(0.9, 0.67, 0.17), 2.0),
+        Row(Vectors.dense(0.66, 0.1, 0.31), 1.0),
+        Row(Vectors.dense(0.13, 0.21, 0.6), 1.0),
+        Row(Vectors.dense(0.9, 0.82, 0.04), 2.0),
+        Row(Vectors.dense(0.87, 0.92, 1.0), 2.0),
+        Row(Vectors.dense(0.0, 0.1, 0.1), 1.0),
+        Row(Vectors.dense(0.0, 0.78, 0.19), 1.0),
+        Row(Vectors.dense(0.1, 0.33, 0.28), 2.0),
+        Row(Vectors.dense(0.01, 0.5, 0.2), 1.0),
+        Row(Vectors.dense(0.2, 0.99, 1.0), 1.0),
+        Row(Vectors.dense(0.56, 0.43, 0.88), 2.0),
+        Row(Vectors.dense(0.98, 0.02, 0.73), 2.0)
+    ]
+
+    df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+
+    spark_cv_grid_params = pyspark.ml.tuning.ParamGridBuilder().addGrid(
+        catboost_spark.CatBoostClassifier().depth,
+        [3, 5]
+    ).build()
+    estimator = catboost_spark.CatBoostClassifier(iterations=20)
+    bce = pyspark.ml.evaluation.BinaryClassificationEvaluator(
+        rawPredictionCol="probability",
+        labelCol="label"
+    )
+    cv = pyspark.ml.tuning.CrossValidator(
+        estimator=estimator,
+        estimatorParamMaps=spark_cv_grid_params,
+        evaluator=bce,
+        numFolds=3,
+        seed=1
+    )
+    cv.fit(df)

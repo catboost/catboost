@@ -191,7 +191,7 @@ def testWithEvalSet():
       .setIterations(20)
       .setTrainDir(tempfile.mkdtemp(prefix=test_helpers.getCurrentMethodName()))
     )
-    model = regressor.fit(trainPool, [testPool])
+    model = regressor.fit(trainPool, evalDatasets=[testPool])
     predictions = model.transform(testPool.data)
 
     print ("predictions")
@@ -261,7 +261,7 @@ def testWithEvalSets():
       .setIterations(20)
       .setTrainDir(tempfile.mkdtemp(prefix=test_helpers.getCurrentMethodName()))
     )
-    model = regressor.fit(trainPool, testPools)
+    model = regressor.fit(trainPool, evalDatasets=testPools)
     predictionsList = [ model.transform(testPool.data) for testPool in testPools ]
 
     for i in range(2):
