@@ -544,8 +544,8 @@ def _get_command_output_file(cmd, ext):
     try:
         # if execution is performed from test, save out / err to the test logs dir
         import yatest.common
-        import pytest
-        if not hasattr(pytest, 'config'):
+        import library.python.pytest.plugins.ya
+        if getattr(library.python.pytest.plugins.ya, 'pytest_config', None) is None:
             raise ImportError("not in test")
         filename = path.get_unique_file_path(yatest.common.output_path(), filename)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(filename))
