@@ -112,8 +112,8 @@ private:
     std::variant<TNullPayload, THolder, TString> Payload_;
 
     const char* Begin_;
-    i32 Size_;
-    EYsonType Type_;
+    ui64 Size_ : 56;
+    EYsonType Type_ : 8;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
