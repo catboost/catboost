@@ -160,7 +160,11 @@ def work_path(path=None):
     :param path: path relative to the test suite working dir
     :return: absolute path inside the test suite working dir
     """
-    return _join_path(os.environ.get("TEST_WORK_PATH") or os.getcwd(), path)
+    return _join_path(
+        os.environ.get("TEST_WORK_PATH") or
+            _get_ya_plugin_instance().get_context("work_path") or
+            os.getcwd(),
+        path)
 
 
 def python_path():
