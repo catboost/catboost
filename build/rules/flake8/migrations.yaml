@@ -380,7 +380,6 @@ migrations:
     - mail/contrib/tatsu/test
     - mail/contrib/tatsu/test/grammar
     - mail/python/theatre/app
-    - mail/retriever/unistat
     - mail/tools/ews_call/ews_call
     - mail/tools/safely_delete_stids/lib
     - mail/yasm/lib
@@ -2152,7 +2151,6 @@ migrations:
     - mssngr/botplatform/src/bots/core/migrations
     - mssngr/botplatform/src/vins_core
     - mssngr/geobot/clients
-    - mssngr/geobot/kikimr_client
     - mssngr/geobot/postgresql
     - mssngr/geobot/server
     - mssngr/tools/console_client
@@ -2414,7 +2412,6 @@ migrations:
     - sandbox/projects/EntitySearch/get_prod_data_version
     - sandbox/projects/EntitySearch/ner_data_build
     - sandbox/projects/EntitySearch/ner_run_release_task
-    - sandbox/projects/EntitySearch/run_chimera
     - sandbox/projects/EntitySearchDataBuild
     - sandbox/projects/EntitySearchLogs
     - sandbox/projects/GenerateLinearModelBinaryDump
@@ -2459,7 +2456,6 @@ migrations:
     - sandbox/projects/arcadia
     - sandbox/projects/autobudget/export_rm_bids
     - sandbox/projects/autobudget/ml
-    - sandbox/projects/balancer/BalancerYtLogs
     - sandbox/projects/balancer/UpdateYastaticWikiPanels
     - sandbox/projects/blender/commit_blender_model
     - sandbox/projects/blender/update_blender_online_models
@@ -3173,7 +3169,6 @@ migrations:
     - kernel/extended_mx_calcer/tools/calcers_test/tests
     - kernel/geo/tests/geo_utils/tests
     - kernel/title_ranges/test_title_ranges/tests
-    - keyboard/secure_logging/embedder/cli_applier/ut
     - library/cpp/codecs/static/tools/tests
     - library/cpp/deprecated/solartrie/test/tests
     - library/cpp/file_checker/test/tests
