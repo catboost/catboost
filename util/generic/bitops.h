@@ -216,7 +216,7 @@ static inline T FastClp2(T t) noexcept {
  * Check if integer is a power of 2.
  */
 template <typename T>
-static inline constexpr bool IsPowerOf2(T v) noexcept {
+Y_CONST_FUNCTION constexpr bool IsPowerOf2(T v) noexcept {
     return v > 0 && (v & (v - 1)) == 0;
 }
 
