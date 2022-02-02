@@ -2640,6 +2640,7 @@ migrations:
     - sandbox/proxy/websocket
     - sandbox/yasandbox/controller
     - scarab/api/python3
+    - sdg/sdc
     - search/begemot/tools/apphost/graph_modifier
     - search/begemot/tools/spellchecker/framework_adapter
     - search/begemot/tools/spellchecker/framework_api
