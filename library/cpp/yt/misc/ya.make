@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    util
+    library/cpp/yt/exception
 )
 
 CHECK_DEPENDENT_DIRS(

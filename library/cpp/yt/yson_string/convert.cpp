@@ -177,18 +177,17 @@ i64 ParseInt64FromYsonString(const TYsonStringBuf& str)
     TMemoryInput input(strBuf.data(), strBuf.length());
     char ch;
     if (!input.ReadChar(ch)) {
-        ythrow yexception() << "missing type marker";
+        throw TYsonLiteralParseException("Missing type marker");
     }
     if (ch != NDetail::Int64Marker) {
-        ythrow yexception() << Format("unexpected %v",
-            FormatUnexpectedMarker(ch));
+        throw TYsonLiteralParseException(Format("Unexpected %v",
+            FormatUnexpectedMarker(ch)));
     }
     i64 result;
     try {
         ReadVarInt64(&input, &result);
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "failed to decode \"int64\" value: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Failed to decode \"int64\" value");
     }
     return result;
 }
@@ -200,18 +199,17 @@ ui64 ParseUint64FromYsonString(const TYsonStringBuf& str)
     TMemoryInput input(strBuf.data(), strBuf.length());
     char ch;
     if (!input.ReadChar(ch)) {
-        ythrow yexception() << "missing type marker";
+        throw TYsonLiteralParseException("Missing type marker");
     }
     if (ch != NDetail::Uint64Marker) {
-        ythrow yexception() << Format("unexpected %v",
-            FormatUnexpectedMarker(ch));
+        throw TYsonLiteralParseException(Format("Unexpected %v",
+            FormatUnexpectedMarker(ch)));
     }
     ui64 result;
     try {
         ReadVarUint64(&input, &result);
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "failed to decode \"uint64\" value: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Failed to decode \"uint64\" value");
     }
     return result;
 }
@@ -223,27 +221,26 @@ TString ParseStringFromYsonString(const TYsonStringBuf& str)
     TMemoryInput input(strBuf.data(), strBuf.length());
     char ch;
     if (!input.ReadChar(ch)) {
-        ythrow yexception() << "missing type marker";
+        throw TYsonLiteralParseException("Missing type marker");
     }
     if (ch != NDetail::StringMarker) {
-        ythrow yexception() << Format("unexpected %v",
-            FormatUnexpectedMarker(ch));
+        throw TYsonLiteralParseException(Format("Unexpected %v",
+            FormatUnexpectedMarker(ch)));
     }
     i64 length;
     try {
         ReadVarInt64(&input, &length);
     } catch (const std::exception& ex) {
-        ythrow yexception() << "failed to decode string length: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Failed to decode string length");
     }
     if (length < 0) {
-        ythrow yexception() << "negative string length " <<
-            length;
+        throw TYsonLiteralParseException(Format("Negative string length ",
+            length));
     }
     if (static_cast<i64>(input.Avail()) != length) {
-        ythrow TYsonLiteralParseException() << Format("incorrect remaining string length: expected %v, got %v",
+        throw TYsonLiteralParseException(Format("Incorrect remaining string length: expected %v, got %v",
             length,
-            input.Avail());
+            input.Avail()));
     }
     TString result;
     result.ReserveAndResize(length);
@@ -258,16 +255,16 @@ double ParseDoubleFromYsonString(const TYsonStringBuf& str)
     TMemoryInput input(strBuf.data(), strBuf.length());
     char ch;
     if (!input.ReadChar(ch)) {
-        ythrow yexception() << "missing type marker";
+        throw TYsonLiteralParseException("Missing type marker");
     }
     if (ch != NDetail::DoubleMarker) {
-        ythrow yexception() << Format("unexpected %v",
-            FormatUnexpectedMarker(ch));
+        throw TYsonLiteralParseException(Format("Unexpected %v",
+            FormatUnexpectedMarker(ch)));
     }
     if (input.Avail() != sizeof(double)) {
-        ythrow TYsonLiteralParseException() << Format("incorrect remaining string length: expected %v, got %v",
+        throw TYsonLiteralParseException(Format("Incorrect remaining string length: expected %v, got %v",
             sizeof(double),
-            input.Avail());
+            input.Avail()));
     }
     double result;
     YT_VERIFY(input.Read(&result, sizeof(result)));
@@ -283,8 +280,7 @@ double ParseDoubleFromYsonString(const TYsonStringBuf& str)
         try { \
             return CheckedIntegralCast<type>(Parse ## underlyingType ## FromYsonString(str)); \
         } catch (const std::exception& ex) { \
-            ythrow TYsonLiteralParseException() << "Error parsing \"" #type "\" value from YSON: " << \
-                ex.what(); \
+            throw TYsonLiteralParseException(ex, "Error parsing \"" #type "\" value from YSON"); \
         } \
     }
 
@@ -305,8 +301,7 @@ TString ConvertFromYsonString<TString>(const TYsonStringBuf& str)
     try {
         return ParseStringFromYsonString(str);
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"string\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"string\" value from YSON");
     }
 }
 
@@ -316,8 +311,7 @@ float ConvertFromYsonString<float>(const TYsonStringBuf& str)
     try {
         return static_cast<float>(ParseDoubleFromYsonString(str));
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"float\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"float\" value from YSON");
     }
 }
 
@@ -327,8 +321,7 @@ double ConvertFromYsonString<double>(const TYsonStringBuf& str)
     try {
         return ParseDoubleFromYsonString(str);
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"double\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"double\" value from YSON");
     }
 }
 
@@ -341,16 +334,15 @@ bool ConvertFromYsonString<bool>(const TYsonStringBuf& str)
         TMemoryInput input(strBuf.data(), strBuf.length());
         char ch;
         if (!input.ReadChar(ch)) {
-            ythrow yexception() << "missing type marker";
+            throw TYsonLiteralParseException("Missing type marker");
         }
         if (ch != NDetail::TrueMarker && ch != NDetail::FalseMarker) {
-            ythrow yexception() << Format("unexpected %v",
-                FormatUnexpectedMarker(ch));
+            throw TYsonLiteralParseException(Format("Unexpected %v",
+                FormatUnexpectedMarker(ch)));
         }
         return ch == NDetail::TrueMarker;
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"boolean\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"boolean\" value from YSON");
     }
 }
 
@@ -360,8 +352,7 @@ TInstant ConvertFromYsonString<TInstant>(const TYsonStringBuf& str)
     try {
         return TInstant::ParseIso8601(ParseStringFromYsonString(str));
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"instant\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"instant\" value from YSON");
     }
 }
 
@@ -371,8 +362,7 @@ TDuration ConvertFromYsonString<TDuration>(const TYsonStringBuf& str)
     try {
         return TDuration::MilliSeconds(ParseUint64FromYsonString(str));
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"duration\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"duration\" value from YSON");
     }
 }
 
@@ -382,8 +372,7 @@ TGuid ConvertFromYsonString<TGuid>(const TYsonStringBuf& str)
     try {
         return TGuid::FromString(ParseStringFromYsonString(str));
     } catch (const std::exception& ex) {
-        ythrow TYsonLiteralParseException() << "Error parsing \"guid\" value from YSON: " <<
-            ex.what();
+        throw TYsonLiteralParseException(ex, "Error parsing \"guid\" value from YSON");
     }
 }
 

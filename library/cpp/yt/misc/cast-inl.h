@@ -5,6 +5,7 @@
 #endif
 
 #include <util/string/cast.h>
+#include <util/string/printf.h>
 
 #include <type_traits>
 
@@ -78,8 +79,8 @@ T CheckedIntegralCast(S value)
 {
     T result;
     if (!TryIntegralCast<T>(value, &result)) {
-        ythrow TIntegralCastException() << "Argument value " << NDetail::FormatInvalidCastValue(value) <<
-            " is out of expected range";
+        throw TSimpleException(Sprintf("Argument value %s is out of expected range",
+            NDetail::FormatInvalidCastValue(value).c_str()));
     }
     return result;
 }
@@ -100,8 +101,9 @@ T CheckedEnumCast(S value)
 {
     T result;
     if (!TryEnumCast<T>(value, &result)) {
-        ythrow TEnumCastException() << "Invalid value " << static_cast<int>(value) <<
-            " of enum type " << TEnumTraits<T>::GetTypeName();
+        throw TSimpleException(Sprintf("Invalid value %d of enum type %s",
+            static_cast<int>(value),
+            TEnumTraits<T>::GetTypeName().data()));
     }
     return result;
 }

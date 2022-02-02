@@ -9,10 +9,11 @@
 #include <array>
 #include <vector>
 
+#include <library/cpp/yt/exception/exception.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
-
 /*
  * Smart enumerations augment C++ enum classes with a bunch of reflection
  * capabilities accessible via TEnumTraits class specialization.
@@ -94,7 +95,6 @@ struct TEnumTraits<T, true>
             return lhs == rhs;
         }
     };
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////

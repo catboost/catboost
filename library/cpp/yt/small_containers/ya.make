@@ -1,7 +1,6 @@
 LIBRARY()
 
 PEERDIR(
-    util
     library/cpp/yt/assert
     library/cpp/yt/malloc
 )

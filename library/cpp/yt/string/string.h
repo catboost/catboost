@@ -2,6 +2,8 @@
 
 #include "string_builder.h"
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/datetime/base.h>
 
 #include <util/generic/string.h>
@@ -210,8 +212,8 @@ struct TCaseInsensitiveStringEqualityComparer
 
 ////////////////////////////////////////////////////////////////////////////////
 
-bool TryParseBool(const TString& value, bool& result);
-bool ParseBool(const TString& value);
+bool TryParseBool(TStringBuf value, bool* result);
+bool ParseBool(TStringBuf value);
 TStringBuf FormatBool(bool value);
 
 ////////////////////////////////////////////////////////////////////////////////

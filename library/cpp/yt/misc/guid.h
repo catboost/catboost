@@ -2,15 +2,10 @@
 
 #include <util/generic/string.h>
 #include <util/generic/typetraits.h>
-#include <util/generic/yexception.h>
+
+#include <library/cpp/yt/exception/exception.h>
 
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TGuidException
-    : public yexception
-{ };
 
 ////////////////////////////////////////////////////////////////////////////////
 

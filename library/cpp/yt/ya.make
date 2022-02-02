@@ -1,6 +1,7 @@
 RECURSE(
     assert
     coding
+    exception
     misc
     string
     yson

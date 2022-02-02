@@ -6,9 +6,9 @@ SRCS(
 )
 
 PEERDIR(
-    util
     library/cpp/yt/assert
     library/cpp/yt/coding
+    library/cpp/yt/exception
     library/cpp/yt/string
     library/cpp/yt/memory
     library/cpp/yt/misc

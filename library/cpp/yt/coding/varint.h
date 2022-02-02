@@ -1,19 +1,13 @@
 #pragma once
 
+#include <library/cpp/yt/exception/exception.h>
+
 #include <util/system/defaults.h>
 
 #include <util/stream/input.h>
 #include <util/stream/output.h>
 
-#include <util/generic/yexception.h>
-
 namespace NYT {
-
-////////////////////////////////////////////////////////////////////////////////
-
-class TVarintException
-    : public yexception
-{ };
 
 ////////////////////////////////////////////////////////////////////////////////
 

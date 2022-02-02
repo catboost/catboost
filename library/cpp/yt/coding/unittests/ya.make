@@ -8,7 +8,6 @@ SRCS(
 )
 
 PEERDIR(
-    util
     library/cpp/yt/coding
     library/cpp/testing/gtest
 )

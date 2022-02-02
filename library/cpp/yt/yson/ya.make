@@ -5,7 +5,6 @@ SRCS(
 )
 
 PEERDIR(
-    util
     library/cpp/yt/yson_string
 )
 

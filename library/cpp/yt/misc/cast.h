@@ -1,13 +1,10 @@
 #pragma once
-#include <util/generic/yexception.h>
+
+#include <library/cpp/yt/exception/exception.h>
 
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
-
-class TIntegralCastException
-    : public yexception
-{ };
 
 template <class T, class S>
 bool TryIntegralCast(S value, T* result);
@@ -16,10 +13,6 @@ template <class T, class S>
 T CheckedIntegralCast(S value);
 
 ////////////////////////////////////////////////////////////////////////////////
-
-class TEnumCastException
-    : public yexception
-{ };
 
 template <class T, class S>
 bool TryEnumCast(S value, T* result);
