@@ -100,6 +100,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\exception\cpp-yt-exception.vcxproj">
+      <Project>{51217491-819C-DE27-161A-18D787542A3D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\misc\cpp-yt-misc.vcxproj">
       <Project>{C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5}</Project>
     </ProjectReference>
