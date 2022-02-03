@@ -1,7 +1,6 @@
 import collections.abc
 import tempfile
 import sys
-import shutil
 import warnings
 import operator
 import io
@@ -21,8 +20,8 @@ import builtins
 from decimal import Decimal
 
 import numpy as np
-from numpy.compat import strchar
 import numpy.core._multiarray_tests as _multiarray_tests
+from numpy.core._rational_tests import rational
 from numpy.testing import (
     assert_, assert_raises, assert_warns, assert_equal, assert_almost_equal,
     assert_array_equal, assert_raises_regex, assert_array_almost_equal,
@@ -207,6 +206,23 @@ class TestFlags:
             a[2] = 10
             # only warn once
             assert_(len(w) == 1)
+
+    @pytest.mark.parametrize(["flag", "flag_value", "writeable"],
+            [("writeable", True, True),
+             # Delete _warn_on_write after deprecation and simplify
+             # the parameterization:
+             ("_warn_on_write", True, False),
+             ("writeable", False, False)])
+    def test_readonly_flag_protocols(self, flag, flag_value, writeable):
+        a = np.arange(10)
+        setattr(a.flags, flag, flag_value)
+
+        class MyArr():
+            __array_struct__ = a.__array_struct__
+
+        assert memoryview(a).readonly is not writeable
+        assert a.__array_interface__['data'][1] is not writeable
+        assert np.asarray(MyArr()).flags.writeable is writeable
 
     def test_otherflags(self):
         assert_equal(self.a.flags.carray, True)
@@ -467,6 +483,33 @@ class TestArrayConstruction:
         assert_(np.ascontiguousarray(d).flags.c_contiguous)
         assert_(np.asfortranarray(d).flags.f_contiguous)
 
+    @pytest.mark.parametrize("func",
+            [np.array,
+             np.asarray,
+             np.asanyarray,
+             np.ascontiguousarray,
+             np.asfortranarray])
+    def test_bad_arguments_error(self, func):
+        with pytest.raises(TypeError):
+            func(3, dtype="bad dtype")
+        with pytest.raises(TypeError):
+            func()  # missing arguments
+        with pytest.raises(TypeError):
+            func(1, 2, 3, 4, 5, 6, 7, 8)  # too many arguments
+
+    @pytest.mark.parametrize("func",
+            [np.array,
+             np.asarray,
+             np.asanyarray,
+             np.ascontiguousarray,
+             np.asfortranarray])
+    def test_array_as_keyword(self, func):
+        # This should likely be made positional only, but do not change
+        # the name accidentally.
+        if func is np.array:
+            func(object=3)
+        else:
+            func(a=3)
 
 class TestAssignment:
     def test_assignment_broadcasting(self):
@@ -818,37 +861,6 @@ class TestCreation:
 
         assert_raises(ValueError, np.array, x())
 
-    @pytest.mark.parametrize("error", [RecursionError, MemoryError])
-    @pytest.mark.parametrize("attribute",
-        ["__array_interface__", "__array__", "__array_struct__"])
-    def test_bad_array_like_attributes(self, attribute, error):
-        # Check that errors during attribute retrieval are raised unless
-        # they are Attribute errors.
-
-        class BadInterface:
-           def __getattr__(self, attr):
-               if attr == attribute:
-                   raise error
-               super().__getattr__(attr)
-
-        with pytest.raises(error):
-            np.array(BadInterface())
-
-    @pytest.mark.parametrize("error", [RecursionError, MemoryError])
-    def test_bad_array_like_bad_length(self, error):
-        # RecursionError and MemoryError are considered "critical" in
-        # sequences. We could expand this more generally though. (NumPy 1.20)
-        class BadSequence:
-            def __len__(self):
-                raise error
-            def __getitem__(self):
-                # must have getitem to be a Sequence
-                return 1
-
-        with pytest.raises(error):
-            np.array(BadSequence())
-
-
     def test_from_string(self):
         types = np.typecodes['AllInteger'] + np.typecodes['Float']
         nstr = ['123', '123']
@@ -859,7 +871,37 @@ class TestCreation:
 
     def test_void(self):
         arr = np.array([], dtype='V')
-        assert_equal(arr.dtype.kind, 'V')
+        assert arr.dtype == 'V8'  # current default
+        # Same length scalars (those that go to the same void) work:
+        arr = np.array([b"1234", b"1234"], dtype="V")
+        assert arr.dtype == "V4"
+
+        # Promoting different lengths will fail (pre 1.20 this worked)
+        # by going via S5 and casting to V5.
+        with pytest.raises(TypeError):
+            np.array([b"1234", b"12345"], dtype="V")
+        with pytest.raises(TypeError):
+            np.array([b"12345", b"1234"], dtype="V")
+
+        # Check the same for the casting path:
+        arr = np.array([b"1234", b"1234"], dtype="O").astype("V")
+        assert arr.dtype == "V4"
+        with pytest.raises(TypeError):
+            np.array([b"1234", b"12345"], dtype="O").astype("V")
+
+    @pytest.mark.parametrize("idx",
+            [pytest.param(Ellipsis, id="arr"), pytest.param((), id="scalar")])
+    def test_structured_void_promotion(self, idx):
+        arr = np.array(
+            [np.array(1, dtype="i,i")[idx], np.array(2, dtype='i,i')[idx]],
+            dtype="V")
+        assert_array_equal(arr, np.array([(1, 1), (2, 2)], dtype="i,i"))
+        # The following fails to promote the two dtypes, resulting in an error
+        with pytest.raises(TypeError):
+            np.array(
+                [np.array(1, dtype="i,i")[idx], np.array(2, dtype='i,i,i')[idx]],
+                dtype="V")
+
 
     def test_too_big_error(self):
         # 45341 is the smallest integer greater than sqrt(2**31 - 1).
@@ -967,7 +1009,7 @@ class TestCreation:
             d = np.empty(i, dtype='U')
             str(d)
 
-    def test_sequence_non_homogenous(self):
+    def test_sequence_non_homogeneous(self):
         assert_equal(np.array([4, 2**80]).dtype, object)
         assert_equal(np.array([4, 2**80, 4]).dtype, object)
         assert_equal(np.array([2**80, 4]).dtype, object)
@@ -1042,6 +1084,8 @@ class TestCreation:
         a = np.empty(2)
         with assert_raises(ValueError):
             a[:] = C()  # Segfault!
+
+        np.array(C()) == list(C())
 
     def test_failed_len_sequence(self):
         # gh-7393
@@ -1400,11 +1444,11 @@ class TestStructured:
         a = np.array([(1,2)], dtype=[('a', 'i4'), ('b', 'i4')])
         a[['a', 'b']] = a[['b', 'a']]
         assert_equal(a[0].item(), (2,1))
-    
+
     def test_scalar_assignment(self):
         with assert_raises(ValueError):
-            arr = np.arange(25).reshape(5, 5)                                                                               
-            arr.itemset(3)  
+            arr = np.arange(25).reshape(5, 5)
+            arr.itemset(3)
 
     def test_structuredscalar_indexing(self):
         # test gh-7262
@@ -1419,6 +1463,21 @@ class TestStructured:
         assert_raises(ValueError, lambda : a[['b','b']])  # field exists, but repeated
         a[['b','c']]  # no exception
 
+    def test_structured_asarray_is_view(self):
+        # A scalar viewing an array preserves its view even when creating a
+        # new array. This test documents behaviour, it may not be the best
+        # desired behaviour.
+        arr = np.array([1], dtype="i,i")
+        scalar = arr[0]
+        assert not scalar.flags.owndata  # view into the array
+        assert np.asarray(scalar).base is scalar
+        # But never when a dtype is passed in:
+        assert np.asarray(scalar, dtype=scalar.dtype).base is None
+        # A scalar which owns its data does not have this property.
+        # It is not easy to create one, one method is to use pickle:
+        scalar = pickle.loads(pickle.dumps(scalar))
+        assert scalar.flags.owndata
+        assert np.asarray(scalar).base is None
 
 class TestBool:
     def test_test_interning(self):
@@ -1601,6 +1660,47 @@ class TestMethods:
 
     sort_kinds = ['quicksort', 'heapsort', 'stable']
 
+    def test_all_where(self):
+        a = np.array([[True, False, True],
+                      [False, False, False],
+                      [True, True, True]])
+        wh_full = np.array([[True, False, True],
+                            [False, False, False],
+                            [True, False, True]])
+        wh_lower = np.array([[False],
+                             [False],
+                             [True]])
+        for _ax in [0, None]:
+            assert_equal(a.all(axis=_ax, where=wh_lower),
+                        np.all(a[wh_lower[:,0],:], axis=_ax))
+            assert_equal(np.all(a, axis=_ax, where=wh_lower),
+                         a[wh_lower[:,0],:].all(axis=_ax))
+
+        assert_equal(a.all(where=wh_full), True)
+        assert_equal(np.all(a, where=wh_full), True)
+        assert_equal(a.all(where=False), True)
+        assert_equal(np.all(a, where=False), True)
+
+    def test_any_where(self):
+        a = np.array([[True, False, True],
+                      [False, False, False],
+                      [True, True, True]])
+        wh_full = np.array([[False, True, False],
+                            [True, True, True],
+                            [False, False, False]])
+        wh_middle = np.array([[False],
+                              [True],
+                              [False]])
+        for _ax in [0, None]:
+            assert_equal(a.any(axis=_ax, where=wh_middle),
+                         np.any(a[wh_middle[:,0],:], axis=_ax))
+            assert_equal(np.any(a, axis=_ax, where=wh_middle),
+                         a[wh_middle[:,0],:].any(axis=_ax))
+        assert_equal(a.any(where=wh_full), False)
+        assert_equal(np.any(a, where=wh_full), False)
+        assert_equal(a.any(where=False), False)
+        assert_equal(np.any(a, where=False), False)
+
     def test_compress(self):
         tgt = [[5, 6, 7, 8, 9]]
         arr = np.arange(10).reshape(2, 5)
@@ -1639,6 +1739,11 @@ class TestMethods:
         oned = np.ones(1)
         # gh-12031, caused SEGFAULT
         assert_raises(TypeError, oned.choose,np.void(0), [oned])
+
+        out = np.array(0)
+        ret = np.choose(np.array(1), [10, 20, 30], out=out)
+        assert out is ret
+        assert_equal(out[()], 20)
 
         # gh-6272 check overlap on out
         x = np.arange(5)
@@ -1716,7 +1821,7 @@ class TestMethods:
             out = np.zeros_like(arr)
             res = arr.round(*round_args, out=out)
             assert_equal(out, expected)
-            assert_equal(out, res)
+            assert out is res
 
         check_round(np.array([1.2, 1.5]), [1, 2])
         check_round(np.array(1.5), 2)
@@ -2023,7 +2128,7 @@ class TestMethods:
             strtype = '>i2'
         else:
             strtype = '<i2'
-        mydtype = [('name', strchar + '5'), ('col2', strtype)]
+        mydtype = [('name', 'U5'), ('col2', strtype)]
         r = np.array([('a', 1), ('b', 255), ('c', 3), ('d', 258)],
                      dtype=mydtype)
         r.sort(order='col2')
@@ -2184,10 +2289,10 @@ class TestMethods:
         # check double
         a = np.array([0, 1, np.nan])
         msg = "Test real searchsorted with nans, side='l'"
-        b = a.searchsorted(a, side='l')
+        b = a.searchsorted(a, side='left')
         assert_equal(b, np.arange(3), msg)
         msg = "Test real searchsorted with nans, side='r'"
-        b = a.searchsorted(a, side='r')
+        b = a.searchsorted(a, side='right')
         assert_equal(b, np.arange(1, 4), msg)
         # check keyword arguments
         a.searchsorted(v=1)
@@ -2196,10 +2301,10 @@ class TestMethods:
         a.real += [0, 0, 1, 1, 0, 1, np.nan, np.nan, np.nan]
         a.imag += [0, 1, 0, 1, np.nan, np.nan, 0, 1, np.nan]
         msg = "Test complex searchsorted with nans, side='l'"
-        b = a.searchsorted(a, side='l')
+        b = a.searchsorted(a, side='left')
         assert_equal(b, np.arange(9), msg)
         msg = "Test complex searchsorted with nans, side='r'"
-        b = a.searchsorted(a, side='r')
+        b = a.searchsorted(a, side='right')
         assert_equal(b, np.arange(1, 10), msg)
         msg = "Test searchsorted with little endian, side='l'"
         a = np.array([0, 128], dtype='<i4')
@@ -2212,21 +2317,21 @@ class TestMethods:
 
         # Check 0 elements
         a = np.ones(0)
-        b = a.searchsorted([0, 1, 2], 'l')
+        b = a.searchsorted([0, 1, 2], 'left')
         assert_equal(b, [0, 0, 0])
-        b = a.searchsorted([0, 1, 2], 'r')
+        b = a.searchsorted([0, 1, 2], 'right')
         assert_equal(b, [0, 0, 0])
         a = np.ones(1)
         # Check 1 element
-        b = a.searchsorted([0, 1, 2], 'l')
+        b = a.searchsorted([0, 1, 2], 'left')
         assert_equal(b, [0, 0, 1])
-        b = a.searchsorted([0, 1, 2], 'r')
+        b = a.searchsorted([0, 1, 2], 'right')
         assert_equal(b, [0, 1, 1])
         # Check all elements equal
         a = np.ones(2)
-        b = a.searchsorted([0, 1, 2], 'l')
+        b = a.searchsorted([0, 1, 2], 'left')
         assert_equal(b, [0, 0, 2])
-        b = a.searchsorted([0, 1, 2], 'r')
+        b = a.searchsorted([0, 1, 2], 'right')
         assert_equal(b, [0, 2, 2])
 
         # Test searching unaligned array
@@ -2235,21 +2340,21 @@ class TestMethods:
         unaligned = aligned[1:].view(a.dtype)
         unaligned[:] = a
         # Test searching unaligned array
-        b = unaligned.searchsorted(a, 'l')
+        b = unaligned.searchsorted(a, 'left')
         assert_equal(b, a)
-        b = unaligned.searchsorted(a, 'r')
+        b = unaligned.searchsorted(a, 'right')
         assert_equal(b, a + 1)
         # Test searching for unaligned keys
-        b = a.searchsorted(unaligned, 'l')
+        b = a.searchsorted(unaligned, 'left')
         assert_equal(b, a)
-        b = a.searchsorted(unaligned, 'r')
+        b = a.searchsorted(unaligned, 'right')
         assert_equal(b, a + 1)
 
         # Test smart resetting of binsearch indices
         a = np.arange(5)
-        b = a.searchsorted([6, 5, 4], 'l')
+        b = a.searchsorted([6, 5, 4], 'left')
         assert_equal(b, [5, 5, 4])
-        b = a.searchsorted([6, 5, 4], 'r')
+        b = a.searchsorted([6, 5, 4], 'right')
         assert_equal(b, [5, 5, 5])
 
         # Test all type specific binary search functions
@@ -2264,16 +2369,16 @@ class TestMethods:
             else:
                 a = np.arange(0, 5, dtype=dt)
                 out = np.arange(5)
-            b = a.searchsorted(a, 'l')
+            b = a.searchsorted(a, 'left')
             assert_equal(b, out)
-            b = a.searchsorted(a, 'r')
+            b = a.searchsorted(a, 'right')
             assert_equal(b, out + 1)
             # Test empty array, use a fresh array to get warnings in
             # valgrind if access happens.
             e = np.ndarray(shape=0, buffer=b'', dtype=dt)
-            b = e.searchsorted(a, 'l')
+            b = e.searchsorted(a, 'left')
             assert_array_equal(b, np.zeros(len(a), dtype=np.intp))
-            b = a.searchsorted(e, 'l')
+            b = a.searchsorted(e, 'left')
             assert_array_equal(b, np.zeros(0, dtype=np.intp))
 
     def test_searchsorted_unicode(self):
@@ -2328,9 +2433,9 @@ class TestMethods:
         s = a.argsort()
         k = [0, 1, 2, 3, 5]
         expected = [0, 20, 40, 60, 80]
-        assert_equal(a.searchsorted(k, side='l', sorter=s), expected)
+        assert_equal(a.searchsorted(k, side='left', sorter=s), expected)
         expected = [20, 40, 60, 80, 100]
-        assert_equal(a.searchsorted(k, side='r', sorter=s), expected)
+        assert_equal(a.searchsorted(k, side='right', sorter=s), expected)
 
         # Test searching unaligned array
         keys = np.arange(10)
@@ -2341,15 +2446,15 @@ class TestMethods:
         unaligned = aligned[1:].view(a.dtype)
         # Test searching unaligned array
         unaligned[:] = a
-        b = unaligned.searchsorted(keys, 'l', s)
+        b = unaligned.searchsorted(keys, 'left', s)
         assert_equal(b, keys)
-        b = unaligned.searchsorted(keys, 'r', s)
+        b = unaligned.searchsorted(keys, 'right', s)
         assert_equal(b, keys + 1)
         # Test searching for unaligned keys
         unaligned[:] = keys
-        b = a.searchsorted(unaligned, 'l', s)
+        b = a.searchsorted(unaligned, 'left', s)
         assert_equal(b, keys)
-        b = a.searchsorted(unaligned, 'r', s)
+        b = a.searchsorted(unaligned, 'right', s)
         assert_equal(b, keys + 1)
 
         # Test all type specific indirect binary search functions
@@ -2370,16 +2475,16 @@ class TestMethods:
                 # from np.intp in all platforms, to check for #4698
                 s = np.array([4, 2, 3, 0, 1], dtype=np.int16)
                 out = np.array([3, 4, 1, 2, 0], dtype=np.intp)
-            b = a.searchsorted(a, 'l', s)
+            b = a.searchsorted(a, 'left', s)
             assert_equal(b, out)
-            b = a.searchsorted(a, 'r', s)
+            b = a.searchsorted(a, 'right', s)
             assert_equal(b, out + 1)
             # Test empty array, use a fresh array to get warnings in
             # valgrind if access happens.
             e = np.ndarray(shape=0, buffer=b'', dtype=dt)
-            b = e.searchsorted(a, 'l', s[:0])
+            b = e.searchsorted(a, 'left', s[:0])
             assert_array_equal(b, np.zeros(len(a), dtype=np.intp))
-            b = a.searchsorted(e, 'l', s)
+            b = a.searchsorted(e, 'left', s)
             assert_array_equal(b, np.zeros(0, dtype=np.intp))
 
         # Test non-contiguous sorter array
@@ -2389,9 +2494,9 @@ class TestMethods:
         srt[::2] = [4, 2, 3, 0, 1]
         s = srt[::2]
         out = np.array([3, 4, 1, 2, 0], dtype=np.intp)
-        b = a.searchsorted(a, 'l', s)
+        b = a.searchsorted(a, 'left', s)
         assert_equal(b, out)
-        b = a.searchsorted(a, 'r', s)
+        b = a.searchsorted(a, 'right', s)
         assert_equal(b, out + 1)
 
     def test_searchsorted_return_type(self):
@@ -2401,10 +2506,10 @@ class TestMethods:
         a = np.arange(5).view(A)
         b = np.arange(1, 3).view(A)
         s = np.arange(5).view(A)
-        assert_(not isinstance(a.searchsorted(b, 'l'), A))
-        assert_(not isinstance(a.searchsorted(b, 'r'), A))
-        assert_(not isinstance(a.searchsorted(b, 'l', s), A))
-        assert_(not isinstance(a.searchsorted(b, 'r', s), A))
+        assert_(not isinstance(a.searchsorted(b, 'left'), A))
+        assert_(not isinstance(a.searchsorted(b, 'right'), A))
+        assert_(not isinstance(a.searchsorted(b, 'left', s), A))
+        assert_(not isinstance(a.searchsorted(b, 'right', s), A))
 
     def test_argpartition_out_of_range(self):
         # Test out of range values in kth raise an error, gh-5469
@@ -3081,6 +3186,10 @@ class TestMethods:
         assert_equal(b.trace(0, 1, 2), [3, 11])
         assert_equal(b.trace(offset=1, axis1=0, axis2=2), [1, 3])
 
+        out = np.array(1)
+        ret = a.trace(out=out)
+        assert ret is out
+
     def test_trace_subclass(self):
         # The class would need to overwrite trace to ensure single-element
         # output also has the right subclass.
@@ -3306,6 +3415,15 @@ class TestMethods:
         a = np.array([1-1j, 1, 2.0, 'f'], object)
         assert_raises(TypeError, lambda: a.conj())
         assert_raises(TypeError, lambda: a.conjugate())
+
+    def test_conjugate_out(self):
+        # Minimal test for the out argument being passed on correctly
+        # NOTE: The ability to pass `out` is currently undocumented!
+        a = np.array([1-1j, 1+1j, 23+23.0j])
+        out = np.empty_like(a)
+        res = a.conjugate(out)
+        assert res is out
+        assert_array_equal(out, a.conjugate())
 
     def test__complex__(self):
         dtypes = ['i1', 'i2', 'i4', 'i8',
@@ -3856,13 +3974,6 @@ class TestPickling:
             with pytest.raises(ImportError):
                 array.__reduce_ex__(5)
 
-        elif sys.version_info[:2] < (3, 6):
-            # when calling __reduce_ex__ explicitly with protocol=5 on python
-            # raise a ValueError saying that protocol 5 is not available for
-            # this python version
-            with pytest.raises(ValueError):
-                array.__reduce_ex__(5)
-
     def test_record_array_with_object_dtype(self):
         my_object = object()
 
@@ -4184,6 +4295,13 @@ class TestArgmax:
         a.argmax(-1, out=out)
         assert_equal(out, a.argmax(-1))
 
+    @pytest.mark.parametrize('ndim', [0, 1])
+    def test_ret_is_out(self, ndim):
+        a = np.ones((4,) + (3,)*ndim)
+        out = np.empty((3,)*ndim, dtype=np.intp)
+        ret = a.argmax(axis=0, out=out)
+        assert ret is out
+
     def test_argmax_unicode(self):
         d = np.zeros(6031, dtype='<U9')
         d[5942] = "as"
@@ -4332,6 +4450,13 @@ class TestArgmin:
         out = np.ones(10, dtype=np.int_)
         a.argmin(-1, out=out)
         assert_equal(out, a.argmin(-1))
+
+    @pytest.mark.parametrize('ndim', [0, 1])
+    def test_ret_is_out(self, ndim):
+        a = np.ones((4,) + (3,)*ndim)
+        out = np.empty((3,)*ndim, dtype=np.intp)
+        ret = a.argmin(axis=0, out=out)
+        assert ret is out
 
     def test_argmin_unicode(self):
         d = np.ones(6031, dtype='<U9')
@@ -4553,6 +4678,13 @@ class TestPutmask:
         np.putmask(x[1:4], x[:3], [True, False, True])
         assert_equal(x, np.array([True, True, True, True]))
 
+    def test_writeable(self):
+        a = np.arange(5)
+        a.flags.writeable = False
+
+        with pytest.raises(ValueError):
+            np.putmask(a, a >= 2, 3)
+
 
 class TestTake:
     def tst_basic(self, x):
@@ -4609,6 +4741,16 @@ class TestTake:
         x = np.arange(5)
         y = np.take(x, [1, 2, 3], out=x[2:5], mode='wrap')
         assert_equal(y, np.array([1, 2, 3]))
+
+    @pytest.mark.parametrize('shape', [(1, 2), (1,), ()])
+    def test_ret_is_out(self, shape):
+        # 0d arrays should not be an exception to this rule
+        x = np.arange(5)
+        inds = np.zeros(shape, dtype=np.intp)
+        out = np.zeros(shape, dtype=x.dtype)
+        ret = np.take(x, inds, out=out)
+        assert ret is out
+
 
 class TestLexsort:
     @pytest.mark.parametrize('dtype',[
@@ -4668,17 +4810,23 @@ class TestLexsort:
 class TestIO:
     """Test tofile, fromfile, tobytes, and fromstring"""
 
-    def setup(self):
+    @pytest.fixture()
+    def x(self):
         shape = (2, 4, 3)
         rand = np.random.random
-        self.x = rand(shape) + rand(shape).astype(complex)*1j
-        self.x[0,:, 1] = [np.nan, np.inf, -np.inf, np.nan]
-        self.dtype = self.x.dtype
-        self.tempdir = tempfile.mkdtemp()
-        self.filename = tempfile.mktemp(dir=self.tempdir)
+        x = rand(shape) + rand(shape).astype(complex) * 1j
+        x[0, :, 1] = [np.nan, np.inf, -np.inf, np.nan]
+        return x
 
-    def teardown(self):
-        shutil.rmtree(self.tempdir)
+    @pytest.fixture(params=["string", "path_obj"])
+    def tmp_filename(self, tmp_path, request):
+        # This fixture covers two cases:
+        # one where the filename is a string and
+        # another where it is a pathlib object
+        filename = tmp_path / "file"
+        if request.param == "string":
+            filename = str(filename)
+        yield filename
 
     def test_nofile(self):
         # this should probably be supported as a file
@@ -4705,54 +4853,52 @@ class TestIO:
         e = np.array([-25041670086757, 104783749223640], dtype=np.int64)
         assert_array_equal(d, e)
 
-    def test_empty_files_binary(self):
-        with open(self.filename, 'w') as f:
+    def test_fromstring_count0(self):
+        d = np.fromstring("1,2", sep=",", dtype=np.int64, count=0)
+        assert d.shape == (0,)
+
+    def test_empty_files_text(self, tmp_filename):
+        with open(tmp_filename, 'w') as f:
             pass
-        y = np.fromfile(self.filename)
+        y = np.fromfile(tmp_filename)
         assert_(y.size == 0, "Array not empty")
 
-    def test_empty_files_text(self):
-        with open(self.filename, 'wb') as f:
+    def test_empty_files_binary(self, tmp_filename):
+        with open(tmp_filename, 'wb') as f:
             pass
-        y = np.fromfile(self.filename, sep=" ")
+        y = np.fromfile(tmp_filename, sep=" ")
         assert_(y.size == 0, "Array not empty")
 
-    def test_roundtrip_file(self):
-        with open(self.filename, 'wb') as f:
-            self.x.tofile(f)
+    def test_roundtrip_file(self, x, tmp_filename):
+        with open(tmp_filename, 'wb') as f:
+            x.tofile(f)
         # NB. doesn't work with flush+seek, due to use of C stdio
-        with open(self.filename, 'rb') as f:
-            y = np.fromfile(f, dtype=self.dtype)
-        assert_array_equal(y, self.x.flat)
+        with open(tmp_filename, 'rb') as f:
+            y = np.fromfile(f, dtype=x.dtype)
+        assert_array_equal(y, x.flat)
 
-    def test_roundtrip_filename(self):
-        self.x.tofile(self.filename)
-        y = np.fromfile(self.filename, dtype=self.dtype)
-        assert_array_equal(y, self.x.flat)
+    def test_roundtrip(self, x, tmp_filename):
+        x.tofile(tmp_filename)
+        y = np.fromfile(tmp_filename, dtype=x.dtype)
+        assert_array_equal(y, x.flat)
 
-    def test_roundtrip_pathlib(self):
-        p = pathlib.Path(self.filename)
-        self.x.tofile(p)
-        y = np.fromfile(p, dtype=self.dtype)
-        assert_array_equal(y, self.x.flat)
-
-    def test_roundtrip_dump_pathlib(self):
-        p = pathlib.Path(self.filename)
-        self.x.dump(p)
+    def test_roundtrip_dump_pathlib(self, x, tmp_filename):
+        p = pathlib.Path(tmp_filename)
+        x.dump(p)
         y = np.load(p, allow_pickle=True)
-        assert_array_equal(y, self.x)
+        assert_array_equal(y, x)
 
-    def test_roundtrip_binary_str(self):
-        s = self.x.tobytes()
-        y = np.frombuffer(s, dtype=self.dtype)
-        assert_array_equal(y, self.x.flat)
+    def test_roundtrip_binary_str(self, x):
+        s = x.tobytes()
+        y = np.frombuffer(s, dtype=x.dtype)
+        assert_array_equal(y, x.flat)
 
-        s = self.x.tobytes('F')
-        y = np.frombuffer(s, dtype=self.dtype)
-        assert_array_equal(y, self.x.flatten('F'))
+        s = x.tobytes('F')
+        y = np.frombuffer(s, dtype=x.dtype)
+        assert_array_equal(y, x.flatten('F'))
 
-    def test_roundtrip_str(self):
-        x = self.x.real.ravel()
+    def test_roundtrip_str(self, x):
+        x = x.real.ravel()
         s = "@".join(map(str, x))
         y = np.fromstring(s, sep="@")
         # NB. str imbues less precision
@@ -4760,79 +4906,79 @@ class TestIO:
         assert_array_equal(x[nan_mask], y[nan_mask])
         assert_array_almost_equal(x[~nan_mask], y[~nan_mask], decimal=5)
 
-    def test_roundtrip_repr(self):
-        x = self.x.real.ravel()
+    def test_roundtrip_repr(self, x):
+        x = x.real.ravel()
         s = "@".join(map(repr, x))
         y = np.fromstring(s, sep="@")
         assert_array_equal(x, y)
 
-    def test_unseekable_fromfile(self):
+    def test_unseekable_fromfile(self, x, tmp_filename):
         # gh-6246
-        self.x.tofile(self.filename)
+        x.tofile(tmp_filename)
 
         def fail(*args, **kwargs):
             raise IOError('Can not tell or seek')
 
-        with io.open(self.filename, 'rb', buffering=0) as f:
+        with io.open(tmp_filename, 'rb', buffering=0) as f:
             f.seek = fail
             f.tell = fail
-            assert_raises(IOError, np.fromfile, f, dtype=self.dtype)
+            assert_raises(IOError, np.fromfile, f, dtype=x.dtype)
 
-    def test_io_open_unbuffered_fromfile(self):
+    def test_io_open_unbuffered_fromfile(self, x, tmp_filename):
         # gh-6632
-        self.x.tofile(self.filename)
-        with io.open(self.filename, 'rb', buffering=0) as f:
-            y = np.fromfile(f, dtype=self.dtype)
-            assert_array_equal(y, self.x.flat)
+        x.tofile(tmp_filename)
+        with io.open(tmp_filename, 'rb', buffering=0) as f:
+            y = np.fromfile(f, dtype=x.dtype)
+            assert_array_equal(y, x.flat)
 
-    def test_largish_file(self):
+    def test_largish_file(self, tmp_filename):
         # check the fallocate path on files > 16MB
         d = np.zeros(4 * 1024 ** 2)
-        d.tofile(self.filename)
-        assert_equal(os.path.getsize(self.filename), d.nbytes)
-        assert_array_equal(d, np.fromfile(self.filename))
+        d.tofile(tmp_filename)
+        assert_equal(os.path.getsize(tmp_filename), d.nbytes)
+        assert_array_equal(d, np.fromfile(tmp_filename))
         # check offset
-        with open(self.filename, "r+b") as f:
+        with open(tmp_filename, "r+b") as f:
             f.seek(d.nbytes)
             d.tofile(f)
-            assert_equal(os.path.getsize(self.filename), d.nbytes * 2)
+            assert_equal(os.path.getsize(tmp_filename), d.nbytes * 2)
         # check append mode (gh-8329)
-        open(self.filename, "w").close() # delete file contents
-        with open(self.filename, "ab") as f:
+        open(tmp_filename, "w").close()  # delete file contents
+        with open(tmp_filename, "ab") as f:
             d.tofile(f)
-        assert_array_equal(d, np.fromfile(self.filename))
-        with open(self.filename, "ab") as f:
+        assert_array_equal(d, np.fromfile(tmp_filename))
+        with open(tmp_filename, "ab") as f:
             d.tofile(f)
-        assert_equal(os.path.getsize(self.filename), d.nbytes * 2)
+        assert_equal(os.path.getsize(tmp_filename), d.nbytes * 2)
 
-    def test_io_open_buffered_fromfile(self):
+    def test_io_open_buffered_fromfile(self, x, tmp_filename):
         # gh-6632
-        self.x.tofile(self.filename)
-        with io.open(self.filename, 'rb', buffering=-1) as f:
-            y = np.fromfile(f, dtype=self.dtype)
-        assert_array_equal(y, self.x.flat)
+        x.tofile(tmp_filename)
+        with io.open(tmp_filename, 'rb', buffering=-1) as f:
+            y = np.fromfile(f, dtype=x.dtype)
+        assert_array_equal(y, x.flat)
 
-    def test_file_position_after_fromfile(self):
+    def test_file_position_after_fromfile(self, tmp_filename):
         # gh-4118
         sizes = [io.DEFAULT_BUFFER_SIZE//8,
                  io.DEFAULT_BUFFER_SIZE,
                  io.DEFAULT_BUFFER_SIZE*8]
 
         for size in sizes:
-            with open(self.filename, 'wb') as f:
+            with open(tmp_filename, 'wb') as f:
                 f.seek(size-1)
                 f.write(b'\0')
 
             for mode in ['rb', 'r+b']:
                 err_msg = "%d %s" % (size, mode)
 
-                with open(self.filename, mode) as f:
+                with open(tmp_filename, mode) as f:
                     f.read(2)
                     np.fromfile(f, dtype=np.float64, count=1)
                     pos = f.tell()
                 assert_equal(pos, 10, err_msg=err_msg)
 
-    def test_file_position_after_tofile(self):
+    def test_file_position_after_tofile(self, tmp_filename):
         # gh-4118
         sizes = [io.DEFAULT_BUFFER_SIZE//8,
                  io.DEFAULT_BUFFER_SIZE,
@@ -4841,7 +4987,7 @@ class TestIO:
         for size in sizes:
             err_msg = "%d" % (size,)
 
-            with open(self.filename, 'wb') as f:
+            with open(tmp_filename, 'wb') as f:
                 f.seek(size-1)
                 f.write(b'\0')
                 f.seek(10)
@@ -4850,88 +4996,145 @@ class TestIO:
                 pos = f.tell()
             assert_equal(pos, 10 + 2 + 8, err_msg=err_msg)
 
-            with open(self.filename, 'r+b') as f:
+            with open(tmp_filename, 'r+b') as f:
                 f.read(2)
                 f.seek(0, 1)  # seek between read&write required by ANSI C
                 np.array([0], dtype=np.float64).tofile(f)
                 pos = f.tell()
             assert_equal(pos, 10, err_msg=err_msg)
 
-    def test_load_object_array_fromfile(self):
+    def test_load_object_array_fromfile(self, tmp_filename):
         # gh-12300
-        with open(self.filename, 'w') as f:
+        with open(tmp_filename, 'w') as f:
             # Ensure we have a file with consistent contents
             pass
 
-        with open(self.filename, 'rb') as f:
+        with open(tmp_filename, 'rb') as f:
             assert_raises_regex(ValueError, "Cannot read into object array",
                                 np.fromfile, f, dtype=object)
 
         assert_raises_regex(ValueError, "Cannot read into object array",
-                            np.fromfile, self.filename, dtype=object)
+                            np.fromfile, tmp_filename, dtype=object)
 
-    def test_fromfile_offset(self):
-        with open(self.filename, 'wb') as f:
-            self.x.tofile(f)
+    def test_fromfile_offset(self, x, tmp_filename):
+        with open(tmp_filename, 'wb') as f:
+            x.tofile(f)
 
-        with open(self.filename, 'rb') as f:
-            y = np.fromfile(f, dtype=self.dtype, offset=0)
-            assert_array_equal(y, self.x.flat)
+        with open(tmp_filename, 'rb') as f:
+            y = np.fromfile(f, dtype=x.dtype, offset=0)
+            assert_array_equal(y, x.flat)
 
-        with open(self.filename, 'rb') as f:
-            count_items = len(self.x.flat) // 8
-            offset_items = len(self.x.flat) // 4
-            offset_bytes = self.dtype.itemsize * offset_items
-            y = np.fromfile(f, dtype=self.dtype, count=count_items, offset=offset_bytes)
-            assert_array_equal(y, self.x.flat[offset_items:offset_items+count_items])
+        with open(tmp_filename, 'rb') as f:
+            count_items = len(x.flat) // 8
+            offset_items = len(x.flat) // 4
+            offset_bytes = x.dtype.itemsize * offset_items
+            y = np.fromfile(
+                f, dtype=x.dtype, count=count_items, offset=offset_bytes
+            )
+            assert_array_equal(
+                y, x.flat[offset_items:offset_items+count_items]
+            )
 
             # subsequent seeks should stack
-            offset_bytes = self.dtype.itemsize
-            z = np.fromfile(f, dtype=self.dtype, offset=offset_bytes)
-            assert_array_equal(z, self.x.flat[offset_items+count_items+1:])
+            offset_bytes = x.dtype.itemsize
+            z = np.fromfile(f, dtype=x.dtype, offset=offset_bytes)
+            assert_array_equal(z, x.flat[offset_items+count_items+1:])
 
-        with open(self.filename, 'wb') as f:
-            self.x.tofile(f, sep=",")
+        with open(tmp_filename, 'wb') as f:
+            x.tofile(f, sep=",")
 
-        with open(self.filename, 'rb') as f:
+        with open(tmp_filename, 'rb') as f:
             assert_raises_regex(
                     TypeError,
                     "'offset' argument only permitted for binary files",
-                    np.fromfile, self.filename, dtype=self.dtype,
+                    np.fromfile, tmp_filename, dtype=x.dtype,
                     sep=",", offset=1)
 
-    def _check_from(self, s, value, **kw):
+    @pytest.mark.skipif(IS_PYPY, reason="bug in PyPy's PyNumber_AsSsize_t")
+    def test_fromfile_bad_dup(self, x, tmp_filename):
+        def dup_str(fd):
+            return 'abc'
+
+        def dup_bigint(fd):
+            return 2**68
+
+        old_dup = os.dup
+        try:
+            with open(tmp_filename, 'wb') as f:
+                x.tofile(f)
+                for dup, exc in ((dup_str, TypeError), (dup_bigint, OSError)):
+                    os.dup = dup
+                    assert_raises(exc, np.fromfile, f)
+        finally:
+            os.dup = old_dup
+
+    def _check_from(self, s, value, filename, **kw):
         if 'sep' not in kw:
             y = np.frombuffer(s, **kw)
         else:
             y = np.fromstring(s, **kw)
         assert_array_equal(y, value)
 
-        with open(self.filename, 'wb') as f:
+        with open(filename, 'wb') as f:
             f.write(s)
-        y = np.fromfile(self.filename, **kw)
+        y = np.fromfile(filename, **kw)
         assert_array_equal(y, value)
 
-    def test_nan(self):
+    @pytest.fixture(params=["period", "comma"])
+    def decimal_sep_localization(self, request):
+        """
+        Including this fixture in a test will automatically
+        execute it with both types of decimal separator.
+
+        So::
+
+            def test_decimal(decimal_sep_localization):
+                pass
+
+        is equivalent to the following two tests::
+
+            def test_decimal_period_separator():
+                pass
+
+            def test_decimal_comma_separator():
+                with CommaDecimalPointLocale():
+                    pass
+        """
+        if request.param == "period":
+            yield
+        elif request.param == "comma":
+            with CommaDecimalPointLocale():
+                yield
+        else:
+            assert False, request.param
+
+    def test_nan(self, tmp_filename, decimal_sep_localization):
         self._check_from(
             b"nan +nan -nan NaN nan(foo) +NaN(BAR) -NAN(q_u_u_x_)",
             [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+            tmp_filename,
             sep=' ')
 
-    def test_inf(self):
+    def test_inf(self, tmp_filename, decimal_sep_localization):
         self._check_from(
             b"inf +inf -inf infinity -Infinity iNfInItY -inF",
             [np.inf, np.inf, -np.inf, np.inf, -np.inf, np.inf, -np.inf],
+            tmp_filename,
             sep=' ')
 
-    def test_numbers(self):
-        self._check_from(b"1.234 -1.234 .3 .3e55 -123133.1231e+133",
-                         [1.234, -1.234, .3, .3e55, -123133.1231e+133], sep=' ')
+    def test_numbers(self, tmp_filename, decimal_sep_localization):
+        self._check_from(
+            b"1.234 -1.234 .3 .3e55 -123133.1231e+133",
+            [1.234, -1.234, .3, .3e55, -123133.1231e+133],
+            tmp_filename,
+            sep=' ')
 
-    def test_binary(self):
-        self._check_from(b'\x00\x00\x80?\x00\x00\x00@\x00\x00@@\x00\x00\x80@',
-                         np.array([1, 2, 3, 4]),
-                         dtype='<f4')
+    def test_binary(self, tmp_filename):
+        self._check_from(
+            b'\x00\x00\x80?\x00\x00\x00@\x00\x00@@\x00\x00\x80@',
+            np.array([1, 2, 3, 4]),
+            tmp_filename,
+            dtype='<f4')
 
     @pytest.mark.slow  # takes > 1 minute on mechanical hard drive
     def test_big_binary(self):
@@ -4958,91 +5161,89 @@ class TestIO:
         except (MemoryError, ValueError):
             pass
 
-    def test_string(self):
-        self._check_from(b'1,2,3,4', [1., 2., 3., 4.], sep=',')
+    def test_string(self, tmp_filename):
+        self._check_from(b'1,2,3,4', [1., 2., 3., 4.], tmp_filename, sep=',')
 
-    def test_counted_string(self):
-        self._check_from(b'1,2,3,4', [1., 2., 3., 4.], count=4, sep=',')
-        self._check_from(b'1,2,3,4', [1., 2., 3.], count=3, sep=',')
-        self._check_from(b'1,2,3,4', [1., 2., 3., 4.], count=-1, sep=',')
+    def test_counted_string(self, tmp_filename, decimal_sep_localization):
+        self._check_from(
+            b'1,2,3,4', [1., 2., 3., 4.], tmp_filename, count=4, sep=',')
+        self._check_from(
+            b'1,2,3,4', [1., 2., 3.], tmp_filename, count=3, sep=',')
+        self._check_from(
+            b'1,2,3,4', [1., 2., 3., 4.], tmp_filename, count=-1, sep=',')
 
-    def test_string_with_ws(self):
-        self._check_from(b'1 2  3     4   ', [1, 2, 3, 4], dtype=int, sep=' ')
+    def test_string_with_ws(self, tmp_filename):
+        self._check_from(
+            b'1 2  3     4   ', [1, 2, 3, 4], tmp_filename, dtype=int, sep=' ')
 
-    def test_counted_string_with_ws(self):
-        self._check_from(b'1 2  3     4   ', [1, 2, 3], count=3, dtype=int,
-                         sep=' ')
+    def test_counted_string_with_ws(self, tmp_filename):
+        self._check_from(
+            b'1 2  3     4   ', [1, 2, 3], tmp_filename, count=3, dtype=int,
+            sep=' ')
 
-    def test_ascii(self):
-        self._check_from(b'1 , 2 , 3 , 4', [1., 2., 3., 4.], sep=',')
-        self._check_from(b'1,2,3,4', [1., 2., 3., 4.], dtype=float, sep=',')
+    def test_ascii(self, tmp_filename, decimal_sep_localization):
+        self._check_from(
+            b'1 , 2 , 3 , 4', [1., 2., 3., 4.], tmp_filename, sep=',')
+        self._check_from(
+            b'1,2,3,4', [1., 2., 3., 4.], tmp_filename, dtype=float, sep=',')
 
-    def test_malformed(self):
+    def test_malformed(self, tmp_filename, decimal_sep_localization):
         with assert_warns(DeprecationWarning):
-            self._check_from(b'1.234 1,234', [1.234, 1.], sep=' ')
+            self._check_from(
+                b'1.234 1,234', [1.234, 1.], tmp_filename, sep=' ')
 
-    def test_long_sep(self):
-        self._check_from(b'1_x_3_x_4_x_5', [1, 3, 4, 5], sep='_x_')
+    def test_long_sep(self, tmp_filename):
+        self._check_from(
+            b'1_x_3_x_4_x_5', [1, 3, 4, 5], tmp_filename, sep='_x_')
 
-    def test_dtype(self):
+    def test_dtype(self, tmp_filename):
         v = np.array([1, 2, 3, 4], dtype=np.int_)
-        self._check_from(b'1,2,3,4', v, sep=',', dtype=np.int_)
+        self._check_from(b'1,2,3,4', v, tmp_filename, sep=',', dtype=np.int_)
 
-    def test_dtype_bool(self):
+    def test_dtype_bool(self, tmp_filename):
         # can't use _check_from because fromstring can't handle True/False
         v = np.array([True, False, True, False], dtype=np.bool_)
         s = b'1,0,-2.3,0'
-        with open(self.filename, 'wb') as f:
+        with open(tmp_filename, 'wb') as f:
             f.write(s)
-        y = np.fromfile(self.filename, sep=',', dtype=np.bool_)
+        y = np.fromfile(tmp_filename, sep=',', dtype=np.bool_)
         assert_(y.dtype == '?')
         assert_array_equal(y, v)
 
-    def test_tofile_sep(self):
+    def test_tofile_sep(self, tmp_filename, decimal_sep_localization):
         x = np.array([1.51, 2, 3.51, 4], dtype=float)
-        with open(self.filename, 'w') as f:
+        with open(tmp_filename, 'w') as f:
             x.tofile(f, sep=',')
-        with open(self.filename, 'r') as f:
+        with open(tmp_filename, 'r') as f:
             s = f.read()
         #assert_equal(s, '1.51,2.0,3.51,4.0')
         y = np.array([float(p) for p in s.split(',')])
         assert_array_equal(x,y)
 
-    def test_tofile_format(self):
+    def test_tofile_format(self, tmp_filename, decimal_sep_localization):
         x = np.array([1.51, 2, 3.51, 4], dtype=float)
-        with open(self.filename, 'w') as f:
+        with open(tmp_filename, 'w') as f:
             x.tofile(f, sep=',', format='%.2f')
-        with open(self.filename, 'r') as f:
+        with open(tmp_filename, 'r') as f:
             s = f.read()
         assert_equal(s, '1.51,2.00,3.51,4.00')
 
-    def test_tofile_cleanup(self):
+    def test_tofile_cleanup(self, tmp_filename):
         x = np.zeros((10), dtype=object)
-        with open(self.filename, 'wb') as f:
+        with open(tmp_filename, 'wb') as f:
             assert_raises(IOError, lambda: x.tofile(f, sep=''))
         # Dup-ed file handle should be closed or remove will fail on Windows OS
-        os.remove(self.filename)
+        os.remove(tmp_filename)
 
         # Also make sure that we close the Python handle
-        assert_raises(IOError, lambda: x.tofile(self.filename))
-        os.remove(self.filename)
+        assert_raises(IOError, lambda: x.tofile(tmp_filename))
+        os.remove(tmp_filename)
 
-    def test_locale(self):
-        with CommaDecimalPointLocale():
-            self.test_numbers()
-            self.test_nan()
-            self.test_inf()
-            self.test_counted_string()
-            self.test_ascii()
-            self.test_malformed()
-            self.test_tofile_sep()
-            self.test_tofile_format()
-
-    def test_fromfile_subarray_binary(self):
+    def test_fromfile_subarray_binary(self, tmp_filename):
         # Test subarray dtypes which are absorbed into the shape
         x = np.arange(24, dtype="i4").reshape(2, 3, 4)
-        x.tofile(self.filename)
-        res = np.fromfile(self.filename, dtype="(3,4)i4")
+        x.tofile(tmp_filename)
+        res = np.fromfile(tmp_filename, dtype="(3,4)i4")
         assert_array_equal(x, res)
 
         x_str = x.tobytes()
@@ -5051,21 +5252,21 @@ class TestIO:
             res = np.fromstring(x_str, dtype="(3,4)i4")
             assert_array_equal(x, res)
 
-    def test_parsing_subarray_unsupported(self):
+    def test_parsing_subarray_unsupported(self, tmp_filename):
         # We currently do not support parsing subarray dtypes
         data = "12,42,13," * 50
         with pytest.raises(ValueError):
             expected = np.fromstring(data, dtype="(3,)i", sep=",")
 
-        with open(self.filename, "w") as f:
+        with open(tmp_filename, "w") as f:
             f.write(data)
 
         with pytest.raises(ValueError):
-            np.fromfile(self.filename, dtype="(3,)i", sep=",")
+            np.fromfile(tmp_filename, dtype="(3,)i", sep=",")
 
-    def test_read_shorter_than_count_subarray(self):
+    def test_read_shorter_than_count_subarray(self, tmp_filename):
         # Test that requesting more values does not cause any problems
-        # in conjuction with subarray dimensions being absored into the
+        # in conjunction with subarray dimensions being absorbed into the
         # array dimension.
         expected = np.arange(511 * 10, dtype="i").reshape(-1, 10)
 
@@ -5074,8 +5275,8 @@ class TestIO:
             with pytest.warns(DeprecationWarning):
                 np.fromstring(binary, dtype="(10,)i", count=10000)
 
-        expected.tofile(self.filename)
-        res = np.fromfile(self.filename, dtype="(10,)i", count=10000)
+        expected.tofile(tmp_filename)
+        res = np.fromfile(tmp_filename, dtype="(10,)i", count=10000)
         assert_array_equal(res, expected)
 
 
@@ -5162,6 +5363,17 @@ class TestFlat:
                     pass
             assert_(abs(sys.getrefcount(ind) - rc_ind) < 50)
             assert_(abs(sys.getrefcount(indtype) - rc_indtype) < 50)
+
+    def test_index_getset(self):
+        it = np.arange(10).reshape(2, 1, 5).flat
+        with pytest.raises(AttributeError):
+            it.index = 10
+
+        for _ in it:
+            pass
+        # Check the value of `.index` is updated correctly (see also gh-19153)
+        # If the type was incorrect, this would show up on big-endian machines
+        assert it.index == it.base.size
 
 
 class TestResize:
@@ -5590,6 +5802,42 @@ class TestStats:
         with assert_raises(np.core._exceptions.AxisError):
             np.arange(10).mean(axis=2)
 
+    def test_mean_where(self):
+        a = np.arange(16).reshape((4, 4))
+        wh_full = np.array([[False, True, False, True],
+                            [True, False, True, False],
+                            [True, True, False, False],
+                            [False, False, True, True]])
+        wh_partial = np.array([[False],
+                               [True],
+                               [True],
+                               [False]])
+        _cases = [(1, True, [1.5, 5.5, 9.5, 13.5]),
+                  (0, wh_full, [6., 5., 10., 9.]),
+                  (1, wh_full, [2., 5., 8.5, 14.5]),
+                  (0, wh_partial, [6., 7., 8., 9.])]
+        for _ax, _wh, _res in _cases:
+            assert_allclose(a.mean(axis=_ax, where=_wh),
+                            np.array(_res))
+            assert_allclose(np.mean(a, axis=_ax, where=_wh),
+                            np.array(_res))
+
+        a3d = np.arange(16).reshape((2, 2, 4))
+        _wh_partial = np.array([False, True, True, False])
+        _res = [[1.5, 5.5], [9.5, 13.5]]
+        assert_allclose(a3d.mean(axis=2, where=_wh_partial),
+                        np.array(_res))
+        assert_allclose(np.mean(a3d, axis=2, where=_wh_partial),
+                        np.array(_res))
+
+        with pytest.warns(RuntimeWarning) as w:
+            assert_allclose(a.mean(axis=1, where=wh_partial),
+                            np.array([np.nan, 5.5, 9.5, np.nan]))
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(a.mean(where=False), np.nan)
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(np.mean(a, where=False), np.nan)
+
     def test_var_values(self):
         for mat in [self.rmat, self.cmat, self.omat]:
             for axis in [0, 1, None]:
@@ -5638,12 +5886,93 @@ class TestStats:
         with assert_raises(np.core._exceptions.AxisError):
             np.arange(10).var(axis=2)
 
+    def test_var_where(self):
+        a = np.arange(25).reshape((5, 5))
+        wh_full = np.array([[False, True, False, True, True],
+                            [True, False, True, True, False],
+                            [True, True, False, False, True],
+                            [False, True, True, False, True],
+                            [True, False, True, True, False]])
+        wh_partial = np.array([[False],
+                               [True],
+                               [True],
+                               [False],
+                               [True]])
+        _cases = [(0, True, [50., 50., 50., 50., 50.]),
+                  (1, True, [2., 2., 2., 2., 2.])]
+        for _ax, _wh, _res in _cases:
+            assert_allclose(a.var(axis=_ax, where=_wh),
+                            np.array(_res))
+            assert_allclose(np.var(a, axis=_ax, where=_wh),
+                            np.array(_res))
+
+        a3d = np.arange(16).reshape((2, 2, 4))
+        _wh_partial = np.array([False, True, True, False])
+        _res = [[0.25, 0.25], [0.25, 0.25]]
+        assert_allclose(a3d.var(axis=2, where=_wh_partial),
+                        np.array(_res))
+        assert_allclose(np.var(a3d, axis=2, where=_wh_partial),
+                        np.array(_res))
+
+        assert_allclose(np.var(a, axis=1, where=wh_full),
+                        np.var(a[wh_full].reshape((5, 3)), axis=1))
+        assert_allclose(np.var(a, axis=0, where=wh_partial),
+                        np.var(a[wh_partial[:,0]], axis=0))
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(a.var(where=False), np.nan)
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(np.var(a, where=False), np.nan)
+
     def test_std_values(self):
         for mat in [self.rmat, self.cmat, self.omat]:
             for axis in [0, 1, None]:
                 tgt = np.sqrt(_var(mat, axis=axis))
                 res = _std(mat, axis=axis)
                 assert_almost_equal(res, tgt)
+
+    def test_std_where(self):
+        a = np.arange(25).reshape((5,5))[::-1]
+        whf = np.array([[False, True, False, True, True],
+                        [True, False, True, False, True],
+                        [True, True, False, True, False],
+                        [True, False, True, True, False],
+                        [False, True, False, True, True]])
+        whp = np.array([[False],
+                        [False],
+                        [True],
+                        [True],
+                        [False]])
+        _cases = [
+            (0, True, 7.07106781*np.ones((5))),
+            (1, True, 1.41421356*np.ones((5))),
+            (0, whf,
+             np.array([4.0824829 , 8.16496581, 5., 7.39509973, 8.49836586])),
+            (0, whp, 2.5*np.ones((5)))
+        ]
+        for _ax, _wh, _res in _cases:
+            assert_allclose(a.std(axis=_ax, where=_wh), _res)
+            assert_allclose(np.std(a, axis=_ax, where=_wh), _res)
+
+        a3d = np.arange(16).reshape((2, 2, 4))
+        _wh_partial = np.array([False, True, True, False])
+        _res = [[0.5, 0.5], [0.5, 0.5]]
+        assert_allclose(a3d.std(axis=2, where=_wh_partial),
+                        np.array(_res))
+        assert_allclose(np.std(a3d, axis=2, where=_wh_partial),
+                        np.array(_res))
+
+        assert_allclose(a.std(axis=1, where=whf),
+                        np.std(a[whf].reshape((5,3)), axis=1))
+        assert_allclose(np.std(a, axis=1, where=whf),
+                        (a[whf].reshape((5,3))).std(axis=1))
+        assert_allclose(a.std(axis=0, where=whp),
+                        np.std(a[whp[:,0]], axis=0))
+        assert_allclose(np.std(a, axis=0, where=whp),
+                        (a[whp[:,0]]).std(axis=0))
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(a.std(where=False), np.nan)
+        with pytest.warns(RuntimeWarning) as w:
+            assert_equal(np.std(a, where=False), np.nan)
 
     def test_subclass(self):
         class TestArray(np.ndarray):
@@ -5663,6 +5992,7 @@ class TestStats:
         assert_(res.info == dat.info)
         res = dat.var(1)
         assert_(res.info == dat.info)
+
 
 class TestVdot:
     def test_basic(self):
@@ -5955,7 +6285,7 @@ class TestDot:
         s = aligned_array((100, 100), 15, np.float32)
         np.dot(s, m)  # this will always segfault if the bug is present
 
-        testdata = itertools.product((15,32), (10000,), (200,89), ('C','F'))
+        testdata = itertools.product((15, 32), (10000,), (200, 89), ('C', 'F'))
         for align, m, n, a_order in testdata:
             # Calculation in double precision
             A_d = np.random.rand(m, n)
@@ -5993,6 +6323,7 @@ class TestDot:
             assert_dot_close(A_f_12, X_f_2c, desired)
             # Strides in A cols and X
             assert_dot_close(A_f_12, X_f_2, desired)
+
 
 
 class MatmulCommon:
@@ -6245,6 +6576,16 @@ class TestMatmul(MatmulCommon):
             sup.filter(np.ComplexWarning, '')
             c = c.astype(tgt.dtype)
         assert_array_equal(c, tgt)
+
+    def test_empty_out(self):
+        # Check that the output cannot be broadcast, so that it cannot be
+        # size zero when the outer dimensions (iterator size) has size zero.
+        arr = np.ones((0, 1, 1))
+        out = np.ones((1, 1, 1))
+        assert self.matmul(arr, arr).shape == (0, 1, 1)
+
+        with pytest.raises(ValueError, match=r"non-broadcastable"):
+            self.matmul(arr, arr, out=out)
 
     def test_out_contiguous(self):
         a = np.ones((5, 2), dtype=float)
@@ -7076,7 +7417,7 @@ class TestNewBufferProtocol:
         self._check_roundtrip(x)
 
     def test_roundtrip_single_types(self):
-        for typ in np.typeDict.values():
+        for typ in np.sctypeDict.values():
             dtype = np.dtype(typ)
 
             if dtype.char in 'Mm':
@@ -7213,6 +7554,21 @@ class TestNewBufferProtocol:
                       _multiarray_tests.get_buffer_info,
                        np.arange(5)[::2], ('SIMPLE',))
 
+    @pytest.mark.parametrize(["obj", "error"], [
+            pytest.param(np.array([1, 2], dtype=rational), ValueError, id="array"),
+            pytest.param(rational(1, 2), TypeError, id="scalar")])
+    def test_export_and_pickle_user_dtype(self, obj, error):
+        # User dtypes should export successfully when FORMAT was not requested.
+        with pytest.raises(error):
+            _multiarray_tests.get_buffer_info(obj, ("STRIDED_RO", "FORMAT"))
+
+        _multiarray_tests.get_buffer_info(obj, ("STRIDED_RO",))
+
+        # This is currently also necessary to implement pickling:
+        pickle_obj = pickle.dumps(obj)
+        res = pickle.loads(pickle_obj)
+        assert_array_equal(res, obj)
+
     def test_padding(self):
         for j in range(8):
             x = np.array([(1,), (2,)], dtype={'f0': (int, j)})
@@ -7307,7 +7663,7 @@ class TestNewBufferProtocol:
             memoryview(arr)
 
     def test_max_dims(self):
-        a = np.empty((1,) * 32)
+        a = np.ones((1,) * 32)
         self._check_roundtrip(a)
 
     @pytest.mark.slow
@@ -7379,6 +7735,25 @@ class TestNewBufferProtocol:
         assert_equal(arr['b'], 2)
         f.a = 3
         assert_equal(arr['a'], 3)
+
+    @pytest.mark.parametrize("obj", [np.ones(3), np.ones(1, dtype="i,i")[()]])
+    def test_error_if_stored_buffer_info_is_corrupted(self, obj):
+        """
+        If a user extends a NumPy array before 1.20 and then runs it
+        on NumPy 1.20+. A C-subclassed array might in theory modify
+        the new buffer-info field. This checks that an error is raised
+        if this happens (for buffer export), an error is written on delete.
+        This is a sanity check to help users transition to safe code, it
+        may be deleted at any point.
+        """
+        # corrupt buffer info:
+        _multiarray_tests.corrupt_or_fix_bufferinfo(obj)
+        name = type(obj)
+        with pytest.raises(RuntimeError,
+                    match=f".*{name} appears to be C subclassed"):
+            memoryview(obj)
+        # Fix buffer info again before we delete (or we lose the memory)
+        _multiarray_tests.corrupt_or_fix_bufferinfo(obj)
 
 
 class TestArrayAttributeDeletion:
@@ -7515,6 +7890,18 @@ def test_array_interface_offset():
 
     arr1 = np.asarray(DummyArray())
     assert_equal(arr1, arr[1:])
+
+def test_array_interface_unicode_typestr():
+    arr = np.array([1, 2, 3], dtype='int32')
+    interface = dict(arr.__array_interface__)
+    interface['typestr'] = '\N{check mark}'
+
+    class DummyArray:
+        __array_interface__ = interface
+
+    # should not be UnicodeEncodeError
+    with pytest.raises(TypeError):
+        np.asarray(DummyArray())
 
 def test_flat_element_deletion():
     it = np.ones(3).flat
@@ -8296,6 +8683,22 @@ class TestArange:
         assert_raises(ZeroDivisionError, np.arange, 0, 0, 0)
         assert_raises(ZeroDivisionError, np.arange, 0.0, 0.0, 0.0)
 
+    def test_require_range(self):
+        assert_raises(TypeError, np.arange)
+        assert_raises(TypeError, np.arange, step=3)
+        assert_raises(TypeError, np.arange, dtype='int64')
+        assert_raises(TypeError, np.arange, start=4)
+
+    def test_start_stop_kwarg(self):
+        keyword_stop = np.arange(stop=3)
+        keyword_zerotostop = np.arange(start=0, stop=3)
+        keyword_start_stop = np.arange(start=3, stop=9)
+
+        assert len(keyword_stop) == 3
+        assert len(keyword_zerotostop) == 3
+        assert len(keyword_start_stop) == 6
+        assert_array_equal(keyword_stop, keyword_zerotostop)
+
 
 class TestArrayFinalize:
     """ Tests __array_finalize__ """
@@ -8308,6 +8711,15 @@ class TestArrayFinalize:
 
         a = np.array(1).view(SavesBase)
         assert_(a.saved_base is a.base)
+
+    def test_bad_finalize(self):
+        class BadAttributeArray(np.ndarray):
+            @property
+            def __array_finalize__(self):
+                raise RuntimeError("boohoo!")
+
+        with pytest.raises(RuntimeError, match="boohoo!"):
+            np.arange(10).view(BadAttributeArray)
 
     def test_lifetime_on_error(self):
         # gh-11237
@@ -8376,23 +8788,22 @@ def test_equal_override():
         assert_equal(array != my_always_equal, 'ne')
 
 
-def test_npymath_complex():
+@pytest.mark.parametrize(
+    ["fun", "npfun"],
+    [
+        (_multiarray_tests.npy_cabs, np.absolute),
+        (_multiarray_tests.npy_carg, np.angle)
+    ]
+)
+@pytest.mark.parametrize("x", [1, np.inf, -np.inf, np.nan])
+@pytest.mark.parametrize("y", [1, np.inf, -np.inf, np.nan])
+@pytest.mark.parametrize("test_dtype", np.complexfloating.__subclasses__())
+def test_npymath_complex(fun, npfun, x, y, test_dtype):
     # Smoketest npymath functions
-    from numpy.core._multiarray_tests import (
-        npy_cabs, npy_carg)
-
-    funcs = {npy_cabs: np.absolute,
-             npy_carg: np.angle}
-    vals = (1, np.inf, -np.inf, np.nan)
-    types = (np.complex64, np.complex128, np.clongdouble)
-
-    for fun, npfun in funcs.items():
-        for x, y in itertools.product(vals, vals):
-            for t in types:
-                z = t(complex(x, y))
-                got = fun(z)
-                expected = npfun(z)
-                assert_allclose(got, expected)
+    z = test_dtype(complex(x, y))
+    got = fun(z)
+    expected = npfun(z)
+    assert_allclose(got, expected)
 
 
 def test_npymath_real():

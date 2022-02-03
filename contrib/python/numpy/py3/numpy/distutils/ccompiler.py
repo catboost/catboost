@@ -21,15 +21,14 @@ from numpy.distutils import log
 from numpy.distutils.exec_command import (
     filepath_from_subprocess_output, forward_bytes_to_stdout
 )
-from numpy.distutils.misc_util import cyg2win32, is_sequence, mingw32, \
-                                      get_num_build_jobs, \
-                                      _commandline_dep_string
+from numpy.distutils.misc_util import (
+        cyg2win32, is_sequence, mingw32, get_num_build_jobs,
+        _commandline_dep_string, sanitize_cxx_flags
+)
 
 # globals for parallel build management
-try:
-    import threading
-except ImportError:
-    import dummy_threading as threading
+import threading
+
 _job_semaphore = None
 _global_lock = threading.Lock()
 _processing_files = set()
@@ -145,12 +144,18 @@ def CCompiler_spawn(self, cmd, display=None):
     except subprocess.CalledProcessError as exc:
         o = exc.output
         s = exc.returncode
-    except OSError:
+    except OSError as e:
         # OSError doesn't have the same hooks for the exception
         # output, but exec_command() historically would use an
         # empty string for EnvironmentError (base class for
         # OSError)
-        o = b''
+        # o = b''
+        # still that would make the end-user lost in translation!
+        o = f"\n\n{e}\n\n\n"
+        try:
+            o = o.encode(sys.stdout.encoding)
+        except AttributeError:
+            o = o.encode('utf8')
         # status previously used by exec_command() for parent
         # of OSError
         s = 127
@@ -386,6 +391,12 @@ def CCompiler_customize_cmd(self, cmd, ignore=()):
     """
     log.info('customize %s using %s' % (self.__class__.__name__,
                                         cmd.__class__.__name__))
+
+    if hasattr(self, 'compiler') and 'clang' in self.compiler[0]:
+        # clang defaults to a non-strict floating error point model.
+        # Since NumPy and most Python libs give warnings for these, override:
+        self.compiler.append('-ffp-exception-behavior=strict')
+
     def allow(attr):
         return getattr(cmd, attr, None) is not None and attr not in ignore
 
@@ -443,14 +454,6 @@ def CCompiler_show_customization(self):
     Printing is only done if the distutils log threshold is < 2.
 
     """
-    if 0:
-        for attrname in ['include_dirs', 'define', 'undef',
-                         'libraries', 'library_dirs',
-                         'rpath', 'link_objects']:
-            attr = getattr(self, attrname, None)
-            if not attr:
-                continue
-            log.info("compiler '%s' is set to %s" % (attrname, attr))
     try:
         self.get_version()
     except Exception:
@@ -680,7 +683,10 @@ def CCompiler_cxx_compiler(self):
         return self
 
     cxx = copy(self)
-    cxx.compiler_so = [cxx.compiler_cxx[0]] + cxx.compiler_so[1:]
+    cxx.compiler_cxx = cxx.compiler_cxx
+    cxx.compiler_so = [cxx.compiler_cxx[0]] + \
+                      sanitize_cxx_flags(cxx.compiler_so[1:])
+    #cxx.compiler_so = [cxx.compiler_cxx[0]] + cxx.compiler_so[1:]
     if sys.platform.startswith('aix') and 'ld_so_aix' in cxx.linker_so[0]:
         # AIX needs the ld_so_aix script included with Python
         cxx.linker_so = [cxx.linker_so[0], cxx.compiler_cxx[0]] \

@@ -8,6 +8,7 @@ Support code for building Python extensions on Windows.
 
 """
 import os
+import platform
 import sys
 import subprocess
 import re
@@ -265,16 +266,19 @@ def find_python_dll():
 
     # search in the file system for possible candidates
     major_version, minor_version = tuple(sys.version_info[:2])
-    patterns = ['python%d%d.dll']
-
-    for pat in patterns:
-        dllname = pat % (major_version, minor_version)
-        print("Looking for %s" % dllname)
-        for folder in lib_dirs:
-            dll = os.path.join(folder, dllname)
-            if os.path.exists(dll):
-                return dll
-
+    implementation = platform.python_implementation()
+    if implementation == 'CPython':
+        dllname = f'python{major_version}{minor_version}.dll'
+    elif implementation == 'PyPy':
+        dllname = f'libpypy{major_version}-c.dll'
+    else:
+        dllname = 'Unknown platform {implementation}' 
+    print("Looking for %s" % dllname)
+    for folder in lib_dirs:
+        dll = os.path.join(folder, dllname)
+        if os.path.exists(dll):
+            return dll
+ 
     raise ValueError("%s not found in %s" % (dllname, lib_dirs))
 
 def dump_table(dll):
@@ -562,7 +566,7 @@ def msvc_manifest_xml(maj, min):
         fullver = _MSVCRVER_TO_FULLVER[str(maj * 10 + min)]
     except KeyError:
         raise ValueError("Version %d,%d of MSVCRT not supported yet" %
-                         (maj, min))
+                         (maj, min)) from None
     # Don't be fooled, it looks like an XML, but it is not. In particular, it
     # should not have any space before starting, and its size should be
     # divisible by 4, most likely for alignment constraints when the xml is
@@ -643,11 +647,9 @@ def generate_manifest(config):
     if msver is not None:
         if msver >= 8:
             check_embedded_msvcr_match_linked(msver)
-            ma = int(msver)
-            mi = int((msver - ma) * 10)
+            ma_str, mi_str = str(msver).split('.')
             # Write the manifest file
-            manxml = msvc_manifest_xml(ma, mi)
-            man = open(manifest_name(config), "w")
-            config.temp_files.append(manifest_name(config))
-            man.write(manxml)
-            man.close()
+            manxml = msvc_manifest_xml(int(ma_str), int(mi_str))
+            with open(manifest_name(config), "w") as man:
+                config.temp_files.append(manifest_name(config))
+                man.write(manxml)

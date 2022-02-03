@@ -8,8 +8,8 @@ from numpy.testing import (assert_equal, assert_allclose, assert_array_equal,
 import pytest
 
 from numpy.random import (
-    Generator, MT19937, PCG64, Philox, RandomState, SeedSequence, SFC64,
-    default_rng
+    Generator, MT19937, PCG64, PCG64DXSM, Philox, RandomState, SeedSequence,
+    SFC64, default_rng
 )
 from numpy.random._common import interface
 
@@ -31,6 +31,7 @@ if sys.flags.optimize > 1:
     # no docstrings present to inspect when PYTHONOPTIMIZE/Py_OptimizeFlag > 1
     # cffi cannot succeed
     MISSING_CFFI = True
+
 
 import yatest.common
 pwd = yatest.common.source_path('contrib/python/numpy/py3/numpy/random/tests')
@@ -230,13 +231,13 @@ class Base:
     def test_repr(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
         assert 'Generator' in repr(rs)
-        assert '{:#x}'.format(id(rs)).upper().replace('X', 'x') in repr(rs)
+        assert f'{id(rs):#x}'.upper().replace('X', 'x') in repr(rs)
 
     def test_str(self):
         rs = Generator(self.bit_generator(*self.data1['seed']))
         assert 'Generator' in str(rs)
         assert str(self.bit_generator.__name__) in str(rs)
-        assert '{:#x}'.format(id(rs)).upper().replace('X', 'x') not in str(rs)
+        assert f'{id(rs):#x}'.upper().replace('X', 'x') not in str(rs)
 
     def test_pickle(self):
         import pickle
@@ -357,6 +358,56 @@ class TestPCG64(Base):
         val_big = rs.integers(10)
         assert val_neg == val_pos
         assert val_big == val_pos
+
+    def test_advange_large(self):
+        rs = Generator(self.bit_generator(38219308213743))
+        pcg = rs.bit_generator
+        state = pcg.state["state"]
+        initial_state = 287608843259529770491897792873167516365
+        assert state["state"] == initial_state
+        pcg.advance(sum(2**i for i in (96, 64, 32, 16, 8, 4, 2, 1)))
+        state = pcg.state["state"]
+        advanced_state = 135275564607035429730177404003164635391
+        assert state["state"] == advanced_state
+
+
+class TestPCG64DXSM(Base):
+    @classmethod
+    def setup_class(cls):
+        cls.bit_generator = PCG64DXSM
+        cls.bits = 64
+        cls.dtype = np.uint64
+        cls.data1 = cls._read_csv(join(pwd, './data/pcg64dxsm-testset-1.csv'))
+        cls.data2 = cls._read_csv(join(pwd, './data/pcg64dxsm-testset-2.csv'))
+        cls.seed_error_type = (ValueError, TypeError)
+        cls.invalid_init_types = [(3.2,), ([None],), (1, None)]
+        cls.invalid_init_values = [(-1,)]
+
+    def test_advance_symmetry(self):
+        rs = Generator(self.bit_generator(*self.data1['seed']))
+        state = rs.bit_generator.state
+        step = -0x9e3779b97f4a7c150000000000000000
+        rs.bit_generator.advance(step)
+        val_neg = rs.integers(10)
+        rs.bit_generator.state = state
+        rs.bit_generator.advance(2**128 + step)
+        val_pos = rs.integers(10)
+        rs.bit_generator.state = state
+        rs.bit_generator.advance(10 * 2**128 + step)
+        val_big = rs.integers(10)
+        assert val_neg == val_pos
+        assert val_big == val_pos
+
+    def test_advange_large(self):
+        rs = Generator(self.bit_generator(38219308213743))
+        pcg = rs.bit_generator
+        state = pcg.state
+        initial_state = 287608843259529770491897792873167516365
+        assert state["state"]["state"] == initial_state
+        pcg.advance(sum(2**i for i in (96, 64, 32, 16, 8, 4, 2, 1)))
+        state = pcg.state["state"]
+        advanced_state = 277778083536782149546677086420637664879
+        assert state["state"] == advanced_state
 
 
 class TestMT19937(Base):

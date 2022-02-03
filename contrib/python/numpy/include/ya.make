@@ -11,7 +11,6 @@ ADDINCL(
     GLOBAL contrib/python/numpy/include/numpy/core/src/npymath
     GLOBAL FOR cython contrib/python/numpy/include/numpy/core/include
     GLOBAL FOR cython contrib/python/numpy/include/numpy/core/include/numpy
-
 )
 
 END()

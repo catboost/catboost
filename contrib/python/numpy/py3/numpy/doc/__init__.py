@@ -3,18 +3,7 @@ import os
 ref_dir = os.path.join(os.path.dirname(__file__))
 
 __all__ = [
-    "basics",
-    "broadcasting",
-    "byteswapping",
     "constants",
-    "creation",
-    "dispatch",
-    "glossary",
-    "indexing",
-    "internals",
-    "misc",
-    "structured_arrays",
-    "subclassing",
     "ufuncs",
 ]
 

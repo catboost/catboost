@@ -273,7 +273,7 @@ dumb_select_bool(npy_bool *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_bool(npy_bool *v,
 #if 0
                          npy_intp* tosort,
@@ -316,7 +316,8 @@ introselect_bool(npy_bool *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -601,7 +602,7 @@ adumb_select_bool(npy_bool *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_bool(npy_bool *v,
 #if 1
                          npy_intp* tosort,
@@ -644,7 +645,8 @@ aintroselect_bool(npy_bool *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -943,7 +945,7 @@ dumb_select_byte(npy_byte *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_byte(npy_byte *v,
 #if 0
                          npy_intp* tosort,
@@ -986,7 +988,8 @@ introselect_byte(npy_byte *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -1271,7 +1274,7 @@ adumb_select_byte(npy_byte *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_byte(npy_byte *v,
 #if 1
                          npy_intp* tosort,
@@ -1314,7 +1317,8 @@ aintroselect_byte(npy_byte *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -1613,7 +1617,7 @@ dumb_select_ubyte(npy_ubyte *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_ubyte(npy_ubyte *v,
 #if 0
                          npy_intp* tosort,
@@ -1656,7 +1660,8 @@ introselect_ubyte(npy_ubyte *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -1941,7 +1946,7 @@ adumb_select_ubyte(npy_ubyte *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_ubyte(npy_ubyte *v,
 #if 1
                          npy_intp* tosort,
@@ -1984,7 +1989,8 @@ aintroselect_ubyte(npy_ubyte *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -2283,7 +2289,7 @@ dumb_select_short(npy_short *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_short(npy_short *v,
 #if 0
                          npy_intp* tosort,
@@ -2326,7 +2332,8 @@ introselect_short(npy_short *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -2611,7 +2618,7 @@ adumb_select_short(npy_short *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_short(npy_short *v,
 #if 1
                          npy_intp* tosort,
@@ -2654,7 +2661,8 @@ aintroselect_short(npy_short *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -2953,7 +2961,7 @@ dumb_select_ushort(npy_ushort *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_ushort(npy_ushort *v,
 #if 0
                          npy_intp* tosort,
@@ -2996,7 +3004,8 @@ introselect_ushort(npy_ushort *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -3281,7 +3290,7 @@ adumb_select_ushort(npy_ushort *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_ushort(npy_ushort *v,
 #if 1
                          npy_intp* tosort,
@@ -3324,7 +3333,8 @@ aintroselect_ushort(npy_ushort *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -3623,7 +3633,7 @@ dumb_select_int(npy_int *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_int(npy_int *v,
 #if 0
                          npy_intp* tosort,
@@ -3666,7 +3676,8 @@ introselect_int(npy_int *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -3951,7 +3962,7 @@ adumb_select_int(npy_int *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_int(npy_int *v,
 #if 1
                          npy_intp* tosort,
@@ -3994,7 +4005,8 @@ aintroselect_int(npy_int *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -4293,7 +4305,7 @@ dumb_select_uint(npy_uint *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_uint(npy_uint *v,
 #if 0
                          npy_intp* tosort,
@@ -4336,7 +4348,8 @@ introselect_uint(npy_uint *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -4621,7 +4634,7 @@ adumb_select_uint(npy_uint *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_uint(npy_uint *v,
 #if 1
                          npy_intp* tosort,
@@ -4664,7 +4677,8 @@ aintroselect_uint(npy_uint *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -4963,7 +4977,7 @@ dumb_select_long(npy_long *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_long(npy_long *v,
 #if 0
                          npy_intp* tosort,
@@ -5006,7 +5020,8 @@ introselect_long(npy_long *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -5291,7 +5306,7 @@ adumb_select_long(npy_long *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_long(npy_long *v,
 #if 1
                          npy_intp* tosort,
@@ -5334,7 +5349,8 @@ aintroselect_long(npy_long *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -5633,7 +5649,7 @@ dumb_select_ulong(npy_ulong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_ulong(npy_ulong *v,
 #if 0
                          npy_intp* tosort,
@@ -5676,7 +5692,8 @@ introselect_ulong(npy_ulong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -5961,7 +5978,7 @@ adumb_select_ulong(npy_ulong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_ulong(npy_ulong *v,
 #if 1
                          npy_intp* tosort,
@@ -6004,7 +6021,8 @@ aintroselect_ulong(npy_ulong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -6303,7 +6321,7 @@ dumb_select_longlong(npy_longlong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_longlong(npy_longlong *v,
 #if 0
                          npy_intp* tosort,
@@ -6346,7 +6364,8 @@ introselect_longlong(npy_longlong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -6631,7 +6650,7 @@ adumb_select_longlong(npy_longlong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_longlong(npy_longlong *v,
 #if 1
                          npy_intp* tosort,
@@ -6674,7 +6693,8 @@ aintroselect_longlong(npy_longlong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -6973,7 +6993,7 @@ dumb_select_ulonglong(npy_ulonglong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_ulonglong(npy_ulonglong *v,
 #if 0
                          npy_intp* tosort,
@@ -7016,7 +7036,8 @@ introselect_ulonglong(npy_ulonglong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -7301,7 +7322,7 @@ adumb_select_ulonglong(npy_ulonglong *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_ulonglong(npy_ulonglong *v,
 #if 1
                          npy_intp* tosort,
@@ -7344,7 +7365,8 @@ aintroselect_ulonglong(npy_ulonglong *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (0 && kth == num - 1) {
+    // Parenthesis around 0 tells clang dead code as intentional
+    else if ((0) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -7643,7 +7665,7 @@ dumb_select_half(npy_ushort *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_half(npy_ushort *v,
 #if 0
                          npy_intp* tosort,
@@ -7686,7 +7708,8 @@ introselect_half(npy_ushort *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -7971,7 +7994,7 @@ adumb_select_half(npy_ushort *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_half(npy_ushort *v,
 #if 1
                          npy_intp* tosort,
@@ -8014,7 +8037,8 @@ aintroselect_half(npy_ushort *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -8313,7 +8337,7 @@ dumb_select_float(npy_float *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_float(npy_float *v,
 #if 0
                          npy_intp* tosort,
@@ -8356,7 +8380,8 @@ introselect_float(npy_float *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -8641,7 +8666,7 @@ adumb_select_float(npy_float *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_float(npy_float *v,
 #if 1
                          npy_intp* tosort,
@@ -8684,7 +8709,8 @@ aintroselect_float(npy_float *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -8983,7 +9009,7 @@ dumb_select_double(npy_double *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_double(npy_double *v,
 #if 0
                          npy_intp* tosort,
@@ -9026,7 +9052,8 @@ introselect_double(npy_double *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -9311,7 +9338,7 @@ adumb_select_double(npy_double *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_double(npy_double *v,
 #if 1
                          npy_intp* tosort,
@@ -9354,7 +9381,8 @@ aintroselect_double(npy_double *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -9653,7 +9681,7 @@ dumb_select_longdouble(npy_longdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_longdouble(npy_longdouble *v,
 #if 0
                          npy_intp* tosort,
@@ -9696,7 +9724,8 @@ introselect_longdouble(npy_longdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -9981,7 +10010,7 @@ adumb_select_longdouble(npy_longdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_longdouble(npy_longdouble *v,
 #if 1
                          npy_intp* tosort,
@@ -10024,7 +10053,8 @@ aintroselect_longdouble(npy_longdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -10323,7 +10353,7 @@ dumb_select_cfloat(npy_cfloat *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_cfloat(npy_cfloat *v,
 #if 0
                          npy_intp* tosort,
@@ -10366,7 +10396,8 @@ introselect_cfloat(npy_cfloat *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -10651,7 +10682,7 @@ adumb_select_cfloat(npy_cfloat *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_cfloat(npy_cfloat *v,
 #if 1
                          npy_intp* tosort,
@@ -10694,7 +10725,8 @@ aintroselect_cfloat(npy_cfloat *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -10993,7 +11025,7 @@ dumb_select_cdouble(npy_cdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_cdouble(npy_cdouble *v,
 #if 0
                          npy_intp* tosort,
@@ -11036,7 +11068,8 @@ introselect_cdouble(npy_cdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -11321,7 +11354,7 @@ adumb_select_cdouble(npy_cdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_cdouble(npy_cdouble *v,
 #if 1
                          npy_intp* tosort,
@@ -11364,7 +11397,8 @@ aintroselect_cdouble(npy_cdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -11663,7 +11697,7 @@ dumb_select_clongdouble(npy_clongdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 introselect_clongdouble(npy_clongdouble *v,
 #if 0
                          npy_intp* tosort,
@@ -11706,7 +11740,8 @@ introselect_clongdouble(npy_clongdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;
@@ -11991,7 +12026,7 @@ adumb_select_clongdouble(npy_clongdouble *v,
  * kth 8:   0  1  2  3  4  5  6 [8  7] -> stack []
  *
  */
-int
+NPY_NO_EXPORT int
 aintroselect_clongdouble(npy_clongdouble *v,
 #if 1
                          npy_intp* tosort,
@@ -12034,7 +12069,8 @@ aintroselect_clongdouble(npy_clongdouble *v,
         store_pivot(kth, kth, pivots, npiv);
         return 0;
     }
-    else if (1 && kth == num - 1) {
+    // Parenthesis around 1 tells clang dead code as intentional
+    else if ((1) && kth == num - 1) {
         /* useful to check if NaN present via partition(d, (x, -1)) */
         npy_intp k;
         npy_intp maxidx = low;

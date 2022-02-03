@@ -52,7 +52,7 @@
 
 
 
-npy_intp compute_min_run(npy_intp num)
+static npy_intp compute_min_run(npy_intp num)
 {
     npy_intp r = 0;
 
@@ -474,7 +474,7 @@ force_collapse_bool(npy_bool *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_bool(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -505,9 +505,7 @@ timsort_bool(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -852,7 +850,7 @@ aforce_collapse_bool(npy_bool *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_bool(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -1259,7 +1257,7 @@ force_collapse_byte(npy_byte *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_byte(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -1290,9 +1288,7 @@ timsort_byte(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -1637,7 +1633,7 @@ aforce_collapse_byte(npy_byte *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_byte(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -2044,7 +2040,7 @@ force_collapse_ubyte(npy_ubyte *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_ubyte(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -2075,9 +2071,7 @@ timsort_ubyte(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -2422,7 +2416,7 @@ aforce_collapse_ubyte(npy_ubyte *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_ubyte(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -2829,7 +2823,7 @@ force_collapse_short(npy_short *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_short(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -2860,9 +2854,7 @@ timsort_short(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -3207,7 +3199,7 @@ aforce_collapse_short(npy_short *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_short(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -3614,7 +3606,7 @@ force_collapse_ushort(npy_ushort *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_ushort(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -3645,9 +3637,7 @@ timsort_ushort(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -3992,7 +3982,7 @@ aforce_collapse_ushort(npy_ushort *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_ushort(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -4399,7 +4389,7 @@ force_collapse_int(npy_int *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_int(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -4430,9 +4420,7 @@ timsort_int(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -4777,7 +4765,7 @@ aforce_collapse_int(npy_int *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_int(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -5184,7 +5172,7 @@ force_collapse_uint(npy_uint *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_uint(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -5215,9 +5203,7 @@ timsort_uint(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -5562,7 +5548,7 @@ aforce_collapse_uint(npy_uint *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_uint(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -5969,7 +5955,7 @@ force_collapse_long(npy_long *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_long(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -6000,9 +5986,7 @@ timsort_long(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -6347,7 +6331,7 @@ aforce_collapse_long(npy_long *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_long(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -6754,7 +6738,7 @@ force_collapse_ulong(npy_ulong *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_ulong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -6785,9 +6769,7 @@ timsort_ulong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -7132,7 +7114,7 @@ aforce_collapse_ulong(npy_ulong *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_ulong(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -7539,7 +7521,7 @@ force_collapse_longlong(npy_longlong *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_longlong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -7570,9 +7552,7 @@ timsort_longlong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -7917,7 +7897,7 @@ aforce_collapse_longlong(npy_longlong *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_longlong(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -8324,7 +8304,7 @@ force_collapse_ulonglong(npy_ulonglong *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_ulonglong(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -8355,9 +8335,7 @@ timsort_ulonglong(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -8702,7 +8680,7 @@ aforce_collapse_ulonglong(npy_ulonglong *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_ulonglong(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -9109,7 +9087,7 @@ force_collapse_half(npy_ushort *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_half(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -9140,9 +9118,7 @@ timsort_half(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -9487,7 +9463,7 @@ aforce_collapse_half(npy_ushort *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_half(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -9894,7 +9870,7 @@ force_collapse_float(npy_float *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_float(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -9925,9 +9901,7 @@ timsort_float(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -10272,7 +10246,7 @@ aforce_collapse_float(npy_float *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_float(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -10679,7 +10653,7 @@ force_collapse_double(npy_double *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_double(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -10710,9 +10684,7 @@ timsort_double(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -11057,7 +11029,7 @@ aforce_collapse_double(npy_double *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_double(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -11464,7 +11436,7 @@ force_collapse_longdouble(npy_longdouble *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_longdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -11495,9 +11467,7 @@ timsort_longdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -11842,7 +11812,7 @@ aforce_collapse_longdouble(npy_longdouble *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_longdouble(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -12249,7 +12219,7 @@ force_collapse_cfloat(npy_cfloat *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_cfloat(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -12280,9 +12250,7 @@ timsort_cfloat(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -12627,7 +12595,7 @@ aforce_collapse_cfloat(npy_cfloat *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_cfloat(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -13034,7 +13002,7 @@ force_collapse_cdouble(npy_cdouble *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_cdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -13065,9 +13033,7 @@ timsort_cdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -13412,7 +13378,7 @@ aforce_collapse_cdouble(npy_cdouble *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_cdouble(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -13819,7 +13785,7 @@ force_collapse_clongdouble(npy_clongdouble *arr, run *stack, npy_intp *stack_ptr
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_clongdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -13850,9 +13816,7 @@ timsort_clongdouble(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -14197,7 +14161,7 @@ aforce_collapse_clongdouble(npy_clongdouble *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_clongdouble(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -14604,7 +14568,7 @@ force_collapse_datetime(npy_datetime *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_datetime(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -14635,9 +14599,7 @@ timsort_datetime(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -14982,7 +14944,7 @@ aforce_collapse_datetime(npy_datetime *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_datetime(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -15389,7 +15351,7 @@ force_collapse_timedelta(npy_timedelta *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_timedelta(void *start, npy_intp num, void *NPY_UNUSED(varr))
 {
     int ret;
@@ -15420,9 +15382,7 @@ timsort_timedelta(void *start, npy_intp num, void *NPY_UNUSED(varr))
     ret = 0;
 cleanup:
 
-    if (buffer.pw != NULL) {
-        free(buffer.pw);
-    }
+    free(buffer.pw);
 
     return ret;
 }
@@ -15767,7 +15727,7 @@ aforce_collapse_timedelta(npy_timedelta *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_timedelta(void *v, npy_intp *tosort, npy_intp num,
                 void *NPY_UNUSED(varr))
 {
@@ -15817,7 +15777,7 @@ cleanup:
  * run length to reduce the cost of insertion sort.
  */
 
-npy_intp compute_min_run_short(npy_intp num)
+static npy_intp compute_min_run_short(npy_intp num)
 {
     npy_intp r = 0;
 
@@ -15836,7 +15796,7 @@ npy_intp compute_min_run_short(npy_intp num)
  */
 
 
-#line 932
+#line 930
 
 
 typedef struct {
@@ -16211,7 +16171,7 @@ force_collapse_string(npy_char *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_string(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -16599,7 +16559,7 @@ aforce_collapse_string(npy_char *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_string(void *start, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -16648,7 +16608,7 @@ cleanup:
 
 
 
-#line 932
+#line 930
 
 
 typedef struct {
@@ -17023,7 +16983,7 @@ force_collapse_unicode(npy_ucs4 *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 timsort_unicode(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -17411,7 +17371,7 @@ aforce_collapse_unicode(npy_ucs4 *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 atimsort_unicode(void *start, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -17848,7 +17808,7 @@ npy_force_collapse(char *arr, run *stack, npy_intp *stack_ptr,
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_timsort(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -18244,7 +18204,7 @@ npy_aforce_collapse(char *arr, npy_intp *tosort, run *stack,
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_atimsort(void *start, npy_intp *tosort, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;

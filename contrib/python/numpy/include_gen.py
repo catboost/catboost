@@ -47,6 +47,10 @@ def list_subpaths(subpaths, roots=('py2', 'py3'), test=is_header):
                 for filename in filenames:
                     if test(filename):
                         seen.add(join(rootrel, filename))
+                    if dirpath.endswith('numpy/core/src/umath') and filename == 'funcs.inc':
+                        seen.add(join(rootrel, filename))
+                    if dirpath.endswith('numpy/core/include/numpy') and filename in ('__multiarray_api.c', '__ufunc_api.c', '__umath_generated.c'):
+                        seen.add(join(rootrel, filename))
     return seen
 
 

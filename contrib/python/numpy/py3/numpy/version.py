@@ -1,12 +1,12 @@
+from ._version import get_versions
 
-# THIS FILE IS GENERATED FROM NUMPY SETUP.PY
-#
-# To compare versions robustly, use `numpy.lib.NumpyVersion`
-short_version = '1.19.5'
-version = '1.19.5'
-full_version = '1.19.5'
-git_revision = '8f4b73a0d04f7bebb06a154b43e5ef5b5980052f'
-release = True
+__ALL__ = ['version', 'full_version', 'git_revision', 'release']
 
-if not release:
-    version = full_version
+vinfo = get_versions()
+version: str = vinfo["version"]
+full_version: str = vinfo['version']
+git_revision: str = vinfo['full-revisionid']
+release = 'dev0' not in version and '+' not in version
+short_version: str = vinfo['version'].split("+")[0]
+
+del get_versions, vinfo
