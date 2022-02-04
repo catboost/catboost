@@ -141,7 +141,6 @@ ALLOW dict/ontodb/tools/fields_diff/lib -> contrib/python/MySQL-python
 ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
 ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
-ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
 ALLOW passport/backend/social -> contrib/python/MySQL-python
 ALLOW passport/infra/daemons/yasmsapi/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
