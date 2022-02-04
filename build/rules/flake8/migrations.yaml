@@ -1718,7 +1718,6 @@ migrations:
     - billing/contrib/yutil/src
     - billing/ift/src
     - billing/library/recipes/pg
-    - billing/library/tools/baf
     - billing/log_tariffication/maintenance
     - billing/mdh/src
     - billing/refs/src
