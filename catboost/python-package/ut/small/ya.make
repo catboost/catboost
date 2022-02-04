@@ -16,6 +16,7 @@ PEERDIR(
 
 TEST_SRCS(
     test_pyx_funcs.py
+    test_utils.py
 )
 
 DATA(
