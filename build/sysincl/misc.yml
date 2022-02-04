@@ -161,7 +161,7 @@
   includes:
     - port.h:        contrib/libs/glog/missing_includes/port.h
 
-- source_filter: "^contrib/libs/intel/onednn"
+- source_filter: "^contrib/(deprecated/onednn|libs/intel/onednn-v1.6)"
   includes:
     - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
     - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h

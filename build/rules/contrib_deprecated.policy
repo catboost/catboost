@@ -3,6 +3,8 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+ALLOW library/cpp/tf/mkldnn -> contrib/deprecated/onednn
+
 ALLOW mds/libs/blackhole -> contrib/deprecated/libcds
 ALLOW mds -> contrib/deprecated/folly
 ALLOW mds -> contrib/deprecated/wangle
