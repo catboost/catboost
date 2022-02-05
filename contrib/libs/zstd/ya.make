@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(1.5.1)
+VERSION(1.5.2)
 
-ORIGINAL_SOURCE(https://github.com/facebook/zstd/archive/v1.5.1.tar.gz)
+ORIGINAL_SOURCE(https://github.com/facebook/zstd/archive/v1.5.2.tar.gz)
 
 LICENSE(
     "(BSD-2-Clause OR GPL-2.0-only)" AND
