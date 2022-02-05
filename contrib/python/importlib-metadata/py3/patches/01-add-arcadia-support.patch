@@ -18,7 +18,7 @@
  import email
  import pathlib
  import operator
-@@ -873,7 +872,7 @@ class Prepared:
+@@ -870,7 +869,7 @@ class Prepared:
          return bool(self.name)
 
 
@@ -27,7 +27,7 @@
  class MetadataPathFinder(NullFinder, DistributionFinder):
      """A degenerate finder for distribution packages on the file system.
 
-@@ -945,6 +944,63 @@ class PathDistribution(Distribution):
+@@ -942,6 +941,63 @@ class PathDistribution(Distribution):
          return name
  
  
