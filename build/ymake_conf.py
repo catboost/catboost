@@ -1431,7 +1431,6 @@ class GnuCompiler(Compiler):
                 '-Wno-defaulted-function-deleted',
                 '-Wno-pessimizing-move',
                 '-Wno-range-loop-construct',
-                '-Wno-reorder-init-list',
                 '-Wno-deprecated-anon-enum-enum-conversion',
                 '-Wno-deprecated-enum-enum-conversion',
                 '-Wno-deprecated-enum-float-conversion',
