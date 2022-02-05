@@ -328,6 +328,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\py3idl-pool-proto.global.vcxproj">
+      <Project>{2C3B36E6-6E70-A24F-9C2D-D4E027B536F3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\pyidl-pool-proto.global.vcxproj">
+      <Project>{BAC40F6F-75C0-60EE-58B5-897007D13A9D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>
@@ -592,6 +598,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\py3protobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{578F8CCF-0793-4FD7-1E57-C230913327F0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\pyprotobuf-builtin_proto-protos_from_protobuf.global.vcxproj">
+      <Project>{BCD8091B-F965-631B-C987-3E6F42F789E2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\py3protobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{D91D403D-7F24-722C-300A-6E076283B3F5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\builtin_proto\protos_from_protoc\pyprotobuf-builtin_proto-protos_from_protoc.global.vcxproj">
+      <Project>{2B218A28-5A52-AB4F-EA37-7CFB392E3411}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
@@ -799,6 +817,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.vcxproj">
       <Project>{94265A2F-8C00-014C-3814-76F9E1A8BCD3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mypy-protobuf\pycontrib-python-mypy-protobuf.global.vcxproj">
+      <Project>{15127EAF-6A59-636D-6354-64791D7806E0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3\numpy\random\pypy3-numpy-random.global.vcxproj">
       <Project>{9BB81556-A876-6A59-69C8-BA02CA4217C6}</Project>
     </ProjectReference>
@@ -882,6 +903,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\py3contrib-python-prompt-toolkit.vcxproj">
       <Project>{2F50239D-7C35-97CC-B69A-03CF432A9A0B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py2\pypython-protobuf-py2.global.vcxproj">
+      <Project>{27578D7E-E0AA-D8FF-02AC-5CF7630F4B35}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.global.vcxproj">
+      <Project>{EDCD8B7B-7FD1-A35B-0E2C-CEC73756FF8B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>{364FEC92-377E-1941-F20C-DD358F828BD7}</Project>
