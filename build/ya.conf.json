@@ -302,11 +302,11 @@
         "gofmt": {
             "description": "Run gofmt tool (1.17.6)"
         },
-        "go_1.18beta1": {
-            "description": "Run go tool (1.18beta1)"
+        "go_1.18beta2": {
+            "description": "Run go tool (1.18beta2)"
         },
-        "gofmt_1.18beta1": {
-            "description": "Run gofmt tool (1.18beta1)"
+        "gofmt_1.18beta2": {
+            "description": "Run gofmt tool (1.18beta2)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -4812,19 +4812,19 @@
                 "version": "1.17.6"
             }
         },
-        "golang_1_18beta1": {
+        "golang_1_18beta2": {
             "tools": {
-                "golang_1.18beta1": {
-                    "bottle": "golang_1.18beta1",
-                    "executable": "golang_1.18beta1"
+                "golang_1.18beta2": {
+                    "bottle": "golang_1.18beta2",
+                    "executable": "golang_1.18beta2"
                 },
-                "go_1.18beta1": {
-                    "bottle": "golang_1.18beta1",
-                    "executable": "go_1.18beta1"
+                "go_1.18beta2": {
+                    "bottle": "golang_1.18beta2",
+                    "executable": "go_1.18beta2"
                 },
-                "gofmt_1.18beta1": {
-                    "bottle": "golang_1.18beta1",
-                    "executable": "gofmt_1.18beta1"
+                "gofmt_1.18beta2": {
+                    "bottle": "golang_1.18beta2",
+                    "executable": "gofmt_1.18beta2"
                 }
             },
             "platforms": [
@@ -4856,7 +4856,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.18beta1"
+                "version": "1.18beta2"
             }
         },
         "godoc": {
@@ -7349,22 +7349,22 @@
                 ]
             }
         },
-        "golang_1.18beta1": {
+        "golang_1.18beta2": {
             "formula": {
                 "sandbox_id": [
-                    1155805076,
-                    1155805822,
-                    1155806316,
-                    1155806789
+                    1206631393,
+                    1206631765,
+                    1206632232,
+                    1206632597
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.18beta1": [
+                "go_1.18beta2": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.18beta1": [
+                "gofmt_1.18beta2": [
                     "bin",
                     "gofmt"
                 ]
