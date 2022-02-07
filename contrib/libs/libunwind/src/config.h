@@ -1,4 +1,4 @@
-//===----------------------------- config.h -------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -72,14 +72,14 @@
 
 #if defined(__APPLE__)
 #if defined(_LIBUNWIND_HIDE_SYMBOLS)
-#define _LIBUNWIND_ALIAS_VISIBILITY(name) __asm__(".private_extern " name)
+#define _LIBUNWIND_ALIAS_VISIBILITY(name) __asm__(".private_extern " name);
 #else
 #define _LIBUNWIND_ALIAS_VISIBILITY(name)
 #endif
 #define _LIBUNWIND_WEAK_ALIAS(name, aliasname)                                 \
   __asm__(".globl " SYMBOL_NAME(aliasname));                                   \
   __asm__(SYMBOL_NAME(aliasname) " = " SYMBOL_NAME(name));                     \
-  _LIBUNWIND_ALIAS_VISIBILITY(SYMBOL_NAME(aliasname));
+  _LIBUNWIND_ALIAS_VISIBILITY(SYMBOL_NAME(aliasname))
 #elif defined(__ELF__)
 #define _LIBUNWIND_WEAK_ALIAS(name, aliasname)                                 \
   extern "C" _LIBUNWIND_EXPORT __typeof(name) aliasname                        \
@@ -105,7 +105,7 @@
 #define _LIBUNWIND_BUILD_SJLJ_APIS
 #endif
 
-#if defined(__i386__) || defined(__x86_64__) || defined(__ppc__) || defined(__ppc64__) || defined(__powerpc64__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__powerpc__)
 #define _LIBUNWIND_SUPPORT_FRAME_APIS
 #endif
 
