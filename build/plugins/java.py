@@ -101,8 +101,6 @@ def onjava_module(unit, *args):
         'EXTERNAL_JAR': extract_macro_calls(unit, 'EXTERNAL_JAR_VALUE', args_delim),
         'RUN_JAVA_PROGRAM': extract_macro_calls2(unit, 'RUN_JAVA_PROGRAM_VALUE'),
         'RUN_JAVA_PROGRAM_MANAGED': '${RUN_JAVA_PROGRAM_MANAGED}',
-        'ADD_WAR': extract_macro_calls(unit, 'ADD_WAR_VALUE', args_delim),
-        'DEPENDENCY_MANAGEMENT': extract_macro_calls(unit, 'DEPENDENCY_MANAGEMENT_VALUE', args_delim),
         'MAVEN_GROUP_ID': extract_macro_calls(unit, 'MAVEN_GROUP_ID_VALUE', args_delim),
         'JAR_INCLUDE_FILTER': extract_macro_calls(unit, 'JAR_INCLUDE_FILTER_VALUE', args_delim),
         'JAR_EXCLUDE_FILTER': extract_macro_calls(unit, 'JAR_EXCLUDE_FILTER_VALUE', args_delim),
@@ -149,11 +147,6 @@ def onjava_module(unit, *args):
             data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
         if unit.get('KOTLINC_OPTS_VALUE'):
             data['KOTLINC_OPTS'] = extract_macro_calls(unit, 'KOTLINC_OPTS_VALUE', args_delim)
-
-    if unit.get('WITH_GROOVY_VALUE') == 'yes':
-        if not common.strip_roots(unit.path()).startswith(('devtools/dummy_arcadia', 'junk')):
-            ymake.report_configure_error('Groovy is not allowed here')
-        data['WITH_GROOVY'] = extract_macro_calls(unit, 'WITH_GROOVY_VALUE', args_delim)
 
     if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
         data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
@@ -310,8 +303,6 @@ def on_fill_jar_gen_srcs(unit, *args):
         var += ' --exclude-patterns {}'.format(' '.join(excludes))
     if unit.get('WITH_KOTLIN_VALUE') == 'yes':
         var += ' --resolve-kotlin'
-    if unit.get('WITH_GROOVY_VALUE') == 'yes':
-        var += ' --resolve-groovy'
     unit.set([varname, var])
 
 
