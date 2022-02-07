@@ -18,6 +18,8 @@ from catboost import (
     CatBoostRegressor,
     CatBoostRanker,
     CatBoostError,
+    EFeaturesSelectionAlgorithm,
+    EFeaturesSelectionGrouping,
     EFstrType,
     FeaturesData,
     Pool,
@@ -47,6 +49,7 @@ from catboost_pytest_lib import (
     binary_path,
     data_file,
     get_limited_precision_dsv_diff_tool,
+    get_limited_precision_json_diff_tool,
     get_limited_precision_numpy_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
@@ -10093,3 +10096,166 @@ def test_select_features_with_custom_eval_metric():
         num_features_to_select=10
     )
     assert model.best_score_['validation']['CustomMetric'] == 0.35
+
+
+@pytest.mark.parametrize(
+    'train_final_model',
+    [True, False],
+    ids=['train_final_model=True', 'train_final_model=False']
+)
+@pytest.mark.parametrize(
+    'algorithm',
+     [
+         EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange,
+         EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange,
+         EFeaturesSelectionAlgorithm.RecursiveByShapValues,
+    ],
+    ids=[
+        'algorithm=%s' % algorithm for algorithm in [
+            'RecursiveByPredictionValuesChange',
+            'RecursiveByLossFunctionChange',
+            'RecursiveByShapValues'
+        ]
+    ]
+)
+def test_select_features_by_single_feature_tags(task_type, train_final_model, algorithm):
+    # use querywise dataset because it contains more features to select from
+    columns_metadata = read_cd(
+        QUERYWISE_CD_FILE,
+        data_file=QUERYWISE_TRAIN_FILE,
+        canonize_column_types=True
+    )
+
+    learn_data = load_dataset_as_dataframe(QUERYWISE_TRAIN_FILE, columns_metadata)
+    test_data = load_dataset_as_dataframe(QUERYWISE_TEST_FILE, columns_metadata)
+
+    n_features = learn_data['features'].columns.size
+    feature_names = [str(feature_idx) for feature_idx in range(n_features)]
+    feature_tags={}
+    for feature_idx in range(n_features):
+        feature_tags[str(feature_idx)] = {"features": [feature_idx], "cost": 1}
+
+    learn = Pool(
+        learn_data['features'],
+        learn_data['target'],
+        cat_features=columns_metadata['cat_feature_indices'],
+        feature_names=feature_names,
+        feature_tags=feature_tags
+    )
+    test = Pool(
+        test_data['features'],
+        test_data['target'],
+        cat_features=columns_metadata['cat_feature_indices'],
+        feature_names=feature_names,
+        feature_tags=feature_tags
+    )
+    model_for_features = CatBoostRegressor(
+        iterations=100,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary_for_features = model_for_features.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        features_for_select=list(range(20)),
+        num_features_to_select=10
+    )
+    model_for_features_tags = CatBoostRegressor(
+        iterations=100,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary_for_features_tags = model_for_features_tags.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        grouping=EFeaturesSelectionGrouping.ByTags,
+        features_tags_for_select=[str(i) for i in range(20)],
+        num_features_tags_to_select=10
+    )
+    assert set(summary_for_features['selected_features_names']) == set(summary_for_features_tags['selected_features_names'])
+    assert set(summary_for_features['selected_features_names']) == set(summary_for_features_tags['selected_features_tags'])
+    assert summary_for_features['eliminated_features_names'] == summary_for_features_tags['eliminated_features_names']
+    assert summary_for_features['eliminated_features_names'] == summary_for_features_tags['eliminated_features_tags']
+
+
+@pytest.mark.parametrize(
+    'train_final_model',
+    [True, False],
+    ids=['train_final_model=True', 'train_final_model=False']
+)
+@pytest.mark.parametrize(
+    'algorithm',
+     [
+         EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange,
+         EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange,
+         EFeaturesSelectionAlgorithm.RecursiveByShapValues,
+    ],
+    ids=[
+        'algorithm=%s' % algorithm for algorithm in [
+            'RecursiveByPredictionValuesChange',
+            'RecursiveByLossFunctionChange',
+            'RecursiveByShapValues'
+        ]
+    ]
+)
+def test_select_features_by_multi_feature_tags(task_type, train_final_model, algorithm):
+    n_features=30
+    learn_features, learn_labels = generate_random_labeled_dataset(
+        n_samples=4000,
+        n_features=n_features,
+        labels=[0, 1],
+        seed=1
+    )
+    test_features, test_labels = generate_random_labeled_dataset(
+        n_samples=1500,
+        n_features=n_features,
+        labels=[0, 1],
+        seed=2
+    )
+
+    feature_names = [str(feature_idx) for feature_idx in range(n_features)]
+    feature_tags = {
+        "tag0": {"features": [0, 1, 2, 10, 12, 15], "cost": 1},
+        "tag1": {"features": [3, 7, 11, 13, 26, 27, 28], "cost": 2},
+        "tag2": {"features": [4, 5], "cost": 1},
+        "tag3": {"features": [6, 8, 9, 14], "cost": 3},
+        "tag4": {"features": [16], "cost": 1},
+        "tag5": {"features": [17, 18, 19, 22, 23, 25, 29], "cost": 4},
+        "tag6": {"features": [20, 21, 24], "cost": 1}
+    }
+
+    learn = Pool(learn_features, learn_labels, feature_names=feature_names, feature_tags=feature_tags)
+    test = Pool(test_features, test_labels, feature_names=feature_names, feature_tags=feature_tags)
+    model = CatBoostClassifier(
+        iterations=20,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        grouping=EFeaturesSelectionGrouping.ByTags,
+        features_tags_for_select=["tag0", "tag1", "tag2", "tag4", "tag6"],
+        num_features_tags_to_select=3
+    )
+
+    summary_file_name = test_output_path('summary.json')
+    with open(summary_file_name, 'w') as f:
+        json.dump(summary, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))

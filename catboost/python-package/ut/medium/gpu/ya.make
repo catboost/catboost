@@ -39,6 +39,7 @@ DATA(
 
 DEPENDS(
     catboost/tools/limited_precision_dsv_diff
+    catboost/tools/limited_precision_json_diff
     catboost/tools/limited_precision_numpy_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost

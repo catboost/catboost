@@ -1,0 +1,118 @@
+{
+    "eliminated_features": [
+        3,
+        7,
+        11,
+        13,
+        26,
+        27,
+        28,
+        20,
+        21,
+        24
+    ],
+    "eliminated_features_names": [
+        "3",
+        "7",
+        "11",
+        "13",
+        "26",
+        "27",
+        "28",
+        "20",
+        "21",
+        "24"
+    ],
+    "eliminated_features_tags": [
+        "tag1",
+        "tag6"
+    ],
+    "features_tags_cost_graph": {
+        "loss_values": [
+            4,
+            3
+        ],
+        "main_indices": [],
+        "removed_features_tags_count": [
+            1,
+            2
+        ]
+    },
+    "features_tags_loss_graph": {
+        "loss_values": [
+            0.6930664296665784,
+            0.6930795005798892,
+            0.6926670709664063
+        ],
+        "main_indices": [
+            0,
+            1,
+            2
+        ],
+        "removed_features_tags_count": [
+            0,
+            1,
+            2
+        ]
+    },
+    "loss_graph": {
+        "loss_values": [
+            0.6930664296665784,
+            0.6930722442911906,
+            0.6930722442911906,
+            0.6930722442911906,
+            0.6930655978087188,
+            0.6930606218284662,
+            0.6930674000622464,
+            0.6930795005798892,
+            0.6929420240420616,
+            0.692804547504234,
+            0.6926670709664065
+        ],
+        "main_indices": [
+            0,
+            7,
+            10
+        ],
+        "removed_features_count": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+        ]
+    },
+    "selected_features": [
+        16,
+        0,
+        1,
+        2,
+        10,
+        12,
+        15,
+        4,
+        5
+    ],
+    "selected_features_names": [
+        "16",
+        "0",
+        "1",
+        "2",
+        "10",
+        "12",
+        "15",
+        "4",
+        "5"
+    ],
+    "selected_features_tags": [
+        "tag4",
+        "tag0",
+        "tag2"
+    ]
+}
