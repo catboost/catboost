@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import argparse
 import copy
 import json
@@ -211,7 +211,7 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
         content = '\n'.join(lines)
         # sys.stderr.writelines('{}\n'.format(l) for l in lines)
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            f.write(content)
+            f.write(content.encode('UTF-8'))
             return f.name
     return None
 
@@ -230,7 +230,7 @@ def create_embed_config(args):
         data['Files'].update(files)
     # sys.stderr.write('{}\n'.format(json.dumps(data, indent=4)))
     with tempfile.NamedTemporaryFile(delete=False, suffix='.embedcfg') as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data).encode('UTF-8'))
         return f.name
 
 
@@ -280,7 +280,7 @@ def gen_vet_info(args):
 
 def create_vet_config(args, info):
     with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
-        f.write(json.dumps(info))
+        f.write(json.dumps(info).encode('UTF-8'))
         return f.name
 
 
@@ -288,7 +288,7 @@ def decode_vet_report(json_report):
     report = ''
     if json_report:
         try:
-            full_diags = json.JSONDecoder(encoding='UTF-8').decode(json_report)
+            full_diags = json.JSONDecoder().decode(json_report.decode('UTF-8'))
         except ValueError:
             report = json_report
         else:
@@ -296,8 +296,8 @@ def decode_vet_report(json_report):
             for _, module_diags in six.iteritems(full_diags):
                 for _, type_diags in six.iteritems(module_diags):
                     for diag in type_diags:
-                        messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
-            report = '\n'.join(messages).encode('UTF-8')
+                        messages.append('{}: {}'.format(diag['posn'], json.dumps(diag['message'])))
+            report = '\n'.join(messages)
 
     return report
 
@@ -612,7 +612,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
-        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
+        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             tests = filter_out_skip_tests(tests, args.skip_tests)
     test_main_found = '#TestMain' in tests
@@ -623,7 +623,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
-        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
+        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             xtests = filter_out_skip_tests(xtests, args.skip_tests)
     xtest_main_found = '#TestMain' in xtests
