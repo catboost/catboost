@@ -890,7 +890,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
-    - ads/quality/adv_machine/tsar/cm_robot/cmpy/page
     - ads/quality/apc_check_py
     - ads/quality/embedding/tsar_tensor/ft_pool/lib
     - ads/quality/ltp/libs/build_pool
@@ -1335,7 +1334,6 @@ migrations:
     - market/dynamic_pricing/tools/offline_modeling
     - market/mobile_validator/mt
     - market/seo/tools/postgres_local/recipe
-    - market/sre/tools/kraken/src/kraken_monrun
     - market/yamarec/yamarec/yamarec1
     - mds/nscfg/server
     - metrika/admin/python/cms/agent/lib
@@ -2148,7 +2146,6 @@ migrations:
     - modadvert/oneshot/MODDEV-2565
     - modadvert/oneshot/SUPERMODRELEASE-57/migration
     - mssngr/botplatform/src/bots/core/migrations
-    - mssngr/botplatform/src/vins_core
     - mssngr/geobot/clients
     - mssngr/geobot/postgresql
     - mssngr/geobot/server
@@ -3044,7 +3041,6 @@ migrations:
     - ads/nirvana/online_learning/run_flowkeeper/workflow_tests
     - ads/pytorch/deploy/bindings/ut
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/adv_machine_models
-    - ads/quality/adv_machine/tsar/cm_robot/cmpy/transfer_manager
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
     - ads/quality/bid_correction/lib/ut
     - ads/quality/metric_eval/tests/ut
@@ -3673,5 +3669,4 @@ migrations:
     - ads/libs/py_autobudget/mt/test_attribution_preprocessor
     - ads/bigkv/tensor_transport/tests
     - scarab/api/python3
-    - mssngr/botplatform/src/vins_core
     - mssngr/botplatform/src/bots/core/migrations
