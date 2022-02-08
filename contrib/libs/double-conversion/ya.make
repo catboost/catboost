@@ -8,12 +8,6 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-OPENSOURCE_EXPORT_REPLACEMENT(
-    CMAKE double-conversion
-    CMAKE_TARGET double-conversion::double-conversion
-    CONAN double-conversion/3.1.4
-)
-
 NO_COMPILER_WARNINGS()
 
 NO_UTIL()
