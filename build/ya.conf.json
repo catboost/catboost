@@ -443,7 +443,10 @@
             "description": "This tool simplifies replacing of some text in Arcadia"
         },
         "black": {
-            "description": "Python styler"
+            "description": "Python styler, Python 3 only"
+        },
+        "black_py2": {
+            "description": "Python styler with Python 2 support"
         },
         "yadi": {
             "description": "Arcadia version of Yadi"
@@ -5436,6 +5439,41 @@
                 }
             ]
         },
+        "black_py2": {
+            "tools": {
+                "black_py2": {
+                    "bottle": "black_py2",
+                    "executable": "black"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "yadi": {
             "tools": {
                 "yadi": {
@@ -7768,6 +7806,19 @@
             }
         },
         "black": {
+            "formula": {
+                "sandbox_id": [
+                    1147448676
+                ],
+                "match": "black"
+            },
+            "executable": {
+                "black": [
+                    "black"
+                ]
+            }
+        },
+        "black_py2": {
             "formula": {
                 "sandbox_id": [
                     1147448676
