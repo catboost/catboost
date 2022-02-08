@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(3.0.26)
+VERSION(3.0.27)
 
 LICENSE(BSD-3-Clause)
 
@@ -67,6 +67,7 @@ PY_SRCS(
     prompt_toolkit/contrib/telnet/log.py
     prompt_toolkit/contrib/telnet/protocol.py
     prompt_toolkit/contrib/telnet/server.py
+    prompt_toolkit/cursor_shapes.py
     prompt_toolkit/data_structures.py
     prompt_toolkit/document.py
     prompt_toolkit/enums.py
@@ -145,6 +146,8 @@ PY_SRCS(
     prompt_toolkit/output/color_depth.py
     prompt_toolkit/output/conemu.py
     prompt_toolkit/output/defaults.py
+    prompt_toolkit/output/flush_stdout.py
+    prompt_toolkit/output/plain_text.py
     prompt_toolkit/output/vt100.py
     prompt_toolkit/output/win32.py
     prompt_toolkit/output/windows10.py
