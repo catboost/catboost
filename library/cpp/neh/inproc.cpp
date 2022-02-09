@@ -7,11 +7,9 @@
 #include "factory.h"
 
 #include <util/generic/ptr.h>
-#include <util/generic/map.h>
 #include <util/generic/string.h>
 #include <util/generic/singleton.h>
 #include <util/stream/output.h>
-#include <util/generic/hash.h>
 #include <util/string/cast.h>
 
 using namespace NNeh;
