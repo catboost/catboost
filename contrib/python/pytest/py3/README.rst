@@ -1,5 +1,5 @@
-.. image:: https://docs.pytest.org/en/latest/_static/pytest1.png
-   :target: https://docs.pytest.org/en/latest/
+.. image:: https://github.com/pytest-dev/pytest/raw/main/doc/en/img/pytest_logo_curves.svg
+   :target: https://docs.pytest.org/en/stable/
    :align: center
    :alt: pytest
 
@@ -15,15 +15,19 @@
 .. image:: https://img.shields.io/pypi/pyversions/pytest.svg
     :target: https://pypi.org/project/pytest/
 
-.. image:: https://codecov.io/gh/pytest-dev/pytest/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/pytest-dev/pytest/branch/main/graph/badge.svg
     :target: https://codecov.io/gh/pytest-dev/pytest
     :alt: Code coverage Status
 
 .. image:: https://travis-ci.org/pytest-dev/pytest.svg?branch=master
     :target: https://travis-ci.org/pytest-dev/pytest
 
-.. image:: https://dev.azure.com/pytest-dev/pytest/_apis/build/status/pytest-CI?branchName=master
-    :target: https://dev.azure.com/pytest-dev/pytest
+.. image:: https://github.com/pytest-dev/pytest/workflows/main/badge.svg
+    :target: https://github.com/pytest-dev/pytest/actions?query=workflow%3Amain
+
+.. image:: https://results.pre-commit.ci/badge/github/pytest-dev/pytest/main.svg
+   :target: https://results.pre-commit.ci/latest/github/pytest-dev/pytest/master
+   :alt: pre-commit.ci status
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
     :target: https://github.com/psf/black
@@ -71,33 +75,33 @@ To execute it::
     ========================== 1 failed in 0.04 seconds ===========================
 
 
-Due to ``pytest``'s detailed assertion introspection, only plain ``assert`` statements are used. See `getting-started <https://docs.pytest.org/en/latest/getting-started.html#our-first-test-run>`_ for more examples.
+Due to ``pytest``'s detailed assertion introspection, only plain ``assert`` statements are used. See `getting-started <https://docs.pytest.org/en/stable/getting-started.html#our-first-test-run>`_ for more examples.
 
 
 Features
 --------
 
-- Detailed info on failing `assert statements <https://docs.pytest.org/en/latest/assert.html>`_ (no need to remember ``self.assert*`` names);
+- Detailed info on failing `assert statements <https://docs.pytest.org/en/stable/assert.html>`_ (no need to remember ``self.assert*`` names)
 
 - `Auto-discovery
-  <https://docs.pytest.org/en/latest/goodpractices.html#python-test-discovery>`_
-  of test modules and functions;
+  <https://docs.pytest.org/en/stable/goodpractices.html#python-test-discovery>`_
+  of test modules and functions
 
-- `Modular fixtures <https://docs.pytest.org/en/latest/fixture.html>`_ for
-  managing small or parametrized long-lived test resources;
+- `Modular fixtures <https://docs.pytest.org/en/stable/fixture.html>`_ for
+  managing small or parametrized long-lived test resources
 
-- Can run `unittest <https://docs.pytest.org/en/latest/unittest.html>`_ (or trial),
-  `nose <https://docs.pytest.org/en/latest/nose.html>`_ test suites out of the box;
+- Can run `unittest <https://docs.pytest.org/en/stable/unittest.html>`_ (or trial),
+  `nose <https://docs.pytest.org/en/stable/nose.html>`_ test suites out of the box
 
-- Python 3.5+ and PyPy3;
+- Python 3.6+ and PyPy3
 
-- Rich plugin architecture, with over 315+ `external plugins <http://plugincompat.herokuapp.com>`_ and thriving community;
+- Rich plugin architecture, with over 850+ `external plugins <http://plugincompat.herokuapp.com>`_ and thriving community
 
 
 Documentation
 -------------
 
-For full documentation, including installation, tutorials and PDF documents, please see https://docs.pytest.org/en/latest/.
+For full documentation, including installation, tutorials and PDF documents, please see https://docs.pytest.org/en/stable/.
 
 
 Bugs/Requests
@@ -109,7 +113,7 @@ Please use the `GitHub issue tracker <https://github.com/pytest-dev/pytest/issue
 Changelog
 ---------
 
-Consult the `Changelog <https://docs.pytest.org/en/latest/changelog.html>`__ page for fixes and enhancements of each version.
+Consult the `Changelog <https://docs.pytest.org/en/stable/changelog.html>`__ page for fixes and enhancements of each version.
 
 
 Support pytest
@@ -149,8 +153,8 @@ Tidelift will coordinate the fix and disclosure.
 License
 -------
 
-Copyright Holger Krekel and others, 2004-2020.
+Copyright Holger Krekel and others, 2004-2021.
 
 Distributed under the terms of the `MIT`_ license, pytest is free and open source software.
 
-.. _`MIT`: https://github.com/pytest-dev/pytest/blob/master/LICENSE
+.. _`MIT`: https://github.com/pytest-dev/pytest/blob/main/LICENSE

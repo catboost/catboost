@@ -17,6 +17,7 @@ RECURSE(
     funcsigs
     graphviz
     importlib-metadata
+    iniconfig
     ipdb
     ipython
     ipython-genutils
@@ -52,6 +53,7 @@ RECURSE(
     six
     subprocess32
     testpath
+    toml
     tornado
     traitlets
     wcwidth

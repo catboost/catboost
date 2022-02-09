@@ -27,7 +27,7 @@ class StoreKey(Generic[T]):
 class Store:
     """Store is a type-safe heterogenous mutable mapping that
     allows keys and value types to be defined separately from
-    where it is defined.
+    where it (the Store) is created.
 
     Usually you will be given an object which has a ``Store``:
 
@@ -77,13 +77,13 @@ class Store:
 
     Good solution: module Internal adds a ``Store`` to the object. Module
     External mints StoreKeys for its own keys. Module External stores and
-    retrieves its data using its keys.
+    retrieves its data using these keys.
     """
 
     __slots__ = ("_store",)
 
     def __init__(self) -> None:
-        self._store = {}  # type: Dict[StoreKey[Any], object]
+        self._store: Dict[StoreKey[Any], object] = {}
 
     def __setitem__(self, key: StoreKey[T], value: T) -> None:
         """Set a value for key."""
@@ -92,7 +92,7 @@ class Store:
     def __getitem__(self, key: StoreKey[T]) -> T:
         """Get the value for key.
 
-        Raises KeyError if the key wasn't set before.
+        Raises ``KeyError`` if the key wasn't set before.
         """
         return cast(T, self._store[key])
 
@@ -116,10 +116,10 @@ class Store:
     def __delitem__(self, key: StoreKey[T]) -> None:
         """Delete the value for key.
 
-        Raises KeyError if the key wasn't set before.
+        Raises ``KeyError`` if the key wasn't set before.
         """
         del self._store[key]
 
     def __contains__(self, key: StoreKey[T]) -> bool:
-        """Returns whether key was set."""
+        """Return whether key was set."""
         return key in self._store
