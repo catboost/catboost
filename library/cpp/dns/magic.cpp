@@ -1,6 +1,5 @@
 #include "magic.h"
 
-#include <util/network/socket.h>
 #include <util/generic/yexception.h>
 
 using namespace NDns;
