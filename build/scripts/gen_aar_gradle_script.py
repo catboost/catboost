@@ -49,7 +49,7 @@ ext.compileOnlyAndroidArs = [
     {compile_only_aars}
 ]
 
-def minVersion = 18
+def minVersion = 21
 def compileVersion = 30
 def targetVersion = 30
 def buildVersion = '30.0.3'
