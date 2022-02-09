@@ -2476,7 +2476,7 @@ class MSVCCompiler(MSVC, Compiler):
             ))
 
             cxx_warnings += [
-                '-Woverloaded-virtual', '-Wno-attributes',
+                '-Woverloaded-virtual',
                 '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-undefined-var-template',
