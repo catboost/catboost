@@ -32,12 +32,12 @@
 # if defined(__linux__)
 #  define _LIBUNWIND_TARGET_LINUX 1
 # endif
-# if defined(__i386__) || defined(_M_IX86)
+# if defined(__i386__)
 #  define _LIBUNWIND_TARGET_I386
 #  define _LIBUNWIND_CONTEXT_SIZE 8
 #  define _LIBUNWIND_CURSOR_SIZE 15
 #  define _LIBUNWIND_HIGHEST_DWARF_REGISTER _LIBUNWIND_HIGHEST_DWARF_REGISTER_X86
-# elif defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+# elif defined(__x86_64__)
 #  define _LIBUNWIND_TARGET_X86_64 1
 #  if defined(_WIN64)
 #    define _LIBUNWIND_CONTEXT_SIZE 54
@@ -61,7 +61,7 @@
 #  define _LIBUNWIND_CONTEXT_SIZE 117
 #  define _LIBUNWIND_CURSOR_SIZE 124
 #  define _LIBUNWIND_HIGHEST_DWARF_REGISTER _LIBUNWIND_HIGHEST_DWARF_REGISTER_PPC
-# elif defined(__aarch64__) || defined(_M_ARM64)
+# elif defined(__aarch64__)
 #  define _LIBUNWIND_TARGET_AARCH64 1
 #  define _LIBUNWIND_CONTEXT_SIZE 66
 #  if defined(__SEH__)
@@ -70,7 +70,7 @@
 #    define _LIBUNWIND_CURSOR_SIZE 78
 #  endif
 #  define _LIBUNWIND_HIGHEST_DWARF_REGISTER _LIBUNWIND_HIGHEST_DWARF_REGISTER_ARM64
-# elif defined(__arm__) || defined(_M_ARM)
+# elif defined(__arm__)
 #  define _LIBUNWIND_TARGET_ARM 1
 #  if defined(__SEH__)
 #    define _LIBUNWIND_CONTEXT_SIZE 42
