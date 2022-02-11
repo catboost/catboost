@@ -61,6 +61,7 @@ ENDIF()
 
 IF (OS_DARWIN)
     SRCS(
+        explicit_bzero.c
         reallocarray.c
     )
 ENDIF()
@@ -70,6 +71,7 @@ IF (OS_WINDOWS)
         GLOBAL contrib/libs/libc_compat/include/windows
     )
     SRCS(
+        explicit_bzero.c
         reallocarray.c
         stpcpy.c
         strlcat.c
@@ -101,6 +103,8 @@ IF (OS_LINUX AND NOT MUSL)
             GLOBAL contrib/libs/libc_compat/include/random
         )
         SRCS(
+            # explicit_bzero was added in glibc=2.25
+            explicit_bzero.c
             # getrandom was added in glibc=2.25
             getrandom.c
             # memfd_create was added in glibc=2.27
