@@ -1035,6 +1035,9 @@ ALLOW psp -> vendor/github.com/zimmski/go-mutesting
 # CONTRIB-2460
 ALLOW .* -> vendor/github.com/dgraph-io/ristretto
 
+# CONTRIB-2465
+ALLOW .* -> vendor/github.com/go-playground/form
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
