@@ -53,7 +53,8 @@ class IniConfig(object):
             if os.path.basename(self.path).startswith('pkg:'):
                 import io, pkgutil
 
-                _, package, resource = self.path.split(':')
+                basename = os.path.basename(self.path)
+                _, package, resource = basename.split(':')
                 content = pkgutil.get_data(package, resource)
                 f = io.StringIO(content.decode('utf-8'))
             else:
