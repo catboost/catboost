@@ -1,4 +1,5 @@
-from typing import Generator, List, Optional
+from string import Formatter
+from typing import Generator, List, Optional, Tuple, Union
 
 from prompt_toolkit.output.vt100 import BG_ANSI_COLORS, FG_ANSI_COLORS
 from prompt_toolkit.output.vt100 import _256_colors as _256_colors_table
@@ -207,7 +208,7 @@ class ANSI:
                 # True colors.
                 if n == 2 and len(attrs) >= 3:
                     try:
-                        color_str = "#%02x%02x%02x" % (
+                        color_str = "#{:02x}{:02x}{:02x}".format(
                             attrs.pop(),
                             attrs.pop(),
                             attrs.pop(),
@@ -247,7 +248,7 @@ class ANSI:
         return " ".join(result)
 
     def __repr__(self) -> str:
-        return "ANSI(%r)" % (self.value,)
+        return f"ANSI({self.value!r})"
 
     def __pt_formatted_text__(self) -> StyleAndTextTuples:
         return self._formatted_text
@@ -257,11 +258,17 @@ class ANSI:
         Like `str.format`, but make sure that the arguments are properly
         escaped. (No ANSI escapes can be injected.)
         """
-        # Escape all the arguments.
-        args = tuple(ansi_escape(a) for a in args)
-        kwargs = {k: ansi_escape(v) for k, v in kwargs.items()}
+        return ANSI(FORMATTER.vformat(self.value, args, kwargs))
 
-        return ANSI(self.value.format(*args, **kwargs))
+    def __mod__(self, value: object) -> "ANSI":
+        """
+        ANSI('<b>%s</b>') % value
+        """
+        if not isinstance(value, tuple):
+            value = (value,)
+
+        value = tuple(ansi_escape(i) for i in value)
+        return ANSI(self.value % value)
 
 
 # Mapping of the ANSI color codes to their names.
@@ -272,11 +279,19 @@ _bg_colors = {v: k for k, v in BG_ANSI_COLORS.items()}
 _256_colors = {}
 
 for i, (r, g, b) in enumerate(_256_colors_table.colors):
-    _256_colors[i] = "#%02x%02x%02x" % (r, g, b)
+    _256_colors[i] = f"#{r:02x}{g:02x}{b:02x}"
 
 
-def ansi_escape(text: str) -> str:
+def ansi_escape(text: object) -> str:
     """
     Replace characters with a special meaning.
     """
-    return text.replace("\x1b", "?").replace("\b", "?")
+    return str(text).replace("\x1b", "?").replace("\b", "?")
+
+
+class ANSIFormatter(Formatter):
+    def format_field(self, value: object, format_spec: str) -> str:
+        return ansi_escape(format(value, format_spec))
+
+
+FORMATTER = ANSIFormatter()
