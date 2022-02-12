@@ -13,22 +13,21 @@
 #include <unistd.h>
 
 inline int nanosleep(const struct timespec* __req, struct timespec* __rem) {
-   // The nanosleep() function is not available on z/OS. Therefore, we will call
-   // sleep() to sleep for whole seconds and usleep() to sleep for any remaining
-   // fraction of a second. Any remaining nanoseconds will round up to the next
-   // microsecond.
+  // The nanosleep() function is not available on z/OS. Therefore, we will call
+  // sleep() to sleep for whole seconds and usleep() to sleep for any remaining
+  // fraction of a second. Any remaining nanoseconds will round up to the next
+  // microsecond.
   if (__req->tv_sec < 0 || __req->tv_nsec < 0 || __req->tv_nsec > 999999999) {
     errno = EINVAL;
     return -1;
   }
-  useconds_t __micro_sec =
-      static_cast<useconds_t>((__req->tv_nsec + 999) / 1000);
+  long __micro_sec = (__req->tv_nsec + 999) / 1000;
   time_t __sec = __req->tv_sec;
   if (__micro_sec > 999999) {
     ++__sec;
-     __micro_sec -= 1000000;
-   }
-  __sec = sleep(static_cast<unsigned int>(__sec));
+    __micro_sec -= 1000000;
+  }
+  __sec = static_cast<time_t>(sleep(static_cast<unsigned int>(__sec)));
   if (__sec) {
     if (__rem) {
       // Updating the remaining time to sleep in case of unsuccessful call to sleep().
@@ -38,8 +37,8 @@ inline int nanosleep(const struct timespec* __req, struct timespec* __rem) {
     errno = EINTR;
     return -1;
   }
-   if (__micro_sec) {
-    int __rt = usleep(__micro_sec);
+  if (__micro_sec) {
+    int __rt = usleep(static_cast<unsigned int>(__micro_sec));
     if (__rt != 0 && __rem) {
       // The usleep() does not provide the amount of remaining time upon its failure,
       // so the time slept will be ignored.
@@ -49,8 +48,8 @@ inline int nanosleep(const struct timespec* __req, struct timespec* __rem) {
       return -1;
     }
     return __rt;
-   }
-   return 0;
+  }
+  return 0;
 }
 
 #endif // _LIBCPP_SUPPORT_IBM_NANOSLEEP_H

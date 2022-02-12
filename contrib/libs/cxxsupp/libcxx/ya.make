@@ -204,6 +204,7 @@ SRCS(
     src/ios.cpp
     src/ios.instantiations.cpp
     src/iostream.cpp
+    src/legacy_pointer_safety.cpp
     src/locale.cpp
     src/memory.cpp
     src/mutex.cpp
