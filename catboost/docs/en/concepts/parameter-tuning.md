@@ -488,5 +488,3 @@ Catboost supports to stop unpromising trial of hyperparameter by callbacking aft
 
 The following is an optuna example that demonstrates a pruner for CatBoost.  
 https://github.com/optuna/optuna-examples/blob/main/catboost/catboost_pruning.py
-
-{% endcut %}
