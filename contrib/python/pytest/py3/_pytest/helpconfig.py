@@ -6,8 +6,6 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-import py
-
 import pytest
 from _pytest.config import Config
 from _pytest.config import ExitCode
@@ -51,7 +49,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="count",
         default=0,
         dest="version",
-        help="display pytest version and information about plugins."
+        help="display pytest version and information about plugins. "
         "When given twice, also display information about plugins.",
     )
     group._addoption(
@@ -80,10 +78,14 @@ def pytest_addoption(parser: Parser) -> None:
     )
     group.addoption(
         "--debug",
-        action="store_true",
+        action="store",
+        nargs="?",
+        const="pytestdebug.log",
         dest="debug",
-        default=False,
-        help="store internal tracing debug information in 'pytestdebug.log'.",
+        metavar="DEBUG_FILE_NAME",
+        help="store internal tracing debug information in this log file.\n"
+        "This file is opened with 'w' and truncated as a result, care advised.\n"
+        "Defaults to 'pytestdebug.log'.",
     )
     group._addoption(
         "-o",
@@ -98,15 +100,16 @@ def pytest_addoption(parser: Parser) -> None:
 def pytest_cmdline_parse():
     outcome = yield
     config: Config = outcome.get_result()
+
     if config.option.debug:
-        path = os.path.abspath("pytestdebug.log")
+        # --debug | --debug <file.log> was provided.
+        path = config.option.debug
         debugfile = open(path, "w")
         debugfile.write(
-            "versions pytest-%s, py-%s, "
+            "versions pytest-%s, "
             "python-%s\ncwd=%s\nargs=%s\n\n"
             % (
                 pytest.__version__,
-                py.__version__,
                 ".".join(map(str, sys.version_info)),
                 os.getcwd(),
                 config.invocation_params.args,
@@ -114,11 +117,11 @@ def pytest_cmdline_parse():
         )
         config.trace.root.setwriter(debugfile.write)
         undo_tracing = config.pluginmanager.enable_tracing()
-        sys.stderr.write("writing pytestdebug information to %s\n" % path)
+        sys.stderr.write("writing pytest debug information to %s\n" % path)
 
         def unset_tracing() -> None:
             debugfile.close()
-            sys.stderr.write("wrote pytestdebug information to %s\n" % debugfile.name)
+            sys.stderr.write("wrote pytest debug information to %s\n" % debugfile.name)
             config.trace.root.setwriter(None)
             undo_tracing()
 
@@ -127,7 +130,7 @@ def pytest_cmdline_parse():
 
 def showversion(config: Config) -> None:
     if config.option.version > 1:
-        sys.stderr.write(
+        sys.stdout.write(
             "This is pytest version {}, imported from {}\n".format(
                 pytest.__version__, pytest.__file__
             )
@@ -135,9 +138,9 @@ def showversion(config: Config) -> None:
         plugininfo = getpluginversioninfo(config)
         if plugininfo:
             for line in plugininfo:
-                sys.stderr.write(line + "\n")
+                sys.stdout.write(line + "\n")
     else:
-        sys.stderr.write(f"pytest {pytest.__version__}\n")
+        sys.stdout.write(f"pytest {pytest.__version__}\n")
 
 
 def pytest_cmdline_main(config: Config) -> Optional[Union[int, ExitCode]]:
@@ -243,7 +246,7 @@ def getpluginversioninfo(config: Config) -> List[str]:
 def pytest_report_header(config: Config) -> List[str]:
     lines = []
     if config.option.debug or config.option.traceconfig:
-        lines.append(f"using: pytest-{pytest.__version__} pylib-{py.__version__}")
+        lines.append(f"using: pytest-{pytest.__version__}")
 
         verinfo = getpluginversioninfo(config)
         if verinfo:

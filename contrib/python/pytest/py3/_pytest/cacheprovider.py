@@ -13,7 +13,6 @@ from typing import Set
 from typing import Union
 
 import attr
-import py
 
 from .pathlib import resolve_from_str
 from .pathlib import rm_rf
@@ -42,27 +41,27 @@ which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
 
 **Do not** commit this to version control.
 
-See [the docs](https://docs.pytest.org/en/stable/cache.html) for more information.
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
 """
 
 CACHEDIR_TAG_CONTENT = b"""\
 Signature: 8a477f597d28d172789f06886806bc55
 # This file is a cache directory tag created by pytest.
 # For information about cache directory tags, see:
-#	http://www.bford.info/cachedir/spec.html
+#	https://bford.info/cachedir/spec.html
 """
 
 
 @final
-@attr.s(init=False)
+@attr.s(init=False, auto_attribs=True)
 class Cache:
-    _cachedir = attr.ib(type=Path, repr=False)
-    _config = attr.ib(type=Config, repr=False)
+    _cachedir: Path = attr.ib(repr=False)
+    _config: Config = attr.ib(repr=False)
 
-    # sub-directory under cache-dir for directories created by "makedir"
+    # Sub-directory under cache-dir for directories created by `mkdir()`.
     _CACHE_PREFIX_DIRS = "d"
 
-    # sub-directory under cache-dir for values created by "set"
+    # Sub-directory under cache-dir for values created by `set()`.
     _CACHE_PREFIX_VALUES = "v"
 
     def __init__(
@@ -120,12 +119,14 @@ class Cache:
             stacklevel=3,
         )
 
-    def makedir(self, name: str) -> py.path.local:
+    def mkdir(self, name: str) -> Path:
         """Return a directory path object with the given name.
 
         If the directory does not yet exist, it will be created. You can use
         it to manage files to e.g. store/retrieve database dumps across test
         sessions.
+
+        .. versionadded:: 7.0
 
         :param name:
             Must be a string not containing a ``/`` separator.
@@ -137,7 +138,7 @@ class Cache:
             raise ValueError("name is not allowed to contain path separators")
         res = self._cachedir.joinpath(self._CACHE_PREFIX_DIRS, path)
         res.mkdir(exist_ok=True, parents=True)
-        return py.path.local(res)
+        return res
 
     def _getvaluepath(self, key: str) -> Path:
         return self._cachedir.joinpath(self._CACHE_PREFIX_VALUES, Path(key))
@@ -183,7 +184,7 @@ class Cache:
             return
         if not cache_dir_exists_already:
             self._ensure_supporting_files()
-        data = json.dumps(value, indent=2, sort_keys=True)
+        data = json.dumps(value, indent=2)
         try:
             f = path.open("w")
         except OSError:
@@ -218,13 +219,17 @@ class LFPluginCollWrapper:
 
             # Sort any lf-paths to the beginning.
             lf_paths = self.lfplugin._last_failed_paths
+
             res.result = sorted(
-                res.result, key=lambda x: 0 if Path(str(x.fspath)) in lf_paths else 1,
+                res.result,
+                # use stable sort to priorize last failed
+                key=lambda x: x.path in lf_paths,
+                reverse=True,
             )
             return
 
         elif isinstance(collector, Module):
-            if Path(str(collector.fspath)) in self.lfplugin._last_failed_paths:
+            if collector.path in self.lfplugin._last_failed_paths:
                 out = yield
                 res = out.get_result()
                 result = res.result
@@ -245,7 +250,7 @@ class LFPluginCollWrapper:
                     for x in result
                     if x.nodeid in lastfailed
                     # Include any passed arguments (not trivial to filter).
-                    or session.isinitpath(x.fspath)
+                    or session.isinitpath(x.path)
                     # Keep all sub-collectors.
                     or isinstance(x, nodes.Collector)
                 ]
@@ -265,7 +270,7 @@ class LFPluginCollSkipfiles:
         # test-bearing paths and doesn't try to include the paths of their
         # packages, so don't filter them.
         if isinstance(collector, Module) and not isinstance(collector, Package):
-            if Path(str(collector.fspath)) not in self.lfplugin._last_failed_paths:
+            if collector.path not in self.lfplugin._last_failed_paths:
                 self.lfplugin._skipped_files += 1
 
                 return CollectReport(
@@ -414,7 +419,7 @@ class NFPlugin:
             self.cached_nodeids.update(item.nodeid for item in items)
 
     def _get_increasing_order(self, items: Iterable[nodes.Item]) -> List[nodes.Item]:
-        return sorted(items, key=lambda item: item.fspath.mtime(), reverse=True)  # type: ignore[no-any-return]
+        return sorted(items, key=lambda item: item.path.stat().st_mtime, reverse=True)  # type: ignore[no-any-return]
 
     def pytest_sessionfinish(self) -> None:
         config = self.config
@@ -567,8 +572,8 @@ def cacheshow(config: Config, session: Session) -> int:
         contents = sorted(ddir.rglob(glob))
         tw.sep("-", "cache directories for %r" % glob)
         for p in contents:
-            # if p.check(dir=1):
-            #    print("%s/" % p.relto(basedir))
+            # if p.is_dir():
+            #    print("%s/" % p.relative_to(basedir))
             if p.is_file():
                 key = str(p.relative_to(basedir))
                 tw.line(f"{key} is a file of length {p.stat().st_size:d}")

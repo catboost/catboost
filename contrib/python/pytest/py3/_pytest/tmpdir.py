@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 
 import attr
-import py
 
 from .pathlib import LOCK_TIMEOUT
 from .pathlib import make_numbered_dir
@@ -54,7 +53,10 @@ class TempPathFactory:
 
     @classmethod
     def from_config(
-        cls, config: Config, *, _ispytest: bool = False,
+        cls,
+        config: Config,
+        *,
+        _ispytest: bool = False,
     ) -> "TempPathFactory":
         """Create a factory according to pytest configuration.
 
@@ -115,7 +117,12 @@ class TempPathFactory:
             # use a sub-directory in the temproot to speed-up
             # make_numbered_dir() call
             rootdir = temproot.joinpath(f"pytest-of-{user}")
-            rootdir.mkdir(mode=0o700, exist_ok=True)
+            try:
+                rootdir.mkdir(mode=0o700, exist_ok=True)
+            except OSError:
+                # getuser() likely returned illegal characters for the platform, use unknown back off mechanism
+                rootdir = temproot.joinpath("pytest-of-unknown")
+                rootdir.mkdir(mode=0o700, exist_ok=True)
             # Because we use exist_ok=True with a predictable name, make sure
             # we are the owners, to prevent any funny business (on unix, where
             # temproot is usually shared).
@@ -148,29 +155,6 @@ class TempPathFactory:
         return basetemp
 
 
-@final
-@attr.s(init=False)
-class TempdirFactory:
-    """Backward comptibility wrapper that implements :class:``py.path.local``
-    for :class:``TempPathFactory``."""
-
-    _tmppath_factory = attr.ib(type=TempPathFactory)
-
-    def __init__(
-        self, tmppath_factory: TempPathFactory, *, _ispytest: bool = False
-    ) -> None:
-        check_ispytest(_ispytest)
-        self._tmppath_factory = tmppath_factory
-
-    def mktemp(self, basename: str, numbered: bool = True) -> py.path.local:
-        """Same as :meth:`TempPathFactory.mktemp`, but returns a ``py.path.local`` object."""
-        return py.path.local(self._tmppath_factory.mktemp(basename, numbered).resolve())
-
-    def getbasetemp(self) -> py.path.local:
-        """Backward compat wrapper for ``_tmppath_factory.getbasetemp``."""
-        return py.path.local(self._tmppath_factory.getbasetemp().resolve())
-
-
 def get_user() -> Optional[str]:
     """Return the current user name, or None if getuser() does not work
     in the current environment (see #1010)."""
@@ -183,30 +167,21 @@ def get_user() -> Optional[str]:
 
 
 def pytest_configure(config: Config) -> None:
-    """Create a TempdirFactory and attach it to the config object.
+    """Create a TempPathFactory and attach it to the config object.
 
     This is to comply with existing plugins which expect the handler to be
     available at pytest_configure time, but ideally should be moved entirely
-    to the tmpdir_factory session fixture.
+    to the tmp_path_factory session fixture.
     """
     mp = MonkeyPatch()
-    tmppath_handler = TempPathFactory.from_config(config, _ispytest=True)
-    t = TempdirFactory(tmppath_handler, _ispytest=True)
-    config._cleanup.append(mp.undo)
-    mp.setattr(config, "_tmp_path_factory", tmppath_handler, raising=False)
-    mp.setattr(config, "_tmpdirhandler", t, raising=False)
-
-
-@fixture(scope="session")
-def tmpdir_factory(request: FixtureRequest) -> TempdirFactory:
-    """Return a :class:`_pytest.tmpdir.TempdirFactory` instance for the test session."""
-    # Set dynamically by pytest_configure() above.
-    return request.config._tmpdirhandler  # type: ignore
+    config.add_cleanup(mp.undo)
+    _tmp_path_factory = TempPathFactory.from_config(config, _ispytest=True)
+    mp.setattr(config, "_tmp_path_factory", _tmp_path_factory, raising=False)
 
 
 @fixture(scope="session")
 def tmp_path_factory(request: FixtureRequest) -> TempPathFactory:
-    """Return a :class:`_pytest.tmpdir.TempPathFactory` instance for the test session."""
+    """Return a :class:`pytest.TempPathFactory` instance for the test session."""
     # Set dynamically by pytest_configure() above.
     return request.config._tmp_path_factory  # type: ignore
 
@@ -217,24 +192,6 @@ def _mk_tmp(request: FixtureRequest, factory: TempPathFactory) -> Path:
     MAXVAL = 30
     name = name[:MAXVAL]
     return factory.mktemp(name, numbered=True)
-
-
-@fixture
-def tmpdir(tmp_path: Path) -> py.path.local:
-    """Return a temporary directory path object which is unique to each test
-    function invocation, created as a sub directory of the base temporary
-    directory.
-
-    By default, a new base temporary directory is created each test session,
-    and old bases are removed after 3 sessions, to aid in debugging. If
-    ``--basetemp`` is used then it is cleared each session. See :ref:`base
-    temporary directory`.
-
-    The returned object is a `py.path.local`_ path object.
-
-    .. _`py.path.local`: https://py.readthedocs.io/en/latest/path.html
-    """
-    return py.path.local(tmp_path)
 
 
 @fixture
