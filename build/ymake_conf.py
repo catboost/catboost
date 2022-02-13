@@ -2457,11 +2457,6 @@ class MSVCCompiler(MSVC, Compiler):
             if target.is_x86_64:
                 flags.append('-m64')
 
-            # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
-            flags.extend((
-                '-Wno-c++11-narrowing',
-            ))
-
             c_warnings.extend((
                 '-Wno-absolute-value',
                 '-Wno-bitwise-op-parentheses',
