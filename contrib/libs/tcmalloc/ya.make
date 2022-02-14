@@ -29,6 +29,6 @@ IF (NOT DLL_FOR)
     malloc_extension
     numa_256k
     numa_large_pages
-    slow_but_small
+    small_but_slow
 )
 ENDIF()
