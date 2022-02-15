@@ -20,6 +20,10 @@
         </license>
     </licenses>
 
+    <properties>
+        <buildNative.extraArgs></buildNative.extraArgs>
+    </properties>
+
     <organization>
         <name>CatBoost dev team</name>
         <url>https://catboost.ai</url>
@@ -188,18 +192,16 @@
                           </goals>
                           <configuration>
                               <executable>python</executable>
-                              <arguments>
-                                  <argument>${basedir}/../tools/build_native_for_maven.py</argument>
-                                  <argument>${basedir}</argument>
-                                  <argument>catboost4j-prediction</argument>
-                                  <argument>--build</argument>
-                                  <argument>release</argument>
-                                  <argument>--no-src-links</argument>
-                                  <argument>-DOS_SDK=local</argument>
-                                  <argument>-DHAVE_CUDA=no</argument>
-                                  <argument>-DUSE_SYSTEM_JDK=${JAVA_HOME}</argument>
-                                  <argument>-DJAVA_HOME=${JAVA_HOME}</argument>
-                              </arguments>
+                              <commandlineArgs>
+                                ${basedir}/../tools/build_native_for_maven.py ${basedir} catboost4j-prediction
+                                --build release
+                                --no-src-links
+                                -DOS_SDK=local
+                                -DHAVE_CUDA=no
+                                -DUSE_SYSTEM_JDK=${JAVA_HOME}
+                                -DJAVA_HOME=${JAVA_HOME}
+                                ${buildNative.extraArgs}
+                              </commandlineArgs>
                               <workingDirectory>${user.dir}</workingDirectory>
                           </configuration>
                       </execution>
