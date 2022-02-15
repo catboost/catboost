@@ -14,39 +14,21 @@ TString FormatExc(const std::exception& exception) {
     return TString::Join(TStringBuf("("), TypeName(exception), TStringBuf(") "), exception.what());
 }
 
-static TString BackTraceToString(const TBackTrace& backtrace) {
-    try {
-        Y_ENSURE(backtrace.size() > 0, "backtrace is empty");
-        return backtrace.PrintToString();
-    } catch (const std::exception& e) {
-        return TString::Join("Failed to print backtrace: ", FormatExc(e));
-    }
-}
-
 TString CurrentExceptionMessage() {
     auto exceptionPtr = std::current_exception();
     if (exceptionPtr) {
         try {
             std::rethrow_exception(exceptionPtr);
         } catch (const yexception& e) {
-            const TBackTrace* btPtr;
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-            TBackTrace backtrace = TBackTrace::FromCurrentException();
-            btPtr = &backtrace;
-#else
-            btPtr = e.BackTrace();
-            if (!btPtr) {
-                return FormatExc(e);
+            const TBackTrace* bt = e.BackTrace();
+
+            if (bt) {
+                return TString::Join(bt->PrintToString(), TStringBuf("\n"), FormatExc(e));
             }
-#endif
-            return TString::Join(BackTraceToString(*btPtr), TStringBuf("\n"), FormatExc(e));
-        } catch (const std::exception& e) {
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-            TBackTrace backtrace = TBackTrace::FromCurrentException();
-            return TString::Join(BackTraceToString(backtrace), TStringBuf("\n"), FormatExc(e));
-#else
+
             return FormatExc(e);
-#endif
+        } catch (const std::exception& e) {
+            return FormatExc(e);
         } catch (...) {
         }
 
