@@ -247,10 +247,6 @@ def pytest_configure(config):
             if envvar + '_ORIGINAL' in os.environ:
                 os.environ[envvar] = os.environ[envvar + '_ORIGINAL']
 
-    if config.option.root_dir:
-        config.rootdir = py.path.local(config.option.root_dir)
-        config.invocation_params = attr.evolve(config.invocation_params, dir=config.rootdir)
-
     extra_sys_path = []
     # Arcadia paths from the test DEPENDS section of ya.make
     extra_sys_path.append(os.path.join(config.option.source_root, config.option.project_path))
