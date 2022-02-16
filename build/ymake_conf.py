@@ -2488,7 +2488,6 @@ class MSVCCompiler(MSVC, Compiler):
                     '-Wno-deprecated-enum-enum-conversion',
                     '-Wno-ambiguous-reversed-operator',
                     '-Wno-deprecated-enum-float-conversion',
-                    '-Wno-pointer-to-int-cast',  # didn't fail on linux
                 ]
 
                 # heretic: на момент коммита в нашей конфигурации указано, что тулчейн clang11-windows - аналог msvc 2019
