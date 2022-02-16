@@ -484,7 +484,6 @@ Class | Method | Description
 
 Optuna is a famous hyperparameter optimization framework.
 Optuna enables efficient hyperparameter optimization by adopting state-of-the-art algorithms for sampling hyperparameters and pruning efficiently unpromising trials.  
-Catboost supports to stop unpromising trial of hyperparameter by callbacking after iteration functionality. (https://github.com/catboost/catboost/pull/1697)
+Catboost supports to stop unpromising trial of hyperparameter by callbacking after iteration functionality. [Pull Request](https://github.com/catboost/catboost/pull/1697/files#diff-ccca44461ac6b094190f29fec157a227996e226ea483213680dd0a152cd412eaR9679)
 
-The following is an optuna example that demonstrates a pruner for CatBoost.  
-https://github.com/optuna/optuna-examples/blob/main/catboost/catboost_pruning.py
+The following is an optuna example that demonstrates a pruner for CatBoost. [Example](https://github.com/optuna/optuna-examples/blob/main/catboost/catboost_pruning.py)
