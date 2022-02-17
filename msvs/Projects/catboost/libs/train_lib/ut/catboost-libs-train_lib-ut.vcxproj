@@ -629,6 +629,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cache\library-cpp-cache.vcxproj">
       <Project>{81F27AB8-35D2-C0A0-9D64-6D234C1AB239}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\case_insensitive_string\library-cpp-case_insensitive_string.vcxproj">
+      <Project>{59478AB9-0649-936D-A72A-7CAF06EA2187}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
@@ -697,6 +700,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\murmur\cpp-digest-murmur.vcxproj">
+      <Project>{8FF38AD0-CBFB-DEED-3BDB-271F133E5599}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dns\library-cpp-dns.vcxproj">
       <Project>{91C1EED9-1431-B67A-0849-C29C4CC35B79}</Project>
