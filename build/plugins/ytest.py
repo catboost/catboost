@@ -293,11 +293,7 @@ def validate_test(unit, kw):
 
     unit_path = get_norm_unit_path(unit)
     if not is_fat and "ya:noretries" in tags and not is_ytexec_run \
-            and not unit_path.startswith("devtools/") \
-            and not unit_path.startswith("infra/kernel/") \
-            and not unit_path.startswith("yt/python/yt") \
-            and not unit_path.startswith("infra/yp_dns_api/tests") \
-            and not unit_path.startswith("yp/tests"):
+            and not unit_path.startswith("devtools/dummy_arcadia/test/noretries"):
         errors.append("Only LARGE tests can have 'ya:noretries' tag")
 
     if errors:
