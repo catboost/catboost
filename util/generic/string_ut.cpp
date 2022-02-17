@@ -78,31 +78,13 @@ class TStringStdTestImpl {
 
 protected:
     void Constructor() {
-        // @todo use UNIT_TEST_EXCEPTION
-        try {
-            TStringType s((size_t)-1, *Data_.a());
-            UNIT_ASSERT(false);
-        } catch (const std::length_error&) {
-            UNIT_ASSERT(true);
-        } catch (...) {
-            //Expected exception is length_error:
-            UNIT_ASSERT(false);
-        }
+        UNIT_ASSERT_EXCEPTION(TStringType((size_t)-1, *Data_.a()), std::length_error);
     }
 
     void reserve() {
 #if 0
         TStringType s;
-        // @todo use UNIT_TEST_EXCEPTION
-        try {
-            s.reserve(s.max_size() + 1);
-            UNIT_ASSERT(false);
-        } catch (const std::length_error&) {
-            UNIT_ASSERT(true);
-        } catch (...) {
-            //Expected exception is length_error:
-            UNIT_ASSERT(false);
-        }
+        UNIT_ASSERT_EXCEPTION(s.reserve(s.max_size() + 1), std::length_error);
 
         // Non-shared behaviour - never shrink
 
@@ -526,15 +508,7 @@ protected:
         UNIT_ASSERT(dest[pos++] == *Data_.o());
         UNIT_ASSERT(dest[pos++] == 1);
 
-        // @todo use UNIT_TEST_EXCEPTION
-        try {
-            s.copy(dest, 4, 5);
-            UNIT_ASSERT(!"expected std::out_of_range");
-        } catch (const std::out_of_range&) {
-            UNIT_ASSERT(true);
-        } catch (...) {
-            UNIT_ASSERT(!"expected std::out_of_range");
-        }
+        UNIT_ASSERT_EXCEPTION(s.copy(dest, 4, 5), std::out_of_range);
     }
 
     void cbegin_cend() {

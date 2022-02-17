@@ -184,15 +184,7 @@ void TDequeTest::TestAt() {
     UNIT_ASSERT(d.at(0) == 10);
     d.at(0) = 20;
     UNIT_ASSERT(cd.at(0) == 20);
-
-    for (;;) {
-        try {
-            d.at(1) = 20;
-            UNIT_ASSERT(false);
-        } catch (...) {
-            return;
-        }
-    }
+    UNIT_ASSERT_EXCEPTION(d.at(1) = 20, std::out_of_range);
 }
 
 void TDequeTest::TestAutoRef() {

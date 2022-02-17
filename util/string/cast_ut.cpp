@@ -464,50 +464,12 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(integer, wideCharacterCode);
     }
 
-    static void CheckMessage(TFromStringException& exc, const TString& phrase) {
-        TString message = exc.what();
-        if (!message.Contains(phrase)) {
-            Cerr << message << Endl;
-            UNIT_ASSERT(false);
-        }
-    }
-
     Y_UNIT_TEST(ErrorMessages) {
-        try {
-            FromString<ui32>("");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "empty string as number");
-        }
-
-        try {
-            FromString<ui32>("-");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            // Unsigned should have no sign at all, so - is not expected
-            CheckMessage(e, "Unexpected symbol \"-\" at pos 0 in string \"-\"");
-        }
-
-        try {
-            FromString<i32>("-");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Cannot parse string \"-\" as number");
-        }
-
-        try {
-            FromString<i32>("+");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Cannot parse string \"+\" as number");
-        }
-
-        try {
-            FromString<ui32>("0.328413745072");
-            UNIT_ASSERT(false);
-        } catch (TFromStringException& e) {
-            CheckMessage(e, "Unexpected symbol \".\" at pos 1 in string \"0.328413745072\"");
-        }
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<ui32>(""), TFromStringException, "empty string as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<ui32>("-"), TFromStringException, "Unexpected symbol \"-\" at pos 0 in string \"-\"");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("-"), TFromStringException, "Cannot parse string \"-\" as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("+"), TFromStringException, "Cannot parse string \"+\" as number");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(FromString<i32>("0.328413745072"), TFromStringException, "Unexpected symbol \".\" at pos 1 in string \"0.328413745072\"");
     }
 
     Y_UNIT_TEST(TryStringBuf) {
