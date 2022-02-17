@@ -31,8 +31,8 @@
 
 KEEP     COPYRIGHT_SERVICE_LABEL 25f909dde7cb2b432b9631287a825adb
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: deflate.c at line 3, zlib.h at line 5
-FILE_INCLUDE zlib.h found in files: deflate.c at line 3, zlib.h at line 5
+FILE_IGNORE include/zlib.h found in files: deflate.c at line 3, zlib.h at line 5
+FILE_IGNORE zlib.h found in files: deflate.c at line 3, zlib.h at line 5
     License text:
          * Copyright (C) 1995-2017 Jean-loup Gailly and Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -46,8 +46,8 @@ FILE_INCLUDE zlib.h found in files: deflate.c at line 3, zlib.h at line 5
 
 KEEP     COPYRIGHT_SERVICE_LABEL 277641030d16b4c50c0d9ff434aa1834
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: adler32.c at line 3
-FILE_INCLUDE zlib.h found in files: adler32.c at line 3
+FILE_IGNORE include/zlib.h found in files: adler32.c at line 3
+FILE_IGNORE zlib.h found in files: adler32.c at line 3
     License text:
          * Copyright (C) 1995-2011, 2016 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -60,8 +60,8 @@ FILE_INCLUDE zlib.h found in files: adler32.c at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL 3196e5b8ddb48a16dad4eae91d2e6164
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: inftrees.h at line 3
-FILE_INCLUDE zlib.h found in files: inftrees.h at line 3
+FILE_IGNORE include/zlib.h found in files: inftrees.h at line 3
+FILE_IGNORE zlib.h found in files: inftrees.h at line 3
     License text:
          * Copyright (C) 1995-2005, 2010 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -74,8 +74,8 @@ FILE_INCLUDE zlib.h found in files: inftrees.h at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL 36389dd22a8afbd1e70ca18566ff66a7
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: inffast.c at line 3, inftrees.c at line 3
-FILE_INCLUDE zlib.h found in files: inffast.c at line 3, inftrees.c at line 3
+FILE_IGNORE include/zlib.h found in files: inffast.c at line 3, inftrees.c at line 3
+FILE_IGNORE zlib.h found in files: inffast.c at line 3, inftrees.c at line 3
     License text:
          * Copyright (C) 1995-2017 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -89,8 +89,8 @@ FILE_INCLUDE zlib.h found in files: inffast.c at line 3, inftrees.c at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL 56512b6a184c263746ba5830fa2a249f
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: deflate.h at line 3
-FILE_INCLUDE zlib.h found in files: deflate.h at line 3
+FILE_IGNORE include/zlib.h found in files: deflate.h at line 3
+FILE_IGNORE zlib.h found in files: deflate.h at line 3
     License text:
          * Copyright (C) 1995-2016 Jean-loup Gailly
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -103,8 +103,8 @@ FILE_INCLUDE zlib.h found in files: deflate.h at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL 6314c5cc74434f51d3da992778c259bc
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: crc32.c at line 3
-FILE_INCLUDE zlib.h found in files: crc32.c at line 3
+FILE_IGNORE include/zlib.h found in files: crc32.c at line 3
+FILE_IGNORE zlib.h found in files: crc32.c at line 3
     License text:
          * Copyright (C) 1995-2006, 2010, 2011, 2012, 2016 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -117,8 +117,8 @@ FILE_INCLUDE zlib.h found in files: crc32.c at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL 663d781ea4c7aa77fcedd216acae42c7
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: gzlib.c at line 3, gzwrite.c at line 3
-FILE_INCLUDE zlib.h found in files: gzlib.c at line 3, gzwrite.c at line 3
+FILE_IGNORE include/zlib.h found in files: gzlib.c at line 3, gzwrite.c at line 3
+FILE_IGNORE zlib.h found in files: gzlib.c at line 3, gzwrite.c at line 3
     License text:
          * Copyright (C) 2004-2017 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -143,8 +143,8 @@ BELONGS ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL 8e8ddc1e917d1fb6ba149d56d795645a
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: trees.c at line 4, zutil.c at line 4
-FILE_INCLUDE zlib.h found in files: trees.c at line 4, zutil.c at line 4
+FILE_IGNORE include/zlib.h found in files: trees.c at line 4, zutil.c at line 4
+FILE_IGNORE zlib.h found in files: trees.c at line 4, zutil.c at line 4
     License text:
          * Copyright (C) 1995-2017 Jean-loup Gailly
          * detect_data_type() function provided freely by Cosmin Truta, 2006
@@ -159,8 +159,8 @@ FILE_INCLUDE zlib.h found in files: trees.c at line 4, zutil.c at line 4
 
 KEEP     COPYRIGHT_SERVICE_LABEL 9a20c729a4f6384624db94bed5392825
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: uncompr.c at line 3
-FILE_INCLUDE zlib.h found in files: uncompr.c at line 3
+FILE_IGNORE include/zlib.h found in files: uncompr.c at line 3
+FILE_IGNORE zlib.h found in files: uncompr.c at line 3
     License text:
          * Copyright (C) 1995-2003, 2010, 2014, 2016 Jean-loup Gailly, Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -171,7 +171,7 @@ FILE_INCLUDE zlib.h found in files: uncompr.c at line 3
     Files with this license:
         uncompr.c [2:3]
 
-KEEP     COPYRIGHT_SERVICE_LABEL 9f8336c73ac18b661abd53f39ba696fb
+SKIP     COPYRIGHT_SERVICE_LABEL 9f8336c73ac18b661abd53f39ba696fb
 BELONGS ya.make
     License text:
         const char deflate_copyright[] =
@@ -185,8 +185,8 @@ BELONGS ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL a9ba3151046fc9c1450a6d478f5dbcc5
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: gzguts.h at line 3, gzread.c at line 3
-FILE_INCLUDE zlib.h found in files: gzguts.h at line 3, gzread.c at line 3
+FILE_IGNORE include/zlib.h found in files: gzguts.h at line 3, gzread.c at line 3
+FILE_IGNORE zlib.h found in files: gzguts.h at line 3, gzread.c at line 3
     License text:
          * Copyright (C) 2004, 2005, 2010, 2011, 2012, 2013, 2016 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -200,8 +200,8 @@ FILE_INCLUDE zlib.h found in files: gzguts.h at line 3, gzread.c at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL aaba81fd14e8ed4313734f83bcd4fad5
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: zconf.h at line 3, zutil.h at line 3
-FILE_INCLUDE zlib.h found in files: zconf.h at line 3, zutil.h at line 3
+FILE_IGNORE include/zlib.h found in files: zconf.h at line 3, zutil.h at line 3
+FILE_IGNORE zlib.h found in files: zconf.h at line 3, zutil.h at line 3
     License text:
          * Copyright (C) 1995-2016 Jean-loup Gailly, Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -215,8 +215,8 @@ FILE_INCLUDE zlib.h found in files: zconf.h at line 3, zutil.h at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL adf7d6636ae7eaa194ec0f5eac119e38
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: infback.c at line 3, inflate.c at line 3, inflate.h at line 3
-FILE_INCLUDE zlib.h found in files: infback.c at line 3, inflate.c at line 3, inflate.h at line 3
+FILE_IGNORE include/zlib.h found in files: infback.c at line 3, inflate.c at line 3, inflate.h at line 3
+FILE_IGNORE zlib.h found in files: infback.c at line 3, inflate.c at line 3, inflate.h at line 3
     License text:
          * Copyright (C) 1995-2016 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -231,8 +231,8 @@ FILE_INCLUDE zlib.h found in files: infback.c at line 3, inflate.c at line 3, in
 
 KEEP     COPYRIGHT_SERVICE_LABEL b7a343f9b49ebc230fdd78921a1ea28b
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: inffast.h at line 3
-FILE_INCLUDE zlib.h found in files: inffast.h at line 3
+FILE_IGNORE include/zlib.h found in files: inffast.h at line 3
+FILE_IGNORE zlib.h found in files: inffast.h at line 3
     License text:
          * Copyright (C) 1995-2003, 2010 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -243,7 +243,7 @@ FILE_INCLUDE zlib.h found in files: inffast.h at line 3
     Files with this license:
         inffast.h [2:3]
 
-KEEP     COPYRIGHT_SERVICE_LABEL c9237bd04d26a15263d0efa3d53a922a
+SKIP     COPYRIGHT_SERVICE_LABEL c9237bd04d26a15263d0efa3d53a922a
 BELONGS ya.make
     License text:
         const char inflate_copyright[] =
@@ -257,8 +257,8 @@ BELONGS ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL cf03aed7948d485e7383fbbc2b3211c8
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: gzclose.c at line 3
-FILE_INCLUDE zlib.h found in files: gzclose.c at line 3
+FILE_IGNORE include/zlib.h found in files: gzclose.c at line 3
+FILE_IGNORE zlib.h found in files: gzclose.c at line 3
     License text:
          * Copyright (C) 2004, 2010 Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h
@@ -271,8 +271,8 @@ FILE_INCLUDE zlib.h found in files: gzclose.c at line 3
 
 KEEP     COPYRIGHT_SERVICE_LABEL d9b2f390e7a1f7325c8ddd8eedda0c4b
 BELONGS ya.make
-FILE_INCLUDE include/zlib.h found in files: compress.c at line 3
-FILE_INCLUDE zlib.h found in files: compress.c at line 3
+FILE_IGNORE include/zlib.h found in files: compress.c at line 3
+FILE_IGNORE zlib.h found in files: compress.c at line 3
     License text:
          * Copyright (C) 1995-2005, 2014, 2016 Jean-loup Gailly, Mark Adler
          * For conditions of distribution and use, see copyright notice in zlib.h

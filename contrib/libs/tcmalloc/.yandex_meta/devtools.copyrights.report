@@ -241,7 +241,7 @@ BELONGS ya.make
         tcmalloc/transfer_cache_test.cc [1:1]
         tcmalloc/want_legacy_spans.cc [1:1]
 
-KEEP     COPYRIGHT_SERVICE_LABEL b7c6499c855f04bbe7161fc4de3a41d6
+SKIP     COPYRIGHT_SERVICE_LABEL b7c6499c855f04bbe7161fc4de3a41d6
 BELONGS ya.make
     License text:
           Delete(c);

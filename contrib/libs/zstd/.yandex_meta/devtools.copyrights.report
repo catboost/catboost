@@ -202,8 +202,9 @@ BELONGS ya.make
         lib/legacy/zstd_v07.c [979:979]
         lib/legacy/zstd_v07.c [1700:1700]
 
-KEEP     COPYRIGHT_SERVICE_LABEL e44599619475e82b44656ba88422c261
+SKIP     COPYRIGHT_SERVICE_LABEL e44599619475e82b44656ba88422c261
 BELONGS ya.make
+    # changelog
     License text:
         v1.0.0  (Sep 1, 2016)
         Change Licensing, all project is now BSD, Copyright Facebook

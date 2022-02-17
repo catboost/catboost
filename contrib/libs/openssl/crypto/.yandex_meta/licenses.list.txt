@@ -42,38 +42,6 @@
  * SUCH DAMAGE.
 
 
-====================BSD-3-Clause====================
-# define CHECK_BSD_STYLE_MACROS
-
-
-====================BSD-3-Clause====================
-# if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_RIPEMD160)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_CTR)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_ECB)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_224)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_256)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_384)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_512)
-
-
 ====================BSD-Source-Code====================
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

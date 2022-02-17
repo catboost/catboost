@@ -270,12 +270,6 @@ license. See LICENSE for more information.
 
 
 ====================COPYRIGHT====================
-  Delete(c);
-  SmallSpanStats small;
-  LargeSpanStats large;
-
-
-====================COPYRIGHT====================
 // Copyright 2019 The TCMalloc Authors
 
 

@@ -513,13 +513,6 @@ of preserving the free status of all derivatives of our free software and
 of promoting the sharing and reuse of software generally.
 
 
-====================COPYRIGHT====================
-v1.0.0  (Sep 1, 2016)
-Change Licensing, all project is now BSD, Copyright Facebook
-Small decompression speed improvement
-API : Streaming API supports legacy format
-
-
 ====================File: COPYING====================
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991

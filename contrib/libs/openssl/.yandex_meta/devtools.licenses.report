@@ -189,8 +189,9 @@ BELONGS ya.make
     Files with this license:
         CHANGES [6731:6731]
 
-KEEP     BSD-3-Clause         2b124c177b4014ac0f5d8989bc6738ae
+SKIP     BSD-3-Clause         2b124c177b4014ac0f5d8989bc6738ae
 BELONGS ya.make
+    # install file
     License text:
          (on Unix and Windows, BSD style wildcards are supported, while on VMS,
     Scancode info:
@@ -201,9 +202,9 @@ BELONGS ya.make
     Files with this license:
         INSTALL [1182:1182]
 
-KEEP     BSD-3-Clause         2c3d88a5d3f2c83deaea63d17e130659
+SKIP     BSD-3-Clause         2c3d88a5d3f2c83deaea63d17e130659
 BELONGS ya.make
-FILE_IGNORE apps/openssl found in files: CHANGES at line 10549
+    # changes file
     License text:
           *) Add BSD-style MD5-based passwords to 'openssl passwd' (option '-1').
     Scancode info:
@@ -1348,7 +1349,7 @@ FILE_INCLUDE LICENSE found in files: asm/android/arm/crypto/aes/aes-armv4.S at l
         asm/ios/armv7/crypto/sha/sha256-armv4.S [3:6]
         asm/ios/armv7/crypto/sha/sha512-armv4.S [3:6]
 
-KEEP     BSD-3-Clause         3c9254745a51b0118ac21b65aaa4f0d4
+SKIP     BSD-3-Clause         3c9254745a51b0118ac21b65aaa4f0d4
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_512)
@@ -1397,7 +1398,7 @@ FILE_INCLUDE LICENSE found in files: CONTRIBUTING at line 33
     Files with this license:
         CONTRIBUTING [31:34]
 
-KEEP     BSD-3-Clause         42dea97690448f54789a5af8c38fa8ed
+SKIP     BSD-3-Clause         42dea97690448f54789a5af8c38fa8ed
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_224)
@@ -1421,7 +1422,7 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/chacha/chacha_enc.c [10:10]
 
-KEEP     BSD-3-Clause         4b2dfd926fc95285e22681fc74a55780
+SKIP     BSD-3-Clause         4b2dfd926fc95285e22681fc74a55780
 BELONGS crypto/ya.make
     License text:
         \# if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_RIPEMD160)
@@ -1484,7 +1485,7 @@ BELONGS crypto/ya.make
         crypto/ec/ecp_nistp521.c [12:23]
         crypto/ec/ecp_nistputil.c [12:23]
 
-KEEP     BSD-3-Clause         6b314a49b89b5ca11026f673aa184f64
+SKIP     BSD-3-Clause         6b314a49b89b5ca11026f673aa184f64
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_256)
@@ -1515,7 +1516,7 @@ FILE_INCLUDE LICENSE found in files: crypto/LPdir_nyi.c at line 6
     Files with this license:
         crypto/LPdir_nyi.c [4:36]
 
-KEEP     BSD-3-Clause         71c319c7af40b6062bb4178de807d62a
+SKIP     BSD-3-Clause         71c319c7af40b6062bb4178de807d62a
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_CTR)
@@ -1752,7 +1753,7 @@ FILE_INCLUDE LICENSE found in files: crypto/dsa/dsa_meth.c at line 15, include/c
         crypto/dsa/dsa_meth.c [11:15]
         include/crypto/rand.h [11:15]
 
-KEEP     BSD-3-Clause         e088884f91b71ec20ea1ff62a381e395
+SKIP     BSD-3-Clause         e088884f91b71ec20ea1ff62a381e395
 BELONGS crypto/ya.make
     License text:
         \# define CHECK_BSD_STYLE_MACROS
@@ -1764,7 +1765,7 @@ BELONGS crypto/ya.make
     Files with this license:
         crypto/engine/eng_devcrypto.c [30:30]
 
-KEEP     BSD-3-Clause         e7d4410a4fcf83b167c1a8329f510b15
+SKIP     BSD-3-Clause         e7d4410a4fcf83b167c1a8329f510b15
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_ECB)
@@ -1810,7 +1811,7 @@ BELONGS crypto/ya.make ya.make
         crypto/x509v3/v3_pcia.c [11:12]
         include/internal/o_dir.h [11:12]
 
-KEEP     BSD-3-Clause         eec8d9177f54c579dcf68eafa49aae7d
+SKIP     BSD-3-Clause         eec8d9177f54c579dcf68eafa49aae7d
 BELONGS crypto/ya.make
     License text:
         \#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_384)
