@@ -64,7 +64,8 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
     localExecutor: TLocalExecutor
   ) : Iterator[Row]
 
-  override def transformImpl(dataset: Dataset[_]): DataFrame = {
+  // cannot override transformImpl because it's made final in ClassificationModel since Spark 3.x+
+  protected def transformCatBoostImpl(dataset: Dataset[_]): DataFrame = {
     val dataFrame = dataset.asInstanceOf[DataFrame]
 
     val featuresColumnIdx = dataset.schema.fieldIndex($(featuresCol));
