@@ -28,6 +28,11 @@ NO_UTIL()
 
 CFLAGS(-D_LIBCXXABI_BUILDING_LIBRARY)
 
+IF (EXPORT_CMAKE)
+    # TODO(YMAKE-91) keep flags required for libc++ vendoring in a separate core.conf variable
+    CXXFLAGS(GLOBAL -nostdinc++) 
+ENDIF()
+
 SRCDIR(contrib/libs/cxxsupp/libcxxabi)
 
 SRCS(
