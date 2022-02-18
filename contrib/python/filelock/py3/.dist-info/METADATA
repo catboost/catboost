@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: filelock
-Version: 3.5.1
+Version: 3.6.0
 Summary: A platform independent file lock.
 Home-page: https://github.com/tox-dev/py-filelock
 Download-URL: https://github.com/tox-dev/py-filelock/archive/main.zip
