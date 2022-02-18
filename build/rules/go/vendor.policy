@@ -60,6 +60,7 @@ ALLOW .* -> vendor/k8s.io/apimachinery/pkg/types
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/clock
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/runtime
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/wait
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/yaml
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/watch
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/api/resource
 
