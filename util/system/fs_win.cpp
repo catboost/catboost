@@ -180,34 +180,52 @@ namespace NFsPrivate {
 
     // the end of edited part of <Ntifs.h>
 
-    TString WinReadLink(const TString& name) {
-        TFileHandle h = CreateFileWithUtf8Name(name, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING,
-                                               FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, true);
-        TTempBuf buf;
+    // For more info see:
+    // * https://docs.microsoft.com/en-us/windows/win32/fileio/reparse-points
+    // * https://docs.microsoft.com/en-us/windows-hardware/drivers/ifs/fsctl-get-reparse-point
+    // * https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_reparse_data_buffer
+    REPARSE_DATA_BUFFER* ReadReparsePoint(HANDLE h, TTempBuf& buf) {
         while (true) {
             DWORD bytesReturned = 0;
             BOOL res = DeviceIoControl(h, FSCTL_GET_REPARSE_POINT, nullptr, 0, buf.Data(), buf.Size(), &bytesReturned, nullptr);
             if (res) {
                 REPARSE_DATA_BUFFER* rdb = (REPARSE_DATA_BUFFER*)buf.Data();
-                if (rdb->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
-                    wchar16* str = (wchar16*)&rdb->SymbolicLinkReparseBuffer.PathBuffer[rdb->SymbolicLinkReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
-                    size_t len = rdb->SymbolicLinkReparseBuffer.SubstituteNameLength / sizeof(wchar16);
-                    return WideToUTF8(str, len);
-                } else if (rdb->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
-                    wchar16* str = (wchar16*)&rdb->MountPointReparseBuffer.PathBuffer[rdb->MountPointReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
-                    size_t len = rdb->MountPointReparseBuffer.SubstituteNameLength / sizeof(wchar16);
-                    return WideToUTF8(str, len);
-                }
-                //this reparse point is unsupported in arcadia
-                return TString();
+                return rdb;
             } else {
                 if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
                     buf = TTempBuf(buf.Size() * 2);
                 } else {
-                    ythrow yexception() << "can't read link " << name;
+                    return nullptr;
                 }
             }
         }
+    }
+
+    TString WinReadLink(const TString& name) {
+        TFileHandle h = CreateFileWithUtf8Name(name, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING,
+                                               FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS, true);
+        TTempBuf buf;
+        REPARSE_DATA_BUFFER* rdb = ReadReparsePoint(h, buf);
+        if (rdb == nullptr) {
+            ythrow TIoSystemError() << "can't read reparse point " << name;
+        }
+        if (rdb->ReparseTag == IO_REPARSE_TAG_SYMLINK) {
+            wchar16* str = (wchar16*)&rdb->SymbolicLinkReparseBuffer.PathBuffer[rdb->SymbolicLinkReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
+            size_t len = rdb->SymbolicLinkReparseBuffer.SubstituteNameLength / sizeof(wchar16);
+            return WideToUTF8(str, len);
+        } else if (rdb->ReparseTag == IO_REPARSE_TAG_MOUNT_POINT) {
+            wchar16* str = (wchar16*)&rdb->MountPointReparseBuffer.PathBuffer[rdb->MountPointReparseBuffer.SubstituteNameOffset / sizeof(wchar16)];
+            size_t len = rdb->MountPointReparseBuffer.SubstituteNameLength / sizeof(wchar16);
+            return WideToUTF8(str, len);
+        }
+        //this reparse point is unsupported in arcadia
+        return TString();
+    }
+
+    ULONG WinReadReparseTag(HANDLE h) {
+        TTempBuf buf;
+        REPARSE_DATA_BUFFER* rdb = ReadReparsePoint(h, buf);
+        return rdb ? rdb->ReparseTag : 0;
     }
 
     // we can't use this function to get an analog of unix inode due to a lot of NTFS folders do not have this GUID
