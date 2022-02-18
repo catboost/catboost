@@ -780,7 +780,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
     - yabs/server/test/ft/BSSERVER-2454
-    - yabs/server/test/ft/BSSERVER-2976
     - yabs/server/test/ft/BSSERVER-3895
     - yabs/server/test/ft/BSSERVER-9233
     - yabs/server/test/ft/NANPU-817
@@ -2180,7 +2179,6 @@ migrations:
     - passport/backend/contrib/gsm0338
     - passport/backend/contrib/nose_parameterized
     - passport/backend/contrib/oauthlib
-    - passport/backend/contrib/py-radix
     - passport/backend/contrib/py2casefold
     - passport/backend/contrib/pyisemail
     - passport/backend/tools/rm_attrs
@@ -2561,7 +2559,6 @@ migrations:
     - sandbox/projects/masstransit/MapsBicycleRouterShooting
     - sandbox/projects/masstransit/MapsMasstransitDataDeploymentStatistics
     - sandbox/projects/masstransit/MapsMasstransitMtinfoShooting
-    - sandbox/projects/masstransit/MapsMasstransitMtrouterShooting
     - sandbox/projects/masstransit/MapsMasstransitSrcExportDownloader
     - sandbox/projects/mlp
     - sandbox/projects/mlportal
