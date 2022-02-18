@@ -27,6 +27,7 @@ import org.apache.spark.sql.execution.datasources.text.TextFileFormat
 import org.apache.spark.sql.sources.DataSourceRegister
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types._
+import org.apache.spark.util.TaskCompletionListener
 
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 import ai.catboost.CatBoostError
@@ -504,7 +505,13 @@ private[spark] class CatBoostTextFileFormat
 
     (file: PartitionedFile) => {
       val linesReader = new HadoopFileLinesReader(file, broadcastedHadoopConf.value.value)
-      Option(TaskContext.get()).foreach(_.addTaskCompletionListener(_ => linesReader.close()))
+      Option(TaskContext.get()).foreach(
+        _.addTaskCompletionListener(
+          new TaskCompletionListener {
+            override def onTaskCompletion(context: TaskContext): Unit = { linesReader.close() }
+          }
+        )
+      )
 
       DatasetRowsReaderIterator(
         linesReader,
