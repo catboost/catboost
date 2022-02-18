@@ -420,7 +420,7 @@ namespace NKernel {
         numBlocks.y = min(count, 65535);
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_VERIFY((ui64)numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
 
         UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, count, tempVars);
         {

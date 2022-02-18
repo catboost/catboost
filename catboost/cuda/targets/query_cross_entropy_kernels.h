@@ -8,6 +8,8 @@
 #include <catboost/cuda/targets/kernel/query_cross_entropy.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
+#include <util/generic/cast.h>
+
 namespace NKernelHost {
     class TQueryCrossEntropyKernel: public TKernelBase<NKernel::TQueryLogitContext, false> {
     private:
@@ -126,6 +128,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, IsSingleQueryFlags, MatrixSize);
 
         void Run(const TCudaStream& stream) const {
+            CB_ENSURE(QueryOffsets.Size() == MatrixSize.Size());
             Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
@@ -136,7 +139,7 @@ namespace NKernelHost {
     class TMakeQueryLogitPairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffset;
+        TCudaBufferPtr<const ui64> MatrixOffset;
         TCudaBufferPtr<const bool> IsSingleQueryFlags;
         double MeanQuerySize;
         TCudaBufferPtr<uint2> Pairs;
@@ -145,7 +148,7 @@ namespace NKernelHost {
         TMakeQueryLogitPairsKernel() = default;
 
         TMakeQueryLogitPairsKernel(TCudaBufferPtr<const ui32> qOffsets,
-                                   TCudaBufferPtr<const ui32> matrixOffset,
+                                   TCudaBufferPtr<const ui64> matrixOffset,
                                    TCudaBufferPtr<const bool> isSingleQueryFlags,
                                    double meanQuerySize,
                                    TCudaBufferPtr<uint2> pairs)
@@ -326,7 +329,7 @@ inline void FillPairDer2AndRemapPairDocuments(const TCudaBuffer<float, TMapping>
 
 template <class TMapping>
 inline void MakePairsQueryLogit(const TCudaBuffer<ui32, TMapping>& sampledQidOffsets,
-                                const TCudaBuffer<ui32, TMapping>& matrixOffsets,
+                                const TCudaBuffer<ui64, TMapping>& matrixOffsets,
                                 const TCudaBuffer<bool, TMapping>& sampledFlags,
                                 double meanQuerySize,
                                 TCudaBuffer<uint2, TMapping>* pairs,

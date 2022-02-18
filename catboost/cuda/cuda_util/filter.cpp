@@ -6,6 +6,8 @@
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_util/kernel/filter.cuh>
 
+#include <util/generic/cast.h>
+
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
@@ -34,7 +36,7 @@ namespace {
         Y_SAVELOAD_DEFINE(Weights, Result);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::Filter(Weights.Get(), (const ui32)Weights.Size(), Result.Get(), stream.GetStream());
+            NKernel::Filter(Weights.Get(), SafeIntegerCast<ui32>(Weights.Size()), Result.Get(), stream.GetStream());
         }
     };
 }

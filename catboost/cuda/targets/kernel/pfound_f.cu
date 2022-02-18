@@ -46,7 +46,7 @@ namespace NKernel
 
 
         ui32 queryOffset = qid < queryCount ? queryOffsets[qid] : 0;
-        ui32 querySize = qid < queryCount ? queryOffsets[qid + 1] - queryOffset : 0;
+        ui32 querySize = qid < queryCount ? queryOffsets[qid + 1] - queryOffset : 0; // queryCount = QOffsets.Size() - 1
         ui32 matrixOffset = qid < queryCount ? matrixOffsets[qid] : 0;
 
         const int x = threadIdx.x & (THREADS_PER_QUERY - 1);

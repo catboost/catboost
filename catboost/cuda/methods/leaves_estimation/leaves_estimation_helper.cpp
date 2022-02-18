@@ -81,7 +81,7 @@ namespace NCatboostCuda {
 
         (*partLeafWeights) = ComputeBinStatisticsForParts(*pairWeights,
                                                           *pairPartOffsets,
-                                                          binCount * binCount);
+                                                          SafeIntegerCast<ui32>((ui64)binCount * binCount));
     }
 
     void MakePointwiseComputeOrder(const TStripeBuffer<const ui32>& bins, ui32 binCount,
