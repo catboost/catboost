@@ -1,12 +1,14 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // ATTENTION: The code in this file is highly EXPERIMENTAL.
 // Adventurous users should note that the APIs will probably change.
 
 #pragma once
 
-#include <util/generic/string.h>
-
 #include <stdexcept>
-#include <string>
+#include <util/generic/string.h>
 
 namespace ONNX_NAMESPACE {
 

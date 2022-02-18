@@ -1,18 +1,22 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // ATTENTION: The code in this file is highly EXPERIMENTAL.
 // Adventurous users should note that the APIs will probably change.
 
 #pragma once
-
-#include <util/generic/string.h>
-
 #include <stdint.h>
-#include <string>
+#include <util/generic/string.h>
 #include <unordered_map>
 #include <vector>
 
 namespace ONNX_NAMESPACE {
 
 #define FORALL_BUILTIN_SYMBOLS(_) \
+  _(spatial)                      \
+  _(select_last_index)            \
+  _(coordinate_transformation_mode) \
   _(PythonOp)                     \
   _(CppOp)                        \
   _(Param)                        \
@@ -110,6 +114,7 @@ namespace ONNX_NAMESPACE {
   _(eq)                           \
   _(equal)                        \
   _(Exp)                          \
+  _(ends)                         \
   _(expm1)                        \
   _(floor)                        \
   _(fmod)                         \
@@ -135,6 +140,7 @@ namespace ONNX_NAMESPACE {
   _(sinh)                         \
   _(Sqrt)                         \
   _(sub)                          \
+  _(starts)                       \
   _(tan)                          \
   _(trunc)                        \
   _(zeros)                        \
@@ -161,7 +167,20 @@ namespace ONNX_NAMESPACE {
   _(ReduceMin)                    \
   _(ReduceProd)                   \
   _(ReduceSum)                    \
-  _(ReduceSumSquare)
+  _(ReduceSumSquare)              \
+  _(Cast)                         \
+  _(to)                           \
+  _(PRelu)                        \
+  _(Greater)                      \
+  _(Less)                         \
+  _(scales)                       \
+  _(Upsample)                     \
+  _(RNN)                          \
+  _(layout)                       \
+  _(k)                            \
+  _(Flatten)                      \
+  _(ScatterElements)              \
+  _(Resize)
 
 enum BuiltinSymbol {
 #define DEFINE_SYMBOL(s) k##s,

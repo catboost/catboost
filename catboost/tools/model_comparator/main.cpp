@@ -1,7 +1,7 @@
 #include "decl.h"
 #include "pmml.h"
 
-#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
+#include <contrib/libs/onnx/onnx/onnx_pb.h>
 
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
