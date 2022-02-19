@@ -21,6 +21,7 @@ ALLOW intranet/plan/src -> contrib/python/django/django-1.11
 ALLOW intranet/plan -> contrib/python/django/django-1.11
 ALLOW library/python/django_alive -> contrib/python/django/django-1.11
 ALLOW library/python/django_celery_monitoring -> contrib/python/django/django-1.11
+ALLOW library/python/django-idm-api/tests/django_1 -> contrib/python/django/django-1.11
 ALLOW library/python/django_mds -> contrib/python/django/django-1.11
 ALLOW library/python/django_russian -> contrib/python/django/django-1.11
 ALLOW library/python/metrics_framework -> contrib/python/django/django-1.11
