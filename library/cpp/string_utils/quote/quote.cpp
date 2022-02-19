@@ -4,8 +4,6 @@
 #include <util/string/ascii.h>
 #include <util/string/cstriter.h>
 
-#include <cctype>
-
 /* note: (x & 0xdf) makes x upper case */
 #define GETXC                                                           \
     do {                                                                \
