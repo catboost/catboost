@@ -37,13 +37,15 @@ extern "C" {
 #endif
 
 #if defined(_MSC_VER)
-    void err(int e, const char* m, ...);
-    void errx(int e, const char* m, ...);
     void warn(const char* m, ...);
     void warnx(const char* m, ...);
     void vwarnx(const char* format, va_list ap);
     void vwarn(const char* format, va_list ap);
-    void verrx(int status, const char* format, va_list ap);
+
+    [[noreturn]] void err(int e, const char* m, ...);
+    [[noreturn]] void errx(int e, const char* m, ...);
+    [[noreturn]] void verr(int status, const char* fmt, va_list args);
+    [[noreturn]] void verrx(int status, const char* format, va_list ap);
 #else
     #include <err.h>
 #endif
