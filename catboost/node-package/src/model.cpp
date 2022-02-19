@@ -99,10 +99,13 @@ void TModel::SetPredictionType(const Napi::CallbackInfo& info) {
 
 Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
-
     if (!NHelper::Check(env, info.Length() >= 2, "Wrong number of arguments - expected 2") ||
-        !NHelper::Check(env, NHelper::IsMatrix(info[0], NHelper::NAT_NUMBER),
-            "Expected the first argument to be a matrix of floats")  ||
+        !NHelper::CheckIsMatrix(
+            env,
+            info[0],
+            NHelper::NAT_NUMBER,
+            "Expected the first argument to be a matrix of floats - "
+        )||
         !NHelper::Check(env, this->ModelLoaded, "Trying to predict from the empty model")) {
         return env.Undefined();
     }
@@ -125,9 +128,11 @@ Napi::Value TModel::CalcPrediction(const Napi::CallbackInfo& info) {
         }
     }
 
-    if (!NHelper::Check(env, NHelper::IsMatrix(info[1], NHelper::NAT_NUMBER) ||
-            NHelper::IsMatrix(info[1], NHelper::NAT_STRING),
-            "Expected second argument to be a matrix of strings or numbers")) {
+    if (!NHelper::CheckIsMatrix(
+        env,
+        info[1],
+        NHelper::NAT_NUMBER_OR_STRING, "Expected second argument to be a matrix of strings or numbers - ")
+    ) {
         return env.Undefined();
     }
     const Napi::Array catFeatures = info[1].As<Napi::Array>();
@@ -218,7 +223,7 @@ Napi::Array TModel::CalcPredictionHash(Napi::Env env,
         CalcModelPredictionWithHashedCatFeatures(this->Handle, docsCount,
                         floatPtrs.data(), floatFeaturesSize,
                         catPtrs.data(), catFeaturesSize,
-                        resultValues.data(), docsCount));
+                        resultValues.data(), resultValues.size()));
 
     return NHelper::ConvertToArray(env, resultValues);
 }
@@ -253,7 +258,7 @@ Napi::Array TModel::CalcPredictionString(Napi::Env env,
             CalcModelPrediction(this->Handle, docsCount,
                         floatPtrs.data(), floatFeaturesSize,
                         catPtrs.data(), catFeaturesSize,
-                        resultValues.data(), docsCount))) {
+                        resultValues.data(), resultValues.size()))) {
         return Napi::Array::New(env);
     }
 
