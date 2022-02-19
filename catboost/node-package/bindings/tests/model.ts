@@ -88,6 +88,11 @@ function testDimensionsCount() {
     model.loadModel('./test_data/adult.cbm');
 
     const count = model.getDimensionsCount();
+    const predictionDimCount = model.getPredictionDimensionsCount();
+    assert.strictEqual(
+        count, predictionDimCount,
+        `Expected count == predictionDimCount, got ${count} != ${predictionDimCount}`
+    );
     assert.strictEqual(count, 1, `Expected [1], got ${count}`);
 }
 assert.doesNotThrow(testDimensionsCount);

@@ -8,6 +8,7 @@
 #include <catboost/libs/model/model.h>
 
 #include <util/generic/singleton.h>
+#include <util/string/cast.h>
 #include <util/stream/file.h>
 #include <util/string/builder.h>
 
@@ -239,6 +240,19 @@ CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int device
 CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, EApiPredictionType predictionType) {
     try {
         FULL_MODEL_PTR(modelHandle)->SetPredictionType(static_cast<NCB::NModelEvaluation::EPredictionType>(predictionType));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+
+    return true;
+}
+
+CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const char* predictionTypeStr) {
+    try {
+        FULL_MODEL_PTR(modelHandle)->SetPredictionType(
+            FromString<NCB::NModelEvaluation::EPredictionType>(predictionTypeStr)
+        );
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;
@@ -570,6 +584,10 @@ CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
 
 CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
+}
+
+CATBOOST_API size_t GetPredictionDimensionsCount(ModelCalcerHandle* modelHandle) {
+    return EVALUATOR_PTR(modelHandle)->GetApproxDimension();
 }
 
 CATBOOST_API bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
