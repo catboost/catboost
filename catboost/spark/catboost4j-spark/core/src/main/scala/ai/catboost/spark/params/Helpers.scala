@@ -3,7 +3,7 @@ package ai.catboost.spark.params;
 import scala.reflect._
 
 import collection.mutable
-import collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 
 import com.google.common.base.CaseFormat
 import com.google.common.base.Predicates.alwaysTrue
@@ -111,7 +111,7 @@ class OrderedStringMapParam[V](
     implicit val formats = DefaultFormats
     compact(
       render(
-        value.foldLeft(JObject())(
+        value.asScala.foldLeft(JObject())(
           (acc, kv) => {
             val jValue = kv._2 match {
               case s : String => JString(s)
@@ -247,7 +247,7 @@ private[spark] object Helpers {
         val classNames = maybeClassNames.get
         for (i <- 0 until classWeightsList.size) {
           val className = classNames(i)
-          if (!classWeightsMap.contains(className)) {
+          if (!classWeightsMap.containsValue(className)) {
             throw new CatBoostError(
               s"Class '$className' is present in classNames but is not present in classWeightsMap"
             )
@@ -257,7 +257,7 @@ private[spark] object Helpers {
       } else {
         val classNames = new Array[String](classWeightsMap.size)
         var i = 0
-        for ((className, classWeight) <- classWeightsMap) {
+        for ((className, classWeight) <- classWeightsMap.asScala) {
           classNames(i) = className
           classWeightsList(i) = classWeight.toDouble
           i = i + 1
