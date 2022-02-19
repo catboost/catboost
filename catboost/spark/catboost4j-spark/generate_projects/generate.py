@@ -29,6 +29,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_2.3_2.11',
         'substitution_dict' : {
+            'version_specific_src_dir': 'spark_2_x/scala',
             'scala_compat_version_placeholder': '2.11',
             'scala_version_placeholder': '2.11.12',
             'spark_compat_version_placeholder': '2.3',
@@ -40,6 +41,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_2.4_2.11',
         'substitution_dict' : {
+            'version_specific_src_dir': 'spark_2_x/scala',
             'scala_compat_version_placeholder': '2.11',
             'scala_version_placeholder': '2.11.12',
             'spark_compat_version_placeholder': '2.4',
@@ -51,6 +53,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_2.4_2.12',
         'substitution_dict' : {
+            'version_specific_src_dir': 'spark_2_x/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '2.4',
@@ -62,6 +65,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.0_2.12',
         'substitution_dict' : {
+            'version_specific_src_dir': 'spark_3_x/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.0',
@@ -73,6 +77,7 @@ configs = [
     {
         'dst_dir' : '../projects/spark_3.1_2.12',
         'substitution_dict' : {
+            'version_specific_src_dir': 'spark_3_x/scala',
             'scala_compat_version_placeholder': '2.12',
             'scala_version_placeholder': '2.12.12',
             'spark_compat_version_placeholder': '3.1',
