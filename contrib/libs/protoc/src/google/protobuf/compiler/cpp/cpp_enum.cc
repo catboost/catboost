@@ -95,7 +95,7 @@ EnumGenerator::~EnumGenerator() {}
 
 void EnumGenerator::GenerateDefinition(io::Printer* printer) {
   Formatter format(printer, variables_);
-  format("enum ${1$$classname$$}$ {\n", descriptor_);
+  format("enum ${1$$classname$$}$ : int {\n", descriptor_);
   format.Indent();
 
   const EnumValueDescriptor* min_value = descriptor_->value(0);
