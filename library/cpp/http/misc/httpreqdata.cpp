@@ -1,7 +1,15 @@
 #include "httpreqdata.h"
 
 #include <library/cpp/case_insensitive_string/case_insensitive_string.h>
+
 #include <util/stream/mem.h>
+#include <util/string/join.h>
+
+#include <array>
+
+#ifdef _sse4_2_
+#include <smmintrin.h>
+#endif
 
 TBaseServerRequestData::TBaseServerRequestData(SOCKET s)
     : Socket_(s)
@@ -98,25 +106,29 @@ TStringBuf TBaseServerRequestData::Environment(TStringBuf key) const {
 
 const TString& TBaseServerRequestData::GetCurPage() const {
     if (!CurPage_ && Host_) {
-        CurPage_ = "http://";
-        CurPage_ += Host_;
+        std::array<TStringBuf, 7> fragments;
+        auto fragmentIt = fragments.begin();
+        *fragmentIt++ = "http://"sv;
+        *fragmentIt++ = Host_;
         if (Port_) {
-            CurPage_ += ':';
-            CurPage_ += Port_;
+            *fragmentIt++ = ":"sv;
+            *fragmentIt++ = Port_;
         }
-        CurPage_ += Path_;
-        if (Query_) {
-            CurPage_ += '?';
-            CurPage_ += Query_;
+        *fragmentIt++ = Path_;
+        if (!Query_.empty()) {
+            *fragmentIt++ = "?"sv;
+            *fragmentIt++ = Query_;
         }
+
+        CurPage_ = JoinRange(""sv, fragments.begin(), fragmentIt);
     }
     return CurPage_;
 }
 
-bool TBaseServerRequestData::Parse(TStringBuf origReqBuf) {
-    ParseBuf_.reserve(origReqBuf.size() + 1);
-    ParseBuf_.assign(origReqBuf.begin(), origReqBuf.end());
-    ParseBuf_.push_back('\0');
+bool TBaseServerRequestData::Parse(TStringBuf origReq) {
+    ParseBuf_.reserve(origReq.size() + 16);
+    ParseBuf_.assign(origReq.begin(), origReq.end());
+    ParseBuf_.insert(ParseBuf_.end(), 16, ' ');
     char* req = ParseBuf_.data();
 
     while (*req == ' ' || *req == '\t')
@@ -126,33 +138,85 @@ bool TBaseServerRequestData::Parse(TStringBuf origReqBuf) {
     while (req[1] == '/') // remove redundant slashes
         req++;
 
-    // detect url end (can contain some garbage after whitespace, e.g. 'HTTP 1.1')
-    char* urlEnd = req;
-    while (*urlEnd && *urlEnd != ' ' && *urlEnd != '\t')
-        urlEnd++;
-    if (*urlEnd)
-        *urlEnd = 0;
+    char* pathBegin = req;
+    char* queryBegin = nullptr;
 
-    // cut fragment if exists
-    char* fragment = strchr(req, '#');
-    if (fragment)
-        *fragment = 0; // ignore fragment
-    else
-        fragment = urlEnd;
-    char* path = req;
+#ifdef _sse4_2_
+    const __m128i simdSpace = _mm_set1_epi8(' ');
+    const __m128i simdTab = _mm_set1_epi8('\t');
+    const __m128i simdHash = _mm_set1_epi8('#');
+    const __m128i simdQuestion = _mm_set1_epi8('?');
 
-    // calculate Search length without additional strlen-ing
-    char* query = strchr(path, '?');
-    if (query) {
-        *query++ = 0;
-        ptrdiff_t delta = fragment - query;
-        // indeed, second case is a parse error
-        Query_ = {query, static_cast<size_t>(delta >= 0 ? delta : (urlEnd - query))};
+    auto isEnd = [=](__m128i x) {
+        const auto v = _mm_or_si128(
+                _mm_or_si128(
+                    _mm_cmpeq_epi8(x, simdSpace), _mm_cmpeq_epi8(x, simdTab)),
+                _mm_cmpeq_epi8(x, simdHash));
+        return !_mm_testz_si128(v, v);
+    };
+
+    // No need for the range check because we have padding of spaces at the end.
+    for (;; req += 16) {
+        const auto x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(req));
+        const auto isQuestionSimd = _mm_cmpeq_epi8(x, simdQuestion);
+        const auto isQuestion = !_mm_testz_si128(isQuestionSimd, isQuestionSimd);
+        if (isEnd(x)) {
+            if (isQuestion) {
+                // The prospective query end and a question sign are both in the
+                // current block. Need to find out which comes first.
+                for (;*req != ' ' && *req != '\t' && *req != '#'; ++req) {
+                    if (*req == '?') {
+                        queryBegin = req + 1;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        if (isQuestion) {
+            // Find the exact query beginning
+            for (queryBegin = req; *queryBegin != '?'; ++queryBegin) {
+            }
+            ++queryBegin;
+
+            break;
+        }
+    }
+
+    // If we bailed out because we found query string begin. Now look for the the end of the query
+    if (queryBegin) {
+        for (;; req += 16) {
+            const auto x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(req));
+            if (isEnd(x)) {
+                break;
+            }
+        }
+    }
+#else
+    for (;*req != ' ' && *req != '\t' && *req != '#'; ++req) {
+        if (*req == '?') {
+            queryBegin = req + 1;
+            break;
+        }
+    }
+#endif
+
+    while (*req != ' ' && *req != '\t' && *req != '#') {
+        ++req;
+    }
+
+    char* pathEnd = queryBegin ? queryBegin - 1 : req;
+    // Make sure Path_ and Query_ are actually zero-reminated.
+    *pathEnd = '\0';
+    *req = '\0';
+    Path_ = TStringBuf{pathBegin, pathEnd};
+    if (queryBegin) {
+        Query_ = TStringBuf{queryBegin, req};
+        OrigQuery_ = Query_;
     } else {
         Query_ = {};
+        OrigQuery_ = {};
     }
-    Path_ = path;
-    OrigQuery_ = Query_;
 
     return true;
 }
