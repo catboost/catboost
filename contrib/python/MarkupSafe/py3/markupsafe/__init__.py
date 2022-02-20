@@ -11,7 +11,7 @@ if t.TYPE_CHECKING:
             pass
 
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 
 _striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
 
@@ -92,19 +92,24 @@ class Markup(str):
 
         return NotImplemented
 
-    def __mul__(self, num: int) -> "Markup":
+    def __mul__(self, num: "te.SupportsIndex") -> "Markup":
         if isinstance(num, int):
             return self.__class__(super().__mul__(num))
 
-        return NotImplemented  # type: ignore
+        return NotImplemented
 
     __rmul__ = __mul__
 
     def __mod__(self, arg: t.Any) -> "Markup":
         if isinstance(arg, tuple):
+            # a tuple of arguments, each wrapped
             arg = tuple(_MarkupEscapeHelper(x, self.escape) for x in arg)
-        else:
+        elif hasattr(type(arg), "__getitem__") and not isinstance(arg, str):
+            # a mapping of arguments, wrapped
             arg = _MarkupEscapeHelper(arg, self.escape)
+        else:
+            # a single argument, wrapped with the helper and a tuple
+            arg = (_MarkupEscapeHelper(arg, self.escape),)
 
         return self.__class__(super().__mod__(arg))
 
@@ -280,9 +285,7 @@ try:
     from ._speedups import escape as escape
     from ._speedups import escape_silent as escape_silent
     from ._speedups import soft_str as soft_str
-    from ._speedups import soft_unicode
 except ImportError:
     from ._native import escape as escape
     from ._native import escape_silent as escape_silent  # noqa: F401
     from ._native import soft_str as soft_str  # noqa: F401
-    from ._native import soft_unicode  # noqa: F401

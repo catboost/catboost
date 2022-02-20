@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: MarkupSafe
-Version: 2.0.1
+Version: 2.1.0
 Summary: Safely add untrusted strings to HTML/XML markup.
 Home-page: https://palletsprojects.com/p/markupsafe/
 Author: Armin Ronacher
@@ -24,7 +24,7 @@ Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
 Classifier: Topic :: Text Processing :: Markup :: HTML
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE.rst
 
@@ -47,7 +47,7 @@ Install and update using `pip`_:
 
     pip install -U MarkupSafe
 
-.. _pip: https://pip.pypa.io/en/stable/quickstart/
+.. _pip: https://pip.pypa.io/en/stable/getting-started/
 
 
 Examples
