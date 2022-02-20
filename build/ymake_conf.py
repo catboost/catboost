@@ -2465,7 +2465,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-ignored-pragma-optimize',
                 '-Wno-inconsistent-dllimport',
                 '-Wno-int-conversion',
-                '-Wno-invalid-noreturn',
                 '-Wno-logical-op-parentheses',
                 '-Wno-macro-redefined',
                 '-Wno-parentheses',
