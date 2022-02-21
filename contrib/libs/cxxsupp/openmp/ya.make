@@ -48,39 +48,39 @@ ADDINCL(
 )
 
 SRCS(
+    asm.S
+    kmp_affinity.cpp
     kmp_alloc.c
     kmp_atomic.c
+    kmp_barrier.cpp
+    kmp_cancel.cpp
     kmp_csupport.c
     kmp_debug.c
-    kmp_itt.c
+    kmp_dispatch.cpp
     kmp_environment.c
     kmp_error.c
+    kmp_ftn_cdecl.c
+    kmp_ftn_extra.c
     kmp_global.c
+    kmp_gsupport.c
     kmp_i18n.c
     kmp_io.c
+    kmp_itt.c
+    kmp_lock.cpp
     kmp_runtime.c
+    kmp_sched.cpp
     kmp_settings.c
     kmp_str.c
+    kmp_taskdeps.cpp
     kmp_tasking.c
     kmp_taskq.c
     kmp_threadprivate.c
     kmp_utility.c
-    z_Linux_util.c
-    kmp_gsupport.c
-    asm.S
-    thirdparty/ittnotify/ittnotify_static.c
-    kmp_barrier.cpp
-    kmp_wait_release.cpp
-    kmp_affinity.cpp
-    kmp_dispatch.cpp
-    kmp_lock.cpp
-    kmp_sched.cpp
-    kmp_taskdeps.cpp
-    kmp_cancel.cpp
-    kmp_ftn_cdecl.c
-    kmp_ftn_extra.c
     kmp_version.c
+    kmp_wait_release.cpp
     #ompt-general.c
+    thirdparty/ittnotify/ittnotify_static.c
+    z_Linux_util.c
 )
 
 END()
