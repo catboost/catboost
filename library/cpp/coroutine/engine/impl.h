@@ -95,6 +95,9 @@ public:
         return Scheduled_;
     }
 
+    /// \param this корутина, которая будет ждать
+    /// \param c корутина, которую будем ждать
+    /// \param deadLine максимальное время ожидания
     bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
 
     void ReSchedule() noexcept;
