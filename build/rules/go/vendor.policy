@@ -1050,6 +1050,9 @@ ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgm
 # CONTRIB-2483
 ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
 
+# CONTRIB-2485
+ALLOW .* -> vendor/github.com/nxadm/tail
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
