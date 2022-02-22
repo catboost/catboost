@@ -20,7 +20,7 @@
 #include "kmp_atomic.h"
 
 #if OMPT_SUPPORT
-#include "ompt-specific.h"
+#error #include "ompt-specific.h"
 #endif
 
 #ifdef __cplusplus

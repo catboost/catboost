@@ -42,8 +42,6 @@ ADDINCL(
 )
 
 ADDINCL(
-    contrib/libs/cxxsupp/openmp/i18n
-    contrib/libs/cxxsupp/openmp/include/41
     contrib/libs/cxxsupp/openmp/thirdparty/ittnotify
 )
 
