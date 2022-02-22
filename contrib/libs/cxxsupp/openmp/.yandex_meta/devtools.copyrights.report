@@ -28,3 +28,25 @@
 # FILE_IGNORE - ignore file (do nothing)
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
+
+KEEP     COPYRIGHT_SERVICE_LABEL a45ba012bf883779e8052cbbb4ec2dc9
+BELONGS ya.make
+    License text:
+        Copyright (c) 1997-2014 Intel Corporation
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSE.txt [54:54]
+
+KEEP     COPYRIGHT_SERVICE_LABEL cdad5d413fb18dfe859c02e52a91e497
+BELONGS ya.make
+    License text:
+        Copyright (c) 1997-2015 Intel Corporation
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        LICENSE.txt [17:17]
