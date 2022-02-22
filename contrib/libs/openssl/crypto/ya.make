@@ -1459,6 +1459,14 @@ IF (OS_ANDROID AND ARCH_ARM64)
     )
 ENDIF()
 
+# mitigate SIGILL on some armv7 platforms
+# https://github.com/openssl/openssl/issues/17009
+IF (ARCADIA_OPENSSL_DISABLE_ARMV7_TICK)
+    CFLAGS(
+        -DARCADIA_OPENSSL_DISABLE_ARMV7_TICK        
+    )
+ENDIF()
+
 ENDIF()
 
 END()
