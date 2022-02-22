@@ -861,6 +861,7 @@ def onjava_test(unit, *args):
         'NO_JBUILD': 'yes' if ymake_java_test else 'no',
         'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT'),
         'JDK_FOR_TESTS': 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT') + '_FOR_TESTS',
+        'YT-SPEC': serialize_list(get_unit_list_variable(unit, 'TEST_YT_SPEC_VALUE')),
     }
     test_classpath_origins = unit.get('TEST_CLASSPATH_VALUE')
     if test_classpath_origins:
