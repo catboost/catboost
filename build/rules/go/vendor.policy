@@ -1030,6 +1030,7 @@ ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
 ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
+ALLOW infra/infractl/.* -> vendor/github.com/ghodss/yaml
 
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
