@@ -717,6 +717,8 @@ items:
         name: Usage examples
   - name: Command-line version
     items:
+      - href: concepts/cli-reference_train-model.md
+        name: Train a model
       - href: concepts/cli-reference_cross-validation.md
         name: Cross-validation
       - href: concepts/cli-reference_normalize-model.md
