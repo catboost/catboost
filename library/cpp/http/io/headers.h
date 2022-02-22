@@ -14,6 +14,12 @@ class IOutputStream;
 /// Объект, содержащий информацию о HTTP-заголовке.
 class THttpInputHeader {
 public:
+    THttpInputHeader() = delete;
+    THttpInputHeader(const THttpInputHeader&) = default;
+    THttpInputHeader(THttpInputHeader&&) = default;
+    THttpInputHeader& operator=(const THttpInputHeader&) = default;
+    THttpInputHeader& operator=(THttpInputHeader&&) = default;
+
     /// @param[in] header - строка вида 'параметр: значение'.
     THttpInputHeader(TStringBuf header);
     /// @param[in] name - имя параметра.
@@ -51,6 +57,10 @@ public:
     using TConstIterator = THeaders::const_iterator;
 
     THttpHeaders() = default;
+    THttpHeaders(const THttpHeaders&) = default;
+    THttpHeaders& operator=(const THttpHeaders&) = default;
+    THttpHeaders(THttpHeaders&&) = default;
+    THttpHeaders& operator=(THttpHeaders&&) = default;
 
     /// Добавляет каждую строку из потока в контейнер, считая ее правильным заголовком.
     THttpHeaders(IInputStream* stream);
