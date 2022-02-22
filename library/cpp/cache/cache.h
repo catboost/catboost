@@ -30,15 +30,15 @@ public:
 public:
     struct TItem: public TIntrusiveListItem<TItem> {
         typedef TIntrusiveListItem<TItem> TBase;
-        // universal reference for TKey here prevents TItem(TItem&) from compiling,
+        // universal reference for TKey here prevents TItem(/*non-const*/ TItem&) from compiling,
         // so explicitly specify const TKey& and TKey&&
-        TItem(const TKey& key)
+        explicit TItem(const TKey& key)
             : TBase()
             , Key(key)
             , Value()
         {
         }
-        TItem(TKey&& key)
+        explicit TItem(TKey&& key)
             : TBase()
             , Key(std::move(key))
             , Value()
@@ -295,13 +295,13 @@ public:
     }
 
     struct TItem {
-        TItem(const TKey& key)
+        explicit TItem(const TKey& key)
             : Key(key)
             , Value()
             , Weight(TWeighter::Weight(Value))
         {
         }
-        TItem(TKey&& key)
+        explicit TItem(TKey&& key)
             : Key(std::move(key))
             , Value()
             , Weight(TWeighter::Weight(Value))
