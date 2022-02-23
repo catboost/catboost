@@ -238,6 +238,10 @@ JOIN_SRCS(
     string/vector.cpp
 )
 
+IF (GCC OR CLANG OR CLANG_CL)
+    CFLAGS(-Wnarrowing)
+ENDIF()
+
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
 ENDIF()
