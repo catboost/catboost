@@ -5653,6 +5653,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
                 }
             ]
         },
@@ -7954,7 +7961,7 @@
         },
         "cs": {
             "formula": {
-                "sandbox_id": 1206856496,
+                "sandbox_id": 1224967338,
                 "match": "cs"
             },
             "executable": {
