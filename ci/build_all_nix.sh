@@ -60,7 +60,7 @@ python ../../ya make -r $lnx_common_flags $(os_sdk) $YA_MAKE_EXTRA_ARGS -T src
 
 mkdir -p catboost/inst/libs
 [ -s "src/libcatboostr.so" ] && cp $(readlink src/libcatboostr.so) catboost/inst/libs
-[ -s "src/libcatboostr.dylib" ] && cp $(readlink src/libcatboostr.dylib) catboost/inst/libs
+[ -s "src/libcatboostr.dylib" ] && cp $(readlink src/libcatboostr.dylib) catboost/inst/libs && ln -s libcatboostr.dylib catboost/inst/libs/libcatboostr.so
 
 tar -cvzf catboost-R-$(uname).tgz catboost
 
