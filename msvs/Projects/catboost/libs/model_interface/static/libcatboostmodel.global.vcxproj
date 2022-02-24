@@ -449,8 +449,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\pycontrib-python-subprocess32.global.vcxproj">
       <Project>{610470B6-7435-6A0D-6E61-7D9830D7F79D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3contrib-python-testpath.global.vcxproj">
-      <Project>{4404DA7E-09BE-57CA-6D0A-DC08B989F0BE}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3\pypython-testpath-py3.global.vcxproj">
+      <Project>{E5A6EE52-50CD-931D-9D8A-C8B015BE40C9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.global.vcxproj">
       <Project>{70890371-9EE9-6276-10EC-6B93A7DBFB6C}</Project>
