@@ -138,7 +138,7 @@ namespace NFsPrivate {
         return SetCurrentDirectoryW(wname);
     }
 
-    bool WinMakeDirectory(const TString path) {
+    bool WinMakeDirectory(const TString& path) {
         TUtf16String buf;
         LPCWSTR ptr = UTF8ToWCHAR(path, buf);
         return CreateDirectoryW(ptr, (LPSECURITY_ATTRIBUTES) nullptr);
