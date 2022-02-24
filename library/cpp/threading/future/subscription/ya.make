@@ -1,5 +1,9 @@
 
 
+SUBSCRIBER(
+    swarmer
+)
+
 LIBRARY()
 
 SRCS(
