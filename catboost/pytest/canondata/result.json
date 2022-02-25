@@ -2930,6 +2930,21 @@
             "uri": "file://test.test_eval_metrics_TotalF1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_groupweights[PFound]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_PFound_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_groupweights[PairAccuracy]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_PairAccuracy_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_groupweights[QueryRMSE]": [
+        {
+            "uri": "file://test.test_eval_metrics_groupweights_QueryRMSE_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-1_/output.tsv"
