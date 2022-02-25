@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/nvidia/cub;$(SolutionDir)../contrib/libs/nvidia/thrust;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/snappy/include;$(SolutionDir)$(Configuration)/contrib/libs/onnx;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/nvidia/cub;$(SolutionDir)../contrib/libs/nvidia/thrust;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/snappy/include;$(SolutionDir)../contrib/libs/farmhash/include;$(SolutionDir)$(Configuration)/contrib/libs/onnx;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include;$(SolutionDir)../contrib/python/numpy/include/numpy/core/include/numpy;$(SolutionDir)../contrib/python/numpy/include/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -770,6 +770,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
       <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse41\farmhash-arch-sse41.vcxproj">
+      <Project>{786F1317-9200-AD1B-EA39-65E68AEE6D3A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse42\farmhash-arch-sse42.vcxproj">
+      <Project>{C8CA3BCD-F73D-FC20-2052-518590325FDC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\arch\sse42_aesni\farmhash-arch-sse42_aesni.vcxproj">
+      <Project>{A993C899-B035-BA9E-F539-6F76A4717981}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\farmhash\contrib-libs-farmhash.vcxproj">
+      <Project>{B8ABCDE4-AB07-4A0F-FB0A-AB18C556F7DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
       <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
