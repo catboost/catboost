@@ -38,6 +38,7 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
+        COPYING [2:26]
         LICENSE [2:26]
 
 KEEP     BSD-3-Clause         f903ceb778f6db21bac728e4622abbd4
@@ -49,21 +50,21 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        bignum-dtoa.cc [2:26]
-        bignum-dtoa.h [2:26]
-        bignum.cc [2:26]
-        bignum.h [2:26]
-        cached-powers.cc [2:26]
-        cached-powers.h [2:26]
-        diy-fp.cc [2:26]
-        diy-fp.h [2:26]
-        double-conversion.cc [2:26]
-        double-conversion.h [2:26]
-        fast-dtoa.cc [2:26]
-        fast-dtoa.h [2:26]
-        fixed-dtoa.cc [2:26]
-        fixed-dtoa.h [2:26]
-        ieee.h [2:26]
-        strtod.cc [2:26]
-        strtod.h [2:26]
-        utils.h [2:26]
+        double-conversion/bignum-dtoa.cc [2:26]
+        double-conversion/bignum-dtoa.h [2:26]
+        double-conversion/bignum.cc [2:26]
+        double-conversion/bignum.h [2:26]
+        double-conversion/cached-powers.cc [2:26]
+        double-conversion/cached-powers.h [2:26]
+        double-conversion/diy-fp.cc [2:26]
+        double-conversion/diy-fp.h [2:26]
+        double-conversion/double-conversion.cc [2:26]
+        double-conversion/double-conversion.h [2:26]
+        double-conversion/fast-dtoa.cc [2:26]
+        double-conversion/fast-dtoa.h [2:26]
+        double-conversion/fixed-dtoa.cc [2:26]
+        double-conversion/fixed-dtoa.h [2:26]
+        double-conversion/ieee.h [2:26]
+        double-conversion/strtod.cc [2:26]
+        double-conversion/strtod.h [2:26]
+        double-conversion/utils.h [2:26]

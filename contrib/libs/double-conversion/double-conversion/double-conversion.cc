@@ -29,14 +29,14 @@
 #include <locale>
 #include <cmath>
 
-#include "double-conversion.h"
+#include <double-conversion/double-conversion.h>
 
-#include "bignum-dtoa.h"
-#include "fast-dtoa.h"
-#include "fixed-dtoa.h"
-#include "ieee.h"
-#include "strtod.h"
-#include "utils.h"
+#include <double-conversion/bignum-dtoa.h>
+#include <double-conversion/fast-dtoa.h>
+#include <double-conversion/fixed-dtoa.h>
+#include <double-conversion/ieee.h>
+#include <double-conversion/strtod.h>
+#include <double-conversion/utils.h>
 
 namespace double_conversion {
 

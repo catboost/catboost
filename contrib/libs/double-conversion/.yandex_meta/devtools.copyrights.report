@@ -38,9 +38,9 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        double-conversion.h [1:1]
-        fast-dtoa.cc [1:1]
-        ieee.h [1:1]
+        double-conversion/double-conversion.h [1:1]
+        double-conversion/fast-dtoa.cc [1:1]
+        double-conversion/ieee.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 16d77374d4f3ba25a3fdfa4958bf4c49
 BELONGS ya.make
@@ -51,6 +51,7 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        COPYING [1:1]
         LICENSE [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 3666116ac4f173e889ce41ac8ed171ca
@@ -62,7 +63,7 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        cached-powers.cc [1:1]
+        double-conversion/cached-powers.cc [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 54a59bbade65e8a194ed76f4af30de25
 BELONGS ya.make
@@ -73,17 +74,17 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        bignum-dtoa.cc [1:1]
-        bignum-dtoa.h [1:1]
-        bignum.cc [1:1]
-        bignum.h [1:1]
-        cached-powers.h [1:1]
-        diy-fp.cc [1:1]
-        diy-fp.h [1:1]
-        double-conversion.cc [1:1]
-        fast-dtoa.h [1:1]
-        fixed-dtoa.cc [1:1]
-        fixed-dtoa.h [1:1]
-        strtod.cc [1:1]
-        strtod.h [1:1]
-        utils.h [1:1]
+        double-conversion/bignum-dtoa.cc [1:1]
+        double-conversion/bignum-dtoa.h [1:1]
+        double-conversion/bignum.cc [1:1]
+        double-conversion/bignum.h [1:1]
+        double-conversion/cached-powers.h [1:1]
+        double-conversion/diy-fp.cc [1:1]
+        double-conversion/diy-fp.h [1:1]
+        double-conversion/double-conversion.cc [1:1]
+        double-conversion/fast-dtoa.h [1:1]
+        double-conversion/fixed-dtoa.cc [1:1]
+        double-conversion/fixed-dtoa.h [1:1]
+        double-conversion/strtod.cc [1:1]
+        double-conversion/strtod.h [1:1]
+        double-conversion/utils.h [1:1]

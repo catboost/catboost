@@ -25,33 +25,32 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef DOUBLE_CONVERSION_FIXED_DTOA_H_
+#define DOUBLE_CONVERSION_FIXED_DTOA_H_
 
-#include "diy-fp.h"
-#include "utils.h"
+#include <double-conversion/utils.h>
 
 namespace double_conversion {
 
-void DiyFp::Multiply(const DiyFp& other) {
-  // Simply "emulates" a 128 bit multiplication.
-  // However: the resulting number only contains 64 bits. The least
-  // significant 64 bits are only used for rounding the most significant 64
-  // bits.
-  const uint64_t kM32 = 0xFFFFFFFFU;
-  uint64_t a = f_ >> 32;
-  uint64_t b = f_ & kM32;
-  uint64_t c = other.f_ >> 32;
-  uint64_t d = other.f_ & kM32;
-  uint64_t ac = a * c;
-  uint64_t bc = b * c;
-  uint64_t ad = a * d;
-  uint64_t bd = b * d;
-  uint64_t tmp = (bd >> 32) + (ad & kM32) + (bc & kM32);
-  // By adding 1U << 31 to tmp we round the final result.
-  // Halfway cases will be round up.
-  tmp += 1U << 31;
-  uint64_t result_f = ac + (ad >> 32) + (bc >> 32) + (tmp >> 32);
-  e_ += other.e_ + 64;
-  f_ = result_f;
-}
+// Produces digits necessary to print a given number with
+// 'fractional_count' digits after the decimal point.
+// The buffer must be big enough to hold the result plus one terminating null
+// character.
+//
+// The produced digits might be too short in which case the caller has to fill
+// the gaps with '0's.
+// Example: FastFixedDtoa(0.001, 5, ...) is allowed to return buffer = "1", and
+// decimal_point = -2.
+// Halfway cases are rounded towards +/-Infinity (away from 0). The call
+// FastFixedDtoa(0.15, 2, ...) thus returns buffer = "2", decimal_point = 0.
+// The returned buffer may contain digits that would be truncated from the
+// shortest representation of the input.
+//
+// This method only works for some parameters. If it can't handle the input it
+// returns false. The output is null-terminated when the function succeeds.
+bool FastFixedDtoa(double v, int fractional_count,
+                   Vector<char> buffer, int* length, int* decimal_point);
 
 }  // namespace double_conversion
+
+#endif  // DOUBLE_CONVERSION_FIXED_DTOA_H_
