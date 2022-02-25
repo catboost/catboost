@@ -1,7 +1,7 @@
 # Release 1.0.5
 ## New features
 
-* CatBoost for Apache Spark: support Apple Darwin arm64 architecture. #1526.
+* Support Apple Darwin arm64 architecture. #1526.
 * Support feature tags in feature selection.
 * Support for Apache Spark 3.2
 
