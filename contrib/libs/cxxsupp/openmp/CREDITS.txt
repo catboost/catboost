@@ -8,9 +8,17 @@ beautification by scripts.  The fields are: name (N), email (E), web-address
 (W), PGP key ID and fingerprint (P), description (D), and snail-mail address
 (S).
 
+N: Adam Azarchs
+W: 10xgenomics.com
+D: Bug fix for lock code
+
 N: Carlo Bertolli
 W: http://ibm.com
 D: IBM contributor to PowerPC support in CMake files and elsewhere.
+
+N: Diego Caballero
+E: diego.l.caballero@gmail.com
+D: Fork performance improvements
 
 N: Sunita Chandrasekaran
 D: Contributor to testsuite from OpenUH
@@ -18,7 +26,7 @@ D: Contributor to testsuite from OpenUH
 N: Barbara Chapman
 D: Contributor to testsuite from OpenUH
 
-N: University of Houston 
+N: University of Houston
 W: http://web.cs.uh.edu/~openuh/download/
 D: OpenUH test suite
 
@@ -45,9 +53,13 @@ N: Steven Noonan
 E: steven@uplinklabs.net
 D: Patches for the ARM architecture and removal of several inconsistencies.
 
+N: Joachim Protze
+E: protze@itc.rwth-aachen.de
+D: OpenMP Tools Interface, Archer tool
+
 N: Alp Toker
 E: alp@nuanti.com
 D: Making build work for FreeBSD.
 
-N: Cheng Wang 
+N: Cheng Wang
 D: Contributor to testsuite from OpenUH
