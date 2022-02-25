@@ -9,6 +9,8 @@ RECURSE(
     cxxsupp/libcxx
     cxxsupp/libcxxabi-parts
     expat
+    farmhash
+    farmhash/ut
     fastlz
     flatbuffers
     fmath
