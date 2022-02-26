@@ -81,19 +81,21 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum-dtoa.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\cached-powers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\diy-fp.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-conversion.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-to-string.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fast-dtoa.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fixed-dtoa.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\string-to-double.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\strtod.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum-dtoa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\bignum.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\cached-powers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\diy-fp.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-conversion.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\double-to-string.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fast-dtoa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\fixed-dtoa.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\ieee.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\string-to-double.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\strtod.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\double-conversion\double-conversion\utils.h"/>
   </ItemGroup>
