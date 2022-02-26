@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.1.0)
+VERSION(3.2.0)
 
-ORIGINAL_SOURCE(https://github.com/google/double-conversion/archive/v3.1.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/google/double-conversion/archive/v3.2.0.tar.gz)
 
 LICENSE(BSD-3-Clause)
 
@@ -24,10 +24,10 @@ SRCS(
     double-conversion/bignum-dtoa.cc
     double-conversion/bignum.cc
     double-conversion/cached-powers.cc
-    double-conversion/diy-fp.cc
-    double-conversion/double-conversion.cc
+    double-conversion/double-to-string.cc
     double-conversion/fast-dtoa.cc
     double-conversion/fixed-dtoa.cc
+    double-conversion/string-to-double.cc
     double-conversion/strtod.cc
 )
 
