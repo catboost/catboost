@@ -2448,9 +2448,6 @@ class MSVCCompiler(MSVC, Compiler):
             flags += [
                 # Allow <windows.h> to be included via <Windows.h> in case-sensitive file-systems.
                 '-fcase-insensitive-paths',
-                # Enable standard-conforming behavior and generate duplicate symbol error in case of duplicated global constants.
-                # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85678#c0
-                '-fno-common',
             ]
             if target.is_x86:
                 flags.append('-m32')
@@ -2467,7 +2464,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-macro-redefined',
                 '-Wno-parentheses',
                 '-Wno-pragma-pack',
-                '-Wno-unknown-argument',
                 '-Wno-unknown-warning-option',
             ))
 
