@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{01FD5E68-79F6-2242-91C6-544071D4E371}</ProjectGUID>
+    <ProjectGUID>{385D1895-3509-B2E4-6BD0-DEFB1D334808}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pysimplegeneric</ProjectName>
+    <ProjectName>pycontrib-python-simplegeneric</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pysimplegeneric</TargetName>
+    <TargetName>pycontrib-python-simplegeneric</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\01FD5E68-79F6-2242-91C6-544071D4E371\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\385D1895-3509-B2E4-6BD0-DEFB1D334808\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,6 +78,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_11328ee0098583e04066c9a6d5.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\simplegeneric
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\simplegeneric
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_11328ee0098583e04066c9a6d5.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_11328ee0098583e04066c9a6d5.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_4e4dbb55eb477348b52a17d873.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\simplegeneric
@@ -131,6 +158,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/simplegeneric/simplegeneric.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\simplegeneric\simplegeneric.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\simplegeneric.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\simplegeneric\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\simplegeneric
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.yasm" "-" "contrib/python/simplegeneric/.dist-info/METADATA" "_87ea80f26f0c0384c815be3998.rodata" "$(SolutionDir)../contrib/python/simplegeneric/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_c8316e43c1f106e0903ad406e6.rodata" "-" "contrib/python/simplegeneric/.dist-info/top_level.txt" "_d48baf5b09e6da5183fe66904f.rodata" "$(SolutionDir)../contrib/python/simplegeneric/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_56adc34bb79f6844d35ee032f9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\simplegeneric
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.yasm" "-" "contrib/python/simplegeneric/.dist-info/METADATA" "_87ea80f26f0c0384c815be3998.rodata" "$(SolutionDir)../contrib/python/simplegeneric/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_c8316e43c1f106e0903ad406e6.rodata" "-" "contrib/python/simplegeneric/.dist-info/top_level.txt" "_d48baf5b09e6da5183fe66904f.rodata" "$(SolutionDir)../contrib/python/simplegeneric/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/simplegeneric/_56adc34bb79f6844d35ee032f9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/simplegeneric/_11328ee0098583e04066c9a6d5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\simplegeneric\.dist-info\METADATA;$(SolutionDir)..\contrib\python\simplegeneric\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_11328ee0098583e04066c9a6d5.yasm;$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_c8316e43c1f106e0903ad406e6.rodata;$(SolutionDir)$(Configuration)\contrib\python\simplegeneric\_56adc34bb79f6844d35ee032f9.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\simplegeneric\simplegeneric.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

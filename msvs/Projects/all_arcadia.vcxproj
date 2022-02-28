@@ -1062,12 +1062,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\parso\py3contrib-python-parso.vcxproj">
       <Project>35EB94C8-A09B-BA46-BD4E-21DE91B8B269</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\pycontrib-python-path.py.global.vcxproj">
-      <Project>763AC7BA-FF25-543A-3141-77514CB9814F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\path.py\pycontrib-python-path.py.vcxproj">
-      <Project>BE6EB16E-CE0A-AC79-ED12-5AB18F5C3EB8</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pathlib2\pycontrib-python-pathlib2.global.vcxproj">
       <Project>514AAD98-20AD-3EB4-FFE0-77F4E22D6E93</Project>
     </ProjectReference>
@@ -1251,11 +1245,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pysimplegeneric.global.vcxproj">
-      <Project>958EC86E-F17E-57F5-AC14-6D4D787E3C79</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pycontrib-python-simplegeneric.global.vcxproj">
+      <Project>F54B6D62-F8CC-ECD7-1A0B-41EE7306CD5D</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pysimplegeneric.vcxproj">
-      <Project>01FD5E68-79F6-2242-91C6-544071D4E371</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\simplegeneric\pycontrib-python-simplegeneric.vcxproj">
+      <Project>385D1895-3509-B2E4-6BD0-DEFB1D334808</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.global.vcxproj">
       <Project>98BECBCB-1D2E-EDF1-F31E-6972718E51F5</Project>
