@@ -72,7 +72,7 @@ void TUnbufferedFileOutput::DoFlush() {
 
 class TMappedFileInput::TImpl: public TBlob {
 public:
-    inline TImpl(TFile file)
+    inline TImpl(const TFile& file)
         : TBlob(TBlob::FromFile(file))
     {
     }
