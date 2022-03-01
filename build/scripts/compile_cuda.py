@@ -69,8 +69,14 @@ def main():
         '-fsanitize-blacklist=',
         '--system-header-prefix',
     ]
-    for prefix in skip_prefix_list:
-        cflags = [i for i in cflags if not i.startswith(prefix)]
+    new_cflags = []
+    for flag in cflags:
+        if all(not flag.startswith(skip_prefix) for skip_prefix in skip_prefix_list):
+            if flag.startswith('-fopenmp-version='):
+                new_cflags.append('-fopenmp-version=45')  # Clang 11 only supports OpenMP 4.5, but the default is 5.0, so we need to forcefully redefine it.
+            else:
+                new_cflags.append(flag)
+    cflags = new_cflags
 
     if not is_clang(command):
         def good(arg):
