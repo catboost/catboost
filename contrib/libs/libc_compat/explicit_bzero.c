@@ -24,6 +24,8 @@ explicit_bzero(void *buf, size_t len)
 
 #elif defined(WIN32)
 
+#include <Windows.h>
+
 void
 explicit_bzero(void *buf, size_t len)
 {
