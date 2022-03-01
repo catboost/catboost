@@ -119,15 +119,6 @@ namespace NCatboostCuda {
         }
     }
 
-    inline NCudaLib::TDeviceRequestConfig CreateDeviceRequestConfig(const NCatboostOptions::TCatBoostOptions& options) {
-        NCudaLib::TDeviceRequestConfig config;
-        const auto& systemOptions = options.SystemOptions.Get();
-        config.DeviceConfig = systemOptions.Devices;
-        config.PinnedMemorySize = ParseMemorySizeDescription(systemOptions.PinnedMemorySize.Get());
-        config.GpuMemoryPartByWorker = systemOptions.GpuRamPart;
-        return config;
-    }
-
     static inline bool NeedPriorEstimation(const TVector<NCatboostOptions::TCtrDescription>& descriptions) {
         for (const auto& description : descriptions) {
             if (description.PriorEstimation != EPriorEstimation::No) {
@@ -381,9 +372,6 @@ namespace NCatboostCuda {
                     *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
-            auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                         updatedCatboostOptions.LoggingLevel);
 
             ui32 approxDimension = GetApproxDimension(
                 updatedCatboostOptions,
@@ -544,7 +532,7 @@ namespace NCatboostCuda {
                     *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
-            auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
+            auto deviceRequestConfig = NCudaLib::CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          updatedCatboostOptions.LoggingLevel);
 

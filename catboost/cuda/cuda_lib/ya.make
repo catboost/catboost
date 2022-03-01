@@ -13,6 +13,7 @@ SRCS(
     cuda_profiler.cpp
     device_id.cpp
     device_provider.cpp
+    devices_provider.cpp
     devices_list.cpp
     future/local_promise_future.cpp
     future/mpi_promise_future.cpp
