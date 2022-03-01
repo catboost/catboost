@@ -1,4 +1,4 @@
-//===------------------------- locale.cpp ---------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -981,6 +981,8 @@ ctype<wchar_t>::do_narrow(const char_type* low, const char_type* high, char dfau
 // template <> class ctype<char>;
 
 locale::id ctype<char>::id;
+
+const size_t ctype<char>::table_size;
 
 ctype<char>::ctype(const mask* tab, bool del, size_t refs)
     : locale::facet(refs),
