@@ -55,12 +55,11 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
         NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
         #if defined(HAVE_CUDA)
         THolder<TStopCudaManagerCallback> stopCudaManagerGuard;
-        if (catBoostFlatJsonOptions["task_type"] == ToString(ETaskType::GPU)) {
-            NCatboostOptions::TCatBoostOptions updatedCatboostOptions(ETaskType::GPU);
-            updatedCatboostOptions.Load(catBoostJsonOptions);
-            auto deviceRequestConfig = NCudaLib::CreateDeviceRequestConfig(updatedCatboostOptions);
-            stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
-                                                        updatedCatboostOptions.LoggingLevel);
+        if (NCatboostOptions::GetTaskType(catBoostFlatJsonOptions) == ETaskType::GPU) {
+            auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
+            stopCudaManagerGuard = StartCudaManager(
+                NCudaLib::CreateDeviceRequestConfig(options),
+                options.LoggingLevel);
         }
         #endif
         ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
