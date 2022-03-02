@@ -153,7 +153,7 @@ ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
 ALLOW market/access/server/env -> contrib/restricted/boost
-ALLOW sdg/library/cpp/ros_msg_parser -> contrib/restricted/boost
+ALLOW sdg/sdc -> contrib/restricted/boost
 ALLOW search/meta/scatter/ant -> contrib/restricted/boost
 ALLOW search/meta/scatter/ut -> contrib/restricted/boost
 
