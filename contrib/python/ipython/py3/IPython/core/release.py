@@ -20,8 +20,8 @@ name = 'ipython'
 # release.  'dev' as a _version_extra string means this is a development
 # version
 _version_major = 7
-_version_minor = 31
-_version_patch = 1
+_version_minor = 32
+_version_patch = 0
 _version_extra = '.dev'
 # _version_extra = 'b1'
 _version_extra = ""  # Uncomment this for full releases

@@ -15,6 +15,7 @@ import abc
 import ast
 import atexit
 import builtins as builtin_mod
+import dis
 import functools
 import inspect
 import os
@@ -93,12 +94,17 @@ from IPython.utils.contexts import NoOpContext
 try:
     import docrepr.sphinxify as sphx
 
-    def sphinxify(doc):
-        with TemporaryDirectory() as dirname:
-            return {
-                'text/html': sphx.sphinxify(doc, dirname),
-                'text/plain': doc
-            }
+    def sphinxify(oinfo):
+        wrapped_docstring = sphx.wrap_main_docstring(oinfo)
+
+        def sphinxify_docstring(docstring):
+            with TemporaryDirectory() as dirname:
+                return {
+                    "text/html": sphx.sphinxify(wrapped_docstring, dirname),
+                    "text/plain": docstring,
+                }
+
+        return sphinxify_docstring
 except ImportError:
     sphinxify = None
 
@@ -626,7 +632,6 @@ class InteractiveShell(SingletonConfigurable):
     def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
-
         # This is where traits with a config_key argument are updated
         # from the values on config.
         super(InteractiveShell, self).__init__(**kwargs)
@@ -919,7 +924,7 @@ class InteractiveShell(SingletonConfigurable):
         while p.is_symlink():
             p = Path(os.readlink(p))
             paths.append(p.resolve())
-        
+
         # In Cygwin paths like "c:\..." and '\cygdrive\c\...' are possible
         if p_venv.parts[1] == "cygdrive":
             drive_name = p_venv.parts[2]
@@ -1765,7 +1770,9 @@ class InteractiveShell(SingletonConfigurable):
         This function is meant to be called by pdef, pdoc & friends.
         """
         info = self._object_find(oname, namespaces)
-        docformat = sphinxify if self.sphinxify_docstring else None
+        docformat = (
+            sphinxify(self.object_inspect(oname)) if self.sphinxify_docstring else None
+        )
         if info.found:
             pmethod = getattr(self.inspector, meth)
             # TODO: only apply format_screen to the plain/text repr of the mime
@@ -1780,7 +1787,7 @@ class InteractiveShell(SingletonConfigurable):
                     formatter,
                     info,
                     enable_html_pager=self.enable_html_pager,
-                    **kw
+                    **kw,
                 )
             else:
                 pmethod(info.obj, oname)
@@ -1812,7 +1819,11 @@ class InteractiveShell(SingletonConfigurable):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                docformat = sphinxify if self.sphinxify_docstring else None
+                docformat = (
+                    sphinxify(self.object_inspect(oname))
+                    if self.sphinxify_docstring
+                    else None
+                )
                 return self.inspector._get_info(
                     info.obj,
                     oname,
@@ -2320,7 +2331,34 @@ class InteractiveShell(SingletonConfigurable):
             func, magic_kind=magic_kind, magic_name=magic_name
         )
 
-    def run_line_magic(self, magic_name, line, _stack_depth=1):
+    def _find_with_lazy_load(self, type_, magic_name: str):
+        """
+        Try to find a magic potentially lazy-loading it.
+
+        Parameters
+        ----------
+
+        type_: "line"|"cell"
+            the type of magics we are trying to find/lazy load.
+        magic_name: str
+            The name of the magic we are trying to find/lazy load
+
+
+        Note that this may have any side effects
+        """
+        finder = {"line": self.find_line_magic, "cell": self.find_cell_magic}[type_]
+        fn = finder(magic_name)
+        if fn is not None:
+            return fn
+        lazy = self.magics_manager.lazy_magics.get(magic_name)
+        if lazy is None:
+            return None
+
+        self.run_line_magic("load_ext", lazy)
+        res = finder(magic_name)
+        return res
+
+    def run_line_magic(self, magic_name: str, line, _stack_depth=1):
         """Execute the given line magic.
 
         Parameters
@@ -2335,7 +2373,12 @@ class InteractiveShell(SingletonConfigurable):
           If run_line_magic() is called from magic() then _stack_depth=2.
           This is added to ensure backward compatibility for use of 'get_ipython().magic()'
         """
-        fn = self.find_line_magic(magic_name)
+        fn = self._find_with_lazy_load("line", magic_name)
+        if fn is None:
+            lazy = self.magics_manager.lazy_magics.get(magic_name)
+            if lazy:
+                self.run_line_magic("load_ext", lazy)
+                fn = self.find_line_magic(magic_name)
         if fn is None:
             cm = self.find_cell_magic(magic_name)
             etpl = "Line magic function `%%%s` not found%s."
@@ -2388,7 +2431,7 @@ class InteractiveShell(SingletonConfigurable):
         cell : str
           The body of the cell as a (possibly multiline) string.
         """
-        fn = self.find_cell_magic(magic_name)
+        fn = self._find_with_lazy_load("cell", magic_name)
         if fn is None:
             lm = self.find_line_magic(magic_name)
             etpl = "Cell magic `%%{0}` not found{1}."
@@ -3262,6 +3305,29 @@ class InteractiveShell(SingletonConfigurable):
             ast.fix_missing_locations(node)
         return node
 
+    def _update_code_co_name(self, code):
+        """Python 3.10 changed the behaviour so that whenever a code object
+        is assembled in the compile(ast) the co_firstlineno would be == 1.
+
+        This makes pydevd/debugpy think that all cells invoked are the same
+        since it caches information based on (co_firstlineno, co_name, co_filename).
+
+        Given that, this function changes the code 'co_name' to be unique
+        based on the first real lineno of the code (which also has a nice
+        side effect of customizing the name so that it's not always <module>).
+
+        See: https://github.com/ipython/ipykernel/issues/841
+        """
+        if not hasattr(code, "replace"):
+            # It may not be available on older versions of Python (only
+            # available for 3.8 onwards).
+            return code
+        try:
+            first_real_line = next(dis.findlinestarts(code))[1]
+        except StopIteration:
+            return code
+        return code.replace(co_name="<cell line: %s>" % (first_real_line,))
+
     async def run_ast_nodes(self, nodelist:ListType[AST], cell_name:str, interactivity='last_expr',
                         compiler=compile, result=None):
         """Run a sequence of AST nodes. The execution mode depends on the
@@ -3373,6 +3439,7 @@ class InteractiveShell(SingletonConfigurable):
                         mod = ast.Interactive([node])
                     with compiler.extra_flags(getattr(ast, 'PyCF_ALLOW_TOP_LEVEL_AWAIT', 0x0) if self.autoawait else 0x0):
                         code = compiler(mod, cell_name, mode)
+                        code = self._update_code_co_name(code)
                         asy = compare(code)
                     if (await self.run_code(code, result,  async_=asy)):
                         return True
