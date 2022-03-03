@@ -296,7 +296,7 @@ public:
     TMappedAllocation(TMappedAllocation&& other) noexcept {
         this->swap(other);
     }
-    TMappedAllocation& operator = (TMappedAllocation&& other)noexcept {
+    TMappedAllocation& operator=(TMappedAllocation&& other) noexcept {
         this->swap(other);
         return *this;
     }
