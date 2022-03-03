@@ -24,4 +24,3 @@ TVector<int> GetBinFeatureCombinationClassByDepth(
     const TVector<int>& binFeatureCombinationClass,
     size_t treeIdx
 );
-
