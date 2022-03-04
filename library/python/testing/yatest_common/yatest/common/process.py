@@ -5,6 +5,7 @@ import re
 import time
 import signal
 import shutil
+import inspect
 import logging
 import tempfile
 import subprocess
@@ -91,7 +92,11 @@ class InvalidCommandError(Exception):
 
 class _Execution(object):
 
-    def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
+    def __init__(self, command, process, out_file, err_file,
+                 process_progress_listener=None, cwd=None, collect_cores=True,
+                 check_sanitizer=True, started=0, user_stdout=False, user_stderr=False,
+                 core_pattern=None):
+
         self._command = command
         self._process = process
         self._out_file = out_file
@@ -110,6 +115,8 @@ class _Execution(object):
         self._user_stdout = bool(user_stdout)
         self._user_stderr = bool(user_stderr)
         self._exit_code = None
+        self._core_pattern = core_pattern
+
         if process_progress_listener:
             process_progress_listener.open(command, process, out_file, err_file)
 
@@ -144,6 +151,10 @@ class _Execution(object):
     @property
     def command(self):
         return self._command
+
+    @property
+    def core_pattern(self):
+        return self._core_pattern
 
     @property
     def returncode(self):
@@ -253,7 +264,11 @@ class _Execution(object):
             self._out_file = None
 
     def _recover_core(self):
-        core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid)
+        core_path = cores.recover_core_dump_file(
+            self.command[0],
+            self._cwd,
+            self.process.pid,
+            self.core_pattern)
         if core_path:
             # Core dump file recovering may be disabled (for distbuild for example) - produce only bt
             store_cores = runtime._get_ya_config().collect_cores
@@ -422,6 +437,7 @@ def execute(
     process_progress_listener=None, close_fds=False,
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     executor=_Execution,
+    core_pattern=None,
 ):
     """
     Executes a command
@@ -527,7 +543,16 @@ def execute(
     )
     yatest_logger.debug("Command pid: %s", process.pid)
 
-    res = executor(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
+    kwargs = {
+        'user_stdout': user_stdout,
+        'user_stderr': user_stderr,
+    }
+
+    if 'core_pattern' in inspect.getargspec(executor.__init__).args:
+        kwargs.update([('core_pattern', core_pattern)])
+
+    res = executor(command, process, out_file, err_file, process_progress_listener,
+                   cwd, collect_cores, check_sanitizer, started, **kwargs)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res
