@@ -2458,7 +2458,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-bitwise-op-parentheses',
                 '-Wno-extern-initializer',
                 '-Wno-format',
-                '-Wno-inconsistent-dllimport',
                 '-Wno-logical-op-parentheses',
                 '-Wno-macro-redefined',
                 '-Wno-parentheses',
