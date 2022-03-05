@@ -29,147 +29,6 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     NCSA AND MIT         0791db4b6d90edd44c715bba1e426f74
-BELONGS ya.make
-FILE_INCLUDE LICENSE.txt found in files: kmp.h at line 12, kmp_affinity.cpp at line 11, kmp_affinity.h at line 11, kmp_alloc.c at line 11, kmp_atomic.c at line 11, kmp_atomic.h at line 11, kmp_barrier.cpp at line 11, kmp_cancel.cpp at line 7, kmp_config.h at line 9, kmp_csupport.c at line 11, kmp_debug.c at line 11, kmp_debug.h at line 11, kmp_dispatch.cpp at line 11, kmp_environment.c at line 11, kmp_environment.h at line 11, kmp_error.c at line 11, kmp_error.h at line 11, kmp_ftn_cdecl.c at line 11, kmp_ftn_entry.h at line 11, kmp_ftn_extra.c at line 11, kmp_ftn_os.h at line 11, kmp_global.c at line 11, kmp_gsupport.c at line 11, kmp_i18n.c at line 11, kmp_i18n.h at line 11, kmp_io.c at line 11, kmp_io.h at line 11, kmp_itt.c at line 14, kmp_itt.h at line 12, kmp_itt.inl at line 12, kmp_lock.cpp at line 11, kmp_lock.h at line 11, kmp_os.h at line 11, kmp_platform.h at line 10, kmp_runtime.c at line 11, kmp_safe_c_api.h at line 7, kmp_sched.cpp at line 11, kmp_settings.c at line 11, kmp_settings.h at line 11, kmp_stats.h at line 14, kmp_str.c at line 11, kmp_str.h at line 11, kmp_taskdeps.cpp at line 11, kmp_tasking.c at line 11, kmp_taskq.c at line 11, kmp_threadprivate.c at line 11, kmp_utility.c at line 11, kmp_version.c at line 11, kmp_version.h at line 11, kmp_wait_release.cpp at line 11, kmp_wait_release.h at line 11, kmp_wrapper_getpid.h at line 11, kmp_wrapper_malloc.h at line 12, omp.h at line 11, thirdparty/ittnotify/disable_warnings.h at line 7, thirdparty/ittnotify/ittnotify.h at line 7, thirdparty/ittnotify/ittnotify_config.h at line 7, thirdparty/ittnotify/ittnotify_static.c at line 7, thirdparty/ittnotify/ittnotify_types.h at line 7, thirdparty/ittnotify/legacy/ittnotify.h at line 7, z_Linux_util.c at line 11
-    License text:
-        // This file is dual licensed under the MIT and the University of Illinois Open
-        // Source Licenses. See LICENSE.txt for details.
-    Scancode info:
-        Original SPDX id: NCSA
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
-    Files with this license:
-        kmp.h [11:12]
-        kmp_affinity.cpp [10:11]
-        kmp_affinity.h [10:11]
-        kmp_alloc.c [10:11]
-        kmp_atomic.c [10:11]
-        kmp_atomic.h [10:11]
-        kmp_barrier.cpp [10:11]
-        kmp_cancel.cpp [6:7]
-        kmp_config.h [8:9]
-        kmp_csupport.c [10:11]
-        kmp_debug.c [10:11]
-        kmp_debug.h [10:11]
-        kmp_dispatch.cpp [10:11]
-        kmp_environment.c [10:11]
-        kmp_environment.h [10:11]
-        kmp_error.c [10:11]
-        kmp_error.h [10:11]
-        kmp_ftn_cdecl.c [10:11]
-        kmp_ftn_entry.h [10:11]
-        kmp_ftn_extra.c [10:11]
-        kmp_ftn_os.h [10:11]
-        kmp_global.c [10:11]
-        kmp_gsupport.c [10:11]
-        kmp_i18n.c [10:11]
-        kmp_i18n.h [10:11]
-        kmp_io.c [10:11]
-        kmp_io.h [10:11]
-        kmp_itt.c [13:14]
-        kmp_itt.h [11:12]
-        kmp_itt.inl [11:12]
-        kmp_lock.cpp [10:11]
-        kmp_lock.h [10:11]
-        kmp_os.h [10:11]
-        kmp_platform.h [9:10]
-        kmp_runtime.c [10:11]
-        kmp_safe_c_api.h [6:7]
-        kmp_sched.cpp [10:11]
-        kmp_settings.c [10:11]
-        kmp_settings.h [10:11]
-        kmp_stats.h [13:14]
-        kmp_str.c [10:11]
-        kmp_str.h [10:11]
-        kmp_taskdeps.cpp [10:11]
-        kmp_tasking.c [10:11]
-        kmp_taskq.c [10:11]
-        kmp_threadprivate.c [10:11]
-        kmp_utility.c [10:11]
-        kmp_version.c [10:11]
-        kmp_version.h [10:11]
-        kmp_wait_release.cpp [10:11]
-        kmp_wait_release.h [10:11]
-        kmp_wrapper_getpid.h [10:11]
-        kmp_wrapper_malloc.h [11:12]
-        omp.h [10:11]
-        thirdparty/ittnotify/disable_warnings.h [6:7]
-        thirdparty/ittnotify/ittnotify.h [6:7]
-        thirdparty/ittnotify/ittnotify_config.h [6:7]
-        thirdparty/ittnotify/ittnotify_static.c [6:7]
-        thirdparty/ittnotify/ittnotify_types.h [6:7]
-        thirdparty/ittnotify/legacy/ittnotify.h [6:7]
-        z_Linux_util.c [10:11]
-    Scancode info:
-        Original SPDX id: MIT
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
-    Files with this license:
-        kmp.h [11:12]
-        kmp_affinity.cpp [10:11]
-        kmp_affinity.h [10:11]
-        kmp_alloc.c [10:11]
-        kmp_atomic.c [10:11]
-        kmp_atomic.h [10:11]
-        kmp_barrier.cpp [10:11]
-        kmp_cancel.cpp [6:7]
-        kmp_config.h [8:9]
-        kmp_csupport.c [10:11]
-        kmp_debug.c [10:11]
-        kmp_debug.h [10:11]
-        kmp_dispatch.cpp [10:11]
-        kmp_environment.c [10:11]
-        kmp_environment.h [10:11]
-        kmp_error.c [10:11]
-        kmp_error.h [10:11]
-        kmp_ftn_cdecl.c [10:11]
-        kmp_ftn_entry.h [10:11]
-        kmp_ftn_extra.c [10:11]
-        kmp_ftn_os.h [10:11]
-        kmp_global.c [10:11]
-        kmp_gsupport.c [10:11]
-        kmp_i18n.c [10:11]
-        kmp_i18n.h [10:11]
-        kmp_io.c [10:11]
-        kmp_io.h [10:11]
-        kmp_itt.c [13:14]
-        kmp_itt.h [11:12]
-        kmp_itt.inl [11:12]
-        kmp_lock.cpp [10:11]
-        kmp_lock.h [10:11]
-        kmp_os.h [10:11]
-        kmp_platform.h [9:10]
-        kmp_runtime.c [10:11]
-        kmp_safe_c_api.h [6:7]
-        kmp_sched.cpp [10:11]
-        kmp_settings.c [10:11]
-        kmp_settings.h [10:11]
-        kmp_stats.h [13:14]
-        kmp_str.c [10:11]
-        kmp_str.h [10:11]
-        kmp_taskdeps.cpp [10:11]
-        kmp_tasking.c [10:11]
-        kmp_taskq.c [10:11]
-        kmp_threadprivate.c [10:11]
-        kmp_utility.c [10:11]
-        kmp_version.c [10:11]
-        kmp_version.h [10:11]
-        kmp_wait_release.cpp [10:11]
-        kmp_wait_release.h [10:11]
-        kmp_wrapper_getpid.h [10:11]
-        kmp_wrapper_malloc.h [11:12]
-        omp.h [10:11]
-        thirdparty/ittnotify/disable_warnings.h [6:7]
-        thirdparty/ittnotify/ittnotify.h [6:7]
-        thirdparty/ittnotify/ittnotify_config.h [6:7]
-        thirdparty/ittnotify/ittnotify_static.c [6:7]
-        thirdparty/ittnotify/ittnotify_types.h [6:7]
-        thirdparty/ittnotify/legacy/ittnotify.h [6:7]
-        z_Linux_util.c [10:11]
-
 KEEP     NCSA AND MIT         1046d955b73b76a5985bad28cebed867
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -179,42 +38,53 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        LICENSE.txt [3:10]
+        LICENSE.TXT [240:247]
     Scancode info:
         Original SPDX id: MIT
         Score           : 100.00
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        LICENSE.txt [3:10]
+        LICENSE.TXT [240:247]
     Scancode info:
         Original SPDX id: LicenseRef-scancode-generic-cla
         Score           : 100.00
         Match type      : NOTICE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/generic-cla.LICENSE
     Files with this license:
-        LICENSE.txt [3:10]
+        LICENSE.TXT [240:247]
 
-KEEP     NCSA AND MIT         479de2cae020eacfac58212c03d33ab1
+KEEP     Apache-2.0 WITH LLVM-exception 2eeede7ef78b2b5da03a36caf5f1f61c
 BELONGS ya.make
-FILE_INCLUDE LICENSE.txt found in files: thirdparty/ittnotify/ittnotify_static.h at line 7
     License text:
-        // This file is dual licensed under the MIT and the University of Illinois Open
-        // Source Licenses. See LICENSE.txt for details.
+        //// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        //// See https://llvm.org/LICENSE.txt for license information.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        z_Linux_asm.S [7:8]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        z_Linux_asm.S [7:8]
+
+KEEP     NCSA                 5a35b4c0d3b3923cac31a5a371332ca2
+BELONGS ya.make
+    License text:
+        Legacy LLVM License (https://llvm.org/docs/DeveloperPolicy.html#legacy):
     Scancode info:
         Original SPDX id: NCSA
         Score           : 100.00
-        Match type      : NOTICE
+        Match type      : REFERENCE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        thirdparty/ittnotify/ittnotify_static.h [6:7]
-    Scancode info:
-        Original SPDX id: MIT
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
-    Files with this license:
-        thirdparty/ittnotify/ittnotify_static.h [6:7]
+        LICENSE.TXT [237:237]
 
 KEEP     MIT                  5debb370f50e1dfd24ff5144233a2ef6
 BELONGS ya.make
@@ -225,28 +95,7 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
     Files with this license:
-        LICENSE.txt [56:72]
-
-KEEP     NCSA AND MIT         61ab203794bd26e0aab2c6b954e30d9a
-BELONGS ya.make
-FILE_INCLUDE LICENSE.txt found in files: z_Linux_asm.s at line 10
-    License text:
-        //// This file is dual licensed under the MIT and the University of Illinois Open
-        //// Source Licenses. See LICENSE.txt for details.
-    Scancode info:
-        Original SPDX id: NCSA
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
-    Files with this license:
-        z_Linux_asm.s [9:10]
-    Scancode info:
-        Original SPDX id: MIT
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
-    Files with this license:
-        z_Linux_asm.s [9:10]
+        LICENSE.TXT [293:309]
 
 KEEP     NCSA                 6caabae7bd314fb6e6055ec150ee747f
 BELONGS ya.make
@@ -257,7 +106,366 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        LICENSE.txt [26:50]
+        LICENSE.TXT [263:287]
+
+KEEP     Apache-2.0 WITH LLVM-exception 755ab7da3ff8c5d6ae90bdbebd177e49
+BELONGS ya.make
+    License text:
+        // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        // See https://llvm.org/LICENSE.txt for license information.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        kmp.h [8:9]
+        kmp_affinity.cpp [7:8]
+        kmp_affinity.h [7:8]
+        kmp_alloc.cpp [7:8]
+        kmp_atomic.cpp [7:8]
+        kmp_atomic.h [7:8]
+        kmp_barrier.cpp [7:8]
+        kmp_cancel.cpp [4:5]
+        kmp_config.h [6:7]
+        kmp_csupport.cpp [7:8]
+        kmp_debug.cpp [7:8]
+        kmp_debug.h [7:8]
+        kmp_dispatch.cpp [7:8]
+        kmp_dispatch.h [7:8]
+        kmp_environment.cpp [7:8]
+        kmp_environment.h [7:8]
+        kmp_error.cpp [7:8]
+        kmp_error.h [7:8]
+        kmp_ftn_cdecl.cpp [7:8]
+        kmp_ftn_entry.h [7:8]
+        kmp_ftn_extra.cpp [7:8]
+        kmp_ftn_os.h [7:8]
+        kmp_global.cpp [7:8]
+        kmp_gsupport.cpp [7:8]
+        kmp_i18n.cpp [7:8]
+        kmp_i18n.h [7:8]
+        kmp_io.cpp [7:8]
+        kmp_io.h [7:8]
+        kmp_itt.cpp [10:11]
+        kmp_itt.h [8:9]
+        kmp_lock.cpp [7:8]
+        kmp_lock.h [7:8]
+        kmp_os.h [7:8]
+        kmp_platform.h [7:8]
+        kmp_runtime.cpp [7:8]
+        kmp_safe_c_api.h [4:5]
+        kmp_sched.cpp [7:8]
+        kmp_settings.cpp [7:8]
+        kmp_settings.h [7:8]
+        kmp_stats.h [10:11]
+        kmp_str.cpp [7:8]
+        kmp_str.h [7:8]
+        kmp_taskdeps.cpp [7:8]
+        kmp_taskdeps.h [7:8]
+        kmp_tasking.cpp [7:8]
+        kmp_threadprivate.cpp [7:8]
+        kmp_utility.cpp [7:8]
+        kmp_version.cpp [7:8]
+        kmp_version.h [7:8]
+        kmp_wait_release.cpp [7:8]
+        kmp_wait_release.h [7:8]
+        kmp_wrapper_getpid.h [7:8]
+        kmp_wrapper_malloc.h [8:9]
+        omp-tools.h [7:8]
+        omp.h [8:9]
+        ompt-event-specific.h [12:13]
+        ompt-general.cpp [7:8]
+        ompt-internal.h [7:8]
+        ompt-specific.cpp [7:8]
+        ompt-specific.h [7:8]
+        z_Linux_util.cpp [7:8]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        kmp.h [8:9]
+        kmp_affinity.cpp [7:8]
+        kmp_affinity.h [7:8]
+        kmp_alloc.cpp [7:8]
+        kmp_atomic.cpp [7:8]
+        kmp_atomic.h [7:8]
+        kmp_barrier.cpp [7:8]
+        kmp_cancel.cpp [4:5]
+        kmp_config.h [6:7]
+        kmp_csupport.cpp [7:8]
+        kmp_debug.cpp [7:8]
+        kmp_debug.h [7:8]
+        kmp_dispatch.cpp [7:8]
+        kmp_dispatch.h [7:8]
+        kmp_environment.cpp [7:8]
+        kmp_environment.h [7:8]
+        kmp_error.cpp [7:8]
+        kmp_error.h [7:8]
+        kmp_ftn_cdecl.cpp [7:8]
+        kmp_ftn_entry.h [7:8]
+        kmp_ftn_extra.cpp [7:8]
+        kmp_ftn_os.h [7:8]
+        kmp_global.cpp [7:8]
+        kmp_gsupport.cpp [7:8]
+        kmp_i18n.cpp [7:8]
+        kmp_i18n.h [7:8]
+        kmp_io.cpp [7:8]
+        kmp_io.h [7:8]
+        kmp_itt.cpp [10:11]
+        kmp_itt.h [8:9]
+        kmp_lock.cpp [7:8]
+        kmp_lock.h [7:8]
+        kmp_os.h [7:8]
+        kmp_platform.h [7:8]
+        kmp_runtime.cpp [7:8]
+        kmp_safe_c_api.h [4:5]
+        kmp_sched.cpp [7:8]
+        kmp_settings.cpp [7:8]
+        kmp_settings.h [7:8]
+        kmp_stats.h [10:11]
+        kmp_str.cpp [7:8]
+        kmp_str.h [7:8]
+        kmp_taskdeps.cpp [7:8]
+        kmp_taskdeps.h [7:8]
+        kmp_tasking.cpp [7:8]
+        kmp_threadprivate.cpp [7:8]
+        kmp_utility.cpp [7:8]
+        kmp_version.cpp [7:8]
+        kmp_version.h [7:8]
+        kmp_wait_release.cpp [7:8]
+        kmp_wait_release.h [7:8]
+        kmp_wrapper_getpid.h [7:8]
+        kmp_wrapper_malloc.h [8:9]
+        omp-tools.h [7:8]
+        omp.h [8:9]
+        ompt-event-specific.h [12:13]
+        ompt-general.cpp [7:8]
+        ompt-internal.h [7:8]
+        ompt-specific.cpp [7:8]
+        ompt-specific.h [7:8]
+        z_Linux_util.cpp [7:8]
+
+KEEP     Apache-2.0 WITH LLVM-exception 813a7ee71d9804f118ddde21a452de40
+BELONGS ya.make
+    License text:
+        \#// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        \#// See https://llvm.org/LICENSE.txt for license information.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        exports_so.txt [6:7]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        exports_so.txt [6:7]
+
+KEEP     Apache-2.0 WITH LLVM-exception 8494a9caed330d9a4f40e19cce7dc770
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        LICENSE.TXT [208:222]
+
+KEEP     Apache-2.0 WITH LLVM-exception 8cf6c51a4358f58d16ab5358dd73b2b7
+BELONGS ya.make
+    License text:
+        //// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        z_Linux_asm.S [9:9]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        z_Linux_asm.S [9:9]
+
+KEEP     Apache-2.0           9ac77f65a898755c7eed97099caded94
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TEXT
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        LICENSE.TXT [5:205]
+
+KEEP     Apache-2.0 WITH LLVM-exception b7566a1930e050e1090162bf1d543650
+BELONGS ya.make
+    License text:
+        // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        kmp.h [10:10]
+        kmp_affinity.cpp [9:9]
+        kmp_affinity.h [9:9]
+        kmp_alloc.cpp [9:9]
+        kmp_atomic.cpp [9:9]
+        kmp_atomic.h [9:9]
+        kmp_barrier.cpp [9:9]
+        kmp_cancel.cpp [6:6]
+        kmp_config.h [8:8]
+        kmp_csupport.cpp [9:9]
+        kmp_debug.cpp [9:9]
+        kmp_debug.h [9:9]
+        kmp_dispatch.cpp [9:9]
+        kmp_dispatch.h [9:9]
+        kmp_environment.cpp [9:9]
+        kmp_environment.h [9:9]
+        kmp_error.cpp [9:9]
+        kmp_error.h [9:9]
+        kmp_ftn_cdecl.cpp [9:9]
+        kmp_ftn_entry.h [9:9]
+        kmp_ftn_extra.cpp [9:9]
+        kmp_ftn_os.h [9:9]
+        kmp_global.cpp [9:9]
+        kmp_gsupport.cpp [9:9]
+        kmp_i18n.cpp [9:9]
+        kmp_i18n.h [9:9]
+        kmp_io.cpp [9:9]
+        kmp_io.h [9:9]
+        kmp_itt.cpp [12:12]
+        kmp_itt.h [10:10]
+        kmp_lock.cpp [9:9]
+        kmp_lock.h [9:9]
+        kmp_os.h [9:9]
+        kmp_platform.h [9:9]
+        kmp_runtime.cpp [9:9]
+        kmp_safe_c_api.h [6:6]
+        kmp_sched.cpp [9:9]
+        kmp_settings.cpp [9:9]
+        kmp_settings.h [9:9]
+        kmp_stats.h [12:12]
+        kmp_str.cpp [9:9]
+        kmp_str.h [9:9]
+        kmp_taskdeps.cpp [9:9]
+        kmp_taskdeps.h [9:9]
+        kmp_tasking.cpp [9:9]
+        kmp_threadprivate.cpp [9:9]
+        kmp_utility.cpp [9:9]
+        kmp_version.cpp [9:9]
+        kmp_version.h [9:9]
+        kmp_wait_release.cpp [9:9]
+        kmp_wait_release.h [9:9]
+        kmp_wrapper_getpid.h [9:9]
+        kmp_wrapper_malloc.h [10:10]
+        omp-tools.h [9:9]
+        omp.h [10:10]
+        ompt-event-specific.h [14:14]
+        ompt-general.cpp [9:9]
+        ompt-internal.h [9:9]
+        ompt-specific.cpp [9:9]
+        ompt-specific.h [9:9]
+        z_Linux_util.cpp [9:9]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        kmp.h [10:10]
+        kmp_affinity.cpp [9:9]
+        kmp_affinity.h [9:9]
+        kmp_alloc.cpp [9:9]
+        kmp_atomic.cpp [9:9]
+        kmp_atomic.h [9:9]
+        kmp_barrier.cpp [9:9]
+        kmp_cancel.cpp [6:6]
+        kmp_config.h [8:8]
+        kmp_csupport.cpp [9:9]
+        kmp_debug.cpp [9:9]
+        kmp_debug.h [9:9]
+        kmp_dispatch.cpp [9:9]
+        kmp_dispatch.h [9:9]
+        kmp_environment.cpp [9:9]
+        kmp_environment.h [9:9]
+        kmp_error.cpp [9:9]
+        kmp_error.h [9:9]
+        kmp_ftn_cdecl.cpp [9:9]
+        kmp_ftn_entry.h [9:9]
+        kmp_ftn_extra.cpp [9:9]
+        kmp_ftn_os.h [9:9]
+        kmp_global.cpp [9:9]
+        kmp_gsupport.cpp [9:9]
+        kmp_i18n.cpp [9:9]
+        kmp_i18n.h [9:9]
+        kmp_io.cpp [9:9]
+        kmp_io.h [9:9]
+        kmp_itt.cpp [12:12]
+        kmp_itt.h [10:10]
+        kmp_lock.cpp [9:9]
+        kmp_lock.h [9:9]
+        kmp_os.h [9:9]
+        kmp_platform.h [9:9]
+        kmp_runtime.cpp [9:9]
+        kmp_safe_c_api.h [6:6]
+        kmp_sched.cpp [9:9]
+        kmp_settings.cpp [9:9]
+        kmp_settings.h [9:9]
+        kmp_stats.h [12:12]
+        kmp_str.cpp [9:9]
+        kmp_str.h [9:9]
+        kmp_taskdeps.cpp [9:9]
+        kmp_taskdeps.h [9:9]
+        kmp_tasking.cpp [9:9]
+        kmp_threadprivate.cpp [9:9]
+        kmp_utility.cpp [9:9]
+        kmp_version.cpp [9:9]
+        kmp_version.h [9:9]
+        kmp_wait_release.cpp [9:9]
+        kmp_wait_release.h [9:9]
+        kmp_wrapper_getpid.h [9:9]
+        kmp_wrapper_malloc.h [10:10]
+        omp-tools.h [9:9]
+        omp.h [10:10]
+        ompt-event-specific.h [14:14]
+        ompt-general.cpp [9:9]
+        ompt-internal.h [9:9]
+        ompt-specific.cpp [9:9]
+        ompt-specific.h [9:9]
+        z_Linux_util.cpp [9:9]
+
+KEEP     Apache-2.0 WITH LLVM-exception b7cec33eded9763725bcb0a858a5da3e
+BELONGS ya.make
+    License text:
+        \#// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        exports_so.txt [8:8]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 100.00
+        Match type      : TAG
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        exports_so.txt [8:8]
 
 KEEP     NCSA                 c26d0b72f92421989c4471ae0acbc943
 BELONGS ya.make
@@ -270,7 +478,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
     Files with this license:
-        LICENSE.txt [14:15]
+        LICENSE.TXT [251:252]
 
 KEEP     Intel-LLVM-SGA       d5a6528c4e206fd72c16045a75e34576
 BELONGS ya.make
@@ -281,25 +489,23 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/arm-llvm-sga.LICENSE
     Files with this license:
-        LICENSE.txt [78:122]
+        LICENSE.TXT [315:359]
 
-KEEP     NCSA AND MIT         e56769dac6aaa0678164025adda8a1da
+KEEP     Apache-2.0 WITH LLVM-exception df18889e552d44a4679aff552267f802
 BELONGS ya.make
-FILE_INCLUDE LICENSE.txt found in files: exports_so.txt at line 9
     License text:
-        \#// This file is dual licensed under the MIT and the University of Illinois Open
-        \#// Source Licenses. See LICENSE.txt for details.
+        The LLVM Project is under the Apache License v2.0 with LLVM Exceptions:
     Scancode info:
-        Original SPDX id: NCSA
+        Original SPDX id: Apache-2.0
         Score           : 100.00
         Match type      : NOTICE
-        Links           : http://www.otm.illinois.edu/faculty/forms/opensource.asp, https://spdx.org/licenses/NCSA
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        exports_so.txt [8:9]
+        LICENSE.TXT [2:2]
     Scancode info:
-        Original SPDX id: MIT
+        Original SPDX id: LLVM-exception
         Score           : 100.00
         Match type      : NOTICE
-        Links           : http://opensource.org/licenses/mit-license.php, https://spdx.org/licenses/MIT
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
     Files with this license:
-        exports_so.txt [8:9]
+        LICENSE.TXT [2:2]

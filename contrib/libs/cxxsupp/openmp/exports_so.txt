@@ -3,10 +3,9 @@
 #
 #//===----------------------------------------------------------------------===//
 #//
-#//                     The LLVM Compiler Infrastructure
-#//
-#// This file is dual licensed under the MIT and the University of Illinois Open
-#// Source Licenses. See LICENSE.txt for details.
+#// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+#// See https://llvm.org/LICENSE.txt for license information.
+#// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #//
 #//===----------------------------------------------------------------------===//
 #
@@ -21,21 +20,12 @@ VERSION {
         # "Normal" symbols.
         #
         omp_*;     # Standard OpenMP functions.
+        OMP_*;     # Standard OpenMP symbols.
 
         #
         # OMPT API
         #
-        ompt_tool;           # OMPT initialization interface
-        ompt_control;        # OMPT control interface
-        
-        #
-        # OMPT state placeholders
-        #
-        ompt_idle;
-        ompt_overhead;
-        ompt_barrier_wait;
-        ompt_task_wait;
-        ompt_mutex_wait;
+        ompt_start_tool;     # OMPT start interface
 
         ompc_*;    # omp.h renames some standard functions to ompc_*.
         kmp_*;     # Intel extensions.
@@ -44,7 +34,6 @@ VERSION {
         GOMP_*;    # GNU C compatibility functions.
 
         _You_must_link_with_*;     # Mutual detection/MS compatibility symbols.
-
 
         #
         # Debugger support.
@@ -61,7 +50,6 @@ VERSION {
         ___kmp_allocate;
         ___kmp_free;
         __kmp_thread_pool;
-        __kmp_thread_pool_nth;
 
 	__kmp_reset_stats;
 
@@ -81,21 +69,16 @@ VERSION {
         __kmp_acquire_tas_lock;
         __kmp_acquire_ticket_lock;
         __kmp_fork_call;
-        __kmp_get_reduce_method;
         __kmp_invoke_microtask;
-        __kmp_itt_fini_ittlib;
-        __kmp_itt_init_ittlib;
+#if KMP_USE_MONITOR
         __kmp_launch_monitor;
-        __kmp_launch_worker;
         __kmp_reap_monitor;
+#endif
+        __kmp_launch_worker;
         __kmp_reap_worker;
-        __kmp_release_32;
         __kmp_release_64;
-        __kmp_release_oncore;
-        __kmp_wait_32;
         __kmp_wait_64;
-        __kmp_wait_oncore;
-        __kmp_wait_yield_4;
+        __kmp_wait_4;
 
         # ittnotify symbols to be used by debugger
         __kmp_itt_fini_ittlib;
@@ -119,6 +102,10 @@ OMP_3.1 {
 } OMP_3.0;
 OMP_4.0 {
 } OMP_3.1;
+OMP_4.5 {
+} OMP_4.0;
+OMP_5.0 {
+} OMP_4.5;
 
 # sets up GCC GOMP_ version dependency chain
 GOMP_1.0 {
@@ -129,5 +116,9 @@ GOMP_3.0 {
 } GOMP_2.0;
 GOMP_4.0 {
 } GOMP_3.0;
+GOMP_4.5 {
+} GOMP_4.0;
+GOMP_5.0 {
+} GOMP_4.5;
 
 # end of file #
