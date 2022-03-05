@@ -1427,7 +1427,6 @@ class GnuCompiler(Compiler):
                 '-Wimport-preprocessor-directive-pedantic',
                 '-Wno-undefined-var-template',
                 '-Wno-return-std-move',
-                '-Wno-address-of-packed-member',
                 '-Wno-defaulted-function-deleted',
                 '-Wno-pessimizing-move',
                 '-Wno-range-loop-construct',
