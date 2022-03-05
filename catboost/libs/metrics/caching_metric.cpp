@@ -1498,11 +1498,12 @@ TVector<TString> TFCachingMetric::GetStatDescriptions() const {
 }
 
 TString TFCachingMetric::GetDescription() const {
+    const TMetricParam<double> beta("beta", Beta, /*userDefined*/true);
     if (IsMultiClass) {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
-        return BuildDescription(ELossFunction::F, UseWeights, positiveClass);
+        return BuildDescription(ELossFunction::F, UseWeights, "%.3g", beta, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::F, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+        return BuildDescription(ELossFunction::F, UseWeights, "%.3g", beta,"%.3g", MakeTargetBorderParam(TargetBorder),
                                 MakePredictionBorderParam(PredictionBorder));
     }
 }
@@ -1519,8 +1520,16 @@ void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 TVector<TParamSet> TFCachingMetric::ValidParamSets() {
-    return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
-};
+    return {
+            TParamSet{
+                    {
+                            TParamInfo{"use_weights", false, true},
+                            TParamInfo{"beta", true, {}}
+                    },
+                    ""
+            }
+    };
+}
 /* Kappa */
 
 namespace {

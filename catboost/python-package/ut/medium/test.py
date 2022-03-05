@@ -2422,7 +2422,6 @@ def test_f1_vs_fbeta():
     model.fit(train_pool, eval_set=test_pool)
 
     results = model.eval_metrics(test_pool, ['F1', 'F:beta=1'])
-    print("RESULTS", results)
     assert np.allclose(results['F1'], results['F:beta=1']), "Different results for F1 and F:beta=1"
 
 
@@ -3603,7 +3602,7 @@ def test_grid_search_and_get_best_result(task_type):
                     "loss_function": "Logloss",
                     "eval_metric": "AUC",
                     "task_type": task_type,
-                    "custom_metric": ["CrossEntropy", "F1"]
+                    "custom_metric": ["CrossEntropy", "F1", "F:beta=2"]
                 }
             )
             feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
@@ -3632,10 +3631,10 @@ def test_grid_search_and_get_best_result(task_type):
                 assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
                 assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
             if 'validation' in best_scores:
-                for metric in ["AUC", "Logloss", "CrossEntropy", "F1"]:
+                for metric in ["AUC", "Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
             if 'learn' in best_scores:
-                for metric in ["Logloss", "CrossEntropy", "F1"]:
+                for metric in ["Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
                 assert "AUC" not in best_scores['learn'], 'train AUC results found'
 
@@ -9894,11 +9893,11 @@ def test_same_params(params):
 
 
 @pytest.mark.parametrize('task', ['binclass', 'multiclass'])
-@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'F:beta=2', 'Precision', 'Recall'])
+@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'Precision', 'Recall'])
 @pytest.mark.parametrize('use_weights', [True, False])
 def test_eval_metric_with_weights(task_type, task, metric, use_weights):
     X = np.random.random()
-    if task == 'multiclass' and metric in ('F1', 'F:beta=2', 'Precision', 'Recall'):
+    if task == 'multiclass' and metric in ('F1', 'Precision', 'Recall'):
         pytest.skip('Metric with multiple values is not allowed to use as eval_metric')
     np.random.seed(0)
     X = np.random.random(size=(100, 10))

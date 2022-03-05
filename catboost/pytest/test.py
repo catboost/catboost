@@ -3748,6 +3748,7 @@ def test_same_metric_skip_different(boosting_type):
 
     assert filecmp.cmp(learn_error_path_with_custom_metric, learn_error_path)
 
+
 @pytest.mark.parametrize('loss_function', BINCLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_loss_for_classification(loss_function, boosting_type):
