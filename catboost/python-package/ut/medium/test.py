@@ -2415,6 +2415,17 @@ def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task)
             assert np.abs(td_results[metric][-1] - score) < 1e-6, "Eval metric results differ for {}".format(metric)
 
 
+def test_f1_vs_fbeta():
+    model = CatBoost({'loss_function': metrics.CrossEntropy(), 'iterations': 50})
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+    model.fit(train_pool, eval_set=test_pool)
+
+    results = model.eval_metrics(test_pool, ['F1', 'F:beta=1'])
+    print("RESULTS", results)
+    assert np.allclose(results['F1'], results['F:beta=1']), "Different results for F1 and F:beta=1"
+
+
 def test_generated_classification_metrics():
     _test_generated_metrics(
         'Logloss',
@@ -2428,7 +2439,7 @@ def test_generated_classification_metrics():
             'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
             'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction()
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2)
         },
         "classification"
     )
@@ -6186,6 +6197,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'BalancedAccuracy',
             'BalancedErrorRate',
             'MCC',
@@ -6211,6 +6223,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'TotalF1',
             'MCC',
             'Accuracy',
@@ -6263,6 +6276,7 @@ class Metrics(object):
             'CrossEntropy',
             'CtrFactor',
             'PythonUserDefinedPerObject',
+            'F:beta=2',
             'F1',
             'HammingLoss',
             'HingeLoss',
@@ -9880,11 +9894,11 @@ def test_same_params(params):
 
 
 @pytest.mark.parametrize('task', ['binclass', 'multiclass'])
-@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'Precision', 'Recall'])
+@pytest.mark.parametrize('metric', ['TotalF1', 'MCC', 'F1', 'F:beta=2', 'Precision', 'Recall'])
 @pytest.mark.parametrize('use_weights', [True, False])
 def test_eval_metric_with_weights(task_type, task, metric, use_weights):
     X = np.random.random()
-    if task == 'multiclass' and metric in ('F1', 'Precision', 'Recall'):
+    if task == 'multiclass' and metric in ('F1', 'F:beta=2', 'Precision', 'Recall'):
         pytest.skip('Metric with multiple values is not allowed to use as eval_metric')
     np.random.seed(0)
     X = np.random.random(size=(100, 10))

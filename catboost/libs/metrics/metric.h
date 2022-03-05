@@ -285,6 +285,11 @@ THolder<IMetric> MakeBinClassF1Metric(const TLossParams& params,
 THolder<IMetric> MakeMultiClassF1Metric(const TLossParams& params,
                                         int classesCount, int positiveClass);
 
+THolder<IMetric> MakeBinClassFMetric(const TLossParams& params, double beta,
+                                     double predictionBorder);
+THolder<IMetric> MakeMultiClassFMetric(const TLossParams& params, double beta,
+                                       int classesCount, int positiveClass);
+
 THolder<IMetric> MakeTotalF1Metric(const TLossParams& params,
                                    int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
 
