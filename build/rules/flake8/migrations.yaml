@@ -38,7 +38,6 @@ migrations:
     - ads/quality/apc/gmg/make_lm_pool
     - ads/quality/apc/gmg/make_lm_pool/lib
     - ads/quality/apc/prgmgv3/workflow_constructor/lib
-    - ads/quality/bid_correction/lib
     - ads/quality/dssm/lib
     - ads/quality/dssm/prgmg/make_pool
     - ads/quality/dssm/search/201708/make_pool
@@ -294,7 +293,6 @@ migrations:
     - entity/quality/metrics/film_lists/combine_attributes_for_stupids_marking
     - entity/quality/metrics/not_film_lists/combine_attributes_for_stupids_marking
     - entity/quality/metrics/passport
-    - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
     - entity/ugc/tests/lib
     - entity/ugc/tools/bell/replay_requests
@@ -414,8 +412,6 @@ migrations:
     - market/contrib/python/yaconf_v0.1.2/yaconf
     - market/idx/streams/yatf
     - market/library/cms_promo/py_utils
-    - market/mstat/ch-cache/lib
-    - market/mstat/ch-cache/lib/database
     - market/reductor/configure/lib
     - market/reductor/www
     - market/report/lite
@@ -773,7 +769,6 @@ migrations:
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/trivial_cron
     - yabs/server/libs/py_markdown_strings
-    - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-14195
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
@@ -995,7 +990,6 @@ migrations:
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
-    - market/mstat/ch-cache/tests
     - market/sre/services/cema-proxy/lib
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
@@ -1188,7 +1182,6 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - extsearch/geo/recommender/runtime/config/generation
     - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -1490,7 +1483,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107
-    - yabs/server/test/ft/BSSERVER-14110
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/qabs_bsserver_pytest
@@ -1505,7 +1497,6 @@ migrations:
     - ydo/payments/balance_notifications_processor/lib
     - ydo/server/apphost_source/lib/endpoints
     - ydo/tools/direct/make_ya_clients_export
-    - yp/eviction_alerter/bin
     - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
     - yweb/antimalware/mitb/mitb_monitor/lib
@@ -1543,7 +1534,6 @@ migrations:
     - library/python/cyson
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -1612,7 +1602,6 @@ migrations:
     - adfox/rtd/reports
     - ads/bsyeti/libs/py_bt_profile
     - ads/bsyeti/scripts/sample_catalogia_queries
-    - ads/libs/py_categories
     - ads/libs/py_conf
     - ads/libs/py_core
     - ads/libs/py_ml_clusterization
@@ -1848,7 +1837,6 @@ migrations:
     - entity/recommender/nirvana/autodump
     - entity/recommender/nirvana/operations/whereami
     - entity/recommender/viewer
-    - entity/ugc/db/benchmark/generate_ammo
     - entity/ugc/tools/nirvana/appsearch_activity
     - entity/ugc/tools/nirvana/ugcdb1_process/backup
     - entity/ugc/tools/nirvana/ugcdb1_process/process_profiles
@@ -2000,7 +1988,6 @@ migrations:
     - library/python/django_template_common
     - library/python/django_tools_log_context
     - library/python/dssclient
-    - library/python/filelock
     - library/python/golovan_stats_aggregator
     - library/python/granular_settings
     - library/python/ids
@@ -2772,7 +2759,6 @@ migrations:
     - voicetech/asr/experiments/partial_prefetch/lib
     - voicetech/asr/pipeline/annotation/lib
     - voicetech/asr/pipeline/generate_texts/lib
-    - voicetech/asr/pipeline/train_pytorch/lib
     - voicetech/asr/tools/ctc_visualize
     - voicetech/asr/tools/decoder_sweeper/lib
     - voicetech/asr/tools/decoding_result_viewer
@@ -2965,7 +2951,6 @@ migrations:
     - yweb/younglings/education/regular/requests_timing/scripts/send_to_solomon
     - yweb/younglings/education/regular/yt_eventlog_grep_errors/generate_email
     - yweb/younglings/tasks/YOUNGLINGS-403/secondary_from_csv
-    - zootopia/hub/orgthief_project/orgthief
     - zootopia/hub/orgthief_project/tycoon
     - zootopia/library/py/latlon
     - zootopia/library/py/saaspy
@@ -3011,7 +2996,6 @@ migrations:
     - ads/pytorch/deploy/bindings/ut
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/adv_machine_models
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
-    - ads/quality/bid_correction/lib/ut
     - ads/quality/metric_eval/tests/ut
     - ads/sandbox_scripts/logs_scheme/fat
     - ads/targeting/cross_check/ut
@@ -3100,10 +3084,8 @@ migrations:
     - extsearch/video/robot/deletes/player_ban/tests
     - extsearch/video/robot/docbase/docauthor/tests
     - extsearch/video/robot/docbase/docfactor/tests
-    - extsearch/video/robot/docbase/factors/annfexport/tests
     - extsearch/video/robot/docbase/factors/authfexport/tests
     - extsearch/video/robot/docbase/factors/hostfexport/tests
-    - extsearch/video/robot/docbase/factors/thumbfexport/tests
     - extsearch/video/robot/docbase/indexdocs/tests
     - extsearch/video/robot/docbase/postcalc/tests
     - extsearch/video/robot/docbase/vegas/adaptor/tests
@@ -3180,7 +3162,6 @@ migrations:
     - ml/cf_sharp/tests
     - modadvert/libs/algorithms/ut
     - modadvert/programs/catalogia_flags_diff/ut
-    - modadvert/programs/minus_regions/ut
     - mssngr/tools/pytests/setup/local
     - nirvana/libs/comparable_dumped_workflow/ut
     - nirvana/valhalla/tests
@@ -3562,7 +3543,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/trashcan
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/turbo
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/users
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/kombu
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/mongoengine
     - yweb/yasap/pdb/pdb-backend/tests/lib/saas
     - yweb/yasap/pdb/pdb-backend/tests/lib/sb
