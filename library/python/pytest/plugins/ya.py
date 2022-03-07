@@ -81,6 +81,9 @@ class CustomImporter(object):
     def __init__(self, roots):
         self._roots = roots
 
+    def find_spec(self, fullname, path, target=None):
+        return None
+
     def find_module(self, fullname, package_path=None):
         for path in self._roots:
             full_path = self._get_module_path(path, fullname)
