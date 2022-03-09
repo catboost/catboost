@@ -1,6 +1,8 @@
 ALLOW alice/megamind -> alice/megamind/library
 ALLOW junk -> alice/megamind/library
 ALLOW alice/apphost/graph_generator -> alice/megamind/library/config/protos
+ALLOW alice/apphost/graph_generator -> alice/megamind/library/config/scenario_protos
+ALLOW alice/kronstadt/tools/graph_generator -> alice/megamind/library/config/scenario_protos
 
 # DO NOT ADD NEW ALLOW RULES
 ALLOW alice/bass -> alice/megamind/library/search/protos
