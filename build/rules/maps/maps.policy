@@ -149,6 +149,14 @@ ALLOW taxi/tools/dorblu/aggregator -> maps/libs/log8
 ALLOW taxi/tools/dorblu/lib -> maps/libs/http
 ALLOW yql/udfs/taxi/graph -> maps/libs/leptidea
 
+ALLOW drive/backend/tracks/yt -> maps/libs/road_graph
+ALLOW drive/backend/tracks/yt -> maps/libs/road_graph/serialization
+ALLOW drive/backend/tracks/yt -> maps/libs/succinct_rtree
+ALLOW drive/backend/tracks/yt -> maps/libs/succinct_rtree/serialization
+ALLOW drive/backend/tracks/yt -> maps/libs/leptidea/include
+ALLOW drive/backend/tracks/yt -> maps/libs/leptidea
+ALLOW drive/backend/tracks/yt -> maps/analyzer/libs/graphmatching
+
 ALLOW maps/ -> maps/
 ALLOW sandbox/projects/maps -> maps/
 ALLOW sandbox/projects/mapsearch -> maps/
