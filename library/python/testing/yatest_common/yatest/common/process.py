@@ -733,11 +733,11 @@ def check_glibc_version(binary_path):
 def backtrace_to_html(bt_filename, output):
     try:
         from library.python import coredump_filter
-        with open(output, "wb") as afile:
+        with open(output, "w") as afile:
             coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
-        with open(output, "wb") as afile:
+        with open(output, "w") as afile:
             afile.write("<html>Failed to import coredump_filter in USE_ARCADIA_PYTHON=no mode</html>")
 
 
