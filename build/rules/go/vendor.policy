@@ -1065,6 +1065,12 @@ ALLOW infra/infractl/.* -> vendor/github.com/ghodss/yaml
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
 
+# CONTRIB-2502
+ALLOW .* -> vendor/github.com/anatol/luks.go
+DENY .* -> vendor/github.com/anatol/luks.go;test
+DENY .* -> vendor/github.com/anatol/vmtest;test
+DENY .* -> vendor/github.com/anatol/devmapper.go;test
+
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
