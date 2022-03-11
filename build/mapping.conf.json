@@ -2979,6 +2979,11 @@
         "2857211305": "https://storage.mds.yandex.net/get-devtools-opensource/233854/2857211305", 
         "2857212963": "https://storage.mds.yandex.net/get-devtools-opensource/233854/2857212963", 
         "2857213798": "https://storage.mds.yandex.net/get-devtools-opensource/250854/2857213798", 
+        "2860855300": "https://storage.mds.yandex.net/get-devtools-opensource/479623/2860855300", 
+        "2860855816": "https://storage.mds.yandex.net/get-devtools-opensource/471749/2860855816", 
+        "2860856556": "https://storage.mds.yandex.net/get-devtools-opensource/373962/2860856556", 
+        "2860857188": "https://storage.mds.yandex.net/get-devtools-opensource/479623/2860857188", 
+        "2860858859": "https://storage.mds.yandex.net/get-devtools-opensource/373962/2860858859", 
         "309054781": "https://storage.mds.yandex.net/get-devtools-opensource/250854/309054781", 
         "360916612": "https://storage.mds.yandex.net/get-devtools-opensource/233854/360916612", 
         "412716868": "https://storage.mds.yandex.net/get-devtools-opensource/233854/412716868", 
@@ -3834,6 +3839,13 @@
             "linux-ppc64le": "2835395233", 
             "linux_musl": "2835396951", 
             "win32": "2835394622"
+        }, 
+        "1239511198": {
+            "darwin": "2860856556", 
+            "darwin-arm64": "2860858859", 
+            "linux-ppc64le": "2860855816", 
+            "linux_musl": "2860857188", 
+            "win32": "2860855300"
         }, 
         "220049371": {
             "Darwin-14.5.0-x86_64-i386-64bit": "499943029"
