@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -97,7 +98,7 @@ public class CatBoostModel implements AutoCloseable {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
-    
+
     static {
         try {
             NativeLib.smartLoad("catboost4j-prediction");
@@ -230,6 +231,27 @@ public class CatBoostModel implements AutoCloseable {
         }
 
         implLibrary.catBoostLoadModelFromArray(out.toByteArray(), handles);
+        return new CatBoostModel(handles[0]);
+    }
+
+    /**
+     * Load CatBoost model from stream.
+     * You should consider this method for large files.
+     * @param in Input stream containing model.
+     * @param sizeInBytes the size of input stream (If it is a ZipInputStream, the size of the uncompressed data)
+     * @return   CatBoost model.
+     * @throws CatBoostError When failed to load model.
+     * @throws IOException When failed to read model from file.
+     */
+    @NotNull
+    public static CatBoostModel loadModelUsingOffHeap(final InputStream in, int sizeInBytes) throws CatBoostError, IOException {
+        ByteBuffer allocatedMemory = ByteBuffer.allocateDirect(sizeInBytes);
+        byte[] copyBufferArray = ByteBuffer.allocateDirect(65536).array();
+        while (in.read(copyBufferArray) != -1) {
+            allocatedMemory.put(copyBufferArray);
+        }
+        final long[] handles = new long[1];
+        implLibrary.catBoostLoadModelFromArray(allocatedMemory.array(), handles);
         return new CatBoostModel(handles[0]);
     }
 
