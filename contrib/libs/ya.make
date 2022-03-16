@@ -10,8 +10,6 @@ RECURSE(
     cxxsupp/libcxxabi-parts
     double-conversion
     expat
-    farmhash
-    farmhash/ut
     fastlz
     flatbuffers
     fmath
