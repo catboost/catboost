@@ -3587,7 +3587,6 @@ migrations:
     - balancer/test/functional/dynamic
     - balancer/test/functional/h100
     - balancer/test/functional/errordocument
-    - balancer/test/functional/rendezvous_hashing
     - balancer/test/functional/consistent_hashing
     - balancer/test/functional/pingerprocess
     - balancer/test/functional/unistat
