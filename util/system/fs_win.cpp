@@ -60,6 +60,10 @@ namespace NFsPrivate {
         }
         WIN32_FILE_ATTRIBUTE_DATA fad;
         if (::GetFileAttributesExW(wname, GetFileExInfoStandard, &fad)) {
+            if (fad.dwFileAttributes & FILE_ATTRIBUTE_READONLY) {
+                fad.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+                ::SetFileAttributesW(wname, fad.dwFileAttributes);
+            }
             if (fad.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 return ::RemoveDirectoryW(wname) != 0;
             return ::DeleteFileW(wname) != 0;
