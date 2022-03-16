@@ -20,24 +20,24 @@ namespace NCoro::NStack {
     class TCanaryGuard final {
     public:
         //! Size of guard section in bytes
-        static constexpr uint64_t GetSize() { return Canary.size(); }
+        static constexpr size_t GetSize() { return Canary.size(); }
         //! Size of page-aligned guard section in bytes
-        static constexpr uint64_t GetPageAlignedSize() { return AlignedSize_; }
+        static constexpr size_t GetPageAlignedSize() { return AlignedSize_; }
 
         //! Get stack memory between guard sections
-        static TArrayRef<char> GetWorkspace(void* stack, uint64_t size) noexcept {
-            Y_ASSERT( !((uint64_t)stack & PageSizeMask) );
+        static TArrayRef<char> GetWorkspace(void* stack, size_t size) noexcept {
+            Y_ASSERT( !((size_t)stack & PageSizeMask) );
             Y_ASSERT( !(size & PageSizeMask) );
             Y_ASSERT(size > Canary.size());
 
-            return {(char*) stack, size - Canary.size()};
+            return {(char*)stack, size - Canary.size()};
         }
 
         /*! Set guard section before the end of stack memory (at stack + size - guard size position)
          *  checkPrevious: check guard before stack memory for integrity
          */
-        static void Protect(void* stack, uint64_t size, bool checkPrevious) noexcept {
-            Y_ASSERT( !((uint64_t)stack & PageSizeMask) ); // stack pointer should be page aligned
+        static void Protect(void* stack, size_t size, bool checkPrevious) noexcept {
+            Y_ASSERT( !((size_t)stack & PageSizeMask) ); // stack pointer should be page aligned
             Y_ASSERT( !(size & PageSizeMask) ); // stack size should be page aligned
             Y_ASSERT(size >= Canary.size()); // stack should have enough space to place guard
 
@@ -49,29 +49,29 @@ namespace NCoro::NStack {
         }
 
         //! This guard doesn't change memory flags
-        static constexpr void RemoveProtection(void*, uint64_t) {}
+        static constexpr void RemoveProtection(void*, size_t) {}
         //! Should remove protection before returning memory to system
         static constexpr bool ShouldRemoveProtectionBeforeFree() { return false; }
 
         static bool CheckOverflow(void* stack) noexcept {
             Y_ASSERT(stack);
 
-            char* guardPos = (char*) ((uint64_t)stack - Canary.size());
+            char* guardPos = (char*) ((size_t)stack - Canary.size());
             return TStringBuf(guardPos, Canary.size()) == Canary;
         }
 
-        static bool CheckOverride(void* stack, uint64_t size) noexcept {
+        static bool CheckOverride(void* stack, size_t size) noexcept {
             Y_ASSERT(stack);
             Y_ASSERT(size > Canary.size());
 
-            char* guardPos = (char*) ((uint64_t)stack + size - Canary.size());
+            char* guardPos = (char*) ((size_t)stack + size - Canary.size());
             return TStringBuf(guardPos, Canary.size()) == Canary;
         }
 
     private:
         static constexpr TStringBuf Canary = "[ThisIsACanaryCoroutineStackGuardIfYouReadThisTheStackIsStillOK]";
         static_assert(Canary.size() == 64);
-        static constexpr uint64_t AlignedSize_ = (Canary.size() + PageSize - 1) & ~PageSizeMask;
+        static constexpr size_t AlignedSize_ = (Canary.size() + PageSize - 1) & ~PageSizeMask;
     };
 
 
@@ -81,20 +81,20 @@ namespace NCoro::NStack {
     class TPageGuard final {
     public:
         //! Size of guard section in bytes
-        static constexpr uint64_t GetSize() { return PageSize; }
+        static constexpr size_t GetSize() { return PageSize; }
         //! Size of page-aligned guard section in bytes
-        static constexpr uint64_t GetPageAlignedSize() { return PageSize; }
+        static constexpr size_t GetPageAlignedSize() { return PageSize; }
 
-        static TArrayRef<char> GetWorkspace(void* stack, uint64_t size) noexcept {
-            Y_ASSERT( !((uint64_t)stack & PageSizeMask) );
+        static TArrayRef<char> GetWorkspace(void* stack, size_t size) noexcept {
+            Y_ASSERT( !((size_t)stack & PageSizeMask) );
             Y_ASSERT( !(size & PageSizeMask) );
             Y_ASSERT(size > PageSize);
 
             return {(char*)stack, size - PageSize};
         }
 
-        static void Protect(void* stack, uint64_t size, bool /*checkPrevious*/) noexcept {
-            Y_ASSERT( !((uint64_t)stack & PageSizeMask) ); // stack pointer should be page aligned
+        static void Protect(void* stack, size_t size, bool /*checkPrevious*/) noexcept {
+            Y_ASSERT( !((size_t)stack & PageSizeMask) ); // stack pointer should be page aligned
             Y_ASSERT( !(size & PageSizeMask) ); // stack size should be page aligned
             Y_ASSERT(size >= PageSize); // stack should have enough space to place guard
 
@@ -102,8 +102,8 @@ namespace NCoro::NStack {
         }
 
         //! Remove protection, to allow stack memory be freed
-        static void RemoveProtection(void* stack, uint64_t size) noexcept {
-            Y_ASSERT( !((uint64_t)stack & PageSizeMask) );
+        static void RemoveProtection(void* stack, size_t size) noexcept {
+            Y_ASSERT( !((size_t)stack & PageSizeMask) );
             Y_ASSERT( !(size & PageSizeMask) );
             Y_ASSERT(size >= PageSize);
 
@@ -114,7 +114,7 @@ namespace NCoro::NStack {
 
         //! For page guard is not used - it crashes process at once in this case.
         static constexpr bool CheckOverflow(void*) { return true; }
-        static constexpr bool CheckOverride(void*, uint64_t) { return true; }
+        static constexpr bool CheckOverride(void*, size_t) { return true; }
     };
 
 

@@ -19,10 +19,10 @@ MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
 
 
 CUDA_LIBRARIES = {
-    '-llapack_static': '-llapack',
     '-lcublas_static': '-lcublas',
     '-lcublasLt_static': '-lcublasLt',
     '-lcudart_static': '-lcudart',
+    '-lcudnn_static': '-lcudnn',
     '-lcufft_static_nocallback': '-lcufft',
     '-lcurand_static': '-lcurand',
     '-lcusolver_static': '-lcusolver',

@@ -224,11 +224,15 @@ def pytest_pycollect_makemodule(module_path: Path, parent) -> "Module":
 
 
 @hookimpl(trylast=True)
-def pytest_pycollect_makeitem(collector: "PyCollector", name: str, obj: object):
+def pytest_pycollect_makeitem(
+    collector: Union["Module", "Class"], name: str, obj: object
+) -> Union[None, nodes.Item, nodes.Collector, List[Union[nodes.Item, nodes.Collector]]]:
+    assert isinstance(collector, (Class, Module)), type(collector)
     # Nothing was collected elsewhere, let's do it here.
     if safe_isclass(obj):
         if collector.istestclass(obj, name):
-            return Class.from_parent(collector, name=name, obj=obj)
+            klass: Class = Class.from_parent(collector, name=name, obj=obj)
+            return klass
     elif collector.istestfunction(obj, name):
         # mock seems to store unbound methods (issue473), normalize it.
         obj = getattr(obj, "__func__", obj)
@@ -247,15 +251,16 @@ def pytest_pycollect_makeitem(collector: "PyCollector", name: str, obj: object):
             )
         elif getattr(obj, "__test__", True):
             if is_generator(obj):
-                res = Function.from_parent(collector, name=name)
+                res: Function = Function.from_parent(collector, name=name)
                 reason = "yield tests were removed in pytest 4.0 - {name} will be ignored".format(
                     name=name
                 )
                 res.add_marker(MARK_GEN.xfail(run=False, reason=reason))
                 res.warn(PytestCollectionWarning(reason))
+                return res
             else:
-                res = list(collector._genfunctions(name, obj))
-            return res
+                return list(collector._genfunctions(name, obj))
+    return None
 
 
 class PyobjMixin(nodes.Node):
@@ -298,6 +303,9 @@ class PyobjMixin(nodes.Node):
             # used to avoid Function marker duplication
             if self._ALLOW_MARKERS:
                 self.own_markers.extend(get_unpacked_marks(self.obj))
+                # This assumes that `obj` is called before there is a chance
+                # to add custom keys to `self.keywords`, so no fear of overriding.
+                self.keywords.update((mark.name, mark) for mark in self.own_markers)
         return obj
 
     @obj.setter
@@ -335,6 +343,7 @@ class PyobjMixin(nodes.Node):
         if isinstance(compat_co_firstlineno, int):
             # nose compatibility
             file_path = sys.modules[obj.__module__].__file__
+            assert file_path is not None
             if file_path.endswith(".pyc"):
                 file_path = file_path[:-1]
             path: Union["os.PathLike[str]", str] = file_path
@@ -419,7 +428,7 @@ class PyCollector(PyobjMixin, nodes.Collector):
             for basecls in self.obj.__mro__:
                 dicts.append(basecls.__dict__)
 
-        # In each class, nodes should be definition ordered. Since Python 3.6,
+        # In each class, nodes should be definition ordered.
         # __dict__ is definition ordered.
         seen: Set[str] = set()
         dict_values: List[List[Union[nodes.Item, nodes.Collector]]] = []
@@ -896,11 +905,7 @@ class InstanceDummy:
     only to ignore it; this dummy class keeps them working. This will be removed
     in pytest 8."""
 
-    pass
 
-
-# Note: module __getattr__ only works on Python>=3.7. Unfortunately
-# we can't provide this deprecation warning on Python 3.6.
 def __getattr__(name: str) -> object:
     if name == "Instance":
         warnings.warn(INSTANCE_COLLECTOR, 2)
@@ -920,6 +925,172 @@ def hasnew(obj: object) -> bool:
     if new:
         return new != object.__new__
     return False
+
+
+@final
+@attr.s(frozen=True, auto_attribs=True, slots=True)
+class IdMaker:
+    """Make IDs for a parametrization."""
+
+    # The argnames of the parametrization.
+    argnames: Sequence[str]
+    # The ParameterSets of the parametrization.
+    parametersets: Sequence[ParameterSet]
+    # Optionally, a user-provided callable to make IDs for parameters in a
+    # ParameterSet.
+    idfn: Optional[Callable[[Any], Optional[object]]]
+    # Optionally, explicit IDs for ParameterSets by index.
+    ids: Optional[Sequence[Optional[object]]]
+    # Optionally, the pytest config.
+    # Used for controlling ASCII escaping, and for calling the
+    # :hook:`pytest_make_parametrize_id` hook.
+    config: Optional[Config]
+    # Optionally, the ID of the node being parametrized.
+    # Used only for clearer error messages.
+    nodeid: Optional[str]
+    # Optionally, the ID of the function being parametrized.
+    # Used only for clearer error messages.
+    func_name: Optional[str]
+
+    def make_unique_parameterset_ids(self) -> List[str]:
+        """Make a unique identifier for each ParameterSet, that may be used to
+        identify the parametrization in a node ID.
+
+        Format is <prm_1_token>-...-<prm_n_token>[counter], where prm_x_token is
+        - user-provided id, if given
+        - else an id derived from the value, applicable for certain types
+        - else <argname><parameterset index>
+        The counter suffix is appended only in case a string wouldn't be unique
+        otherwise.
+        """
+        resolved_ids = list(self._limit_ids(self._resolve_ids(), limit=500))
+        # All IDs must be unique!
+        if len(resolved_ids) != len(set(resolved_ids)):
+            # Record the number of occurrences of each ID.
+            id_counts = Counter(resolved_ids)
+            # Map the ID to its next suffix.
+            id_suffixes: Dict[str, int] = defaultdict(int)
+            # Suffix non-unique IDs to make them unique.
+            for index, id in enumerate(resolved_ids):
+                if id_counts[id] > 1:
+                    resolved_ids[index] = f"{id}{id_suffixes[id]}"
+                    id_suffixes[id] += 1
+        return resolved_ids
+
+    def _limit_ids(self, ids, limit=500):
+        prefix_count = {}
+        limit -= 6
+        assert limit > 0
+
+        for idval in ids:
+            if len(idval) > limit:
+                prefix = idval[:limit]
+                idx = prefix_count.get(prefix, -1) + 1
+                prefix_count[prefix] = idx
+                idval = "{}-{}".format(prefix, idx)
+            yield idval
+
+    def _resolve_ids(self) -> Iterable[str]:
+        """Resolve IDs for all ParameterSets (may contain duplicates)."""
+        for idx, parameterset in enumerate(self.parametersets):
+            if parameterset.id is not None:
+                # ID provided directly - pytest.param(..., id="...")
+                yield parameterset.id
+            elif self.ids and idx < len(self.ids) and self.ids[idx] is not None:
+                # ID provided in the IDs list - parametrize(..., ids=[...]).
+                yield self._idval_from_value_required(self.ids[idx], idx)
+            else:
+                # ID not provided - generate it.
+                yield "-".join(
+                    self._idval(val, argname, idx)
+                    for val, argname in zip(parameterset.values, self.argnames)
+                )
+
+    def _idval(self, val: object, argname: str, idx: int) -> str:
+        """Make an ID for a parameter in a ParameterSet."""
+        idval = self._idval_from_function(val, argname, idx)
+        if idval is not None:
+            return idval
+        idval = self._idval_from_hook(val, argname)
+        if idval is not None:
+            return idval
+        idval = self._idval_from_value(val)
+        if idval is not None:
+            return idval
+        return self._idval_from_argname(argname, idx)
+
+    def _idval_from_function(
+        self, val: object, argname: str, idx: int
+    ) -> Optional[str]:
+        """Try to make an ID for a parameter in a ParameterSet using the
+        user-provided id callable, if given."""
+        if self.idfn is None:
+            return None
+        try:
+            id = self.idfn(val)
+        except Exception as e:
+            prefix = f"{self.nodeid}: " if self.nodeid is not None else ""
+            msg = "error raised while trying to determine id of parameter '{}' at position {}"
+            msg = prefix + msg.format(argname, idx)
+            raise ValueError(msg) from e
+        if id is None:
+            return None
+        return self._idval_from_value(id)
+
+    def _idval_from_hook(self, val: object, argname: str) -> Optional[str]:
+        """Try to make an ID for a parameter in a ParameterSet by calling the
+        :hook:`pytest_make_parametrize_id` hook."""
+        if self.config:
+            id: Optional[str] = self.config.hook.pytest_make_parametrize_id(
+                config=self.config, val=val, argname=argname
+            )
+            return id
+        return None
+
+    def _idval_from_value(self, val: object) -> Optional[str]:
+        """Try to make an ID for a parameter in a ParameterSet from its value,
+        if the value type is supported."""
+        if isinstance(val, STRING_TYPES):
+            return _ascii_escaped_by_config(val, self.config)
+        elif val is None or isinstance(val, (float, int, bool, complex)):
+            return str(val)
+        elif isinstance(val, Pattern):
+            return ascii_escaped(val.pattern)
+        elif val is NOTSET:
+            # Fallback to default. Note that NOTSET is an enum.Enum.
+            pass
+        elif isinstance(val, enum.Enum):
+            return str(val)
+        elif isinstance(getattr(val, "__name__", None), str):
+            # Name of a class, function, module, etc.
+            name: str = getattr(val, "__name__")
+            return name
+        return None
+
+    def _idval_from_value_required(self, val: object, idx: int) -> str:
+        """Like _idval_from_value(), but fails if the type is not supported."""
+        id = self._idval_from_value(val)
+        if id is not None:
+            return id
+
+        # Fail.
+        if self.func_name is not None:
+            prefix = f"In {self.func_name}: "
+        elif self.nodeid is not None:
+            prefix = f"In {self.nodeid}: "
+        else:
+            prefix = ""
+        msg = (
+            f"{prefix}ids contains unsupported value {saferepr(val)} (type: {type(val)!r}) at index {idx}. "
+            "Supported types are: str, bytes, int, float, complex, bool, enum, regex or anything with a __name__."
+        )
+        fail(msg, pytrace=False)
+
+    @staticmethod
+    def _idval_from_argname(argname: str, idx: int) -> str:
+        """Make an ID for a parameter in a ParameterSet from the argument name
+        and the index of the ParameterSet."""
+        return str(argname) + str(idx)
 
 
 @final
@@ -1044,10 +1215,7 @@ class Metafunc:
         argvalues: Iterable[Union[ParameterSet, Sequence[object], object]],
         indirect: Union[bool, Sequence[str]] = False,
         ids: Optional[
-            Union[
-                Iterable[Union[None, str, float, int, bool]],
-                Callable[[Any], Optional[object]],
-            ]
+            Union[Iterable[Optional[object]], Callable[[Any], Optional[object]]]
         ] = None,
         scope: "Optional[_ScopeName]" = None,
         *,
@@ -1114,7 +1282,7 @@ class Metafunc:
             It will also override any fixture-function defined scope, allowing
             to set a dynamic scope using test context or configuration.
         """
-        argnames, parameters = ParameterSet._for_parametrize(
+        argnames, parametersets = ParameterSet._for_parametrize(
             argnames,
             argvalues,
             self.function,
@@ -1146,8 +1314,8 @@ class Metafunc:
             if generated_ids is not None:
                 ids = generated_ids
 
-        ids = self._resolve_arg_ids(
-            argnames, ids, parameters, nodeid=self.definition.nodeid
+        ids = self._resolve_parameter_set_ids(
+            argnames, ids, parametersets, nodeid=self.definition.nodeid
         )
 
         # Store used (possibly generated) ids with parametrize Marks.
@@ -1159,7 +1327,9 @@ class Metafunc:
         # of all calls.
         newcalls = []
         for callspec in self._calls or [CallSpec2()]:
-            for param_index, (param_id, param_set) in enumerate(zip(ids, parameters)):
+            for param_index, (param_id, param_set) in enumerate(
+                zip(ids, parametersets)
+            ):
                 newcallspec = callspec.setmulti(
                     valtypes=arg_values_types,
                     argnames=argnames,
@@ -1172,27 +1342,29 @@ class Metafunc:
                 newcalls.append(newcallspec)
         self._calls = newcalls
 
-    def _resolve_arg_ids(
+    def _resolve_parameter_set_ids(
         self,
         argnames: Sequence[str],
         ids: Optional[
-            Union[
-                Iterable[Union[None, str, float, int, bool]],
-                Callable[[Any], Optional[object]],
-            ]
+            Union[Iterable[Optional[object]], Callable[[Any], Optional[object]]]
         ],
-        parameters: Sequence[ParameterSet],
+        parametersets: Sequence[ParameterSet],
         nodeid: str,
     ) -> List[str]:
-        """Resolve the actual ids for the given argnames, based on the ``ids`` parameter given
-        to ``parametrize``.
+        """Resolve the actual ids for the given parameter sets.
 
-        :param List[str] argnames: List of argument names passed to ``parametrize()``.
-        :param ids: The ids parameter of the parametrized call (see docs).
-        :param List[ParameterSet] parameters: The list of parameter values, same size as ``argnames``.
-        :param str str: The nodeid of the item that generated this parametrized call.
-        :rtype: List[str]
-        :returns: The list of ids for each argname given.
+        :param argnames:
+            Argument names passed to ``parametrize()``.
+        :param ids:
+            The `ids` parameter of the ``parametrize()`` call (see docs).
+        :param parametersets:
+            The parameter sets, each containing a set of values corresponding
+            to ``argnames``.
+        :param nodeid str:
+            The nodeid of the definition item that generated this
+            parametrization.
+        :returns:
+            List with ids for each parameter set given.
         """
         if ids is None:
             idfn = None
@@ -1202,15 +1374,24 @@ class Metafunc:
             ids_ = None
         else:
             idfn = None
-            ids_ = self._validate_ids(ids, parameters, self.function.__name__)
-        return idmaker(argnames, parameters, idfn, ids_, self.config, nodeid=nodeid)
+            ids_ = self._validate_ids(ids, parametersets, self.function.__name__)
+        id_maker = IdMaker(
+            argnames,
+            parametersets,
+            idfn,
+            ids_,
+            self.config,
+            nodeid=nodeid,
+            func_name=self.function.__name__,
+        )
+        return id_maker.make_unique_parameterset_ids()
 
     def _validate_ids(
         self,
-        ids: Iterable[Union[None, str, float, int, bool]],
-        parameters: Sequence[ParameterSet],
+        ids: Iterable[Optional[object]],
+        parametersets: Sequence[ParameterSet],
         func_name: str,
-    ) -> List[Union[None, str]]:
+    ) -> List[Optional[object]]:
         try:
             num_ids = len(ids)  # type: ignore[arg-type]
         except TypeError:
@@ -1218,29 +1399,14 @@ class Metafunc:
                 iter(ids)
             except TypeError as e:
                 raise TypeError("ids must be a callable or an iterable") from e
-            num_ids = len(parameters)
+            num_ids = len(parametersets)
 
         # num_ids == 0 is a special case: https://github.com/pytest-dev/pytest/issues/1849
-        if num_ids != len(parameters) and num_ids != 0:
+        if num_ids != len(parametersets) and num_ids != 0:
             msg = "In {}: {} parameter sets specified, with different number of ids: {}"
-            fail(msg.format(func_name, len(parameters), num_ids), pytrace=False)
+            fail(msg.format(func_name, len(parametersets), num_ids), pytrace=False)
 
-        new_ids = []
-        for idx, id_value in enumerate(itertools.islice(ids, num_ids)):
-            if id_value is None or isinstance(id_value, str):
-                new_ids.append(id_value)
-            elif isinstance(id_value, (float, int, bool)):
-                new_ids.append(str(id_value))
-            else:
-                msg = (  # type: ignore[unreachable]
-                    "In {}: ids must be list of string/float/int/bool, "
-                    "found: {} (type: {!r}) at index {}"
-                )
-                fail(
-                    msg.format(func_name, saferepr(id_value), type(id_value), idx),
-                    pytrace=False,
-                )
-        return new_ids
+        return list(itertools.islice(ids, num_ids))
 
     def _resolve_arg_value_types(
         self,
@@ -1358,132 +1524,6 @@ def _ascii_escaped_by_config(val: Union[str, bytes], config: Optional[Config]) -
     #       will return a bytes. For now we ignore this but the
     #       code *probably* doesn't handle this case.
     return val if escape_option else ascii_escaped(val)  # type: ignore
-
-
-def _idval(
-    val: object,
-    argname: str,
-    idx: int,
-    idfn: Optional[Callable[[Any], Optional[object]]],
-    nodeid: Optional[str],
-    config: Optional[Config],
-) -> str:
-    if idfn:
-        try:
-            generated_id = idfn(val)
-            if generated_id is not None:
-                val = generated_id
-        except Exception as e:
-            prefix = f"{nodeid}: " if nodeid is not None else ""
-            msg = "error raised while trying to determine id of parameter '{}' at position {}"
-            msg = prefix + msg.format(argname, idx)
-            raise ValueError(msg) from e
-    elif config:
-        hook_id: Optional[str] = config.hook.pytest_make_parametrize_id(
-            config=config, val=val, argname=argname
-        )
-        if hook_id:
-            return hook_id
-
-    if isinstance(val, STRING_TYPES):
-        return _ascii_escaped_by_config(val, config)
-    elif val is None or isinstance(val, (float, int, bool, complex)):
-        return str(val)
-    elif isinstance(val, Pattern):
-        return ascii_escaped(val.pattern)
-    elif val is NOTSET:
-        # Fallback to default. Note that NOTSET is an enum.Enum.
-        pass
-    elif isinstance(val, enum.Enum):
-        return str(val)
-    elif isinstance(getattr(val, "__name__", None), str):
-        # Name of a class, function, module, etc.
-        name: str = getattr(val, "__name__")
-        return name
-    return str(argname) + str(idx)
-
-
-def limit_idval(limit):
-    import functools
-
-    names = {}
-    limit -= 6
-    assert limit > 0
-
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kw):
-            idval = func(*args, **kw)
-            if len(idval) > limit:
-                prefix = idval[:limit]
-                # There might be same prefix for the different test cases - take item into account
-                name = "{}-{}".format(kw.get('item', ''), prefix)
-                idx = names.setdefault(name, -1) + 1
-                names[name] = idx
-                idval = "{}-{}".format(prefix, idx)
-            return idval
-
-        return wrapper
-
-    return decorator
-
-
-# XXX limit testnames in the name of sanity and readability
-@limit_idval(limit=500)
-def _idvalset(
-    idx: int,
-    parameterset: ParameterSet,
-    argnames: Iterable[str],
-    idfn: Optional[Callable[[Any], Optional[object]]],
-    ids: Optional[List[Union[None, str]]],
-    nodeid: Optional[str],
-    config: Optional[Config],
-) -> str:
-    if parameterset.id is not None:
-        return parameterset.id
-    id = None if ids is None or idx >= len(ids) else ids[idx]
-    if id is None:
-        this_id = [
-            _idval(val, argname, idx, idfn, nodeid=nodeid, config=config)
-            for val, argname in zip(parameterset.values, argnames)
-        ]
-        return "-".join(this_id)
-    else:
-        return _ascii_escaped_by_config(id, config)
-
-
-def idmaker(
-    argnames: Iterable[str],
-    parametersets: Iterable[ParameterSet],
-    idfn: Optional[Callable[[Any], Optional[object]]] = None,
-    ids: Optional[List[Union[None, str]]] = None,
-    config: Optional[Config] = None,
-    nodeid: Optional[str] = None,
-) -> List[str]:
-    resolved_ids = [
-        _idvalset(
-            valindex, parameterset, argnames, idfn, ids, config=config, nodeid=nodeid
-        )
-        for valindex, parameterset in enumerate(parametersets)
-    ]
-
-    # All IDs must be unique!
-    unique_ids = set(resolved_ids)
-    if len(unique_ids) != len(resolved_ids):
-
-        # Record the number of occurrences of each test ID.
-        test_id_counts = Counter(resolved_ids)
-
-        # Map the test ID to its next suffix.
-        test_id_suffixes: Dict[str, int] = defaultdict(int)
-
-        # Suffix non-unique IDs to make them unique.
-        for index, test_id in enumerate(resolved_ids):
-            if test_id_counts[test_id] > 1:
-                resolved_ids[index] = f"{test_id}{test_id_suffixes[test_id]}"
-                test_id_suffixes[test_id] += 1
-
-    return resolved_ids
 
 
 def _pretty_fixture_path(func) -> str:
@@ -1657,7 +1697,7 @@ class Function(PyobjMixin, nodes.Item):
         config: Optional[Config] = None,
         callspec: Optional[CallSpec2] = None,
         callobj=NOTSET,
-        keywords=None,
+        keywords: Optional[Mapping[str, Any]] = None,
         session: Optional[Session] = None,
         fixtureinfo: Optional[FuncFixtureInfo] = None,
         originalname: Optional[str] = None,
@@ -1678,31 +1718,20 @@ class Function(PyobjMixin, nodes.Item):
         # Note: when FunctionDefinition is introduced, we should change ``originalname``
         # to a readonly property that returns FunctionDefinition.name.
 
-        self.keywords.update(self.obj.__dict__)
         self.own_markers.extend(get_unpacked_marks(self.obj))
         if callspec:
             self.callspec = callspec
-            # this is total hostile and a mess
-            # keywords are broken by design by now
-            # this will be redeemed later
-            for mark in callspec.marks:
-                # feel free to cry, this was broken for years before
-                # and keywords can't fix it per design
-                self.keywords[mark.name] = mark
-            self.own_markers.extend(normalize_mark_list(callspec.marks))
-        if keywords:
-            self.keywords.update(keywords)
+            self.own_markers.extend(callspec.marks)
 
         # todo: this is a hell of a hack
         # https://github.com/pytest-dev/pytest/issues/4569
-
-        self.keywords.update(
-            {
-                mark.name: True
-                for mark in self.iter_markers()
-                if mark.name not in self.keywords
-            }
-        )
+        # Note: the order of the updates is important here; indicates what
+        # takes priority (ctor argument over function attributes over markers).
+        # Take own_markers only; NodeKeywords handles parent traversal on its own.
+        self.keywords.update((mark.name, mark) for mark in self.own_markers)
+        self.keywords.update(self.obj.__dict__)
+        if keywords:
+            self.keywords.update(keywords)
 
         if fixtureinfo is None:
             fixtureinfo = self.session._fixturemanager.getfixtureinfo(

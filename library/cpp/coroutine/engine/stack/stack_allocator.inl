@@ -16,13 +16,13 @@ namespace NCoro::NStack {
     public:
         explicit TPoolAllocator(const TPoolAllocatorSettings& settings);
 
-        TArrayRef<char> GetStackWorkspace(void* stack, uint64_t size) noexcept override {
+        TArrayRef<char> GetStackWorkspace(void* stack, size_t size) noexcept override {
             return Guard_.GetWorkspace(stack, size);
         }
         bool CheckStackOverflow(void* stack) const noexcept override {
             return Guard_.CheckOverflow(stack);
         }
-        bool CheckStackOverride(void* stack, uint64_t size) const noexcept override {
+        bool CheckStackOverride(void* stack, size_t size) const noexcept override {
             return Guard_.CheckOverride(stack, size);
         }
 
@@ -37,13 +37,13 @@ namespace NCoro::NStack {
         }
 
     private: // methods
-        NDetails::TStack DoAllocStack(uint64_t size, const char* name) override;
+        NDetails::TStack DoAllocStack(size_t size, const char* name) override;
         void DoFreeStack(NDetails::TStack& stack) noexcept override;
 
     private: // data
         const TPoolAllocatorSettings PoolSettings_;
         const TGuard& Guard_;
-        THashMap<uint64_t, TPool<TGuard>> Pools_; // key - stack size
+        THashMap<size_t, TPool<TGuard>> Pools_; // key - stack size
     };
 
     template<typename TGuard>
@@ -57,7 +57,7 @@ namespace NCoro::NStack {
     }
 
     template<typename TGuard>
-    NDetails::TStack TPoolAllocator<TGuard>::DoAllocStack(uint64_t alignedSize, const char* name) {
+    NDetails::TStack TPoolAllocator<TGuard>::DoAllocStack(size_t alignedSize, const char* name) {
         Y_ASSERT(alignedSize > Guard_.GetSize());
 
         auto pool = Pools_.find(alignedSize);
@@ -84,20 +84,20 @@ namespace NCoro::NStack {
     public:
         explicit TSimpleAllocator();
 
-        TArrayRef<char> GetStackWorkspace(void* stack, uint64_t size) noexcept override {
+        TArrayRef<char> GetStackWorkspace(void* stack, size_t size) noexcept override {
             return Guard_.GetWorkspace(stack, size);
         }
         bool CheckStackOverflow(void* stack) const noexcept override {
             return Guard_.CheckOverflow(stack);
         }
-        bool CheckStackOverride(void* stack, uint64_t size) const noexcept override {
+        bool CheckStackOverride(void* stack, size_t size) const noexcept override {
             return Guard_.CheckOverride(stack, size);
         }
 
         TAllocatorStats GetStackStats() const noexcept override { return {}; } // not used for simple allocator
 
     private: // methods
-        NDetails::TStack DoAllocStack(uint64_t size, const char* name) override;
+        NDetails::TStack DoAllocStack(size_t size, const char* name) override;
         void DoFreeStack(NDetails::TStack& stack) noexcept override;
 
     private: // data
@@ -111,7 +111,7 @@ namespace NCoro::NStack {
     {}
 
     template<typename TGuard>
-    NDetails::TStack TSimpleAllocator<TGuard>::DoAllocStack(uint64_t alignedSize, const char* name) {
+    NDetails::TStack TSimpleAllocator<TGuard>::DoAllocStack(size_t alignedSize, const char* name) {
         Y_ASSERT(alignedSize > Guard_.GetSize());
 
         char* rawPtr = nullptr;

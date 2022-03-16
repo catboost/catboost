@@ -14,27 +14,27 @@ namespace NCoro::NStack {
 
     class TStorage final : private TMoveOnly {
     public:
-        TStorage(uint64_t stackSize, uint64_t rssPagesToKeep, uint64_t releaseRate);
+        TStorage(size_t stackSize, size_t rssPagesToKeep, size_t releaseRate);
 
         bool IsEmpty() const noexcept;
-        uint64_t Size() const noexcept;
+        size_t Size() const noexcept;
 
-        uint64_t GetReleasedSize() const noexcept { return Released_.size(); }
-        uint64_t GetFullSize() const noexcept { return Full_.size(); }
+        size_t GetReleasedSize() const noexcept { return Released_.size(); }
+        size_t GetFullSize() const noexcept { return Full_.size(); }
 
         template<typename TGuard>
         NDetails::TStack GetStack(const TGuard& guard, const char* name);
         void ReturnStack(NDetails::TStack& stack);
 
     private:
-        void ReleaseMemory(char* alignedStackMemory, uint64_t pagesToKeep) noexcept;
+        void ReleaseMemory(char* alignedStackMemory, size_t pagesToKeep) noexcept;
 
     private:
         TDeque<void*> Released_; //!< stacks memory with released RSS memory
         TDeque<void*> Full_;     //!< stacks memory with RSS memory
-        uint64_t StackSize_ = 0;
-        uint64_t RssPagesToKeep_ = 0;
-        const uint64_t ReleaseRate_ = 1;
+        size_t StackSize_ = 0;
+        size_t RssPagesToKeep_ = 0;
+        const size_t ReleaseRate_ = 1;
     };
 
 

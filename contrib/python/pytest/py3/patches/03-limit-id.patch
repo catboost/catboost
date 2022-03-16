@@ -1,36 +1,31 @@
 --- contrib/python/pytest/py3/_pytest/python.py	(index)
 +++ contrib/python/pytest/py3/_pytest/python.py	(working tree)
-@@ -1403,6 +1403,33 @@ def _idval(val, argname, idx, idfn, item, config):
-     return str(argname) + str(idx)
+@@ -963,7 +963,7 @@ class IdMaker:
+         The counter suffix is appended only in case a string wouldn't be unique
+         otherwise.
+         """
+-        resolved_ids = list(self._resolve_ids())
++        resolved_ids = list(self._limit_ids(self._resolve_ids(), limit=500))
+         # All IDs must be unique!
+         if len(resolved_ids) != len(set(resolved_ids)):
+             # Record the number of occurrences of each ID.
+@@ -977,6 +977,19 @@ class IdMaker:
+                     id_suffixes[id] += 1
+         return resolved_ids
  
- 
-+def limit_idval(limit):
-+    import functools
++    def _limit_ids(self, ids, limit=500):
++        prefix_count = {}
++        limit -= 6
++        assert limit > 0
 +
-+    names = {}
-+    limit -= 6
-+    assert limit > 0
-+
-+    def decorator(func):
-+        @functools.wraps(func)
-+        def wrapper(*args, **kw):
-+            idval = func(*args, **kw)
++        for idval in ids:
 +            if len(idval) > limit:
 +                prefix = idval[:limit]
-+                # There might be same prefix for the different test cases - take item into account
-+                name = "{}-{}".format(kw.get('item', ''), prefix)
-+                idx = names.setdefault(name, -1) + 1
-+                names[name] = idx
++                idx = prefix_count.get(prefix, -1) + 1
++                prefix_count[prefix] = idx
 +                idval = "{}-{}".format(prefix, idx)
-+            return idval
++            yield idval
 +
-+        return wrapper
-+
-+    return decorator
-+
-+
-+# XXX limit testnames in the name of sanity and readability
-+@limit_idval(limit=500)
- def _idvalset(
-     idx: int,
-     parameterset: ParameterSet,
+     def _resolve_ids(self) -> Iterable[str]:
+         """Resolve IDs for all ParameterSets (may contain duplicates)."""
+         for idx, parameterset in enumerate(self.parametersets):

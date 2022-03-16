@@ -49,8 +49,6 @@ def catch_warnings_for_item(
             warnings.filterwarnings("always", category=DeprecationWarning)
             warnings.filterwarnings("always", category=PendingDeprecationWarning)
 
-        warnings.filterwarnings("error", category=pytest.PytestRemovedIn7Warning)
-
         apply_warning_filters(config_filters, cmdline_filters)
 
         # apply filters from "filterwarnings" marks
@@ -63,14 +61,6 @@ def catch_warnings_for_item(
         yield
 
         for warning_message in log:
-            ihook.pytest_warning_captured.call_historic(
-                kwargs=dict(
-                    warning_message=warning_message,
-                    when=when,
-                    item=item,
-                    location=None,
-                )
-            )
             ihook.pytest_warning_recorded.call_historic(
                 kwargs=dict(
                     warning_message=warning_message,
@@ -91,6 +81,23 @@ def warning_record_to_str(warning_message: warnings.WarningMessage) -> str:
         warning_message.lineno,
         warning_message.line,
     )
+    if warning_message.source is not None:
+        try:
+            import tracemalloc
+        except ImportError:
+            pass
+        else:
+            tb = tracemalloc.get_object_traceback(warning_message.source)
+            if tb is not None:
+                formatted_tb = "\n".join(tb.format())
+                # Use a leading new line to better separate the (large) output
+                # from the traceback to the previous warning text.
+                msg += f"\nObject allocated at:\n{formatted_tb}"
+            else:
+                # No need for a leading new line.
+                url = "https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings"
+                msg += "Enable tracemalloc to get traceback where the object was allocated.\n"
+                msg += f"See {url} for more info."
     return msg
 
 

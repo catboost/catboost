@@ -13,10 +13,6 @@
 
 #include "kmp_platform.h"
 
-// cmakedefine01 MACRO will define MACRO as either 0 or 1
-// cmakedefine MACRO 1 will define MACRO as 1 or leave undefined
-#define DEBUG_BUILD 0
-#define RELWITHDEBINFO_BUILD 0
 #define LIBOMP_USE_ITT_NOTIFY 0
 #define USE_ITT_NOTIFY LIBOMP_USE_ITT_NOTIFY
 #if ! LIBOMP_USE_ITT_NOTIFY
@@ -113,9 +109,8 @@
 #if STUBS_LIBRARY
 # define KMP_STUB 1
 #endif
-#if DEBUG_BUILD || RELWITHDEBINFO_BUILD
-# define KMP_DEBUG 1
-#endif
+
+// KMP_DEBUG is explicitly set from ya.make
 
 #if KMP_OS_WINDOWS
 # define KMP_WIN_CDECL
