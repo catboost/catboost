@@ -201,6 +201,10 @@ namespace NUnitTest {
 
         virtual void TearDown();
 
+        virtual void GlobalSuiteSetUp() {}
+
+        virtual void GlobalSuiteTearDown() {}
+
         void AddError(const char* msg, const TString& backtrace = TString(), TTestContext* context = nullptr);
 
         void AddError(const char* msg, TTestContext* context);
@@ -947,6 +951,7 @@ public:                       \
                                                                                                                         \
             virtual void Execute() {                                                                                    \
                 this->AtStart();                                                                                        \
+                this->GlobalSuiteSetUp();                                                                               \
                 for (TTests::iterator it = Tests().begin(), ie = Tests().end(); it != ie; ++it) {                       \
                     const auto i = (*it)();                                                                             \
                     if (!this->CheckAccessTest(i->Name_)) {                                                             \
@@ -974,6 +979,7 @@ public:                       \
                     }                                                                                                   \
                     this->Finish(i->Name_, &context);                                                                   \
                 }                                                                                                       \
+                this->GlobalSuiteTearDown();                                                                            \
                 this->AtEnd();                                                                                          \
             }                                                                                                           \
         };                                                                                                              \
