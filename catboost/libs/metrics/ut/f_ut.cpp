@@ -31,11 +31,8 @@ Y_UNIT_TEST_SUITE(FMetricTests) {
                 UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.533238714319664, 1e-6);
             }
         }
-        Y_UNIT_TEST(FMultilabelTest) {
+        Y_UNIT_TEST(FMultiClassTest) {
             {
-//                TVector<TVector<double>> approx{{0, 1, 2, 0, 1, 2}};
-//                TVector<float> target{0, 2, 1, 0, 0, 1};
-//                TVector<float> weight{1, 1, 1, 1, 1, 1};
                 TVector<TVector<double>> approx{{1, 0, 1, 0, 1, 0, 1, 0, 0},
                                                 {0, 0, 0, 0, 0, 1, 0, 1, 1},
                                                 {0, 1, 0, 1, 0, 0, 0, 0, 0}};
@@ -47,6 +44,23 @@ Y_UNIT_TEST_SUITE(FMetricTests) {
                 TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, false, target, weight, {}, 0, target.size(), executor);
 
                 UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.43478260869565216, 1e-6);
+            }
+        }
+        Y_UNIT_TEST(FMultiLabelTest) {
+            {
+                TVector<TVector<double>> approx{{1, 1, 1, 1},
+                                                {1, 1, 0, 0},
+                                                {0, 1, 0, 1}};
+                TArrayRef<const TArrayRef<const float>> target{{1, 1, 1, 0},
+                                                               {1, 0, 0, 0},
+                                                               {0, 1, 0, 1}};
+                TVector<float> weight{1, 1, 1, 1};
+
+                NPar::TLocalExecutor executor;
+                auto metric = MakeMultiClassFMetric(TLossParams(), 2, 3, 1);
+                TMetricHolder score = dynamic_cast<const IMultiTargetEval*>(metric.Get())->Eval(To2DConstArrayRef<double>(approx), {}, target, weight, 0, target.size(), executor);
+
+                UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.8333333333333334, 1e-6);
             }
         }
 }
