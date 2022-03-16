@@ -75,7 +75,6 @@ migrations:
     - aurora/aurora/core/toloka
     - aurora/xpath/api/utils
     - aurora/xpath/applier
-    - balancer/test/functional/regexp_host
     - balancer/test/util
     - balancer/test/util/dnsfake
     - billing/apikeys/apikeys
@@ -904,8 +903,6 @@ migrations:
     - april/web/bas/ca/forms
     - april/web/bas/collector
     - aurora/scripts/parsers/zoon_ru
-    - balancer/test/functional/regexp_host
-    - balancer/test/functional/regexp_path
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
