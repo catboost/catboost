@@ -1128,15 +1128,15 @@ THolder<IMetric> MakeMultiClassFMetric(const TLossParams& params, double beta,
 }
 
 TMetricHolder TFCachingMetric::Eval(
-        const TConstArrayRef<TConstArrayRef<double>> approx,
-        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
-        bool isExpApprox,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-        int begin,
-        int end,
-        TMaybe<TCache*> cache
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
 ) const {
     Y_ASSERT(!isExpApprox);
     Y_ASSERT(approxDelta.empty());
@@ -1158,13 +1158,13 @@ TMetricHolder TFCachingMetric::Eval(
 }
 
 TMetricHolder TFCachingMetric::Eval(
-        TConstArrayRef<TConstArrayRef<double>> approx,
-        TConstArrayRef<TConstArrayRef<double>> approxDelta,
-        TConstArrayRef<TConstArrayRef<float>> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        TMaybe<TCache*> cache
+    TConstArrayRef<TConstArrayRef<double>> approx,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
 ) const {
     Y_ASSERT(approxDelta.empty());
 
