@@ -1053,48 +1053,48 @@ namespace {
     struct TFCachingMetric: public TCachingUniversalMetric {
         explicit TFCachingMetric(const TLossParams& params, double beta,
                                  double predictionBorder)
-                : TCachingUniversalMetric(ELossFunction::F, params)
-                , ClassesCount(BinaryClassesCount)
-                , Beta(beta)
-                , PredictionBorder(predictionBorder)
-                , IsMultiClass(false)
+            : TCachingUniversalMetric(ELossFunction::F, params)
+            , ClassesCount(BinaryClassesCount)
+            , Beta(beta)
+            , PredictionBorder(predictionBorder)
+            , IsMultiClass(false)
         {
             Y_ASSERT(Beta > 0);
         }
 
         explicit TFCachingMetric(const TLossParams& params, double beta,
                                  int classesCount, int positiveClass)
-                : TCachingUniversalMetric(ELossFunction::F, params)
-                , ClassesCount(classesCount)
-                , PositiveClass(positiveClass)
-                , Beta(beta)
-                , IsMultiClass(true)
+            : TCachingUniversalMetric(ELossFunction::F, params)
+            , ClassesCount(classesCount)
+            , PositiveClass(positiveClass)
+            , Beta(beta)
+            , IsMultiClass(true)
         {
             Y_ASSERT(Beta > 0);
         }
 
         using ISingleTargetEval::Eval;
         TMetricHolder Eval(
-                TConstArrayRef<TConstArrayRef<double>> approx,
-                TConstArrayRef<TConstArrayRef<double>> approxDelta,
-                bool isExpApprox,
-                TConstArrayRef<float> target,
-                TConstArrayRef<float> weight,
-                TConstArrayRef<TQueryInfo> /*queriesInfo*/,
-                int begin,
-                int end,
-                TMaybe<TCache *> cache
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+            int begin,
+            int end,
+            TMaybe<TCache *> cache
         ) const override;
 
         using IMultiTargetEval::Eval;
         TMetricHolder Eval(
-                TConstArrayRef<TConstArrayRef<double>> approx,
-                TConstArrayRef<TConstArrayRef<double>> approxDelta,
-                TConstArrayRef<TConstArrayRef<float>> target,
-                TConstArrayRef<float> weight,
-                int begin,
-                int end,
-                TMaybe<TCache*> cache
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end,
+            TMaybe<TCache*> cache
         ) const override;
 
         TString GetDescription() const override;
@@ -1214,13 +1214,13 @@ void TFCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 TVector<TParamSet> TFCachingMetric::ValidParamSets() {
     return {
-            TParamSet{
-                    {
-                            TParamInfo{"use_weights", false, true},
-                            TParamInfo{"beta", true, {}}
-                    },
-                    ""
-            }
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"beta", true, {}}
+            },
+            ""
+        }
     };
 }
 
@@ -1230,12 +1230,12 @@ namespace {
     struct TF1CachingMetric final : public TFCachingMetric {
         explicit TF1CachingMetric(const TLossParams &params,
                                   double predictionBorder)
-                : TFCachingMetric(params, 1.0, predictionBorder) {
+            : TFCachingMetric(params, 1.0, predictionBorder) {
         }
 
         explicit TF1CachingMetric(const TLossParams &params,
                                   int classesCount, int positiveClass)
-                : TFCachingMetric(params, 1.0, classesCount, positiveClass) {
+            : TFCachingMetric(params, 1.0, classesCount, positiveClass) {
         }
         TString GetDescription() const override;
 
