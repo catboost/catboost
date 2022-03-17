@@ -73,6 +73,11 @@
   - sys/wait.h:    contrib/libs/libpq/src/include/port/win32/sys/wait.h
   - win32.h:       contrib/libs/libpq/src/include/port/win32.h
 
+- source_filter: "^contrib/libs/libidn"
+  includes:
+  - unistd.h:      contrib/libs/libidn/win32/include/unistd.h
+  - stdbool.h:     contrib/libs/libidn/win32/include/stdbool.h
+
 - source_filter: "^contrib/libs/curl"
   includes:
   - nghttp2/nghttp2.h
