@@ -379,7 +379,7 @@ public:
 #endif
 };
 
-}  // std
+} // namespace std
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 class type_info : public std::type_info {};

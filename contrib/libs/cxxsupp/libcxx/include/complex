@@ -1487,8 +1487,8 @@ inline namespace literals
         return { 0.0f, static_cast<float>(__im) };
     }
 #endif
-  }
-}
+  } // namespace complex_literals
+} // namespace literals
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
