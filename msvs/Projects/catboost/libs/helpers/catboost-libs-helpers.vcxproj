@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\checksum.cpp"/>
@@ -124,37 +123,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\xml_output.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/helpers/flatbuffers/guid.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\cpp_flatc_wrapper.py;$(SolutionDir)..\catboost\libs\helpers\flatbuffers\guid.fbs;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.cpp;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\distribution_helpers.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
@@ -321,9 +289,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
-      <Project>{0C8EE1E1-B849-8567-35CD-A4E5AFA87E60}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
       <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
