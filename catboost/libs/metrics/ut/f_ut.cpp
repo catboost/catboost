@@ -52,8 +52,8 @@ Y_UNIT_TEST_SUITE(FMetricTests) {
                                                 {1, 1, 0, 0},
                                                 {0, 1, 0, 1}};
                 TVector<TVector<float>> target{{1, 1, 1, 0},
-                                                               {1, 0, 0, 0},
-                                                               {0, 1, 0, 1}};
+                                               {1, 0, 0, 0},
+                                               {0, 1, 0, 1}};
                 TVector<float> weight{1, 1, 1, 1};
 
                 NPar::TLocalExecutor executor;
