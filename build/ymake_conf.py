@@ -54,13 +54,13 @@ class Platform(object):
         self.is_x86_64 = self.arch in ('x86_64', 'amd64')
         self.is_intel = self.is_x86 or self.is_x86_64
 
-        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7ahf', 'armv7a_neon', 'arm', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
         self.is_armv8m = self.arch in ('armv8m_cortex_m33',)
         self.is_arm64 = self.arch in ('arm64',)
         self.is_arm = self.is_armv7 or self.is_armv8 or self.is_armv8m
-        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
-        self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7hf = self.arch in ('armv7ahf', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
         self.armv7_float_abi = None
         if self.is_armv7:
@@ -1160,8 +1160,8 @@ class GnuToolchain(Toolchain):
                 target_triple = select(default=None, selectors=[
                     (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
-                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'arm-linux-gnueabihf'),
-                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'arm-linux-gnueabi'),
+                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'armv7-linux-gnueabihf'),
+                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'armv7-linux-gnueabi'),
                     (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
                     (target.is_iossim and target.is_arm64, 'arm64-apple-ios{}-simulator'.format(ios_version_min)),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),

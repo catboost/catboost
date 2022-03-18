@@ -1971,6 +1971,16 @@
                     },
                     "target": {
                         "os": "LINUX",
+                        "arch": "armv7a"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
                         "arch": "armv7a_cortex_a9"
                     },
                     "default": true
@@ -1992,6 +2002,16 @@
                     "target": {
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a53"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf"
                     },
                     "default": true
                 },
