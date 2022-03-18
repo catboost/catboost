@@ -309,7 +309,17 @@ ALLOW .* -> vendor/github.com/mitchellh/go-homedir
 ALLOW .* -> vendor/github.com/montanaflynn/stats
 
 # runtime dependencies of go-swagger
-ALLOW .* -> vendor/github.com/go-openapi
+ALLOW .* -> vendor/github.com/go-openapi/analysis
+ALLOW .* -> vendor/github.com/go-openapi/errors
+ALLOW .* -> vendor/github.com/go-openapi/inflect
+ALLOW .* -> vendor/github.com/go-openapi/jsonpointer
+ALLOW .* -> vendor/github.com/go-openapi/jsonreference
+ALLOW .* -> vendor/github.com/go-openapi/loads
+ALLOW .* -> vendor/github.com/go-openapi/runtime
+ALLOW .* -> vendor/github.com/go-openapi/spec
+ALLOW .* -> vendor/github.com/go-openapi/strfmt
+ALLOW .* -> vendor/github.com/go-openapi/swag
+ALLOW .* -> vendor/github.com/go-openapi/validate
 
 # CONTRIB-469: swagger code generator for both client and server
 ALLOW .* -> vendor/github.com/go-swagger/go-swagger/cmd/swagger
@@ -833,7 +843,7 @@ ALLOW .* -> vendor/github.com/godror/godror
 ALLOW .* -> vendor/github.com/elimity-com/scim
 
 # CONTRIB-2363 JSON Schema
-ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema
+ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema/v5
 
 # CONTRIB-2356 Django-syntax like template-engine
 ALLOW .* -> vendor/github.com/flosch/pongo2/v4
@@ -869,7 +879,7 @@ ALLOW .* -> vendor/github.com/stripe/krl
 ALLOW .* -> vendor/github.com/dgraph-io/ristretto
 
 # CONTRIB-2465
-ALLOW .* -> vendor/github.com/go-playground/form
+ALLOW .* -> vendor/github.com/go-playground/form/v4
 
 # CONTRIB-2470
 # go-autorest requried to be used for authentication and authorization in Azure sdk
