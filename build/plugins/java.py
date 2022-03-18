@@ -110,7 +110,6 @@ def onjava_module(unit, *args):
         'SYSTEM_PROPERTIES': extract_macro_calls(unit, 'SYSTEM_PROPERTIES_VALUE', args_delim),
         'JVM_ARGS': extract_macro_calls(unit, 'JVM_ARGS_VALUE', args_delim),
         'TEST_CWD': extract_macro_calls(unit, 'TEST_CWD_VALUE', args_delim),
-        'TEST_DATA': extract_macro_calls(unit, '__test_data', args_delim),
         'TEST_FORK_MODE': extract_macro_calls(unit, 'TEST_FORK_MODE', args_delim),
         'SPLIT_FACTOR': extract_macro_calls(unit, 'TEST_SPLIT_FACTOR', args_delim),
         'TIMEOUT': extract_macro_calls(unit, 'TEST_TIMEOUT', args_delim),
@@ -286,6 +285,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
     var += ' && $FS_TOOLS copy_files {} {} {}'.format(srcdir if srcdir.startswith('"$') else '${CURDIR}/' + srcdir, dest_dir, reslist)
     unit.set([varname, var])
 
+
 def on_fill_jar_gen_srcs(unit, *args):
     varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
     resolved_srcdir = unit.resolve_arc_path(srcdir)
@@ -365,10 +365,11 @@ def on_ymake_generate_script(unit, *args):
     for out, tmpl, props in parse_words(list(args)):
         unit.on_add_gen_java_script([out, tmpl] + list(props))
 
+
 def on_jdk_version_macro_check(unit, *args):
     if len(args) != 1:
         unit.message(["error", "Invalid syntax. Single argument required."])
     jdk_version = args[0]
-    availible_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
-    if jdk_version not in availible_versions:
-        unit.message(["error", "Invalid jdk version: {}. {} are availible".format(jdk_version, availible_versions)])
+    available_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
+    if jdk_version not in available_versions:
+        unit.message(["error", "Invalid jdk version: {}. {} are available".format(jdk_version, available_versions)])
