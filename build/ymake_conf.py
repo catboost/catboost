@@ -2459,7 +2459,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-logical-op-parentheses',
                 '-Wno-macro-redefined',
                 '-Wno-parentheses',
-                '-Wno-pragma-pack',
                 '-Wno-unknown-warning-option',
             ))
 
