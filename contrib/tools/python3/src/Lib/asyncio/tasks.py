@@ -17,6 +17,7 @@ import itertools
 import types
 import warnings
 import weakref
+from types import GenericAlias
 
 from . import base_tasks
 from . import coroutines
@@ -147,8 +148,7 @@ class Task(futures._PyFuture):  # Inherit Python Task implementation
             self._loop.call_exception_handler(context)
         super().__del__()
 
-    def __class_getitem__(cls, type):
-        return cls
+    __class_getitem__ = classmethod(GenericAlias)
 
     def _repr_info(self):
         return base_tasks._task_repr_info(self)
@@ -768,7 +768,7 @@ def _gather(*coros_or_futures, loop=None, return_exceptions=False):
         nonlocal nfinished
         nfinished += 1
 
-        if outer.done():
+        if outer is None or outer.done():
             if not fut.cancelled():
                 # Mark exception retrieved.
                 fut.exception()
@@ -823,6 +823,7 @@ def _gather(*coros_or_futures, loop=None, return_exceptions=False):
     children = []
     nfuts = 0
     nfinished = 0
+    outer = None  # bpo-46672
     for arg in coros_or_futures:
         if arg not in arg_to_fut:
             fut = ensure_future(arg, loop=loop)
