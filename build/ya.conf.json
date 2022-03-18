@@ -27,6 +27,9 @@
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
+        "infractl": {
+            "description": "Run InfraCtl CLI"
+        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -3917,6 +3920,34 @@
                 }
             ]
         },
+        "infractl": {
+            "tools": {
+                "infractl": {
+                    "bottle": "infractl",
+                    "executable": "infractl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "jq": {
             "tools": {
                 "jq": {
@@ -7250,6 +7281,19 @@
             "executable": {
                 "dctl": [
                     "dctl"
+                ]
+            }
+        },
+        "infractl": {
+            "formula": {
+                "sandbox_id": [
+                    1248249652
+                ],
+                "match": "infractl"
+            },
+            "executable": {
+                "infractl": [
+                    "infractl"
                 ]
             }
         },
