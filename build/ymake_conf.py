@@ -2388,13 +2388,21 @@ class MSVCCompiler(MSVC, Compiler):
             '/D_WINDOWS',
             '/D_CRT_SECURE_NO_WARNINGS',
             '/D_CRT_NONSTDC_NO_WARNINGS',
+            # Math constants (such as M_PI, M_E, M_SQRT2) are not defined in standard C / C++
+            # In order to get them defined by Windows ucrt library,
+            # you must first define _USE_MATH_DEFINES before #including <cmath> or math.h>.
+            # (NB: glibc defines these macros whenever _XOPEN_SOURCE is defined)
             '/D_USE_MATH_DEFINES',
             '/D__STDC_CONSTANT_MACROS',
             '/D__STDC_FORMAT_MACROS',
             '/D_USING_V110_SDK71_',
             '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
-            '/DNOMINMAX',
+            # Below defines are covered at
+            # https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers#faster-builds-with-smaller-header-files
+            # Exclude APIs such as Cryptography, DDE, RPC, Shell, and Windows Sockets (while including <windows.h>)
             '/DWIN32_LEAN_AND_MEAN',
+            # Define NOMINMAX to avoid min() and max() macros definition (while including <windows.h>)
+            '/DNOMINMAX',
         ]
 
         cxx_defines = [
