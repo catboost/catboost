@@ -16,6 +16,7 @@ SRCS(
     balanced_accuracy_ut.cpp
     dcg_ut.cpp
     err_ut.cpp
+    f_ut.cpp
     fair_loss_ut.cpp
     hamming_loss_ut.cpp
     hinge_loss_ut.cpp

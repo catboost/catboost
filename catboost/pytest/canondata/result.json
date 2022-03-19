@@ -2880,6 +2880,16 @@
             "uri": "file://test.test_eval_metrics_F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics[F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics[F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics[Logloss-1]": [
         {
             "uri": "file://test.test_eval_metrics_Logloss-1_/output.tsv"
@@ -2965,6 +2975,16 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/output.tsv"
@@ -3033,6 +3053,16 @@
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-1]": [
@@ -3105,6 +3135,16 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/output.tsv"
@@ -3173,6 +3213,16 @@
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-1]": [
@@ -3265,6 +3315,16 @@
             "uri": "file://test.test_eval_metrics_multilabel_scene-F1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multilabel[scene-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[scene-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_scene-F_beta=0.5-2_/output.tsv"
+        }
+    ],
     "test.test_eval_metrics_multilabel[scene-MultiLogloss-1]": [
         {
             "uri": "file://test.test_eval_metrics_multilabel_scene-MultiLogloss-1_/output.tsv"
@@ -3323,6 +3383,16 @@
     "test.test_eval_metrics_multilabel[yeast-F1-2]": [
         {
             "uri": "file://test.test_eval_metrics_multilabel_yeast-F1-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F:beta=0.5-1]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F_beta=0.5-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multilabel[yeast-F:beta=0.5-2]": [
+        {
+            "uri": "file://test.test_eval_metrics_multilabel_yeast-F_beta=0.5-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multilabel[yeast-MultiLogloss-1]": [
