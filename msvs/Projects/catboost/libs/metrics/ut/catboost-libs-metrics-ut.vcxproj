@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\brier_score_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\dcg_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\err_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\f_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\fair_loss_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\hamming_loss_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\hinge_loss_ut.cpp"/>
