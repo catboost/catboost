@@ -214,7 +214,8 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build
 
     catboost_package_dir = os.path.join(arc_root, 'catboost/python-package')
     for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget/__init__.py',
-                      'widget/ipythonwidget.py', 'metrics.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
+                      'widget/ipythonwidget.py', "widget/metrics_plotter.py", 
+                      'metrics.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
         src = os.path.join(catboost_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
         if not os.path.exists(os.path.dirname(dst)):

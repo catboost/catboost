@@ -1,4 +1,5 @@
 from .ipythonwidget import MetricVisualizer
+from .metrics_plotter import MetricsPlotter
 
 
 def _jupyter_labextension_paths():
