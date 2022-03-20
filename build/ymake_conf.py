@@ -2386,6 +2386,11 @@ class MSVCCompiler(MSVC, Compiler):
             '/DWIN32',
             '/D_WIN32',
             '/D_WINDOWS',
+            # Define _CRT_*_NO_WARNINGS macros to prevent ucrt from issuing a warning whenever
+            # a POSIX-style function is used instead of the alternative Microsoft suggests as a secure / standard replacement
+            # (e. g. `strncpy()` instead of `strncpy_s()`, `access()` instead of `_access()`)
+            # For details see:
+            # https://docs.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
             '/D_CRT_SECURE_NO_WARNINGS',
             '/D_CRT_NONSTDC_NO_WARNINGS',
             # Math constants (such as M_PI, M_E, M_SQRT2) are not defined in standard C / C++
