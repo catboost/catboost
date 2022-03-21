@@ -1,5 +1,7 @@
 ---
 scopes:
+  a.yandex-team.ru/cloud/mdb:
+    - importcheck
   a.yandex-team.ru/portal/avocado:
     - importcheck
   a.yandex-team.ru/portal/morda-go:
