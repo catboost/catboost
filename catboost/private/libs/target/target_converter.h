@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/target.h>
+#include <catboost/libs/helpers/exception.h>
 
 #include <catboost/private/libs/options/enums.h>
 
@@ -9,6 +10,7 @@
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
@@ -21,6 +23,27 @@ namespace NPar {
 
 
 namespace NCB {
+
+    class TUnknownClassLabelException : public TCatBoostException {
+    public:
+        TUnknownClassLabelException(const TString& classLabelAsString)
+            : ClassLabelAsString(classLabelAsString)
+            , ErrorMessage("Unknown class label: \"" + classLabelAsString + "\"")
+        {}
+
+        TStringBuf GetUnknownClassLabel() const {
+            return ClassLabelAsString;
+        }
+
+        const char* what() const noexcept override {
+            return ErrorMessage.c_str();
+        }
+
+    private:
+        TString ClassLabelAsString;
+        TString ErrorMessage;
+    };
+
 
     template <class T>
     class ITypedSequence;
