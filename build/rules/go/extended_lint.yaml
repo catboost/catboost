@@ -8,3 +8,5 @@ scopes:
     - importcheck
   a.yandex-team.ru/security:
     - importcheck
+  a.yandex-team.ru/market/combinator:
+    - importcheck
