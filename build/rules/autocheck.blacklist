@@ -20,7 +20,10 @@ mobile
 music/frontend
 serp/hermione
 zen/frontend
+taxi/lavka/birds
 taxi/lavka/frontend
+taxi/lavka/infra
+taxi/lavka/js-toolbox
 velocity/error-booster/error-booster-queue
 velocity/error-booster/market
 metrika/frontend
