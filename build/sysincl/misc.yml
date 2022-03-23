@@ -284,10 +284,6 @@
   includes:
     - configmake.h
 
-- source_filter: "^contrib/libs/ImageMagick"
-  includes:
-    - ltdl.h
-
 - source_filter: "^contrib/libs/authparser"
   includes:
     - settings.h

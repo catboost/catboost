@@ -6074,9 +6074,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    1239511198
-                ],
+                "sandbox_id": [1249643898],
                 "match": "ymake"
             },
             "executable": {
@@ -6650,8 +6648,8 @@
         "android-ndk-r24": {
             "formula": {
                 "sandbox_id": [
-                    1225117305,
-                    1225117356
+                    1253035950,
+                    1253036672
                 ],
                 "match": "NDK"
             },
@@ -7606,7 +7604,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1251998312,
+                "sandbox_id": 1253017318,
                 "match": "horadric"
             },
             "executable": {
@@ -7749,7 +7747,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1251996042,
+                "sandbox_id": 1253028373,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8403,7 +8401,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1252000870,
+                "sandbox_id": 1253026022,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8414,7 +8412,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1252002052,
+                "sandbox_id": 1253026674,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8436,7 +8434,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1252001165,
+                "sandbox_id": 1253017462,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8458,7 +8456,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1252001162,
+                "sandbox_id": 1253019924,
                 "match": "ab"
             },
             "executable": {
@@ -8493,7 +8491,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1251997469,
+                "sandbox_id": 1253020304,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8504,7 +8502,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1251995670,
+                "sandbox_id": 1253018283,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8526,7 +8524,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1251995413,
+                "sandbox_id": 1253018178,
                 "match": "profile_size_analyzer"
             },
             "executable": {

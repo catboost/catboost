@@ -10,6 +10,7 @@ ALLOW contrib -> library/cpp/charset
 ALLOW contrib -> library/cpp/svnversion
 ALLOW contrib -> certs
 ALLOW contrib/libs/.*/ut -> library
+ALLOW contrib/restricted/ImageMagickMDS/ut -> library
 ALLOW contrib/java/.*/ut -> devtools/jtest
 ALLOW contrib/java/.*/ut -> devtools/junit-runner
 ALLOW contrib/java/.*/ut -> devtools/junit5-runner
