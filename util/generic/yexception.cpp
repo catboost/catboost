@@ -10,8 +10,14 @@
 
 #include <cstdio>
 
+static void FormatExceptionTo(IOutputStream& out, const std::exception& exception) {
+    out << "(" << TypeName(exception) << ") " << exception.what();
+}
+
 TString FormatExc(const std::exception& exception) {
-    return TString::Join(TStringBuf("("), TypeName(exception), TStringBuf(") "), exception.what());
+    TStringStream out;
+    FormatExceptionTo(out, exception);
+    return out.Str();
 }
 
 TString CurrentExceptionMessage() {
@@ -36,6 +42,51 @@ TString CurrentExceptionMessage() {
     }
 
     return "(NO EXCEPTION)";
+}
+
+Y_DECLARE_UNUSED static void FormatBackTraceTo(IOutputStream& out, const TBackTrace& backtrace) {
+    if (backtrace.size() == 0) {
+        out << "backtrace is empty";
+        return;
+    }
+    try {
+        backtrace.PrintTo(out);
+    } catch (const std::exception& e) {
+        out << "Failed to print backtrace: ";
+        FormatExceptionTo(out, e);
+    }
+}
+
+void FormatCurrentExceptionTo(IOutputStream& out) {
+    auto exceptionPtr = std::current_exception();
+    /*
+     * The lack of current exception indicates a logical bug in the client code.
+     * Do not make any attempts to workaround it, just panic and abort.
+     */
+    Y_VERIFY(exceptionPtr != nullptr, "there is no current exception");
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+    TBackTrace backtrace = TBackTrace::FromCurrentException();
+#endif
+    try {
+        std::rethrow_exception(exceptionPtr);
+    } catch (const std::exception& e) {
+        out << "Caught:\n";
+        FormatExceptionTo(out, e);
+#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
+        out << "\n\n";
+        FormatBackTraceTo(out, backtrace);
+#endif
+        return;
+    } catch (...) {
+        out << "unknown error";
+        return;
+    }
+}
+
+TString FormatCurrentException() {
+    TStringStream out;
+    FormatCurrentExceptionTo(out);
+    return out.Str();
 }
 
 bool UncaughtException() noexcept {
