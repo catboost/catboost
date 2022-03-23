@@ -2470,7 +2470,6 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-bitwise-op-parentheses',
                 '-Wno-format',
                 '-Wno-logical-op-parentheses',
-                '-Wno-macro-redefined',
                 '-Wno-parentheses',
                 '-Wno-unknown-warning-option',
             ))
