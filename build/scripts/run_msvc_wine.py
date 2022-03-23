@@ -45,7 +45,7 @@ def run_subprocess_with_timeout(timeout, args):
             if p is not None:
                 try:
                     p.kill()
-                    p.communicate()
+                    p.wait(timeout=1)
                 except Exception:
                     pass
             attempts_remaining -= 1
