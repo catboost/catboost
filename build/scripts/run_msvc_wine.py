@@ -31,6 +31,30 @@ def run_subprocess(*args, **kwargs):
     return p
 
 
+def run_subprocess_with_timeout(timeout, args):
+    attempts_remaining = 5
+    delay = 1
+    p = None
+    while True:
+        try:
+            p = run_subprocess(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate(timeout=timeout)
+            return p, stdout, stderr
+        except subprocess.TimeoutExpired as e:
+            print >>sys.stderr, 'timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay)
+            if p is not None:
+                try:
+                    p.kill()
+                    p.communicate()
+                except Exception:
+                    pass
+            attempts_remaining -= 1
+            if attempts_remaining == 0:
+                raise
+            time.sleep(delay)
+            delay = min(2 * delay, 4)
+
+
 def terminate_slaves():
     for p in procs:
         try:
@@ -319,16 +343,14 @@ def colorize(out):
 
 
 def trim_path(path, winepath):
-    p1 = run_subprocess([winepath, '-w', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p1_stdout, p1_stderr = p1.communicate()
+    p1, p1_stdout, p1_stderr = run_subprocess_with_timeout(60, [winepath, '-w', path])
     win_path = p1_stdout.strip()
 
     if p1.returncode != 0 or not win_path:
         # Fall back to only winepath -s
         win_path = path
 
-    p2 = run_subprocess([winepath, '-s', win_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    p2_stdout, p2_stderr = p2.communicate()
+    p2, p2_stdout, p2_stderr = run_subprocess_with_timeout(60, [winepath, '-s', win_path])
     short_path = p2_stdout.strip()
 
     check_path = short_path
