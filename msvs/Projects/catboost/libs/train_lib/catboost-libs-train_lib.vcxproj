@@ -84,11 +84,13 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\model_import_snapshot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\options_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\train_lib\trainer_env.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\cross_validation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\dir_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\eval_feature.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\options_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\train_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\train_lib\trainer_env.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
