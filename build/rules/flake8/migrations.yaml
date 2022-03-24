@@ -1301,7 +1301,6 @@ migrations:
     - maps/automotive/remote_tasks/manager/regression/ammo_generator
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
-    - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
@@ -1335,7 +1334,6 @@ migrations:
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/zalogin
-    - quality/ab_testing/cofe/python/metrics
     - quality/functionality/chats/common/bunker_client
     - quality/functionality/chats/common/requests_wrappers
     - quality/functionality/chats/feedback/src/feedback/api
