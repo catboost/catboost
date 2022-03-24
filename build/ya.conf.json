@@ -30,6 +30,9 @@
         "infractl": {
             "description": "Run InfraCtl CLI"
         },
+        "kubectl": {
+            "description": "Run kubectl CLI"
+        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -3964,6 +3967,34 @@
                 }
             ]
         },
+        "kubectl": {
+            "tools": {
+                "kubectl": {
+                    "bottle": "kubectl",
+                    "executable": "kubectl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "vim": {
             "tools": {
                 "vim": {
@@ -7294,6 +7325,19 @@
             "executable": {
                 "infractl": [
                     "infractl"
+                ]
+            }
+        },
+        "kubectl": {
+            "formula": {
+                "sandbox_id": [
+                    1254092637
+                ],
+                "match": "kubectl"
+            },
+            "executable": {
+                "kubectl": [
+                    "kubectl"
                 ]
             }
         },
