@@ -1,0 +1,10 @@
+service: ci
+title: catboost-python-package-ut-medium-gpu
+ci:
+  secret: sec-01dqsrttc93hr0m4s6p87kzba4
+  runtime:
+    sandbox-owner: CI
+  autocheck:
+    large-autostart:
+      - target: catboost/python-package/ut/medium/gpu
+        toolchains: default-linux-x86_64-release
