@@ -2289,8 +2289,14 @@ class MSVCToolchainOptions(ToolchainOptions):
 
 class MSVC(object):
     # noinspection PyPep8Naming
-    class WIN32_WINNT(object):
-        Macro = '_WIN32_WINNT'
+    class WindowsVersion(object):
+        """
+        Predefined values for _WIN32_WINNT macro.
+        This macro specifies minimal Windows version required by the binary being build.
+
+        A complete list of the values supported by the Windows SDK can be found at
+        https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+        """
         Windows7 = '0x0601'
         Windows8 = '0x0602'
 
@@ -2345,8 +2351,6 @@ class MSVCCompiler(MSVC, Compiler):
         super(MSVCCompiler, self).print_compiler()
 
         target = self.build.target
-
-        win32_winnt = self.WIN32_WINNT.Windows7
 
         warns_enabled = [
             4018,  # 'expression' : signed/unsigned mismatch
@@ -2505,8 +2509,9 @@ class MSVCCompiler(MSVC, Compiler):
 
         emit('OBJ_CROSS_SUF', '$OBJ_SUF')
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
-        emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
-        defines.append('/D{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
+
+        win_version_min = self.WindowsVersion.Windows7
+        defines.append('/D_WIN32_WINNT={0}'.format(win_version_min))
 
         if winapi_unicode:
             defines += ['/DUNICODE', '/D_UNICODE']
