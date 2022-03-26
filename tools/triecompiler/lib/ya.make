@@ -12,9 +12,7 @@ PEERDIR(
     library/cpp/getopt/small
 )
 
-IF(CATBOOST_OPENSOURCE)
-    CFLAGS(-DCATBOOST_OPENSOURCE)
-ELSE()
+IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         library/cpp/charset
     )
