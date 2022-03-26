@@ -72,13 +72,13 @@ void FormatCurrentExceptionTo(IOutputStream& out) {
     } catch (const std::exception& e) {
         out << "Caught:\n";
         FormatExceptionTo(out, e);
+        out << "\n";
 #ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-        out << "\n\n";
         FormatBackTraceTo(out, backtrace);
 #endif
         return;
     } catch (...) {
-        out << "unknown error";
+        out << "unknown error\n";
         return;
     }
 }

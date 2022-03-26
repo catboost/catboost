@@ -160,7 +160,7 @@ private:
             UNIT_ASSERT(false);
         } catch (...) {
             TString expected = "Caught:\n"
-                               "(yexception) util/generic/yexception_ut.cpp:4: blabla\n\n"
+                               "(yexception) util/generic/yexception_ut.cpp:4: blabla\n"
                                "Failed to print backtrace: "
                                "(yexception) util/generic/yexception_ut.cpp:8: 1 qw 12.1";
             UNIT_ASSERT_EQUAL(FormatCurrentException(), expected);
@@ -170,7 +170,7 @@ private:
             UNIT_ASSERT(false);
         } catch (...) {
             TString expected = "Caught:\n"
-                               "(std::logic_error) std exception\n\n"
+                               "(std::logic_error) std exception\n"
                                "Failed to print backtrace: "
                                "(yexception) util/generic/yexception_ut.cpp:8: 1 qw 12.1";
             UNIT_ASSERT_EQUAL(FormatCurrentException(), expected);
