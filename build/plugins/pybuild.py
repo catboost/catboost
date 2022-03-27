@@ -155,11 +155,11 @@ def add_python_lint_checks(unit, py_ver, files):
         flake8_cfg = 'build/config/tests/flake8/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
-    if files and unit.get('LINT_PY') == 'yes':
-        if is_py3(unit):
-            resolved_files = get_resolved_files()
-            black_cfg = 'devtools/ya/handlers/style/python_style_config.toml'
-            unit.onadd_check(['black', black_cfg] + resolved_files)
+    if files and unit.get('STYLE_PYTHON_VALUE') == 'yes' and is_py3(unit):
+        resolved_files = get_resolved_files()
+        black_cfg = 'devtools/ya/handlers/style/python_style_config.toml'
+        unit.onadd_check(['black', black_cfg] + resolved_files)
+
 
 def is_py3(unit):
     return unit.get("PYTHON3") == "yes"
