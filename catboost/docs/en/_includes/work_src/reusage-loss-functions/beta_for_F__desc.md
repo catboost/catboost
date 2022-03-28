@@ -2,7 +2,7 @@
 
 The $\beta$ parameter of the {{ error-function--F }} metric.  
 
-Valid values are real numbers in the following range:  $[0; +\infty)$.  
+Valid values are real numbers in the following range:  $(0; +\infty)$.  
 
 _Default:_ {{ loss-functions__obligatory-text }}
 
