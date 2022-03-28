@@ -107,6 +107,8 @@ items:
           name: Categorical features
         - href: features/text-features.md
           name: Text features
+        - href: features/embeddings-features.md
+          name: Embeddings features
         - href: features/loss-functions-desc.md
           name: Implemented metrics
         - href: features/export-model-to-python.md
