@@ -3,34 +3,22 @@ import logging
 
 import typing as tp
 
-from traitlets import Unicode, Dict, default
 from IPython.display import display
-from ipywidgets import DOMWidget, Layout, widget_serialization
 from copy import deepcopy
 from typing import List, Optional, Any, Union
 
-logging.getLogger().setLevel(logging.DEBUG)
+from .ipythonwidget import MetricWidget
 
-class MetricsWidget(DOMWidget):
-    _view_name = Unicode('CatboostWidgetView').tag(sync=True)
-    _model_name = Unicode('CatboostWidgetModel').tag(sync=True)
-    _view_module = Unicode('catboost-widget').tag(sync=True)
-    _model_module = Unicode('catboost-widget').tag(sync=True)
-    _view_module_version = Unicode('^1.0.0').tag(sync=True)
-    _model_module_version = Unicode('^1.0.0').tag(sync=True)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-    data = Dict({}).tag(sync=True, **widget_serialization)
-
+class MetricsWidget(MetricWidget):
     def __init__(self):
         super(self.__class__, self).__init__()
 
     def update_data(self, data: tp.Dict) -> None:
         # deepcopy is crucial here
         self.data = deepcopy(data)
-
-    @default('layout')
-    def _default_layout(self):
-        return Layout(height='500px', align_self='stretch')
 
 class MetricsPlotter:
     """
@@ -124,7 +112,7 @@ class MetricsPlotter:
 
     def __exit__(self, exc_type, exc_value, traceback) -> Any:
         if exc_type == KeyboardInterrupt:
-            logging.info(
+            logger.info(
                 f"Learning was stopped manually after {self.passed_iterations} epochs")
             return True
 

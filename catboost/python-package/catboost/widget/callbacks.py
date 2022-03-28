@@ -1,10 +1,15 @@
-import xgboost as xgb
+try:
+    from xgboost.callback import TrainingCallback as XGBTrainingCallback
+except:
+    class XGBTrainingCallback:
+        pass
+
 
 from IPython.display import display
 
 from .metrics_plotter import MetricsPlotter
 
-class XGBPlottingCallback(xgb.callback.TrainingCallback):
+class XGBPlottingCallback(XGBTrainingCallback):
     '''XGBoost callback with metrics plotting widget from CatBoost
     '''
     
