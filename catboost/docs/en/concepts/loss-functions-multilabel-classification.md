@@ -55,6 +55,20 @@ $\frac{TP}{TP+FN}$
 
 {% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
+### {{ error-function--F }} {#F}
+
+{% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
+
+$(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Recall}$
+
+**{{ no-optimization }}**  See [more](#optimization).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [beta_for_F__desc](../_includes/work_src/reusage-loss-functions/beta_for_F__desc.md) %}
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
 ### {{ error-function--F1 }} {#F1}
 
 {% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
@@ -117,6 +131,7 @@ $\displaystyle\frac{\sum\limits_{j=0}^{M-1} \sum\limits_{i = 1}^{N} w_{i} [[p_{i
 [{{ error-function__MultiCrossEntropy }}](#MultiCrossEntropy)   |     +                   |
 [{{ error-function--Precision }}](#Precision)                   |     -                   |
 [{{ error-function--Recall }}](#Recall)                         |     -                   |
+[{{ error-function--F }}](#F)                                   |     -                   |
 [{{ error-function--F1 }}](#F1)                                 |     -                   |
 [{{ error-function--Accuracy }}](#Accuracy)                     |     -                   |
 [{{ error-function__HammingLoss }}](#HammingLoss)               |     -                   |

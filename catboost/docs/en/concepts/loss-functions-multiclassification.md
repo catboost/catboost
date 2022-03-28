@@ -56,6 +56,20 @@ $\frac{TP}{TP+FN}$
 
 {% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
+### {{ error-function--F }} {#F}
+
+{% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
+
+$(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Recall}$
+
+**{{ no-optimization }}**  See [more](#optimization).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [beta_for_F__desc](../_includes/work_src/reusage-loss-functions/beta_for_F__desc.md) %}
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
 ### {{ error-function--F1 }} {#F1}
 
 {% include [reusage-loss-function__for-multiclass](../_includes/work_src/reusage/loss-function__for-multiclass.md) %}
@@ -180,8 +194,6 @@ $k_{t}$ is the weighted number of times class k is set as the label for input o
 
 See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
 
-See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
-
 **{{ no-optimization }}**  See [more](#optimization).
 
 **{{ title__loss-functions__text__user-defined-params }}**
@@ -255,6 +267,7 @@ _Examples:_ Three classes — `AUC:misclass_cost_matrix=0/0.5/2/1/0/1/0/0.5/0`, 
 [{{ error-function--MultiClassOneVsAll }}](#MultiClassOneVsAll) |     +                   |
 [{{ error-function--Precision }}](#Precision)                   |     -                   |
 [{{ error-function--Recall }}](#Recall)                         |     -                   |
+[{{ error-function--F }}](#F)                                   |     -                   |
 [{{ error-function--F1 }}](#F1)                                 |     -                   |
 [{{ error-function--totalF1 }}](#totalF1)                       |     -                   |
 [{{ error-function--MCC }}](#MCC)                               |     -                   |
