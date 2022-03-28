@@ -90,6 +90,7 @@ IF(NOT OS_ANDROID OR PYTHON2)
         widget/__init__.py
         widget/ipythonwidget.py
         widget/metrics_plotter.py
+        widget/callbacks.py
         eval/_fold_model.py
         eval/_fold_models_handler.py
         eval/_fold_storage.py

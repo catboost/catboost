@@ -17,7 +17,7 @@ __all__ = [
 CatboostError = CatBoostError
 
 try:
-    from .widget import MetricVisualizer, MetricsPlotter  # noqa
-    __all__.extend(['MetricVisualizer', 'MetricsPlotter'])
+    from .widget import MetricVisualizer, MetricsPlotter, XGBPlottingCallback, lgbm_plotting_callback  # noqa
+    __all__.extend(['MetricVisualizer', 'MetricsPlotter', 'XGBPlottingCallback', 'lgbm_plotting_callback'])
 except:
     pass
