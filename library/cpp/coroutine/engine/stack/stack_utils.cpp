@@ -1,6 +1,5 @@
 #include "stack_utils.h"
 
-#include <contrib/libs/linux-headers/asm-generic/errno-base.h>
 #include <util/generic/scope.h>
 #include <util/system/yassert.h>
 

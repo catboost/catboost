@@ -1,6 +1,6 @@
 # Text features
 
-{{ product }} supports numerical, categorical and text features.
+{{ product }} supports numerical, categorical, text, and embeddings features.
 
 Text features are used to build new numeric features. See the [Transforming text features to numerical features](../concepts/algorithm-main-stages_text-to-numeric.md) section for details.
 

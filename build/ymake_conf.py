@@ -1423,24 +1423,24 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             self.sfdl_flags.append('-Qunused-arguments')
 
-            self.cxx_warnings += [
-                '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-undefined-var-template',
-                '-Wno-return-std-move',
-                '-Wno-defaulted-function-deleted',
-                '-Wno-pessimizing-move',
-                '-Wno-range-loop-construct',
-                '-Wno-deprecated-anon-enum-enum-conversion',
-                '-Wno-deprecated-enum-enum-conversion',
-                '-Wno-deprecated-enum-float-conversion',
-                '-Wno-ambiguous-reversed-operator',
-                '-Wno-deprecated-volatile',
-            ]
-
             self.c_warnings += [
                 '-Wno-implicit-const-int-float-conversion',
                 # For nvcc to accept the above.
                 '-Wno-unknown-warning-option',
+            ]
+
+            self.cxx_warnings += [
+                '-Wimport-preprocessor-directive-pedantic',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
+                '-Wno-pessimizing-move',
+                '-Wno-range-loop-construct',
+                '-Wno-return-std-move',
+                '-Wno-undefined-var-template',
             ]
 
         elif self.tc.is_gcc:
@@ -2289,8 +2289,14 @@ class MSVCToolchainOptions(ToolchainOptions):
 
 class MSVC(object):
     # noinspection PyPep8Naming
-    class WIN32_WINNT(object):
-        Macro = '_WIN32_WINNT'
+    class WindowsVersion(object):
+        """
+        Predefined values for _WIN32_WINNT macro.
+        This macro specifies minimal Windows version required by the binary being build.
+
+        A complete list of the values supported by the Windows SDK can be found at
+        https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+        """
         Windows7 = '0x0601'
         Windows8 = '0x0602'
 
@@ -2346,8 +2352,6 @@ class MSVCCompiler(MSVC, Compiler):
 
         target = self.build.target
 
-        win32_winnt = self.WIN32_WINNT.Windows7
-
         warns_enabled = [
             4018,  # 'expression' : signed/unsigned mismatch
             4265,  # 'class' : class has virtual functions, but destructor is not virtual
@@ -2386,15 +2390,28 @@ class MSVCCompiler(MSVC, Compiler):
             '/DWIN32',
             '/D_WIN32',
             '/D_WINDOWS',
+            # Define _CRT_*_NO_WARNINGS macros to prevent ucrt from issuing a warning whenever
+            # a POSIX-style function is used instead of the alternative Microsoft suggests as a secure / standard replacement
+            # (e. g. `strncpy()` instead of `strncpy_s()`, `access()` instead of `_access()`)
+            # For details see:
+            # https://docs.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
             '/D_CRT_SECURE_NO_WARNINGS',
             '/D_CRT_NONSTDC_NO_WARNINGS',
+            # Math constants (such as M_PI, M_E, M_SQRT2) are not defined in standard C / C++
+            # In order to get them defined by Windows ucrt library,
+            # you must first define _USE_MATH_DEFINES before #including <cmath> or math.h>.
+            # (NB: glibc defines these macros whenever _XOPEN_SOURCE is defined)
             '/D_USE_MATH_DEFINES',
             '/D__STDC_CONSTANT_MACROS',
             '/D__STDC_FORMAT_MACROS',
             '/D_USING_V110_SDK71_',
             '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
-            '/DNOMINMAX',
+            # Below defines are covered at
+            # https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers#faster-builds-with-smaller-header-files
+            # Exclude APIs such as Cryptography, DDE, RPC, Shell, and Windows Sockets (while including <windows.h>)
             '/DWIN32_LEAN_AND_MEAN',
+            # Define NOMINMAX to avoid min() and max() macros definition (while including <windows.h>)
+            '/DNOMINMAX',
         ]
 
         cxx_defines = [
@@ -2447,45 +2464,38 @@ class MSVCCompiler(MSVC, Compiler):
             flags += [
                 # Allow <windows.h> to be included via <Windows.h> in case-sensitive file-systems.
                 '-fcase-insensitive-paths',
+
+                # At the time clang-cl identifies itself as MSVC 19.11:
+                # (actual value can be found in clang/lib/Driver/ToolChains/MSVC.cpp, the syntax would be like
+                # ```
+                # MSVT = VersionTuple(19, 11);
+                # ```
+                #
+                # We override this value to match current value of the actual MSVC being used.
+                '-fms-compatibility-version=19.21',
             ]
             if target.is_x86:
                 flags.append('-m32')
-            if target.is_x86_64:
+            elif target.is_x86_64:
                 flags.append('-m64')
 
             c_warnings.extend((
-                '-Wno-bitwise-op-parentheses',
                 '-Wno-format',
-                '-Wno-logical-op-parentheses',
-                '-Wno-macro-redefined',
                 '-Wno-parentheses',
                 '-Wno-unknown-warning-option',
             ))
 
             cxx_warnings += [
-                '-Woverloaded-virtual',
                 '-Wimport-preprocessor-directive-pedantic',
+                '-Woverloaded-virtual',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
                 '-Wno-undefined-var-template',
             ]
-            if self.tc.version_at_least(2019):
-                cxx_warnings += [
-                    '-Wno-deprecated-volatile',
-                    '-Wno-deprecated-anon-enum-enum-conversion',
-                    '-Wno-defaulted-function-deleted',
-                    '-Wno-deprecated-enum-enum-conversion',
-                    '-Wno-ambiguous-reversed-operator',
-                    '-Wno-deprecated-enum-float-conversion',
-                ]
-
-                # heretic: на момент коммита в нашей конфигурации указано, что тулчейн clang11-windows - аналог msvc 2019
-                # https://a.yandex-team.ru/arc/trunk/arcadia/build/ya.conf.json?rev=r7910792#L2185
-                # сам clang11 по дефолту представляется msvc2017 (#define _MSC_VER 1911)
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/clang11/lib/Driver/ToolChains/MSVC.cpp?rev=r7913127#L1352
-                # вручную заставляем его представляться msvc2019 (#define _MSC_VER 1921)
-                # значение версии взято вот отсюда:
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/llvm11/include/llvm/Support/Compiler.h?blame=true&rev=r7913127#L89
-                if self.tc.version_exactly(2019):
-                    flags.append('-fms-compatibility-version=19.21')
 
             if self.tc.ide_msvs:
                 cxx_warnings += [
@@ -2499,8 +2509,9 @@ class MSVCCompiler(MSVC, Compiler):
 
         emit('OBJ_CROSS_SUF', '$OBJ_SUF')
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
-        emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
-        defines.append('/D{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
+
+        win_version_min = self.WindowsVersion.Windows7
+        defines.append('/D_WIN32_WINNT={0}'.format(win_version_min))
 
         if winapi_unicode:
             defines += ['/DUNICODE', '/D_UNICODE']

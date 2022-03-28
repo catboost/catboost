@@ -30,6 +30,9 @@
         "infractl": {
             "description": "Run InfraCtl CLI"
         },
+        "kubectl": {
+            "description": "Run kubectl CLI"
+        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -3964,6 +3967,34 @@
                 }
             ]
         },
+        "kubectl": {
+            "tools": {
+                "kubectl": {
+                    "bottle": "kubectl",
+                    "executable": "kubectl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "vim": {
             "tools": {
                 "vim": {
@@ -6075,7 +6106,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    1239511198
+                    1257062795
                 ],
                 "match": "ymake"
             },
@@ -6245,7 +6276,7 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": 1231443941,
+                "sandbox_id": 1251052820,
                 "match": "tvmknife"
             },
             "executable": {
@@ -6650,8 +6681,8 @@
         "android-ndk-r24": {
             "formula": {
                 "sandbox_id": [
-                    1225117305,
-                    1225117356
+                    1253035950,
+                    1253036672
                 ],
                 "match": "NDK"
             },
@@ -7235,7 +7266,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    1230597266
+                    1251284406
                 ],
                 "match": "yp_util"
             },
@@ -7248,7 +7279,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    1223505951
+                    1251285389
                 ],
                 "match": "YP"
             },
@@ -7287,13 +7318,26 @@
         "infractl": {
             "formula": {
                 "sandbox_id": [
-                    1248526454
+                    1256030352
                 ],
                 "match": "infractl"
             },
             "executable": {
                 "infractl": [
                     "infractl"
+                ]
+            }
+        },
+        "kubectl": {
+            "formula": {
+                "sandbox_id": [
+                    1254092637
+                ],
+                "match": "kubectl"
+            },
+            "executable": {
+                "kubectl": [
+                    "kubectl"
                 ]
             }
         },
@@ -7360,7 +7404,7 @@
         "node-search": {
             "formula": {
                 "sandbox_id": [
-                    1157378401
+                    1254567852
                 ],
                 "match": "node_search"
             },
@@ -7606,7 +7650,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1249130209,
+                "sandbox_id": 1258245551,
                 "match": "horadric"
             },
             "executable": {
@@ -7661,7 +7705,7 @@
         },
         "python3": {
             "formula": {
-                "sandbox_id": 1020522806,
+                "sandbox_id": 1256021863,
                 "match": "python3"
             },
             "executable": {
@@ -7749,7 +7793,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1249129646,
+                "sandbox_id": 1258243849,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8157,7 +8201,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1248368653,
+                "sandbox_id": 1255978609,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -8181,7 +8225,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 1248571726,
+                "sandbox_id": 1253638317,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -8310,7 +8354,7 @@
         },
         "iceflame": {
             "formula": {
-                "sandbox_id": 1222412675,
+                "sandbox_id": 1253872260,
                 "match": "iceflame"
             },
             "executable": {
@@ -8392,7 +8436,7 @@
         },
         "eductl": {
             "formula": {
-                "sandbox_id": 1212160071,
+                "sandbox_id": 1258377216,
                 "match": "eductl"
             },
             "executable": {
@@ -8403,7 +8447,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1249129955,
+                "sandbox_id": 1258240800,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8414,7 +8458,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1249127978,
+                "sandbox_id": 1258239785,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8436,7 +8480,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1249130226,
+                "sandbox_id": 1258241913,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8458,7 +8502,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1249127952,
+                "sandbox_id": 1258246073,
                 "match": "ab"
             },
             "executable": {
@@ -8482,7 +8526,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1249129621,
+                "sandbox_id": 1258239839,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8493,7 +8537,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1249128411,
+                "sandbox_id": 1258248858,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8504,7 +8548,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1249129969,
+                "sandbox_id": 1258243281,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8515,7 +8559,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1247043408,
+                "sandbox_id": 1256094494,
                 "match": "lama"
             },
             "executable": {
@@ -8526,7 +8570,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1249129600,
+                "sandbox_id": 1258239606,
                 "match": "profile_size_analyzer"
             },
             "executable": {

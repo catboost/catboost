@@ -10,6 +10,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/train_lib/dir_helper.h>
 #include <catboost/libs/train_lib/options_helper.h>
+#include <catboost/libs/train_lib/trainer_env.h>
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/full_model_saver.h>
 #include <catboost/private/libs/algo/preprocess.h>
@@ -341,6 +342,8 @@ namespace NCB {
         TFeaturesSelectOptions featuresSelectOptions;
         featuresSelectOptions.Load(featuresSelectJsonOptions);
         featuresSelectOptions.CheckAndUpdateSteps();
+
+        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
 
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);

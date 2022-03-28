@@ -514,7 +514,9 @@ def execute(
             executable = command[0]
         else:
             executable = command
-        if os.path.isabs(executable):
+        if not executable:
+            raise InvalidCommandError("Target program is invalid: {}".format(command))
+        elif os.path.isabs(executable):
             if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
                 exists = os.path.exists(executable)
                 if exists:

@@ -23,6 +23,8 @@ ALLOW alice/hollywood/library/scenarios/goodwin/handlers -> alice/megamind/libra
 ALLOW alice/hollywood/library/scenarios/goodwin/handlers -> alice/megamind/library/testing
 ALLOW alice/hollywood/library/scenarios/music -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/music/music_backend_api -> alice/megamind/library/util
+ALLOW alice/hollywood/library/scenarios/news/ut -> alice/megamind/library/util
+ALLOW alice/hollywood/library/scenarios/news/ut_render -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/notifications -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/search/scenarios -> alice/megamind/library/experiments
 ALLOW alice/hollywood/library/scenarios/suggesters/games/ut -> alice/megamind/library/frame_builder

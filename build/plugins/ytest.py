@@ -17,7 +17,7 @@ import ymake
 
 
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
-MDS_SHEME = 'mds'
+MDS_SCHEME = 'mds'
 CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
 CANON_RESULT_FILE_NAME = 'result.json'
@@ -378,20 +378,22 @@ def match_coverage_extractor_requirements(unit):
     ])
 
 
-def get_tidy_config_map(unit):
-    global tidy_config_map
-    if tidy_config_map is None:
-        config_map_path = unit.resolve(os.path.join("$S", PROJECT_TIDY_CONFIG_MAP_PATH))
+def get_tidy_config_map(unit, map_path):
+    config_map_path = unit.resolve(os.path.join("$S", map_path))
+    config_map = {}
+    try:
         with open(config_map_path, 'r') as afile:
-            tidy_config_map = json.load(afile)
-    return tidy_config_map
+            config_map = json.load(afile)
+    except ValueError:
+        ymake.report_configure_error("{} is invalid json".format(map_path))
+    except Exception as e:
+        ymake.report_configure_error(str(e))
+    return config_map
 
 
 def get_default_tidy_config(unit):
     unit_path = get_norm_unit_path(unit)
-    default_config_map_path = unit.resolve(os.path.join("$S", DEFAULT_TIDY_CONFIG_MAP_PATH))
-    with open(default_config_map_path, 'r') as afile:
-        tidy_default_config_map = json.load(afile)
+    tidy_default_config_map = get_tidy_config_map(unit, DEFAULT_TIDY_CONFIG_MAP_PATH)
     for project_prefix, config_path in tidy_default_config_map.items():
         if unit_path.startswith(project_prefix):
             return config_path
@@ -399,7 +401,7 @@ def get_default_tidy_config(unit):
 
 
 def get_project_tidy_config(unit):
-    tidy_map = get_tidy_config_map(unit)
+    tidy_map = get_tidy_config_map(unit, PROJECT_TIDY_CONFIG_MAP_PATH)
     unit_path = get_norm_unit_path(unit)
 
     for project_prefix, config_path in tidy_map.items():
@@ -555,6 +557,9 @@ def onadd_check(unit, *args):
     ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
 
     if check_type in ["flake8.py2", "flake8.py3"]:
+        script_rel_path = check_type
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
+    elif check_type == "black":
         script_rel_path = check_type
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
@@ -1070,7 +1075,7 @@ def _get_resource_from_uri(uri):
     m = CANON_MDS_RESOURCE_REGEX.match(uri)
     if m:
         res_id = m.group(1)
-        return "{}:{}".format(MDS_SHEME, res_id)
+        return "{}:{}".format(MDS_SCHEME, res_id)
 
     m = CANON_SBR_RESOURCE_REGEX.match(uri)
     if m:

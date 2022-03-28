@@ -763,7 +763,6 @@ migrations:
     - yabs/qa/b2b_utils/bsserver_b2b/engine/validate_scripts
     - yabs/qa/yabs_b2b_tank/qabs/b2b
     - yabs/sbyt/testing/core
-    - yabs/server/cs/pylibs/partner_interface_monitor
     - yabs/server/cs/pylibs/settings
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/trivial_cron
@@ -799,7 +798,6 @@ migrations:
     - yaphone/localization_admin/src/models
     - yaphone/localization_admin/src/models/details
     - yaphone/localization_admin/src/models/support_info
-    - yp/scheduler_simulator/simtool
     - yql/tools/docs/custom_mkdocs
     - yql/tools/docs/wiki2markdown
     - yql/tools/mrjob/test
@@ -845,8 +843,6 @@ migrations:
     - yweb/structhtml/richsnippets/scripts/build_foto_recipes/prepare_to_deploy
     - yweb/verticals/scripts/sport_chats
     - yweb/verticals/scripts/sport_zen_updater/add_parsed_zen_urls
-    - yweb/video/vparsrobot/v2/tests
-    - yweb/video/vparsrobot/v2/tests-large
     - yweb/webdaemons/clickdaemon/tools/create_ammo_from_tcpdump
     - yweb/yasap/answers_nirvana/make_ammos
     - yweb/yasap/answers_quality/plagiarism/prepare_scraper_queries
@@ -1305,7 +1301,6 @@ migrations:
     - maps/automotive/remote_tasks/manager/regression/ammo_generator
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
-    - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
@@ -1339,7 +1334,6 @@ migrations:
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/zalogin
-    - quality/ab_testing/cofe/python/metrics
     - quality/functionality/chats/common/bunker_client
     - quality/functionality/chats/common/requests_wrappers
     - quality/functionality/chats/feedback/src/feedback/api
@@ -1456,7 +1450,6 @@ migrations:
     - voicetech/spotter/difftools/score_output
     - voicetech/spotter/online_metrics/lib
     - voicetech/spotter/run/difftool
-    - voicetech/spotter/score/prepare_for_online_validation/bin
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - yabs/analytics/anomaly_analyzer/src
@@ -1473,7 +1466,6 @@ migrations:
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
     - yabs/sbyt/ytstatcollector/advmachine/tests
-    - yabs/server/cs/pylibs/advmachine_export
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
@@ -1494,7 +1486,6 @@ migrations:
     - ydo/payments/balance_notifications_processor/lib
     - ydo/server/apphost_source/lib/endpoints
     - ydo/tools/direct/make_ya_clients_export
-    - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
@@ -2670,7 +2661,6 @@ migrations:
     - sport/backend/tests/projects/batches
     - sprav/java/editor/recipe
     - sprav/mining/ontodb
-    - sprav/mining/partners/gis/lib
     - sprav/mining/quarantine/feature_grep/lib
     - sprav/tycoon/tools/add_table_replica
     - statbox/jam/jobs/outer-job/dmz_reports/superapp-1/app_sessions
@@ -3378,7 +3368,6 @@ migrations:
     - yql/tests/multi_process
     - yt/admin/drive_monitor/tests/unit
     - yt/admin/perf_scraper/tests
-    - yt/admin/shiva/tests/unit
     - yt/odin/tests/suites
     - yweb/antimalware/libs/yttools/py/tests
     - yweb/antiporno/pyutil/draft/simple_yt/tests
