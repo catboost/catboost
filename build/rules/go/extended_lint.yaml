@@ -2,6 +2,10 @@
 scopes:
   a.yandex-team.ru/cloud/mdb:
     - importcheck
+  a.yandex-team.ru/library/go:
+    - importcheck
+  a.yandex-team.ru/market/combinator:
+    - importcheck
   a.yandex-team.ru/passport:
     - importcheck
   a.yandex-team.ru/portal/avocado:
@@ -11,6 +15,4 @@ scopes:
   a.yandex-team.ru/security:
     - importcheck
   a.yandex-team.ru/strm:
-    - importcheck
-  a.yandex-team.ru/market/combinator:
     - importcheck
