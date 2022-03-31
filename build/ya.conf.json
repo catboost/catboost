@@ -7650,7 +7650,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1258245551,
+                "sandbox_id": 1261889308,
                 "match": "horadric"
             },
             "executable": {
@@ -7793,7 +7793,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1258243849,
+                "sandbox_id": 1261889291,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7832,7 +7832,7 @@
         },
         "news": {
             "formula": {
-                "sandbox_id": 1240664469,
+                "sandbox_id": 1260940182,
                 "match": "news_launcher"
             },
             "executable": {
@@ -7927,7 +7927,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1197649240
+                    1253668008
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -8225,7 +8225,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 1253638317,
+                "sandbox_id": 1261149652,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -8296,7 +8296,7 @@
         "black": {
             "formula": {
                 "sandbox_id": [
-                    1209137306
+                    1259729400
                 ],
                 "match": "black"
             },
@@ -8447,7 +8447,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1258240800,
+                "sandbox_id": 1261900369,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8458,7 +8458,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1258239785,
+                "sandbox_id": 1261891552,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8480,7 +8480,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1258241913,
+                "sandbox_id": 1261891012,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8502,7 +8502,7 @@
         },
         "bigb_ab": {
             "formula": {
-                "sandbox_id": 1258246073,
+                "sandbox_id": 1261891871,
                 "match": "ab"
             },
             "executable": {
@@ -8526,7 +8526,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1258239839,
+                "sandbox_id": 1261891795,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8537,7 +8537,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1258248858,
+                "sandbox_id": 1261894610,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8548,7 +8548,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1258243281,
+                "sandbox_id": 1261895576,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8559,7 +8559,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1256094494,
+                "sandbox_id": 1261784847,
                 "match": "lama"
             },
             "executable": {
@@ -8570,7 +8570,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1258239606,
+                "sandbox_id": 1261892596,
                 "match": "profile_size_analyzer"
             },
             "executable": {
