@@ -89,8 +89,6 @@ IF(NOT OS_ANDROID OR PYTHON2)
         _catboost.pyx
         widget/__init__.py
         widget/ipythonwidget.py
-        widget/metrics_plotter.py
-        widget/callbacks.py
         eval/_fold_model.py
         eval/_fold_models_handler.py
         eval/_fold_storage.py
@@ -103,6 +101,13 @@ IF(NOT OS_ANDROID OR PYTHON2)
         eval/log_config.py
         eval/utils.py
     )
+    IF(NOT PYTHON2)
+        PY_SRCS(
+            NAMESPACE catboost
+            widget/metrics_plotter.py
+            widget/callbacks.py
+        )
+    ENDIF()
 ENDIF()
 
 END()
