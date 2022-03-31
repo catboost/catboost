@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\ut\test_bin_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\ut\test_binarization.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\gpu_data\ut\test_uniform_binarization.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
