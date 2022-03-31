@@ -81,6 +81,60 @@
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\monoforest_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1290805e14101d64c3d5910b44.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_1290805e14101d64c3d5910b44.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1290805e14101d64c3d5910b44.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1290805e14101d64c3d5910b44.py3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_175795cbf9967990169799f97c.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.py3.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_175795cbf9967990169799f97c.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_175795cbf9967990169799f97c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_175795cbf9967990169799f97c.py3.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8ff3db7fc4e360453de5c22369.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -139,6 +193,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.yasm" "-" "catboost." "_7a33e43c7df5a4e9f705e5b7c2.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8ff3db7fc4e360453de5c22369.yasm" "-" "catboost.widget.*" "_43ed156934cd4e0f2eafa2c27e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -154,6 +212,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_175795cbf9967990169799f97c.yasm" "-" "catboost." "_7a33e43c7df5a4e9f705e5b7c2.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8ff3db7fc4e360453de5c22369.yasm" "-" "catboost.widget.*" "_43ed156934cd4e0f2eafa2c27e.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -166,9 +228,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/_8ff3db7fc4e360453de5c22369.yasm	$B/catboost/python-package/lib/_f1082ea7be354375fb9e55bba6.yasm	</Message>
+      <Message>$B/catboost/python-package/lib/_175795cbf9967990169799f97c.yasm	$B/catboost/python-package/lib/_8ff3db7fc4e360453de5c22369.yasm	$B/catboost/python-package/lib/_f1082ea7be354375fb9e55bba6.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8ff3db7fc4e360453de5c22369.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f1082ea7be354375fb9e55bba6.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_175795cbf9967990169799f97c.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8ff3db7fc4e360453de5c22369.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f1082ea7be354375fb9e55bba6.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -884,6 +946,37 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\__init__.py.aurn.yapyc3;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\widget\callbacks.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/callbacks.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/callbacks.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/callbacks.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/callbacks.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\callbacks.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\callbacks.py.345m.yapyc3;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\widget\ipythonwidget.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -914,6 +1007,45 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/lib/widget/ipythonwidget.py.vwqh.yapyc3	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\ipythonwidget.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\ipythonwidget.py.vwqh.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\python-package\catboost\widget\metrics_plotter.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.yasm" "-" "catboost/python-package/catboost/widget/metrics_plotter.py" "_1d43167cca4427fd19bd868a0f.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/metrics_plotter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_3886c343cf4c2499aea1b02726.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3" "_be9679129a8a83d7bcd71f16f4.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7ad7053a9abb504c957efa3804.rodata" "-" "catboost/python-package/catboost/widget/callbacks.py" "_16f9f736f31d02103ca738f069.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/callbacks.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_86b7f8fdd2c877c02c45351966.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3" "_0e7d4370d1196c26cce6d457fd.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4ce9b2b8812865769bea503164.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/metrics_plotter.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/metrics_plotter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_1290805e14101d64c3d5910b44.yasm" "-" "catboost/python-package/catboost/widget/metrics_plotter.py" "_1d43167cca4427fd19bd868a0f.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/metrics_plotter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_3886c343cf4c2499aea1b02726.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3" "_be9679129a8a83d7bcd71f16f4.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_7ad7053a9abb504c957efa3804.rodata" "-" "catboost/python-package/catboost/widget/callbacks.py" "_16f9f736f31d02103ca738f069.rodata" "$(SolutionDir)../catboost/python-package/catboost/widget/callbacks.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_86b7f8fdd2c877c02c45351966.rodata" "-" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3" "_0e7d4370d1196c26cce6d457fd.rodata" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/callbacks.py.345m.yapyc3" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_4ce9b2b8812865769bea503164.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/python-package/catboost/widget/metrics_plotter.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/metrics_plotter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/lib/_1290805e14101d64c3d5910b44.yasm	$B/catboost/python-package/lib/widget/metrics_plotter.py.e4zi.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\catboost\widget\metrics_plotter.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\metrics_plotter.py.e4zi.yapyc3;$(SolutionDir)..\catboost\python-package\catboost\widget\callbacks.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\callbacks.py.345m.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_1290805e14101d64c3d5910b44.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_3886c343cf4c2499aea1b02726.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_7ad7053a9abb504c957efa3804.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_86b7f8fdd2c877c02c45351966.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_4ce9b2b8812865769bea503164.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\lib\widget\metrics_plotter.py.e4zi.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
