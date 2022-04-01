@@ -39,3 +39,4 @@ portal/frontend/sandbox-cleaner
 contest/services/orc
 academy/admission/backend
 cloud/mdb/tools/errata-generator
+cloud/mdb/tools/monrun-errata
