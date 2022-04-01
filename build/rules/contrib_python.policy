@@ -555,7 +555,7 @@ ALLOW quasar/manufacturing/jangles/app -> contrib/python/sqlalchemy/sqlalchemy-1
 ALLOW quasar/manufacturing/jangles/blueprints -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles/models -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW quasar/manufacturing/jangles -> contrib/python/sqlalchemy/sqlalchemy-1.2
-ALLOW quasar/quasmodrom/quasmodrom -> contrib/python/sqlalchemy/sqlalchemy-1.2
+ALLOW quasar/quasmodrom/src -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW release_machine/release_machine/alembic -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW release_machine/release_machine/src/utils -> contrib/python/sqlalchemy/sqlalchemy-1.2
 ALLOW rt-research/monitoring/atoms/config -> contrib/python/sqlalchemy/sqlalchemy-1.2
