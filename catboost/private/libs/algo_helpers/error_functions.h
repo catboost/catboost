@@ -305,7 +305,7 @@ public:
                      der2->ApproxDimension == dim);
 
             der2->Data[0] = -weight;
-            der2->Data[1] = -weight;
+            der2->Data[1] = -2 * weight * Sqr(diff) * prec;
         }
     }
 };
