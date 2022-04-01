@@ -35,3 +35,4 @@ market/front/apps
 classifieds/verticals-backend
 classifieds/schema-registry
 devtools/experimental/repo/REPO-33/torture
+portal/frontend/sandbox-cleaner
