@@ -62,6 +62,8 @@ class Platform(object):
         self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv7hf = self.arch in ('armv7ahf', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
+        self.is_nds32 = self.arch in ('nds32le_elf_mculib_v5f',)
+
         self.armv7_float_abi = None
         if self.is_armv7:
             if self.is_armv7hf:
@@ -78,7 +80,7 @@ class Platform(object):
         self.is_power9le = self.arch == 'power9le'
         self.is_powerpc = self.is_power8le or self.is_power9le
 
-        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m
+        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m or self.is_nds32
         self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
@@ -158,6 +160,7 @@ class Platform(object):
             (self.is_powerpc, 'ARCH_PPC64LE'),
             (self.is_power8le, 'ARCH_POWER8LE'),
             (self.is_power9le, 'ARCH_POWER9LE'),
+            (self.is_nds32, 'ARCH_NDS32'),
             (self.is_32_bit, 'ARCH_TYPE_32'),
             (self.is_64_bit, 'ARCH_TYPE_64'),
         ))
