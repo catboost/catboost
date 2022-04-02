@@ -45,3 +45,4 @@ disk/workspace/workspace-properties
 academy/lyceum/backend
 hypercube/hardware/YhubModbusBootloader
 cloud/mdb/pgsync
+portal/frontend/webpack-stub
