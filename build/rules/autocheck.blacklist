@@ -47,3 +47,4 @@ hypercube/hardware/YhubModbusBootloader
 cloud/mdb/pgsync
 portal/frontend/webpack-stub
 portal/frontend/teamcity-build-statistics
+cmnt/frontend/cmnt-monitoring
