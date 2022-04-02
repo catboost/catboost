@@ -1704,8 +1704,14 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-            if (issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)):
+            is_multitarget_metric = issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)
+            if is_multitarget_objective(params_to_json["loss_function"]):
+                assert is_multitarget_metric, \
+                    "Custom eval metric should be inherited from MultiTargetCustomMetric for multi-target objective"
                 params_to_json["eval_metric"] = "PythonUserDefinedMultiTarget"
+            else:
+                assert not is_multitarget_metric, \
+                    "Custom eval metric should not be inherited from MultiTargetCustomMetric for single-target objective"
 
         if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
             self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
