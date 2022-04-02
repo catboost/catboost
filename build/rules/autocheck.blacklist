@@ -49,3 +49,4 @@ portal/frontend/webpack-stub
 portal/frontend/teamcity-build-statistics
 cmnt/frontend/cmnt-monitoring
 partner/frontend/creator
+data-ui/transfer-manager
