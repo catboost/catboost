@@ -1002,6 +1002,10 @@ class ToolchainOptions(object):
     def is_from_arcadia(self):
         return self.from_arcadia
 
+    @property
+    def is_system_cxx(self):
+        return self._name == "system_cxx"
+
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
         r = {}
@@ -1111,7 +1115,7 @@ class GnuToolchain(Toolchain):
         self.env = self.tc.get_env()
 
         self.env_go = {}
-        if self.tc.is_clang:
+        if self.tc.is_clang and not self.tc.is_system_cxx:
             self.env_go = {'PATH': ['{}/bin'.format(self.tc.name_marker)]}
         if self.tc.is_gcc:
             self.env_go = {'PATH': ['{}/gcc/bin'.format(self.tc.name_marker)]}
@@ -1239,7 +1243,7 @@ class GnuToolchain(Toolchain):
             if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
 
-            if self.tc.is_from_arcadia:
+            if self.tc.is_from_arcadia or self.tc.is_system_cxx:
                 if target.is_apple:
                     if target.is_ios:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
