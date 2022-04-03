@@ -86,3 +86,4 @@ data-ui/unipika
 market/ir/lib/ir-pattern-extractor
 data-ui/infra-components
 portal/frontend/tune-suggest-proxy
+data-ui/yqlkit
