@@ -140,3 +140,4 @@ market/erp_axapta/libs/CheckouterService
 taxi/frontend/packages/tariff-editor-vscode-templates
 market/erp_axapta/libs/YaSignClient
 market/erp_axapta/libs/AXHandlers
+market/erp_axapta/libs/solomon-pusher
