@@ -128,3 +128,4 @@ marketing/promo-catboost-2017
 marketing/patterns/importer
 marketing/promo-yandex42-2019
 classifieds/infra/zoonavigator
+contest/experiments/kafka/streams
