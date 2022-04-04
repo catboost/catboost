@@ -129,3 +129,4 @@ marketing/patterns/importer
 marketing/promo-yandex42-2019
 classifieds/infra/zoonavigator
 contest/experiments/kafka/streams
+portal/infra-scripts
