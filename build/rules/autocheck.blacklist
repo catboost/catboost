@@ -137,3 +137,4 @@ supdev/H2S
 contest/backend/flow
 market/front/schedulers
 market/erp_axapta/libs/CheckouterService
+taxi/frontend/packages/tariff-editor-vscode-templates
