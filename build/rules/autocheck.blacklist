@@ -157,3 +157,4 @@ market/erp_axapta/libs/TelegramBotClientApi
 market/erp_axapta/libs/MailReader
 market/erp_axapta/libs/InventoryServices
 market/erp_axapta/libs/OEBSWebAPI
+market/erp_axapta/libs/TaskServices
