@@ -223,3 +223,4 @@ milab/frontend/oscar-2019
 contest/legacy/yandex_contest_invoker_flowctl_pipectl
 milab/frontend/landmarks
 market/infra/market-clickhouse-formula
+contest/legacy/yandex_contest_invoker_build_script
