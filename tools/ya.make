@@ -17,6 +17,7 @@ RECURSE(
     checktrigrams
     clustermaster
     coldiff
+    compare_protobufs
     compress
     convert2html
     cproxy
