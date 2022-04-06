@@ -1489,7 +1489,6 @@ migrations:
     - yql/library/test_framework
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
-    - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/robot/limbo
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
@@ -2068,7 +2067,6 @@ migrations:
     - mds/mastermind/core/foreign/opster
     - mds/mastermind/core/src
     - mds/mastermind/flowmastermind/src
-    - mds/mastermind/job_processor
     - mds/mastermind/jobs_integration_tests/src
     - mds/mastermind/minion
     - mds/mastermind/monolith
@@ -3104,7 +3102,6 @@ migrations:
     - library/cpp/deprecated/solartrie/test/tests
     - library/cpp/file_checker/test/tests
     - library/cpp/pybind/example/ut
-    - library/python/cyson/ut
     - library/python/vault_client/ut/tests
     - logbroker/push-client/ft
     - logfeller/lib/table_allocator/functional_tests/dyn_allocator_tests
@@ -3228,12 +3225,9 @@ migrations:
     - quality/relev_tools/lboost_ops/makereqbundle/tests/from_qtree
     - quality/relev_tools/lboost_ops/tm_calc/tests
     - quality/relev_tools/vpcg/bin/ut
-    - quality/relev_tools/xfactor-yt/lib/ut/build_apply_dictionaries
-    - quality/relev_tools/xfactor-yt/lib/ut/collaborative_filtering
     - quality/relev_tools/xfactor-yt/lib/ut/convert_output
     - quality/relev_tools/xfactor-yt/lib/ut/metric_export
     - quality/relev_tools/xfactor-yt/lib/ut/prepare_input
-    - quality/relev_tools/xfactor-yt/yt_operations/ut
     - quality/short_beak/sg_collector/tests
     - quality/tools/scripts/tests
     - quality/traffic/tests/iterator/tests

@@ -16,6 +16,8 @@ namespace NThreading {
 
         ////////////////////////////////////////////////////////////////////////////////
 
+        [[noreturn]] void ThrowFutureException(TStringBuf message, const TSourceLocation& source);
+
         enum class TError {
             Error
         };
@@ -48,11 +50,11 @@ namespace NThreading {
                 int state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
-                        ythrow TFutureException() << "value not set";
+                        ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
 
                     if (!Wait(timeout)) {
-                        ythrow TFutureException() << "wait timeout";
+                        ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
                     state = AtomicGet(State);
@@ -65,11 +67,11 @@ namespace NThreading {
                         break;
                     case ValueRead:
                         if (acquireState != ValueRead) {
-                            ythrow TFutureException() << "value being read";
+                            ::NThreading::NImpl::ThrowFutureException("value being read"sv, __LOCATION__);
                         }
                         break;
                     case ValueMoved:
-                        ythrow TFutureException() << "value was moved";
+                        ::NThreading::NImpl::ThrowFutureException("value was moved"sv, __LOCATION__);
                     default:
                         Y_ASSERT(state == ValueSet);
                 }
@@ -129,7 +131,7 @@ namespace NThreading {
             void SetValue(TT&& value) {
                 bool success = TrySetValue(std::forward<TT>(value));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -169,7 +171,7 @@ namespace NThreading {
             void SetException(std::exception_ptr e) {
                 bool success = TrySetException(std::move(e));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -300,11 +302,11 @@ namespace NThreading {
                 int state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
-                        ythrow TFutureException() << "value not set";
+                        ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
 
                     if (!Wait(timeout)) {
-                        ythrow TFutureException() << "wait timeout";
+                        ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
                     state = AtomicGet(State);
@@ -318,7 +320,7 @@ namespace NThreading {
             void SetValue() {
                 bool success = TrySetValue();
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -355,7 +357,7 @@ namespace NThreading {
             void SetException(std::exception_ptr e) {
                 bool success = TrySetException(std::move(e));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -649,7 +651,7 @@ namespace NThreading {
     template <typename T>
     inline void TFuture<T>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -751,7 +753,7 @@ namespace NThreading {
 
     inline void TFuture<void>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -858,7 +860,7 @@ namespace NThreading {
     template <typename T>
     inline void TPromise<T>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -932,7 +934,7 @@ namespace NThreading {
 
     inline void TPromise<void>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 

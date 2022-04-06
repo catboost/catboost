@@ -903,6 +903,9 @@ ALLOW .* -> vendor/github.com/google/brotli/go/cbrotli
 # CONTRIB-2505
 ALLOW .* -> vendor/github.com/zeebo/bencode
 
+# CONTRIB-2516
+ALLOW .* -> github.com/gocql/gocql
+
 #
 # Tools
 #
@@ -1086,6 +1089,10 @@ ALLOW .* -> vendor/github.com/anatol/luks.go
 DENY .* -> vendor/github.com/anatol/luks.go;test
 DENY .* -> vendor/github.com/anatol/vmtest;test
 DENY .* -> vendor/github.com/anatol/devmapper.go;test
+
+# CONTRIB-2497
+ALLOW .* -> vendor/github.com/chzyer/readline
+DENY .* -> vendor/github.com/chzyer/readline;test
 
 # CONTRIB-2498
 ALLOW .* -> vendor/github.com/fatih/color
