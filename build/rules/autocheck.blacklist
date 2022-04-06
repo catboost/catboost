@@ -588,3 +588,6 @@ billing/frontend/fop-server
 data-ui/mobile-core-ios
 for-media/specprojects
 market/front/libs/export-static/export-static
+portal/archive/covers-static
+hypercube/museum
+afisha/infra/projects/deployer
