@@ -213,3 +213,4 @@ milab/frontend/gfk-dashboard
 milab/frontend/yandex-ai
 milab/frontend/old-words
 market/infra/market-teamcity
+contest/legacy/api-schema
