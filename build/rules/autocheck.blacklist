@@ -138,7 +138,6 @@ contest/experiments/kafka/streams
 portal/infra-scripts
 market/ir/lib/robot-storage
 contest/experiments/kafka/consumer
-market/ir/b2b
 supdev/H2S
 contest/backend/flow
 market/front/schedulers
@@ -650,3 +649,5 @@ taxi/github/deps-py2
 market/front/libs/elements
 data-ui/monitoring
 taxi/callcenter-frontend
+payplatform/spirit/whitespirit
+market/ir/market-robot
