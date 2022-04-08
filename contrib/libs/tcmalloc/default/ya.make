@@ -12,7 +12,7 @@ INCLUDE(../common.inc)
 
 GLOBAL_SRCS(
     # Options
-    tcmalloc/want_hpaa.cc
+    tcmalloc/want_hpaa_subrelease.cc
 )
 
 END()
