@@ -7682,7 +7682,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1268291496,
+                "sandbox_id": 1269806490,
                 "match": "horadric"
             },
             "executable": {
@@ -7825,7 +7825,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1268293277,
+                "sandbox_id": 1269815645,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8580,7 +8580,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1268293572,
+                "sandbox_id": 1269815222,
                 "match": "exp_stats"
             },
             "executable": {

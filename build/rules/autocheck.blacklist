@@ -698,3 +698,15 @@ trust/billing-ci-env
 market/front/libs/route-converter
 market/front/libs/testpalm-cli
 trust/billing-orchestra
+market/front/libs/trace-log-builder
+market/front/libs/b2b-components
+market/front/libs/luster-tmp-log-file
+market/front/libs/luster-ext-env
+trust/trust-ci
+market/front/libs/hermione-chai
+strm/rdr-metrics
+market/front/libs/hermione-allure-reporter
+market/front/libs/luster-var-log
+strm/admins/yandex-strm-h264bitstream
+portal/archive/static-mng
+market/front/misc/vendors-api-spec/vendors-api-spec
