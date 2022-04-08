@@ -1,8 +1,6 @@
 #include "mem_info.h"
 
 #include <util/generic/strbuf.h>
-#include <util/generic/utility.h>
-#include <util/generic/yexception.h>
 #include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/string/builder.h>
@@ -10,8 +8,6 @@
 #include "info.h"
 
 #if defined(_unix_)
-    #include <errno.h>
-    #include <unistd.h>
     #if defined(_freebsd_)
         #include <sys/sysctl.h>
         #include <sys/types.h>

@@ -1,4 +1,6 @@
-#include "tls.h"
+#if defined(_win_)
+    #include "tls.h"
+#endif
 #include "thread.h"
 #include "thread.i"
 
@@ -8,6 +10,10 @@
 #include <util/generic/yexception.h>
 #include "yassert.h"
 #include <utility>
+
+#if defined(_linux_)
+    #include <sys/prctl.h>
+#endif
 
 #if defined(_glibc_)
     #if !__GLIBC_PREREQ(2, 30)

@@ -3,7 +3,6 @@
 
 #include <util/generic/scope.h>
 #include <util/memory/tempbuf.h>
-#include <util/generic/yexception.h>
 
 size_t Printf(IOutputStream& out, const char* fmt, ...) {
     va_list lst;
