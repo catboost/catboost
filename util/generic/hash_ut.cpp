@@ -59,6 +59,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestHMSetInitializerList);
     UNIT_TEST(TestHSetInsertInitializerList);
     UNIT_TEST(TestTupleHash);
+    UNIT_TEST(TestStringHash);
     UNIT_TEST_SUITE_END();
 
     using hmset = THashMultiSet<char, hash<char>, TEqualTo<char>>;
@@ -110,6 +111,7 @@ protected:
     void TestHMSetInitializerList();
     void TestHSetInsertInitializerList();
     void TestTupleHash();
+    void TestStringHash();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(THashTest);
@@ -1268,4 +1270,13 @@ void THashTest::TestTupleHash() {
             return std::get<A>(v);
         }
     };
+}
+
+void THashTest::TestStringHash() {
+    // Make sure that different THash<> variants behave in the same way
+    const size_t expected = ComputeHash(TString("hehe"));
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash("hehe"), expected);              // char[5]
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash("hehe"sv), expected);            // std::string_view
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash(TStringBuf("hehe")), expected);  // TStringBuf
+    UNIT_ASSERT_VALUES_EQUAL(ComputeHash<const char*>("hehe"), expected); // const char*
 }
