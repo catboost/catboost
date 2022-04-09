@@ -879,3 +879,9 @@ portal/frontend/dev-proxy
 partner/frontend/yharnam
 taxi/dmp/logging-conf
 addappter/frontend/promo-addappter
+payplatform/spirit/system-tests
+pythia/apps/frontend-survey
+pythia/apps/frontend-constructor
+pythia/apps/frontend
+pythia/apps/push-client
+pythia/apps/migrator/alerts
