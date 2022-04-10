@@ -1,13 +1,10 @@
 Metadata-Version: 2.1
 Name: pyparsing
-Version: 3.0.7
-Summary: Python parsing module
-Home-page: https://github.com/pyparsing/pyparsing/
-Author: Paul McGuire
-Author-email: ptmcg.gm+pyparsing@gmail.com
-License: MIT License
-Download-URL: https://pypi.org/project/pyparsing/
-Platform: UNKNOWN
+Version: 3.0.8
+Summary: pyparsing module - Classes and methods to define and execute parsing grammars
+Author-email: Paul McGuire <ptmcg.gm+pyparsing@gmail.com>
+Requires-Python: >=3.6.8
+Description-Content-Type: text/x-rst
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Information Technology
@@ -23,11 +20,11 @@ Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3 :: Only
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >=3.6
-Description-Content-Type: text/x-rst
+Classifier: Typing :: Typed
+Requires-Dist: railroad-diagrams ; extra == "diagrams"
+Requires-Dist: jinja2 ; extra == "diagrams"
+Project-URL: Homepage, https://github.com/pyparsing/pyparsing/
 Provides-Extra: diagrams
-Requires-Dist: jinja2 ; extra == 'diagrams'
-Requires-Dist: railroad-diagrams ; extra == 'diagrams'
 
 PyParsing -- A Python Parsing Module
 ====================================
@@ -105,5 +102,4 @@ See `CHANGES <https://github.com/pyparsing/pyparsing/blob/master/CHANGES>`__ fil
    :target: https://github.com/pyparsing/pyparsing/actions/workflows/ci.yml
 .. |Coverage| image:: https://codecov.io/gh/pyparsing/pyparsing/branch/master/graph/badge.svg
   :target: https://codecov.io/gh/pyparsing/pyparsing
-
 
