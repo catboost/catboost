@@ -899,3 +899,6 @@ intranet/digiarch
 data-ui/infra-news-popup
 data-ui/logbroker
 classifieds/sitemap-monitor
+data-ui/wiki
+portal/archive/hbf
+portal/syslog
