@@ -919,3 +919,17 @@ quality/ab_testing/scripts/adminka/frontend/calculations_front
 data-ui/united-storage
 sprav/legacy/callcenter
 data-ui/charts-console
+education/english/services/aula
+taxi/github/taximeter/yandex-taximeter-tvmtool
+taxi/github/taximeter/yandex-taximeter-dotnet
+taxi/github/taximeter/yandex-taximeter-dotnet-sdk
+market/erp_axapta/libs/InventXDocDlvPrintDocsService
+education/praktikum/services/wirth
+classifieds/telepony
+data-ui/datacloud-auth
+classifieds/realty-frontend
+classifieds/vertis-frontend
+classifieds/autoru-frontend
+classifieds/internal-frontend
+practicum/frontend/services/wirth-admin
+taxi/github/infra-salt-pillar
