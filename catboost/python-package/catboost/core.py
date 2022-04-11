@@ -553,6 +553,7 @@ class Pool(_PoolBase):
         cat_features=None,
         text_features=None,
         embedding_features=None,
+        embedding_features_data=None,
         column_description=None,
         pairs=None,
         delimiter='\t',
@@ -607,6 +608,12 @@ class Pool(_PoolBase):
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
+
+        embedding_features_data : list or dict, optional (default=None)
+            If not None, giving the data of Embedding features (instead of data in main 'data' parameter).
+            If list - list containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+            If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+                Dict keys must be the same as specified in 'embedding_features' parameter
 
         column_description : string or pathlib.Path, optional (default=None)
             ColumnsDescription parameter.
@@ -701,10 +708,10 @@ class Pool(_PoolBase):
             if column_description is not None and not isinstance(data, PATH_TYPES):
                 raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
             if isinstance(data, PATH_TYPES):
-                if any(v is not None for v in [cat_features, text_features, embedding_features, weight, group_id, group_weight,
+                if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight,
                                                subgroup_id, pairs_weight, baseline, label]):
                     raise CatBoostError(
-                        "cat_features, text_features, embedding_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
+                        "cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight, subgroup_id, pairs_weight, "
                         "baseline, label should have the None type when the pool is read from the file."
                     )
                 if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
@@ -715,9 +722,9 @@ class Pool(_PoolBase):
                            log_cout=log_cout, log_cerr=log_cerr)
             else:
                 if isinstance(data, FeaturesData):
-                    if any(v is not None for v in [cat_features, text_features, embedding_features, feature_names]):
+                    if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, feature_names]):
                         raise CatBoostError(
-                            "cat_features, text_features, embedding_features, feature_names should have the None type"
+                            "cat_features, text_features, embedding_features, embedding_features_data, feature_names should have the None type"
                             " when 'data' parameter has FeaturesData type"
                         )
                 elif isinstance(data, np.ndarray):
@@ -732,10 +739,11 @@ class Pool(_PoolBase):
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
                     if (data.dtype.kind != 'O') and (embedding_features is not None) and (len(embedding_features) > 0):
-                        raise CatBoostError(
-                            "'data' is numpy array of non-object type, it means no embedding features,"
-                            " but 'embedding_features' parameter specifies nonzero number of embedding features"
-                        )
+                        if embedding_features_data is None:
+                            raise CatBoostError(
+                                "'data' is numpy array of non-object type, it means no embedding features,"
+                                " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                            )
                 elif isinstance(data, scipy.sparse.spmatrix):
                     if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
                         raise CatBoostError(
@@ -747,10 +755,30 @@ class Pool(_PoolBase):
                             "'data' is scipy.sparse.spmatrix, it means no text features,"
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
-                    if (embedding_features is not None) and (len(embedding_features) > 0):
+                    if (embedding_features is not None) and (len(embedding_features) > 0) and (embedding_features_data is None):
                         raise CatBoostError(
-                            "'data' is scipy.sparse.spmatrix, it means no embedding features,"
+                            "'data' is scipy.sparse.spmatrix and 'embedding_features_data' is None, it means no embedding features,"
                             " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                        )
+
+                if embedding_features_data is not None:
+                    if embedding_features is None:
+                        raise CatBoostError(
+                            "'embedding_features_data' is not None, but 'embedding_features' parameter is not specified"
+                        )
+                    if isinstance(embedding_features_data, list):
+                        if len(embedding_features) != len(embedding_features_data):
+                            raise CatBoostError(
+                                "'embedding_features_data' and 'embedding_features' contain different numbers of features"
+                            )
+                    elif isinstance(embedding_features_data, dict):
+                        if set(embedding_features) != set(embedding_features_data.keys()):
+                            raise CatBoostError(
+                                "keys of 'embedding_features_data' dict do not correspond to 'embedding_features'"
+                            )
+                    else:
+                        raise CatBoostError(
+                            "'embedding_features_data' must have either 'list' or 'dict' type"
                         )
 
                 if isinstance(feature_names, PATH_TYPES):
@@ -759,7 +787,7 @@ class Pool(_PoolBase):
                         "python objects."
                     )
 
-                self._init(data, label, cat_features, text_features, embedding_features, pairs, weight,
+                self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                            group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
         super(Pool, self).__init__()
 
@@ -1251,6 +1279,7 @@ class Pool(_PoolBase):
         cat_features,
         text_features,
         embedding_features,
+        embedding_features_data,
         pairs, weight,
         group_id,
         group_weight,
@@ -1277,6 +1306,13 @@ class Pool(_PoolBase):
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
             samples_count, features_count = np.shape(data)
+            if embedding_features_data is not None:
+                features_count += len(embedding_features_data)
+                for embedding_feature_data in embedding_features_data:
+                    if len(embedding_feature_data) != samples_count:
+                        raise CatBoostError(
+                            "samples count in 'embeddings_features_data' does not correspond to samples count in main data"
+                        )
         pairs_len = 0
         if label is not None:
             self._check_label_type(label)
@@ -1336,7 +1372,7 @@ class Pool(_PoolBase):
             self._check_timestamp_shape(timestamp, samples_count)
         if feature_tags is not None:
             feature_tags = self._check_transform_tags(feature_tags, feature_names)
-        self._init_pool(data, label, cat_features, text_features, embedding_features, pairs, weight,
+        self._init_pool(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                         group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
 
 
