@@ -542,13 +542,11 @@ migrations:
     - robot/salmon_agent/counters
     - robot/salmon_agent/utils
     - rt-research/broadmatching/mr/IRT-1517
-    - rt-research/broadmatching/scripts/dyn-smart-banners/update_dyn_trashfilter
     - rt-research/broadmatching/scripts/pylib
     - rt-research/broadmatching/scripts/pylib/bm
     - rt-research/broadmatching/scripts/yt/catalogia_mapper
     - rt-research/broadmatching/scripts/yt/cdict_generator
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners
-    - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners/generate_filtered_links
     - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
     - saas/tools/devops/lib
@@ -598,8 +596,6 @@ migrations:
     - sandbox/projects/TickenatorBatchProcessing
     - sandbox/projects/TickenatorBatchProcessing/YasmScreenshoter
     - sandbox/projects/Travel/tasks/tools
-    - sandbox/projects/Ufo
-    - sandbox/projects/Ufo/CI
     - sandbox/projects/UpdateConfigGeneratorDb
     - sandbox/projects/UpdateMapsWizardPpoData
     - sandbox/projects/UpdateTestenvNewsdResources
@@ -715,9 +711,6 @@ migrations:
     - talents/nlu/scripts/train/geoname
     - testenv/jobs/rtyserver
     - tools/mkdocs_builder/lib
-    - tools/mkdocs_builder/mkdocs_yandex
-    - tools/mkdocs_builder/mkdocs_yandex/mkdocs_yandex
-    - tools/mkdocs_builder/mkdocs_yandex/mkdocs_yandex/ext/markdown
     - tools/releaser/src
     - tools/ygetparam
     - travel/avia/library/python/common
@@ -1091,7 +1084,6 @@ migrations:
     - skynet/kernel
     - skynet/kernel/util/tests
     - smart_devices/tools/launcher2/tests/restarts
-    - statbox/statkey/jam/jobs
     - strm/generate/lib/generate
     - taxi/graph/packages/taxigraphd
     - testenv/core/web_server
@@ -2584,7 +2576,6 @@ migrations:
     - sandbox/projects/yf
     - sandbox/projects/younglings
     - sandbox/projects/yp/BuildYpEmergencyBreak
-    - sandbox/projects/yp/BuildYpPodEvictionMonitoring
     - sandbox/projects/yp/BuildYpUnknownPodMonitoring
     - sandbox/projects/yql
     - sandbox/proxy/flask_uwsgi_websocket
@@ -2704,7 +2695,6 @@ migrations:
     - travel/avia/library/python/common/protobuf_converting/big_wizard/proto
     - travel/avia/library/python/common/saas/proto
     - travel/hotels/devops/l2_tool
-    - travel/hotels/feeders/lib
     - travel/hotels/tools/catroom_stat
     - travel/hotels/tools/cli
     - travel/hotels/tools/expedia_property_pansions_builder
