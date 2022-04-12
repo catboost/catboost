@@ -33,7 +33,6 @@ taxi/lavka/frontend
 taxi/lavka/infra
 taxi/lavka/js-toolbox
 velocity/error-booster/error-booster-queue
-velocity/error-booster/market
 velocity/error-booster/error-counter
 velocity/error-booster/utils
 velocity/error-booster/presentations
@@ -1046,3 +1045,8 @@ testpers/bugs-priority
 haas/inventory/backend
 haas/inventory/frontend
 classifieds/vtf-tools
+a.yandex-team.ru/arc/trunk/arcadia/classifieds/infra/sender-proxy
+geoadv/backend
+market/mbo/archive/market-markup-worker
+data-ui/charts-pdf
+mds/admin/storage-juggler-config
