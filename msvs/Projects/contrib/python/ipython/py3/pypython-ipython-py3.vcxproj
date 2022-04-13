@@ -7643,8 +7643,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.vcxproj">
       <Project>{45DD0FCB-695D-6F82-16DE-881C23E1603F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.vcxproj">
-      <Project>{AF98D35C-6213-F443-EAEA-248AA9199493}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3contrib-python-jedi.vcxproj">
+      <Project>{F6465833-B229-2EDB-F19D-A5A2812C4DC5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.vcxproj">
       <Project>{C0B1676E-76CB-BDA2-96F5-D8D4080FBEA3}</Project>
