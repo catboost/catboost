@@ -3022,10 +3022,6 @@ class Cuda(object):
 
         self.peerdirs = ['build/platform/cuda']
 
-        self.nvcc_std = '-std=c++14'
-        if self.build.tc.type == 'msvc':
-            self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
-
         self.nvcc_flags = []
 
         if not self.have_cuda.value:
@@ -3067,7 +3063,6 @@ class Cuda(object):
 
         emit('NVCC_UNQUOTED', self.build.host.exe('$CUDA_ROOT', 'bin', 'nvcc'))
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
-        emit('NVCC_STD', self.nvcc_std)
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
         emit('NVCC_OBJ_EXT', '.o' if not self.build.target.is_windows else '.obj')
 
