@@ -3,6 +3,9 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# taxi/tools/dorblu is legacy tool, only hotfixes are made
+ALLOW taxi/tools/dorblu/lib -> contrib/restricted/boost/libs
+
 # scale_ipp filter for ffmpeg use Intel IPP hence it is nonfree
 ALLOW strm/cv/ffmpeg_adcv/toshik_filters -> contrib/restricted/ffmpeg-3-scale-ipp
 
