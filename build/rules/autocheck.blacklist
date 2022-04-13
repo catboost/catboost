@@ -1056,3 +1056,6 @@ market/ir/lib/zoofeeder
 market/ir/lib/sita-http-client
 passport/frontend/id
 intranet/lms
+commerce/expert-office
+commerce/expert-api
+commerce/expert-front
