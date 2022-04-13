@@ -1059,3 +1059,5 @@ intranet/lms
 commerce/expert-office
 commerce/expert-api
 commerce/expert-front
+data-ui/cloud-console
+trust/frontend/trust-frontend
