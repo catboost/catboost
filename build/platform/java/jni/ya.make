@@ -1,6 +1,11 @@
 LIBRARY()
 
 
+OPENSOURCE_EXPORT_REPLACEMENT(
+    CMAKE JNITarget
+    CMAKE_TARGET JNITarget::jni
+)
+
 PEERDIR(
     build/platform/java/jdk
     ${JDK_RESOURCE_PEERDIR}
