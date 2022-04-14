@@ -55,6 +55,7 @@ struct TGuid
 
     //! Copies an existing guid.
     TGuid(const TGuid& other) = default;
+    TGuid& operator=(const TGuid& other) = default;
 
     //! Checks if TGuid is zero.
     bool IsEmpty() const;
