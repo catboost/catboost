@@ -67,14 +67,22 @@
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
 
-- source_filter: "^contrib/libs/libidn"
+- source_filter: "^contrib/libs/libidn/"
   includes:
     - iconv.h:       contrib/libs/libidn/lib/gl/iconv.h
 
 - source_filter: "^contrib/libs/libidn2/"
   includes:
+    - alloca.h:  contrib/libs/libidn2/gl/alloca.h
     - error.h:  contrib/libs/libidn2/gl/error.h
-    - unistd.h: contrib/libs/libunistring/include/unistd.h
+    - fcntl.h: contrib/libs/libidn2/gl/fcntl.h
+    - limits.h: contrib/libs/libidn2/gl/limits.h
+    - stdio.h: contrib/libs/libidn2/gl/stdio.h
+    - string.h: contrib/libs/libidn2/gl/string.h
+    - sys/stat.h: contrib/libs/libidn2/gl/sys/stat.h
+    - sys/types.h: contrib/libs/libidn2/gl/sys/types.h
+    - time.h: contrib/libs/libidn2/gl/time.h
+    - unistd.h: contrib/libs/libidn2/gl/unistd.h
 
 # Same as libunistring - lftp has own libc header wrappers/replacements.
 # However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
