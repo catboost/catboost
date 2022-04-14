@@ -825,7 +825,6 @@ portal/archive/divcard
 portal/archive/smoothie
 trust/frontend/legacy/yb-frontend
 portal/wimg
-education/english/services/bell
 portal/archive/export-pusher
 portal/www-curl
 noc/heatmap/dashboards
@@ -1177,3 +1176,11 @@ admins/yandex-media-iptables-c-group
 admins/mongodb-consistent-backup
 admins/yabs-graphite-sender-config-corba
 admins/mysql-configurator-js
+admins/yandex-media-common-redis-slave-watcher
+admins/mysql-grants
+admins/yandex-media-s3cmd
+admins/mysql-dbcopier
+haas/bot/vintage/hd
+kinopoisk/sre/cfcalc
+kinopoisk/sre/kpmail
+haas/bot/vintage/eti

@@ -1917,7 +1917,6 @@ migrations:
     - infra/wall-e/sdk
     - infra/walle/server/tests/lib
     - infra/ya_salt/vendor/salt
-    - infra/yp/monitoring/pods_with_bad_ip
     - infra/yp/monitoring/tmp_account_monitoring
     - infra/yp_quota_distributor/app
     - intranet/audit/src
