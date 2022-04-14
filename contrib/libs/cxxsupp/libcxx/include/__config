@@ -133,6 +133,13 @@
 #  define _LIBCPP_ABI_ENABLE_UNIQUE_PTR_TRIVIAL_ABI
 // Enable clang::trivial_abi on std::shared_ptr and std::weak_ptr
 #  define _LIBCPP_ABI_ENABLE_SHARED_PTR_TRIVIAL_ABI
+// std::random_device holds some state when it uses an implementation that gets
+// entropy from a file (see _LIBCPP_USING_DEV_RANDOM). When switching from this
+// implementation to another one on a platform that has already shipped
+// std::random_device, one needs to retain the same object layout to remain ABI
+// compatible. This switch removes these workarounds for platforms that don't care
+// about ABI compatibility.
+#  define _LIBCPP_ABI_NO_RANDOM_DEVICE_COMPATIBILITY_LAYOUT
 #elif _LIBCPP_ABI_VERSION == 1
 #  if !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 // Enable compiling copies of now inline methods into the dylib to support
@@ -383,7 +390,7 @@
 //      Use rand_s(), for use on Windows.
 //      When this option is used, the token passed to `std::random_device`'s
 //      constructor *must* be "/dev/urandom" -- anything else is an error.
-#if defined(__OpenBSD__)
+#if defined(__OpenBSD__) || defined(__APPLE__)
 #  define _LIBCPP_USING_ARC4_RANDOM
 #elif defined(__wasi__)
 #  define _LIBCPP_USING_GETENTROPY
@@ -1481,6 +1488,28 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
     __attribute__((__format__(archetype, format_string_index, first_format_arg_index)))
 #else
 # define _LIBCPP_ATTRIBUTE_FORMAT(archetype, format_string_index, first_format_arg_index) /* nothing */
+#endif
+
+#if __has_cpp_attribute(msvc::no_unique_address)
+   // MSVC implements [[no_unique_address]] as a silent no-op currently.
+   // (If/when MSVC breaks its C++ ABI, it will be changed to work as intended.)
+   // However, MSVC implements [[msvc::no_unique_address]] which does what
+   // [[no_unique_address]] is supposed to do, in general.
+
+   // Clang-cl does not yet (14.0) implement either [[no_unique_address]] or
+   // [[msvc::no_unique_address]] though. If/when it does implement
+   // [[msvc::no_unique_address]], this should be preferred though.
+#  define _LIBCPP_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#elif __has_cpp_attribute(no_unique_address)
+#  define _LIBCPP_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#else
+#  define _LIBCPP_NO_UNIQUE_ADDRESS /* nothing */
+   // Note that this can be replaced by #error as soon as clang-cl
+   // implements msvc::no_unique_address, since there should be no C++20
+   // compiler that doesn't support one of the two attributes at that point.
+   // We geenrally don't want to use this macro outside of C++20-only code,
+   // because using it conditionally in one language version only would make
+   // the ABI inconsistent.
 #endif
 
 #endif // __cplusplus
