@@ -1269,3 +1269,8 @@ haas/user-scripts/release-tool
 haas/user-scripts/idash
 haas/user-scripts/cmis-dc-growth
 adv/pcode/web/ad-sdk-js
+testpers/balance_script
+testpers/disk-calls-zbp
+testpers/Honey-Logs-RestarterFront
+testpers/Honey-Logs-RestarterBack
+testpers/Honey-Logs-LogHandler
