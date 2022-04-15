@@ -1262,3 +1262,5 @@ haas/infra/docker-base-image
 practicum/messenger_tools
 haas/vendor/php/php-src
 classifieds/panoramas
+haas/user-scripts/umka2yt
+haas/user-scripts/users
