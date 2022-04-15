@@ -46,6 +46,7 @@ ci/registry
 market/front/apps
 classifieds/verticals-backend
 classifieds/schema-registry
+classifieds/realty
 devtools/experimental/repo/REPO-33/torture
 devtools/trendbox
 portal/frontend
@@ -1235,3 +1236,8 @@ data-ui/yfm-intranet-plugins
 classifieds/frontend-metro
 data-ui/wiki-yfm-converter
 haas/libs/js/angui
+practicum/packages/figa
+practicum/packages/praktikum-front-configs
+practicum/services/wrspracticum
+practicum/packages/sigma-e2e
+practicum/services/docs
