@@ -53,9 +53,6 @@ SRCS(
     src/stdlib_typeinfo.cpp
 )
 
-SRC_CPP_PIC(
-    src/cxa_thread_atexit.cpp
-    -fno-lto
-)
+SRC_CPP_PIC(src/cxa_thread_atexit.cpp -fno-lto)
 
 END()
