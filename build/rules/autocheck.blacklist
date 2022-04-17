@@ -1295,3 +1295,4 @@ haas/terminal-dc/frontend
 haas/terminal-dc/backend
 games/qa_tests
 data-ui/yt-docker-script
+adv/pcode/web/pcode
