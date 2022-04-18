@@ -5976,7 +5976,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1280154189],
+                "sandbox_id": [
+                    1280154189
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -7437,7 +7439,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1279645264,
+                "sandbox_id": 1281611333,
                 "match": "horadric"
             },
             "executable": {
@@ -7580,7 +7582,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1279642763,
+                "sandbox_id": 1281607303,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8234,7 +8236,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1279641720,
+                "sandbox_id": 1281620222,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8245,7 +8247,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1279646261,
+                "sandbox_id": 1281604345,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8267,7 +8269,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1279642386,
+                "sandbox_id": 1281597703,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8324,7 +8326,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1279645011,
+                "sandbox_id": 1281609342,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8335,7 +8337,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1278442087,
+                "sandbox_id": 1281609928,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8346,7 +8348,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1277955834,
+                "sandbox_id": 1281928412,
                 "match": "lama"
             },
             "executable": {
