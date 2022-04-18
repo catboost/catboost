@@ -138,6 +138,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpdecimal.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpsignal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\numbertheory.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -243,9 +246,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_operator.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_peg_parser.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_pickle.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -321,9 +321,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\overlapped.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\parsermodule.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\pyexpat.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -386,7 +383,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\transpose.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\typearith.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\umodarith.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\vccompat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\_iomodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\_iomodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\bufferedio.c.h"/>
@@ -397,7 +393,9 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\textio.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\winconsoleio.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_math.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\multiprocessing.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\posixshmem.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\semaphore.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\multiprocessing.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\clinic\sha3module.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakHash.h"/>
@@ -408,6 +406,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakSponge.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\SnP-Relaned.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\align.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl\clinic\cert.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_111.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_300.h"/>
@@ -434,6 +434,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_elementtree.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_hashopenssl.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_heapqmodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_localemodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_lsprof.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_lzmamodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_opcode.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_operator.c.h"/>
@@ -455,6 +457,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\itertoolsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\mathmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\md5module.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\overlapped.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\posixmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\pyexpat.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\selectmodule.c.h"/>
