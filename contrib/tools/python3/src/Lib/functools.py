@@ -236,14 +236,14 @@ _initial_missing = object()
 
 def reduce(function, sequence, initial=_initial_missing):
     """
-    reduce(function, sequence[, initial]) -> value
+    reduce(function, iterable[, initial]) -> value
 
-    Apply a function of two arguments cumulatively to the items of a sequence,
-    from left to right, so as to reduce the sequence to a single value.
-    For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+    Apply a function of two arguments cumulatively to the items of a sequence
+    or iterable, from left to right, so as to reduce the iterable to a single
+    value.  For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
     ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
-    of the sequence in the calculation, and serves as a default when the
-    sequence is empty.
+    of the iterable in the calculation, and serves as a default when the
+    iterable is empty.
     """
 
     it = iter(sequence)
@@ -252,7 +252,8 @@ def reduce(function, sequence, initial=_initial_missing):
         try:
             value = next(it)
         except StopIteration:
-            raise TypeError("reduce() of empty sequence with no initial value") from None
+            raise TypeError(
+                "reduce() of empty iterable with no initial value") from None
     else:
         value = initial
 
@@ -912,24 +913,11 @@ class singledispatchmethod:
         self.dispatcher = singledispatch(func)
         self.func = func
 
-        # bpo-45678: special-casing for classmethod/staticmethod in Python <=3.9,
-        # as functools.update_wrapper doesn't work properly in singledispatchmethod.__get__
-        # if it is applied to an unbound classmethod/staticmethod
-        if isinstance(func, (staticmethod, classmethod)):
-            self._wrapped_func = func.__func__
-        else:
-            self._wrapped_func = func
     def register(self, cls, method=None):
         """generic_method.register(cls, func) -> func
 
         Registers a new implementation for the given *cls* on a *generic_method*.
         """
-        # bpo-39679: in Python <= 3.9, classmethods and staticmethods don't
-        # inherit __annotations__ of the wrapped function (fixed in 3.10+ as
-        # a side-effect of bpo-43682) but we need that for annotation-derived
-        # singledispatches. So we add that just-in-time here.
-        if isinstance(cls, (staticmethod, classmethod)):
-            cls.__annotations__ = getattr(cls.__func__, '__annotations__', {})
         return self.dispatcher.register(cls, func=method)
 
     def __get__(self, obj, cls=None):
@@ -939,7 +927,7 @@ class singledispatchmethod:
 
         _method.__isabstractmethod__ = self.__isabstractmethod__
         _method.register = self.register
-        update_wrapper(_method, self._wrapped_func)
+        update_wrapper(_method, self.func)
         return _method
 
     @property

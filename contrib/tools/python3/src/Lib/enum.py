@@ -44,10 +44,11 @@ def _is_sunder(name):
 def _is_private(cls_name, name):
     # do not use `re` as `re` imports `enum`
     pattern = '_%s__' % (cls_name, )
+    pat_len = len(pattern)
     if (
-            len(name) >= 5
+            len(name) > pat_len
             and name.startswith(pattern)
-            and name[len(pattern)] != '_'
+            and name[pat_len:pat_len+1] != ['_']
             and (name[-1] != '_' or name[-2] != '_')
         ):
         return True
@@ -97,7 +98,7 @@ class _EnumDict(dict):
         if _is_private(self._cls_name, key):
             import warnings
             warnings.warn(
-                    "private variables, such as %r, will be normal attributes in 3.10"
+                    "private variables, such as %r, will be normal attributes in 3.11"
                         % (key, ),
                     DeprecationWarning,
                     stacklevel=2,
@@ -392,12 +393,19 @@ class EnumMeta(type):
                 start=start,
                 )
 
-    def __contains__(cls, member):
-        if not isinstance(member, Enum):
+    def __contains__(cls, obj):
+        if not isinstance(obj, Enum):
+            import warnings
+            warnings.warn(
+                    "in 3.12 __contains__ will no longer raise TypeError, but will return True if\n"
+                    "obj is a member or a member's value",
+                    DeprecationWarning,
+                    stacklevel=2,
+                    )
             raise TypeError(
                 "unsupported operand type(s) for 'in': '%s' and '%s'" % (
-                    type(member).__qualname__, cls.__class__.__qualname__))
-        return isinstance(member, cls) and member._name_ in cls._member_map_
+                    type(obj).__qualname__, cls.__class__.__qualname__))
+        return isinstance(obj, cls) and obj._name_ in cls._member_map_
 
     def __delattr__(cls, attr):
         # nicer error message when someone tries to delete an attribute
@@ -705,7 +713,8 @@ class Enum(metaclass=EnumMeta):
                             'error in %s._missing_: returned %r instead of None or a valid member'
                             % (cls.__name__, result)
                             )
-                exc.__context__ = ve_exc
+                if not isinstance(exc, ValueError):
+                    exc.__context__ = ve_exc
                 raise exc
         finally:
             # ensure all variables that could hold an exception are destroyed

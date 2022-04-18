@@ -544,10 +544,9 @@ class BaseEventLoop(events.AbstractEventLoop):
         closing_agens = list(self._asyncgens)
         self._asyncgens.clear()
 
-        results = await tasks._gather(
+        results = await tasks.gather(
             *[ag.aclose() for ag in closing_agens],
-            return_exceptions=True,
-            loop=self)
+            return_exceptions=True)
 
         for result, agen in zip(results, closing_agens):
             if isinstance(result, Exception):
@@ -979,7 +978,7 @@ class BaseEventLoop(events.AbstractEventLoop):
             happy_eyeballs_delay=None, interleave=None):
         """Connect to a TCP server.
 
-        Create a streaming transport connection to a given Internet host and
+        Create a streaming transport connection to a given internet host and
         port: socket family AF_INET or socket.AF_INET6 depending on host (or
         family if specified), socket type SOCK_STREAM. protocol_factory must be
         a callable returning a protocol instance.
@@ -1299,8 +1298,8 @@ class BaseEventLoop(events.AbstractEventLoop):
                 addr_infos = {}  # Using order preserving dict
                 for idx, addr in ((0, local_addr), (1, remote_addr)):
                     if addr is not None:
-                        if not (isinstance(addr, tuple) and len(addr) == 2):
-                            raise TypeError('2-tuple is expected')
+                        assert isinstance(addr, tuple) and len(addr) == 2, (
+                            '2-tuple is expected')
 
                         infos = await self._ensure_resolved(
                             addr, family=family, type=socket.SOCK_DGRAM,
@@ -1469,7 +1468,7 @@ class BaseEventLoop(events.AbstractEventLoop):
             fs = [self._create_server_getaddrinfo(host, port, family=family,
                                                   flags=flags)
                   for host in hosts]
-            infos = await tasks._gather(*fs, loop=self)
+            infos = await tasks.gather(*fs)
             infos = set(itertools.chain.from_iterable(infos))
 
             completed = False
@@ -1537,14 +1536,6 @@ class BaseEventLoop(events.AbstractEventLoop):
             self, protocol_factory, sock,
             *, ssl=None,
             ssl_handshake_timeout=None):
-        """Handle an accepted connection.
-
-        This is used by servers that accept connections outside of
-        asyncio but that use asyncio to handle connections.
-
-        This method is a coroutine.  When completed, the coroutine
-        returns a (transport, protocol) pair.
-        """
         if sock.type != socket.SOCK_STREAM:
             raise ValueError(f'A Stream Socket was expected, got {sock!r}')
 

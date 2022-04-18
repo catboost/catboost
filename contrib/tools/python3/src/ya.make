@@ -107,18 +107,13 @@ SRCS(
     Objects/typeobject.c
     Objects/unicodectype.c
     Objects/unicodeobject.c
+    Objects/unionobject.c
     Objects/weakrefobject.c
-    Parser/acceler.c
-    Parser/grammar1.c
-    Parser/listnode.c
     Parser/myreadline.c
-    Parser/node.c
     Parser/parser.c
-    Parser/parsetok.c
-    Parser/pegen/parse.c
-    Parser/pegen/parse_string.c
-    Parser/pegen/peg_api.c
-    Parser/pegen/pegen.c
+    Parser/peg_api.c
+    Parser/pegen.c
+    Parser/string_parser.c
     Parser/token.c
     Parser/tokenizer.c
     Python/Python-ast.c
@@ -147,7 +142,6 @@ SRCS(
     Python/getopt.c
     Python/getplatform.c
     Python/getversion.c
-    Python/graminit.c
     Python/hamt.c
     Python/hashtable.c
     Python/import.c
@@ -158,7 +152,6 @@ SRCS(
     Python/mysnprintf.c
     Python/mystrtoul.c
     Python/pathconfig.c
-    Python/peephole.c
     Python/preconfig.c
     Python/pyarena.c
     Python/pyctype.c
@@ -173,6 +166,7 @@ SRCS(
     Python/pythonrun.c
     Python/pytime.c
     Python/structmember.c
+    Python/suggestions.c
     Python/symtable.c
     Python/sysmodule.c
     Python/thread.c
