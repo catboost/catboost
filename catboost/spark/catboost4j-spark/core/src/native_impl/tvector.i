@@ -145,14 +145,14 @@ public:
 
 %define DECLARE_TVECTOR(NAME, CPPTYPE)
 
-    %catches(std::exception) TVector_##CPPTYPE::yresize(size_t new_size);
-    %catches(std::exception) TVector_##CPPTYPE::reserve(size_t new_cap);
-    %catches(std::out_of_range) TVector_##CPPTYPE::getImpl(jint index);
-    %catches(std::out_of_range) TVector_##CPPTYPE::sizeImpl() const;
-    %catches(std::exception) TVector_##CPPTYPE::addImpl(const T& element);
-    %catches(std::out_of_range) TVector_##CPPTYPE::addImpl(jint index, const T& element);
-    %catches(std::out_of_range) TVector_##CPPTYPE::removeImpl(jint index);
-    %catches(std::exception) TVector_##CPPTYPE::equalsImpl(const TVector_##CPPTYPE& rhs);
+    %catches(std::exception) NAME::yresize(size_t new_size);
+    %catches(std::exception) NAME::reserve(size_t new_cap);
+    %catches(std::out_of_range) NAME::getImpl(jint index);
+    %catches(std::out_of_range) NAME::sizeImpl() const;
+    %catches(std::exception) NAME::addImpl(const T& element);
+    %catches(std::out_of_range) NAME::addImpl(jint index, const T& element);
+    %catches(std::out_of_range) NAME::removeImpl(jint index);
+    %catches(std::exception) NAME::equalsImpl(const NAME& rhs);
 
     %template(NAME) TVector<CPPTYPE>;
 
