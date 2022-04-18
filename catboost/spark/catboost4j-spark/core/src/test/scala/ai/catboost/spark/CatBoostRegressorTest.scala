@@ -1519,4 +1519,67 @@ class CatBoostRegressorTest {
 
     TestHelpers.assertEqualsWithPrecision(pipelineModel.transform(df), loadedPipelineModel.transform(df))
   }
+
+  @Test
+  @throws(classOf[Exception])
+  def testSumModels() {
+    val spark = TestHelpers.getOrCreateSparkSession(TestHelpers.getCurrentMethodName)
+
+    val featureNames = Array[String]("f1", "f2", "f3")
+    val srcDataSchema = PoolTestHelpers.createSchema(
+      Seq(
+        ("features", SQLDataTypes.VectorType),
+        ("label", DoubleType)
+      ),
+      featureNames,
+      /*addFeatureNamesMetadata*/ true
+    )
+    
+    val srcData1 = Seq(
+      Row(Vectors.dense(0.1, 0.2, 0.11), 0.1),
+      Row(Vectors.dense(0.97, 0.82, 0.33), 0.12),
+      Row(Vectors.dense(0.13, 0.22, 0.23), 0.0),
+      Row(Vectors.dense(0.14, 0.18, 0.1), 0.2),
+      Row(Vectors.dense(0.9, 0.67, 0.17), 0.6),
+      Row(Vectors.dense(0.66, 0.1, 0.31), 0.3)
+    )
+
+    val df1 = spark.createDataFrame(spark.sparkContext.parallelize(srcData1), StructType(srcDataSchema))
+    
+    val srcData2 = Seq(
+      Row(Vectors.dense(0.12, 0.3, 0.0), 0.56),
+      Row(Vectors.dense(0.21, 0.77, 0.1), 0.11),
+      Row(Vectors.dense(0.98, 0.92, 0.0), 0.0),
+      Row(Vectors.dense(1.1, 0.0, 0.48), 0.22),
+      Row(Vectors.dense(0.45, 0.0, 0.87), 0.7),
+      Row(Vectors.dense(0.2, 0.22, 0.39), 1.1)
+    )
+
+    val df2 = spark.createDataFrame(spark.sparkContext.parallelize(srcData2), StructType(srcDataSchema))
+
+    val regressor1 = new CatBoostRegressor()
+      .setIterations(20)
+      .setTrainDir(temporaryFolder.newFolder("sumModels.regressor1").getPath)
+    val model1 = regressor1.fit(df1)
+
+    val regressor2 = new CatBoostRegressor()
+      .setIterations(25)
+      .setTrainDir(temporaryFolder.newFolder("sumModels.regresssor2").getPath)
+    val model2 = regressor2.fit(df2)
+
+    val modelWoWeights = CatBoostRegressionModel.sum(Array(model1, model2))
+
+    val predictionsWoWeights = modelWoWeights.transform(df1)
+
+    val modelWithUsualWeights = CatBoostRegressionModel.sum(Array(model1, model2), Array(1.0, 1.0))
+
+    val predictionsWithUsualWeights = modelWithUsualWeights.transform(df1)
+
+    TestHelpers.assertEqualsWithPrecision(predictionsWoWeights, predictionsWithUsualWeights)
+
+    val modelWithWeights = CatBoostRegressionModel.sum(Array(model1, model2), Array(2.0, 0.4))
+
+    val predictionsWithWeights = modelWithWeights.transform(df1)
+    predictionsWithWeights.show()
+  }
 }

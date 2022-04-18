@@ -195,6 +195,13 @@ public:
 
 TFullModel ReadModel(const TString& modelFile, EModelType format = EModelType::CatboostBinary);
 
+DECLARE_TVECTOR(TVector_const_TFullModel_ptr, const TFullModel*)
+
+%catches(yexception) SumModels(
+    const TVector<const TFullModel*> modelVector,
+    const TVector<double>& weights,
+    ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage);
+
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
