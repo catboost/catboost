@@ -5112,6 +5112,7 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
         return Type == EAucType::OneVsAll ? target[idx] == static_cast<double>(PositiveClass) : target[idx];
     };
 
+    TVector<NMetrics::TSample> samples;
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         auto startIdx = queriesInfo[queryIndex].Begin;
         auto endIdx = queriesInfo[queryIndex].End;
@@ -5119,7 +5120,7 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
         const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
 
         if (Type == EAucType::Ranking) {
-            TVector<NMetrics::TSample> samples;
+            samples.clear();
             samples.reserve(endIdx - startIdx);
             for (int i : xrange(startIdx, endIdx)) {
                 samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));

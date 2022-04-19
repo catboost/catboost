@@ -96,7 +96,7 @@ double CalcMuAuc(
     int threadCount,
     const TMaybe<TVector<TVector<double>>>& misclassCostMatrix
 ) {
-    NPar::TLocalExecutor localExecutor;
+    NPar::TLocalExecutor localExecutor; // TODO(espetrov): may be slow, if threadCount == 1
     localExecutor.RunAdditionalThreads(threadCount - 1);
     return CalcMuAuc(approx, target, weight, &localExecutor, misclassCostMatrix);
 }
