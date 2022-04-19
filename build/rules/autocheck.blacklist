@@ -1335,3 +1335,5 @@ classifieds/infra/goLB
 classifieds/infra/shiva-conf
 haas/einebox
 classifieds/nginx-tests
+practicum/services/jrunner
+classifieds/sphinx-configs
