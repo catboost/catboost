@@ -195,11 +195,13 @@ default:
   fit__profiler-log: catboost_profile.log
   error-function--RMSE: RMSE
   error-function__MultiRMSE: MultiRMSE
+  error-function__MultiRMSEWithMissingValues: MultiRMSEWithMissingValues
   error-function--R2: R2
   error-function__LLP: LogLikelihoodOfPrediction
   error-function__Tweedie: Tweedie
   error-function--MAE: MAE
   error-function__Huber: Huber
+  error-function__LogCosh: LogCosh
   error-function--Logit: Logloss
   error-function--Precision: Precision
   error-function--Recall: Recall
