@@ -1338,3 +1338,4 @@ classifieds/nginx-tests
 practicum/services/jrunner
 classifieds/sphinx-configs
 classifieds/php-cron
+classifieds/php-catalog-cron
