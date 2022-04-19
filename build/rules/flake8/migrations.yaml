@@ -261,19 +261,6 @@ migrations:
     - dict/ontodb/utils/string_utils
     - dict/ontodb/utils/support_words
     - dict/ontodb/utils/update_links
-    - dict/ontodb/wikicommon
-    - dict/ontodb/wikicommon/get_defin
-    - dict/ontodb/wikicommon/infobox
-    - dict/ontodb/wikicommon/link_to_ontoid
-    - dict/ontodb/wikicommon/on_add_short_defin
-    - dict/ontodb/wikicommon/on_build_card
-    - dict/ontodb/wikicommon/resource_files/wiki_fields
-    - dict/ontodb/wikicommon/text_mine_film_participants
-    - dict/ontodb/wikicommon/text_mine_interesting_facts
-    - dict/ontodb/wikicommon/text_mine_projects
-    - dict/ontodb/wikicommon/text_mine_sport_team_participants
-    - dict/ontodb/wikicommon/wiki
-    - dict/ontodb/wikicommon/wiki_syntax
     - dict/tools/find_synonym
     - disk/admin/monitors/common
     - disk/admin/robot_switcher
@@ -547,7 +534,6 @@ migrations:
     - rt-research/broadmatching/scripts/yt/catalogia_mapper
     - rt-research/broadmatching/scripts/yt/cdict_generator
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners
-    - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -705,7 +691,6 @@ migrations:
     - statbox/qb2
     - statbox/qb2/qb2_extensions/api/v1/extractors
     - statbox/qb2/qb2_extensions/api/v1/extractors/pool
-    - statbox/statkey/jam/jobs/cubes/desktop_installs/v2
     - strm/generate/lib/generate
     - sup/stat/find_pushes
     - talents/nlu/scripts/train/geoname
@@ -1034,7 +1019,6 @@ migrations:
     - robot/quality/samovar_conveyour/tools/get_samples
     - robot/quality/sendlink_conveyour/tools/max_rank_acceptance
     - robot/research/eval_nirvana_graph
-    - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/tools/jupyter
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
     - saas/tools/devops/check_backup
@@ -1172,7 +1156,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
     - passport/backend/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/bert/utils/fs
     - sandbox/projects/tycoon/TycoonAdverts
@@ -1520,7 +1503,6 @@ migrations:
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
     - passport/backend/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
     - quality/neural_net/bert/bert/utils/distributed
@@ -3297,7 +3279,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/app/pytest/medium
     - voicetech/asr/cloud_engine/server/stt/pytest/medium
     - weather/libs/secrets/tests
-    - weather/workers/apply/yt/apply/tests
     - weather/workers/common/location_indices/tests
     - yabs/indoor/tests
     - yabs/rmp/backend/tests/lib/zora
