@@ -1332,3 +1332,5 @@ education/schoolbook/services/enigma-certs-debug
 classifieds/autoru-frontend-sitemap
 classifieds/beggar-banker
 classifieds/infra/goLB
+classifieds/infra/shiva-conf
+haas/einebox
