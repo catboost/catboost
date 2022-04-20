@@ -551,6 +551,8 @@ items:
             name: get_baseline
           - href: concepts/python-reference_pool_get_cat_feature_indices.md
             name: get_cat_feature_indices
+          - href: concepts/python-reference_pool_get_embedding_feature_indices.md
+            name: get_embedding_feature_indices
           - href: concepts/python-reference_pool_get_features.md
             name: get_features
           - href: concepts/python-reference_pool_get_group_id.md
