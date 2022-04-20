@@ -1346,3 +1346,6 @@ distribution_interface/slices-new
 afisha/yaga/py
 market/logistics/fullfillment-frontend/wms-front
 classifieds/susanin
+haas/goscert/python-ipmiselparser
+haas/goscert/yandex-haas-ipmiproxy-doc
+haas/goscert/python-ipmiproxy

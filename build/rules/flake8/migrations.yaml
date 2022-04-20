@@ -1441,7 +1441,6 @@ migrations:
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
     - yabs/sbyt/ytstatcollector/advmachine/tests
     - yabs/server/cs/test/cs_import/yt_banner_with_history
-    - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
     - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107

@@ -16,3 +16,5 @@ scopes:
     - importcheck
   a.yandex-team.ru/strm:
     - importcheck
+  a.yandex-team.ru/browser/backend:
+    - sqlclosecheck
