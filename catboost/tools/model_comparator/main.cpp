@@ -96,7 +96,7 @@ public:
         }
         SortUnique(allKeys);
         bool equal = true;
-        for (const auto key : allKeys) {
+        for (const auto& key : allKeys) {
             equal &= AlmostEqual(name + '.' + key,
                                  a.Value(key, NJson::TJsonValue(NJson::EJsonValueType::JSON_NULL)),
                                  b.Value(key, NJson::TJsonValue(NJson::EJsonValueType::JSON_NULL)));
@@ -277,15 +277,15 @@ public:
         if (IsIgnored(name))
             return true;
         TVector<TString> allKeys;
-        for (const auto kv : a) {
+        for (const auto& kv : a) {
             allKeys.push_back(kv.first);
         }
-        for (const auto kv : b) {
+        for (const auto& kv : b) {
             allKeys.push_back(kv.first);
         }
         SortUnique(allKeys);
         bool equal = true;
-        for (const auto key : allKeys) {
+        for (const auto& key : allKeys) {
             TString nameKey = name + '.' + key;
             if (IsIgnored(nameKey))
                 continue;
