@@ -29,4 +29,5 @@ END()
 RECURSE(
     pycc
     src/Lib
+    src/Modules/_sqlite
 )
