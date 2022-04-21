@@ -56,16 +56,7 @@
   includes:
     - alloca.h:      contrib/libs/libunistring/alloca.h
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
-    - limits.h:      contrib/libs/libunistring/limits.h
-    - iconv.h:       contrib/libs/libunistring/iconv.h
-    - math.h:        contrib/libs/libunistring/math.h
     - minmax.h:      contrib/libs/libunistring/minmax.h
-    - stdlib.h:      contrib/libs/libunistring/stdlib.h
-    - string.h:      contrib/libs/libunistring/string.h
-    - sys/types.h:   contrib/libs/libunistring/sys/types.h
-    - unistd.h:      contrib/libs/libunistring/unistd.h
-    - wchar.h:       contrib/libs/libunistring/wchar.h
-    - wctype.h:      contrib/libs/libunistring/wctype.h
 
 - source_filter: "^contrib/libs/libidn/"
   includes:
