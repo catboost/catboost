@@ -1358,3 +1358,4 @@ data-ui/renovate-bot
 classifieds/vsdwh/mono
 noc/traffic/l3lb/check-tun
 classifieds/autoru-expert-auction-bot
+noc/traffic/l3lb/snmp-lvs-module
