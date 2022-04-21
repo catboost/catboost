@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\3bb5d42471d015e91f636714ec.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
@@ -89,11 +89,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,11 +108,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipdb
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp" "_6c75df66d9a48384d5905fd7ae=/py_modules/ipdb.__init__" "_404cddb1e11041fb7b0989df77=resfs/src//py_modules/ipdb.__init__" "_14d688afc518b626fdde199a22=/py_code/ipdb.__init__" "_cbca4247ba867c8133cf03c9f4=/py_modules/ipdb.__main__" "_5979fa9835ff6fdaef09c8c3e0=resfs/src//py_modules/ipdb.__main__" "_f3bece81c981c507eaabf57c35=/py_code/ipdb.__main__" "_e28c8407ba17b81f8306073b68=/py_modules/ipdb.stdout" "_be0d4c6a42ed2e3cd3d4fe18ea=resfs/src//py_modules/ipdb.stdout" "_56fde4ee4b5f15cc62982bf8e9=/py_code/ipdb.stdout"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp" "_8e847814b1550149984cda2fa9=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_e017846ff47b6b5f85aebdbd83=resfs/file/contrib/python/ipdb/.dist-info/METADATA" "_864bcd094894c2a3f28de0cf72=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_12371b35c4ff6341d283324ef4=resfs/file/contrib/python/ipdb/.dist-info/entry_points.txt" "_73cf9c25a12a486f5f4e9a0389=resfs/src/resfs/file/contrib/python/ipdb/.dist-info/top_level.txt" "_e0cd0ca751305ce72a5ecbc17e=resfs/file/contrib/python/ipdb/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp	$B/contrib/python/ipdb/3bb5d42471d015e91f636714ec.cpp	$B/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp	</Message>
+      <Message>$B/contrib/python/ipdb/0ea32455965b116c72de81ef52.cpp	$B/contrib/python/ipdb/4024bb01423c5270764f600f44.cpp	$B/contrib/python/ipdb/9ca8ffabc7df4a969881963434.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\3bb5d42471d015e91f636714ec.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\ipdb\0ea32455965b116c72de81ef52.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\4024bb01423c5270764f600f44.cpp;$(SolutionDir)$(Configuration)\contrib\python\ipdb\9ca8ffabc7df4a969881963434.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
