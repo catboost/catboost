@@ -1,4 +1,3 @@
----
 scopes:
   a.yandex-team.ru/cloud/mdb:
     - importcheck
@@ -17,8 +16,14 @@ scopes:
   a.yandex-team.ru/strm:
     - importcheck
   a.yandex-team.ru/strm/cacto:
-    - importcheck
+    - exhaustivestruct
+  a.yandex-team.ru/strm/media/gomsr:
+    - exhaustivestruct
   a.yandex-team.ru/strm/plgo:
+    - exhaustivestruct
+  a.yandex-team.ru/strm/ponger:
+    - exhaustivestruct
+  a.yandex-team.ru/strm/vybrator:
     - exhaustivestruct
   a.yandex-team.ru/strm/xaccelredirect:
     - exhaustivestruct
