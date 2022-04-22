@@ -25,4 +25,6 @@ CheckOptions:
     value: camelBack
   - key: readability-identifier-naming.PrivateMethodCase
     value: camelBack
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE
 
