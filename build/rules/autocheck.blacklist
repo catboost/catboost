@@ -670,6 +670,8 @@ classifieds/mobile-autoru-test-discover-ios
 market/front/libs/hermione-file-writer
 market/front/misc/microformats
 trust/trust
+classifieds/autoru-build-server
+classifieds/mobile-autoru-client-android
 classifieds/mobile-autoru-client-ios
 classifieds/mobile-realty-client-ios
 classifieds/mobile-realty-client-ios-buildscript
@@ -1401,3 +1403,4 @@ noc/traffic/dns/junk/dns-api
 adv/pcode/mobileadssdk/ios/sample-public
 noc/traffic/dns/junk/cc-core
 adv/pcode/mobileadssdk/ios/sample-internal
+adv/pcode/mobileadssdk/scripts
