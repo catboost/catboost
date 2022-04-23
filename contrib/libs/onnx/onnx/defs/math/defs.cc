@@ -2882,7 +2882,7 @@ bool BuildContextDependentFunctionBody(
       }
     }
   } else {
-    builder.Const1D("const_ignore_index", ctx.getAttribute("ignore_index")->i());
+    builder.Const1D("const_ignore_index", static_cast<int64_t>(ctx.getAttribute("ignore_index")->i()));
     builder.Add(R"(
       const_zero_target_typed = Sub (expanded_target, expanded_target)
       expanded_target_int64 = Cast <to = 7> (expanded_target)
