@@ -1445,7 +1445,6 @@ class GnuCompiler(Compiler):
                 '-Wno-deprecated-enum-float-conversion',
                 '-Wno-deprecated-volatile',
                 '-Wno-pessimizing-move',
-                '-Wno-range-loop-construct',
                 '-Wno-return-std-move',
                 '-Wno-undefined-var-template',
             ]
