@@ -41,6 +41,7 @@ DENY .* -> maps/libs/deprecated
 ALLOW .* -> maps/doc/proto
 
 # These libraries are allowed for general use
+ALLOW .* -> maps/libs/chrono
 ALLOW .* -> maps/libs/common
 ALLOW .* -> maps/libs/csv
 ALLOW .* -> maps/libs/enum_io

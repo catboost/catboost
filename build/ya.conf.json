@@ -8225,7 +8225,7 @@
         },
         "eductl": {
             "formula": {
-                "sandbox_id": 1267274359,
+                "sandbox_id": 1287048455,
                 "match": "eductl"
             },
             "executable": {
@@ -8348,7 +8348,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1286898155,
+                "sandbox_id": 1289458329,
                 "match": "lama"
             },
             "executable": {
