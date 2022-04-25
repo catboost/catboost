@@ -32,7 +32,8 @@ namespace {
 
         /* various */
         IsUserDefined                  = 1 << 8,
-        IsCombination                  = 1 << 9
+        IsCombination                  = 1 << 9,
+        HasGpuImplementation           = 1 << 10
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -134,9 +135,11 @@ namespace {
 MakeRegister(LossInfos,
     Registree(Logloss,
         EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(CtrFactor,
         EMetricAttribute::IsBinaryClassCompatible
@@ -155,6 +158,7 @@ MakeRegister(LossInfos,
     ),
     Registree(RMSE,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(LogCosh,
         EMetricAttribute::IsRegression),
@@ -163,24 +167,30 @@ MakeRegister(LossInfos,
     ),
     Registree(Lq,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MAE,
         EMetricAttribute::IsRegression
     ),
     Registree(Quantile,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(Expectile,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(LogLinQuantile,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MAPE,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(Poisson,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MSLE,
         EMetricAttribute::IsRegression
@@ -193,12 +203,15 @@ MakeRegister(LossInfos,
     ),
     Registree(Huber,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MultiClass,
         EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MultiClassOneVsAll,
         EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(MultiLogloss,
         EMetricAttribute::IsMultiLabelCompatible
@@ -210,11 +223,13 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
         | EMetricAttribute::IsPairwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(PairLogitPairwise, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
         | EMetricAttribute::IsPairwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(YetiRank, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
@@ -226,6 +241,7 @@ MakeRegister(LossInfos,
     ),
     RankingRegistree(QueryRMSE, ERankingType::AbsoluteValue,
         EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(QueryAUC, ERankingType::AbsoluteValue,
         EMetricAttribute::IsBinaryClassCompatible
@@ -235,6 +251,7 @@ MakeRegister(LossInfos,
     RankingRegistree(QuerySoftMax, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+        | EMetricAttribute::HasGpuImplementation
     ),
     RankingRegistree(QueryCrossEntropy, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
@@ -267,6 +284,7 @@ MakeRegister(LossInfos,
     ),
     Registree(NumErrors,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(FairLoss,
         EMetricAttribute::IsRegression
@@ -283,6 +301,7 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
         | EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(BalancedAccuracy,
         EMetricAttribute::IsBinaryClassCompatible
@@ -297,20 +316,24 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
         | EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(Recall,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
         | EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(F1,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
         | EMetricAttribute::IsMultiLabelCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(TotalF1,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(F,
         EMetricAttribute::IsBinaryClassCompatible
@@ -320,10 +343,12 @@ MakeRegister(LossInfos,
     Registree(MCC,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(ZeroOneLoss,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
+        | EMetricAttribute::HasGpuImplementation
     ),
     Registree(HammingLoss,
         EMetricAttribute::IsBinaryClassCompatible
@@ -403,6 +428,7 @@ MakeRegister(LossInfos,
     ),
     Registree(Tweedie,
         EMetricAttribute::IsRegression
+        | EMetricAttribute::HasGpuImplementation
     )
 )
 
@@ -719,6 +745,10 @@ bool IsUserDefined(ELossFunction loss) {
 bool IsUserDefined(TStringBuf metricName) {
     ELossFunction lossType = ParseLossType(metricName);
     return IsUserDefined(lossType);
+}
+
+bool HasGpuImplementation(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::HasGpuImplementation);
 }
 
 bool IsClassificationObjective(const TStringBuf lossDescription) {

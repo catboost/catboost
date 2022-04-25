@@ -1029,6 +1029,7 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '-m', output_model_path,
         '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
+        '--metric-period', '1'
     )
     fit_catboost_gpu(params)
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
@@ -1344,7 +1345,8 @@ def test_pairs_generation():
         '-m', output_model_path,
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
-        '--use-best-model', 'false'
+        '--use-best-model', 'false',
+        '--metric-period', '1'
     ]
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
@@ -1816,6 +1818,7 @@ def test_custom_loss_for_multiclassification():
         '--custom-metric': custom_metric_string,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--metric-period': '1',
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
@@ -1873,7 +1876,8 @@ def test_custom_loss_for_classification(boosting_type):
         '-m': model_path,
         '--custom-metric': custom_metric_string,
         '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path
+        '--test-err-log': test_error_path,
+        '--metric-period': '1',
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
@@ -2286,7 +2290,8 @@ def test_reg_targets(loss_function, boosting_type, custom_metric):
         '--counter-calc-method', 'SkipTest',
         '--custom-metric', custom_metric,
         '--test-err-log', test_error_path,
-        '--boosting-type', boosting_type
+        '--boosting-type', boosting_type,
+        '--metric-period', '1'
     ]
     fit_catboost_gpu(params)
 
@@ -2520,6 +2525,7 @@ def test_yetirank_default_metric(loss_function):
         '-i', '10',
         '-T', '4',
         '--test-err-log', test_error_path,
+        '--metric-period', '1'
     ]
 
     fit_catboost_gpu(params)
@@ -2583,6 +2589,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         '--test-err-log': test_error_path,
         '--eval-file': output_eval_path,
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
 
     if boosting_type != 'Default':
@@ -2762,6 +2769,7 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
         '--eval-file': test_eval_path,
         '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
     fit_catboost_gpu(params)
 
@@ -3002,6 +3010,7 @@ def test_fit_with_per_feature_text_options(boosting_type):
         '--eval-file': test_eval_path,
         '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
     fit_catboost_gpu(params)
 
@@ -3097,7 +3106,8 @@ def test_metric_description(dataset_has_weights):
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--eval-metric': eval_metric,
-        '--custom-metric': custom_metric
+        '--custom-metric': custom_metric,
+        '--metric-period': '1'
     }
     fit_catboost_gpu(params)
     for filename in [learn_error_path, test_error_path]:
@@ -3157,7 +3167,8 @@ def test_combination(boosting_type, loss_function):
         '-w': '0.01',
         '-T': '4',
         '--leaf-estimation-method': 'Newton',
-        '--leaf-estimation-iterations': '1'
+        '--leaf-estimation-iterations': '1',
+        '--metric-period': '1'
     }
 
     weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0'}
