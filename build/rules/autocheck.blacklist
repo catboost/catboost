@@ -46,7 +46,6 @@ ci/registry
 market/front/apps
 classifieds/verticals-backend
 classifieds/schema-registry
-classifieds/realty
 devtools/experimental/repo/REPO-33/torture
 devtools/trendbox
 devtools/workcopy-merger
@@ -1357,7 +1356,6 @@ haas/goscert/python-ipmiproxy
 classifieds/robot-vertis-jawa
 classifieds/s3edr
 classifieds/php
-noc/megaping
 classifieds/randomlunchbot
 data-ui/renovate-bot
 classifieds/vsdwh/mono
@@ -1410,3 +1408,4 @@ classifieds/cabinet
 bunker/nodejs-db-connector
 bunker/bunker-queue
 bunker/database
+haas/factory-packages
