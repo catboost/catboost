@@ -531,6 +531,9 @@
         },
         "vh3": {
             "description": "Run VH3 CLI"
+        },
+        "marketsre": {
+            "description": "Run Market SRE Cli"
         }
     },
     "toolchain": {
@@ -765,6 +768,41 @@
                 {
                     "host": {
                         "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "marketsre": {
+            "tools": {
+                "marketsre": {
+                    "bottle": "marketsre",
+                    "executable": "marketsre"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
                     },
                     "default": true
                 },
@@ -5976,7 +6014,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1288082423],
+                "sandbox_id": [
+                    1288082423
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -6032,7 +6072,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    1267570188
+                    1289767737
                 ],
                 "match": "arc"
             },
@@ -8346,7 +8386,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1289928571,
+                "sandbox_id": 1290980567,
                 "match": "lama"
             },
             "executable": {
@@ -8363,6 +8403,17 @@
             "executable": {
                 "vh3": [
                     "vh3"
+                ]
+            }
+        },
+        "marketsre": {
+            "formula": {
+                "sandbox_id": 1290085131,
+                "match": "marketsre"
+            },
+            "executable": {
+                "marketsre": [
+                    "marketsre"
                 ]
             }
         },
