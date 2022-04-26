@@ -59,11 +59,12 @@ Y_DECLARE_UNUSED static void FormatBackTraceTo(IOutputStream& out, const TBackTr
 
 void FormatCurrentExceptionTo(IOutputStream& out) {
     auto exceptionPtr = std::current_exception();
-    /*
-     * The lack of current exception indicates a logical bug in the client code.
-     * Do not make any attempts to workaround it, just panic and abort.
-     */
-    Y_VERIFY(exceptionPtr != nullptr, "there is no current exception");
+
+    if (Y_UNLIKELY(!exceptionPtr)) {
+        out << "(NO EXCEPTION)\n";
+        return;
+    }
+
 #ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
     TBackTrace backtrace = TBackTrace::FromCurrentException();
 #endif
