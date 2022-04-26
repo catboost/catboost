@@ -328,7 +328,7 @@ add_newdoc('numpy.core', 'nditer',
     ...     with it:
     ...         for (a, b, c) in it:
     ...             addop(a, b, out=c)
-    ...     return it.operands[2]
+    ...         return it.operands[2]
 
     Here is the same function, but following the C-style pattern:
 
@@ -478,7 +478,7 @@ add_newdoc('numpy.core', 'nditer', ('iternext',
 
 add_newdoc('numpy.core', 'nditer', ('remove_axis',
     """
-    remove_axis(i)
+    remove_axis(i, /)
 
     Removes axis `i` from the iterator. Requires that the flag "multi_index"
     be enabled.
@@ -504,6 +504,9 @@ add_newdoc('numpy.core', 'nditer', ('reset',
 
 add_newdoc('numpy.core', 'nested_iters',
     """
+    nested_iters(op, axes, flags=None, op_flags=None, op_dtypes=None, \
+    order="K", casting="safe", buffersize=0)
+
     Create nditers for use in nested loops
 
     Create a tuple of `nditer` objects which iterate in nested loops over
@@ -796,6 +799,8 @@ add_newdoc('numpy.core.multiarray', 'array',
     object : array_like
         An array, any object exposing the array interface, an object whose
         __array__ method returns an array, or any (nested) sequence.
+        If object is a scalar, a 0-dimensional array containing object is
+        returned.
     dtype : data-type, optional
         The desired data-type for the array.  If not given, then the type will
         be determined as the minimum type required to hold the objects in the
@@ -924,7 +929,7 @@ add_newdoc('numpy.core.multiarray', 'asarray',
         'F' column-major (Fortran-style) memory representation.
         'A' (any) means 'F' if `a` is Fortran contiguous, 'C' otherwise
         'K' (keep) preserve input order
-        Defaults to 'C'.
+        Defaults to 'K'.
     ${ARRAY_FUNCTION_LIKE}
 
         .. versionadded:: 1.20.0
@@ -1280,7 +1285,7 @@ add_newdoc('numpy.core.multiarray', 'set_typeDict',
 
 add_newdoc('numpy.core.multiarray', 'fromstring',
     """
-    fromstring(string, dtype=float, count=-1, sep='', *, like=None)
+    fromstring(string, dtype=float, count=-1, *, sep, like=None)
 
     A new 1-D array initialized from text data in a string.
 
@@ -1346,16 +1351,16 @@ add_newdoc('numpy.core.multiarray', 'fromstring',
 
 add_newdoc('numpy.core.multiarray', 'compare_chararrays',
     """
-    compare_chararrays(a, b, cmp_op, rstrip)
+    compare_chararrays(a1, a2, cmp, rstrip)
 
     Performs element-wise comparison of two string arrays using the
     comparison operator specified by `cmp_op`.
 
     Parameters
     ----------
-    a, b : array_like
+    a1, a2 : array_like
         Arrays to be compared.
-    cmp_op : {"<", "<=", "==", ">=", ">", "!="}
+    cmp : {"<", "<=", "==", ">=", ">", "!="}
         Type of comparison.
     rstrip : Boolean
         If True, the spaces at the end of Strings are removed before the comparison.
@@ -1536,6 +1541,10 @@ add_newdoc('numpy.core.multiarray', 'frombuffer',
 
         .. versionadded:: 1.20.0
 
+    Returns
+    -------
+    out : ndarray
+
     Notes
     -----
     If the buffer has data that is not in machine byte-order, this should
@@ -1564,6 +1573,19 @@ add_newdoc('numpy.core.multiarray', 'frombuffer',
         array_function_like_doc,
     ))
 
+add_newdoc('numpy.core.multiarray', '_from_dlpack',
+    """
+    _from_dlpack(x, /)
+
+    Create a NumPy array from an object implementing the ``__dlpack__``
+    protocol.
+
+    See Also
+    --------
+    `Array API documentation
+    <https://data-apis.org/array-api/latest/design_topics/data_interchange.html#syntax-for-data-interchange-with-dlpack>`_
+    """)
+
 add_newdoc('numpy.core', 'fastCopyAndTranspose',
     """_fastCopyAndTranspose(a)""")
 
@@ -1581,8 +1603,8 @@ add_newdoc('numpy.core.multiarray', 'arange',
     For integer arguments the function is equivalent to the Python built-in
     `range` function, but returns an ndarray rather than a list.
 
-    When using a non-integer step, such as 0.1, the results will often not
-    be consistent.  It is better to use `numpy.linspace` for these cases.
+    When using a non-integer step, such as 0.1, it is often better to use
+    `numpy.linspace`. See the warnings section below for more information.
 
     Parameters
     ----------
@@ -1614,6 +1636,25 @@ add_newdoc('numpy.core.multiarray', 'arange',
         ``ceil((stop - start)/step)``.  Because of floating point overflow,
         this rule may result in the last element of `out` being greater
         than `stop`.
+
+    Warnings
+    --------
+    The length of the output might not be numerically stable.
+
+    Another stability issue is due to the internal implementation of
+    `numpy.arange`.
+    The actual step value used to populate the array is
+    ``dtype(start + step) - dtype(start)`` and not `step`. Precision loss
+    can occur here, due to casting or due to using floating points when
+    `start` is much larger than `step`. This can lead to unexpected
+    behaviour. For example::
+
+      >>> np.arange(0, 5, 0.5, dtype=int)
+      array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+      >>> np.arange(-3, 3, 0.5, dtype=int)
+      array([-3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8])
+
+    In such cases, the use of `numpy.linspace` should be preferred.
 
     See Also
     --------
@@ -2176,8 +2217,8 @@ add_newdoc('numpy.core.multiarray', 'ndarray',
     empty : Create an array, but leave its allocated memory unchanged (i.e.,
             it contains "garbage").
     dtype : Create a data-type.
-    numpy.typing.NDArray : A :term:`generic <generic type>` version
-                           of ndarray.
+    numpy.typing.NDArray : An ndarray alias :term:`generic <generic type>`
+                           w.r.t. its `dtype.type <numpy.dtype.type>`.
 
     Notes
     -----
@@ -2235,6 +2276,15 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('__array_priority__',
 add_newdoc('numpy.core.multiarray', 'ndarray', ('__array_struct__',
     """Array protocol: C-struct side."""))
 
+add_newdoc('numpy.core.multiarray', 'ndarray', ('__dlpack__',
+    """a.__dlpack__(*, stream=None)
+    
+    DLPack Protocol: Part of the Array API."""))
+
+add_newdoc('numpy.core.multiarray', 'ndarray', ('__dlpack_device__',
+    """a.__dlpack_device__()
+    
+    DLPack Protocol: Part of the Array API."""))
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('base',
     """
@@ -2748,13 +2798,17 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('__array__',
 
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('__array_prepare__',
-    """a.__array_prepare__(obj) -> Object of same type as ndarray object obj.
+    """a.__array_prepare__(array[, context], /)
+
+    Returns a view of `array` with the same type as self.
 
     """))
 
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('__array_wrap__',
-    """a.__array_wrap__(obj) -> Object of same type as ndarray object a.
+    """a.__array_wrap__(array[, context], /)
+
+    Returns a view of `array` with the same type as self.
 
     """))
 
@@ -2765,6 +2819,39 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('__copy__',
     Used if :func:`copy.copy` is called on an array. Returns a copy of the array.
 
     Equivalent to ``a.copy(order='K')``.
+
+    """))
+
+
+add_newdoc('numpy.core.multiarray', 'ndarray', ('__class_getitem__',
+    """a.__class_getitem__(item, /)
+
+    Return a parametrized wrapper around the `~numpy.ndarray` type.
+
+    .. versionadded:: 1.22
+
+    Returns
+    -------
+    alias : types.GenericAlias
+        A parametrized `~numpy.ndarray` type.
+
+    Examples
+    --------
+    >>> from typing import Any
+    >>> import numpy as np
+
+    >>> np.ndarray[Any, np.dtype[Any]]
+    numpy.ndarray[typing.Any, numpy.dtype[typing.Any]]
+
+    Notes
+    -----
+    This method is only available for python 3.9 and later.
+
+    See Also
+    --------
+    :pep:`585` : Type hinting generics in standard collections.
+    numpy.typing.NDArray : An ndarray alias :term:`generic <generic type>`
+                        w.r.t. its `dtype.type <numpy.dtype.type>`.
 
     """))
 
@@ -3198,33 +3285,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('diagonal',
     """))
 
 
-add_newdoc('numpy.core.multiarray', 'ndarray', ('dot',
-    """
-    a.dot(b, out=None)
-
-    Dot product of two arrays.
-
-    Refer to `numpy.dot` for full documentation.
-
-    See Also
-    --------
-    numpy.dot : equivalent function
-
-    Examples
-    --------
-    >>> a = np.eye(2)
-    >>> b = np.ones((2, 2)) * 2
-    >>> a.dot(b)
-    array([[2.,  2.],
-           [2.,  2.]])
-
-    This array method can be conveniently chained:
-
-    >>> a.dot(b).dot(b)
-    array([[8.,  8.],
-           [8.,  8.]])
-
-    """))
+add_newdoc('numpy.core.multiarray', 'ndarray', ('dot'))
 
 
 add_newdoc('numpy.core.multiarray', 'ndarray', ('dump',
@@ -3249,7 +3310,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('dumps',
     a.dumps()
 
     Returns the pickle of the array as a string.
-    pickle.loads or numpy.loads will convert the string back to an array.
+    pickle.loads will convert the string back to an array.
 
     Parameters
     ----------
@@ -3538,7 +3599,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('newbyteorder',
         * 'S' - swap dtype from current to opposite endian
         * {'<', 'little'} - little endian
         * {'>', 'big'} - big endian
-        * '=' - native order, equivalent to `sys.byteorder`
+        * {'=', 'native'} - native order, equivalent to `sys.byteorder`
         * {'|', 'I'} - ignore (no change to byte order)
 
         The default value ('S') results in swapping the current
@@ -4005,6 +4066,9 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('partition',
         The order of all elements in the partitions is undefined.
         If provided with a sequence of kth it will partition all elements
         indexed by kth of them into their sorted position at once.
+
+        .. deprecated:: 1.22.0
+            Passing booleans as index is deprecated.
     axis : int, optional
         Axis along which to sort. Default is -1, which means sort along the
         last axis.
@@ -4471,7 +4535,7 @@ add_newdoc('numpy.core.multiarray', 'ndarray', ('view',
 
 add_newdoc('numpy.core.umath', 'frompyfunc',
     """
-    frompyfunc(func, nin, nout, *[, identity])
+    frompyfunc(func, /, nin, nout, *[, identity])
 
     Takes an arbitrary Python function and returns a NumPy ufunc.
 
@@ -4585,7 +4649,7 @@ add_newdoc('numpy.core.umath', 'geterrobj',
 
 add_newdoc('numpy.core.umath', 'seterrobj',
     """
-    seterrobj(errobj)
+    seterrobj(errobj, /)
 
     Set the object that defines floating-point error handling.
 
@@ -4683,6 +4747,26 @@ add_newdoc('numpy.core.umath', '_add_newdoc_ufunc',
     be a problem if the user is repeatedly creating ufuncs with
     no documentation, adding documentation via add_newdoc_ufunc,
     and then throwing away the ufunc.
+    """)
+
+add_newdoc('numpy.core.multiarray', 'get_handler_name',
+    """
+    get_handler_name(a: ndarray) -> str,None
+
+    Return the name of the memory handler used by `a`. If not provided, return
+    the name of the memory handler that will be used to allocate data for the
+    next `ndarray` in this context. May return None if `a` does not own its
+    memory, in which case you can traverse ``a.base`` for a memory handler.
+    """)
+
+add_newdoc('numpy.core.multiarray', 'get_handler_version',
+    """
+    get_handler_version(a: ndarray) -> int,None
+
+    Return the version of the memory handler used by `a`. If not provided,
+    return the version of the memory handler that will be used to allocate data
+    for the next `ndarray` in this context. May return None if `a` does not own
+    its memory, in which case you can traverse ``a.base`` for a memory handler.
     """)
 
 add_newdoc('numpy.core.multiarray', '_set_madvise_hugepage',
@@ -5998,7 +6082,7 @@ add_newdoc('numpy.core.multiarray', 'dtype', ('newbyteorder',
         * 'S' - swap dtype from current to opposite endian
         * {'<', 'little'} - little endian
         * {'>', 'big'} - big endian
-        * '=' - native order
+        * {'=', 'native'} - native order
         * {'|', 'I'} - ignore (no change to byte order)
 
     Returns
@@ -6041,6 +6125,97 @@ add_newdoc('numpy.core.multiarray', 'dtype', ('newbyteorder',
 
     """))
 
+add_newdoc('numpy.core.multiarray', 'dtype', ('__class_getitem__',
+    """
+    __class_getitem__(item, /)
+
+    Return a parametrized wrapper around the `~numpy.dtype` type.
+
+    .. versionadded:: 1.22
+
+    Returns
+    -------
+    alias : types.GenericAlias
+        A parametrized `~numpy.dtype` type.
+
+    Examples
+    --------
+    >>> import numpy as np
+
+    >>> np.dtype[np.int64]
+    numpy.dtype[numpy.int64]
+
+    Notes
+    -----
+    This method is only available for python 3.9 and later.
+
+    See Also
+    --------
+    :pep:`585` : Type hinting generics in standard collections.
+
+    """))
+
+add_newdoc('numpy.core.multiarray', 'dtype', ('__ge__',
+    """
+    __ge__(value, /)
+
+    Return ``self >= value``.
+
+    Equivalent to ``np.can_cast(value, self, casting="safe")``.
+
+    See Also
+    --------
+    can_cast : Returns True if cast between data types can occur according to
+               the casting rule.
+
+    """))
+
+add_newdoc('numpy.core.multiarray', 'dtype', ('__le__',
+    """
+    __le__(value, /)
+
+    Return ``self <= value``.
+
+    Equivalent to ``np.can_cast(self, value, casting="safe")``.
+
+    See Also
+    --------
+    can_cast : Returns True if cast between data types can occur according to
+               the casting rule.
+
+    """))
+
+add_newdoc('numpy.core.multiarray', 'dtype', ('__gt__',
+    """
+    __ge__(value, /)
+
+    Return ``self > value``.
+
+    Equivalent to
+    ``self != value and np.can_cast(value, self, casting="safe")``.
+
+    See Also
+    --------
+    can_cast : Returns True if cast between data types can occur according to
+               the casting rule.
+
+    """))
+
+add_newdoc('numpy.core.multiarray', 'dtype', ('__lt__',
+    """
+    __lt__(value, /)
+
+    Return ``self < value``.
+
+    Equivalent to
+    ``self != value and np.can_cast(self, value, casting="safe")``.
+
+    See Also
+    --------
+    can_cast : Returns True if cast between data types can occur according to
+               the casting rule.
+
+    """))
 
 ##############################################################################
 #
@@ -6369,7 +6544,7 @@ add_newdoc('numpy.core.numerictypes', 'generic', ('newbyteorder',
     * 'S' - swap dtype from current to opposite endian
     * {'<', 'little'} - little endian
     * {'>', 'big'} - big endian
-    * '=' - native order
+    * {'=', 'native'} - native order
     * {'|', 'I'} - ignore (no change to byte order)
 
     Parameters
@@ -6462,6 +6637,36 @@ add_newdoc('numpy.core.numerictypes', 'generic',
 add_newdoc('numpy.core.numerictypes', 'generic',
            refer_to_array_attribute('view'))
 
+add_newdoc('numpy.core.numerictypes', 'number', ('__class_getitem__',
+    """
+    __class_getitem__(item, /)
+
+    Return a parametrized wrapper around the `~numpy.number` type.
+
+    .. versionadded:: 1.22
+
+    Returns
+    -------
+    alias : types.GenericAlias
+        A parametrized `~numpy.number` type.
+
+    Examples
+    --------
+    >>> from typing import Any
+    >>> import numpy as np
+
+    >>> np.signedinteger[Any]
+    numpy.signedinteger[typing.Any]
+
+    Notes
+    -----
+    This method is only available for python 3.9 and later.
+
+    See Also
+    --------
+    :pep:`585` : Type hinting generics in standard collections.
+
+    """))
 
 ##############################################################################
 #

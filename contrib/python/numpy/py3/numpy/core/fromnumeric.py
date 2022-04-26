@@ -689,6 +689,9 @@ def partition(a, kth, axis=-1, kind='introselect', order=None):
         it. The order of all elements in the partitions is undefined. If
         provided with a sequence of k-th it will partition all elements
         indexed by k-th  of them into their sorted position at once.
+
+        .. deprecated:: 1.22.0
+            Passing booleans as index is deprecated.
     axis : int or None, optional
         Axis along which to sort. If None, the array is flattened before
         sorting. The default is -1, which sorts along the last axis.
@@ -781,6 +784,9 @@ def argpartition(a, kth, axis=-1, kind='introselect', order=None):
         elements in the partitions is undefined. If provided with a
         sequence of k-th it will partition all of them into their sorted
         position at once.
+
+        .. deprecated:: 1.22.0
+            Passing booleans as index is deprecated.
     axis : int or None, optional
         Axis along which to sort. The default is -1 (the last axis). If
         None, the flattened array is used.
@@ -1114,12 +1120,12 @@ def argsort(a, axis=-1, kind=None, order=None):
     return _wrapfunc(a, 'argsort', axis=axis, kind=kind, order=order)
 
 
-def _argmax_dispatcher(a, axis=None, out=None):
+def _argmax_dispatcher(a, axis=None, out=None, *, keepdims=np._NoValue):
     return (a, out)
 
 
 @array_function_dispatch(_argmax_dispatcher)
-def argmax(a, axis=None, out=None):
+def argmax(a, axis=None, out=None, *, keepdims=np._NoValue):
     """
     Returns the indices of the maximum values along an axis.
 
@@ -1133,12 +1139,20 @@ def argmax(a, axis=None, out=None):
     out : array, optional
         If provided, the result will be inserted into this array. It should
         be of the appropriate shape and dtype.
+    keepdims : bool, optional
+        If this is set to True, the axes which are reduced are left
+        in the result as dimensions with size one. With this option,
+        the result will broadcast correctly against the array.
+
+        .. versionadded:: 1.22.0
 
     Returns
     -------
     index_array : ndarray of ints
         Array of indices into the array. It has the same shape as `a.shape`
-        with the dimension along `axis` removed.
+        with the dimension along `axis` removed. If `keepdims` is set to True,
+        then the size of `axis` will be 1 with the resulting array having same
+        shape as `a.shape`.
 
     See Also
     --------
@@ -1183,24 +1197,31 @@ def argmax(a, axis=None, out=None):
 
     >>> x = np.array([[4,2,3], [1,0,3]])
     >>> index_array = np.argmax(x, axis=-1)
-    >>> # Same as np.max(x, axis=-1, keepdims=True)
+    >>> # Same as np.amax(x, axis=-1, keepdims=True)
     >>> np.take_along_axis(x, np.expand_dims(index_array, axis=-1), axis=-1)
     array([[4],
            [3]])
-    >>> # Same as np.max(x, axis=-1)
+    >>> # Same as np.amax(x, axis=-1)
     >>> np.take_along_axis(x, np.expand_dims(index_array, axis=-1), axis=-1).squeeze(axis=-1)
     array([4, 3])
 
+    Setting `keepdims` to `True`,
+
+    >>> x = np.arange(24).reshape((2, 3, 4))
+    >>> res = np.argmax(x, axis=1, keepdims=True)
+    >>> res.shape
+    (2, 1, 4)
     """
-    return _wrapfunc(a, 'argmax', axis=axis, out=out)
+    kwds = {'keepdims': keepdims} if keepdims is not np._NoValue else {}
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
 
 
-def _argmin_dispatcher(a, axis=None, out=None):
+def _argmin_dispatcher(a, axis=None, out=None, *, keepdims=np._NoValue):
     return (a, out)
 
 
 @array_function_dispatch(_argmin_dispatcher)
-def argmin(a, axis=None, out=None):
+def argmin(a, axis=None, out=None, *, keepdims=np._NoValue):
     """
     Returns the indices of the minimum values along an axis.
 
@@ -1214,12 +1235,20 @@ def argmin(a, axis=None, out=None):
     out : array, optional
         If provided, the result will be inserted into this array. It should
         be of the appropriate shape and dtype.
+    keepdims : bool, optional
+        If this is set to True, the axes which are reduced are left
+        in the result as dimensions with size one. With this option,
+        the result will broadcast correctly against the array.
+
+        .. versionadded:: 1.22.0
 
     Returns
     -------
     index_array : ndarray of ints
         Array of indices into the array. It has the same shape as `a.shape`
-        with the dimension along `axis` removed.
+        with the dimension along `axis` removed. If `keepdims` is set to True,
+        then the size of `axis` will be 1 with the resulting array having same
+        shape as `a.shape`.
 
     See Also
     --------
@@ -1264,16 +1293,23 @@ def argmin(a, axis=None, out=None):
 
     >>> x = np.array([[4,2,3], [1,0,3]])
     >>> index_array = np.argmin(x, axis=-1)
-    >>> # Same as np.min(x, axis=-1, keepdims=True)
+    >>> # Same as np.amin(x, axis=-1, keepdims=True)
     >>> np.take_along_axis(x, np.expand_dims(index_array, axis=-1), axis=-1)
     array([[2],
            [0]])
-    >>> # Same as np.max(x, axis=-1)
+    >>> # Same as np.amax(x, axis=-1)
     >>> np.take_along_axis(x, np.expand_dims(index_array, axis=-1), axis=-1).squeeze(axis=-1)
     array([2, 0])
 
+    Setting `keepdims` to `True`,
+
+    >>> x = np.arange(24).reshape((2, 3, 4))
+    >>> res = np.argmin(x, axis=1, keepdims=True)
+    >>> res.shape
+    (2, 1, 4)
     """
-    return _wrapfunc(a, 'argmin', axis=axis, out=out)
+    kwds = {'keepdims': keepdims} if keepdims is not np._NoValue else {}
+    return _wrapfunc(a, 'argmin', axis=axis, out=out, **kwds)
 
 
 def _searchsorted_dispatcher(a, v, side=None, sorter=None):
@@ -1318,8 +1354,9 @@ def searchsorted(a, v, side='left', sorter=None):
 
     Returns
     -------
-    indices : array of ints
-        Array of insertion points with the same shape as `v`.
+    indices : int or array of ints
+        Array of insertion points with the same shape as `v`,
+        or an integer if `v` is a scalar.
 
     See Also
     --------
@@ -1381,9 +1418,9 @@ def resize(a, new_shape):
 
     See Also
     --------
-    np.reshape : Reshape an array without changing the total size.
-    np.pad : Enlarge and pad an array.
-    np.repeat : Repeat elements of an array.
+    numpy.reshape : Reshape an array without changing the total size.
+    numpy.pad : Enlarge and pad an array.
+    numpy.repeat : Repeat elements of an array.
     ndarray.resize : resize an array in-place.
 
     Notes
@@ -2088,9 +2125,9 @@ def clip(a, a_min, a_max, out=None, **kwargs):
 
     Notes
     -----
-    When `a_min` is greater than `a_max`, `clip` returns an 
-    array in which all values are equal to `a_max`, 
-    as shown in the second example.  
+    When `a_min` is greater than `a_max`, `clip` returns an
+    array in which all values are equal to `a_max`,
+    as shown in the second example.
 
     Examples
     --------
@@ -2525,7 +2562,7 @@ def cumsum(a, axis=None, dtype=None, out=None):
     >>> b = np.array([1, 2e-9, 3e-9] * 1000000)
     >>> b.cumsum()[-1]
     1000000.0050045159
-    >>> b.sum()                    
+    >>> b.sum()
     1000000.0050000029
 
     """
@@ -2739,14 +2776,14 @@ def amax(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
     You can use an initial value to compute the maximum of an empty slice, or
     to initialize it to a different value:
 
-    >>> np.max([[-50], [10]], axis=-1, initial=0)
+    >>> np.amax([[-50], [10]], axis=-1, initial=0)
     array([ 0, 10])
 
     Notice that the initial value is used as one of the elements for which the
     maximum is determined, unlike for the default argument Python's max
     function, which is only used for empty iterables.
 
-    >>> np.max([5], initial=6)
+    >>> np.amax([5], initial=6)
     6
     >>> max([5], default=6)
     5
@@ -2862,7 +2899,7 @@ def amin(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
     >>> np.nanmin(b)
     0.0
 
-    >>> np.min([[-50], [10]], axis=-1, initial=0)
+    >>> np.amin([[-50], [10]], axis=-1, initial=0)
     array([-50,   0])
 
     Notice that the initial value is used as one of the elements for which the
@@ -2871,7 +2908,7 @@ def amin(a, axis=None, out=None, keepdims=np._NoValue, initial=np._NoValue,
 
     Notice that this isn't the same as Python's ``default`` argument.
 
-    >>> np.min([6], initial=5)
+    >>> np.amin([6], initial=5)
     5
     >>> min([6], default=5)
     6
@@ -3293,18 +3330,15 @@ def around(a, decimals=0, out=None):
     ----------
     .. [1] "Lecture Notes on the Status of IEEE 754", William Kahan,
            https://people.eecs.berkeley.edu/~wkahan/ieee754status/IEEE754.PDF
-    .. [2] "How Futile are Mindless Assessments of
-           Roundoff in Floating-Point Computation?", William Kahan,
-           https://people.eecs.berkeley.edu/~wkahan/Mindless.pdf
 
     Examples
     --------
     >>> np.around([0.37, 1.64])
-    array([0.,  2.])
+    array([0., 2.])
     >>> np.around([0.37, 1.64], decimals=1)
-    array([0.4,  1.6])
+    array([0.4, 1.6])
     >>> np.around([.5, 1.5, 2.5, 3.5, 4.5]) # rounds to nearest even value
-    array([0.,  2.,  2.,  4.,  4.])
+    array([0., 2., 2., 4., 4.])
     >>> np.around([1,2,3,11], decimals=1) # ndarray of ints is returned
     array([ 1,  2,  3, 11])
     >>> np.around([1,2,3,11], decimals=-1)

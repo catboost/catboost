@@ -1,14 +1,14 @@
 --- contrib/python/numpy/py3/numpy/core/src/multiarray/compiled_base.c	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/multiarray/compiled_base.c	(working tree)
-@@ -13,7 +13,7 @@
+@@ -14,7 +14,7 @@
  #include "alloc.h"
  #include "ctors.h"
  #include "common.h"
 -#include "simd/simd.h"
 +#include "contrib/python/numpy/py3/numpy/core/src/common/simd/simd.h"
  
- typedef enum {
-     PACK_ORDER_LITTLE = 0,
+ #include <string.h>
+ 
 --- contrib/python/numpy/py3/numpy/core/src/multiarray/einsum_sumprod.c	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/multiarray/einsum_sumprod.c	(working tree)
 @@ -27,7 +27,7 @@
@@ -77,7 +77,7 @@
  /*
 --- contrib/python/numpy/py3/numpy/core/src/umath/loops_unary_fp.dispatch.c	(index)
 +++ contrib/python/numpy/py3/numpy/core/src/umath/loops_unary_fp.dispatch.c	(working tree)
-@@ -20,7 +20,7 @@
+@@ -22,7 +22,7 @@
  */
  #define NPY_SIMD_FORCE_128
  #include "numpy/npy_math.h"
@@ -97,3 +97,14 @@
  
  #if NPY_SIMD
  /************************************
+--- contrib/python/numpy/py3/numpy/core/src/umath/loops_umath_fp.dispatch.c	(index)
++++ contrib/python/numpy/py3/numpy/core/src/umath/loops_umath_fp.dispatch.c	(working tree)
+@@ -12,7 +12,7 @@
+  ** $maxopt baseline avx512_skx
+  */
+ #include "numpy/npy_math.h"
+-#include "simd/simd.h"
++#include "contrib/python/numpy/py3/numpy/core/src/common/simd/simd.h"
+ #include "loops_utils.h"
+ #include "loops.h"
+ #include "npy_svml.h"

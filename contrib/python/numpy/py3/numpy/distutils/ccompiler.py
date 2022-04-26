@@ -21,10 +21,10 @@ from numpy.distutils import log
 from numpy.distutils.exec_command import (
     filepath_from_subprocess_output, forward_bytes_to_stdout
 )
-from numpy.distutils.misc_util import (
-        cyg2win32, is_sequence, mingw32, get_num_build_jobs,
-        _commandline_dep_string, sanitize_cxx_flags
-)
+from numpy.distutils.misc_util import cyg2win32, is_sequence, mingw32, \
+                                      get_num_build_jobs, \
+                                      _commandline_dep_string, \
+                                      sanitize_cxx_flags
 
 # globals for parallel build management
 import threading
@@ -109,7 +109,7 @@ replace_method(CCompiler, 'find_executables', CCompiler_find_executables)
 
 
 # Using customized CCompiler.spawn.
-def CCompiler_spawn(self, cmd, display=None):
+def CCompiler_spawn(self, cmd, display=None, env=None):
     """
     Execute a command in a sub-process.
 
@@ -120,6 +120,7 @@ def CCompiler_spawn(self, cmd, display=None):
     display : str or sequence of str, optional
         The text to add to the log file kept by `numpy.distutils`.
         If not given, `display` is equal to `cmd`.
+    env: a dictionary for environment variables, optional
 
     Returns
     -------
@@ -131,6 +132,7 @@ def CCompiler_spawn(self, cmd, display=None):
         If the command failed, i.e. the exit status was not 0.
 
     """
+    env = env if env is not None else dict(os.environ)
     if display is None:
         display = cmd
         if is_sequence(display):
@@ -138,9 +140,9 @@ def CCompiler_spawn(self, cmd, display=None):
     log.info(display)
     try:
         if self.verbose:
-            subprocess.check_output(cmd)
+            subprocess.check_output(cmd, env=env)
         else:
-            subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            subprocess.check_output(cmd, stderr=subprocess.STDOUT, env=env)
     except subprocess.CalledProcessError as exc:
         o = exc.output
         s = exc.returncode
@@ -265,9 +267,6 @@ def CCompiler_compile(self, sources, output_dir=None, macros=None,
         If compilation fails.
 
     """
-    # This method is effective only with Python >=2.3 distutils.
-    # Any changes here should be applied also to fcompiler.compile
-    # method to support pre Python 2.3 distutils.
     global _job_semaphore
 
     jobs = get_num_build_jobs()
@@ -356,10 +355,9 @@ def CCompiler_compile(self, sources, output_dir=None, macros=None,
 
     if len(build) > 1 and jobs > 1:
         # build parallel
-        import multiprocessing.pool
-        pool = multiprocessing.pool.ThreadPool(jobs)
-        pool.map(single_compile, build_items)
-        pool.close()
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(jobs) as pool:
+            pool.map(single_compile, build_items)
     else:
         # build serial
         for o in build_items:
@@ -395,7 +393,8 @@ def CCompiler_customize_cmd(self, cmd, ignore=()):
     if hasattr(self, 'compiler') and 'clang' in self.compiler[0]:
         # clang defaults to a non-strict floating error point model.
         # Since NumPy and most Python libs give warnings for these, override:
-        self.compiler.append('-ffp-exception-behavior=strict')
+        self.compiler.append('-ftrapping-math')
+        self.compiler_so.append('-ftrapping-math')
 
     def allow(attr):
         return getattr(cmd, attr, None) is not None and attr not in ignore
@@ -686,7 +685,6 @@ def CCompiler_cxx_compiler(self):
     cxx.compiler_cxx = cxx.compiler_cxx
     cxx.compiler_so = [cxx.compiler_cxx[0]] + \
                       sanitize_cxx_flags(cxx.compiler_so[1:])
-    #cxx.compiler_so = [cxx.compiler_cxx[0]] + cxx.compiler_so[1:]
     if sys.platform.startswith('aix') and 'ld_so_aix' in cxx.linker_so[0]:
         # AIX needs the ld_so_aix script included with Python
         cxx.linker_so = [cxx.linker_so[0], cxx.compiler_cxx[0]] \
@@ -709,6 +707,9 @@ compiler_class['intelemw'] = ('intelccompiler', 'IntelEM64TCCompilerW',
                               "Intel C Compiler for 64-bit applications on Windows")
 compiler_class['pathcc'] = ('pathccompiler', 'PathScaleCCompiler',
                             "PathScale Compiler for SiCortex-based applications")
+compiler_class['arm'] = ('armccompiler', 'ArmCCompiler',
+                            "Arm C Compiler")
+
 ccompiler._default_compilers += (('linux.*', 'intel'),
                                  ('linux.*', 'intele'),
                                  ('linux.*', 'intelem'),

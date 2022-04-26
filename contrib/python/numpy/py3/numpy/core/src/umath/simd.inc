@@ -226,8 +226,6 @@ run_binary_avx512f_maximum_FLOAT(char **args, npy_intp const *dimensions, npy_in
     return 0;
 }
 
-
-
 #line 100
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
@@ -248,7 +246,6 @@ run_binary_avx512f_minimum_FLOAT(char **args, npy_intp const *dimensions, npy_in
 #endif
     return 0;
 }
-
 
 
 
@@ -275,8 +272,6 @@ run_binary_avx512f_maximum_DOUBLE(char **args, npy_intp const *dimensions, npy_i
     return 0;
 }
 
-
-
 #line 100
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
@@ -297,7 +292,6 @@ run_binary_avx512f_minimum_DOUBLE(char **args, npy_intp const *dimensions, npy_i
 #endif
     return 0;
 }
-
 
 
 
@@ -324,8 +318,6 @@ run_binary_avx512f_maximum_LONGDOUBLE(char **args, npy_intp const *dimensions, n
     return 0;
 }
 
-
-
 #line 100
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 0
@@ -350,10 +342,9 @@ run_binary_avx512f_minimum_LONGDOUBLE(char **args, npy_intp const *dimensions, n
 
 
 
+#line 128
 
-#line 129
-
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -377,7 +368,7 @@ run_isnan_avx512_skx_FLOAT(char **args, npy_intp const *dimensions, npy_intp con
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -401,7 +392,7 @@ run_isfinite_avx512_skx_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -425,7 +416,7 @@ run_isinf_avx512_skx_FLOAT(char **args, npy_intp const *dimensions, npy_intp con
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -450,9 +441,9 @@ run_signbit_avx512_skx_FLOAT(char **args, npy_intp const *dimensions, npy_intp c
 
 
 
-#line 129
+#line 128
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -476,7 +467,7 @@ run_isnan_avx512_skx_DOUBLE(char **args, npy_intp const *dimensions, npy_intp co
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -500,7 +491,7 @@ run_isfinite_avx512_skx_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -524,7 +515,7 @@ run_isinf_avx512_skx_DOUBLE(char **args, npy_intp const *dimensions, npy_intp co
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 1
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -549,9 +540,9 @@ run_signbit_avx512_skx_DOUBLE(char **args, npy_intp const *dimensions, npy_intp 
 
 
 
-#line 129
+#line 128
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 0
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -575,7 +566,7 @@ run_isnan_avx512_skx_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_int
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 0
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -599,7 +590,7 @@ run_isfinite_avx512_skx_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 0
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -623,7 +614,7 @@ run_isinf_avx512_skx_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_int
 
 
 
-#line 133
+#line 132
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS && 0
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
@@ -649,13 +640,13 @@ run_signbit_avx512_skx_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_i
 
 
 
-#line 164
+#line 163
 
 /* prototypes */
 
-#line 171
+#line 170
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -677,7 +668,7 @@ run_unary_fma_rint_FLOAT(char **args, npy_intp const *dimensions, npy_intp const
 }
 
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -699,29 +690,7 @@ run_unary_fma_floor_FLOAT(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 175
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-static NPY_INLINE NPY_GCC_TARGET_FMA void
-FMA_ceil_FLOAT(npy_float *, npy_float *, const npy_intp n, const npy_intp stride);
-#endif
-
-static NPY_INLINE int
-run_unary_fma_ceil_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_OUTPUT_BLOCKABLE_UNARY(sizeof(npy_float), sizeof(npy_float), 32)) {
-        FMA_ceil_FLOAT((npy_float*)args[1], (npy_float*)args[0], dimensions[0], steps[0]);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -744,9 +713,9 @@ run_unary_fma_trunc_FLOAT(char **args, npy_intp const *dimensions, npy_intp cons
 
 
 
-#line 171
+#line 170
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -768,7 +737,7 @@ run_unary_fma_rint_DOUBLE(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -790,29 +759,7 @@ run_unary_fma_floor_DOUBLE(char **args, npy_intp const *dimensions, npy_intp con
 }
 
 
-#line 175
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-static NPY_INLINE NPY_GCC_TARGET_FMA void
-FMA_ceil_DOUBLE(npy_double *, npy_double *, const npy_intp n, const npy_intp stride);
-#endif
-
-static NPY_INLINE int
-run_unary_fma_ceil_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_OUTPUT_BLOCKABLE_UNARY(sizeof(npy_double), sizeof(npy_double), 32)) {
-        FMA_ceil_DOUBLE((npy_double*)args[1], (npy_double*)args[0], dimensions[0], steps[0]);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_FMA void
@@ -836,13 +783,13 @@ run_unary_fma_trunc_DOUBLE(char **args, npy_intp const *dimensions, npy_intp con
 
 
 
-#line 164
+#line 163
 
 /* prototypes */
 
-#line 171
+#line 170
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -864,7 +811,7 @@ run_unary_avx512f_rint_FLOAT(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -886,29 +833,7 @@ run_unary_avx512f_floor_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 }
 
 
-#line 175
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-static NPY_INLINE NPY_GCC_TARGET_AVX512F void
-AVX512F_ceil_FLOAT(npy_float *, npy_float *, const npy_intp n, const npy_intp stride);
-#endif
-
-static NPY_INLINE int
-run_unary_avx512f_ceil_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_OUTPUT_BLOCKABLE_UNARY(sizeof(npy_float), sizeof(npy_float), 64)) {
-        AVX512F_ceil_FLOAT((npy_float*)args[1], (npy_float*)args[0], dimensions[0], steps[0]);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -931,9 +856,9 @@ run_unary_avx512f_trunc_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 
 
 
-#line 171
+#line 170
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -955,7 +880,7 @@ run_unary_avx512f_rint_DOUBLE(char **args, npy_intp const *dimensions, npy_intp 
 }
 
 
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -977,29 +902,7 @@ run_unary_avx512f_floor_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 }
 
 
-#line 175
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-static NPY_INLINE NPY_GCC_TARGET_AVX512F void
-AVX512F_ceil_DOUBLE(npy_double *, npy_double *, const npy_intp n, const npy_intp stride);
-#endif
-
-static NPY_INLINE int
-run_unary_avx512f_ceil_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_OUTPUT_BLOCKABLE_UNARY(sizeof(npy_double), sizeof(npy_double), 64)) {
-        AVX512F_ceil_DOUBLE((npy_double*)args[1], (npy_double*)args[0], dimensions[0], steps[0]);
-        return 1;
-    }
-    else
-        return 0;
-#endif
-    return 0;
-}
-
-
-#line 175
+#line 174
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -1024,32 +927,9 @@ run_unary_avx512f_trunc_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 
 
 
-#line 206
+#line 205
 
-#line 212
-
-#if 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_absolute_FLOAT(npy_float *, npy_float *, const npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_unary_simd_absolute_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_BLOCKABLE_UNARY(sizeof(npy_float), VECTOR_SIZE_BYTES)) {
-        sse2_absolute_FLOAT((npy_float*)args[1], (npy_float*)args[0], dimensions[0]);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1072,7 +952,7 @@ run_unary_simd_negative_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 }
 
 
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1095,7 +975,7 @@ run_unary_reduce_simd_minimum_FLOAT(char **args, npy_intp const *dimensions, npy
 }
 
 
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1119,7 +999,7 @@ run_unary_reduce_simd_maximum_FLOAT(char **args, npy_intp const *dimensions, npy
 
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1163,7 +1043,7 @@ run_binary_simd_equal_FLOAT(char **args, npy_intp const *dimensions, npy_intp co
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1207,7 +1087,7 @@ run_binary_simd_not_equal_FLOAT(char **args, npy_intp const *dimensions, npy_int
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1251,7 +1131,7 @@ run_binary_simd_less_FLOAT(char **args, npy_intp const *dimensions, npy_intp con
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1295,7 +1175,7 @@ run_binary_simd_less_equal_FLOAT(char **args, npy_intp const *dimensions, npy_in
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1339,7 +1219,7 @@ run_binary_simd_greater_FLOAT(char **args, npy_intp const *dimensions, npy_intp 
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1383,7 +1263,7 @@ run_binary_simd_greater_equal_FLOAT(char **args, npy_intp const *dimensions, npy
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1427,7 +1307,7 @@ run_binary_simd_logical_and_FLOAT(char **args, npy_intp const *dimensions, npy_i
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1472,7 +1352,7 @@ run_binary_simd_logical_or_FLOAT(char **args, npy_intp const *dimensions, npy_in
 
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1495,7 +1375,7 @@ run_isnan_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *st
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1518,7 +1398,7 @@ run_isfinite_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const 
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1541,7 +1421,7 @@ run_isinf_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *st
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1566,32 +1446,9 @@ run_signbit_simd_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *
 
 
 
-#line 206
+#line 205
 
-#line 212
-
-#if 1 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_absolute_DOUBLE(npy_double *, npy_double *, const npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_unary_simd_absolute_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 1 && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_BLOCKABLE_UNARY(sizeof(npy_double), VECTOR_SIZE_BYTES)) {
-        sse2_absolute_DOUBLE((npy_double*)args[1], (npy_double*)args[0], dimensions[0]);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1614,7 +1471,7 @@ run_unary_simd_negative_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 }
 
 
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1637,7 +1494,7 @@ run_unary_reduce_simd_minimum_DOUBLE(char **args, npy_intp const *dimensions, np
 }
 
 
-#line 212
+#line 211
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1661,7 +1518,7 @@ run_unary_reduce_simd_maximum_DOUBLE(char **args, npy_intp const *dimensions, np
 
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1705,7 +1562,7 @@ run_binary_simd_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1749,7 +1606,7 @@ run_binary_simd_not_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_in
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1793,7 +1650,7 @@ run_binary_simd_less_DOUBLE(char **args, npy_intp const *dimensions, npy_intp co
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1837,7 +1694,7 @@ run_binary_simd_less_equal_DOUBLE(char **args, npy_intp const *dimensions, npy_i
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1881,7 +1738,7 @@ run_binary_simd_greater_DOUBLE(char **args, npy_intp const *dimensions, npy_intp
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1925,7 +1782,7 @@ run_binary_simd_greater_equal_DOUBLE(char **args, npy_intp const *dimensions, np
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -1969,7 +1826,7 @@ run_binary_simd_logical_and_DOUBLE(char **args, npy_intp const *dimensions, npy_
 }
 
 
-#line 240
+#line 239
 
 #if 1 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2014,7 +1871,7 @@ run_binary_simd_logical_or_DOUBLE(char **args, npy_intp const *dimensions, npy_i
 
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2037,7 +1894,7 @@ run_isnan_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2060,7 +1917,7 @@ run_isfinite_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2083,7 +1940,7 @@ run_isinf_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 
 
-#line 287
+#line 286
 
 #if 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2108,32 +1965,9 @@ run_signbit_simd_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const 
 
 
 
-#line 206
+#line 205
 
-#line 212
-
-#if 0 && defined NPY_HAVE_SSE2_INTRINSICS
-
-/* prototypes */
-static void
-sse2_absolute_LONGDOUBLE(npy_longdouble *, npy_longdouble *, const npy_intp n);
-
-#endif
-
-static NPY_INLINE int
-run_unary_simd_absolute_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
-{
-#if 0 && defined NPY_HAVE_SSE2_INTRINSICS
-    if (IS_BLOCKABLE_UNARY(sizeof(npy_longdouble), VECTOR_SIZE_BYTES)) {
-        sse2_absolute_LONGDOUBLE((npy_longdouble*)args[1], (npy_longdouble*)args[0], dimensions[0]);
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-
-#line 212
+#line 211
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2156,7 +1990,7 @@ run_unary_simd_negative_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_
 }
 
 
-#line 212
+#line 211
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2179,7 +2013,7 @@ run_unary_reduce_simd_minimum_LONGDOUBLE(char **args, npy_intp const *dimensions
 }
 
 
-#line 212
+#line 211
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2203,7 +2037,7 @@ run_unary_reduce_simd_maximum_LONGDOUBLE(char **args, npy_intp const *dimensions
 
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2247,7 +2081,7 @@ run_binary_simd_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_in
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2291,7 +2125,7 @@ run_binary_simd_not_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, np
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2335,7 +2169,7 @@ run_binary_simd_less_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_int
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2379,7 +2213,7 @@ run_binary_simd_less_equal_LONGDOUBLE(char **args, npy_intp const *dimensions, n
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2423,7 +2257,7 @@ run_binary_simd_greater_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 1 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2467,7 +2301,7 @@ run_binary_simd_greater_equal_LONGDOUBLE(char **args, npy_intp const *dimensions
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2511,7 +2345,7 @@ run_binary_simd_logical_and_LONGDOUBLE(char **args, npy_intp const *dimensions, 
 }
 
 
-#line 240
+#line 239
 
 #if 0 && 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2556,7 +2390,7 @@ run_binary_simd_logical_or_LONGDOUBLE(char **args, npy_intp const *dimensions, n
 
 
 
-#line 287
+#line 286
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2579,7 +2413,7 @@ run_isnan_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 287
+#line 286
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2602,7 +2436,7 @@ run_isfinite_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 287
+#line 286
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2625,7 +2459,7 @@ run_isinf_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp cons
 }
 
 
-#line 287
+#line 286
 
 #if 0 && defined NPY_HAVE_SSE2_INTRINSICS
 
@@ -2657,7 +2491,7 @@ run_signbit_simd_LONGDOUBLE(char **args, npy_intp const *dimensions, npy_intp co
  *****************************************************************************
  */
 
-#line 321
+#line 320
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2698,7 +2532,7 @@ run_reduce_simd_logical_or_BOOL(char **args, npy_intp const *dimensions, npy_int
 }
 
 
-#line 321
+#line 320
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2740,7 +2574,7 @@ run_reduce_simd_logical_and_BOOL(char **args, npy_intp const *dimensions, npy_in
 
 
 
-#line 365
+#line 364
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2761,7 +2595,7 @@ run_unary_simd_absolute_BOOL(char **args, npy_intp const *dimensions, npy_intp c
 }
 
 
-#line 365
+#line 364
 
 #if defined NPY_HAVE_SSE2_INTRINSICS
 static void
@@ -2794,9 +2628,9 @@ run_unary_simd_logical_not_BOOL(char **args, npy_intp const *dimensions, npy_int
  *****************************************************************************
  */
 
-#line 401
+#line 400
 
-static NPY_INLINE npy_float sse2_horizontal_min___m128(__m128 v)
+NPY_FINLINE npy_float sse2_horizontal_min___m128(__m128 v)
 {
     npy_float r;
     __m128 tmp = _mm_movehl_ps(v, v);                   /* c     d     ... */
@@ -2806,7 +2640,7 @@ static NPY_INLINE npy_float sse2_horizontal_min___m128(__m128 v)
     return r;
 }
 
-static NPY_INLINE npy_double sse2_horizontal_min___m128d(__m128d v)
+NPY_FINLINE npy_double sse2_horizontal_min___m128d(__m128d v)
 {
     npy_double r;
     __m128d tmp = _mm_unpackhi_pd(v, v);    /* b     b */
@@ -2814,9 +2648,9 @@ static NPY_INLINE npy_double sse2_horizontal_min___m128d(__m128d v)
     return r;
 }
 
-#line 401
+#line 400
 
-static NPY_INLINE npy_float sse2_horizontal_max___m128(__m128 v)
+NPY_FINLINE npy_float sse2_horizontal_max___m128(__m128 v)
 {
     npy_float r;
     __m128 tmp = _mm_movehl_ps(v, v);                   /* c     d     ... */
@@ -2826,7 +2660,7 @@ static NPY_INLINE npy_float sse2_horizontal_max___m128(__m128 v)
     return r;
 }
 
-static NPY_INLINE npy_double sse2_horizontal_max___m128d(__m128d v)
+NPY_FINLINE npy_double sse2_horizontal_max___m128d(__m128d v)
 {
     npy_double r;
     __m128d tmp = _mm_unpackhi_pd(v, v);    /* b     b */
@@ -2835,13 +2669,13 @@ static NPY_INLINE npy_double sse2_horizontal_max___m128d(__m128d v)
 }
 
 
-#line 438
+#line 437
 /*
  * compress 4 vectors to 4/8 bytes in op with filled with 0 or 1
  * the last vector is passed as a pointer as MSVC 2010 is unable to ignore the
  * calling convention leading to C2719 on 32 bit, see #4795
  */
-static NPY_INLINE void
+NPY_FINLINE void
 sse2_compress4_to_byte_FLOAT(__m128 r1, __m128 r2, __m128 r3, __m128 * r4,
                               npy_bool * op)
 {
@@ -2884,7 +2718,7 @@ sse2_signbit_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
     }
 }
 
-#line 490
+#line 489
 
 static void
 sse2_isnan_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -2947,7 +2781,7 @@ sse2_isnan_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 }
 
 
-#line 490
+#line 489
 
 static void
 sse2_isfinite_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -3010,7 +2844,7 @@ sse2_isfinite_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 }
 
 
-#line 490
+#line 489
 
 static void
 sse2_isinf_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
@@ -3074,10 +2908,10 @@ sse2_isinf_FLOAT(npy_bool * op, npy_float * ip1, npy_intp n)
 
 
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_equal_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3163,10 +2997,10 @@ sse2_binary_scalar2_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2,
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_not_equal_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3252,10 +3086,10 @@ sse2_binary_scalar2_not_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float * 
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_less_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3341,10 +3175,10 @@ sse2_binary_scalar2_less_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip2, 
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_less_equal_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3430,10 +3264,10 @@ sse2_binary_scalar2_less_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_float *
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_greater_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3519,10 +3353,10 @@ sse2_binary_scalar2_greater_FLOAT(npy_bool * op, npy_float * ip1, npy_float * ip
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_greater_equal_FLOAT(const npy_float a, const npy_float b)
 {
     __m128 one = _mm_set1_ps(1);
@@ -3609,54 +3443,7 @@ sse2_binary_scalar2_greater_equal_FLOAT(npy_bool * op, npy_float * ip1, npy_floa
 }
 
 
-static NPY_INLINE
-npy_float scalar_abs_npy_float(npy_float v)
-{
-    /* add 0 to clear -0.0 */
-    return (v > 0 ? v: -v) + 0;
-}
 
-static NPY_INLINE
-npy_float scalar_neg_npy_float(npy_float v)
-{
-    return -v;
-}
-
-#line 665
-static void
-sse2_absolute_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
-{
-    /*
-     * get 0x7FFFFFFF mask (everything but signbit set)
-     * float & ~mask will remove the sign, float ^ mask flips the sign
-     * this is equivalent to how the compiler implements fabs on amd64
-     */
-    const __m128 mask = _mm_set1_ps(-0.f);
-
-    /* align output to VECTOR_SIZE_BYTES bytes */
-    LOOP_BLOCK_ALIGN_VAR(op, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = scalar_abs_npy_float(ip[i]);
-    }
-    assert((npy_uintp)n < (VECTOR_SIZE_BYTES / sizeof(npy_float)) ||
-           npy_is_aligned(&op[i], VECTOR_SIZE_BYTES));
-    if (npy_is_aligned(&ip[i], VECTOR_SIZE_BYTES)) {
-        LOOP_BLOCKED(npy_float, VECTOR_SIZE_BYTES) {
-            __m128 a = _mm_load_ps(&ip[i]);
-            _mm_store_ps(&op[i], _mm_andnot_ps(mask, a));
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_float, VECTOR_SIZE_BYTES) {
-            __m128 a = _mm_loadu_ps(&ip[i]);
-            _mm_store_ps(&op[i], _mm_andnot_ps(mask, a));
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = scalar_abs_npy_float(ip[i]);
-    }
-}
-
-#line 665
 static void
 sse2_negative_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
 {
@@ -3669,7 +3456,7 @@ sse2_negative_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
 
     /* align output to VECTOR_SIZE_BYTES bytes */
     LOOP_BLOCK_ALIGN_VAR(op, npy_float, VECTOR_SIZE_BYTES) {
-        op[i] = scalar_neg_npy_float(ip[i]);
+        op[i] = -ip[i];
     }
     assert((npy_uintp)n < (VECTOR_SIZE_BYTES / sizeof(npy_float)) ||
            npy_is_aligned(&op[i], VECTOR_SIZE_BYTES));
@@ -3686,13 +3473,13 @@ sse2_negative_FLOAT(npy_float * op, npy_float * ip, const npy_intp n)
         }
     }
     LOOP_BLOCKED_END {
-        op[i] = scalar_neg_npy_float(ip[i]);
+        op[i] = -ip[i];
     }
 }
+/**end repeat1**/
 
 
-
-#line 705
+#line 687
 /* arguments swapped as unary reduce has the swapped compared to unary */
 static void
 sse2_maximum_FLOAT(npy_float * ip, npy_float * op, const npy_intp n)
@@ -3735,7 +3522,7 @@ sse2_maximum_FLOAT(npy_float * ip, npy_float * op, const npy_intp n)
     npy_clear_floatstatus_barrier((char*)op);
 }
 
-#line 705
+#line 687
 /* arguments swapped as unary reduce has the swapped compared to unary */
 static void
 sse2_minimum_FLOAT(npy_float * ip, npy_float * op, const npy_intp n)
@@ -3780,13 +3567,13 @@ sse2_minimum_FLOAT(npy_float * ip, npy_float * op, const npy_intp n)
 
 
 
-#line 438
+#line 437
 /*
  * compress 4 vectors to 4/8 bytes in op with filled with 0 or 1
  * the last vector is passed as a pointer as MSVC 2010 is unable to ignore the
  * calling convention leading to C2719 on 32 bit, see #4795
  */
-static NPY_INLINE void
+NPY_FINLINE void
 sse2_compress4_to_byte_DOUBLE(__m128d r1, __m128d r2, __m128d r3, __m128d * r4,
                               npy_bool * op)
 {
@@ -3829,7 +3616,7 @@ sse2_signbit_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
     }
 }
 
-#line 490
+#line 489
 
 static void
 sse2_isnan_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -3892,7 +3679,7 @@ sse2_isnan_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
 }
 
 
-#line 490
+#line 489
 
 static void
 sse2_isfinite_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -3955,7 +3742,7 @@ sse2_isfinite_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
 }
 
 
-#line 490
+#line 489
 
 static void
 sse2_isinf_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
@@ -4019,10 +3806,10 @@ sse2_isinf_DOUBLE(npy_bool * op, npy_double * ip1, npy_intp n)
 
 
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_equal_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4108,10 +3895,10 @@ sse2_binary_scalar2_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * i
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_not_equal_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4197,10 +3984,10 @@ sse2_binary_scalar2_not_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_double
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_less_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4286,10 +4073,10 @@ sse2_binary_scalar2_less_DOUBLE(npy_bool * op, npy_double * ip1, npy_double * ip
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_less_equal_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4375,10 +4162,10 @@ sse2_binary_scalar2_less_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_doubl
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_greater_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4464,10 +4251,10 @@ sse2_binary_scalar2_greater_DOUBLE(npy_bool * op, npy_double * ip1, npy_double *
     }
 }
 
-#line 558
+#line 557
 
 /* sets invalid fpu flag on QNaN for consistency with packed compare */
-static NPY_INLINE int
+NPY_FINLINE int
 sse2_ordered_cmp_greater_equal_DOUBLE(const npy_double a, const npy_double b)
 {
     __m128d one = _mm_set1_pd(1);
@@ -4554,54 +4341,7 @@ sse2_binary_scalar2_greater_equal_DOUBLE(npy_bool * op, npy_double * ip1, npy_do
 }
 
 
-static NPY_INLINE
-npy_double scalar_abs_npy_double(npy_double v)
-{
-    /* add 0 to clear -0.0 */
-    return (v > 0 ? v: -v) + 0;
-}
 
-static NPY_INLINE
-npy_double scalar_neg_npy_double(npy_double v)
-{
-    return -v;
-}
-
-#line 665
-static void
-sse2_absolute_DOUBLE(npy_double * op, npy_double * ip, const npy_intp n)
-{
-    /*
-     * get 0x7FFFFFFF mask (everything but signbit set)
-     * float & ~mask will remove the sign, float ^ mask flips the sign
-     * this is equivalent to how the compiler implements fabs on amd64
-     */
-    const __m128d mask = _mm_set1_pd(-0.);
-
-    /* align output to VECTOR_SIZE_BYTES bytes */
-    LOOP_BLOCK_ALIGN_VAR(op, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = scalar_abs_npy_double(ip[i]);
-    }
-    assert((npy_uintp)n < (VECTOR_SIZE_BYTES / sizeof(npy_double)) ||
-           npy_is_aligned(&op[i], VECTOR_SIZE_BYTES));
-    if (npy_is_aligned(&ip[i], VECTOR_SIZE_BYTES)) {
-        LOOP_BLOCKED(npy_double, VECTOR_SIZE_BYTES) {
-            __m128d a = _mm_load_pd(&ip[i]);
-            _mm_store_pd(&op[i], _mm_andnot_pd(mask, a));
-        }
-    }
-    else {
-        LOOP_BLOCKED(npy_double, VECTOR_SIZE_BYTES) {
-            __m128d a = _mm_loadu_pd(&ip[i]);
-            _mm_store_pd(&op[i], _mm_andnot_pd(mask, a));
-        }
-    }
-    LOOP_BLOCKED_END {
-        op[i] = scalar_abs_npy_double(ip[i]);
-    }
-}
-
-#line 665
 static void
 sse2_negative_DOUBLE(npy_double * op, npy_double * ip, const npy_intp n)
 {
@@ -4614,7 +4354,7 @@ sse2_negative_DOUBLE(npy_double * op, npy_double * ip, const npy_intp n)
 
     /* align output to VECTOR_SIZE_BYTES bytes */
     LOOP_BLOCK_ALIGN_VAR(op, npy_double, VECTOR_SIZE_BYTES) {
-        op[i] = scalar_neg_npy_double(ip[i]);
+        op[i] = -ip[i];
     }
     assert((npy_uintp)n < (VECTOR_SIZE_BYTES / sizeof(npy_double)) ||
            npy_is_aligned(&op[i], VECTOR_SIZE_BYTES));
@@ -4631,13 +4371,13 @@ sse2_negative_DOUBLE(npy_double * op, npy_double * ip, const npy_intp n)
         }
     }
     LOOP_BLOCKED_END {
-        op[i] = scalar_neg_npy_double(ip[i]);
+        op[i] = -ip[i];
     }
 }
+/**end repeat1**/
 
 
-
-#line 705
+#line 687
 /* arguments swapped as unary reduce has the swapped compared to unary */
 static void
 sse2_maximum_DOUBLE(npy_double * ip, npy_double * op, const npy_intp n)
@@ -4680,7 +4420,7 @@ sse2_maximum_DOUBLE(npy_double * ip, npy_double * op, const npy_intp n)
     npy_clear_floatstatus_barrier((char*)op);
 }
 
-#line 705
+#line 687
 /* arguments swapped as unary reduce has the swapped compared to unary */
 static void
 sse2_minimum_DOUBLE(npy_double * ip, npy_double * op, const npy_intp n)
@@ -4729,19 +4469,19 @@ sse2_minimum_DOUBLE(npy_double * ip, npy_double * op, const npy_intp n)
 /* bunch of helper functions used in ISA_exp/log_FLOAT*/
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_get_full_load_mask_ps(void)
 {
     return _mm256_set1_ps(-1.0);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
 fma_get_full_load_mask_pd(void)
 {
     return _mm256_castpd_si256(_mm256_set1_pd(-1.0));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_get_partial_load_mask_ps(const npy_int num_elem, const npy_int num_lanes)
 {
     float maskint[16] = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,
@@ -4750,7 +4490,7 @@ fma_get_partial_load_mask_ps(const npy_int num_elem, const npy_int num_lanes)
     return _mm256_loadu_ps(addr);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
 fma_get_partial_load_mask_pd(const npy_int num_elem, const npy_int num_lanes)
 {
     npy_int maskint[16] = {-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1};
@@ -4758,7 +4498,7 @@ fma_get_partial_load_mask_pd(const npy_int num_elem, const npy_int num_lanes)
     return _mm256_loadu_si256((__m256i*) addr);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_masked_gather_ps(__m256 src,
                      npy_float* addr,
                      __m256i vindex,
@@ -4767,7 +4507,7 @@ fma_masked_gather_ps(__m256 src,
     return _mm256_mask_i32gather_ps(src, addr, vindex, mask, 4);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_masked_gather_pd(__m256d src,
                      npy_double* addr,
                      __m128i vindex,
@@ -4776,117 +4516,105 @@ fma_masked_gather_pd(__m256d src,
     return _mm256_mask_i32gather_pd(src, addr, vindex, mask, 8);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_masked_load_ps(__m256 mask, npy_float* addr)
 {
     return _mm256_maskload_ps(addr, _mm256_cvtps_epi32(mask));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_masked_load_pd(__m256i mask, npy_double* addr)
 {
     return _mm256_maskload_pd(addr, mask);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_set_masked_lanes_ps(__m256 x, __m256 val, __m256 mask)
 {
     return _mm256_blendv_ps(x, val, mask);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_set_masked_lanes_pd(__m256d x, __m256d val, __m256d mask)
 {
     return _mm256_blendv_pd(x, val, mask);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_blend(__m256 x, __m256 y, __m256 ymask)
 {
     return _mm256_blendv_ps(x, y, ymask);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_invert_mask_ps(__m256 ymask)
 {
     return _mm256_andnot_ps(ymask, _mm256_set1_ps(-1.0));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256i
 fma_invert_mask_pd(__m256i ymask)
 {
     return _mm256_andnot_si256(ymask, _mm256_set1_epi32(0xFFFFFFFF));
 }
 
-#line 846
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+#line 828
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_abs_ps(__m256 x)
 {
     return _mm256_andnot_ps(_mm256_set1_ps(-0.0), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_reciprocal_ps(__m256 x)
 {
     return _mm256_div_ps(_mm256_set1_ps(1.0f), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_rint_ps(__m256 x)
 {
     return _mm256_round_ps(x, _MM_FROUND_TO_NEAREST_INT);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_floor_ps(__m256 x)
 {
     return _mm256_round_ps(x, _MM_FROUND_TO_NEG_INF);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
-fma_ceil_ps(__m256 x)
-{
-    return _mm256_round_ps(x, _MM_FROUND_TO_POS_INF);
-}
-
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_trunc_ps(__m256 x)
 {
     return _mm256_round_ps(x, _MM_FROUND_TO_ZERO);
 }
 
-#line 846
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+#line 828
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_abs_pd(__m256d x)
 {
     return _mm256_andnot_pd(_mm256_set1_pd(-0.0), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_reciprocal_pd(__m256d x)
 {
     return _mm256_div_pd(_mm256_set1_pd(1.0f), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_rint_pd(__m256d x)
 {
     return _mm256_round_pd(x, _MM_FROUND_TO_NEAREST_INT);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_floor_pd(__m256d x)
 {
     return _mm256_round_pd(x, _MM_FROUND_TO_NEG_INF);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
-fma_ceil_pd(__m256d x)
-{
-    return _mm256_round_pd(x, _MM_FROUND_TO_POS_INF);
-}
-
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_trunc_pd(__m256d x)
 {
     return _mm256_round_pd(x, _MM_FROUND_TO_ZERO);
@@ -4895,31 +4623,31 @@ fma_trunc_pd(__m256d x)
 #endif
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
 avx512_get_full_load_mask_ps(void)
 {
     return 0xFFFF;
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
 avx512_get_full_load_mask_pd(void)
 {
     return 0xFF;
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
 avx512_get_partial_load_mask_ps(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x0001 << num_elem) - 0x0001;
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
 avx512_get_partial_load_mask_pd(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x01 << num_elem) - 0x01;
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_masked_gather_ps(__m512 src,
                         npy_float* addr,
                         __m512i vindex,
@@ -4928,7 +4656,7 @@ avx512_masked_gather_ps(__m512 src,
     return _mm512_mask_i32gather_ps(src, kmask, vindex, addr, 4);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_masked_gather_pd(__m512d src,
                         npy_double* addr,
                         __m256i vindex,
@@ -4937,99 +4665,93 @@ avx512_masked_gather_pd(__m512d src,
     return _mm512_mask_i32gather_pd(src, kmask, vindex, addr, 8);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_masked_load_ps(__mmask16 mask, npy_float* addr)
 {
     return _mm512_maskz_loadu_ps(mask, (__m512 *)addr);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_masked_load_pd(__mmask8 mask, npy_double* addr)
 {
     return _mm512_maskz_loadu_pd(mask, (__m512d *)addr);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_set_masked_lanes_ps(__m512 x, __m512 val, __mmask16 mask)
 {
     return _mm512_mask_blend_ps(mask, x, val);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_set_masked_lanes_pd(__m512d x, __m512d val, __mmask8 mask)
 {
     return _mm512_mask_blend_pd(mask, x, val);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_blend(__m512 x, __m512 y, __mmask16 ymask)
 {
     return _mm512_mask_mov_ps(x, ymask, y);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
 avx512_invert_mask_ps(__mmask16 ymask)
 {
     return _mm512_knot(ymask);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask8
 avx512_invert_mask_pd(__mmask8 ymask)
 {
     return _mm512_knot(ymask);
 }
 
-#line 983
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+#line 959
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_abs_ps(__m512 x)
 {
     return (__m512) _mm512_and_epi32((__m512i) x,
 				    _mm512_set1_epi32 (0x7fffffff));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_reciprocal_ps(__m512 x)
 {
     return _mm512_div_ps(_mm512_set1_ps(1.0f), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_rint_ps(__m512 x)
 {
     return _mm512_roundscale_ps(x, 0x08);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_floor_ps(__m512 x)
 {
     return _mm512_roundscale_ps(x, 0x09);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
-avx512_ceil_ps(__m512 x)
-{
-    return _mm512_roundscale_ps(x, 0x0A);
-}
-
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_trunc_ps(__m512 x)
 {
     return _mm512_roundscale_ps(x, 0x0B);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_hadd_ps(const __m512 x)
 {
     return _mm512_add_ps(x, _mm512_permute_ps(x, 0xb1));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_hsub_ps(const __m512 x)
 {
     return _mm512_sub_ps(x, _mm512_permute_ps(x, 0xb1));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_cabsolute_ps(const __m512 x1,
                         const __m512 x2,
                         const __m512i re_indices,
@@ -5074,7 +4796,7 @@ avx512_cabsolute_ps(const __m512 x1,
     return _mm512_mul_ps(hypot, larger);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_conjugate_ps(const __m512 x)
 {
     /*
@@ -5087,7 +4809,7 @@ avx512_conjugate_ps(const __m512 x)
     return _mm512_castsi512_ps(res);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_cmul_ps(__m512 x1, __m512 x2)
 {
     // x1 = r1, i1
@@ -5100,64 +4822,58 @@ avx512_cmul_ps(__m512 x1, __m512 x2)
     return _mm512_mask_blend_ps(0xAAAA, outreal, outimg);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_csquare_ps(__m512 x)
 {
     return avx512_cmul_ps(x, x);
 }
 
 
-#line 983
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+#line 959
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_abs_pd(__m512d x)
 {
     return (__m512d) _mm512_and_epi64((__m512i) x,
 				    _mm512_set1_epi64 (0x7fffffffffffffffLL));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_reciprocal_pd(__m512d x)
 {
     return _mm512_div_pd(_mm512_set1_pd(1.0f), x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_rint_pd(__m512d x)
 {
     return _mm512_roundscale_pd(x, 0x08);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_floor_pd(__m512d x)
 {
     return _mm512_roundscale_pd(x, 0x09);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
-avx512_ceil_pd(__m512d x)
-{
-    return _mm512_roundscale_pd(x, 0x0A);
-}
-
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_trunc_pd(__m512d x)
 {
     return _mm512_roundscale_pd(x, 0x0B);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_hadd_pd(const __m512d x)
 {
     return _mm512_add_pd(x, _mm512_permute_pd(x, 0x55));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_hsub_pd(const __m512d x)
 {
     return _mm512_sub_pd(x, _mm512_permute_pd(x, 0x55));
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_cabsolute_pd(const __m512d x1,
                         const __m512d x2,
                         const __m512i re_indices,
@@ -5202,7 +4918,7 @@ avx512_cabsolute_pd(const __m512d x1,
     return _mm512_mul_pd(hypot, larger);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_conjugate_pd(const __m512d x)
 {
     /*
@@ -5215,7 +4931,7 @@ avx512_conjugate_pd(const __m512d x)
     return _mm512_castsi512_pd(res);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_cmul_pd(__m512d x1, __m512d x2)
 {
     // x1 = r1, i1
@@ -5228,7 +4944,7 @@ avx512_cmul_pd(__m512d x1, __m512d x2)
     return _mm512_mask_blend_pd(0xAA, outreal, outimg);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_csquare_pd(__m512d x)
 {
     return avx512_cmul_pd(x, x);
@@ -5237,29 +4953,29 @@ avx512_csquare_pd(__m512d x)
 
 #endif
 
-#line 1123
+#line 1093
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_sqrt_ps(__m256 x)
 {
     return _mm256_sqrt_ps(x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_sqrt_pd(__m256d x)
 {
     return _mm256_sqrt_pd(x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256
 fma_square_ps(__m256 x)
 {
     return _mm256_mul_ps(x,x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA __m256d
 fma_square_pd(__m256d x)
 {
     return _mm256_mul_pd(x,x);
@@ -5267,29 +4983,29 @@ fma_square_pd(__m256d x)
 
 #endif
 
-#line 1123
+#line 1093
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_sqrt_ps(__m512 x)
 {
     return _mm512_sqrt_ps(x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_sqrt_pd(__m512d x)
 {
     return _mm512_sqrt_pd(x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512
 avx512_square_ps(__m512 x)
 {
     return _mm512_mul_ps(x,x);
 }
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __m512d
 avx512_square_pd(__m512d x)
 {
     return _mm512_mul_pd(x,x);
@@ -5298,9 +5014,10 @@ avx512_square_pd(__m512d x)
 #endif
 
 
-#line 1165
+#line 1135
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isnan_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, const npy_intp steps)
@@ -5358,7 +5075,8 @@ AVX512_SKX_isnan_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, c
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isfinite_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, const npy_intp steps)
@@ -5416,7 +5134,8 @@ AVX512_SKX_isfinite_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isinf_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, const npy_intp steps)
@@ -5474,7 +5193,8 @@ AVX512_SKX_isinf_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, c
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_signbit_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size, const npy_intp steps)
@@ -5533,9 +5253,10 @@ AVX512_SKX_signbit_FLOAT(npy_bool* op, npy_float* ip, const npy_intp array_size,
 #endif
 
 
-#line 1165
+#line 1135
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isnan_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size, const npy_intp steps)
@@ -5593,7 +5314,8 @@ AVX512_SKX_isnan_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size,
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isfinite_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size, const npy_intp steps)
@@ -5651,7 +5373,8 @@ AVX512_SKX_isfinite_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_si
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_isinf_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size, const npy_intp steps)
@@ -5709,7 +5432,8 @@ AVX512_SKX_isinf_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size,
 }
 #endif
 
-#line 1172
+#line 1142
+
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512_SKX void
 AVX512_SKX_signbit_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_size, const npy_intp steps)
@@ -5769,8 +5493,8 @@ AVX512_SKX_signbit_DOUBLE(npy_bool* op, npy_double* ip, const npy_intp array_siz
 
 
 
-#line 1249
-#line 1253
+#line 1220
+#line 1224
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -5848,7 +5572,7 @@ AVX512F_maximum_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *s
 }
 #endif
 
-#line 1253
+#line 1224
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -5927,8 +5651,8 @@ AVX512F_minimum_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *s
 #endif
 
 
-#line 1249
-#line 1253
+#line 1220
+#line 1224
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -6006,7 +5730,7 @@ AVX512F_maximum_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *
 }
 #endif
 
-#line 1253
+#line 1224
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -6086,9 +5810,9 @@ AVX512F_minimum_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *
 
 
 
-#line 1345
+#line 1316
 
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6136,55 +5860,7 @@ FMA_rint_FLOAT(npy_float* op,
 }
 #endif
 
-#line 1350
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
-FMA_ceil_FLOAT(npy_float* op,
-                   npy_float* ip,
-                   const npy_intp array_size,
-                   const npy_intp steps)
-{
-    const npy_intp stride = steps/(npy_intp)sizeof(npy_float);
-    const npy_int num_lanes = 32/(npy_intp)sizeof(npy_float);
-    npy_intp num_remaining_elements = array_size;
-    __m256 ones_f = _mm256_set1_ps(1.0f);
-    __m256 load_mask = fma_get_full_load_mask_ps();
-    /*
-     * Note: while generally indices are npy_intp, we ensure that our maximum index
-     * will fit in an int32 as a precondition for this function via
-     * IS_OUTPUT_BLOCKABLE_UNARY
-     */
-
-    npy_int32 indexarr[16];
-    for (npy_int32 ii = 0; ii < 16; ii++) {
-        indexarr[ii] = ii*stride;
-    }
-    __m256i vindex = _mm256_loadu_si256((__m256i*)&indexarr[0]);
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < num_lanes) {
-            load_mask = fma_get_partial_load_mask_ps(num_remaining_elements,
-                                                       num_lanes);
-        }
-        __m256 x;
-        if (stride == 1) {
-            x = fma_masked_load_ps(load_mask, ip);
-        }
-        else {
-            x = fma_masked_gather_ps(ones_f, ip, vindex, load_mask);
-        }
-        __m256 out = fma_ceil_ps(x);
-        _mm256_maskstore_ps(op, _mm256_cvtps_epi32(load_mask), out);
-
-        ip += num_lanes*stride;
-        op += num_lanes;
-        num_remaining_elements -= num_lanes;
-    }
-}
-#endif
-
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6232,7 +5908,7 @@ FMA_floor_FLOAT(npy_float* op,
 }
 #endif
 
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6281,9 +5957,9 @@ FMA_trunc_FLOAT(npy_float* op,
 #endif
 
 
-#line 1345
+#line 1316
 
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6331,55 +6007,7 @@ AVX512F_rint_FLOAT(npy_float* op,
 }
 #endif
 
-#line 1350
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
-AVX512F_ceil_FLOAT(npy_float* op,
-                   npy_float* ip,
-                   const npy_intp array_size,
-                   const npy_intp steps)
-{
-    const npy_intp stride = steps/(npy_intp)sizeof(npy_float);
-    const npy_int num_lanes = 64/(npy_intp)sizeof(npy_float);
-    npy_intp num_remaining_elements = array_size;
-    __m512 ones_f = _mm512_set1_ps(1.0f);
-    __mmask16 load_mask = avx512_get_full_load_mask_ps();
-    /*
-     * Note: while generally indices are npy_intp, we ensure that our maximum index
-     * will fit in an int32 as a precondition for this function via
-     * IS_OUTPUT_BLOCKABLE_UNARY
-     */
-
-    npy_int32 indexarr[16];
-    for (npy_int32 ii = 0; ii < 16; ii++) {
-        indexarr[ii] = ii*stride;
-    }
-    __m512i vindex = _mm512_loadu_si512((__m512i*)&indexarr[0]);
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < num_lanes) {
-            load_mask = avx512_get_partial_load_mask_ps(num_remaining_elements,
-                                                       num_lanes);
-        }
-        __m512 x;
-        if (stride == 1) {
-            x = avx512_masked_load_ps(load_mask, ip);
-        }
-        else {
-            x = avx512_masked_gather_ps(ones_f, ip, vindex, load_mask);
-        }
-        __m512 out = avx512_ceil_ps(x);
-        _mm512_mask_storeu_ps(op, (load_mask), out);
-
-        ip += num_lanes*stride;
-        op += num_lanes;
-        num_remaining_elements -= num_lanes;
-    }
-}
-#endif
-
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6427,7 +6055,7 @@ AVX512F_floor_FLOAT(npy_float* op,
 }
 #endif
 
-#line 1350
+#line 1321
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6477,9 +6105,9 @@ AVX512F_trunc_FLOAT(npy_float* op,
 
 
 
-#line 1416
+#line 1387
 
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6527,55 +6155,7 @@ FMA_rint_DOUBLE(npy_double* op,
 }
 #endif
 
-#line 1421
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
-FMA_ceil_DOUBLE(npy_double* op,
-                    npy_double* ip,
-                    const npy_intp array_size,
-                    const npy_intp steps)
-{
-    const npy_intp stride = steps/(npy_intp)sizeof(npy_double);
-    const npy_int num_lanes = 32/(npy_intp)sizeof(npy_double);
-    npy_intp num_remaining_elements = array_size;
-    __m256i load_mask = fma_get_full_load_mask_pd();
-    __m256d ones_d = _mm256_set1_pd(1.0f);
-
-    /*
-     * Note: while generally indices are npy_intp, we ensure that our maximum index
-     * will fit in an int32 as a precondition for this function via
-     * IS_OUTPUT_BLOCKABLE_UNARY
-     */
-    npy_int32 indexarr[8];
-    for (npy_int32 ii = 0; ii < 8; ii++) {
-        indexarr[ii] = ii*stride;
-    }
-    __m128i vindex = _mm_loadu_si128((__m128i*)&indexarr[0]);
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < num_lanes) {
-            load_mask = fma_get_partial_load_mask_pd(num_remaining_elements,
-                                                       num_lanes);
-        }
-        __m256d x;
-        if (stride == 1) {
-            x = fma_masked_load_pd(load_mask, ip);
-        }
-        else {
-            x = fma_masked_gather_pd(ones_d, ip, vindex, _mm256_castsi256_pd(load_mask));
-        }
-        __m256d out = fma_ceil_pd(x);
-        _mm256_maskstore_pd(op, load_mask, out);
-
-        ip += num_lanes*stride;
-        op += num_lanes;
-        num_remaining_elements -= num_lanes;
-    }
-}
-#endif
-
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6623,7 +6203,7 @@ FMA_floor_DOUBLE(npy_double* op,
 }
 #endif
 
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_FMA void
@@ -6672,9 +6252,9 @@ FMA_trunc_DOUBLE(npy_double* op,
 #endif
 
 
-#line 1416
+#line 1387
 
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6722,55 +6302,7 @@ AVX512F_rint_DOUBLE(npy_double* op,
 }
 #endif
 
-#line 1421
-
-#if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
-AVX512F_ceil_DOUBLE(npy_double* op,
-                    npy_double* ip,
-                    const npy_intp array_size,
-                    const npy_intp steps)
-{
-    const npy_intp stride = steps/(npy_intp)sizeof(npy_double);
-    const npy_int num_lanes = 64/(npy_intp)sizeof(npy_double);
-    npy_intp num_remaining_elements = array_size;
-    __mmask8 load_mask = avx512_get_full_load_mask_pd();
-    __m512d ones_d = _mm512_set1_pd(1.0f);
-
-    /*
-     * Note: while generally indices are npy_intp, we ensure that our maximum index
-     * will fit in an int32 as a precondition for this function via
-     * IS_OUTPUT_BLOCKABLE_UNARY
-     */
-    npy_int32 indexarr[8];
-    for (npy_int32 ii = 0; ii < 8; ii++) {
-        indexarr[ii] = ii*stride;
-    }
-    __m256i vindex = _mm256_loadu_si256((__m256i*)&indexarr[0]);
-
-    while (num_remaining_elements > 0) {
-        if (num_remaining_elements < num_lanes) {
-            load_mask = avx512_get_partial_load_mask_pd(num_remaining_elements,
-                                                       num_lanes);
-        }
-        __m512d x;
-        if (stride == 1) {
-            x = avx512_masked_load_pd(load_mask, ip);
-        }
-        else {
-            x = avx512_masked_gather_pd(ones_d, ip, vindex, (load_mask));
-        }
-        __m512d out = avx512_ceil_pd(x);
-        _mm512_mask_storeu_pd(op, load_mask, out);
-
-        ip += num_lanes*stride;
-        op += num_lanes;
-        num_remaining_elements -= num_lanes;
-    }
-}
-#endif
-
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6818,7 +6350,7 @@ AVX512F_floor_DOUBLE(npy_double* op,
 }
 #endif
 
-#line 1421
+#line 1392
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS
 static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F void
@@ -6868,9 +6400,9 @@ AVX512F_trunc_DOUBLE(npy_double* op,
 
 
 
-#line 1484
+#line 1455
 
-#line 1489
+#line 1460
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -6918,7 +6450,7 @@ AVX512F_square_CFLOAT(npy_float * op,
 }
 #endif
 
-#line 1489
+#line 1460
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -7038,9 +6570,9 @@ AVX512F_absolute_CFLOAT(npy_float * op,
 
 #endif
 
-#line 1484
+#line 1455
 
-#line 1489
+#line 1460
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -7088,7 +6620,7 @@ AVX512F_square_CDOUBLE(npy_double * op,
 }
 #endif
 
-#line 1489
+#line 1460
 
 #if defined HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS && defined NPY_HAVE_SSE2_INTRINSICS
 static NPY_GCC_OPT_3 NPY_INLINE NPY_GCC_TARGET_AVX512F void
@@ -7215,7 +6747,7 @@ AVX512F_absolute_CDOUBLE(npy_double * op,
  *****************************************************************************
  */
 
-#line 1628
+#line 1599
 
 /*
  * convert any bit set to boolean true so vectorized and normal operations are
@@ -7223,7 +6755,7 @@ AVX512F_absolute_CDOUBLE(npy_double * op,
  * you never know
  */
 #if !0
-static NPY_INLINE __m128i byte_to_true(__m128i v)
+NPY_FINLINE __m128i byte_to_true(__m128i v)
 {
     const __m128i zero = _mm_setzero_si128();
     const __m128i truemask = _mm_set1_epi8(1 == 1);
@@ -7295,7 +6827,7 @@ sse2_reduce_logical_or_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 }
 
 
-#line 1628
+#line 1599
 
 /*
  * convert any bit set to boolean true so vectorized and normal operations are
@@ -7303,7 +6835,7 @@ sse2_reduce_logical_or_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
  * you never know
  */
 #if !1
-static NPY_INLINE __m128i byte_to_true(__m128i v)
+NPY_FINLINE __m128i byte_to_true(__m128i v)
 {
     const __m128i zero = _mm_setzero_si128();
     const __m128i truemask = _mm_set1_epi8(1 == 1);
@@ -7376,7 +6908,7 @@ sse2_reduce_logical_and_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 
 
 
-#line 1719
+#line 1690
 
 static void
 sse2_absolute_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
@@ -7403,7 +6935,7 @@ sse2_absolute_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)
 }
 
 
-#line 1719
+#line 1690
 
 static void
 sse2_logical_not_BOOL(npy_bool * op, npy_bool * ip, const npy_intp n)

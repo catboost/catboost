@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from io import StringIO
-from typing import Any
 
 import numpy as np
 
 FILE = StringIO()
-AR: np.ndarray[Any, np.dtype[np.float64]] = np.arange(10).astype(np.float64)
+AR = np.arange(10, dtype=np.float64)
 
 def func(a: int) -> bool: ...
 

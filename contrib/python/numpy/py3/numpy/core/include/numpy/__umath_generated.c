@@ -21,27 +21,27 @@ static char absolute_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY
 static PyUFuncGenericFunction add_functions[] = {BOOL_add, BYTE_add, UBYTE_add, SHORT_add, USHORT_add, INT_add, UINT_add, LONG_add, ULONG_add, LONGLONG_add, ULONGLONG_add, HALF_add, FLOAT_add, DOUBLE_add, LONGDOUBLE_add, CFLOAT_add, CDOUBLE_add, CLONGDOUBLE_add, DATETIME_Mm_M_add, TIMEDELTA_mm_m_add, DATETIME_mM_M_add, NULL};
 static void * add_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char add_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_DATETIME, NPY_TIMEDELTA, NPY_DATETIME, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arccos_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arccos_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arccos"};
-static char arccos_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arccosh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arccosh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arccosh"};
-static char arccosh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arcsin_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arcsin_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arcsin"};
-static char arcsin_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arcsinh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arcsinh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arcsinh"};
-static char arcsinh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arctan_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arctan_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctan"};
-static char arctan_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arccos_functions[] = {NULL, FLOAT_arccos, DOUBLE_arccos, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arccos_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arccos"};
+static char arccos_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arccosh_functions[] = {NULL, FLOAT_arccosh, DOUBLE_arccosh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arccosh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arccosh"};
+static char arccosh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arcsin_functions[] = {NULL, FLOAT_arcsin, DOUBLE_arcsin, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arcsin_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arcsin"};
+static char arcsin_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arcsinh_functions[] = {NULL, FLOAT_arcsinh, DOUBLE_arcsinh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arcsinh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arcsinh"};
+static char arcsinh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arctan_functions[] = {NULL, FLOAT_arctan, DOUBLE_arctan, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arctan_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctan"};
+static char arctan_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction arctan2_functions[] = {NULL, NULL, NULL, NULL, NULL};
 static void * arctan2_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctan2"};
 static char arctan2_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction arctanh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * arctanh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctanh"};
-static char arctanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction arctanh_functions[] = {NULL, FLOAT_arctanh, DOUBLE_arctanh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * arctanh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"arctanh"};
+static char arctanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction bitwise_and_functions[] = {BOOL_bitwise_and, BYTE_bitwise_and, UBYTE_bitwise_and, SHORT_bitwise_and, USHORT_bitwise_and, INT_bitwise_and, UINT_bitwise_and, LONG_bitwise_and, ULONG_bitwise_and, LONGLONG_bitwise_and, ULONGLONG_bitwise_and, NULL};
 static void * bitwise_and_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char bitwise_and_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
@@ -51,9 +51,9 @@ static char bitwise_or_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, N
 static PyUFuncGenericFunction bitwise_xor_functions[] = {BOOL_bitwise_xor, BYTE_bitwise_xor, UBYTE_bitwise_xor, SHORT_bitwise_xor, USHORT_bitwise_xor, INT_bitwise_xor, UINT_bitwise_xor, LONG_bitwise_xor, ULONG_bitwise_xor, LONGLONG_bitwise_xor, ULONGLONG_bitwise_xor, NULL};
 static void * bitwise_xor_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char bitwise_xor_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction cbrt_functions[] = {NULL, NULL, NULL, NULL, NULL};
-static void * cbrt_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cbrt"};
-static char cbrt_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction cbrt_functions[] = {NULL, FLOAT_cbrt, DOUBLE_cbrt, NULL, NULL, NULL, NULL, NULL};
+static void * cbrt_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cbrt"};
+static char cbrt_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction ceil_functions[] = {NULL, FLOAT_ceil, DOUBLE_ceil, NULL, NULL, NULL, NULL};
 static void * ceil_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char ceil_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -66,12 +66,12 @@ static char conjugate_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, 
 static PyUFuncGenericFunction copysign_functions[] = {HALF_copysign, FLOAT_copysign, DOUBLE_copysign, LONGDOUBLE_copysign};
 static void * copysign_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char copysign_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
-static PyUFuncGenericFunction cos_functions[] = {NULL, FLOAT_cos, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * cos_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cos"};
-static char cos_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction cosh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * cosh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cosh"};
-static char cosh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction cos_functions[] = {NULL, FLOAT_cos, DOUBLE_cos, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * cos_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cos"};
+static char cos_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction cosh_functions[] = {NULL, FLOAT_cosh, DOUBLE_cosh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * cosh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"cosh"};
+static char cosh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction deg2rad_functions[] = {NULL, NULL, NULL, NULL, NULL};
 static void * deg2rad_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"deg2rad"};
 static char deg2rad_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -87,12 +87,12 @@ static char equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BY
 static PyUFuncGenericFunction exp_functions[] = {NULL, FLOAT_exp, DOUBLE_exp, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static void * exp_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"exp"};
 static char exp_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction exp2_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * exp2_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"exp2"};
-static char exp2_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction expm1_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * expm1_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"expm1"};
-static char expm1_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction exp2_functions[] = {NULL, FLOAT_exp2, DOUBLE_exp2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * exp2_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"exp2"};
+static char exp2_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction expm1_functions[] = {NULL, FLOAT_expm1, DOUBLE_expm1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * expm1_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"expm1"};
+static char expm1_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction fabs_functions[] = {NULL, NULL, NULL, NULL, NULL};
 static void * fabs_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"fabs"};
 static char fabs_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
@@ -102,9 +102,9 @@ static char float_power_signatures[] = {NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_
 static PyUFuncGenericFunction floor_functions[] = {NULL, FLOAT_floor, DOUBLE_floor, NULL, NULL, NULL, NULL};
 static void * floor_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char floor_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction floor_divide_functions[] = {BYTE_divide, UBYTE_divide, SHORT_divide, USHORT_divide, INT_divide, UINT_divide, LONG_divide, ULONG_divide, LONGLONG_divide, ULONGLONG_divide, HALF_floor_divide, FLOAT_floor_divide, DOUBLE_floor_divide, LONGDOUBLE_floor_divide, CFLOAT_floor_divide, CDOUBLE_floor_divide, CLONGDOUBLE_floor_divide, TIMEDELTA_mq_m_floor_divide, TIMEDELTA_md_m_floor_divide, TIMEDELTA_mm_q_floor_divide, NULL};
-static void * floor_divide_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
-static char floor_divide_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_LONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction floor_divide_functions[] = {BYTE_divide, UBYTE_divide, SHORT_divide, USHORT_divide, INT_divide, UINT_divide, LONG_divide, ULONG_divide, LONGLONG_divide, ULONGLONG_divide, HALF_floor_divide, FLOAT_floor_divide, DOUBLE_floor_divide, LONGDOUBLE_floor_divide, TIMEDELTA_mq_m_floor_divide, TIMEDELTA_md_m_floor_divide, TIMEDELTA_mm_q_floor_divide, NULL};
+static void * floor_divide_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
+static char floor_divide_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_LONGLONG, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction fmax_functions[] = {BOOL_fmax, BYTE_fmax, UBYTE_fmax, SHORT_fmax, USHORT_fmax, INT_fmax, UINT_fmax, LONG_fmax, ULONG_fmax, LONGLONG_fmax, ULONGLONG_fmax, HALF_fmax, FLOAT_fmax, DOUBLE_fmax, LONGDOUBLE_fmax, CFLOAT_fmax, CDOUBLE_fmax, CLONGDOUBLE_fmax, TIMEDELTA_fmax, DATETIME_fmax, NULL};
 static void * fmax_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char fmax_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_DATETIME, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
@@ -165,15 +165,15 @@ static char less_equal_signatures[] = {NPY_BOOL, NPY_BOOL, NPY_BOOL, NPY_BYTE, N
 static PyUFuncGenericFunction log_functions[] = {NULL, FLOAT_log, DOUBLE_log, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 static void * log_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log"};
 static char log_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction log10_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * log10_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log10"};
-static char log10_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction log1p_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * log1p_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log1p"};
-static char log1p_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction log2_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * log2_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log2"};
-static char log2_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction log10_functions[] = {NULL, FLOAT_log10, DOUBLE_log10, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * log10_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log10"};
+static char log10_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction log1p_functions[] = {NULL, FLOAT_log1p, DOUBLE_log1p, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * log1p_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log1p"};
+static char log1p_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction log2_functions[] = {NULL, FLOAT_log2, DOUBLE_log2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * log2_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"log2"};
+static char log2_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction logaddexp_functions[] = {NULL, NULL, NULL, NULL};
 static void * logaddexp_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char logaddexp_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
@@ -246,12 +246,12 @@ static char sign_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_S
 static PyUFuncGenericFunction signbit_functions[] = {HALF_signbit, FLOAT_signbit, DOUBLE_signbit, LONGDOUBLE_signbit};
 static void * signbit_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char signbit_signatures[] = {NPY_HALF, NPY_BOOL, NPY_FLOAT, NPY_BOOL, NPY_DOUBLE, NPY_BOOL, NPY_LONGDOUBLE, NPY_BOOL};
-static PyUFuncGenericFunction sin_functions[] = {NULL, FLOAT_sin, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * sin_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"sin"};
-static char sin_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction sinh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * sinh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"sinh"};
-static char sinh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction sin_functions[] = {NULL, FLOAT_sin, DOUBLE_sin, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * sin_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"sin"};
+static char sin_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction sinh_functions[] = {NULL, FLOAT_sinh, DOUBLE_sinh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * sinh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"sinh"};
+static char sinh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction spacing_functions[] = {HALF_spacing, FLOAT_spacing, DOUBLE_spacing, LONGDOUBLE_spacing};
 static void * spacing_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char spacing_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE};
@@ -264,12 +264,12 @@ static char square_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY
 static PyUFuncGenericFunction subtract_functions[] = {BYTE_subtract, UBYTE_subtract, SHORT_subtract, USHORT_subtract, INT_subtract, UINT_subtract, LONG_subtract, ULONG_subtract, LONGLONG_subtract, ULONGLONG_subtract, HALF_subtract, FLOAT_subtract, DOUBLE_subtract, LONGDOUBLE_subtract, CFLOAT_subtract, CDOUBLE_subtract, CLONGDOUBLE_subtract, DATETIME_Mm_M_subtract, TIMEDELTA_mm_m_subtract, DATETIME_MM_m_subtract, NULL};
 static void * subtract_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char subtract_signatures[] = {NPY_BYTE, NPY_BYTE, NPY_BYTE, NPY_UBYTE, NPY_UBYTE, NPY_UBYTE, NPY_SHORT, NPY_SHORT, NPY_SHORT, NPY_USHORT, NPY_USHORT, NPY_USHORT, NPY_INT, NPY_INT, NPY_INT, NPY_UINT, NPY_UINT, NPY_UINT, NPY_LONG, NPY_LONG, NPY_LONG, NPY_ULONG, NPY_ULONG, NPY_ULONG, NPY_LONGLONG, NPY_LONGLONG, NPY_LONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_ULONGLONG, NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_DATETIME, NPY_TIMEDELTA, NPY_DATETIME, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DATETIME, NPY_DATETIME, NPY_TIMEDELTA, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction tan_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * tan_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"tan"};
-static char tan_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
-static PyUFuncGenericFunction tanh_functions[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-static void * tanh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"tanh"};
-static char tanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction tan_functions[] = {NULL, FLOAT_tan, DOUBLE_tan, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * tan_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"tan"};
+static char tan_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
+static PyUFuncGenericFunction tanh_functions[] = {NULL, FLOAT_tanh, DOUBLE_tanh, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+static void * tanh_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)"tanh"};
+static char tanh_signatures[] = {NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_OBJECT, NPY_OBJECT};
 static PyUFuncGenericFunction true_divide_functions[] = {HALF_divide, FLOAT_divide, DOUBLE_divide, LONGDOUBLE_divide, CFLOAT_divide, CDOUBLE_divide, CLONGDOUBLE_divide, TIMEDELTA_mq_m_divide, TIMEDELTA_md_m_divide, TIMEDELTA_mm_d_divide, NULL};
 static void * true_divide_data[] = {(void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL, (void *)NULL};
 static char true_divide_signatures[] = {NPY_HALF, NPY_HALF, NPY_HALF, NPY_FLOAT, NPY_FLOAT, NPY_FLOAT, NPY_DOUBLE, NPY_DOUBLE, NPY_DOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_LONGDOUBLE, NPY_CFLOAT, NPY_CFLOAT, NPY_CFLOAT, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_CLONGDOUBLE, NPY_TIMEDELTA, NPY_LONGLONG, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_TIMEDELTA, NPY_DOUBLE, NPY_OBJECT, NPY_OBJECT, NPY_OBJECT};
@@ -361,79 +361,89 @@ InitOperators(PyObject *dictionary) {
     add_data[21] = (void *) PyNumber_Add;
     arccos_functions[0] = PyUFunc_e_e_As_f_f;
     arccos_data[0] = (void *) npy_acosf;
-    arccos_functions[1] = PyUFunc_f_f;
-    arccos_data[1] = (void *) npy_acosf;
-    arccos_functions[2] = PyUFunc_d_d;
-    arccos_data[2] = (void *) npy_acos;
-    arccos_functions[3] = PyUFunc_g_g;
-    arccos_data[3] = (void *) npy_acosl;
-    arccos_functions[4] = PyUFunc_F_F;
-    arccos_data[4] = (void *) nc_acosf;
-    arccos_functions[5] = PyUFunc_D_D;
-    arccos_data[5] = (void *) nc_acos;
-    arccos_functions[6] = PyUFunc_G_G;
-    arccos_data[6] = (void *) nc_acosl;
-    arccos_functions[7] = PyUFunc_O_O_method;
+    arccos_functions[3] = PyUFunc_e_e_As_f_f;
+    arccos_data[3] = (void *) npy_acosf;
+    arccos_functions[4] = PyUFunc_f_f;
+    arccos_data[4] = (void *) npy_acosf;
+    arccos_functions[5] = PyUFunc_d_d;
+    arccos_data[5] = (void *) npy_acos;
+    arccos_functions[6] = PyUFunc_g_g;
+    arccos_data[6] = (void *) npy_acosl;
+    arccos_functions[7] = PyUFunc_F_F;
+    arccos_data[7] = (void *) nc_acosf;
+    arccos_functions[8] = PyUFunc_D_D;
+    arccos_data[8] = (void *) nc_acos;
+    arccos_functions[9] = PyUFunc_G_G;
+    arccos_data[9] = (void *) nc_acosl;
+    arccos_functions[10] = PyUFunc_O_O_method;
     arccosh_functions[0] = PyUFunc_e_e_As_f_f;
     arccosh_data[0] = (void *) npy_acoshf;
-    arccosh_functions[1] = PyUFunc_f_f;
-    arccosh_data[1] = (void *) npy_acoshf;
-    arccosh_functions[2] = PyUFunc_d_d;
-    arccosh_data[2] = (void *) npy_acosh;
-    arccosh_functions[3] = PyUFunc_g_g;
-    arccosh_data[3] = (void *) npy_acoshl;
-    arccosh_functions[4] = PyUFunc_F_F;
-    arccosh_data[4] = (void *) nc_acoshf;
-    arccosh_functions[5] = PyUFunc_D_D;
-    arccosh_data[5] = (void *) nc_acosh;
-    arccosh_functions[6] = PyUFunc_G_G;
-    arccosh_data[6] = (void *) nc_acoshl;
-    arccosh_functions[7] = PyUFunc_O_O_method;
+    arccosh_functions[3] = PyUFunc_e_e_As_f_f;
+    arccosh_data[3] = (void *) npy_acoshf;
+    arccosh_functions[4] = PyUFunc_f_f;
+    arccosh_data[4] = (void *) npy_acoshf;
+    arccosh_functions[5] = PyUFunc_d_d;
+    arccosh_data[5] = (void *) npy_acosh;
+    arccosh_functions[6] = PyUFunc_g_g;
+    arccosh_data[6] = (void *) npy_acoshl;
+    arccosh_functions[7] = PyUFunc_F_F;
+    arccosh_data[7] = (void *) nc_acoshf;
+    arccosh_functions[8] = PyUFunc_D_D;
+    arccosh_data[8] = (void *) nc_acosh;
+    arccosh_functions[9] = PyUFunc_G_G;
+    arccosh_data[9] = (void *) nc_acoshl;
+    arccosh_functions[10] = PyUFunc_O_O_method;
     arcsin_functions[0] = PyUFunc_e_e_As_f_f;
     arcsin_data[0] = (void *) npy_asinf;
-    arcsin_functions[1] = PyUFunc_f_f;
-    arcsin_data[1] = (void *) npy_asinf;
-    arcsin_functions[2] = PyUFunc_d_d;
-    arcsin_data[2] = (void *) npy_asin;
-    arcsin_functions[3] = PyUFunc_g_g;
-    arcsin_data[3] = (void *) npy_asinl;
-    arcsin_functions[4] = PyUFunc_F_F;
-    arcsin_data[4] = (void *) nc_asinf;
-    arcsin_functions[5] = PyUFunc_D_D;
-    arcsin_data[5] = (void *) nc_asin;
-    arcsin_functions[6] = PyUFunc_G_G;
-    arcsin_data[6] = (void *) nc_asinl;
-    arcsin_functions[7] = PyUFunc_O_O_method;
+    arcsin_functions[3] = PyUFunc_e_e_As_f_f;
+    arcsin_data[3] = (void *) npy_asinf;
+    arcsin_functions[4] = PyUFunc_f_f;
+    arcsin_data[4] = (void *) npy_asinf;
+    arcsin_functions[5] = PyUFunc_d_d;
+    arcsin_data[5] = (void *) npy_asin;
+    arcsin_functions[6] = PyUFunc_g_g;
+    arcsin_data[6] = (void *) npy_asinl;
+    arcsin_functions[7] = PyUFunc_F_F;
+    arcsin_data[7] = (void *) nc_asinf;
+    arcsin_functions[8] = PyUFunc_D_D;
+    arcsin_data[8] = (void *) nc_asin;
+    arcsin_functions[9] = PyUFunc_G_G;
+    arcsin_data[9] = (void *) nc_asinl;
+    arcsin_functions[10] = PyUFunc_O_O_method;
     arcsinh_functions[0] = PyUFunc_e_e_As_f_f;
     arcsinh_data[0] = (void *) npy_asinhf;
-    arcsinh_functions[1] = PyUFunc_f_f;
-    arcsinh_data[1] = (void *) npy_asinhf;
-    arcsinh_functions[2] = PyUFunc_d_d;
-    arcsinh_data[2] = (void *) npy_asinh;
-    arcsinh_functions[3] = PyUFunc_g_g;
-    arcsinh_data[3] = (void *) npy_asinhl;
-    arcsinh_functions[4] = PyUFunc_F_F;
-    arcsinh_data[4] = (void *) nc_asinhf;
-    arcsinh_functions[5] = PyUFunc_D_D;
-    arcsinh_data[5] = (void *) nc_asinh;
-    arcsinh_functions[6] = PyUFunc_G_G;
-    arcsinh_data[6] = (void *) nc_asinhl;
-    arcsinh_functions[7] = PyUFunc_O_O_method;
+    arcsinh_functions[3] = PyUFunc_e_e_As_f_f;
+    arcsinh_data[3] = (void *) npy_asinhf;
+    arcsinh_functions[4] = PyUFunc_f_f;
+    arcsinh_data[4] = (void *) npy_asinhf;
+    arcsinh_functions[5] = PyUFunc_d_d;
+    arcsinh_data[5] = (void *) npy_asinh;
+    arcsinh_functions[6] = PyUFunc_g_g;
+    arcsinh_data[6] = (void *) npy_asinhl;
+    arcsinh_functions[7] = PyUFunc_F_F;
+    arcsinh_data[7] = (void *) nc_asinhf;
+    arcsinh_functions[8] = PyUFunc_D_D;
+    arcsinh_data[8] = (void *) nc_asinh;
+    arcsinh_functions[9] = PyUFunc_G_G;
+    arcsinh_data[9] = (void *) nc_asinhl;
+    arcsinh_functions[10] = PyUFunc_O_O_method;
     arctan_functions[0] = PyUFunc_e_e_As_f_f;
     arctan_data[0] = (void *) npy_atanf;
-    arctan_functions[1] = PyUFunc_f_f;
-    arctan_data[1] = (void *) npy_atanf;
-    arctan_functions[2] = PyUFunc_d_d;
-    arctan_data[2] = (void *) npy_atan;
-    arctan_functions[3] = PyUFunc_g_g;
-    arctan_data[3] = (void *) npy_atanl;
-    arctan_functions[4] = PyUFunc_F_F;
-    arctan_data[4] = (void *) nc_atanf;
-    arctan_functions[5] = PyUFunc_D_D;
-    arctan_data[5] = (void *) nc_atan;
-    arctan_functions[6] = PyUFunc_G_G;
-    arctan_data[6] = (void *) nc_atanl;
-    arctan_functions[7] = PyUFunc_O_O_method;
+    arctan_functions[3] = PyUFunc_e_e_As_f_f;
+    arctan_data[3] = (void *) npy_atanf;
+    arctan_functions[4] = PyUFunc_f_f;
+    arctan_data[4] = (void *) npy_atanf;
+    arctan_functions[5] = PyUFunc_d_d;
+    arctan_data[5] = (void *) npy_atan;
+    arctan_functions[6] = PyUFunc_g_g;
+    arctan_data[6] = (void *) npy_atanl;
+    arctan_functions[7] = PyUFunc_F_F;
+    arctan_data[7] = (void *) nc_atanf;
+    arctan_functions[8] = PyUFunc_D_D;
+    arctan_data[8] = (void *) nc_atan;
+    arctan_functions[9] = PyUFunc_G_G;
+    arctan_data[9] = (void *) nc_atanl;
+    arctan_functions[10] = PyUFunc_O_O_method;
     arctan2_functions[0] = PyUFunc_ee_e_As_ff_f;
     arctan2_data[0] = (void *) npy_atan2f;
     arctan2_functions[1] = PyUFunc_ff_f;
@@ -445,19 +455,21 @@ InitOperators(PyObject *dictionary) {
     arctan2_functions[4] = PyUFunc_OO_O_method;
     arctanh_functions[0] = PyUFunc_e_e_As_f_f;
     arctanh_data[0] = (void *) npy_atanhf;
-    arctanh_functions[1] = PyUFunc_f_f;
-    arctanh_data[1] = (void *) npy_atanhf;
-    arctanh_functions[2] = PyUFunc_d_d;
-    arctanh_data[2] = (void *) npy_atanh;
-    arctanh_functions[3] = PyUFunc_g_g;
-    arctanh_data[3] = (void *) npy_atanhl;
-    arctanh_functions[4] = PyUFunc_F_F;
-    arctanh_data[4] = (void *) nc_atanhf;
-    arctanh_functions[5] = PyUFunc_D_D;
-    arctanh_data[5] = (void *) nc_atanh;
-    arctanh_functions[6] = PyUFunc_G_G;
-    arctanh_data[6] = (void *) nc_atanhl;
-    arctanh_functions[7] = PyUFunc_O_O_method;
+    arctanh_functions[3] = PyUFunc_e_e_As_f_f;
+    arctanh_data[3] = (void *) npy_atanhf;
+    arctanh_functions[4] = PyUFunc_f_f;
+    arctanh_data[4] = (void *) npy_atanhf;
+    arctanh_functions[5] = PyUFunc_d_d;
+    arctanh_data[5] = (void *) npy_atanh;
+    arctanh_functions[6] = PyUFunc_g_g;
+    arctanh_data[6] = (void *) npy_atanhl;
+    arctanh_functions[7] = PyUFunc_F_F;
+    arctanh_data[7] = (void *) nc_atanhf;
+    arctanh_functions[8] = PyUFunc_D_D;
+    arctanh_data[8] = (void *) nc_atanh;
+    arctanh_functions[9] = PyUFunc_G_G;
+    arctanh_data[9] = (void *) nc_atanhl;
+    arctanh_functions[10] = PyUFunc_O_O_method;
     #ifdef HAVE_ATTRIBUTE_TARGET_AVX2
     if (NPY_CPU_HAVE(AVX2)) {
         bitwise_and_functions[1] = BYTE_bitwise_and_avx2;
@@ -646,39 +658,17 @@ InitOperators(PyObject *dictionary) {
     bitwise_xor_data[11] = (void *) PyNumber_Xor;
     cbrt_functions[0] = PyUFunc_e_e_As_f_f;
     cbrt_data[0] = (void *) npy_cbrtf;
-    cbrt_functions[1] = PyUFunc_f_f;
-    cbrt_data[1] = (void *) npy_cbrtf;
-    cbrt_functions[2] = PyUFunc_d_d;
-    cbrt_data[2] = (void *) npy_cbrt;
-    cbrt_functions[3] = PyUFunc_g_g;
-    cbrt_data[3] = (void *) npy_cbrtl;
-    cbrt_functions[4] = PyUFunc_O_O_method;
+    cbrt_functions[3] = PyUFunc_e_e_As_f_f;
+    cbrt_data[3] = (void *) npy_cbrtf;
+    cbrt_functions[4] = PyUFunc_f_f;
+    cbrt_data[4] = (void *) npy_cbrtf;
+    cbrt_functions[5] = PyUFunc_d_d;
+    cbrt_data[5] = (void *) npy_cbrt;
+    cbrt_functions[6] = PyUFunc_g_g;
+    cbrt_data[6] = (void *) npy_cbrtl;
+    cbrt_functions[7] = PyUFunc_O_O_method;
     ceil_functions[0] = PyUFunc_e_e_As_f_f;
     ceil_data[0] = (void *) npy_ceilf;
-    #ifdef HAVE_ATTRIBUTE_TARGET_FMA
-    if (NPY_CPU_HAVE(FMA)) {
-        ceil_functions[1] = FLOAT_ceil_fma;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        ceil_functions[1] = FLOAT_ceil_avx512f;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_FMA
-    if (NPY_CPU_HAVE(FMA)) {
-        ceil_functions[2] = DOUBLE_ceil_fma;
-    }
-    #endif
-    
-    #ifdef HAVE_ATTRIBUTE_TARGET_AVX512F
-    if (NPY_CPU_HAVE(AVX512F)) {
-        ceil_functions[2] = DOUBLE_ceil_avx512f;
-    }
-    #endif
-    
     ceil_functions[3] = PyUFunc_f_f;
     ceil_data[3] = (void *) npy_ceilf;
     ceil_functions[4] = PyUFunc_d_d;
@@ -764,34 +754,36 @@ InitOperators(PyObject *dictionary) {
     conjugate_functions[17] = PyUFunc_O_O_method;
     cos_functions[0] = PyUFunc_e_e_As_f_f;
     cos_data[0] = (void *) npy_cosf;
-    cos_functions[2] = PyUFunc_f_f;
-    cos_data[2] = (void *) npy_cosf;
-    cos_functions[3] = PyUFunc_d_d;
-    cos_data[3] = (void *) npy_cos;
-    cos_functions[4] = PyUFunc_g_g;
-    cos_data[4] = (void *) npy_cosl;
-    cos_functions[5] = PyUFunc_F_F;
-    cos_data[5] = (void *) nc_cosf;
-    cos_functions[6] = PyUFunc_D_D;
-    cos_data[6] = (void *) nc_cos;
-    cos_functions[7] = PyUFunc_G_G;
-    cos_data[7] = (void *) nc_cosl;
-    cos_functions[8] = PyUFunc_O_O_method;
+    cos_functions[3] = PyUFunc_f_f;
+    cos_data[3] = (void *) npy_cosf;
+    cos_functions[4] = PyUFunc_d_d;
+    cos_data[4] = (void *) npy_cos;
+    cos_functions[5] = PyUFunc_g_g;
+    cos_data[5] = (void *) npy_cosl;
+    cos_functions[6] = PyUFunc_F_F;
+    cos_data[6] = (void *) nc_cosf;
+    cos_functions[7] = PyUFunc_D_D;
+    cos_data[7] = (void *) nc_cos;
+    cos_functions[8] = PyUFunc_G_G;
+    cos_data[8] = (void *) nc_cosl;
+    cos_functions[9] = PyUFunc_O_O_method;
     cosh_functions[0] = PyUFunc_e_e_As_f_f;
     cosh_data[0] = (void *) npy_coshf;
-    cosh_functions[1] = PyUFunc_f_f;
-    cosh_data[1] = (void *) npy_coshf;
-    cosh_functions[2] = PyUFunc_d_d;
-    cosh_data[2] = (void *) npy_cosh;
-    cosh_functions[3] = PyUFunc_g_g;
-    cosh_data[3] = (void *) npy_coshl;
-    cosh_functions[4] = PyUFunc_F_F;
-    cosh_data[4] = (void *) nc_coshf;
-    cosh_functions[5] = PyUFunc_D_D;
-    cosh_data[5] = (void *) nc_cosh;
-    cosh_functions[6] = PyUFunc_G_G;
-    cosh_data[6] = (void *) nc_coshl;
-    cosh_functions[7] = PyUFunc_O_O_method;
+    cosh_functions[3] = PyUFunc_e_e_As_f_f;
+    cosh_data[3] = (void *) npy_coshf;
+    cosh_functions[4] = PyUFunc_f_f;
+    cosh_data[4] = (void *) npy_coshf;
+    cosh_functions[5] = PyUFunc_d_d;
+    cosh_data[5] = (void *) npy_cosh;
+    cosh_functions[6] = PyUFunc_g_g;
+    cosh_data[6] = (void *) npy_coshl;
+    cosh_functions[7] = PyUFunc_F_F;
+    cosh_data[7] = (void *) nc_coshf;
+    cosh_functions[8] = PyUFunc_D_D;
+    cosh_data[8] = (void *) nc_cosh;
+    cosh_functions[9] = PyUFunc_G_G;
+    cosh_data[9] = (void *) nc_coshl;
+    cosh_functions[10] = PyUFunc_O_O_method;
     deg2rad_functions[0] = PyUFunc_e_e_As_f_f;
     deg2rad_data[0] = (void *) npy_deg2radf;
     deg2rad_functions[1] = PyUFunc_f_f;
@@ -887,34 +879,38 @@ InitOperators(PyObject *dictionary) {
     exp_functions[9] = PyUFunc_O_O_method;
     exp2_functions[0] = PyUFunc_e_e_As_f_f;
     exp2_data[0] = (void *) npy_exp2f;
-    exp2_functions[1] = PyUFunc_f_f;
-    exp2_data[1] = (void *) npy_exp2f;
-    exp2_functions[2] = PyUFunc_d_d;
-    exp2_data[2] = (void *) npy_exp2;
-    exp2_functions[3] = PyUFunc_g_g;
-    exp2_data[3] = (void *) npy_exp2l;
-    exp2_functions[4] = PyUFunc_F_F;
-    exp2_data[4] = (void *) nc_exp2f;
-    exp2_functions[5] = PyUFunc_D_D;
-    exp2_data[5] = (void *) nc_exp2;
-    exp2_functions[6] = PyUFunc_G_G;
-    exp2_data[6] = (void *) nc_exp2l;
-    exp2_functions[7] = PyUFunc_O_O_method;
+    exp2_functions[3] = PyUFunc_e_e_As_f_f;
+    exp2_data[3] = (void *) npy_exp2f;
+    exp2_functions[4] = PyUFunc_f_f;
+    exp2_data[4] = (void *) npy_exp2f;
+    exp2_functions[5] = PyUFunc_d_d;
+    exp2_data[5] = (void *) npy_exp2;
+    exp2_functions[6] = PyUFunc_g_g;
+    exp2_data[6] = (void *) npy_exp2l;
+    exp2_functions[7] = PyUFunc_F_F;
+    exp2_data[7] = (void *) nc_exp2f;
+    exp2_functions[8] = PyUFunc_D_D;
+    exp2_data[8] = (void *) nc_exp2;
+    exp2_functions[9] = PyUFunc_G_G;
+    exp2_data[9] = (void *) nc_exp2l;
+    exp2_functions[10] = PyUFunc_O_O_method;
     expm1_functions[0] = PyUFunc_e_e_As_f_f;
     expm1_data[0] = (void *) npy_expm1f;
-    expm1_functions[1] = PyUFunc_f_f;
-    expm1_data[1] = (void *) npy_expm1f;
-    expm1_functions[2] = PyUFunc_d_d;
-    expm1_data[2] = (void *) npy_expm1;
-    expm1_functions[3] = PyUFunc_g_g;
-    expm1_data[3] = (void *) npy_expm1l;
-    expm1_functions[4] = PyUFunc_F_F;
-    expm1_data[4] = (void *) nc_expm1f;
-    expm1_functions[5] = PyUFunc_D_D;
-    expm1_data[5] = (void *) nc_expm1;
-    expm1_functions[6] = PyUFunc_G_G;
-    expm1_data[6] = (void *) nc_expm1l;
-    expm1_functions[7] = PyUFunc_O_O_method;
+    expm1_functions[3] = PyUFunc_e_e_As_f_f;
+    expm1_data[3] = (void *) npy_expm1f;
+    expm1_functions[4] = PyUFunc_f_f;
+    expm1_data[4] = (void *) npy_expm1f;
+    expm1_functions[5] = PyUFunc_d_d;
+    expm1_data[5] = (void *) npy_expm1;
+    expm1_functions[6] = PyUFunc_g_g;
+    expm1_data[6] = (void *) npy_expm1l;
+    expm1_functions[7] = PyUFunc_F_F;
+    expm1_data[7] = (void *) nc_expm1f;
+    expm1_functions[8] = PyUFunc_D_D;
+    expm1_data[8] = (void *) nc_expm1;
+    expm1_functions[9] = PyUFunc_G_G;
+    expm1_data[9] = (void *) nc_expm1l;
+    expm1_functions[10] = PyUFunc_O_O_method;
     fabs_functions[0] = PyUFunc_e_e_As_f_f;
     fabs_data[0] = (void *) npy_fabsf;
     fabs_functions[1] = PyUFunc_f_f;
@@ -966,8 +962,8 @@ InitOperators(PyObject *dictionary) {
     floor_data[5] = (void *) npy_floorl;
     floor_functions[6] = PyUFunc_O_O;
     floor_data[6] = (void *) npy_ObjectFloor;
-    floor_divide_functions[20] = PyUFunc_OO_O;
-    floor_divide_data[20] = (void *) PyNumber_FloorDivide;
+    floor_divide_functions[17] = PyUFunc_OO_O;
+    floor_divide_data[17] = (void *) PyNumber_FloorDivide;
     fmax_functions[20] = PyUFunc_OO_O;
     fmax_data[20] = (void *) npy_ObjectMax;
     fmin_functions[20] = PyUFunc_OO_O;
@@ -1419,49 +1415,55 @@ InitOperators(PyObject *dictionary) {
     log_functions[9] = PyUFunc_O_O_method;
     log10_functions[0] = PyUFunc_e_e_As_f_f;
     log10_data[0] = (void *) npy_log10f;
-    log10_functions[1] = PyUFunc_f_f;
-    log10_data[1] = (void *) npy_log10f;
-    log10_functions[2] = PyUFunc_d_d;
-    log10_data[2] = (void *) npy_log10;
-    log10_functions[3] = PyUFunc_g_g;
-    log10_data[3] = (void *) npy_log10l;
-    log10_functions[4] = PyUFunc_F_F;
-    log10_data[4] = (void *) nc_log10f;
-    log10_functions[5] = PyUFunc_D_D;
-    log10_data[5] = (void *) nc_log10;
-    log10_functions[6] = PyUFunc_G_G;
-    log10_data[6] = (void *) nc_log10l;
-    log10_functions[7] = PyUFunc_O_O_method;
+    log10_functions[3] = PyUFunc_e_e_As_f_f;
+    log10_data[3] = (void *) npy_log10f;
+    log10_functions[4] = PyUFunc_f_f;
+    log10_data[4] = (void *) npy_log10f;
+    log10_functions[5] = PyUFunc_d_d;
+    log10_data[5] = (void *) npy_log10;
+    log10_functions[6] = PyUFunc_g_g;
+    log10_data[6] = (void *) npy_log10l;
+    log10_functions[7] = PyUFunc_F_F;
+    log10_data[7] = (void *) nc_log10f;
+    log10_functions[8] = PyUFunc_D_D;
+    log10_data[8] = (void *) nc_log10;
+    log10_functions[9] = PyUFunc_G_G;
+    log10_data[9] = (void *) nc_log10l;
+    log10_functions[10] = PyUFunc_O_O_method;
     log1p_functions[0] = PyUFunc_e_e_As_f_f;
     log1p_data[0] = (void *) npy_log1pf;
-    log1p_functions[1] = PyUFunc_f_f;
-    log1p_data[1] = (void *) npy_log1pf;
-    log1p_functions[2] = PyUFunc_d_d;
-    log1p_data[2] = (void *) npy_log1p;
-    log1p_functions[3] = PyUFunc_g_g;
-    log1p_data[3] = (void *) npy_log1pl;
-    log1p_functions[4] = PyUFunc_F_F;
-    log1p_data[4] = (void *) nc_log1pf;
-    log1p_functions[5] = PyUFunc_D_D;
-    log1p_data[5] = (void *) nc_log1p;
-    log1p_functions[6] = PyUFunc_G_G;
-    log1p_data[6] = (void *) nc_log1pl;
-    log1p_functions[7] = PyUFunc_O_O_method;
+    log1p_functions[3] = PyUFunc_e_e_As_f_f;
+    log1p_data[3] = (void *) npy_log1pf;
+    log1p_functions[4] = PyUFunc_f_f;
+    log1p_data[4] = (void *) npy_log1pf;
+    log1p_functions[5] = PyUFunc_d_d;
+    log1p_data[5] = (void *) npy_log1p;
+    log1p_functions[6] = PyUFunc_g_g;
+    log1p_data[6] = (void *) npy_log1pl;
+    log1p_functions[7] = PyUFunc_F_F;
+    log1p_data[7] = (void *) nc_log1pf;
+    log1p_functions[8] = PyUFunc_D_D;
+    log1p_data[8] = (void *) nc_log1p;
+    log1p_functions[9] = PyUFunc_G_G;
+    log1p_data[9] = (void *) nc_log1pl;
+    log1p_functions[10] = PyUFunc_O_O_method;
     log2_functions[0] = PyUFunc_e_e_As_f_f;
     log2_data[0] = (void *) npy_log2f;
-    log2_functions[1] = PyUFunc_f_f;
-    log2_data[1] = (void *) npy_log2f;
-    log2_functions[2] = PyUFunc_d_d;
-    log2_data[2] = (void *) npy_log2;
-    log2_functions[3] = PyUFunc_g_g;
-    log2_data[3] = (void *) npy_log2l;
-    log2_functions[4] = PyUFunc_F_F;
-    log2_data[4] = (void *) nc_log2f;
-    log2_functions[5] = PyUFunc_D_D;
-    log2_data[5] = (void *) nc_log2;
-    log2_functions[6] = PyUFunc_G_G;
-    log2_data[6] = (void *) nc_log2l;
-    log2_functions[7] = PyUFunc_O_O_method;
+    log2_functions[3] = PyUFunc_e_e_As_f_f;
+    log2_data[3] = (void *) npy_log2f;
+    log2_functions[4] = PyUFunc_f_f;
+    log2_data[4] = (void *) npy_log2f;
+    log2_functions[5] = PyUFunc_d_d;
+    log2_data[5] = (void *) npy_log2;
+    log2_functions[6] = PyUFunc_g_g;
+    log2_data[6] = (void *) npy_log2l;
+    log2_functions[7] = PyUFunc_F_F;
+    log2_data[7] = (void *) nc_log2f;
+    log2_functions[8] = PyUFunc_D_D;
+    log2_data[8] = (void *) nc_log2;
+    log2_functions[9] = PyUFunc_G_G;
+    log2_data[9] = (void *) nc_log2l;
+    log2_functions[10] = PyUFunc_O_O_method;
     logaddexp_functions[0] = PyUFunc_ee_e_As_ff_f;
     logaddexp_data[0] = (void *) npy_logaddexpf;
     logaddexp_functions[1] = PyUFunc_ff_f;
@@ -2104,34 +2106,36 @@ InitOperators(PyObject *dictionary) {
     
     sin_functions[0] = PyUFunc_e_e_As_f_f;
     sin_data[0] = (void *) npy_sinf;
-    sin_functions[2] = PyUFunc_f_f;
-    sin_data[2] = (void *) npy_sinf;
-    sin_functions[3] = PyUFunc_d_d;
-    sin_data[3] = (void *) npy_sin;
-    sin_functions[4] = PyUFunc_g_g;
-    sin_data[4] = (void *) npy_sinl;
-    sin_functions[5] = PyUFunc_F_F;
-    sin_data[5] = (void *) nc_sinf;
-    sin_functions[6] = PyUFunc_D_D;
-    sin_data[6] = (void *) nc_sin;
-    sin_functions[7] = PyUFunc_G_G;
-    sin_data[7] = (void *) nc_sinl;
-    sin_functions[8] = PyUFunc_O_O_method;
+    sin_functions[3] = PyUFunc_f_f;
+    sin_data[3] = (void *) npy_sinf;
+    sin_functions[4] = PyUFunc_d_d;
+    sin_data[4] = (void *) npy_sin;
+    sin_functions[5] = PyUFunc_g_g;
+    sin_data[5] = (void *) npy_sinl;
+    sin_functions[6] = PyUFunc_F_F;
+    sin_data[6] = (void *) nc_sinf;
+    sin_functions[7] = PyUFunc_D_D;
+    sin_data[7] = (void *) nc_sin;
+    sin_functions[8] = PyUFunc_G_G;
+    sin_data[8] = (void *) nc_sinl;
+    sin_functions[9] = PyUFunc_O_O_method;
     sinh_functions[0] = PyUFunc_e_e_As_f_f;
     sinh_data[0] = (void *) npy_sinhf;
-    sinh_functions[1] = PyUFunc_f_f;
-    sinh_data[1] = (void *) npy_sinhf;
-    sinh_functions[2] = PyUFunc_d_d;
-    sinh_data[2] = (void *) npy_sinh;
-    sinh_functions[3] = PyUFunc_g_g;
-    sinh_data[3] = (void *) npy_sinhl;
-    sinh_functions[4] = PyUFunc_F_F;
-    sinh_data[4] = (void *) nc_sinhf;
-    sinh_functions[5] = PyUFunc_D_D;
-    sinh_data[5] = (void *) nc_sinh;
-    sinh_functions[6] = PyUFunc_G_G;
-    sinh_data[6] = (void *) nc_sinhl;
-    sinh_functions[7] = PyUFunc_O_O_method;
+    sinh_functions[3] = PyUFunc_e_e_As_f_f;
+    sinh_data[3] = (void *) npy_sinhf;
+    sinh_functions[4] = PyUFunc_f_f;
+    sinh_data[4] = (void *) npy_sinhf;
+    sinh_functions[5] = PyUFunc_d_d;
+    sinh_data[5] = (void *) npy_sinh;
+    sinh_functions[6] = PyUFunc_g_g;
+    sinh_data[6] = (void *) npy_sinhl;
+    sinh_functions[7] = PyUFunc_F_F;
+    sinh_data[7] = (void *) nc_sinhf;
+    sinh_functions[8] = PyUFunc_D_D;
+    sinh_data[8] = (void *) nc_sinh;
+    sinh_functions[9] = PyUFunc_G_G;
+    sinh_data[9] = (void *) nc_sinhl;
+    sinh_functions[10] = PyUFunc_O_O_method;
     sqrt_functions[0] = PyUFunc_e_e_As_f_f;
     sqrt_data[0] = (void *) npy_sqrtf;
     sqrt_functions[3] = PyUFunc_f_f;
@@ -2285,34 +2289,38 @@ InitOperators(PyObject *dictionary) {
     subtract_data[20] = (void *) PyNumber_Subtract;
     tan_functions[0] = PyUFunc_e_e_As_f_f;
     tan_data[0] = (void *) npy_tanf;
-    tan_functions[1] = PyUFunc_f_f;
-    tan_data[1] = (void *) npy_tanf;
-    tan_functions[2] = PyUFunc_d_d;
-    tan_data[2] = (void *) npy_tan;
-    tan_functions[3] = PyUFunc_g_g;
-    tan_data[3] = (void *) npy_tanl;
-    tan_functions[4] = PyUFunc_F_F;
-    tan_data[4] = (void *) nc_tanf;
-    tan_functions[5] = PyUFunc_D_D;
-    tan_data[5] = (void *) nc_tan;
-    tan_functions[6] = PyUFunc_G_G;
-    tan_data[6] = (void *) nc_tanl;
-    tan_functions[7] = PyUFunc_O_O_method;
+    tan_functions[3] = PyUFunc_e_e_As_f_f;
+    tan_data[3] = (void *) npy_tanf;
+    tan_functions[4] = PyUFunc_f_f;
+    tan_data[4] = (void *) npy_tanf;
+    tan_functions[5] = PyUFunc_d_d;
+    tan_data[5] = (void *) npy_tan;
+    tan_functions[6] = PyUFunc_g_g;
+    tan_data[6] = (void *) npy_tanl;
+    tan_functions[7] = PyUFunc_F_F;
+    tan_data[7] = (void *) nc_tanf;
+    tan_functions[8] = PyUFunc_D_D;
+    tan_data[8] = (void *) nc_tan;
+    tan_functions[9] = PyUFunc_G_G;
+    tan_data[9] = (void *) nc_tanl;
+    tan_functions[10] = PyUFunc_O_O_method;
     tanh_functions[0] = PyUFunc_e_e_As_f_f;
     tanh_data[0] = (void *) npy_tanhf;
-    tanh_functions[1] = PyUFunc_f_f;
-    tanh_data[1] = (void *) npy_tanhf;
-    tanh_functions[2] = PyUFunc_d_d;
-    tanh_data[2] = (void *) npy_tanh;
-    tanh_functions[3] = PyUFunc_g_g;
-    tanh_data[3] = (void *) npy_tanhl;
-    tanh_functions[4] = PyUFunc_F_F;
-    tanh_data[4] = (void *) nc_tanhf;
-    tanh_functions[5] = PyUFunc_D_D;
-    tanh_data[5] = (void *) nc_tanh;
-    tanh_functions[6] = PyUFunc_G_G;
-    tanh_data[6] = (void *) nc_tanhl;
-    tanh_functions[7] = PyUFunc_O_O_method;
+    tanh_functions[3] = PyUFunc_e_e_As_f_f;
+    tanh_data[3] = (void *) npy_tanhf;
+    tanh_functions[4] = PyUFunc_f_f;
+    tanh_data[4] = (void *) npy_tanhf;
+    tanh_functions[5] = PyUFunc_d_d;
+    tanh_data[5] = (void *) npy_tanh;
+    tanh_functions[6] = PyUFunc_g_g;
+    tanh_data[6] = (void *) npy_tanhl;
+    tanh_functions[7] = PyUFunc_F_F;
+    tanh_data[7] = (void *) nc_tanhf;
+    tanh_functions[8] = PyUFunc_D_D;
+    tanh_data[8] = (void *) nc_tanh;
+    tanh_functions[9] = PyUFunc_G_G;
+    tanh_data[9] = (void *) nc_tanhl;
+    tanh_functions[10] = PyUFunc_O_O_method;
     true_divide_functions[10] = PyUFunc_OO_O;
     true_divide_data[10] = (void *) PyNumber_TrueDivide;
     trunc_functions[0] = PyUFunc_e_e_As_f_f;
@@ -2358,6 +2366,10 @@ InitOperators(PyObject *dictionary) {
     
     NPY_CPU_DISPATCH_CALL_XB(absolute_functions[13] = DOUBLE_absolute);
     
+    NPY_CPU_DISPATCH_CALL_XB(ceil_functions[1] = FLOAT_ceil);
+    
+    NPY_CPU_DISPATCH_CALL_XB(ceil_functions[2] = DOUBLE_ceil);
+    
     NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[11] = FLOAT_reciprocal);
     
     NPY_CPU_DISPATCH_CALL_XB(reciprocal_functions[12] = DOUBLE_reciprocal);
@@ -2402,6 +2414,79 @@ InitOperators(PyObject *dictionary) {
     NPY_CPU_DISPATCH_CALL_XB(true_divide_functions[1] = FLOAT_divide);
     
     NPY_CPU_DISPATCH_CALL_XB(true_divide_functions[2] = DOUBLE_divide);
+    
+    
+    #ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_umath_fp.dispatch.h"
+    #endif
+    
+    NPY_CPU_DISPATCH_CALL_XB(arccos_functions[1] = FLOAT_arccos);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arccos_functions[2] = DOUBLE_arccos);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arccosh_functions[1] = FLOAT_arccosh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arccosh_functions[2] = DOUBLE_arccosh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arcsin_functions[1] = FLOAT_arcsin);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arcsin_functions[2] = DOUBLE_arcsin);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arcsinh_functions[1] = FLOAT_arcsinh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arcsinh_functions[2] = DOUBLE_arcsinh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arctan_functions[1] = FLOAT_arctan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arctan_functions[2] = DOUBLE_arctan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arctanh_functions[1] = FLOAT_arctanh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(arctanh_functions[2] = DOUBLE_arctanh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(cbrt_functions[1] = FLOAT_cbrt);
+    
+    NPY_CPU_DISPATCH_CALL_XB(cbrt_functions[2] = DOUBLE_cbrt);
+    
+    NPY_CPU_DISPATCH_CALL_XB(cos_functions[2] = DOUBLE_cos);
+    
+    NPY_CPU_DISPATCH_CALL_XB(cosh_functions[1] = FLOAT_cosh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(cosh_functions[2] = DOUBLE_cosh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(exp2_functions[1] = FLOAT_exp2);
+    
+    NPY_CPU_DISPATCH_CALL_XB(exp2_functions[2] = DOUBLE_exp2);
+    
+    NPY_CPU_DISPATCH_CALL_XB(expm1_functions[1] = FLOAT_expm1);
+    
+    NPY_CPU_DISPATCH_CALL_XB(expm1_functions[2] = DOUBLE_expm1);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log10_functions[1] = FLOAT_log10);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log10_functions[2] = DOUBLE_log10);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log1p_functions[1] = FLOAT_log1p);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log1p_functions[2] = DOUBLE_log1p);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log2_functions[1] = FLOAT_log2);
+    
+    NPY_CPU_DISPATCH_CALL_XB(log2_functions[2] = DOUBLE_log2);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sin_functions[2] = DOUBLE_sin);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sinh_functions[1] = FLOAT_sinh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(sinh_functions[2] = DOUBLE_sinh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(tan_functions[1] = FLOAT_tan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(tan_functions[2] = DOUBLE_tan);
+    
+    NPY_CPU_DISPATCH_CALL_XB(tanh_functions[1] = FLOAT_tanh);
+    
+    NPY_CPU_DISPATCH_CALL_XB(tanh_functions[2] = DOUBLE_tanh);
     
     
     #ifndef NPY_DISABLE_OPTIMIZATION
@@ -2538,9 +2623,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arccos_functions, arccos_data, arccos_signatures, 8,
+        arccos_functions, arccos_data, arccos_signatures, 11,
         1, 1, PyUFunc_None, "arccos",
-        "Trigonometric inverse cosine, element-wise.\n""\n""The inverse of `cos` so that, if ``y = cos(x)``, then ``x = arccos(y)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    `x`-coordinate on the unit circle.\n""    For real arguments, the domain is [-1, 1].\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""angle : ndarray\n""    The angle of the ray intersecting the unit circle at the given\n""    `x`-coordinate in radians [0, pi].\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""cos, arctan, arcsin, emath.arccos\n""\n""Notes\n""-----\n""`arccos` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that ``cos(z) = x``. The convention is to return\n""the angle `z` whose real part lies in `[0, pi]`.\n""\n""For real-valued input data types, `arccos` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccos` is a complex analytic function that\n""has branch cuts ``[-inf, -1]`` and `[1, inf]` and is continuous from\n""above on the former and from below on the latter.\n""\n""The inverse `cos` is also known as `acos` or cos^-1.\n""\n""References\n""----------\n""M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""10th printing, 1964, pp. 79. http://www.math.sfu.ca/~cbm/aands/\n""\n""Examples\n""--------\n""We expect the arccos of 1 to be 0, and of -1 to be pi:\n""\n"">>> np.arccos([1, -1])\n""array([ 0.        ,  3.14159265])\n""\n""Plot arccos:\n""\n"">>> import matplotlib.pyplot as plt\n"">>> x = np.linspace(-1, 1, num=100)\n"">>> plt.plot(x, np.arccos(x))\n"">>> plt.axis(\'tight\')\n"">>> plt.show()", 0, NULL, identity
+        "Trigonometric inverse cosine, element-wise.\n""\n""The inverse of `cos` so that, if ``y = cos(x)``, then ``x = arccos(y)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    `x`-coordinate on the unit circle.\n""    For real arguments, the domain is [-1, 1].\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""angle : ndarray\n""    The angle of the ray intersecting the unit circle at the given\n""    `x`-coordinate in radians [0, pi].\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""cos, arctan, arcsin, emath.arccos\n""\n""Notes\n""-----\n""`arccos` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that ``cos(z) = x``. The convention is to return\n""the angle `z` whose real part lies in `[0, pi]`.\n""\n""For real-valued input data types, `arccos` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccos` is a complex analytic function that\n""has branch cuts ``[-inf, -1]`` and `[1, inf]` and is continuous from\n""above on the former and from below on the latter.\n""\n""The inverse `cos` is also known as `acos` or cos^-1.\n""\n""References\n""----------\n""M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""10th printing, 1964, pp. 79.\n""https://personal.math.ubc.ca/~cbm/aands/page_79.htm\n""\n""Examples\n""--------\n""We expect the arccos of 1 to be 0, and of -1 to be pi:\n""\n"">>> np.arccos([1, -1])\n""array([ 0.        ,  3.14159265])\n""\n""Plot arccos:\n""\n"">>> import matplotlib.pyplot as plt\n"">>> x = np.linspace(-1, 1, num=100)\n"">>> plt.plot(x, np.arccos(x))\n"">>> plt.axis(\'tight\')\n"">>> plt.show()", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2556,9 +2641,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arccosh_functions, arccosh_data, arccosh_signatures, 8,
+        arccosh_functions, arccosh_data, arccosh_signatures, 11,
         1, 1, PyUFunc_None, "arccosh",
-        "Inverse hyperbolic cosine, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""arccosh : ndarray\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""\n""cosh, arcsinh, sinh, arctanh, tanh\n""\n""Notes\n""-----\n""`arccosh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that `cosh(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in ``[-pi, pi]`` and the real part in\n""``[0, inf]``.\n""\n""For real-valued input data types, `arccosh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity, it\n""yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccosh` is a complex analytical function that\n""has a branch cut `[-inf, 1]` and is continuous from above on it.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arccosh\n""\n""Examples\n""--------\n"">>> np.arccosh([np.e, 10.0])\n""array([ 1.65745445,  2.99322285])\n"">>> np.arccosh(1)\n""0.0", 0, NULL, identity
+        "Inverse hyperbolic cosine, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""arccosh : ndarray\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""\n""cosh, arcsinh, sinh, arctanh, tanh\n""\n""Notes\n""-----\n""`arccosh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that `cosh(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in ``[-pi, pi]`` and the real part in\n""``[0, inf]``.\n""\n""For real-valued input data types, `arccosh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity, it\n""yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccosh` is a complex analytical function that\n""has a branch cut `[-inf, 1]` and is continuous from above on it.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86.\n""       https://personal.math.ubc.ca/~cbm/aands/page_86.htm\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arccosh\n""\n""Examples\n""--------\n"">>> np.arccosh([np.e, 10.0])\n""array([ 1.65745445,  2.99322285])\n"">>> np.arccosh(1)\n""0.0", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2574,9 +2659,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arcsin_functions, arcsin_data, arcsin_signatures, 8,
+        arcsin_functions, arcsin_data, arcsin_signatures, 11,
         1, 1, PyUFunc_None, "arcsin",
-        "Inverse sine, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    `y`-coordinate on the unit circle.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""angle : ndarray\n""    The inverse sine of each element in `x`, in radians and in the\n""    closed interval ``[-pi/2, pi/2]``.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""sin, cos, arccos, tan, arctan, arctan2, emath.arcsin\n""\n""Notes\n""-----\n""`arcsin` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that :math:`sin(z) = x`.  The convention is to\n""return the angle `z` whose real part lies in [-pi/2, pi/2].\n""\n""For real-valued input data types, *arcsin* always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arcsin` is a complex analytic function that\n""has, by convention, the branch cuts [-inf, -1] and [1, inf]  and is\n""continuous from above on the former and from below on the latter.\n""\n""The inverse sine is also known as `asin` or sin^{-1}.\n""\n""References\n""----------\n""Abramowitz, M. and Stegun, I. A., *Handbook of Mathematical Functions*,\n""10th printing, New York: Dover, 1964, pp. 79ff.\n""http://www.math.sfu.ca/~cbm/aands/\n""\n""Examples\n""--------\n"">>> np.arcsin(1)     # pi/2\n""1.5707963267948966\n"">>> np.arcsin(-1)    # -pi/2\n""-1.5707963267948966\n"">>> np.arcsin(0)\n""0.0", 0, NULL, identity
+        "Inverse sine, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    `y`-coordinate on the unit circle.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""angle : ndarray\n""    The inverse sine of each element in `x`, in radians and in the\n""    closed interval ``[-pi/2, pi/2]``.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""sin, cos, arccos, tan, arctan, arctan2, emath.arcsin\n""\n""Notes\n""-----\n""`arcsin` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that :math:`sin(z) = x`.  The convention is to\n""return the angle `z` whose real part lies in [-pi/2, pi/2].\n""\n""For real-valued input data types, *arcsin* always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arcsin` is a complex analytic function that\n""has, by convention, the branch cuts [-inf, -1] and [1, inf]  and is\n""continuous from above on the former and from below on the latter.\n""\n""The inverse sine is also known as `asin` or sin^{-1}.\n""\n""References\n""----------\n""Abramowitz, M. and Stegun, I. A., *Handbook of Mathematical Functions*,\n""10th printing, New York: Dover, 1964, pp. 79ff.\n""https://personal.math.ubc.ca/~cbm/aands/page_79.htm\n""\n""Examples\n""--------\n"">>> np.arcsin(1)     # pi/2\n""1.5707963267948966\n"">>> np.arcsin(-1)    # -pi/2\n""-1.5707963267948966\n"">>> np.arcsin(0)\n""0.0", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2592,9 +2677,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arcsinh_functions, arcsinh_data, arcsinh_signatures, 8,
+        arcsinh_functions, arcsinh_data, arcsinh_signatures, 11,
         1, 1, PyUFunc_None, "arcsinh",
-        "Inverse hyperbolic sine element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""`arcsinh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that `sinh(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi/2, pi/2]`.\n""\n""For real-valued input data types, `arcsinh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity, it\n""returns ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccos` is a complex analytical function that\n""has branch cuts `[1j, infj]` and `[-1j, -infj]` and is continuous from\n""the right on the former and from the left on the latter.\n""\n""The inverse hyperbolic sine is also known as `asinh` or ``sinh^-1``.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arcsinh\n""\n""Examples\n""--------\n"">>> np.arcsinh(np.array([np.e, 10.0]))\n""array([ 1.72538256,  2.99822295])", 0, NULL, identity
+        "Inverse hyperbolic sine element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""`arcsinh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that `sinh(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi/2, pi/2]`.\n""\n""For real-valued input data types, `arcsinh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity, it\n""returns ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arccos` is a complex analytical function that\n""has branch cuts `[1j, infj]` and `[-1j, -infj]` and is continuous from\n""the right on the former and from the left on the latter.\n""\n""The inverse hyperbolic sine is also known as `asinh` or ``sinh^-1``.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86.\n""       https://personal.math.ubc.ca/~cbm/aands/page_86.htm\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arcsinh\n""\n""Examples\n""--------\n"">>> np.arcsinh(np.array([np.e, 10.0]))\n""array([ 1.72538256,  2.99822295])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2610,9 +2695,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arctan_functions, arctan_data, arctan_signatures, 8,
+        arctan_functions, arctan_data, arctan_signatures, 11,
         1, 1, PyUFunc_None, "arctan",
-        "Trigonometric inverse tangent, element-wise.\n""\n""The inverse of tan, so that if ``y = tan(x)`` then ``x = arctan(y)``.\n""\n""Parameters\n""----------\n""x : array_like\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Out has the same shape as `x`.  Its real part is in\n""    ``[-pi/2, pi/2]`` (``arctan(+/-inf)`` returns ``+/-pi/2``).\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""arctan2 : The \"four quadrant\" arctan of the angle formed by (`x`, `y`)\n""    and the positive `x`-axis.\n""angle : Argument of complex values.\n""\n""Notes\n""-----\n""`arctan` is a multi-valued function: for each `x` there are infinitely\n""many numbers `z` such that tan(`z`) = `x`.  The convention is to return\n""the angle `z` whose real part lies in [-pi/2, pi/2].\n""\n""For real-valued input data types, `arctan` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arctan` is a complex analytic function that\n""has [``1j, infj``] and [``-1j, -infj``] as branch cuts, and is continuous\n""from the left on the former and from the right on the latter.\n""\n""The inverse tangent is also known as `atan` or tan^{-1}.\n""\n""References\n""----------\n""Abramowitz, M. and Stegun, I. A., *Handbook of Mathematical Functions*,\n""10th printing, New York: Dover, 1964, pp. 79.\n""http://www.math.sfu.ca/~cbm/aands/\n""\n""Examples\n""--------\n""We expect the arctan of 0 to be 0, and of 1 to be pi/4:\n""\n"">>> np.arctan([0, 1])\n""array([ 0.        ,  0.78539816])\n""\n"">>> np.pi/4\n""0.78539816339744828\n""\n""Plot arctan:\n""\n"">>> import matplotlib.pyplot as plt\n"">>> x = np.linspace(-10, 10)\n"">>> plt.plot(x, np.arctan(x))\n"">>> plt.axis(\'tight\')\n"">>> plt.show()", 0, NULL, identity
+        "Trigonometric inverse tangent, element-wise.\n""\n""The inverse of tan, so that if ``y = tan(x)`` then ``x = arctan(y)``.\n""\n""Parameters\n""----------\n""x : array_like\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Out has the same shape as `x`.  Its real part is in\n""    ``[-pi/2, pi/2]`` (``arctan(+/-inf)`` returns ``+/-pi/2``).\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""arctan2 : The \"four quadrant\" arctan of the angle formed by (`x`, `y`)\n""    and the positive `x`-axis.\n""angle : Argument of complex values.\n""\n""Notes\n""-----\n""`arctan` is a multi-valued function: for each `x` there are infinitely\n""many numbers `z` such that tan(`z`) = `x`.  The convention is to return\n""the angle `z` whose real part lies in [-pi/2, pi/2].\n""\n""For real-valued input data types, `arctan` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arctan` is a complex analytic function that\n""has [``1j, infj``] and [``-1j, -infj``] as branch cuts, and is continuous\n""from the left on the former and from the right on the latter.\n""\n""The inverse tangent is also known as `atan` or tan^{-1}.\n""\n""References\n""----------\n""Abramowitz, M. and Stegun, I. A., *Handbook of Mathematical Functions*,\n""10th printing, New York: Dover, 1964, pp. 79.\n""https://personal.math.ubc.ca/~cbm/aands/page_79.htm\n""\n""Examples\n""--------\n""We expect the arctan of 0 to be 0, and of 1 to be pi/4:\n""\n"">>> np.arctan([0, 1])\n""array([ 0.        ,  0.78539816])\n""\n"">>> np.pi/4\n""0.78539816339744828\n""\n""Plot arctan:\n""\n"">>> import matplotlib.pyplot as plt\n"">>> x = np.linspace(-10, 10)\n"">>> plt.plot(x, np.arctan(x))\n"">>> plt.axis(\'tight\')\n"">>> plt.show()", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2646,9 +2731,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        arctanh_functions, arctanh_data, arctanh_signatures, 8,
+        arctanh_functions, arctanh_data, arctanh_signatures, 11,
         1, 1, PyUFunc_None, "arctanh",
-        "Inverse hyperbolic tangent element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""emath.arctanh\n""\n""Notes\n""-----\n""`arctanh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that ``tanh(z) = x``. The convention is to return\n""the `z` whose imaginary part lies in `[-pi/2, pi/2]`.\n""\n""For real-valued input data types, `arctanh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arctanh` is a complex analytical function\n""that has branch cuts `[-1, -inf]` and `[1, inf]` and is continuous from\n""above on the former and from below on the latter.\n""\n""The inverse hyperbolic tangent is also known as `atanh` or ``tanh^-1``.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arctanh\n""\n""Examples\n""--------\n"">>> np.arctanh([0, -0.5])\n""array([ 0.        , -0.54930614])", 0, NULL, identity
+        "Inverse hyperbolic tangent element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Array of the same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""emath.arctanh\n""\n""Notes\n""-----\n""`arctanh` is a multivalued function: for each `x` there are infinitely\n""many numbers `z` such that ``tanh(z) = x``. The convention is to return\n""the `z` whose imaginary part lies in `[-pi/2, pi/2]`.\n""\n""For real-valued input data types, `arctanh` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `arctanh` is a complex analytical function\n""that has branch cuts `[-1, -inf]` and `[1, inf]` and is continuous from\n""above on the former and from below on the latter.\n""\n""The inverse hyperbolic tangent is also known as `atanh` or ``tanh^-1``.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 86.\n""       https://personal.math.ubc.ca/~cbm/aands/page_86.htm\n"".. [2] Wikipedia, \"Inverse hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Arctanh\n""\n""Examples\n""--------\n"">>> np.arctanh([0, -0.5])\n""array([ 0.        , -0.54930614])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2684,7 +2769,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         bitwise_or_functions, bitwise_or_data, bitwise_or_signatures, 12,
         2, 1, PyUFunc_IdentityValue, "bitwise_or",
-        "Compute the bit-wise OR of two arrays element-wise.\n""\n""Computes the bit-wise OR of the underlying binary representation of\n""the integers in the input arrays. This ufunc implements the C/Python\n""operator ``|``.\n""\n""Parameters\n""----------\n""x1, x2 : array_like\n""    Only integer and boolean types are handled.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Result.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""logical_or\n""bitwise_and\n""bitwise_xor\n""binary_repr :\n""    Return the binary representation of the input number as a string.\n""\n""Examples\n""--------\n""The number 13 has the binaray representation ``00001101``. Likewise,\n""16 is represented by ``00010000``.  The bit-wise OR of 13 and 16 is\n""then ``000111011``, or 29:\n""\n"">>> np.bitwise_or(13, 16)\n""29\n"">>> np.binary_repr(29)\n""\'11101\'\n""\n"">>> np.bitwise_or(32, 2)\n""34\n"">>> np.bitwise_or([33, 4], 1)\n""array([33,  5])\n"">>> np.bitwise_or([33, 4], [1, 2])\n""array([33,  6])\n""\n"">>> np.bitwise_or(np.array([2, 5, 255]), np.array([4, 4, 4]))\n""array([  6,   5, 255])\n"">>> np.array([2, 5, 255]) | np.array([4, 4, 4])\n""array([  6,   5, 255])\n"">>> np.bitwise_or(np.array([2, 5, 255, 2147483647], dtype=np.int32),\n""...               np.array([4, 4, 4, 2147483647], dtype=np.int32))\n""array([         6,          5,        255, 2147483647])\n"">>> np.bitwise_or([True, True], [False, True])\n""array([ True,  True])\n""\n""The ``|`` operator can be used as a shorthand for ``np.bitwise_or`` on\n""ndarrays.\n""\n"">>> x1 = np.array([2, 5, 255])\n"">>> x2 = np.array([4, 4, 4])\n"">>> x1 | x2\n""array([  6,   5, 255])", 0, NULL, identity
+        "Compute the bit-wise OR of two arrays element-wise.\n""\n""Computes the bit-wise OR of the underlying binary representation of\n""the integers in the input arrays. This ufunc implements the C/Python\n""operator ``|``.\n""\n""Parameters\n""----------\n""x1, x2 : array_like\n""    Only integer and boolean types are handled.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Result.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""logical_or\n""bitwise_and\n""bitwise_xor\n""binary_repr :\n""    Return the binary representation of the input number as a string.\n""\n""Examples\n""--------\n""The number 13 has the binary representation ``00001101``. Likewise,\n""16 is represented by ``00010000``.  The bit-wise OR of 13 and 16 is\n""then ``000111011``, or 29:\n""\n"">>> np.bitwise_or(13, 16)\n""29\n"">>> np.binary_repr(29)\n""\'11101\'\n""\n"">>> np.bitwise_or(32, 2)\n""34\n"">>> np.bitwise_or([33, 4], 1)\n""array([33,  5])\n"">>> np.bitwise_or([33, 4], [1, 2])\n""array([33,  6])\n""\n"">>> np.bitwise_or(np.array([2, 5, 255]), np.array([4, 4, 4]))\n""array([  6,   5, 255])\n"">>> np.array([2, 5, 255]) | np.array([4, 4, 4])\n""array([  6,   5, 255])\n"">>> np.bitwise_or(np.array([2, 5, 255, 2147483647], dtype=np.int32),\n""...               np.array([4, 4, 4, 2147483647], dtype=np.int32))\n""array([         6,          5,        255, 2147483647])\n"">>> np.bitwise_or([True, True], [False, True])\n""array([ True,  True])\n""\n""The ``|`` operator can be used as a shorthand for ``np.bitwise_or`` on\n""ndarrays.\n""\n"">>> x1 = np.array([2, 5, 255])\n"">>> x2 = np.array([4, 4, 4])\n"">>> x1 | x2\n""array([  6,   5, 255])", 0, NULL, identity
     );
     if (1) {
         Py_DECREF(identity);
@@ -2718,7 +2803,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        cbrt_functions, cbrt_data, cbrt_signatures, 5,
+        cbrt_functions, cbrt_data, cbrt_signatures, 8,
         1, 1, PyUFunc_None, "cbrt",
         "Return the cube-root of an array, element-wise.\n""\n"".. versionadded:: 1.10.0\n""\n""Parameters\n""----------\n""x : array_like\n""    The values whose cube-roots are required.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    An array of the same shape as `x`, containing the cube\n""    cube-root of each element in `x`.\n""    If `out` was provided, `y` is a reference to it.\n""    This is a scalar if `x` is a scalar.\n""\n""\n""Examples\n""--------\n"">>> np.cbrt([1,8,27])\n""array([ 1.,  2.,  3.])", 0, NULL, identity
     );
@@ -2809,7 +2894,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        cos_functions, cos_data, cos_signatures, 9,
+        cos_functions, cos_data, cos_signatures, 10,
         1, 1, PyUFunc_None, "cos",
         "Cosine element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array in radians.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The corresponding cosine values.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""If `out` is provided, the function writes the result into it,\n""and returns a reference to `out`.  (See Examples)\n""\n""References\n""----------\n""M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions.\n""New York, NY: Dover, 1972.\n""\n""Examples\n""--------\n"">>> np.cos(np.array([0, np.pi/2, np.pi]))\n""array([  1.00000000e+00,   6.12303177e-17,  -1.00000000e+00])\n"">>>\n"">>> # Example of providing the optional output parameter\n"">>> out1 = np.array([0], dtype=\'d\')\n"">>> out2 = np.cos([0.1], out1)\n"">>> out2 is out1\n""True\n"">>>\n"">>> # Example of ValueError due to provision of shape mis-matched `out`\n"">>> np.cos(np.zeros((3,3)),np.zeros((2,2)))\n""Traceback (most recent call last):\n""  File \"<stdin>\", line 1, in <module>\n""ValueError: operands could not be broadcast together with shapes (3,3) (2,2)", 0, NULL, identity
     );
@@ -2827,7 +2912,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        cosh_functions, cosh_data, cosh_signatures, 8,
+        cosh_functions, cosh_data, cosh_signatures, 11,
         1, 1, PyUFunc_None, "cosh",
         "Hyperbolic cosine, element-wise.\n""\n""Equivalent to ``1/2 * (np.exp(x) + np.exp(-x))`` and ``np.cos(1j*x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Output array of same shape as `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""Examples\n""--------\n"">>> np.cosh(0)\n""1.0\n""\n""The hyperbolic cosine describes the shape of a hanging cable:\n""\n"">>> import matplotlib.pyplot as plt\n"">>> x = np.linspace(-4, 4, 1000)\n"">>> plt.plot(x, np.cosh(x))\n"">>> plt.show()", 0, NULL, identity
     );
@@ -2921,7 +3006,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         exp_functions, exp_data, exp_signatures, 10,
         1, 1, PyUFunc_None, "exp",
-        "Calculate the exponential of all elements in the input array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Output array, element-wise exponential of `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""expm1 : Calculate ``exp(x) - 1`` for all elements in the array.\n""exp2  : Calculate ``2**x`` for all elements in the array.\n""\n""Notes\n""-----\n""The irrational number ``e`` is also known as Euler\'s number.  It is\n""approximately 2.718281, and is the base of the natural logarithm,\n""``ln`` (this means that, if :math:`x = \\ln y = \\log_e y`,\n""then :math:`e^x = y`. For real input, ``exp(x)`` is always positive.\n""\n""For complex arguments, ``x = a + ib``, we can write\n"":math:`e^x = e^a e^{ib}`.  The first term, :math:`e^a`, is already\n""known (it is the real argument, described above).  The second term,\n"":math:`e^{ib}`, is :math:`\\cos b + i \\sin b`, a function with\n""magnitude 1 and a periodic phase.\n""\n""References\n""----------\n"".. [1] Wikipedia, \"Exponential function\",\n""       https://en.wikipedia.org/wiki/Exponential_function\n"".. [2] M. Abramovitz and I. A. Stegun, \"Handbook of Mathematical Functions\n""       with Formulas, Graphs, and Mathematical Tables,\" Dover, 1964, p. 69,\n""       http://www.math.sfu.ca/~cbm/aands/page_69.htm\n""\n""Examples\n""--------\n""Plot the magnitude and phase of ``exp(x)`` in the complex plane:\n""\n"">>> import matplotlib.pyplot as plt\n""\n"">>> x = np.linspace(-2*np.pi, 2*np.pi, 100)\n"">>> xx = x + 1j * x[:, np.newaxis] # a + ib over complex plane\n"">>> out = np.exp(xx)\n""\n"">>> plt.subplot(121)\n"">>> plt.imshow(np.abs(out),\n""...            extent=[-2*np.pi, 2*np.pi, -2*np.pi, 2*np.pi], cmap=\'gray\')\n"">>> plt.title(\'Magnitude of exp(x)\')\n""\n"">>> plt.subplot(122)\n"">>> plt.imshow(np.angle(out),\n""...            extent=[-2*np.pi, 2*np.pi, -2*np.pi, 2*np.pi], cmap=\'hsv\')\n"">>> plt.title(\'Phase (angle) of exp(x)\')\n"">>> plt.show()", 0, NULL, identity
+        "Calculate the exponential of all elements in the input array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Output array, element-wise exponential of `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""expm1 : Calculate ``exp(x) - 1`` for all elements in the array.\n""exp2  : Calculate ``2**x`` for all elements in the array.\n""\n""Notes\n""-----\n""The irrational number ``e`` is also known as Euler\'s number.  It is\n""approximately 2.718281, and is the base of the natural logarithm,\n""``ln`` (this means that, if :math:`x = \\ln y = \\log_e y`,\n""then :math:`e^x = y`. For real input, ``exp(x)`` is always positive.\n""\n""For complex arguments, ``x = a + ib``, we can write\n"":math:`e^x = e^a e^{ib}`.  The first term, :math:`e^a`, is already\n""known (it is the real argument, described above).  The second term,\n"":math:`e^{ib}`, is :math:`\\cos b + i \\sin b`, a function with\n""magnitude 1 and a periodic phase.\n""\n""References\n""----------\n"".. [1] Wikipedia, \"Exponential function\",\n""       https://en.wikipedia.org/wiki/Exponential_function\n"".. [2] M. Abramovitz and I. A. Stegun, \"Handbook of Mathematical Functions\n""       with Formulas, Graphs, and Mathematical Tables,\" Dover, 1964, p. 69,\n""       https://personal.math.ubc.ca/~cbm/aands/page_69.htm\n""\n""Examples\n""--------\n""Plot the magnitude and phase of ``exp(x)`` in the complex plane:\n""\n"">>> import matplotlib.pyplot as plt\n""\n"">>> x = np.linspace(-2*np.pi, 2*np.pi, 100)\n"">>> xx = x + 1j * x[:, np.newaxis] # a + ib over complex plane\n"">>> out = np.exp(xx)\n""\n"">>> plt.subplot(121)\n"">>> plt.imshow(np.abs(out),\n""...            extent=[-2*np.pi, 2*np.pi, -2*np.pi, 2*np.pi], cmap=\'gray\')\n"">>> plt.title(\'Magnitude of exp(x)\')\n""\n"">>> plt.subplot(122)\n"">>> plt.imshow(np.angle(out),\n""...            extent=[-2*np.pi, 2*np.pi, -2*np.pi, 2*np.pi], cmap=\'hsv\')\n"">>> plt.title(\'Phase (angle) of exp(x)\')\n"">>> plt.show()", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -2937,7 +3022,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        exp2_functions, exp2_data, exp2_signatures, 8,
+        exp2_functions, exp2_data, exp2_signatures, 11,
         1, 1, PyUFunc_None, "exp2",
         "Calculate `2**p` for all `p` in the input array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Element-wise 2 to the power `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""power\n""\n""Notes\n""-----\n"".. versionadded:: 1.3.0\n""\n""\n""\n""Examples\n""--------\n"">>> np.exp2([2, 3])\n""array([ 4.,  8.])", 0, NULL, identity
     );
@@ -2955,7 +3040,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        expm1_functions, expm1_data, expm1_signatures, 8,
+        expm1_functions, expm1_data, expm1_signatures, 11,
         1, 1, PyUFunc_None, "expm1",
         "Calculate ``exp(x) - 1`` for all elements in the array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    Element-wise exponential minus one: ``out = exp(x) - 1``.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""log1p : ``log(1 + x)``, the inverse of expm1.\n""\n""\n""Notes\n""-----\n""This function provides greater precision than ``exp(x) - 1``\n""for small values of ``x``.\n""\n""Examples\n""--------\n""The true value of ``exp(1e-10) - 1`` is ``1.00000000005e-10`` to\n""about 32 significant digits. This example shows the superiority of\n""expm1 in this case.\n""\n"">>> np.expm1(1e-10)\n""1.00000000005e-10\n"">>> np.exp(1e-10) - 1\n""1.000000082740371e-10", 0, NULL, identity
     );
@@ -2993,7 +3078,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         float_power_functions, float_power_data, float_power_signatures, 4,
         2, 1, PyUFunc_None, "float_power",
-        "First array elements raised to powers from second array, element-wise.\n""\n""Raise each base in `x1` to the positionally-corresponding power in `x2`.\n""`x1` and `x2` must be broadcastable to the same shape. This differs from\n""the power function in that integers, float16, and float32  are promoted to\n""floats with a minimum precision of float64 so that the result is always\n""inexact.  The intent is that the function will return a usable result for\n""negative powers and seldom overflow for positive powers.\n""\n"".. versionadded:: 1.12.0\n""\n""Parameters\n""----------\n""x1 : array_like\n""    The bases.\n""x2 : array_like\n""    The exponents.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The bases in `x1` raised to the exponents in `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""power : power function that preserves type\n""\n""Examples\n""--------\n""Cube each element in a list.\n""\n"">>> x1 = range(6)\n"">>> x1\n""[0, 1, 2, 3, 4, 5]\n"">>> np.float_power(x1, 3)\n""array([   0.,    1.,    8.,   27.,   64.,  125.])\n""\n""Raise the bases to different exponents.\n""\n"">>> x2 = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0]\n"">>> np.float_power(x1, x2)\n""array([  0.,   1.,   8.,  27.,  16.,   5.])\n""\n""The effect of broadcasting.\n""\n"">>> x2 = np.array([[1, 2, 3, 3, 2, 1], [1, 2, 3, 3, 2, 1]])\n"">>> x2\n""array([[1, 2, 3, 3, 2, 1],\n""       [1, 2, 3, 3, 2, 1]])\n"">>> np.float_power(x1, x2)\n""array([[  0.,   1.,   8.,  27.,  16.,   5.],\n""       [  0.,   1.,   8.,  27.,  16.,   5.]])", 0, NULL, identity
+        "First array elements raised to powers from second array, element-wise.\n""\n""Raise each base in `x1` to the positionally-corresponding power in `x2`.\n""`x1` and `x2` must be broadcastable to the same shape. This differs from\n""the power function in that integers, float16, and float32  are promoted to\n""floats with a minimum precision of float64 so that the result is always\n""inexact.  The intent is that the function will return a usable result for\n""negative powers and seldom overflow for positive powers.\n""\n""Negative values raised to a non-integral value will return ``nan``.\n""To get complex results, cast the input to complex, or specify the\n""``dtype`` to be ``complex`` (see the example below).\n""\n"".. versionadded:: 1.12.0\n""\n""Parameters\n""----------\n""x1 : array_like\n""    The bases.\n""x2 : array_like\n""    The exponents.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The bases in `x1` raised to the exponents in `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""power : power function that preserves type\n""\n""Examples\n""--------\n""Cube each element in a list.\n""\n"">>> x1 = range(6)\n"">>> x1\n""[0, 1, 2, 3, 4, 5]\n"">>> np.float_power(x1, 3)\n""array([   0.,    1.,    8.,   27.,   64.,  125.])\n""\n""Raise the bases to different exponents.\n""\n"">>> x2 = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0]\n"">>> np.float_power(x1, x2)\n""array([  0.,   1.,   8.,  27.,  16.,   5.])\n""\n""The effect of broadcasting.\n""\n"">>> x2 = np.array([[1, 2, 3, 3, 2, 1], [1, 2, 3, 3, 2, 1]])\n"">>> x2\n""array([[1, 2, 3, 3, 2, 1],\n""       [1, 2, 3, 3, 2, 1]])\n"">>> np.float_power(x1, x2)\n""array([[  0.,   1.,   8.,  27.,  16.,   5.],\n""       [  0.,   1.,   8.,  27.,  16.,   5.]])\n""\n""Negative values raised to a non-integral value will result in ``nan``\n""(and a warning will be generated).\n""\n"">>> x3 = np.array([-1, -4])\n"">>> with np.errstate(invalid=\'ignore\'):\n""...     p = np.float_power(x3, 1.5)\n""...\n"">>> p\n""array([nan, nan])\n""\n""To get complex results, give the argument ``dtype=complex``.\n""\n"">>> np.float_power(x3, 1.5, dtype=complex)\n""array([-1.83697020e-16-1.j, -1.46957616e-15-8.j])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3027,7 +3112,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        floor_divide_functions, floor_divide_data, floor_divide_signatures, 21,
+        floor_divide_functions, floor_divide_data, floor_divide_signatures, 18,
         2, 1, PyUFunc_None, "floor_divide",
         "Return the largest integer smaller or equal to the division of the inputs.\n""It is equivalent to the Python ``//`` operator and pairs with the\n""Python ``%`` (`remainder`), function so that ``a = a % b + b * (a // b)``\n""up to roundoff.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Numerator.\n""x2 : array_like\n""    Denominator.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    y = floor(`x1`/`x2`)\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""remainder : Remainder complementary to floor_divide.\n""divmod : Simultaneous floor division and remainder.\n""divide : Standard division.\n""floor : Round a number to the nearest integer toward minus infinity.\n""ceil : Round a number to the nearest integer toward infinity.\n""\n""Examples\n""--------\n"">>> np.floor_divide(7,3)\n""2\n"">>> np.floor_divide([1., 2., 3., 4.], 2.5)\n""array([ 0.,  0.,  1.,  1.])\n""\n""The ``//`` operator can be used as a shorthand for ``np.floor_divide``\n""on ndarrays.\n""\n"">>> x1 = np.array([1., 2., 3., 4.])\n"">>> x1 // 2.5\n""array([0., 0., 1., 1.])", 0, NULL, identity
     );
@@ -3086,7 +3171,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         fmod_functions, fmod_data, fmod_signatures, 15,
         2, 1, PyUFunc_None, "fmod",
-        "Return the element-wise remainder of division.\n""\n""This is the NumPy implementation of the C library function fmod, the\n""remainder has the same sign as the dividend `x1`. It is equivalent to\n""the Matlab(TM) ``rem`` function and should not be confused with the\n""Python modulus operator ``x1 % x2``.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend.\n""x2 : array_like\n""    Divisor.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : array_like\n""    The remainder of the division of `x1` by `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""remainder : Equivalent to the Python ``%`` operator.\n""divide\n""\n""Notes\n""-----\n""The result of the modulo operation for negative dividend and divisors\n""is bound by conventions. For `fmod`, the sign of result is the sign of\n""the dividend, while for `remainder` the sign of the result is the sign\n""of the divisor. The `fmod` function is equivalent to the Matlab(TM)\n""``rem`` function.\n""\n""Examples\n""--------\n"">>> np.fmod([-3, -2, -1, 1, 2, 3], 2)\n""array([-1,  0, -1,  1,  0,  1])\n"">>> np.remainder([-3, -2, -1, 1, 2, 3], 2)\n""array([1, 0, 1, 1, 0, 1])\n""\n"">>> np.fmod([5, 3], [2, 2.])\n""array([ 1.,  1.])\n"">>> a = np.arange(-3, 3).reshape(3, 2)\n"">>> a\n""array([[-3, -2],\n""       [-1,  0],\n""       [ 1,  2]])\n"">>> np.fmod(a, [2,2])\n""array([[-1,  0],\n""       [-1,  0],\n""       [ 1,  0]])", 0, NULL, identity
+        "Returns the element-wise remainder of division.\n""\n""This is the NumPy implementation of the C library function fmod, the\n""remainder has the same sign as the dividend `x1`. It is equivalent to\n""the Matlab(TM) ``rem`` function and should not be confused with the\n""Python modulus operator ``x1 % x2``.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend.\n""x2 : array_like\n""    Divisor.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : array_like\n""    The remainder of the division of `x1` by `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""remainder : Equivalent to the Python ``%`` operator.\n""divide\n""\n""Notes\n""-----\n""The result of the modulo operation for negative dividend and divisors\n""is bound by conventions. For `fmod`, the sign of result is the sign of\n""the dividend, while for `remainder` the sign of the result is the sign\n""of the divisor. The `fmod` function is equivalent to the Matlab(TM)\n""``rem`` function.\n""\n""Examples\n""--------\n"">>> np.fmod([-3, -2, -1, 1, 2, 3], 2)\n""array([-1,  0, -1,  1,  0,  1])\n"">>> np.remainder([-3, -2, -1, 1, 2, 3], 2)\n""array([1, 0, 1, 1, 0, 1])\n""\n"">>> np.fmod([5, 3], [2, 2.])\n""array([ 1.,  1.])\n"">>> a = np.arange(-3, 3).reshape(3, 2)\n"">>> a\n""array([[-3, -2],\n""       [-1,  0],\n""       [ 1,  2]])\n"">>> np.fmod(a, [2,2])\n""array([[-1,  0],\n""       [-1,  0],\n""       [ 1,  0]])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3233,7 +3318,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         isfinite_functions, isfinite_data, isfinite_signatures, 20,
         1, 1, PyUFunc_None, "isfinite",
-        "Test element-wise for finiteness (not infinity or not Not a Number).\n""\n""The result is returned as a boolean array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray, bool\n""    True where ``x`` is not positive infinity, negative infinity,\n""    or NaN; false otherwise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""isinf, isneginf, isposinf, isnan\n""\n""Notes\n""-----\n""Not a Number, positive infinity and negative infinity are considered\n""to be non-finite.\n""\n""NumPy uses the IEEE Standard for Binary Floating-Point for Arithmetic\n""(IEEE 754). This means that Not a Number is not equivalent to infinity.\n""Also that positive infinity is not equivalent to negative infinity. But\n""infinity is equivalent to positive infinity.  Errors result if the\n""second argument is also supplied when `x` is a scalar input, or if\n""first and second arguments have different shapes.\n""\n""Examples\n""--------\n"">>> np.isfinite(1)\n""True\n"">>> np.isfinite(0)\n""True\n"">>> np.isfinite(np.nan)\n""False\n"">>> np.isfinite(np.inf)\n""False\n"">>> np.isfinite(np.NINF)\n""False\n"">>> np.isfinite([np.log(-1.),1.,np.log(0)])\n""array([False,  True, False])\n""\n"">>> x = np.array([-np.inf, 0., np.inf])\n"">>> y = np.array([2, 2, 2])\n"">>> np.isfinite(x, y)\n""array([0, 1, 0])\n"">>> y\n""array([0, 1, 0])", 0, NULL, identity
+        "Test element-wise for finiteness (not infinity and not Not a Number).\n""\n""The result is returned as a boolean array.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray, bool\n""    True where ``x`` is not positive infinity, negative infinity,\n""    or NaN; false otherwise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""isinf, isneginf, isposinf, isnan\n""\n""Notes\n""-----\n""Not a Number, positive infinity and negative infinity are considered\n""to be non-finite.\n""\n""NumPy uses the IEEE Standard for Binary Floating-Point for Arithmetic\n""(IEEE 754). This means that Not a Number is not equivalent to infinity.\n""Also that positive infinity is not equivalent to negative infinity. But\n""infinity is equivalent to positive infinity.  Errors result if the\n""second argument is also supplied when `x` is a scalar input, or if\n""first and second arguments have different shapes.\n""\n""Examples\n""--------\n"">>> np.isfinite(1)\n""True\n"">>> np.isfinite(0)\n""True\n"">>> np.isfinite(np.nan)\n""False\n"">>> np.isfinite(np.inf)\n""False\n"">>> np.isfinite(np.NINF)\n""False\n"">>> np.isfinite([np.log(-1.),1.,np.log(0)])\n""array([False,  True, False])\n""\n"">>> x = np.array([-np.inf, 0., np.inf])\n"">>> y = np.array([2, 2, 2])\n"">>> np.isfinite(x, y)\n""array([0, 1, 0])\n"">>> y\n""array([0, 1, 0])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3402,7 +3487,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         log_functions, log_data, log_signatures, 10,
         1, 1, PyUFunc_None, "log",
-        "Natural logarithm, element-wise.\n""\n""The natural logarithm `log` is the inverse of the exponential function,\n""so that `log(exp(x)) = x`. The natural logarithm is logarithm in base\n""`e`.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input value.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The natural logarithm of `x`, element-wise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""log10, log2, log1p, emath.log\n""\n""Notes\n""-----\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `exp(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log` always returns real output. For\n""each value that cannot be expressed as a real number or infinity, it\n""yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log` is a complex analytical function that\n""has a branch cut `[-inf, 0]` and is continuous from above on it. `log`\n""handles the floating-point negative zero as an infinitesimal negative\n""number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log([1, np.e, np.e**2, 0])\n""array([  0.,   1.,   2., -Inf])", 0, NULL, identity
+        "Natural logarithm, element-wise.\n""\n""The natural logarithm `log` is the inverse of the exponential function,\n""so that `log(exp(x)) = x`. The natural logarithm is logarithm in base\n""`e`.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input value.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The natural logarithm of `x`, element-wise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""log10, log2, log1p, emath.log\n""\n""Notes\n""-----\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `exp(z) = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log` always returns real output. For\n""each value that cannot be expressed as a real number or infinity, it\n""yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log` is a complex analytical function that\n""has a branch cut `[-inf, 0]` and is continuous from above on it. `log`\n""handles the floating-point negative zero as an infinitesimal negative\n""number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67.\n""       https://personal.math.ubc.ca/~cbm/aands/page_67.htm\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log([1, np.e, np.e**2, 0])\n""array([  0.,   1.,   2., -Inf])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3418,9 +3503,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        log10_functions, log10_data, log10_signatures, 8,
+        log10_functions, log10_data, log10_signatures, 11,
         1, 1, PyUFunc_None, "log10",
-        "Return the base 10 logarithm of the input array, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The logarithm to the base 10 of `x`, element-wise. NaNs are\n""    returned where x is negative.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""emath.log10\n""\n""Notes\n""-----\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `10**z = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log10` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log10` is a complex analytical function that\n""has a branch cut `[-inf, 0]` and is continuous from above on it.\n""`log10` handles the floating-point negative zero as an infinitesimal\n""negative number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log10([1e-15, -3.])\n""array([-15.,  nan])", 0, NULL, identity
+        "Return the base 10 logarithm of the input array, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The logarithm to the base 10 of `x`, element-wise. NaNs are\n""    returned where x is negative.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""emath.log10\n""\n""Notes\n""-----\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `10**z = x`. The convention is to return the\n""`z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log10` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log10` is a complex analytical function that\n""has a branch cut `[-inf, 0]` and is continuous from above on it.\n""`log10` handles the floating-point negative zero as an infinitesimal\n""negative number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67.\n""       https://personal.math.ubc.ca/~cbm/aands/page_67.htm\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log10([1e-15, -3.])\n""array([-15.,  nan])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3436,9 +3521,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        log1p_functions, log1p_data, log1p_signatures, 8,
+        log1p_functions, log1p_data, log1p_signatures, 11,
         1, 1, PyUFunc_None, "log1p",
-        "Return the natural logarithm of one plus the input array, element-wise.\n""\n""Calculates ``log(1 + x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    Natural logarithm of `1 + x`, element-wise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""expm1 : ``exp(x) - 1``, the inverse of `log1p`.\n""\n""Notes\n""-----\n""For real-valued input, `log1p` is accurate also for `x` so small\n""that `1 + x == 1` in floating-point accuracy.\n""\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `exp(z) = 1 + x`. The convention is to return\n""the `z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log1p` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log1p` is a complex analytical function that\n""has a branch cut `[-inf, -1]` and is continuous from above on it.\n""`log1p` handles the floating-point negative zero as an infinitesimal\n""negative number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67. http://www.math.sfu.ca/~cbm/aands/\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log1p(1e-99)\n""1e-99\n"">>> np.log(1 + 1e-99)\n""0.0", 0, NULL, identity
+        "Return the natural logarithm of one plus the input array, element-wise.\n""\n""Calculates ``log(1 + x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    Natural logarithm of `1 + x`, element-wise.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""expm1 : ``exp(x) - 1``, the inverse of `log1p`.\n""\n""Notes\n""-----\n""For real-valued input, `log1p` is accurate also for `x` so small\n""that `1 + x == 1` in floating-point accuracy.\n""\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `exp(z) = 1 + x`. The convention is to return\n""the `z` whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log1p` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log1p` is a complex analytical function that\n""has a branch cut `[-inf, -1]` and is continuous from above on it.\n""`log1p` handles the floating-point negative zero as an infinitesimal\n""negative number, conforming to the C99 standard.\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I.A. Stegun, \"Handbook of Mathematical Functions\",\n""       10th printing, 1964, pp. 67.\n""       https://personal.math.ubc.ca/~cbm/aands/page_67.htm\n"".. [2] Wikipedia, \"Logarithm\". https://en.wikipedia.org/wiki/Logarithm\n""\n""Examples\n""--------\n"">>> np.log1p(1e-99)\n""1e-99\n"">>> np.log(1 + 1e-99)\n""0.0", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3454,7 +3539,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        log2_functions, log2_data, log2_signatures, 8,
+        log2_functions, log2_data, log2_signatures, 11,
         1, 1, PyUFunc_None, "log2",
         "Base-2 logarithm of `x`.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input values.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    Base-2 logarithm of `x`.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""log, log10, log1p, emath.log2\n""\n""Notes\n""-----\n"".. versionadded:: 1.3.0\n""\n""Logarithm is a multivalued function: for each `x` there is an infinite\n""number of `z` such that `2**z = x`. The convention is to return the `z`\n""whose imaginary part lies in `[-pi, pi]`.\n""\n""For real-valued input data types, `log2` always returns real output.\n""For each value that cannot be expressed as a real number or infinity,\n""it yields ``nan`` and sets the `invalid` floating point error flag.\n""\n""For complex-valued input, `log2` is a complex analytical function that\n""has a branch cut `[-inf, 0]` and is continuous from above on it. `log2`\n""handles the floating-point negative zero as an infinitesimal negative\n""number, conforming to the C99 standard.\n""\n""Examples\n""--------\n"">>> x = np.array([0, 1, 2, 2**4])\n"">>> np.log2(x)\n""array([-Inf,   0.,   1.,   4.])\n""\n"">>> xi = np.array([0+1.j, 1, 2+0.j, 4.j])\n"">>> np.log2(xi)\n""array([ 0.+2.26618007j,  0.+0.j        ,  1.+0.j        ,  2.+2.26618007j])", 0, NULL, identity
     );
@@ -3754,7 +3839,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         power_functions, power_data, power_signatures, 18,
         2, 1, PyUFunc_None, "power",
-        "First array elements raised to powers from second array, element-wise.\n""\n""Raise each base in `x1` to the positionally-corresponding power in\n""`x2`.  `x1` and `x2` must be broadcastable to the same shape. Note that an\n""integer type raised to a negative integer power will raise a ValueError.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    The bases.\n""x2 : array_like\n""    The exponents.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The bases in `x1` raised to the exponents in `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""float_power : power function that promotes integers to float\n""\n""Examples\n""--------\n""Cube each element in an array.\n""\n"">>> x1 = np.arange(6)\n"">>> x1\n""[0, 1, 2, 3, 4, 5]\n"">>> np.power(x1, 3)\n""array([  0,   1,   8,  27,  64, 125])\n""\n""Raise the bases to different exponents.\n""\n"">>> x2 = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0]\n"">>> np.power(x1, x2)\n""array([  0.,   1.,   8.,  27.,  16.,   5.])\n""\n""The effect of broadcasting.\n""\n"">>> x2 = np.array([[1, 2, 3, 3, 2, 1], [1, 2, 3, 3, 2, 1]])\n"">>> x2\n""array([[1, 2, 3, 3, 2, 1],\n""       [1, 2, 3, 3, 2, 1]])\n"">>> np.power(x1, x2)\n""array([[ 0,  1,  8, 27, 16,  5],\n""       [ 0,  1,  8, 27, 16,  5]])\n""\n""The ``**`` operator can be used as a shorthand for ``np.power`` on\n""ndarrays.\n""\n"">>> x2 = np.array([1, 2, 3, 3, 2, 1])\n"">>> x1 = np.arange(6)\n"">>> x1 ** x2\n""array([ 0,  1,  8, 27, 16,  5])", 0, NULL, identity
+        "First array elements raised to powers from second array, element-wise.\n""\n""Raise each base in `x1` to the positionally-corresponding power in\n""`x2`.  `x1` and `x2` must be broadcastable to the same shape.\n""\n""An integer type raised to a negative integer power will raise a\n""``ValueError``.\n""\n""Negative values raised to a non-integral value will return ``nan``.\n""To get complex results, cast the input to complex, or specify the\n""``dtype`` to be ``complex`` (see the example below).\n""\n""Parameters\n""----------\n""x1 : array_like\n""    The bases.\n""x2 : array_like\n""    The exponents.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The bases in `x1` raised to the exponents in `x2`.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""float_power : power function that promotes integers to float\n""\n""Examples\n""--------\n""Cube each element in an array.\n""\n"">>> x1 = np.arange(6)\n"">>> x1\n""[0, 1, 2, 3, 4, 5]\n"">>> np.power(x1, 3)\n""array([  0,   1,   8,  27,  64, 125])\n""\n""Raise the bases to different exponents.\n""\n"">>> x2 = [1.0, 2.0, 3.0, 3.0, 2.0, 1.0]\n"">>> np.power(x1, x2)\n""array([  0.,   1.,   8.,  27.,  16.,   5.])\n""\n""The effect of broadcasting.\n""\n"">>> x2 = np.array([[1, 2, 3, 3, 2, 1], [1, 2, 3, 3, 2, 1]])\n"">>> x2\n""array([[1, 2, 3, 3, 2, 1],\n""       [1, 2, 3, 3, 2, 1]])\n"">>> np.power(x1, x2)\n""array([[ 0,  1,  8, 27, 16,  5],\n""       [ 0,  1,  8, 27, 16,  5]])\n""\n""The ``**`` operator can be used as a shorthand for ``np.power`` on\n""ndarrays.\n""\n"">>> x2 = np.array([1, 2, 3, 3, 2, 1])\n"">>> x1 = np.arange(6)\n"">>> x1 ** x2\n""array([ 0,  1,  8, 27, 16,  5])\n""\n""Negative values raised to a non-integral value will result in ``nan``\n""(and a warning will be generated).\n""\n"">>> x3 = np.array([-1.0, -4.0])\n"">>> with np.errstate(invalid=\'ignore\'):\n""...     p = np.power(x3, 1.5)\n""...\n"">>> p\n""array([nan, nan])\n""\n""To get complex results, give the argument ``dtype=complex``.\n""\n"">>> np.power(x3, 1.5, dtype=complex)\n""array([-1.83697020e-16-1.j, -1.46957616e-15-8.j])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3826,7 +3911,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         remainder_functions, remainder_data, remainder_signatures, 16,
         2, 1, PyUFunc_None, "remainder",
-        "Return element-wise remainder of division.\n""\n""Computes the remainder complementary to the `floor_divide` function.  It is\n""equivalent to the Python modulus operator``x1 % x2`` and has the same sign\n""as the divisor `x2`. The MATLAB function equivalent to ``np.remainder``\n""is ``mod``.\n""\n"".. warning::\n""\n""    This should not be confused with:\n""\n""    * Python 3.7\'s `math.remainder` and C\'s ``remainder``, which\n""      computes the IEEE remainder, which are the complement to\n""      ``round(x1 / x2)``.\n""    * The MATLAB ``rem`` function and or the C ``%`` operator which is the\n""      complement to ``int(x1 / x2)``.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend array.\n""x2 : array_like\n""    Divisor array.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The element-wise remainder of the quotient ``floor_divide(x1, x2)``.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""floor_divide : Equivalent of Python ``//`` operator.\n""divmod : Simultaneous floor division and remainder.\n""fmod : Equivalent of the MATLAB ``rem`` function.\n""divide, floor\n""\n""Notes\n""-----\n""Returns 0 when `x2` is 0 and both `x1` and `x2` are (arrays of)\n""integers.\n""``mod`` is an alias of ``remainder``.\n""\n""Examples\n""--------\n"">>> np.remainder([4, 7], [2, 3])\n""array([0, 1])\n"">>> np.remainder(np.arange(7), 5)\n""array([0, 1, 2, 3, 4, 0, 1])\n""\n""The ``%`` operator can be used as a shorthand for ``np.remainder`` on\n""ndarrays.\n""\n"">>> x1 = np.arange(7)\n"">>> x1 % 5\n""array([0, 1, 2, 3, 4, 0, 1])", 0, NULL, identity
+        "Returns the element-wise remainder of division.\n""\n""Computes the remainder complementary to the `floor_divide` function.  It is\n""equivalent to the Python modulus operator``x1 % x2`` and has the same sign\n""as the divisor `x2`. The MATLAB function equivalent to ``np.remainder``\n""is ``mod``.\n""\n"".. warning::\n""\n""    This should not be confused with:\n""\n""    * Python 3.7\'s `math.remainder` and C\'s ``remainder``, which\n""      computes the IEEE remainder, which are the complement to\n""      ``round(x1 / x2)``.\n""    * The MATLAB ``rem`` function and or the C ``%`` operator which is the\n""      complement to ``int(x1 / x2)``.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend array.\n""x2 : array_like\n""    Divisor array.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The element-wise remainder of the quotient ``floor_divide(x1, x2)``.\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""See Also\n""--------\n""floor_divide : Equivalent of Python ``//`` operator.\n""divmod : Simultaneous floor division and remainder.\n""fmod : Equivalent of the MATLAB ``rem`` function.\n""divide, floor\n""\n""Notes\n""-----\n""Returns 0 when `x2` is 0 and both `x1` and `x2` are (arrays of)\n""integers.\n""``mod`` is an alias of ``remainder``.\n""\n""Examples\n""--------\n"">>> np.remainder([4, 7], [2, 3])\n""array([0, 1])\n"">>> np.remainder(np.arange(7), 5)\n""array([0, 1, 2, 3, 4, 0, 1])\n""\n""The ``%`` operator can be used as a shorthand for ``np.remainder`` on\n""ndarrays.\n""\n"">>> x1 = np.arange(7)\n"">>> x1 % 5\n""array([0, 1, 2, 3, 4, 0, 1])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -3916,7 +4001,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        sin_functions, sin_data, sin_signatures, 9,
+        sin_functions, sin_data, sin_signatures, 10,
         1, 1, PyUFunc_None, "sin",
         "Trigonometric sine, element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Angle, in radians (:math:`2 \\pi` rad equals 360 degrees).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : array_like\n""    The sine of each element of x.\n""    This is a scalar if `x` is a scalar.\n""\n""See Also\n""--------\n""arcsin, sinh, cos\n""\n""Notes\n""-----\n""The sine is one of the fundamental functions of trigonometry (the\n""mathematical study of triangles).  Consider a circle of radius 1\n""centered on the origin.  A ray comes in from the :math:`+x` axis, makes\n""an angle at the origin (measured counter-clockwise from that axis), and\n""departs from the origin.  The :math:`y` coordinate of the outgoing\n""ray\'s intersection with the unit circle is the sine of that angle.  It\n""ranges from -1 for :math:`x=3\\pi / 2` to +1 for :math:`\\pi / 2.`  The\n""function has zeroes where the angle is a multiple of :math:`\\pi`.\n""Sines of angles between :math:`\\pi` and :math:`2\\pi` are negative.\n""The numerous properties of the sine and related functions are included\n""in any standard trigonometry text.\n""\n""Examples\n""--------\n""Print sine of one angle:\n""\n"">>> np.sin(np.pi/2.)\n""1.0\n""\n""Print sines of an array of angles given in degrees:\n""\n"">>> np.sin(np.array((0., 30., 45., 60., 90.)) * np.pi / 180. )\n""array([ 0.        ,  0.5       ,  0.70710678,  0.8660254 ,  1.        ])\n""\n""Plot the sine function:\n""\n"">>> import matplotlib.pylab as plt\n"">>> x = np.linspace(-np.pi, np.pi, 201)\n"">>> plt.plot(x, np.sin(x))\n"">>> plt.xlabel(\'Angle [rad]\')\n"">>> plt.ylabel(\'sin(x)\')\n"">>> plt.axis(\'tight\')\n"">>> plt.show()", 0, NULL, identity
     );
@@ -3934,7 +4019,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        sinh_functions, sinh_data, sinh_signatures, 8,
+        sinh_functions, sinh_data, sinh_signatures, 11,
         1, 1, PyUFunc_None, "sinh",
         "Hyperbolic sine, element-wise.\n""\n""Equivalent to ``1/2 * (np.exp(x) - np.exp(-x))`` or\n""``-1j * np.sin(1j*x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The corresponding hyperbolic sine values.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""If `out` is provided, the function writes the result into it,\n""and returns a reference to `out`.  (See Examples)\n""\n""References\n""----------\n""M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions.\n""New York, NY: Dover, 1972, pg. 83.\n""\n""Examples\n""--------\n"">>> np.sinh(0)\n""0.0\n"">>> np.sinh(np.pi*1j/2)\n""1j\n"">>> np.sinh(np.pi*1j) # (exact value is 0)\n""1.2246063538223773e-016j\n"">>> # Discrepancy due to vagaries of floating point arithmetic.\n""\n"">>> # Example of providing the optional output parameter\n"">>> out1 = np.array([0], dtype=\'d\')\n"">>> out2 = np.sinh([0.1], out1)\n"">>> out2 is out1\n""True\n""\n"">>> # Example of ValueError due to provision of shape mis-matched `out`\n"">>> np.sinh(np.zeros((3,3)),np.zeros((2,2)))\n""Traceback (most recent call last):\n""  File \"<stdin>\", line 1, in <module>\n""ValueError: operands could not be broadcast together with shapes (3,3) (2,2)", 0, NULL, identity
     );
@@ -4025,7 +4110,7 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        tan_functions, tan_data, tan_signatures, 8,
+        tan_functions, tan_data, tan_signatures, 11,
         1, 1, PyUFunc_None, "tan",
         "Compute tangent element-wise.\n""\n""Equivalent to ``np.sin(x)/np.cos(x)`` element-wise.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The corresponding tangent values.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""If `out` is provided, the function writes the result into it,\n""and returns a reference to `out`.  (See Examples)\n""\n""References\n""----------\n""M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions.\n""New York, NY: Dover, 1972.\n""\n""Examples\n""--------\n"">>> from math import pi\n"">>> np.tan(np.array([-pi,pi/2,pi]))\n""array([  1.22460635e-16,   1.63317787e+16,  -1.22460635e-16])\n"">>>\n"">>> # Example of providing the optional output parameter illustrating\n"">>> # that what is returned is a reference to said parameter\n"">>> out1 = np.array([0], dtype=\'d\')\n"">>> out2 = np.cos([0.1], out1)\n"">>> out2 is out1\n""True\n"">>>\n"">>> # Example of ValueError due to provision of shape mis-matched `out`\n"">>> np.cos(np.zeros((3,3)),np.zeros((2,2)))\n""Traceback (most recent call last):\n""  File \"<stdin>\", line 1, in <module>\n""ValueError: operands could not be broadcast together with shapes (3,3) (2,2)", 0, NULL, identity
     );
@@ -4043,9 +4128,9 @@ InitOperators(PyObject *dictionary) {
         return -1;
     }
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
-        tanh_functions, tanh_data, tanh_signatures, 8,
+        tanh_functions, tanh_data, tanh_signatures, 11,
         1, 1, PyUFunc_None, "tanh",
-        "Compute hyperbolic tangent element-wise.\n""\n""Equivalent to ``np.sinh(x)/np.cosh(x)`` or ``-1j * np.tan(1j*x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The corresponding hyperbolic tangent values.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""If `out` is provided, the function writes the result into it,\n""and returns a reference to `out`.  (See Examples)\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions.\n""       New York, NY: Dover, 1972, pg. 83.\n""       http://www.math.sfu.ca/~cbm/aands/\n""\n"".. [2] Wikipedia, \"Hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Hyperbolic_function\n""\n""Examples\n""--------\n"">>> np.tanh((0, np.pi*1j, np.pi*1j/2))\n""array([ 0. +0.00000000e+00j,  0. -1.22460635e-16j,  0. +1.63317787e+16j])\n""\n"">>> # Example of providing the optional output parameter illustrating\n"">>> # that what is returned is a reference to said parameter\n"">>> out1 = np.array([0], dtype=\'d\')\n"">>> out2 = np.tanh([0.1], out1)\n"">>> out2 is out1\n""True\n""\n"">>> # Example of ValueError due to provision of shape mis-matched `out`\n"">>> np.tanh(np.zeros((3,3)),np.zeros((2,2)))\n""Traceback (most recent call last):\n""  File \"<stdin>\", line 1, in <module>\n""ValueError: operands could not be broadcast together with shapes (3,3) (2,2)", 0, NULL, identity
+        "Compute hyperbolic tangent element-wise.\n""\n""Equivalent to ``np.sinh(x)/np.cosh(x)`` or ``-1j * np.tan(1j*x)``.\n""\n""Parameters\n""----------\n""x : array_like\n""    Input array.\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""y : ndarray\n""    The corresponding hyperbolic tangent values.\n""    This is a scalar if `x` is a scalar.\n""\n""Notes\n""-----\n""If `out` is provided, the function writes the result into it,\n""and returns a reference to `out`.  (See Examples)\n""\n""References\n""----------\n"".. [1] M. Abramowitz and I. A. Stegun, Handbook of Mathematical Functions.\n""       New York, NY: Dover, 1972, pg. 83.\n""       https://personal.math.ubc.ca/~cbm/aands/page_83.htm\n""\n"".. [2] Wikipedia, \"Hyperbolic function\",\n""       https://en.wikipedia.org/wiki/Hyperbolic_function\n""\n""Examples\n""--------\n"">>> np.tanh((0, np.pi*1j, np.pi*1j/2))\n""array([ 0. +0.00000000e+00j,  0. -1.22460635e-16j,  0. +1.63317787e+16j])\n""\n"">>> # Example of providing the optional output parameter illustrating\n"">>> # that what is returned is a reference to said parameter\n"">>> out1 = np.array([0], dtype=\'d\')\n"">>> out2 = np.tanh([0.1], out1)\n"">>> out2 is out1\n""True\n""\n"">>> # Example of ValueError due to provision of shape mis-matched `out`\n"">>> np.tanh(np.zeros((3,3)),np.zeros((2,2)))\n""Traceback (most recent call last):\n""  File \"<stdin>\", line 1, in <module>\n""ValueError: operands could not be broadcast together with shapes (3,3) (2,2)", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);
@@ -4063,7 +4148,7 @@ InitOperators(PyObject *dictionary) {
     f = PyUFunc_FromFuncAndDataAndSignatureAndIdentity(
         true_divide_functions, true_divide_data, true_divide_signatures, 11,
         2, 1, PyUFunc_None, "true_divide",
-        "Returns a true division of the inputs, element-wise.\n""\n""Instead of the Python traditional \'floor division\', this returns a true\n""division.  True division adjusts the output type to present the best\n""answer, regardless of input types.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend array.\n""x2 : array_like\n""    Divisor array.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""Notes\n""-----\n""In Python, ``//`` is the floor division operator and ``/`` the\n""true division operator.  The ``true_divide(x1, x2)`` function is\n""equivalent to true division in Python.\n""\n""Examples\n""--------\n"">>> x = np.arange(5)\n"">>> np.true_divide(x, 4)\n""array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])\n""\n"">>> x/4\n""array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])\n""\n"">>> x//4\n""array([0, 0, 0, 0, 1])\n""\n""The ``/`` operator can be used as a shorthand for ``np.true_divide`` on\n""ndarrays.\n""\n"">>> x = np.arange(5)\n"">>> x / 4\n""array([0.  , 0.25, 0.5 , 0.75, 1.  ])", 0, NULL, identity
+        "Returns a true division of the inputs, element-wise.\n""\n""Unlike \'floor division\', true division adjusts the output type\n""to present the best answer, regardless of input types.\n""\n""Parameters\n""----------\n""x1 : array_like\n""    Dividend array.\n""x2 : array_like\n""    Divisor array.\n""    If ``x1.shape != x2.shape``, they must be broadcastable to a common\n""    shape (which becomes the shape of the output).\n""out : ndarray, None, or tuple of ndarray and None, optional\n""    A location into which the result is stored. If provided, it must have\n""    a shape that the inputs broadcast to. If not provided or None,\n""    a freshly-allocated array is returned. A tuple (possible only as a\n""    keyword argument) must have length equal to the number of outputs.\n""where : array_like, optional\n""    This condition is broadcast over the input. At locations where the\n""    condition is True, the `out` array will be set to the ufunc result.\n""    Elsewhere, the `out` array will retain its original value.\n""    Note that if an uninitialized `out` array is created via the default\n""    ``out=None``, locations within it where the condition is False will\n""    remain uninitialized.\n""**kwargs\n""    For other keyword-only arguments, see the\n""    :ref:`ufunc docs <ufuncs.kwargs>`.\n""\n""Returns\n""-------\n""out : ndarray or scalar\n""    This is a scalar if both `x1` and `x2` are scalars.\n""\n""Notes\n""-----\n""In Python, ``//`` is the floor division operator and ``/`` the\n""true division operator.  The ``true_divide(x1, x2)`` function is\n""equivalent to true division in Python.\n""\n""Examples\n""--------\n"">>> x = np.arange(5)\n"">>> np.true_divide(x, 4)\n""array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])\n""\n"">>> x/4\n""array([ 0.  ,  0.25,  0.5 ,  0.75,  1.  ])\n""\n"">>> x//4\n""array([0, 0, 0, 0, 1])\n""\n""The ``/`` operator can be used as a shorthand for ``np.true_divide`` on\n""ndarrays.\n""\n"">>> x = np.arange(5)\n"">>> x / 4\n""array([0.  , 0.25, 0.5 , 0.75, 1.  ])", 0, NULL, identity
     );
     if (0) {
         Py_DECREF(identity);

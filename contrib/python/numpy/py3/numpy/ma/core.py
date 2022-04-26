@@ -39,8 +39,6 @@ from numpy.compat import (
     )
 from numpy import expand_dims
 from numpy.core.numeric import normalize_axis_tuple
-from numpy.core._internal import recursive
-from numpy.compat import pickle
 
 
 __all__ = [
@@ -70,13 +68,13 @@ __all__ = [
     'masked_singleton', 'masked_values', 'masked_where', 'max', 'maximum',
     'maximum_fill_value', 'mean', 'min', 'minimum', 'minimum_fill_value',
     'mod', 'multiply', 'mvoid', 'ndim', 'negative', 'nomask', 'nonzero',
-    'not_equal', 'ones', 'outer', 'outerproduct', 'power', 'prod',
+    'not_equal', 'ones', 'ones_like', 'outer', 'outerproduct', 'power', 'prod',
     'product', 'ptp', 'put', 'putmask', 'ravel', 'remainder',
     'repeat', 'reshape', 'resize', 'right_shift', 'round', 'round_',
     'set_fill_value', 'shape', 'sin', 'sinh', 'size', 'soften_mask',
     'sometrue', 'sort', 'sqrt', 'squeeze', 'std', 'subtract', 'sum',
     'swapaxes', 'take', 'tan', 'tanh', 'trace', 'transpose', 'true_divide',
-    'var', 'where', 'zeros',
+    'var', 'where', 'zeros', 'zeros_like',
     ]
 
 MaskType = np.bool_
@@ -1067,7 +1065,7 @@ class _MaskedBinaryOperation(_MaskedUFunc):
             tr = self.f.reduce(t, axis)
             mr = nomask
         else:
-            tr = self.f.reduce(t, axis, dtype=dtype or t.dtype)
+            tr = self.f.reduce(t, axis, dtype=dtype)
             mr = umath.logical_and.reduce(m, axis)
 
         if not tr.shape:
@@ -1686,6 +1684,16 @@ def make_mask_none(newshape, dtype=None):
     return result
 
 
+def _recursive_mask_or(m1, m2, newmask):
+    names = m1.dtype.names
+    for name in names:
+        current1 = m1[name]
+        if current1.dtype.names is not None:
+            _recursive_mask_or(current1, m2[name], newmask[name])
+        else:
+            umath.logical_or(current1, m2[name], newmask[name])
+
+
 def mask_or(m1, m2, copy=False, shrink=True):
     """
     Combine two masks with the ``logical_or`` operator.
@@ -1722,17 +1730,6 @@ def mask_or(m1, m2, copy=False, shrink=True):
     array([ True,  True,  True, False])
 
     """
-
-    @recursive
-    def _recursive_mask_or(self, m1, m2, newmask):
-        names = m1.dtype.names
-        for name in names:
-            current1 = m1[name]
-            if current1.dtype.names is not None:
-                self(current1, m2[name], newmask[name])
-            else:
-                umath.logical_or(current1, m2[name], newmask[name])
-        return
 
     if (m1 is nomask) or (m1 is False):
         dtype = getattr(m2, 'dtype', MaskType)
@@ -2840,11 +2837,12 @@ class MaskedArray(ndarray):
             _data = ndarray.view(_data, type(data))
         else:
             _data = ndarray.view(_data, cls)
-        # Backwards compatibility w/ numpy.core.ma.
+
+        # Handle the case where data is not a subclass of ndarray, but
+        # still has the _mask attribute like MaskedArrays
         if hasattr(data, '_mask') and not isinstance(data, ndarray):
             _data._mask = data._mask
-            # FIXME _sharedmask is never used.
-            _sharedmask = True
+            # FIXME: should we set `_data._sharedmask = True`? 
         # Process mask.
         # Type of the mask
         mdtype = make_mask_descr(_data.dtype)
@@ -3382,8 +3380,12 @@ class MaskedArray(ndarray):
                 _mask[indx] = mval
         elif not self._hardmask:
             # Set the data, then the mask
-            _data[indx] = dval
-            _mask[indx] = mval
+            if (isinstance(indx, masked_array) and
+                    not isinstance(value, masked_array)):
+                _data[indx.data] = dval
+            else:
+                _data[indx] = dval
+                _mask[indx] = mval
         elif hasattr(indx, 'dtype') and (indx.dtype == MaskType):
             indx = indx * umath.logical_not(_mask)
             _data[indx] = dval
@@ -3953,7 +3955,7 @@ class MaskedArray(ndarray):
 
 
         # 2016-11-19: Demoted to legacy format
-        if np.get_printoptions()['legacy'] == '1.13':
+        if np.core.arrayprint._get_legacy_print_mode() <= 113:
             is_long = self.ndim > 1
             parameters = dict(
                 name=name,
@@ -5291,9 +5293,6 @@ class MaskedArray(ndarray):
 
         """
         m = self.mean(axis, dtype)
-        if m is masked:
-            return m
-
         if not axis:
             return self - m
         else:
@@ -5492,7 +5491,8 @@ class MaskedArray(ndarray):
         filled = self.filled(fill_value)
         return filled.argsort(axis=axis, kind=kind, order=order)
 
-    def argmin(self, axis=None, fill_value=None, out=None):
+    def argmin(self, axis=None, fill_value=None, out=None, *,
+                keepdims=np._NoValue):
         """
         Return array of indices to the minimum values along the given axis.
 
@@ -5535,9 +5535,11 @@ class MaskedArray(ndarray):
         if fill_value is None:
             fill_value = minimum_fill_value(self)
         d = self.filled(fill_value).view(ndarray)
-        return d.argmin(axis, out=out)
+        keepdims = False if keepdims is np._NoValue else bool(keepdims)
+        return d.argmin(axis, out=out, keepdims=keepdims)
 
-    def argmax(self, axis=None, fill_value=None, out=None):
+    def argmax(self, axis=None, fill_value=None, out=None, *,
+                keepdims=np._NoValue):
         """
         Returns array of indices of the maximum values along the given axis.
         Masked values are treated as if they had the value fill_value.
@@ -5572,7 +5574,8 @@ class MaskedArray(ndarray):
         if fill_value is None:
             fill_value = maximum_fill_value(self._data)
         d = self.filled(fill_value).view(ndarray)
-        return d.argmax(axis, out=out)
+        keepdims = False if keepdims is np._NoValue else bool(keepdims)
+        return d.argmax(axis, out=out, keepdims=keepdims)
 
     def sort(self, axis=-1, kind=None, order=None,
              endwith=True, fill_value=None):
@@ -8095,21 +8098,50 @@ class _convert2ma:
     """
     __doc__ = None
 
-    def __init__(self, funcname, params=None):
+    def __init__(self, funcname, np_ret, np_ma_ret, params=None):
         self._func = getattr(np, funcname)
-        self.__doc__ = self.getdoc()
+        self.__doc__ = self.getdoc(np_ret, np_ma_ret)
         self._extras = params or {}
 
-    def getdoc(self):
+    def getdoc(self, np_ret, np_ma_ret):
         "Return the doc of the function (from the doc of the method)."
         doc = getattr(self._func, '__doc__', None)
         sig = get_object_signature(self._func)
         if doc:
+            doc = self._replace_return_type(doc, np_ret, np_ma_ret)
             # Add the signature of the function at the beginning of the doc
             if sig:
                 sig = "%s%s\n" % (self._func.__name__, sig)
             doc = sig + doc
         return doc
+
+    def _replace_return_type(self, doc, np_ret, np_ma_ret):
+        """
+        Replace documentation of ``np`` function's return type.
+
+        Replaces it with the proper type for the ``np.ma`` function.
+
+        Parameters
+        ----------
+        doc : str
+            The documentation of the ``np`` method.
+        np_ret : str
+            The return type string of the ``np`` method that we want to
+            replace. (e.g. "out : ndarray")
+        np_ma_ret : str
+            The return type string of the ``np.ma`` method.
+            (e.g. "out : MaskedArray")
+        """
+        if np_ret not in doc:
+            raise RuntimeError(
+                f"Failed to replace `{np_ret}` with `{np_ma_ret}`. "
+                f"The documentation string for return type, {np_ret}, is not "
+                f"found in the docstring for `np.{self._func.__name__}`. "
+                f"Fix the docstring for `np.{self._func.__name__}` or "
+                "update the expected string for return type."
+            )
+
+        return doc.replace(np_ret, np_ma_ret)
 
     def __call__(self, *args, **params):
         # Find the common parameters to the call and the definition
@@ -8126,21 +8158,86 @@ class _convert2ma:
             result._hardmask = bool(_extras.get("hard_mask", False))
         return result
 
-arange = _convert2ma('arange', params=dict(fill_value=None, hardmask=False))
-clip = np.clip
-diff = np.diff
-empty = _convert2ma('empty', params=dict(fill_value=None, hardmask=False))
-empty_like = _convert2ma('empty_like')
-frombuffer = _convert2ma('frombuffer')
-fromfunction = _convert2ma('fromfunction')
+
+arange = _convert2ma(
+    'arange', 
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='arange : ndarray',
+    np_ma_ret='arange : MaskedArray',
+)
+clip = _convert2ma(
+    'clip',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='clipped_array : ndarray',
+    np_ma_ret='clipped_array : MaskedArray',
+)
+diff = _convert2ma(
+    'diff',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='diff : ndarray',
+    np_ma_ret='diff : MaskedArray',
+)
+empty = _convert2ma(
+    'empty', 
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+empty_like = _convert2ma(
+    'empty_like',
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+frombuffer = _convert2ma(
+    'frombuffer',
+    np_ret='out : ndarray',
+    np_ma_ret='out: MaskedArray',
+)
+fromfunction = _convert2ma(
+   'fromfunction',
+   np_ret='fromfunction : any',
+   np_ma_ret='fromfunction: MaskedArray',
+)
 identity = _convert2ma(
-    'identity', params=dict(fill_value=None, hardmask=False))
-indices = np.indices
-ones = _convert2ma('ones', params=dict(fill_value=None, hardmask=False))
-ones_like = np.ones_like
-squeeze = np.squeeze
-zeros = _convert2ma('zeros', params=dict(fill_value=None, hardmask=False))
-zeros_like = np.zeros_like
+    'identity', 
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+indices = _convert2ma(
+    'indices',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='grid : one ndarray or tuple of ndarrays',
+    np_ma_ret='grid : one MaskedArray or tuple of MaskedArrays',
+)
+ones = _convert2ma(
+    'ones',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+ones_like = _convert2ma(
+    'ones_like',
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+squeeze = _convert2ma(
+    'squeeze',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='squeezed : ndarray',
+    np_ma_ret='squeezed : MaskedArray',
+)
+zeros = _convert2ma(
+    'zeros',
+    params=dict(fill_value=None, hardmask=False),
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
+zeros_like = _convert2ma(
+    'zeros_like',
+    np_ret='out : ndarray',
+    np_ma_ret='out : MaskedArray',
+)
 
 
 def append(a, b, axis=None):

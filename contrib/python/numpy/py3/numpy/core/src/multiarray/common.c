@@ -1,8 +1,9 @@
+#define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#define _MULTIARRAYMODULE
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-#define NPY_NO_DEPRECATED_API NPY_API_VERSION
-#define _MULTIARRAYMODULE
 #include "numpy/arrayobject.h"
 
 #include "npy_config.h"
@@ -46,8 +47,8 @@ _array_find_python_scalar_type(PyObject *op)
         return PyArray_DescrFromType(NPY_CDOUBLE);
     }
     else if (PyLong_Check(op)) {
-        return PyArray_PyIntAbstractDType.discover_descr_from_pyobject(
-                    &PyArray_PyIntAbstractDType, op);
+        return NPY_DT_CALL_discover_descr_from_pyobject(
+                &PyArray_PyIntAbstractDType, op);
     }
     return NULL;
 }
@@ -118,7 +119,7 @@ PyArray_DTypeFromObject(PyObject *obj, int maxdims, PyArray_Descr **out_dtype)
     int ndim;
 
     ndim = PyArray_DiscoverDTypeAndShape(
-            obj, maxdims, shape, &cache, NULL, NULL, out_dtype);
+            obj, maxdims, shape, &cache, NULL, NULL, out_dtype, 0);
     if (ndim < 0) {
         return -1;
     }

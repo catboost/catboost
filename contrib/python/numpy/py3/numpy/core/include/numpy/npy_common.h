@@ -1,5 +1,5 @@
-#ifndef _NPY_COMMON_H_
-#define _NPY_COMMON_H_
+#ifndef NUMPY_CORE_INCLUDE_NUMPY_NPY_COMMON_H_
+#define NUMPY_CORE_INCLUDE_NUMPY_NPY_COMMON_H_
 
 /* need Python.h for npy_intp, npy_uintp */
 #include <Python.h>
@@ -179,12 +179,6 @@
 #if defined(_MSC_VER) && defined(_WIN64) && (_MSC_VER > 1400) || \
     defined(__MINGW32__) || defined(__MINGW64__)
     #include <io.h>
-
-/* mingw based on 3.4.5 has lseek but not ftell/fseek */
-#if defined(__MINGW32__) || defined(__MINGW64__)
-extern int __cdecl _fseeki64(FILE *, long long, int);
-extern long long __cdecl _ftelli64(FILE *);
-#endif
 
     #define npy_fseek _fseeki64
     #define npy_ftell _ftelli64
@@ -1124,4 +1118,4 @@ typedef npy_int64 npy_datetime;
 
 /* End of typedefs for numarray style bit-width names */
 
-#endif
+#endif  /* NUMPY_CORE_INCLUDE_NUMPY_NPY_COMMON_H_ */

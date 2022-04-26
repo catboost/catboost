@@ -1258,7 +1258,6 @@ haas/map/backend
 haas/map/frontend
 practicum/services/bourbon
 practicum/packages/csslint
-afisha/frontend/admin-frontend
 haas/infra/docker-base-image
 practicum/messenger_tools
 haas/vendor/php/php-src
@@ -1410,3 +1409,4 @@ bunker/bunker-queue
 bunker/database
 haas/factory-packages
 adv/pcode/mobileadssdk/android/library
+classifieds/realty/feedloader

@@ -278,69 +278,124 @@ NPY_NO_EXPORT int atimsort_timedelta(void *vec, npy_intp *ind, npy_intp cnt, voi
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_bool(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_bool(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_byte(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_byte(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_ubyte(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_ubyte(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_short(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_short(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_ushort(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_ushort(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_int(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_int(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_uint(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_uint(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_long(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_long(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_ulong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_ulong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_longlong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_longlong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 #line 52
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 NPY_NO_EXPORT int radixsort_ulonglong(void *vec, npy_intp cnt, void *null);
 NPY_NO_EXPORT int aradixsort_ulonglong(void *vec, npy_intp *ind, npy_intp cnt, void *null);
+#ifdef __cplusplus
+}
+#endif
 
 
 
@@ -353,7 +408,7 @@ NPY_NO_EXPORT int aradixsort_ulonglong(void *vec, npy_intp *ind, npy_intp cnt, v
  */
 
 
-#line 71
+#line 76
 
 NPY_NO_EXPORT int quicksort_string(void *vec, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int heapsort_string(void *vec, npy_intp cnt, void *arr);
@@ -365,7 +420,7 @@ NPY_NO_EXPORT int amergesort_string(void *vec, npy_intp *ind, npy_intp cnt, void
 NPY_NO_EXPORT int atimsort_string(void *vec, npy_intp *ind, npy_intp cnt, void *arr);
 
 
-#line 71
+#line 76
 
 NPY_NO_EXPORT int quicksort_unicode(void *vec, npy_intp cnt, void *arr);
 NPY_NO_EXPORT int heapsort_unicode(void *vec, npy_intp cnt, void *arr);

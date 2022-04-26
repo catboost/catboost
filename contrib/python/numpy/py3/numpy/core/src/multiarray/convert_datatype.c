@@ -1,9 +1,10 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include "structmember.h"
-
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+
 #include "numpy/arrayobject.h"
 #include "numpy/arrayscalars.h"
 
@@ -70,10 +71,10 @@ PyArray_GetCastingImpl(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
 {
     PyObject *res;
     if (from == to) {
-        res = from->within_dtype_castingimpl;
+        res = NPY_DT_SLOTS(from)->within_dtype_castingimpl;
     }
     else {
-        res = PyDict_GetItemWithError(from->castingimpls, (PyObject *)to);
+        res = PyDict_GetItemWithError(NPY_DT_SLOTS(from)->castingimpls, (PyObject *)to);
     }
     if (res != NULL || PyErr_Occurred()) {
         Py_XINCREF(res);
@@ -105,11 +106,11 @@ PyArray_GetCastingImpl(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
         return NULL;
     }
     else {
-        if (from->parametric || to->parametric) {
+        if (NPY_DT_is_parametric(from) || NPY_DT_is_parametric(to)) {
             Py_RETURN_NONE;
         }
         /* Reject non-legacy dtypes (they need to use the new API) */
-        if (!from->legacy || !to->legacy) {
+        if (!NPY_DT_is_legacy(from) || !NPY_DT_is_legacy(to)) {
             Py_RETURN_NONE;
         }
         if (from != to) {
@@ -119,7 +120,8 @@ PyArray_GetCastingImpl(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
             if (castfunc == NULL) {
                 PyErr_Clear();
                 /* Remember that this cast is not possible */
-                if (PyDict_SetItem(from->castingimpls, (PyObject *) to, Py_None) < 0) {
+                if (PyDict_SetItem(NPY_DT_SLOTS(from)->castingimpls,
+                            (PyObject *) to, Py_None) < 0) {
                     return NULL;
                 }
                 Py_RETURN_NONE;
@@ -147,7 +149,8 @@ PyArray_GetCastingImpl(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
         Py_DECREF(res);
         return NULL;
     }
-    if (PyDict_SetItem(from->castingimpls, (PyObject *)to, res) < 0) {
+    if (PyDict_SetItem(NPY_DT_SLOTS(from)->castingimpls,
+                (PyObject *)to, res) < 0) {
         Py_DECREF(res);
         return NULL;
     }
@@ -391,7 +394,16 @@ _get_cast_safety_from_castingimpl(PyArrayMethodObject *castingimpl,
   finish:
     Py_DECREF(out_descrs[0]);
     Py_DECREF(out_descrs[1]);
-    /* NPY_NO_CASTING has to be used for (NPY_EQUIV_CASTING|_NPY_CAST_IS_VIEW) */
+    /*
+     * Check for less harmful non-standard returns.  The following two returns
+     * should never happen. They would be roughly equivalent, but less precise,
+     * versions of `(NPY_NO_CASTING|_NPY_CAST_IS_VIEW)`.
+     * 1. No-casting must imply cast-is-view.
+     * 2. Equivalent-casting + cast-is-view is (currently) the definition
+     *    of a "no" cast (there may be reasons to relax this).
+     * Note that e.g. `(NPY_UNSAFE_CASTING|_NPY_CAST_IS_VIEW)` is valid.
+     */
+    assert(casting != NPY_NO_CASTING);
     assert(casting != (NPY_EQUIV_CASTING|_NPY_CAST_IS_VIEW));
     return casting;
 }
@@ -438,7 +450,7 @@ PyArray_GetCastSafety(
 
 /**
  * Check whether a cast is safe, see also `PyArray_GetCastSafety` for
- * a similiar function.  Unlike GetCastSafety, this function checks the
+ * a similar function.  Unlike GetCastSafety, this function checks the
  * `castingimpl->casting` when available.  This allows for two things:
  *
  * 1. It avoids  calling `resolve_descriptors` in some cases.
@@ -937,12 +949,12 @@ PyArray_CastDescrToDType(PyArray_Descr *descr, PyArray_DTypeMeta *given_DType)
         Py_INCREF(descr);
         return descr;
     }
-    if (!given_DType->parametric) {
+    if (!NPY_DT_is_parametric(given_DType)) {
         /*
          * Don't actually do anything, the default is always the result
          * of any cast.
          */
-        return given_DType->default_descr(given_DType);
+        return NPY_DT_CALL_default_descr(given_DType);
     }
     if (PyObject_TypeCheck((PyObject *)descr, (PyTypeObject *)given_DType)) {
         Py_INCREF(descr);
@@ -1031,7 +1043,7 @@ PyArray_FindConcatenationDescriptor(
             Py_SETREF(result, NULL);
             goto finish;
         }
-        Py_SETREF(result, common_dtype->common_instance(result, curr));
+        Py_SETREF(result, NPY_DT_SLOTS(common_dtype)->common_instance(result, curr));
         Py_DECREF(curr);
         if (result == NULL) {
             goto finish;
@@ -1065,9 +1077,9 @@ PyArray_PromoteTypes(PyArray_Descr *type1, PyArray_Descr *type2)
         return NULL;
     }
 
-    if (!common_dtype->parametric) {
+    if (!NPY_DT_is_parametric(common_dtype)) {
         /* Note that this path loses all metadata */
-        res = common_dtype->default_descr(common_dtype);
+        res = NPY_DT_CALL_default_descr(common_dtype);
         Py_DECREF(common_dtype);
         return res;
     }
@@ -1089,7 +1101,7 @@ PyArray_PromoteTypes(PyArray_Descr *type1, PyArray_Descr *type2)
      * And find the common instance of the two inputs
      * NOTE: Common instance preserves metadata (normally and of one input)
      */
-    res = common_dtype->common_instance(type1, type2);
+    res = NPY_DT_SLOTS(common_dtype)->common_instance(type1, type2);
     Py_DECREF(type1);
     Py_DECREF(type2);
     Py_DECREF(common_dtype);
@@ -1494,7 +1506,7 @@ should_use_min_scalar(npy_intp narrs, PyArrayObject **arr,
 
         /* Compute the maximum "kinds" and whether everything is scalar */
         for (npy_intp i = 0; i < narrs; ++i) {
-            if (!NPY_DTYPE(PyArray_DESCR(arr[i]))->legacy) {
+            if (!NPY_DT_is_legacy(NPY_DTYPE(PyArray_DESCR(arr[i])))) {
                 return 0;
             }
             if (PyArray_NDIM(arr[i]) == 0) {
@@ -1518,7 +1530,7 @@ should_use_min_scalar(npy_intp narrs, PyArrayObject **arr,
          * finish computing the max array kind
          */
         for (npy_intp i = 0; i < ndtypes; ++i) {
-            if (!NPY_DTYPE(dtypes[i])->legacy) {
+            if (!NPY_DT_is_legacy(NPY_DTYPE(dtypes[i]))) {
                 return 0;
             }
             int kind = dtype_kind_to_simplified_ordering(dtypes[i]->kind);
@@ -1564,7 +1576,7 @@ get_descr_from_cast_or_value(
         if (tmp == NULL) {
             return NULL;
         }
-        curr = common_dtype->discover_descr_from_pyobject(common_dtype, tmp);
+        curr = NPY_DT_CALL_discover_descr_from_pyobject(common_dtype, tmp);
         Py_DECREF(tmp);
     }
     return curr;
@@ -1671,7 +1683,7 @@ PyArray_ResultType(
         }
         Py_INCREF(all_DTypes[i_all]);
         /*
-         * Leave the decriptor empty, if we need it, we will have to go
+         * Leave the descriptor empty, if we need it, we will have to go
          * to more extreme lengths unfortunately.
          */
         all_descriptors[i_all] = NULL;
@@ -1686,9 +1698,9 @@ PyArray_ResultType(
         goto error;
     }
 
-    if (common_dtype->abstract) {
+    if (NPY_DT_is_abstract(common_dtype)) {
         /* (ab)use default descriptor to define a default */
-        PyArray_Descr *tmp_descr = common_dtype->default_descr(common_dtype);
+        PyArray_Descr *tmp_descr = NPY_DT_CALL_default_descr(common_dtype);
         if (tmp_descr == NULL) {
             goto error;
         }
@@ -1701,9 +1713,9 @@ PyArray_ResultType(
      * NOTE: Code duplicates `PyArray_CastToDTypeAndPromoteDescriptors`, but
      *       supports special handling of the abstract values.
      */
-    if (!common_dtype->parametric) {
+    if (!NPY_DT_is_parametric(common_dtype)) {
         /* Note that this "fast" path loses all metadata */
-        result = common_dtype->default_descr(common_dtype);
+        result = NPY_DT_CALL_default_descr(common_dtype);
     }
     else {
         result = get_descr_from_cast_or_value(
@@ -1718,7 +1730,7 @@ PyArray_ResultType(
             if (curr == NULL) {
                 goto error;
             }
-            Py_SETREF(result, common_dtype->common_instance(result, curr));
+            Py_SETREF(result, NPY_DT_SLOTS(common_dtype)->common_instance(result, curr));
             Py_DECREF(curr);
             if (result == NULL) {
                 goto error;
@@ -1896,10 +1908,10 @@ PyArray_CastToDTypeAndPromoteDescriptors(
     if (result == NULL || ndescr == 1) {
         return result;
     }
-    if (!DType->parametric) {
+    if (!NPY_DT_is_parametric(DType)) {
         /* Note that this "fast" path loses all metadata */
         Py_DECREF(result);
-        return DType->default_descr(DType);
+        return NPY_DT_CALL_default_descr(DType);
     }
 
     for (npy_intp i = 1; i < ndescr; i++) {
@@ -1908,7 +1920,7 @@ PyArray_CastToDTypeAndPromoteDescriptors(
             Py_DECREF(result);
             return NULL;
         }
-        Py_SETREF(result, DType->common_instance(result, curr));
+        Py_SETREF(result, NPY_DT_SLOTS(DType)->common_instance(result, curr));
         Py_DECREF(curr);
         if (result == NULL) {
             return NULL;
@@ -2078,7 +2090,7 @@ PyArray_ObjectType(PyObject *op, int minimum_type)
     if (dtype == NULL) {
         ret = NPY_DEFAULT_TYPE;
     }
-    else if (!NPY_DTYPE(dtype)->legacy) {
+    else if (!NPY_DT_is_legacy(NPY_DTYPE(dtype))) {
         /*
          * TODO: If we keep all type number style API working, by defining
          *       type numbers always. We may be able to allow this again.
@@ -2107,7 +2119,7 @@ PyArray_ObjectType(PyObject *op, int minimum_type)
  * This function is only used in one place within NumPy and should
  * generally be avoided. It is provided mainly for backward compatibility.
  *
- * The user of the function has to free the returned array.
+ * The user of the function has to free the returned array with PyDataMem_FREE.
  */
 NPY_NO_EXPORT PyArrayObject **
 PyArray_ConvertToCommonType(PyObject *op, int *retn)
@@ -2222,25 +2234,26 @@ PyArray_AddCastingImplementation(PyBoundArrayMethodObject *meth)
                     meth->method->name);
             return -1;
         }
-        if (meth->dtypes[0]->within_dtype_castingimpl != NULL) {
+        if (NPY_DT_SLOTS(meth->dtypes[0])->within_dtype_castingimpl != NULL) {
             PyErr_Format(PyExc_RuntimeError,
                     "A cast was already added for %S -> %S. (method: %s)",
                     meth->dtypes[0], meth->dtypes[1], meth->method->name);
             return -1;
         }
         Py_INCREF(meth->method);
-        meth->dtypes[0]->within_dtype_castingimpl = (PyObject *)meth->method;
+        NPY_DT_SLOTS(meth->dtypes[0])->within_dtype_castingimpl = (
+                (PyObject *)meth->method);
 
         return 0;
     }
-    if (PyDict_Contains(meth->dtypes[0]->castingimpls,
+    if (PyDict_Contains(NPY_DT_SLOTS(meth->dtypes[0])->castingimpls,
             (PyObject *)meth->dtypes[1])) {
         PyErr_Format(PyExc_RuntimeError,
                 "A cast was already added for %S -> %S. (method: %s)",
                 meth->dtypes[0], meth->dtypes[1], meth->method->name);
         return -1;
     }
-    if (PyDict_SetItem(meth->dtypes[0]->castingimpls,
+    if (PyDict_SetItem(NPY_DT_SLOTS(meth->dtypes[0])->castingimpls,
             (PyObject *)meth->dtypes[1], (PyObject *)meth->method) < 0) {
         return -1;
     }
@@ -2251,7 +2264,7 @@ PyArray_AddCastingImplementation(PyBoundArrayMethodObject *meth)
  * Add a new casting implementation using a PyArrayMethod_Spec.
  *
  * @param spec
- * @param private If private, allow slots not publically exposed.
+ * @param private If private, allow slots not publicly exposed.
  * @return 0 on success -1 on failure
  */
 NPY_NO_EXPORT int
@@ -2343,7 +2356,7 @@ simple_cast_resolve_descriptors(
         PyArray_Descr *given_descrs[2],
         PyArray_Descr *loop_descrs[2])
 {
-    assert(dtypes[0]->legacy && dtypes[1]->legacy);
+    assert(NPY_DT_is_legacy(dtypes[0]) && NPY_DT_is_legacy(dtypes[1]));
 
     loop_descrs[0] = ensure_dtype_nbo(given_descrs[0]);
     if (loop_descrs[0] == NULL) {
@@ -2357,7 +2370,7 @@ simple_cast_resolve_descriptors(
         }
     }
     else {
-        loop_descrs[1] = dtypes[1]->default_descr(dtypes[1]);
+        loop_descrs[1] = NPY_DT_CALL_default_descr(dtypes[1]);
     }
 
     if (self->casting != NPY_NO_CASTING) {
@@ -2492,7 +2505,8 @@ add_numeric_cast(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
     assert(slots[1].pfunc && slots[2].pfunc && slots[3].pfunc && slots[4].pfunc);
 
     /* Find the correct casting level, and special case no-cast */
-    if (dtypes[0]->kind == dtypes[1]->kind && from_itemsize == to_itemsize) {
+    if (dtypes[0]->singleton->kind == dtypes[1]->singleton->kind
+            && from_itemsize == to_itemsize) {
         spec.casting = NPY_EQUIV_CASTING;
 
         /* When there is no casting (equivalent C-types) use byteswap loops */
@@ -2509,8 +2523,8 @@ add_numeric_cast(PyArray_DTypeMeta *from, PyArray_DTypeMeta *to)
     else if (_npy_can_cast_safely_table[from->type_num][to->type_num]) {
         spec.casting = NPY_SAFE_CASTING;
     }
-    else if (dtype_kind_to_ordering(dtypes[0]->kind) <=
-             dtype_kind_to_ordering(dtypes[1]->kind)) {
+    else if (dtype_kind_to_ordering(dtypes[0]->singleton->kind) <=
+             dtype_kind_to_ordering(dtypes[1]->singleton->kind)) {
         spec.casting = NPY_SAME_KIND_CASTING;
     }
     else {
@@ -2568,7 +2582,7 @@ cast_to_string_resolve_descriptors(
      * a multiple of eight.
      */
     npy_intp size = -1;
-    switch (dtypes[0]->type_num) {
+    switch (given_descrs[0]->type_num) {
         case NPY_BOOL:
         case NPY_UBYTE:
         case NPY_BYTE:
@@ -2580,18 +2594,18 @@ cast_to_string_resolve_descriptors(
         case NPY_LONG:
         case NPY_ULONGLONG:
         case NPY_LONGLONG:
-            assert(dtypes[0]->singleton->elsize <= 8);
-            assert(dtypes[0]->singleton->elsize > 0);
-            if (dtypes[0]->kind == 'b') {
+            assert(given_descrs[0]->elsize <= 8);
+            assert(given_descrs[0]->elsize > 0);
+            if (given_descrs[0]->kind == 'b') {
                 /* 5 chars needed for cast to 'True' or 'False' */
                 size = 5;
             }
-            else if (dtypes[0]->kind == 'u') {
-                size = REQUIRED_STR_LEN[dtypes[0]->singleton->elsize];
+            else if (given_descrs[0]->kind == 'u') {
+                size = REQUIRED_STR_LEN[given_descrs[0]->elsize];
             }
-            else if (dtypes[0]->kind == 'i') {
+            else if (given_descrs[0]->kind == 'i') {
                 /* Add character for sign symbol */
-                size = REQUIRED_STR_LEN[dtypes[0]->singleton->elsize] + 1;
+                size = REQUIRED_STR_LEN[given_descrs[0]->elsize] + 1;
             }
             break;
         case NPY_HALF:
@@ -3079,7 +3093,7 @@ structured_to_nonstructured_resolve_descriptors(
 
     /* Void dtypes always do the full cast. */
     if (given_descrs[1] == NULL) {
-        loop_descrs[1] = dtypes[1]->default_descr(dtypes[1]);
+        loop_descrs[1] = NPY_DT_CALL_default_descr(dtypes[1]);
         /*
          * Special case strings here, it should be useless (and only actually
          * work for empty arrays).  Possibly this should simply raise for
@@ -3438,7 +3452,7 @@ object_to_any_resolve_descriptors(
          * here is that e.g. "M8" input is considered to be the DType class,
          * and by allowing it here, we go back to the "M8" instance.
          */
-        if (dtypes[1]->parametric) {
+        if (NPY_DT_is_parametric(dtypes[1])) {
             PyErr_Format(PyExc_TypeError,
                     "casting from object to the parametric DType %S requires "
                     "the specified output dtype instance. "
@@ -3446,7 +3460,7 @@ object_to_any_resolve_descriptors(
                     "should be discovered automatically, however.", dtypes[1]);
             return -1;
         }
-        loop_descrs[1] = dtypes[1]->default_descr(dtypes[1]);
+        loop_descrs[1] = NPY_DT_CALL_default_descr(dtypes[1]);
         if (loop_descrs[1] == NULL) {
             return -1;
         }
@@ -3502,7 +3516,7 @@ any_to_object_resolve_descriptors(
         PyArray_Descr *loop_descrs[2])
 {
     if (given_descrs[1] == NULL) {
-        loop_descrs[1] = dtypes[1]->default_descr(dtypes[1]);
+        loop_descrs[1] = NPY_DT_CALL_default_descr(dtypes[1]);
         if (loop_descrs[1] == NULL) {
             return -1;
         }

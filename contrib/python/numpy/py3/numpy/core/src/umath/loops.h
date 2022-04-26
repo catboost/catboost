@@ -2878,6 +2878,10 @@ ULONGLONG_isfinite(char **args, npy_intp const *dimensions, npy_intp const *step
 #endif
 #line 189
 #line 192
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_ceil,
+   (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
+
+#line 192
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_sqrt,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
@@ -2895,6 +2899,10 @@ NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_reciprocal,
 
 
 #line 189
+#line 192
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_ceil,
+   (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
+
 #line 192
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_sqrt,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
@@ -2953,25 +2961,239 @@ NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_divide,
 
 
 
-#line 216
-#line 219
+#ifndef NPY_DISABLE_OPTIMIZATION
+    #include "loops_umath_fp.dispatch.h"
+#endif
+
+#line 220
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_tanh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_exp2,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_log2,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_log10,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_expm1,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_log1p,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_cbrt,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_tan,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arcsin,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arccos,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arctan,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_sinh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_cosh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arcsinh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arccosh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_arctanh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+
+#line 220
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_tanh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_exp2,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_log2,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_log10,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_expm1,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_log1p,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_cbrt,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_tan,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arcsin,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arccos,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arctan,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_sinh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_cosh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arcsinh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arccosh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 223
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_arctanh,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+
+
+#line 233
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_sin,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+#line 233
+
+NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_cos,
+    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)))
+
+
+
+#line 242
+#line 245
 NPY_NO_EXPORT void
 FLOAT_maximum_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 219
+#line 245
 NPY_NO_EXPORT void
 FLOAT_minimum_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 216
-#line 219
+#line 242
+#line 245
 NPY_NO_EXPORT void
 DOUBLE_maximum_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 219
+#line 245
 NPY_NO_EXPORT void
 DOUBLE_minimum_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -2981,12 +3203,12 @@ DOUBLE_minimum_avx512f(char **args, npy_intp const *dimensions, npy_intp const *
 #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_trigonometric.dispatch.h"
 #endif
-#line 231
+#line 257
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_sin, (
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 231
+#line 257
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_cos, (
     char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
@@ -2995,225 +3217,194 @@ NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_cos, (
 #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_exponent_log.dispatch.h"
 #endif
-#line 242
-#line 245
+#line 268
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_exp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_log, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_frexp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void FLOAT_ldexp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
 
-#line 242
-#line 245
+#line 268
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_exp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_log, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_frexp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
-#line 245
+#line 271
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void DOUBLE_ldexp, (
   char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func)
 ))
 
 
 
-#line 254
+#line 280
 
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_rint(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_rint_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_rint_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_rint(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_rint_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_rint_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
 
-#line 254
+#line 280
 
-#line 258
-
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-FLOAT_ceil(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-#line 265
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-FLOAT_ceil_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-#line 265
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-FLOAT_ceil_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-
-#line 258
-
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-DOUBLE_ceil(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-#line 265
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-DOUBLE_ceil_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-#line 265
-NPY_NO_EXPORT NPY_GCC_OPT_3 void
-DOUBLE_ceil_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
-
-
-
-#line 254
-
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_floor(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_floor_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_floor_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_floor(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_floor_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_floor_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
 
-#line 254
+#line 280
 
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_trunc(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_trunc_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 FLOAT_trunc_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
-#line 258
+#line 284
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_trunc(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_trunc_avx512f(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 265
+#line 291
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
 DOUBLE_trunc_fma(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
 
 
 
-#line 277
+#line 303
 
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 HALF_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 HALF_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 HALF_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 HALF_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 HALF_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3224,98 +3415,98 @@ HALF_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps,
 NPY_NO_EXPORT void
 HALF_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_copysign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_copysign_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_nextafter(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_nextafter_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_spacing(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 HALF_spacing_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 HALF_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 HALF_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 HALF_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 HALF_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3365,55 +3556,55 @@ HALF_ldexp(char **args, npy_intp const *dimensions, npy_intp const *steps, void 
 NPY_NO_EXPORT void
 HALF_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 277
+#line 303
 
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 FLOAT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 FLOAT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 FLOAT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 FLOAT_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 FLOAT_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3424,98 +3615,98 @@ FLOAT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *steps
 NPY_NO_EXPORT void
 FLOAT_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_copysign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_copysign_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_nextafter(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_nextafter_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_spacing(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 FLOAT_spacing_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 FLOAT_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 FLOAT_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 FLOAT_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 FLOAT_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3565,55 +3756,55 @@ FLOAT_ldexp(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 NPY_NO_EXPORT void
 FLOAT_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 277
+#line 303
 
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 DOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 DOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 DOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 DOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 DOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3624,98 +3815,98 @@ DOUBLE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *step
 NPY_NO_EXPORT void
 DOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_copysign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_copysign_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_nextafter(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_nextafter_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_spacing(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 DOUBLE_spacing_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 DOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 DOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 DOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 DOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3765,55 +3956,55 @@ DOUBLE_ldexp(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 NPY_NO_EXPORT void
 DOUBLE_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 277
+#line 303
 
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 LONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 LONGDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 LONGDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 284
+#line 310
 NPY_NO_EXPORT void
 LONGDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 293
+#line 319
 NPY_NO_EXPORT void
 LONGDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3824,98 +4015,98 @@ LONGDOUBLE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *
 NPY_NO_EXPORT void
 LONGDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isnan_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isinf_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_isfinite_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_signbit(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_signbit_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_copysign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_copysign_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_nextafter(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_nextafter_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 307
+#line 333
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_spacing(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 311
+#line 337
 NPY_NO_EXPORT void
 LONGDOUBLE_spacing_avx512_skx(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 LONGDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 320
+#line 346
 NPY_NO_EXPORT void
 LONGDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 LONGDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 328
+#line 354
 NPY_NO_EXPORT void
 LONGDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -3975,30 +4166,30 @@ LONGDOUBLE_ldexp_long(char **args, npy_intp const *dimensions, npy_intp const *s
 #ifndef NPY_DISABLE_OPTIMIZATION
     #include "loops_arithm_fp.dispatch.h"
 #endif
-#line 390
-#line 393
+#line 416
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CFLOAT_add,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
-#line 393
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CFLOAT_subtract,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
-#line 393
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CFLOAT_multiply,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
 
-#line 390
-#line 393
+#line 416
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CDOUBLE_add,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
-#line 393
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CDOUBLE_subtract,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
-#line 393
+#line 419
 NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CDOUBLE_multiply,
    (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data)))
 
@@ -4011,17 +4202,17 @@ NPY_CPU_DISPATCH_DECLARE(NPY_NO_EXPORT void CDOUBLE_multiply,
 #define CEQ(xr,xi,yr,yi) (xr == yr && xi == yi);
 #define CNE(xr,xi,yr,yi) (xr != yr || xi != yi);
 
-#line 411
+#line 437
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CFLOAT_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CFLOAT_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CFLOAT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4029,39 +4220,36 @@ CFLOAT_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 NPY_NO_EXPORT void
 CFLOAT_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-NPY_NO_EXPORT void
-CFLOAT_floor_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CFLOAT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CFLOAT_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CFLOAT_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4071,15 +4259,15 @@ CFLOAT_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *step
 
 NPY_NO_EXPORT void
 CFLOAT_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CFLOAT_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CFLOAT_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CFLOAT_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4090,7 +4278,7 @@ CFLOAT_reciprocal(char **args, npy_intp const *dimensions, npy_intp const *steps
 NPY_NO_EXPORT void
 CFLOAT__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CFLOAT_conjugate(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4101,7 +4289,7 @@ CFLOAT_absolute(char **args, const npy_intp *dimensions, const npy_intp *steps, 
 NPY_NO_EXPORT void
 CFLOAT_square(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CFLOAT_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4119,36 +4307,36 @@ CFLOAT__arg(char **args, npy_intp const *dimensions, npy_intp const *steps, void
 NPY_NO_EXPORT void
 CFLOAT_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CFLOAT_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CFLOAT_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CFLOAT_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CFLOAT_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 411
+#line 437
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4156,39 +4344,36 @@ CDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps,
 NPY_NO_EXPORT void
 CDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-NPY_NO_EXPORT void
-CDOUBLE_floor_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4198,15 +4383,15 @@ CDOUBLE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const *ste
 
 NPY_NO_EXPORT void
 CDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4217,7 +4402,7 @@ CDOUBLE_reciprocal(char **args, npy_intp const *dimensions, npy_intp const *step
 NPY_NO_EXPORT void
 CDOUBLE__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CDOUBLE_conjugate(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4228,7 +4413,7 @@ CDOUBLE_absolute(char **args, const npy_intp *dimensions, const npy_intp *steps,
 NPY_NO_EXPORT void
 CDOUBLE_square(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4246,36 +4431,36 @@ CDOUBLE__arg(char **args, npy_intp const *dimensions, npy_intp const *steps, voi
 NPY_NO_EXPORT void
 CDOUBLE_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 411
+#line 437
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CLONGDOUBLE_add(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CLONGDOUBLE_subtract(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 416
+#line 442
 NPY_NO_EXPORT void
 CLONGDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4283,39 +4468,36 @@ CLONGDOUBLE_multiply(char **args, npy_intp const *dimensions, npy_intp const *st
 NPY_NO_EXPORT void
 CLONGDOUBLE_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-NPY_NO_EXPORT void
-CLONGDOUBLE_floor_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 430
+#line 453
 NPY_NO_EXPORT void
 CLONGDOUBLE_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CLONGDOUBLE_logical_and(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 439
+#line 462
 NPY_NO_EXPORT void
 CLONGDOUBLE_logical_or(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4325,15 +4507,15 @@ CLONGDOUBLE_logical_xor(char **args, npy_intp const *dimensions, npy_intp const 
 
 NPY_NO_EXPORT void
 CLONGDOUBLE_logical_not(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CLONGDOUBLE_isnan(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CLONGDOUBLE_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 453
+#line 476
 NPY_NO_EXPORT void
 CLONGDOUBLE_isfinite(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4344,7 +4526,7 @@ CLONGDOUBLE_reciprocal(char **args, npy_intp const *dimensions, npy_intp const *
 NPY_NO_EXPORT void
 CLONGDOUBLE__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CLONGDOUBLE_conjugate(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4355,7 +4537,7 @@ CLONGDOUBLE_absolute(char **args, const npy_intp *dimensions, const npy_intp *st
 NPY_NO_EXPORT void
 CLONGDOUBLE_square(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(data));
 
-#line 466
+#line 489
 
 NPY_NO_EXPORT void
 CLONGDOUBLE_conjugate_avx512f(char **args, const npy_intp *dimensions, const npy_intp *steps, void *NPY_UNUSED(func));
@@ -4373,20 +4555,20 @@ CLONGDOUBLE__arg(char **args, npy_intp const *dimensions, npy_intp const *steps,
 NPY_NO_EXPORT void
 CLONGDOUBLE_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CLONGDOUBLE_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 487
+#line 510
 NPY_NO_EXPORT void
 CLONGDOUBLE_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CLONGDOUBLE_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 495
+#line 518
 NPY_NO_EXPORT void
 CLONGDOUBLE_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4418,7 +4600,7 @@ TIMEDELTA_absolute(char **args, npy_intp const *dimensions, npy_intp const *step
 NPY_NO_EXPORT void
 TIMEDELTA_sign(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 529
+#line 552
 
 NPY_NO_EXPORT void
 DATETIME_isnat(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
@@ -4434,50 +4616,50 @@ DATETIME_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, v
 NPY_NO_EXPORT void
 DATETIME__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 DATETIME_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 DATETIME_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 DATETIME_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 DATETIME_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 DATETIME_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
 
-#line 529
+#line 552
 
 NPY_NO_EXPORT void
 TIMEDELTA_isnat(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
@@ -4493,44 +4675,44 @@ TIMEDELTA_isinf(char **args, npy_intp const *dimensions, npy_intp const *steps, 
 NPY_NO_EXPORT void
 TIMEDELTA__ones_like(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 548
+#line 571
 NPY_NO_EXPORT void
 TIMEDELTA_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 TIMEDELTA_maximum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 TIMEDELTA_minimum(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 TIMEDELTA_fmin(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 555
+#line 578
 NPY_NO_EXPORT void
 TIMEDELTA_fmax(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
@@ -4596,62 +4778,62 @@ TIMEDELTA_mm_qm_divmod(char **args, npy_intp const *dimensions, npy_intp const *
  *****************************************************************************
  */
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_not_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_greater(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_greater_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_less(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
 
-#line 624
-#line 627
+#line 647
+#line 650
 NPY_NO_EXPORT void
 OBJECT_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 
-#line 627
+#line 650
 NPY_NO_EXPORT void
 OBJECT_OO_O_less_equal(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func));
 

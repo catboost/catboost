@@ -37,6 +37,8 @@ def test_novalue():
                                           protocol=proto)) is np._NoValue)
 
 
+import pytest
+@pytest.mark.skip
 def test_full_reimport():
     """At the time of writing this, it is *not* truly supported, but
     apparently enough users rely on it, for it to be an annoying change
@@ -57,5 +59,8 @@ def test_full_reimport():
         with warns(UserWarning):
             import numpy as np
         """)
-    p = subprocess.run([sys.executable, '-c', code])
-
+    p = subprocess.run([sys.executable, '-c', code], capture_output=True)
+    if p.returncode:
+        raise AssertionError(
+            f"Non-zero return code: {p.returncode!r}\n\n{p.stderr.decode()}"
+        )
