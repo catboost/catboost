@@ -1,9 +1,14 @@
 scopes:
+  a.yandex-team.ru/cdn/cloud_api:
+    - importcheck
+    - exhaustivestruct
   a.yandex-team.ru/cloud/mdb:
     - importcheck
   a.yandex-team.ru/library/go:
     - importcheck
   a.yandex-team.ru/market/combinator:
+    - importcheck
+  a.yandex-team.ru/noc:
     - importcheck
   a.yandex-team.ru/noc/nocauth:
     - importcheck

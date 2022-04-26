@@ -40,7 +40,6 @@ ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/context
 ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/handlers/utils
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/frame_builder
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/util
-ALLOW dj/services/alisa_skills/recommender -> alice/megamind/library/walker
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/classifiers/formulas/protos
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/config/protos
 ALLOW search/begemot/rules/alice_iot -> alice/megamind/library/scenarios/iot

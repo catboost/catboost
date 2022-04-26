@@ -239,7 +239,7 @@
     - fstream.h
     - ../include/fenv.h
 
-- source_filter: "^contrib/restricted/boost/boost/stacktrace/detail"
+- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
   includes:
     - backtrace.h: contrib/libs/backtrace/backtrace.h
 

@@ -122,7 +122,6 @@ migrations:
     - datacloud/score_api/validators
     - devtools/adept
     - devtools/distbuild/deploy/servants
-    - devtools/dummy_arcadia/test/test_cache_invalidation
     - devtools/import_contrib/projects/phonenumber
     - devtools/qafw/qyp
     - devtools/qafw/rtc_deploy/lib
@@ -922,7 +921,6 @@ migrations:
     - extsearch/video/transcoder/per_title/vmaf
     - geosuggest/conveyors/learn_pool/lst_weights/lib
     - haas/cmis/hwr_preorders
-    - haas/graphite_sync/get_report
     - infra/deploy_queue_controller/lib
     - infra/dist/dmover/bin/dmover
     - infra/dist/dmover/lib
@@ -1155,7 +1153,6 @@ migrations:
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - passport/backend/api/tests/views/bundle/change_avatar
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/bert/utils/fs
     - sandbox/projects/tycoon/TycoonAdverts
@@ -1261,7 +1258,6 @@ migrations:
     - extsearch/ymusic/tools/crawl_test_data
     - extsearch/ymusic/tools/generate_test_data
     - infra/kernel/test/recipe/cgleak_check/example
-    - infra/yasm/zoom/python/tests
     - infra/yp_quota_distributor/lib
     - intranet/table_flow/tests
     - lbs/research_tools/find_keys_causing_losses
@@ -1501,7 +1497,6 @@ migrations:
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
-    - passport/backend/api/tests/views/bundle/change_avatar
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
     - quality/neural_net/bert/bert/utils/distributed
@@ -1861,7 +1856,6 @@ migrations:
     - geoproduct/geocrm_search/orm
     - geosuggest/prepare_data/toponyms_factor_mapper
     - haas/eng_topology/lib/struct
-    - haas/oebs_sync/oebs_lib
     - health/turbo_articles/parser/libs
     - health/turbo_articles/parser/manual_tests
     - health/yamd/libs/cross_links/tests/common
@@ -2248,7 +2242,6 @@ migrations:
     - robot/saved_copy/tools/phantom_ammo_generator
     - robot/zora/tools/digger
     - rt-research/multik/pylib/operations_queue/migrations
-    - rt-research/multik/server/multik/migrations
     - rtc/recorder
     - rtmapreduce/config/presets
     - rtmapreduce/config/src
@@ -2553,7 +2546,6 @@ migrations:
     - sandbox/projects/yf
     - sandbox/projects/younglings
     - sandbox/projects/yp/BuildYpEmergencyBreak
-    - sandbox/projects/yp/BuildYpUnknownPodMonitoring
     - sandbox/projects/yql
     - sandbox/proxy/flask_uwsgi_websocket
     - sandbox/proxy/websocket
@@ -3525,7 +3517,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/t
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt
     - ads/sandbox_scripts/visibility_stats/fat
-    - ads/pytorch/lib/preprocess/medium_ut
     - ads/pytorch/lib/online_learning/production/model_folder/medium_ut
     - ads/pytorch/ads_pytorch_integration_test
     - ads/nirvana/online_learning/prepare_factorization_table/tsar_preprocessor/ut
