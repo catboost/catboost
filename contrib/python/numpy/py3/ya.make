@@ -9,6 +9,7 @@ PROVIDES(numpy)
 VERSION(1.22.3)
 
 NO_COMPILER_WARNINGS()
+NO_EXTENDED_SOURCE_SEARCH()
 
 PEERDIR(
     contrib/libs/clapack

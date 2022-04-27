@@ -25,9 +25,11 @@ public:
     void OnBooleanScalar(bool) override;
     void OnEntity() override;
     void OnBeginList() override;
+    void OnBeginList(ui64 reserveSize);
     void OnListItem() override;
     void OnEndList() override;
     void OnBeginMap() override;
+    void OnBeginMap(ui64 reserveSize);
     void OnKeyedItem(TStringBuf) override;
     void OnEndMap() override;
     void OnBeginAttributes() override;

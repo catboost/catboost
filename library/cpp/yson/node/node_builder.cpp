@@ -44,6 +44,11 @@ void TNodeBuilder::OnBeginList()
     AddNode(TNode::CreateList(), false);
 }
 
+void TNodeBuilder::OnBeginList(ui64 reserveSize) {
+    OnBeginList();
+    Stack_.top()->AsList().reserve(reserveSize);
+}
+
 void TNodeBuilder::OnListItem()
 {
     Stack_.push(&Stack_.top()->Add());
@@ -57,6 +62,11 @@ void TNodeBuilder::OnEndList()
 void TNodeBuilder::OnBeginMap()
 {
     AddNode(TNode::CreateMap(), false);
+}
+
+void TNodeBuilder::OnBeginMap(ui64 reserveSize) {
+    OnBeginMap();
+    Stack_.top()->AsMap().reserve(reserveSize);
 }
 
 void TNodeBuilder::OnKeyedItem(TStringBuf key)
