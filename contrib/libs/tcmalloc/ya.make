@@ -27,6 +27,7 @@ IF (NOT DLL_FOR)
     default
     dynamic
     malloc_extension
+    no_percpu_cache
     numa_256k
     numa_large_pages
     small_but_slow
