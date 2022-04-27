@@ -2801,33 +2801,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_6eaa50a277481c3e7ec3747d20.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_6eaa50a277481c3e7ec3747d20.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_d10bea896c413f18e80169d97d.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_d10bea896c413f18e80169d97d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_d10bea896c413f18e80169d97d.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\scipy\_lib\__init__.py.2ao3.yapyc3">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
@@ -3536,10 +3509,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_32c46b734b412868d94d015e65.yasm" "-" "scipy.misc.pilutil scipy.special._precompute.struve_convergence" "_1ec7c33f94c9df1d55d45a8eda.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.yasm" "-" "." "_6ac2c5faf6c05ed3c9d10147a3.rodata"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -3551,19 +3520,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_32c46b734b412868d94d015e65.yasm" "-" "scipy.misc.pilutil scipy.special._precompute.struve_convergence" "_1ec7c33f94c9df1d55d45a8eda.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.yasm" "-" "." "_6ac2c5faf6c05ed3c9d10147a3.rodata"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/py3/_32c46b734b412868d94d015e65.yasm	$B/contrib/python/scipy/py3/_d10bea896c413f18e80169d97d.yasm	</Message>
+      <Message>$B/contrib/python/scipy/py3/_32c46b734b412868d94d015e65.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_32c46b734b412868d94d015e65.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_d10bea896c413f18e80169d97d.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\py3\_32c46b734b412868d94d015e65.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
