@@ -273,6 +273,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj">
       <Project>{6DF26701-68E9-E05A-808F-1840FF373955}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\py2\pypython-contextlib2-py2.vcxproj">
+      <Project>{C73FE68A-A501-4B46-F074-0D16416E9647}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\pycontrib-python-contextlib2.vcxproj">
       <Project>{76AD5AB3-EDE1-7BAC-90B7-9BA08DC851AD}</Project>
     </ProjectReference>

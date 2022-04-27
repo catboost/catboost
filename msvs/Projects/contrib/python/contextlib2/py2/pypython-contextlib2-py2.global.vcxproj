@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{316F54BD-5BD5-E215-D004-3FF525553F89}</ProjectGUID>
+    <ProjectGUID>{0C87376C-3858-BEF0-771C-05C9396F34EB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-contextlib2.global</ProjectName>
+    <ProjectName>pypython-contextlib2-py2.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-contextlib2.global</TargetName>
+    <TargetName>pypython-contextlib2-py2.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\contextlib2\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\316F54BD-5BD5-E215-D004-3FF525553F89\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0C87376C-3858-BEF0-771C-05C9396F34EB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\contextlib2\305f1fbbee60bc9a0b76285847.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\contextlib2\ba7c56ca53084a876e0b9cb1b9.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2\58959efb9e51bc8e00c240e6c3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2\fea669fa4e88701769e7751adb.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/305f1fbbee60bc9a0b76285847.cpp" "_46e142721219a7369a4067c0c8=resfs/src/resfs/file/contrib/python/contextlib2/.dist-info/METADATA" "_9c865596e4fc61dcf87b65e964=resfs/file/contrib/python/contextlib2/.dist-info/METADATA" "_babb9d356c4ece2480fefbb0e7=resfs/src/resfs/file/contrib/python/contextlib2/.dist-info/top_level.txt" "_48f548dac232f933ba810e93e8=resfs/file/contrib/python/contextlib2/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/py2/58959efb9e51bc8e00c240e6c3.cpp" "_a63dc1ab58c9e2afd7dfcb25b8=/py_modules/contextlib2" "_d2409e482a2196cd3fdf677496=resfs/src//py_modules/contextlib2" "_82f269521abbd90e1d06666ef1=/py_code/contextlib2"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/ba7c56ca53084a876e0b9cb1b9.cpp" "_e3e9595f12a88ded3ba4fc2f13=/py_modules/contextlib2" "_a09215a6ad9ee55916c4bc2009=resfs/src//py_modules/contextlib2" "_67714979fbccd3a54f371474d2=/py_code/contextlib2"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/py2/fea669fa4e88701769e7751adb.cpp" "_7abb59813b1e648384ed5dcc39=resfs/src/resfs/file/contrib/python/contextlib2/py2/.dist-info/METADATA" "_02e2e015531b749db9c9b65261=resfs/file/contrib/python/contextlib2/py2/.dist-info/METADATA" "_7f3cdc70a574437edd4701bdf9=resfs/src/resfs/file/contrib/python/contextlib2/py2/.dist-info/top_level.txt" "_f4cab27fdb4c3d7aca449053b7=resfs/file/contrib/python/contextlib2/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/305f1fbbee60bc9a0b76285847.cpp" "_46e142721219a7369a4067c0c8=resfs/src/resfs/file/contrib/python/contextlib2/.dist-info/METADATA" "_9c865596e4fc61dcf87b65e964=resfs/file/contrib/python/contextlib2/.dist-info/METADATA" "_babb9d356c4ece2480fefbb0e7=resfs/src/resfs/file/contrib/python/contextlib2/.dist-info/top_level.txt" "_48f548dac232f933ba810e93e8=resfs/file/contrib/python/contextlib2/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/py2/58959efb9e51bc8e00c240e6c3.cpp" "_a63dc1ab58c9e2afd7dfcb25b8=/py_modules/contextlib2" "_d2409e482a2196cd3fdf677496=resfs/src//py_modules/contextlib2" "_82f269521abbd90e1d06666ef1=/py_code/contextlib2"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/ba7c56ca53084a876e0b9cb1b9.cpp" "_e3e9595f12a88ded3ba4fc2f13=/py_modules/contextlib2" "_a09215a6ad9ee55916c4bc2009=resfs/src//py_modules/contextlib2" "_67714979fbccd3a54f371474d2=/py_code/contextlib2"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/contextlib2/py2/fea669fa4e88701769e7751adb.cpp" "_7abb59813b1e648384ed5dcc39=resfs/src/resfs/file/contrib/python/contextlib2/py2/.dist-info/METADATA" "_02e2e015531b749db9c9b65261=resfs/file/contrib/python/contextlib2/py2/.dist-info/METADATA" "_7f3cdc70a574437edd4701bdf9=resfs/src/resfs/file/contrib/python/contextlib2/py2/.dist-info/top_level.txt" "_f4cab27fdb4c3d7aca449053b7=resfs/file/contrib/python/contextlib2/py2/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/contextlib2/305f1fbbee60bc9a0b76285847.cpp	$B/contrib/python/contextlib2/ba7c56ca53084a876e0b9cb1b9.cpp	</Message>
+      <Message>$B/contrib/python/contextlib2/py2/58959efb9e51bc8e00c240e6c3.cpp	$B/contrib/python/contextlib2/py2/fea669fa4e88701769e7751adb.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\contextlib2\305f1fbbee60bc9a0b76285847.cpp;$(SolutionDir)$(Configuration)\contrib\python\contextlib2\ba7c56ca53084a876e0b9cb1b9.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2\58959efb9e51bc8e00c240e6c3.cpp;$(SolutionDir)$(Configuration)\contrib\python\contextlib2\py2\fea669fa4e88701769e7751adb.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
