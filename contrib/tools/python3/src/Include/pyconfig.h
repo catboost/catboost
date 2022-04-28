@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef Py_BUILD_CORE
+#if defined(Py_BUILD_CORE) || defined(Py_BUILD_CORE_BUILTIN) || defined(Py_BUILD_CORE_MODULE)
 #define ABIFLAGS ""
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
