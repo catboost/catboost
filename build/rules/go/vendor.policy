@@ -909,6 +909,9 @@ ALLOW .* -> vendor/github.com/gocql/gocql
 # CONTRIB-2524
 ALLOW .* -> vendor/github.com/ryanrolds/sqlclosecheck
 
+# CONTRIB-2546
+ALLOW .* -> vendor/github.com/ncruces/go-proxied
+
 #
 # Tools
 #
@@ -1109,6 +1112,11 @@ ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-gonic/gin
 # CONTRIB-2542
 ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-contrib/gzip
 
+# CONTRIB-1735
+ALLOW .* -> vendor/gonum.org/v1/gonum
+DENY .* -> vendor/gonum.org/v1/gonum;test
+DENY .* -> vendor/gonum.org/v1/plot;test
+DENY .* -> vendor/gonum.org/v1/netlib;test
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
