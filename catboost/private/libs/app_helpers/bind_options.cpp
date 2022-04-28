@@ -821,6 +821,16 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
             (*plainJsonPtr)["meta_l2_frequency"] = frequency;
         });
 
+    parser.AddLongOption(
+        "fixed-binary-splits",
+        "GPU only. Binary features to put at the root of each tree. Colon-separated list of feature names, indices, or inclusive intervals of indices, e.g. 4:78-89:312")
+        .RequiredArgument("INDICES or NAMES")
+        .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
+            for (const auto& ignoredFeature : StringSplitter(indicesLine).Split(':')) {
+                (*plainJsonPtr)["fixed_binary_splits"].AppendValue(ignoredFeature.Token());
+            }
+        });
+
     parser.AddLongOption("bayesian-matrix-reg", "Regularization value. Should be >= 0")
             .RequiredArgument("float")
             .Handler1T<float>([plainJsonPtr](float reg) {
