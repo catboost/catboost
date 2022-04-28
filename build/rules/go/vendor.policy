@@ -1106,6 +1106,9 @@ ALLOW .* -> vendor/github.com/fatih/color
 # CONTRIB-2519
 ALLOW .* -> vendor/github.com/nathan-osman/go-sunrise
 
+# CONTRIB-2529
+ALLOW .* -> vendor/github.com/rivo/tview
+
 # CONTRIB-2541
 ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-gonic/gin
 
@@ -1117,6 +1120,9 @@ ALLOW .* -> vendor/gonum.org/v1/gonum
 DENY .* -> vendor/gonum.org/v1/gonum;test
 DENY .* -> vendor/gonum.org/v1/plot;test
 DENY .* -> vendor/gonum.org/v1/netlib;test
+
+# CONTRIB-2548
+ALLOW .* -> vendor/github.com/yandex-cloud/go-sdk
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.

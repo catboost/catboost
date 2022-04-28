@@ -6998,16 +6998,18 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1230533443
+                    1293473647
                 ],
                 "match": "GDB"
             },
             "executable": {
                 "gdb": [
+		    "gdb",
                     "bin",
                     "gdb"
                 ],
                 "gdbserver": [
+	            "gdb",
                     "bin",
                     "gdbserver"
                 ]
@@ -7146,7 +7148,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1293230344,
+                "sandbox_id": 1285417816,
                 "match": "infractl"
             },
             "executable": {
@@ -8053,8 +8055,8 @@
         "sedem": {
             "formula": {
                 "sandbox_id": [
-                    1293388114,
-                    1293388115
+                    1293504575,
+                    1293504576
                 ],
                 "match": "bin/sedem"
             },
