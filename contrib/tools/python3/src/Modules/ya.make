@@ -11,15 +11,17 @@ ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.4.tar.gz)
 LICENSE(Python-2.0)
 
 PEERDIR(
-    ADDINCL contrib/libs/expat
-    ADDINCL contrib/libs/libbz2
-    ADDINCL contrib/libs/openssl
-    ADDINCL contrib/libs/zlib
+    contrib/libs/expat
+    contrib/libs/libbz2
+    contrib/libs/openssl
     contrib/libs/xz/liblzma
+    contrib/libs/zlib
     contrib/restricted/libffi
 )
 
 ADDINCL(
+    contrib/libs/expat
+    contrib/libs/libbz2
     contrib/restricted/libffi/include
     contrib/tools/python3/src/Include
     contrib/tools/python3/src/Include/internal
