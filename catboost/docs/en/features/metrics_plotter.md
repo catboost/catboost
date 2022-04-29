@@ -1,17 +1,17 @@
 # Metrics Plotter for Jupyter
 
-CatBoost library has a tool for plotting arbitrary learning curves. This tool triggers interactive widget in Jupyter Notebook / JupyterLab interface.
+The CatBoost library has a tool for plotting arbitrary learning curves. This tool triggers interactive widget in the Jupyter Notebook / JupyterLab interface.
 
 [Additional packages for data visualization support](../installation/python-installation-additional-data-visualization-packages.md) must be installed to plot charts in [Jupyter Notebook](http://jupyter.org/).
 
-## Features
+## Features {#features}
 
-- Clickable plots with learning curves
-- Remaining learning time estimation based on total iteration count
-- Graceful learning stop by `KeyboardInterruption` without error message in the notebook 
-- Tracking of iteration number with best metric value
+- Clickable plots with learning curves.
+- Remaining learning time estimation based on a total iteration count.
+- Graceful learning is stopped by `KeyboardInterruption` without error message in the notebook.
+- Tracking of an iteration number with the best metric value.
 
-## Usage
+## Usage {#usage}
 
 ```python
 from catboost import MetricsPlotter
@@ -45,25 +45,29 @@ with MetricPlotter(train_metrics, test_metrics, iter_count) as plotter:
         )
 ```
 
-Note that metrics should be passed to class successively, in a natural way described above.
+{% note info %}
 
-To save plot in the notebook, use `Widget` → `Save Widget State` menu option in Jupyter Notebook interface.
+Metrics should be passed to class successively, in a natural way described above.
+
+{% endnote%}
+
+To save plot in the notebook, use the `Widget` → `Save Widget State` menu option in the Jupyter Notebook interface.
 
 `MetricsPlotter` constructor arguments:
 
 Aguments | Type | Description
 ----- |  ----- | -----
-`train_metrics` | `list` of `str` or `list` of `dict` | List of train metrics to be tracked. </br> Each item in list can be either string with metric name or dict with the fields `name` and `best_value`, where the latter can be one of the following: `Max`, `Min`, `Undefined`.
-`test_metrics` | `list` of `str` or `list` of `dict`, optional (default=`None`) | List of test metrics to be tracked. </br> Has the same format as `train_metrics`. Equals to `train_metrics`, if not defined
-`total_iterations` | `int`, optional (default=`None`) | Total number of iterations, allows for remaining time estimation.
+`train_metrics` | `list` of `str` or `list` of `dict` | List of train metrics to be tracked. </br> Each item in the list can be either string with a metric name or a dict with the fields `name` and `best_value`, where the latter can be one of the following: `Max`, `Min`, `Undefined`.
+`test_metrics` | `list` of `str` or `list` of `dict`, optional (default=`None`) | List of test metrics to be tracked. </br> Has the same format as `train_metrics`. Equals to `train_metrics` if it is not defined.
+`total_iterations` | `int`, optional (default=`None`) | Total number of iterations. Allows to remain time estimation.
 
-## Callbacks
+## Callbacks {#callbacks}
 
-CatBoost learning curves widget can work with models from [XGBoost](https://xgboost.readthedocs.io/en/stable/) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/) by using callbacks.
+CatBoost learning curves widget can work with the models from [XGBoost](https://xgboost.readthedocs.io/en/stable/) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/) by using callbacks.
 
-Check out the examples below:
+See the examples below:
 
-### XGBoost
+### XGBoost {#XGBoost}
 
 ```python
 import xgboost as xgb
