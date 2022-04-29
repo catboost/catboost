@@ -7148,7 +7148,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1293230344,
+                "sandbox_id": 1294371202,
                 "match": "infractl"
             },
             "executable": {
@@ -8055,8 +8055,8 @@
         "sedem": {
             "formula": {
                 "sandbox_id": [
-                    1293504575,
-                    1293504576
+                    1294348798,
+                    1294348794
                 ],
                 "match": "bin/sedem"
             },
