@@ -46,9 +46,6 @@ namespace NCB {
                 TEmbeddingFeatureCalcer* featureCalcer) {
         auto knn = dynamic_cast<TKNNCalcer*>(featureCalcer);
         Y_ASSERT(knn);
-        if ((knn->SamplingProbability != 1.0f) && (knn->Rand.GenRandReal1() > knn->SamplingProbability)) {
-            return;
-        }
         auto cloudPtr = dynamic_cast<TKNNUpdatableCloud*>(knn->Cloud.Get());
         Y_ASSERT(cloudPtr);
         cloudPtr->AddItem(embed.data());
