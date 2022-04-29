@@ -1518,9 +1518,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
       <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\common\libs-xz-common.vcxproj">
-      <Project>{F9804092-4C13-EB40-22ED-4230BA4B282E}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\liblzma\libs-xz-liblzma.vcxproj">
       <Project>{D34AC41F-BA71-4FE6-9395-4F644C2FED80}</Project>
     </ProjectReference>
