@@ -238,7 +238,7 @@ BELONGS liblzma/ya.make
         common/tuklib_common.h [8:9]
         common/tuklib_cpucores.c [8:9]
         common/tuklib_cpucores.h [8:9]
-        common/tuklib_integer.h [36:37]
+        common/tuklib_integer.h [40:41]
         common/tuklib_physmem.c [8:9]
         common/tuklib_physmem.h [8:9]
         liblzma/check/check.c [8:9]
@@ -441,7 +441,7 @@ BELONGS liblzma/ya.make
 
 SKIP     GPL-3.0-only         87c5fd9395cc8c4301b6db65874b2fee
 BELONGS liblzma/ya.make
-FILE_INCLUDE COPYING.GPLv3 found in files: README at line 77
+FILE_INCLUDE COPYING.GPLv3 found in files: README at line 79
     # This is a reference to the file with GPL-3.0 license
     License text:
             COPYING.GPLv3       GNU General Public License version 3
@@ -451,13 +451,13 @@ FILE_INCLUDE COPYING.GPLv3 found in files: README at line 77
         Match type      : REFERENCE
         Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, http://www.gnu.org/licenses/gpl-3.0.html, https://spdx.org/licenses/GPL-3.0-only
     Files with this license:
-        README [77:77]
+        README [79:79]
     Belongs difference:
         + liblzma/ya.make
 
 SKIP     GPL-2.0-only         9dce5d84fb7323994abd13bc2486c87c
 BELONGS liblzma/ya.make
-FILE_INCLUDE COPYING.GPLv2 found in files: README at line 76
+FILE_INCLUDE COPYING.GPLv2 found in files: README at line 78
     # This is a reference to the file with GPL-2.0 license
     License text:
             COPYING.GPLv2       GNU General Public License version 2
@@ -467,7 +467,7 @@ FILE_INCLUDE COPYING.GPLv2 found in files: README at line 76
         Match type      : REFERENCE
         Links           : http://www.gnu.org/licenses/gpl-2.0.html, http://www.gnu.org/licenses/gpl-2.0.txt, https://spdx.org/licenses/GPL-2.0-only
     Files with this license:
-        README [76:76]
+        README [78:78]
     Belongs difference:
         + liblzma/ya.make
 
@@ -561,20 +561,6 @@ BELONGS liblzma/ya.make
     Belongs difference:
         + liblzma/ya.make
 
-SKIP     LGPL-2.0-or-later    d50e3ea295c4a42f2dd018fcbbebd7bd
-BELONGS liblzma/ya.make
-    # Applies to GNU gettext which we do not use
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: LGPL-2.0-or-later
-        Score           : 99.00
-        Match type      : NOTICE
-        Links           : http://www.gnu.org/licenses/old-licenses/lgpl-2.0-standalone.html, http://www.gnu.org/licenses/old-licenses/lgpl-2.0.html, https://spdx.org/licenses/LGPL-2.0-or-later
-    Files with this license:
-        ABOUT-NLS [1269:1273]
-    Belongs difference:
-        + liblzma/ya.make
-
 KEEP     Public-Domain        e1fbce7ff7fca39f205a01966c6a6867
 BELONGS liblzma/ya.make
     License text:
@@ -605,7 +591,7 @@ BELONGS liblzma/ya.make
 
 SKIP     LGPL-2.1-only        f40ab9ba73e6dd7697337f329bbb17b5
 BELONGS liblzma/ya.make
-FILE_INCLUDE COPYING.LGPLv2.1 found in files: README at line 78
+FILE_INCLUDE COPYING.LGPLv2.1 found in files: README at line 80
     # This is a reference to the file with LGPL-2.1 license
     License text:
             COPYING.LGPLv2.1    GNU Lesser General Public License version 2.1
@@ -615,6 +601,6 @@ FILE_INCLUDE COPYING.LGPLv2.1 found in files: README at line 78
         Match type      : REFERENCE
         Links           : http://www.gnu.org/licenses/lgpl-2.1.html, http://www.gnu.org/licenses/lgpl-2.1.txt, https://spdx.org/licenses/LGPL-2.1-only
     Files with this license:
-        README [78:78]
+        README [80:80]
     Belongs difference:
         + liblzma/ya.make
