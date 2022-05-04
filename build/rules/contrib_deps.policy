@@ -38,6 +38,7 @@ ALLOW contrib/python/python-magic -> library/python/symbols/libmagic
 ALLOW contrib/python/typecode -> library/python/symbols/libmagic
 ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
 ALLOW contrib/libs/clang12/tools/extra/clang-tidy/tool -> library/cpp/clang_tidy
+ALLOW contrib/libs/clang14/tools/extra/clang-tidy/tool -> library/cpp/clang_tidy
 ALLOW contrib/libs/inja -> library/cpp/scheme
 ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
 ALLOW contrib/libs/leveldb -> library/cpp/deprecated/mapped_file
