@@ -8,7 +8,6 @@ The CatBoost library has a tool for plotting arbitrary learning curves. This too
 
 - Clickable plots with learning curves.
 - Remaining learning time estimation based on a total iteration count.
-- Graceful learning is stopped by `KeyboardInterruption` without error message in the notebook.
 - Tracking of an iteration number with the best metric value.
 
 ## Usage {#usage}
@@ -104,7 +103,7 @@ xgb.train(
 
 ```python
 clf = xgb.XGBModel(
-    objective="binary:logistic", 
+    objective="binary:logistic",
     n_estimators=num_boost_round
 )
 
@@ -160,8 +159,8 @@ booster = lgb.LGBMModel(objective="regression", n_estimators=n_estimators)
 booster.fit(
     X_train, Y_train,
     # include train sample here for correct widget work:
-    eval_set=[(X_train, Y_train), (X_test, Y_test)], 
-    eval_metric=["rmse", "mape"], 
+    eval_set=[(X_train, Y_train), (X_test, Y_test)],
+    eval_metric=["rmse", "mape"],
     verbose=False,
     callbacks=[lgbm_plotting_callback()]
 )
