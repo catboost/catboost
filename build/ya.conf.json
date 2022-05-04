@@ -6014,7 +6014,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1295687321],
+                "sandbox_id": [
+                    1295687321
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -7146,7 +7148,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1294371202,
+                "sandbox_id": 1298505361,
                 "match": "infractl"
             },
             "executable": {
