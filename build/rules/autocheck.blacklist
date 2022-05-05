@@ -1414,3 +1414,4 @@ haas/infra/graphite-sender
 noc/packages/telegraf-noc-conf
 admins/icecream/node-icecream
 adv/pcode/mobileadssdk/sdk/ios/library
+admins/icecream/agent
