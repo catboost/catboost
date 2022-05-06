@@ -230,10 +230,10 @@ def validate_test(unit, kw):
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
 
-        requiremtens_list = []
+        requirements_list = []
         for req_name, req_value in requirements.iteritems():
-            requiremtens_list.append(req_name + ":" + req_value)
-        valid_kw['REQUIREMENTS'] = serialize_list(requiremtens_list)
+            requirements_list.append(req_name + ":" + req_value)
+        valid_kw['REQUIREMENTS'] = serialize_list(requirements_list)
 
     if valid_kw.get("FUZZ-OPTS"):
         for option in get_list("FUZZ-OPTS"):
@@ -545,8 +545,9 @@ def onadd_check(unit, *args):
     if unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         return
-    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
+    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1,
+                                                     "REQUIREMENTS": -1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
+                                                     "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
     test_dir = get_norm_unit_path(unit)
 
@@ -622,7 +623,7 @@ def onadd_check(unit, *args):
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
         'TEST-DATA': extra_test_data,
-        "SBR-UID-EXT": uid_ext,
+        'SBR-UID-EXT': uid_ext,
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': fork_mode,
