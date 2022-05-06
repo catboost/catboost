@@ -6,4 +6,5 @@
 #include "stream.h"
 #include "thread.h"
 #include "system.h"
+#include "reopen.h"
 #include "sync_page_cache_file.h"
