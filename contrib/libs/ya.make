@@ -24,6 +24,7 @@ RECURSE(
     linuxvdso
     lz4
     lz4/generated
+    lzma
     lzmasdk
     mimalloc
     nayuki_md5
@@ -45,7 +46,6 @@ RECURSE(
     tcmalloc/dynamic
     tensorboard
     xxhash
-    xz
     zlib
     zstd
     zstd06

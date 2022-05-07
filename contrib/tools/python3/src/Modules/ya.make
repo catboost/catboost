@@ -14,8 +14,8 @@ PEERDIR(
     contrib/libs/expat
     contrib/libs/libbz2
     contrib/libs/libc_compat
+    contrib/libs/lzma
     contrib/libs/openssl
-    contrib/libs/xz/liblzma
     contrib/libs/zlib
     contrib/restricted/libffi
 )

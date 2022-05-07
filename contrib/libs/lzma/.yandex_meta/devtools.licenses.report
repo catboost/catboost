@@ -36,7 +36,7 @@
 IGNORE_FILES ChangeLog INSTALL INSTALL.generic PACKAGERS
 
 KEEP     Public-Domain        0e0c7c1c2f9e5391857e3f7ca8af3a9e
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          * \brief       The public API of liblzma data compression library
          *
@@ -50,7 +50,7 @@ BELONGS liblzma/ya.make
         liblzma/api/lzma.h [3:5]
 
 KEEP     Public-Domain        12cc5873e47b3092132ee6bab5b398ac
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
               - liblzma is in the public domain.
     Scancode info:
@@ -60,11 +60,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [9:9]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        14779755af847a9166ac3a1e045e3274
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          * Major parts of liblzma are based on Igor Pavlov's public domain LZMA SDK
     Scancode info:
@@ -76,7 +74,7 @@ BELONGS liblzma/ya.make
         liblzma/api/lzma.h [14:14]
 
 KEEP     Public-Domain        1ca88b25536a5c22d43667d016c644fd
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
               - The extra directory may contain public domain files, and files
     Scancode info:
@@ -86,11 +84,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [33:33]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     LGPL-2.1-only        23c2a5e0106b99d75238986559bb5fc6
-BELONGS liblzma/ya.make
+BELONGS ya.make
 FILE_INCLUDE COPYING found in files: COPYING.LGPLv2.1 at line 116
     # According to COPYING, COPYING.LGPLv2.1 applies to getopt_long code which we do not use
     Note: matched license text is too long. Read it in the source files.
@@ -101,11 +97,9 @@ FILE_INCLUDE COPYING found in files: COPYING.LGPLv2.1 at line 116
         Links           : http://www.gnu.org/licenses/lgpl-2.1.html, http://www.gnu.org/licenses/lgpl-2.1.txt, https://spdx.org/licenses/LGPL-2.1-only
     Files with this license:
         COPYING.LGPLv2.1 [1:502]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     Public-Domain AND GPL-2.0-or-later AND GPL-3.0-or-later 260edd2605ed1c409772095d4d277ef6
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # None of these files end up in the binaries being built.
     License text:
               - The build system contains public domain files, and files that
@@ -131,11 +125,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, https://spdx.org/licenses/GPL-3.0-or-later
     Files with this license:
         COPYING [26:27]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        2de5961dc3c9eda9d0e97290a09f4127
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
                 utilities in the debug directory are in the public domain.
     Scancode info:
@@ -145,11 +137,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [31:31]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     GPL-2.0-only         39bba7d2cf0ba1036f2a6e2be52fe3f0
-BELONGS liblzma/ya.make
+BELONGS ya.make
 FILE_INCLUDE COPYING found in files: COPYING.GPLv2 at line 60
     # This applies to the scripts to grep, diff, and view compressed files
     # We do not have them.
@@ -161,11 +151,9 @@ FILE_INCLUDE COPYING found in files: COPYING.GPLv2 at line 60
         Links           : http://www.gnu.org/licenses/gpl-2.0.html, http://www.gnu.org/licenses/gpl-2.0.txt, https://spdx.org/licenses/GPL-2.0-only
     Files with this license:
         COPYING.GPLv2 [1:339]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        40aaff06d16be4bb72983ba2a7d2729c
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
               - xz, xzdec, and lzmadec command line tools are in the public
                 domain unless GNU getopt_long had to be compiled and linked
@@ -176,11 +164,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [11:12]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        42650ac2673b6f31e0282a50cd23cf37
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
               - Translated messages are in the public domain.
     Scancode info:
@@ -190,11 +176,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [24:24]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     GPL-3.0-only         4fe869ee987a340198fb0d54c55c47f1
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # This applies to the scripts to grep, diff, and view compressed files
     # We do not have them.
     Note: matched license text is too long. Read it in the source files.
@@ -205,11 +189,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, http://www.gnu.org/licenses/gpl-3.0.html, https://spdx.org/licenses/GPL-3.0-only
     Files with this license:
         COPYING.GPLv3 [1:674]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        514dc7913a2aa04f7389e6c507f1be30
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
             binary wouldn't actually be in the public domain in its entirety
     Scancode info:
@@ -219,11 +201,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [59:59]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        62324de1c6511dfb9adc7942158c06ae
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
         //  This file has been put into the public domain.
         //  You can do whatever you want with this file.
@@ -351,7 +331,7 @@ BELONGS liblzma/ya.make
         liblzma/simple/x86.c [9:10]
 
 KEEP     Public-Domain        63d1749c54cc583d7679719970a3f438
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
             You can do whatever you want with the files that have been put into
             the public domain. If you find public domain legally problematic,
@@ -362,11 +342,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [36:37]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     GPL-2.0-or-later     6d8cd6701672280f4cf49e0d34575d27
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # This applies to the scripts to grep, diff, and view compressed files
     # We do not have them.
     License text:
@@ -378,11 +356,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html, https://spdx.org/licenses/GPL-2.0-or-later
     Files with this license:
         COPYING [18:18]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     GPL-3.0-only         6dbb0879a53d93955d47d50ed23aa325
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # This is a reference to the file with GPL-3.0 license
     License text:
               - COPYING.GPLv3: GNU General Public License version 3
@@ -393,11 +369,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, http://www.gnu.org/licenses/gpl-3.0.html, https://spdx.org/licenses/GPL-3.0-only
     Files with this license:
         COPYING [55:55]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     EPL-2.0 AND GPL-2.0-or-later AND LGPL-2.1-or-later 76ab633de288b61b3890456d95be375c
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # This are references to the files with GPL-2.0 and GPL-3.0 licenses
     License text:
               - COPYING.GPLv2: GNU General Public License version 2
@@ -423,11 +397,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://spdx.org/licenses/LGPL-2.1-or-later
     Files with this license:
         COPYING [54:55]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        84afaf569f7ee8724c48fb4946e4ba1d
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          * 7-Zip <http://7-zip.org/>, which has a modified version of the public
          * domain SHA-256 code found from Crypto++ <http://www.cryptopp.com/>.
@@ -440,7 +412,7 @@ BELONGS liblzma/ya.make
         liblzma/api/lzma.h [18:19]
 
 SKIP     GPL-3.0-only         87c5fd9395cc8c4301b6db65874b2fee
-BELONGS liblzma/ya.make
+BELONGS ya.make
 FILE_INCLUDE COPYING.GPLv3 found in files: README at line 79
     # This is a reference to the file with GPL-3.0 license
     License text:
@@ -452,11 +424,9 @@ FILE_INCLUDE COPYING.GPLv3 found in files: README at line 79
         Links           : http://www.gnu.org/licenses/gpl-3.0-standalone.html, http://www.gnu.org/licenses/gpl-3.0.html, https://spdx.org/licenses/GPL-3.0-only
     Files with this license:
         README [79:79]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     GPL-2.0-only         9dce5d84fb7323994abd13bc2486c87c
-BELONGS liblzma/ya.make
+BELONGS ya.make
 FILE_INCLUDE COPYING.GPLv2 found in files: README at line 78
     # This is a reference to the file with GPL-2.0 license
     License text:
@@ -468,11 +438,9 @@ FILE_INCLUDE COPYING.GPLv2 found in files: README at line 78
         Links           : http://www.gnu.org/licenses/gpl-2.0.html, http://www.gnu.org/licenses/gpl-2.0.txt, https://spdx.org/licenses/GPL-2.0-only
     Files with this license:
         README [78:78]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        a25aa78c760638213d67c6b1bbaed590
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          * This file has been put into the public domain.
          * You can do whatever you want with this file.
@@ -499,7 +467,7 @@ BELONGS liblzma/ya.make
         liblzma/api/lzma/vli.h [20:21]
 
 KEEP     Public-Domain        a398a67eb1510bbc029b08134a1f70df
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
             the public domain. If you find public domain legally problematic,
     Scancode info:
@@ -509,11 +477,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [37:37]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        c33979a7487464a4ed9a827e0debed09
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          * The SHA-256 implementation is based on the public domain code found from
     Scancode info:
@@ -525,7 +491,7 @@ BELONGS liblzma/ya.make
         liblzma/api/lzma.h [17:17]
 
 SKIP     LGPL-2.0-only AND LGPL-2.1-or-later cde0239be1344d971683f07013bd797e
-BELONGS liblzma/ya.make
+BELONGS ya.make
     # Applies to getopt_long code which we do not use
     License text:
                 GNU LGPLv2.1+.
@@ -543,11 +509,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://spdx.org/licenses/LGPL-2.1-or-later
     Files with this license:
         COPYING [14:14]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     LGPL-2.1-only        cf32efad321acc06f02fdcbeb34e4dc6
-BELONGS liblzma/ya.make
+BELONGS ya.make
 	# This is a reference to the file with LGPL-2.1 license
     License text:
               - COPYING.LGPLv2.1: GNU Lesser General Public License version 2.1
@@ -558,11 +522,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.gnu.org/licenses/lgpl-2.1.html, http://www.gnu.org/licenses/lgpl-2.1.txt, https://spdx.org/licenses/LGPL-2.1-only
     Files with this license:
         COPYING [53:53]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        e1fbce7ff7fca39f205a01966c6a6867
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
                 are in the public domain.
     Scancode info:
@@ -572,11 +534,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [22:22]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     Public-Domain        efe3d1c46865ece7c3b789e1adf1894a
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
             If you copy significant amounts of public domain code from XZ Utils
     Scancode info:
@@ -586,11 +546,9 @@ BELONGS liblzma/ya.make
         Links           : http://www.linfo.org/publicdomain.html, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/public-domain.LICENSE
     Files with this license:
         COPYING [44:44]
-    Belongs difference:
-        + liblzma/ya.make
 
 SKIP     LGPL-2.1-only        f40ab9ba73e6dd7697337f329bbb17b5
-BELONGS liblzma/ya.make
+BELONGS ya.make
 FILE_INCLUDE COPYING.LGPLv2.1 found in files: README at line 80
     # This is a reference to the file with LGPL-2.1 license
     License text:
@@ -602,5 +560,3 @@ FILE_INCLUDE COPYING.LGPLv2.1 found in files: README at line 80
         Links           : http://www.gnu.org/licenses/lgpl-2.1.html, http://www.gnu.org/licenses/lgpl-2.1.txt, https://spdx.org/licenses/LGPL-2.1-only
     Files with this license:
         README [80:80]
-    Belongs difference:
-        + liblzma/ya.make

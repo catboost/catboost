@@ -34,7 +34,7 @@
 # =======================
 
 KEEP     COPYRIGHT_SERVICE_LABEL 8cf91579d8cb4087b6bd775cd2b2bbed
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          Copyright (C) 1989, 1991 Free Software Foundation, Inc.,
          51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -45,11 +45,9 @@ BELONGS liblzma/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         COPYING.GPLv2 [4:6]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL c0a580767e4df988cbeb3a33fe57d251
-BELONGS liblzma/ya.make
+BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: COPYRIGHT_SERVICE_LABEL
@@ -58,11 +56,9 @@ BELONGS liblzma/ya.make
     Files with this license:
         COPYING.GPLv2 [251:256]
         COPYING.LGPLv2.1 [428:433]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL cea1b82351539a871d540971f218116e
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          Copyright (C) 1991, 1999 Free Software Foundation, Inc.
          51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -73,11 +69,9 @@ BELONGS liblzma/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         COPYING.LGPLv2.1 [4:6]
-    Belongs difference:
-        + liblzma/ya.make
 
 KEEP     COPYRIGHT_SERVICE_LABEL fe6f4a2cadd39168e946fc1f97e42e56
-BELONGS liblzma/ya.make
+BELONGS ya.make
     License text:
          Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
          Everyone is permitted to copy and distribute verbatim copies
@@ -88,5 +82,3 @@ BELONGS liblzma/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         COPYING.GPLv3 [4:6]
-    Belongs difference:
-        + liblzma/ya.make
