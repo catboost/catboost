@@ -586,29 +586,17 @@ prof_leave(tsd_t *tsd, prof_tdata_t *tdata) {
 #ifdef JEMALLOC_PROF_LIBUNWIND
 void
 prof_backtrace(prof_bt_t *bt) {
-	unw_context_t uc;
-	unw_cursor_t cursor;
-	unsigned i;
-	int err;
+	int nframes;
 
 	cassert(config_prof);
 	assert(bt->len == 0);
 	assert(bt->vec != NULL);
 
-	unw_getcontext(&uc);
-	unw_init_local(&cursor, &uc);
-
-	/*
-	 * Iterate over stack frames until there are no more, or until no space
-	 * remains in bt.
-	 */
-	for (i = 0; i < PROF_BT_MAX; i++) {
-		unw_get_reg(&cursor, UNW_REG_IP, (unw_word_t *)&bt->vec[i]);
-		bt->len++;
-		err = unw_step(&cursor);
-		if (err <= 0)
-			break;
+	nframes = unw_backtrace(bt->vec, PROF_BT_MAX);
+	if (nframes <= 0) {
+		return;
 	}
+	bt->len = nframes;
 }
 #elif (defined(JEMALLOC_PROF_LIBGCC))
 static _Unwind_Reason_Code

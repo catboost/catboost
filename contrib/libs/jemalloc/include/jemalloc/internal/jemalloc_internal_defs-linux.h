@@ -148,10 +148,10 @@
 #define JEMALLOC_PROF 
 
 /* Use libunwind for profile backtracing if defined. */
-#define JEMALLOC_PROF_LIBUNWIND 
+/* #undef JEMALLOC_PROF_LIBUNWIND */
 
 /* Use libgcc for profile backtracing if defined. */
-/* #undef JEMALLOC_PROF_LIBGCC */
+#define JEMALLOC_PROF_LIBGCC 
 
 /* Use gcc intrinsics for profile backtracing if defined. */
 /* #undef JEMALLOC_PROF_GCC */
