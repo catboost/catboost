@@ -1,10 +1,6 @@
 #ifndef JEMALLOC_INTERNAL_DECLS_H
 #define JEMALLOC_INTERNAL_DECLS_H
 
-// Yandex-specific: misc hacks.
-#include "../../../hack.h"
-// End of Yandex-specific.
-
 #include <math.h>
 #ifdef _WIN32
 #  include <windows.h>

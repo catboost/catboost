@@ -48,7 +48,6 @@ NO_COMPILER_WARNINGS()
 NO_UTIL()
 
 SRCS(
-    hack.cpp
     src/arena.c
     src/background_thread.c
     src/base.c

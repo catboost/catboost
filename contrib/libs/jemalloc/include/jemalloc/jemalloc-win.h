@@ -141,6 +141,8 @@ extern "C" {
 #  define JEMALLOC_CXX_THROW
 #endif
 
+#define JEMALLOC_EXPORT
+
 #if defined(_MSC_VER)
 #  define JEMALLOC_ATTR(s)
 #  define JEMALLOC_ALIGNED(s) __declspec(align(s))
