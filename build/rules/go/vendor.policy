@@ -1127,9 +1127,12 @@ DENY .* -> vendor/gonum.org/v1/netlib;test
 ALLOW .* -> vendor/github.com/yandex-cloud/go-sdk
 ALLOW .* -> vendor/github.com/yandex-cloud/go-genproto
 
+
 # CONTRIB-2537
 ALLOW infra/awacs/.* -> vendor/github.com/anttsov/curator
 
+# CONTRIB-2558
+ALLOW .* -> vendor/github.com/go-logr/zapr
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
 #
