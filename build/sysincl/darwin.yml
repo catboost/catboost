@@ -170,6 +170,7 @@
   - AVFoundation/AVFoundation.h
   - CFNetwork/CFNetwork.h
   - Cocoa/Cocoa.h
+  - CoreFoundation/CFArray.h
   - CoreFoundation/CFBase.h
   - CoreFoundation/CFBundle.h
   - CoreFoundation/CFData.h
