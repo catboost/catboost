@@ -54,6 +54,7 @@ def main():
         '-Wno-c++17-extensions',
         '-flto',
         '-faligned-allocation',
+        '-fsized-deallocation'
     ]
 
     if skip_nocxxinc:
