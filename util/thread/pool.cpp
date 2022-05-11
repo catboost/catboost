@@ -18,7 +18,6 @@
 
 #include <util/system/event.h>
 #include <util/system/mutex.h>
-#include <util/system/atomic.h>
 #include <util/system/condvar.h>
 #include <util/system/thread.h>
 
@@ -76,7 +75,7 @@ public:
         , Blocking(params.Blocking_)
         , Catching(params.Catching_)
         , Namer(params)
-        , ShouldTerminate(1)
+        , ShouldTerminate(true)
         , MaxQueueSize(0)
         , ThreadCountExpected(0)
         , ThreadCountReal(0)
@@ -98,7 +97,7 @@ public:
     }
 
     inline bool Add(IObjectInQueue* obj) {
-        if (AtomicGet(ShouldTerminate)) {
+        if (ShouldTerminate.load()) {
             return false;
         }
 
@@ -110,14 +109,14 @@ public:
         }
 
         with_lock (QueueMutex) {
-            while (MaxQueueSize > 0 && Queue.Size() >= MaxQueueSize && !AtomicGet(ShouldTerminate)) {
+            while (MaxQueueSize > 0 && Queue.Size() >= MaxQueueSize && !ShouldTerminate.load()) {
                 if (!Blocking) {
                     return false;
                 }
                 QueuePopCond.Wait(QueueMutex);
             }
 
-            if (AtomicGet(ShouldTerminate)) {
+            if (ShouldTerminate.load()) {
                 return false;
             }
 
@@ -157,7 +156,7 @@ public:
 
 private:
     inline void Start(size_t num, size_t maxque) {
-        AtomicSet(ShouldTerminate, 0);
+        ShouldTerminate.store(false);
         MaxQueueSize = maxque;
         ThreadCountExpected = num;
 
@@ -174,7 +173,7 @@ private:
     }
 
     inline void Stop() {
-        AtomicSet(ShouldTerminate, 1);
+        ShouldTerminate.store(true);
 
         with_lock (QueueMutex) {
             QueuePopCond.BroadCast();
@@ -212,11 +211,11 @@ private:
             IObjectInQueue* job = nullptr;
 
             with_lock (QueueMutex) {
-                while (Queue.Empty() && !AtomicGet(ShouldTerminate)) {
+                while (Queue.Empty() && !ShouldTerminate.load()) {
                     QueuePushCond.Wait(QueueMutex);
                 }
 
-                if (AtomicGet(ShouldTerminate) && Queue.Empty()) {
+                if (ShouldTerminate.load() && Queue.Empty()) {
                     tsr.Destroy();
 
                     break;
@@ -264,7 +263,7 @@ private:
     TCondVar StopCond;
     TJobQueue Queue;
     TVector<TThreadRef> Tharr;
-    TAtomic ShouldTerminate;
+    std::atomic<bool> ShouldTerminate;
     size_t MaxQueueSize;
     size_t ThreadCountExpected;
     size_t ThreadCountReal;

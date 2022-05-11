@@ -365,7 +365,7 @@ public:
 
     inline ~TRefCounted() = default;
 
-    inline void Ref(TAtomicBase d) noexcept {
+    inline void Ref(intptr_t d) noexcept {
         auto resultCount = Counter_.Add(d);
         Y_ASSERT(resultCount >= d);
         (void)resultCount;
@@ -377,7 +377,7 @@ public:
         (void)resultCount;
     }
 
-    inline void UnRef(TAtomicBase d) noexcept {
+    inline void UnRef(intptr_t d) noexcept {
         auto resultCount = Counter_.Sub(d);
         Y_ASSERT(resultCount >= 0);
         if (resultCount == 0) {
@@ -389,7 +389,7 @@ public:
         UnRef(1);
     }
 
-    inline TAtomicBase RefCount() const noexcept {
+    inline intptr_t RefCount() const noexcept {
         return Counter_.Val();
     }
 

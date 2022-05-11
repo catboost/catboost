@@ -779,29 +779,31 @@ void TPointerTest::TestRefCountedPtrsInHashSet() {
 class TRefCountedWithStatistics: public TNonCopyable {
 public:
     struct TExternalCounter {
-        TAtomic Counter{0};
-        TAtomic Increments{0};
+        std::atomic<size_t> Counter{0};
+        std::atomic<size_t> Increments{0};
     };
 
     TRefCountedWithStatistics(TExternalCounter& cnt)
         : ExternalCounter_(cnt)
     {
-        ExternalCounter_ = {}; // reset counters
+        // Reset counters
+        ExternalCounter_.Counter.store(0);
+        ExternalCounter_.Increments.store(0);
     }
 
     void Ref() noexcept {
-        AtomicIncrement(ExternalCounter_.Counter);
-        AtomicIncrement(ExternalCounter_.Increments);
+        ++ExternalCounter_.Counter;
+        ++ExternalCounter_.Increments;
     }
 
     void UnRef() noexcept {
-        if (AtomicDecrement(ExternalCounter_.Counter) == 0) {
+        if (--ExternalCounter_.Counter == 0) {
             TDelete::Destroy(this);
         }
     }
 
     void DecRef() noexcept {
-        Y_VERIFY(AtomicDecrement(ExternalCounter_.Counter) != 0);
+        Y_VERIFY(--ExternalCounter_.Counter != 0);
     }
 
 private:
@@ -811,24 +813,24 @@ private:
 void TPointerTest::TestIntrusiveConstConstruction() {
     {
         TRefCountedWithStatistics::TExternalCounter cnt;
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 0);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 0);
         TIntrusivePtr<TRefCountedWithStatistics> i{MakeIntrusive<TRefCountedWithStatistics>(cnt)};
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 1);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 1);
         i.Reset();
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 0);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 1);
     }
     {
         TRefCountedWithStatistics::TExternalCounter cnt;
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 0);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 0);
         TIntrusiveConstPtr<TRefCountedWithStatistics> c{MakeIntrusive<TRefCountedWithStatistics>(cnt)};
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 1);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 1);
         c.Reset();
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Counter), 0);
-        UNIT_ASSERT_VALUES_EQUAL(AtomicGet(cnt.Increments), 1);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 1);
     }
 }
