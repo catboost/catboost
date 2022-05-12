@@ -1329,7 +1329,6 @@ classifieds/autoru-frontend-sitemap
 classifieds/beggar-banker
 classifieds/infra/goLB
 classifieds/infra/shiva-conf
-haas/einebox
 classifieds/nginx-tests
 practicum/services/jrunner
 classifieds/sphinx-configs
@@ -1404,14 +1403,12 @@ classifieds/cabinet
 bunker/nodejs-db-connector
 bunker/bunker-queue
 bunker/database
-haas/factory-packages
 adv/pcode/mobileadssdk/android/library
 classifieds/realty/feedloader
 classifieds/vos2
 classifieds/skypper
 admins/icecream/ice
 admins/icecream/backend
-haas/infra/graphite-sender
 noc/packages/telegraf-noc-conf
 admins/icecream/node-icecream
 adv/pcode/mobileadssdk/sdk/ios/library
@@ -1420,7 +1417,6 @@ trunk/arcadia/crm/space/frontend_static
 crm/space/frontend_static
 mail/java/furita
 toolbox/tunneler
-samsara/samsara-attachments
 education/schoolbook/services/gauss
 education/schoolbook/packages/accio
 adv/pcode/mobileadssdk/tests/frankenstein

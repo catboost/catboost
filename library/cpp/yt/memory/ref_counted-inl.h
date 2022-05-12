@@ -66,7 +66,7 @@ struct TMemoryReleaser<T, std::enable_if_t<T::EnableHazard>>
 
 Y_FORCE_INLINE int TRefCounter::GetRefCount() const noexcept
 {
-    return StrongCount_.load(std::memory_order_relaxed);
+    return StrongCount_.load(std::memory_order_acquire);
 }
 
 Y_FORCE_INLINE void TRefCounter::Ref() const noexcept
@@ -96,7 +96,7 @@ Y_FORCE_INLINE bool TRefCounter::Unref() const
     auto oldStrongCount = StrongCount_.fetch_sub(1, std::memory_order_release);
     YT_ASSERT(oldStrongCount > 0);
     if (oldStrongCount == 1) {
-        StrongCount_.load(std::memory_order_acquire);
+        std::atomic_thread_fence(std::memory_order_acquire);
         return true;
     } else {
         return false;
@@ -119,7 +119,7 @@ Y_FORCE_INLINE bool TRefCounter::WeakUnref() const
     auto oldWeakCount = WeakCount_.fetch_sub(1, std::memory_order_release);
     YT_ASSERT(oldWeakCount > 0);
     if (oldWeakCount == 1) {
-        WeakCount_.load(std::memory_order_acquire);
+        std::atomic_thread_fence(std::memory_order_acquire);
         return true;
     } else {
         return false;
