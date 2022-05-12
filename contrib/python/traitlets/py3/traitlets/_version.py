@@ -1,13 +1,10 @@
-version_info = (5, 1, 1)
+version_info = (5, 2, 0)
 
 # unlike `.dev`, alpha, beta and rc _must not_ have dots,
 # or the wheel and tgz won't look to pip like the same version.
 
 __version__ = (
-    ".".join(map(str, version_info))
-    .replace(".b", "b")
-    .replace(".a", "a")
-    .replace(".rc", "rc")
+    ".".join(map(str, version_info)).replace(".b", "b").replace(".a", "a").replace(".rc", "rc")
 )
 assert ".b" not in __version__
 assert ".a" not in __version__

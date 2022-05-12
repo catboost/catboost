@@ -6,7 +6,7 @@ PROVIDES(python_traitlets)
 
 
 
-VERSION(5.1.1)
+VERSION(5.2.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -33,6 +33,7 @@ PY_SRCS(
     traitlets/utils/descriptions.py
     traitlets/utils/getargspec.py
     traitlets/utils/importstring.py
+    traitlets/utils/nested_update.py
     traitlets/utils/sentinel.py
     traitlets/utils/text.py
 )
@@ -41,6 +42,7 @@ RESOURCE_FILES(
     PREFIX contrib/python/traitlets/py3/
     .dist-info/METADATA
     .dist-info/top_level.txt
+    traitlets/py.typed
 )
 
 END()

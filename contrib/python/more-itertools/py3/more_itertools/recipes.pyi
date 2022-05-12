@@ -41,19 +41,17 @@ def repeatfunc(
 def pairwise(iterable: Iterable[_T]) -> Iterator[Tuple[_T, _T]]: ...
 @overload
 def grouper(
-    iterable: Iterable[_T], n: int
-) -> Iterator[Tuple[Optional[_T], ...]]: ...
-@overload
-def grouper(
-    iterable: Iterable[_T], n: int, fillvalue: _U
+    iterable: Iterable[_T],
+    n: int,
+    incomplete: str = ...,
+    fillvalue: _U = ...,
 ) -> Iterator[Tuple[Union[_T, _U], ...]]: ...
 @overload
 def grouper(  # Deprecated interface
-    iterable: int, n: Iterable[_T]
-) -> Iterator[Tuple[Optional[_T], ...]]: ...
-@overload
-def grouper(  # Deprecated interface
-    iterable: int, n: Iterable[_T], fillvalue: _U
+    iterable: int,
+    n: Iterable[_T],
+    incomplete: str = ...,
+    fillvalue: _U = ...,
 ) -> Iterator[Tuple[Union[_T, _U], ...]]: ...
 def roundrobin(*iterables: Iterable[_T]) -> Iterator[_T]: ...
 def partition(
@@ -110,3 +108,4 @@ def triplewise(iterable: Iterable[_T]) -> Iterator[Tuple[_T, _T, _T]]: ...
 def sliding_window(
     iterable: Iterable[_T], n: int
 ) -> Iterator[Tuple[_T, ...]]: ...
+def subslices(iterable: Iterable[_T]) -> Iterator[List[_T]]: ...

@@ -1,16 +1,17 @@
+"""Traitlets Python configuration system"""
 from warnings import warn
 
 from . import traitlets
+from ._version import __version__, version_info
 from .traitlets import *
-from .utils.importstring import import_item
-from .utils.decorators import signature_has_traits
 from .utils.bunch import Bunch
-from ._version import version_info, __version__
+from .utils.decorators import signature_has_traits
+from .utils.importstring import import_item
 
 
-class Sentinel(traitlets.Sentinel):
+class Sentinel(traitlets.Sentinel):  # type:ignore[name-defined]
     def __init__(self, *args, **kwargs):
-        super(Sentinel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         warn(
             """
             Sentinel is not a public part of the traitlets API.

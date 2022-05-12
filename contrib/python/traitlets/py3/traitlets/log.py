@@ -7,6 +7,7 @@ import logging
 
 _logger = None
 
+
 def get_logger():
     """Grab the global logger instance.
 
@@ -17,10 +18,11 @@ def get_logger():
 
     if _logger is None:
         from .config import Application
+
         if Application.initialized():
             _logger = Application.instance().log
         else:
-            _logger = logging.getLogger('traitlets')
+            _logger = logging.getLogger("traitlets")
             # Add a NullHandler to silence warnings about not being
             # initialized, per best practice for libraries.
             _logger.addHandler(logging.NullHandler())
