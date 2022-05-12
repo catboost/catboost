@@ -188,6 +188,11 @@ inline TString& StripInPlace(TString& s) {
     return s;
 }
 
+template <typename T>
+inline void StripInPlace(T& s) {
+    StripString(s, s);
+}
+
 /// Returns a copy of the given string with removed leading and trailing spaces.
 inline TString Strip(const TString& s) Y_WARN_UNUSED_RESULT;
 inline TString Strip(const TString& s) {
