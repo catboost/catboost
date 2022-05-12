@@ -105,33 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_0ed01d50c6a7ead2ffed98525a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_0ed01d50c6a7ead2ffed98525a.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_14e94082d1f5e42390f67bf930.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_14e94082d1f5e42390f67bf930.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_14e94082d1f5e42390f67bf930.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_666234c752ccb0d25e5c847c25.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
@@ -158,6 +131,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py3/_666234c752ccb0d25e5c847c25.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_666234c752ccb0d25e5c847c25.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_666234c752ccb0d25e5c847c25.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_d459abc8392ea573401737f921.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.obj" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_d459abc8392ea573401737f921.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_d459abc8392ea573401737f921.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -198,7 +198,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.yasm" "-" "contrib/python/pyparsing/py3/.dist-info/METADATA" "_22810675cb8488efbc01718328.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6bc9acc39d1e1c54d976a38e0a.rodata" "-" "contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_664911a179e5351577f6e8c500.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6039b3783c67a18a18897174a5.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_99db9258a46548dffd9604c9a3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_048b4334e10658bdafa893dbd1.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/py.typed" "_65055fc5b0971ba2f3aacb0ce6.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_00ddef2cb7271c8ffe3392987f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.yasm" "-" "contrib/python/pyparsing/py3/.dist-info/METADATA" "_22810675cb8488efbc01718328.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6bc9acc39d1e1c54d976a38e0a.rodata" "-" "contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_664911a179e5351577f6e8c500.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6039b3783c67a18a18897174a5.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/py.typed" "_65055fc5b0971ba2f3aacb0ce6.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_00ddef2cb7271c8ffe3392987f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,7 +209,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.yasm" "-" "contrib/python/pyparsing/py3/.dist-info/METADATA" "_22810675cb8488efbc01718328.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6bc9acc39d1e1c54d976a38e0a.rodata" "-" "contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_664911a179e5351577f6e8c500.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6039b3783c67a18a18897174a5.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "_99db9258a46548dffd9604c9a3.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/diagram/template.jinja2" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_048b4334e10658bdafa893dbd1.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/py.typed" "_65055fc5b0971ba2f3aacb0ce6.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_00ddef2cb7271c8ffe3392987f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.yasm" "-" "contrib/python/pyparsing/py3/.dist-info/METADATA" "_22810675cb8488efbc01718328.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6bc9acc39d1e1c54d976a38e0a.rodata" "-" "contrib/python/pyparsing/py3/.dist-info/top_level.txt" "_664911a179e5351577f6e8c500.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_6039b3783c67a18a18897174a5.rodata" "-" "contrib/python/pyparsing/py3/pyparsing/py.typed" "_65055fc5b0971ba2f3aacb0ce6.rodata" "$(SolutionDir)../contrib/python/pyparsing/py3/pyparsing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/py3/_00ddef2cb7271c8ffe3392987f.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -217,9 +217,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/py3/_14e94082d1f5e42390f67bf930.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pyparsing\py3\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\pyparsing\py3\pyparsing\diagram\template.jinja2;$(SolutionDir)..\contrib\python\pyparsing\py3\pyparsing\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_14e94082d1f5e42390f67bf930.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_6bc9acc39d1e1c54d976a38e0a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_6039b3783c67a18a18897174a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_048b4334e10658bdafa893dbd1.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_00ddef2cb7271c8ffe3392987f.rodata;</Outputs>
+      <Message>$B/contrib/python/pyparsing/py3/_d459abc8392ea573401737f921.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pyparsing\py3\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\pyparsing\py3\pyparsing\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_d459abc8392ea573401737f921.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_6bc9acc39d1e1c54d976a38e0a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_6039b3783c67a18a18897174a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_00ddef2cb7271c8ffe3392987f.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py3\pyparsing\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
