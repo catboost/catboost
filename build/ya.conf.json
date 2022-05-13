@@ -6578,7 +6578,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    1289767737
+                    1307640198
                 ],
                 "match": "arc"
             },
@@ -6641,7 +6641,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    1222492034
+                    1307699309
                 ],
                 "match": "delve"
             },
@@ -8952,7 +8952,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1293423252,
+                "sandbox_id": 1307725730,
                 "match": "lama"
             },
             "executable": {
