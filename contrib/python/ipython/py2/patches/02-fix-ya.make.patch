@@ -32,14 +32,3 @@
  NO_LINT()
  
  NO_CHECK_IMPORTS(
-@@ -257,10 +271,6 @@ RESOURCE_FILES(
-     .dist-info/entry_points.txt
-     .dist-info/top_level.txt
-     IPython/core/profile/README_STARTUP
--    IPython/testing/plugin/README.txt
--    IPython/testing/plugin/test_combo.txt
--    IPython/testing/plugin/test_example.txt
--    IPython/testing/plugin/test_exampleip.txt
- )
- 
- END()

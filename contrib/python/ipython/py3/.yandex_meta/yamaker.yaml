@@ -1,0 +1,2 @@
+exclude_from_macros:
+- IPython/testing/plugin/*.txt
