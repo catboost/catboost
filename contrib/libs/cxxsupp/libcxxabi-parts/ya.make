@@ -40,7 +40,7 @@ SRCS(
     src/cxa_demangle.cpp
 )
 
-SRC_CPP_PIC(
+SRC_C_PIC(
     src/cxa_thread_atexit.cpp
     -fno-lto
 )
