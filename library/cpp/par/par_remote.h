@@ -193,10 +193,10 @@ namespace NPar {
     class TQueryCancelCallback: public TNonCopyable {
         class TCallback: public IRemoteQueryCancelNotify {
             T* Obj;
-            TAtomic IsExecutingCancel;
+            TAdaptiveLock IsExecutingCancel;
 
             void OnCancel() override {
-                TGuard<TAtomic> lock(IsExecutingCancel);
+                TGuard lock(IsExecutingCancel);
                 if (Obj)
                     Obj->OnQueryCancel();
                 Obj = nullptr;
@@ -205,11 +205,10 @@ namespace NPar {
         public:
             TCallback(T* obj)
                 : Obj(obj)
-                , IsExecutingCancel(false)
             {
             }
             void Detach() {
-                TGuard<TAtomic> lock(IsExecutingCancel); // wait complete
+                TGuard lock(IsExecutingCancel); // wait complete
                 Obj = nullptr;
             }
         };

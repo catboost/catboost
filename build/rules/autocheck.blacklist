@@ -1329,6 +1329,7 @@ classifieds/autoru-frontend-sitemap
 classifieds/beggar-banker
 classifieds/infra/goLB
 classifieds/infra/shiva-conf
+classifieds/infra/shiva
 classifieds/nginx-tests
 practicum/services/jrunner
 classifieds/sphinx-configs
@@ -1420,3 +1421,4 @@ toolbox/tunneler
 education/schoolbook/services/gauss
 education/schoolbook/packages/accio
 adv/pcode/mobileadssdk/tests/frankenstein
+samsara/samsara-data-integration
