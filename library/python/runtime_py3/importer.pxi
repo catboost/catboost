@@ -451,11 +451,15 @@ class ArcadiaSourceFinder:
             # Yield from cache
             import re
             rx = re.compile(re.escape(package_prefix) + r'([^.]+)$')
+            # Save result to temporary list to prevent 'RuntimeError: dictionary changed size during iteration'
+            found = []
             for mod, path in self.module_path_cache.items():
                 if path is not None:
                     m = rx.match(mod)
                     if m:
-                        yield prefix + m.group(1), self.is_package(mod)
+                        found.append((prefix + m.group(1), self.is_package(mod)))
+            for cm in found:
+                yield cm
 
             # Yield from file system
             for path in paths:
@@ -491,7 +495,7 @@ class ArcadiaSourceFinder:
                 return package_paths
 
     def _cache_module_path(self, fullname, find_package_only=False):
-        """ 
+        """
             Find module path or package directory paths and save result in the cache
 
             find_package_only=True - don't try to find module

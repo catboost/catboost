@@ -315,3 +315,27 @@ class TestEmptyResources(ArcadiaSourceFinderTestCase):
 
     def test_iter_modules(self):
         assert [] == list(self.arcadia_source_finder.iter_modules('', 'PFX.'))
+
+
+class TestDictionaryChangedSizeDuringIteration(ArcadiaSourceFinderTestCase):
+    def _get_mock_fs(self):
+        return '''
+           home:
+             arcadia:
+               project:
+                 lib1:
+                   mod1.py: ''
+                 lib2:
+                   mod2.py: ''
+        '''
+
+    def _get_mock_resources(self):
+        return {
+            b'py/namespace/unique_prefix1/project/lib1': b'project.lib1.',
+            b'py/namespace/unique_prefix1/project/lib2': b'project.lib2.',
+        }
+
+    def test_no_crash_on_recusive_iter_modules(self):
+        for package in self.arcadia_source_finder.iter_modules('project.', ''):
+            for _ in self.arcadia_source_finder.iter_modules(package[0], ''):
+                pass
