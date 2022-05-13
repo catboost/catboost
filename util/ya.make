@@ -329,7 +329,7 @@ JOIN_SRCS(
     system/yield.cpp
 )
 
-SRC_CPP_NO_LTO(system/compiler.cpp)
+SRC_C_NO_LTO(system/compiler.cpp)
 
 IF (OS_WINDOWS)
     SRCS(
