@@ -1,7 +1,7 @@
 # Classification: objectives and metrics
 
 - [Objectives and metrics](#objectives-and-metrics)
-- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+- [{{ title__loss-functions__text__optimization }}](#usage-information)
 
 ## Objectives and metrics
 
@@ -9,7 +9,7 @@
 
 $\displaystyle\frac{ - \sum\limits_{i=1}^N w_{i}\left(c_i \log(p_{i}) + (1-c_{i}) \log(1 - p_{i})\right)}{\sum\limits_{i = 1}^{N} w_{i}}$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -20,7 +20,7 @@ $\displaystyle\frac{ - \sum\limits_{i=1}^N w_{i}\left(c_i \log(p_{i}) + (1-c_{i}
 
 $\displaystyle\frac{- \sum\limits_{i=1}^N w_{i} \left(t_{i} \log(p_{i}) + (1 - t_{i}) \log(1 - p_{i})\right)}{\sum\limits_{i = 1}^{N} w_{i}}$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -31,7 +31,7 @@ $\displaystyle\frac{- \sum\limits_{i=1}^N w_{i} \left(t_{i} \log(p_{i}) + (1 - t
 
 $\frac{TP}{TP + FP}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -42,7 +42,7 @@ $\frac{TP}{TP + FP}$
 
 $\frac{TP}{TP+FN}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -53,7 +53,7 @@ $\frac{TP}{TP+FN}$
 
 $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -66,7 +66,7 @@ $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Reca
 
 $2 \frac{Precision * Recall}{Precision + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -77,7 +77,7 @@ $2 \frac{Precision * Recall}{Precision + Recall}$
 $\frac{1}{2} \left(\frac{TP}{P} + \frac{TN}{N} \right)$
 {{ title__loss-functions__text__user-defined-params }}:
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -87,7 +87,7 @@ $\frac{1}{2} \left(\frac{TP}{P} + \frac{TN}{N} \right)$
 
 $\frac{1}{2} \left( \displaystyle\frac{FP}{TN + FP} + \displaystyle\frac{FN}{FN + TP} \right)$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -98,7 +98,7 @@ $\frac{1}{2} \left( \displaystyle\frac{FP}{TN + FP} + \displaystyle\frac{FN}{FN 
 
 $\displaystyle\frac{TP * TN - FP * FN}{\sqrt{(TP + FP)(TP + FN)(TN + FP)(TN + FN)}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -109,7 +109,7 @@ $\displaystyle\frac{TP * TN - FP * FN}{\sqrt{(TP + FP)(TP + FN)(TN + FP)(TN + FN
 
 $\frac{TP + TN}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -120,7 +120,7 @@ $\frac{TP + TN}{\sum\limits_{i=1}^{N} w_{i}}$
 
 $\displaystyle\frac{\left(\sum\limits_{i = 1}^{N} w_{i} t_{i}/N\right)}{\left(\sum\limits_{i = 1}^{N} w_{i} p_{i} /N\right)}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -184,7 +184,7 @@ See {{ error-function--AUC }}.
 
 $2 AUC - 1$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -195,7 +195,7 @@ $2 AUC - 1$
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i}\left(p_{i} - t_{i} \right)^{2}}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -205,7 +205,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i}\left(p_{i} - t_{i} \right)^{2}}{
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} max\{1 - t_{i} p_{i}, 0\}}{\sum\limits_{i=1}^{N} w_{i}} , t_{i} = \pm 1$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -216,7 +216,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} max\{1 - t_{i} p_{i}, 0\}}{\sum\
 
 $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [[p_{i} > 0.5] == t_{i}]]}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -227,7 +227,7 @@ $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [[p_{i} > 0.5] == t_{i}]]}{\su
 
 $1 - Accuracy$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -240,7 +240,7 @@ $1 - \displaystyle\frac{1 - Accuracy}{1 - RAccuracy}$
 
 $RAccuracy = \displaystyle\frac{(TN + FP) (TN + FN) + (FN + TP) (FP + TP)}{(\sum\limits_{i=1}^{N} w_{i})^{2}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -251,7 +251,7 @@ $RAccuracy = \displaystyle\frac{(TN + FP) (TN + FN) + (FN + TP) (FP + TP)}{(\sum
 
 See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -276,7 +276,7 @@ The calculation consists of the following steps:
 
     $llp = \displaystyle\frac{ll(t, w) - ll_0}{\sum\limits_{i} t_{i} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -284,31 +284,31 @@ The calculation consists of the following steps:
 
 
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 
-| Name                                                        | Optimization            |
---------------------------------------------------------------|-------------------------|
-[{{ error-function--Logit }}](#Logit)                         |     +                   |
-[{{ error-function--CrossEntropy }}](#CrossEntropy)           |     +                   |
-[{{ error-function--Precision }}](#Precision)                 |     -                   |
-[{{ error-function--Recall }}](#Recall)                       |     -                   |
-[{{ error-function--F }}](#F)                                 |     -                   |
-[{{ error-function--F1 }}](#F1)                               |     -                   |
-[{{ error-function__BalancedAccuracy }}](#BalancedAccuracy)   |     -                   |
-[{{ error-function__BalancedErrorRate }}](#BalancedErrorRate) |     -                   |
-[{{ error-function--MCC }}](#MCC)                             |     -                   |
-[{{ error-function--Accuracy }}](#Accuracy)                   |     -                   |
-[{{ error-function__CtrFactor }}](#CtrFactor)                 |     -                   |
-[{{ error-function--AUC }}](#AUC)                             |     -                   |
-[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |
-[{{ error-function--NormalizedGini }}](#ormalizedGini)        |     -                   |
-[{{ error-function__Brierscore }}](#Brierscore)               |     -                   |
-[{{ error-function__HingeLoss }}](#HingeLoss)                 |     -                   |
-[{{ error-function__HammingLoss }}](#HammingLoss)             |     -                   |
-[{{ error-function__ZeroOneLoss }}](#ZeroOneLoss)             |     -                   |
-[{{ error-function__Kappa }}](#Kappa)                         |     -                   |
-[{{ error-function__WKappa }}](#WKappa)                       |     -                   |
-[{{ error-function__LLP }}](#LLP)                             |     -                   |
+| Name                                                        | Optimization            | GPU Support             |
+--------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function--Logit }}](#Logit)                         |     +                   |     +                   |
+[{{ error-function--CrossEntropy }}](#CrossEntropy)           |     +                   |     +                   |
+[{{ error-function--Precision }}](#Precision)                 |     -                   |     +                   |
+[{{ error-function--Recall }}](#Recall)                       |     -                   |     +                   |
+[{{ error-function--F }}](#F)                                 |     -                   |     -                   |
+[{{ error-function--F1 }}](#F1)                               |     -                   |     +                   |
+[{{ error-function__BalancedAccuracy }}](#BalancedAccuracy)   |     -                   |     -                   |
+[{{ error-function__BalancedErrorRate }}](#BalancedErrorRate) |     -                   |     -                   |
+[{{ error-function--MCC }}](#MCC)                             |     -                   |     +                   |
+[{{ error-function--Accuracy }}](#Accuracy)                   |     -                   |     +                   |
+[{{ error-function__CtrFactor }}](#CtrFactor)                 |     -                   |     -                   |
+[{{ error-function--AUC }}](#AUC)                             |     -                   |     -                   |
+[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |     -                   |
+[{{ error-function--NormalizedGini }}](#ormalizedGini)        |     -                   |     -                   |
+[{{ error-function__Brierscore }}](#Brierscore)               |     -                   |     -                   |
+[{{ error-function__HingeLoss }}](#HingeLoss)                 |     -                   |     -                   |
+[{{ error-function__HammingLoss }}](#HammingLoss)             |     -                   |     -                   |
+[{{ error-function__ZeroOneLoss }}](#ZeroOneLoss)             |     -                   |     +                   |
+[{{ error-function__Kappa }}](#Kappa)                         |     -                   |     -                   |
+[{{ error-function__WKappa }}](#WKappa)                       |     -                   |     -                   |
+[{{ error-function__LLP }}](#LLP)                             |     -                   |     -                   |
 
 

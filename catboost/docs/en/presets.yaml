@@ -415,7 +415,7 @@ default:
   shrink__ntree_end__default: Required argument
   common__python__aliases: 'Alias:'
   other-products__clickhouse: ClickHouse
-  optimization: Used for optimization.
+  optimization: Usage information
   no-optimization: Can't be used for optimization.
   json__array: array
   json__int: int

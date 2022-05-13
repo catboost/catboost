@@ -1,7 +1,7 @@
 # Multiclassification: objectives and metrics
 
 - [Objectives and metrics](#objectives-and-metrics)
-- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+- [{{ title__loss-functions__text__optimization }}](#usage-information)
 
 ## Objectives and metrics
 
@@ -11,7 +11,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N}w_{i}\log\left(\displaystyle\frac{e^{a_
 
 $t \in \{0, ..., M - 1\}$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -24,7 +24,7 @@ $\displaystyle\frac{\frac{1}{M}\sum\limits_{i = 1}^N w_i \sum\limits_{j = 0}^{M 
 
 $t \in \{0, ..., M - 1\}$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -37,7 +37,7 @@ $t \in \{0, ..., M - 1\}$
 
 $\frac{TP}{TP + FP}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -50,7 +50,7 @@ $\frac{TP}{TP + FP}$
 
 $\frac{TP}{TP+FN}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -62,7 +62,7 @@ $\frac{TP}{TP+FN}$
 
 $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -76,7 +76,7 @@ $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Reca
 
 $2 \frac{Precision * Recall}{Precision + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -103,7 +103,7 @@ $TotalF1 = \displaystyle\frac{2 \cdot TP}{2 \cdot TP + FP + FN} {, where}$
 - $FP = \sum\limits_{i=1}^{M} FP_{i}$
 - $FN = \sum\limits_{i=1}^{M} FN_{i}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -126,7 +126,7 @@ $\displaystyle\frac{\sum\limits_{k}\sum\limits_{l}\sum\limits_{m} C_{kk} C_{lm} 
 
 See the [Wikipedia article](https://en.wikipedia.org/wiki/Matthews_correlation_coefficient) for more details.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -138,7 +138,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N}w_{i}[argmax_{j=0,...,M - 1}(a_{ij})==t
 
 $t \in \{0, ..., M - 1\}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -148,7 +148,7 @@ $t \in \{0, ..., M - 1\}$
 
 See the [Wikipedia article](https://en.wikipedia.org/wiki/Hinge_loss).
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -158,7 +158,7 @@ See the [Wikipedia article](https://en.wikipedia.org/wiki/Hinge_loss).
 
 $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [argmax_{j=0,...,M - 1}(a_{ij})\neq t_{i}]}{\sum\limits_{i = 1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -168,7 +168,7 @@ $\displaystyle\frac{\sum\limits_{i = 1}^{N} w_{i} [argmax_{j=0,...,M - 1}(a_{ij}
 
 $1 - Accuracy$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -184,7 +184,7 @@ $k_{a}$ is the weighted number of times class k is predicted by the model
 
 $k_{t}$ is the weighted number of times class k is set as the label for input objects
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -194,7 +194,7 @@ $k_{t}$ is the weighted number of times class k is set as the label for input o
 
 See the formula on page 3 of the [A note on the linearly weighted kappa coefficient for ordinal scales](https://orbi.uliege.be/bitstream/2268/2262/1/STATMED-174.pdf) paper.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -213,7 +213,7 @@ The calculation of this metric is disabled by default for the training dataset t
 
     The value is calculated separately for each class k numbered from 0 to M–1 according to the [binary classification calculation principles](../concepts/loss-functions-classification.md#auc__full-desc). The objects of class k are considered positive, while all others are considered negative.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -259,22 +259,22 @@ _Examples:_ Three classes — `AUC:misclass_cost_matrix=0/0.5/2/1/0/1/0/0.5/0`, 
 {% endcut %}
 
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
-| Name                                                          | Optimization            |
-----------------------------------------------------------------|-------------------------|
-[{{ error-function--MultiClass }}](#MultiClass)                 |     +                   |
-[{{ error-function--MultiClassOneVsAll }}](#MultiClassOneVsAll) |     +                   |
-[{{ error-function--Precision }}](#Precision)                   |     -                   |
-[{{ error-function--Recall }}](#Recall)                         |     -                   |
-[{{ error-function--F }}](#F)                                   |     -                   |
-[{{ error-function--F1 }}](#F1)                                 |     -                   |
-[{{ error-function--totalF1 }}](#totalF1)                       |     -                   |
-[{{ error-function--MCC }}](#MCC)                               |     -                   |
-[{{ error-function--Accuracy }}](#Accuracy)                     |     -                   |
-[{{ error-function__HingeLoss }}](#HingeLoss)                   |     -                   |
-[{{ error-function__HammingLoss }}](#HammingLoss)               |     -                   |
-[{{ error-function__ZeroOneLoss }}](#ZeroOneLoss)               |     -                   |
-[{{ error-function__Kappa }}](#Kappa)                           |     -                   |
-[{{ error-function__WKappa }}](#WKappa)                         |     -                   |
-[{{ error-function--AUC }}](#AUC)                               |     -                   |
+| Name                                                          | Optimization            | GPU Support             |
+----------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function--MultiClass }}](#MultiClass)                 |     +                   |     +                   |
+[{{ error-function--MultiClassOneVsAll }}](#MultiClassOneVsAll) |     +                   |     +                   |
+[{{ error-function--Precision }}](#Precision)                   |     -                   |     +                   |
+[{{ error-function--Recall }}](#Recall)                         |     -                   |     +                   |
+[{{ error-function--F }}](#F)                                   |     -                   |     -                   |
+[{{ error-function--F1 }}](#F1)                                 |     -                   |     +                   |
+[{{ error-function--totalF1 }}](#totalF1)                       |     -                   |     +                   |
+[{{ error-function--MCC }}](#MCC)                               |     -                   |     +                   |
+[{{ error-function--Accuracy }}](#Accuracy)                     |     -                   |     +                   |
+[{{ error-function__HingeLoss }}](#HingeLoss)                   |     -                   |     -                   |
+[{{ error-function__HammingLoss }}](#HammingLoss)               |     -                   |     -                   |
+[{{ error-function__ZeroOneLoss }}](#ZeroOneLoss)               |     -                   |     +                   |
+[{{ error-function__Kappa }}](#Kappa)                           |     -                   |     -                   |
+[{{ error-function__WKappa }}](#WKappa)                         |     -                   |     -                   |
+[{{ error-function--AUC }}](#AUC)                               |     -                   |     -                   |

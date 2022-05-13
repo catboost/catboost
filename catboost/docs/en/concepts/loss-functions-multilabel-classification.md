@@ -1,7 +1,7 @@
 # MultiLabel Classification: objectives and metrics
 
 - [Objectives and metrics](#objectives-and-metrics)
-- [{{ title__loss-functions__text__optimization }}](#used-for-optimization)
+- [{{ title__loss-functions__text__optimization }}](#usage-information)
 
 ## Objectives and metrics
 
@@ -11,7 +11,7 @@
 
   where $p_{ij} = \sigma(a_{ij}) = \frac{e^{a_{ij}}}{1 + e^{a_{ij}}}$ and $c_{ij} \in {0, 1}$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -23,7 +23,7 @@ $\displaystyle\frac{-\sum\limits_{j=0}^{M-1} \sum\limits_{i=1}^{N} w_{i} (t_{ij}
 
   where $p_{ij} = \sigma(a_{ij}) = \frac{e^{a_{ij}}}{1 + e^{a_{ij}}}$ and $t_{ij} \in [0, 1]$
 
-**{{ optimization }}**  See [more](#optimization).
+**{{ optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -36,7 +36,7 @@ $\displaystyle\frac{-\sum\limits_{j=0}^{M-1} \sum\limits_{i=1}^{N} w_{i} (t_{ij}
 
 $\frac{TP}{TP + FP}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -49,7 +49,7 @@ $\frac{TP}{TP + FP}$
 
 $\frac{TP}{TP+FN}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -61,7 +61,7 @@ $\frac{TP}{TP+FN}$
 
 $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -75,7 +75,7 @@ $(1 + \beta^2) \cdot  \frac{Precision * Recall}{(\beta^2 \cdot Precision) + Reca
 
 $2 \frac{Precision * Recall}{Precision + Recall}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -97,7 +97,7 @@ where $p_{ij} = \sigma(a_{ij}) = \frac{e^{a_{ij}}}{1 + e^{a_{ij}}}$
 
 $\frac{TP + TN}{\sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -115,7 +115,7 @@ _Possible values_: `{{ loss-functions__params__accuracy__type__Classic }}`, `{{ 
 
 $\displaystyle\frac{\sum\limits_{j=0}^{M-1} \sum\limits_{i = 1}^{N} w_{i} [[p_{ij} > 0.5] == t_{ij}]]}{M \sum\limits_{i=1}^{N} w_{i}}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -123,15 +123,15 @@ $\displaystyle\frac{\sum\limits_{j=0}^{M-1} \sum\limits_{i = 1}^{N} w_{i} [[p_{i
 
 
 
-## {{ title__loss-functions__text__optimization }}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
-| Name                                                          | Optimization            |
-----------------------------------------------------------------|-------------------------|
-[{{ error-function__MultiLogloss }}](#MultiLogloss)             |     +                   |
-[{{ error-function__MultiCrossEntropy }}](#MultiCrossEntropy)   |     +                   |
-[{{ error-function--Precision }}](#Precision)                   |     -                   |
-[{{ error-function--Recall }}](#Recall)                         |     -                   |
-[{{ error-function--F }}](#F)                                   |     -                   |
-[{{ error-function--F1 }}](#F1)                                 |     -                   |
-[{{ error-function--Accuracy }}](#Accuracy)                     |     -                   |
-[{{ error-function__HammingLoss }}](#HammingLoss)               |     -                   |
+| Name                                                          | Optimization            | GPU Support             |
+----------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function__MultiLogloss }}](#MultiLogloss)             |     +                   |     -                   |
+[{{ error-function__MultiCrossEntropy }}](#MultiCrossEntropy)   |     +                   |     -                   |
+[{{ error-function--Precision }}](#Precision)                   |     -                   |     -                   |
+[{{ error-function--Recall }}](#Recall)                         |     -                   |     -                   |
+[{{ error-function--F }}](#F)                                   |     -                   |     -                   |
+[{{ error-function--F1 }}](#F1)                                 |     -                   |     -                   |
+[{{ error-function--Accuracy }}](#Accuracy)                     |     -                   |     -                   |
+[{{ error-function__HammingLoss }}](#HammingLoss)               |     -                   |     -                   |

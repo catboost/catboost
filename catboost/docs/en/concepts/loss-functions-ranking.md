@@ -26,7 +26,7 @@ $\displaystyle\frac{-\sum\limits_{p, n \in Pairs} w_{pn} \left(log(\displaystyle
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -48,7 +48,7 @@ This metric may give more accurate results on large datasets compared to {{ err
 
 This technique is described in the [Winning The Transfer Learning Track of Yahoo!’s Learning To Rank Challenge with YetiRank](http://proceedings.mlr.press/v14/gulin11a.html) paper.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics.md) %}
 
@@ -68,7 +68,7 @@ $\displaystyle\frac{\sum\limits_{p, n \in Pairs} w_{pn} [a_{p} > a_{n}] }{\sum\l
 
 {% include [objectives-and-metrics-the-weights-of-objects-not-used-to-calculate-metrics-not-optimize](../_includes/work_src/reusage-loss-functions/the-weights-of-objects-not-used-to-calculate-metrics-not-optimize.md) %}
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 {% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
 
@@ -86,7 +86,7 @@ This metric gives less accurate results on big datasets compared to {{ error-fun
 
 {% include [objectives-and-metrics-the-weights-of-groups](../_includes/work_src/reusage-loss-functions/the-weights-of-groups.md) %}
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -122,7 +122,7 @@ This technique is described in the [Winning The Transfer Learning Track of Yaho
 
 {% include [objectives-and-metrics-the-weights-of-groups](../_includes/work_src/reusage-loss-functions/the-weights-of-groups.md) %}
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -175,7 +175,7 @@ $\mathbb{P}(\text{filter}|x) = \sigma(a) { , where}$
 
 Refer to the [Learning to Select for a Predefined Ranking]({{ learning-to-select-for-predefined-ranking }}) paper for calculation details.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -202,7 +202,7 @@ Directly optimize the selected metric. The value of the selected metric is writt
 
 Refer to the [StochasticRank: Global Optimization of Scale-Free Discrete Functions](https://arxiv.org/abs/2003.02122v1) paper for details.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -279,7 +279,7 @@ $QueryCrossEntropy(\alpha) = (1 - \alpha) \cdot LogLoss + \alpha \cdot LogLoss_{
 
 See the [{{ error-function__QueryCrossEntropy }}](../references/querycrossentropy.md) section for more details.
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -297,7 +297,7 @@ _Default:_ 0.95
 
 $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limits_{i \in Group} w_{i} \left( t_{i} - a_{i} - \displaystyle\frac{\sum\limits_{j \in Group} w_{j} (t_{j} - a_{j})}{\sum\limits_{j \in Group} w_{j}} \right)^{2}} {\sum\limits_{Group \in Groups} \sum\limits_{i \in Group} w_{i}}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -307,7 +307,7 @@ $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limit
 
 $- \displaystyle\frac{\sum\limits_{Group \in Groups} \sum\limits_{i \in Group}w_{i} t_{i} \log \left(\displaystyle\frac{w_{i} e^{\beta a_{i}}}{\sum\limits_{j\in Group} w_{j} e^{\beta a_{j}}}\right)} {\sum\limits_{Group \in Groups} \sum_{i\in Group} w_{i} t_{i}}$
 
-**{{ optimization }}** See [more](#optimization).
+**{{ optimization }}** See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -331,7 +331,7 @@ $= \sum_{group \in groups} PFound(group, top, decay)$
 
 See the [{{ error-function__PFound }}](../references/pfound.md) section for more details
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -349,7 +349,7 @@ $nDCG(top) = \frac{DCG(top)}{IDCG(top)}$
 
 See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more details.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -369,7 +369,7 @@ $DCG(top)$
 
 See the [{{ error-function__ndcg }}](../references/ndcg.md) section for more details.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -387,7 +387,7 @@ The calculation of this metric is disabled by default for the training dataset t
 
 See the [{{ error-function__FilteredDCG }}](../references/filtereddcg.md) section for more details.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -401,7 +401,7 @@ Represents the average value of the label values for objects with the defined to
 
 See the [{{ error-function__QueryAverage }}](../references/queryaverage.md) section for more details.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -427,7 +427,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
     $PrecisionAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{top} { , where}$
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -446,7 +446,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
     $RecalAt(top, border) = \frac{\sum\limits_{i=1}^{top} Relevant_{i}}{\sum\limits_{i=1}^{N} Relevant_{i}}$
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -469,7 +469,7 @@ _Default_: {{ loss-functions__obligatory-text }}.
     - $Relevant_{i} = \begin{cases} 1 { , } & t_{i} > {border} \\ 0 { , } & {in other cases} \end{cases}$
     - $PrecisionAt_{i} = \frac{\sum\limits_{j=1}^{i} Relevant_{j}}{i}$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -488,7 +488,7 @@ Targets should be from the range [0, 1].
 
 $t_{q,i} \in [0, 1]$
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -499,7 +499,7 @@ $t_{q,i} \in [0, 1]$
 
 $MRR = \frac{1}{|Q|} \sum_{q=1}^{|Q|} \frac{1}{rank_q}$, where $rank_q$ refers to the rank position of the first relevant document for the _q_-th query.
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -516,7 +516,7 @@ The calculation of this metric is disabled by default for the training dataset t
 
 {% include [loss-functions-loss-functions-ranking__auc](../_includes/work_src/reusage-popups/loss-functions-ranking__auc.md) %}
 
-**{{ no-optimization }}**  See [more](#optimization).
+**{{ no-optimization }}**  See [more](#usage-information).
 
 **{{ title__loss-functions__text__user-defined-params }}**
 
@@ -541,30 +541,30 @@ _Examples_: `AUC:type=Ranking;use_weights=False`.
 
 {% include [query-auc](../_includes/concepts/query-auc.md) %}
 
-## {{ title__loss-functions__text__optimization }} {#optimization}
+## {{ title__loss-functions__text__optimization }} {#usage-information}
 
 
-| Name                                                        | Optimization            |
---------------------------------------------------------------|-------------------------|
-[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |
-[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |
-[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |
-[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |
-[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |
-[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |
-[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |
-[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |
-[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |
-[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |
-[{{ error-function__PFound }}](#PFound)                       |     -                   |
-[{{ error-function__ndcg }}](#ndcg)                           |     -                   |
-[{{ error-function__dcg }}](#dcg)                             |     -                   |
-[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |
-[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |
-[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |
-[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |
-[{{ error-function__mapk }}](#mapk)                           |     -                   |
-[{{ error-function__err }}](#err)                             |     -                   |
-[{{ error-function__mrr }}](#mrr)                             |     -                   |
-[{{ error-function--AUC }}](#AUC)                             |     -                   |
-[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |
+| Name                                                        | Optimization            | GPU Support             |
+--------------------------------------------------------------|-------------------------|-------------------------|
+[{{ error-function__PairLogit }}](#PairLogit)                 |     +                   |     +                   |
+[{{ error-function__PairLogitPairwise }}](#PairLogitPairwise) |     +                   |     +                   |
+[{{ error-function__PairAccuracy }}](#PairAccuracy)           |     -                   |     -                   |
+[{{ error-function__YetiRank }}](#YetiRank)                   |     +                   |     +                   |
+[{{ error-function__YetiRankPairwise }}](#YetiRankPairwise)   |     +                   |     +                   |
+[{{ error-function__StochasticFilter }}](#StochasticFilter)   |     +                   |     -                   |
+[{{ error-function__StochasticRank }}](#StochasticRank)       |     +                   |     -                   |
+[{{ error-function__QueryCrossEntropy }}](#QueryCrossEntropy) |     +                   |     +                   |
+[{{ error-function__QueryRMSE }}](#QueryRMSE)                 |     +                   |     +                   |
+[{{ error-function__QuerySoftMax }}](#QuerySoftMax)           |     +                   |     +                   |
+[{{ error-function__PFound }}](#PFound)                       |     -                   |     -                   |
+[{{ error-function__ndcg }}](#ndcg)                           |     -                   |     -                   |
+[{{ error-function__dcg }}](#dcg)                             |     -                   |     -                   |
+[{{ error-function__FilteredDCG }}](#PFilteredDCG)            |     -                   |     -                   |
+[{{ error-function__QueryAverage }}](#QueryAverage)           |     -                   |     -                   |
+[{{ error-function__PrecisionAtK }}](#PrecisionAtK)           |     -                   |     -                   |
+[{{ error-function__RecallAtK }}](#RecallAtK)                 |     -                   |     -                   |
+[{{ error-function__mapk }}](#mapk)                           |     -                   |     -                   |
+[{{ error-function__err }}](#err)                             |     -                   |     -                   |
+[{{ error-function__mrr }}](#mrr)                             |     -                   |     -                   |
+[{{ error-function--AUC }}](#AUC)                             |     -                   |     -                   |
+[{{ error-function--QueryAUC }}](#QueryAUC)                   |     -                   |     -                   |
