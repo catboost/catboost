@@ -317,11 +317,11 @@
         "gofmt": {
             "description": "Run gofmt tool (1.17.8)"
         },
-        "go_1.18rc1": {
-            "description": "Run go tool (1.18rc1)"
+        "go_1.18": {
+            "description": "Run go tool (1.18.2)"
         },
-        "gofmt_1.18rc1": {
-            "description": "Run gofmt tool (1.18rc1)"
+        "gofmt_1.18": {
+            "description": "Run gofmt tool (1.18.2)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5557,19 +5557,19 @@
                 "version": "1.17.8"
             }
         },
-        "golang_1_18rc1": {
+        "golang_1.18": {
             "tools": {
-                "golang_1.18rc1": {
-                    "bottle": "golang_1.18rc1",
-                    "executable": "golang_1.18rc1"
+                "golang_1.18": {
+                    "bottle": "golang_1.18",
+                    "executable": "golang_1.18"
                 },
-                "go_1.18rc1": {
-                    "bottle": "golang_1.18rc1",
-                    "executable": "go_1.18rc1"
+                "go_1.18": {
+                    "bottle": "golang_1.18",
+                    "executable": "go_1.18"
                 },
-                "gofmt_1.18rc1": {
-                    "bottle": "golang_1.18rc1",
-                    "executable": "gofmt_1.18rc1"
+                "gofmt_1.18": {
+                    "bottle": "golang_1.18",
+                    "executable": "gofmt_1.18"
                 }
             },
             "platforms": [
@@ -5601,7 +5601,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.18rc1"
+                "version": "1.18.2"
             }
         },
         "godoc": {
@@ -8263,22 +8263,22 @@
                 ]
             }
         },
-        "golang_1.18rc1": {
+        "golang_1.18": {
             "formula": {
                 "sandbox_id": [
-                    1274398277,
-                    1274384403,
-                    1274353053,
-                    1274373626
+                    1307768932,
+                    1306598930,
+                    1306598927,
+                    1306598929
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.18rc1": [
+                "go_1.18": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.18rc1": [
+                "gofmt_1.18": [
                     "bin",
                     "gofmt"
                 ]
