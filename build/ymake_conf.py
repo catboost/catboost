@@ -1893,9 +1893,6 @@ class LD(Linker):
                 self.ld_flags.extend(('-Wl,-Bstatic', '-latomic', '-Wl,-Bdynamic'))
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
-            if self.type == Linker.LLD and target.android_api < 29:
-                # https://github.com/android/ndk/issues/1196
-                self.ld_flags.append('-Wl,--no-rosegment')
         elif target.is_macos:
             self.ld_flags.append('-Wl,-no_deduplicate')
             if not self.tc.is_clang:
