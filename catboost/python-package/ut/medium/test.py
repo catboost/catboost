@@ -10272,3 +10272,109 @@ def test_select_features_by_multi_feature_tags(task_type, train_final_model, alg
         json.dump(summary, f, indent=4, sort_keys=True)
 
     return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
+
+
+def test_embedding_features_data_list_with_data_with_features_order():
+    pool1 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5],
+                '_embedding_feature_2': [[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]],
+                '_embedding_feature_3': [[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]]
+            }
+        ),
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5]
+            }
+        ),
+        embedding_features_data=[
+            np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        ],
+        embedding_features=[2, 3]
+    )
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_dict_with_data_with_features_order():
+    pool1 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5],
+                'f2': [[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]],
+                'f3': [[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]]
+            }
+        ),
+        embedding_features=['f2', 'f3']
+    )
+    pool2 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5]
+            }
+        ),
+        embedding_features_data={
+            'f2': np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            'f3': np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        },
+        embedding_features=['f2', 'f3']
+    )
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_list_with_data_with_objects_order():
+    pool1 = Pool(
+        data=[
+            [0, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 6],
+            [1, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 7],
+            [2, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 8]
+        ],
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=[
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8]
+        ],
+        embedding_features_data=[
+            np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        ],
+        embedding_features=[2, 3]
+    )
+
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_dict_with_data_with_objects_order():
+    pool1 = Pool(
+        data=[
+            [0, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 6],
+            [1, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 7],
+            [2, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 8]
+        ],
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=[
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8]
+        ],
+        embedding_features_data={
+            2 : np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            3 : np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        },
+        embedding_features=[2, 3]
+    )
+
+    assert _have_equal_features(pool1, pool2)
