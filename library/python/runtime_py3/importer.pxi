@@ -2,7 +2,7 @@ import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
 from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
-from _frozen_importlib_external import _os, _path_isfile, _path_isdir, _path_isabs, path_sep, _path_join, _path_split
+from _frozen_importlib_external import _os, _path_isfile, _path_isabs, path_sep, _path_join, _path_split
 from _io import FileIO
 
 import __res as __resource
@@ -402,6 +402,7 @@ class ArcadiaSourceFinder:
     NAMESPACE_PREFIX = b'py/namespace/'
     PY_EXT = '.py'
     YA_MAKE = 'ya.make'
+    S_IFDIR = 0o040000
 
     def __init__(self, source_root):
         self.source_root = source_root
@@ -470,12 +471,20 @@ class ArcadiaSourceFinder:
                     elif dir_item.endswith(self.PY_EXT) and _path_isfile(_path_join(abs_path, dir_item)):
                         yield prefix + dir_item[:-len(self.PY_EXT)], False
 
+    def _isdir(self, path):
+        """ Unlike _path_isdir() this function don't follow symlink """
+        try:
+            stat_info = _os.lstat(path)
+        except OSError:
+            return False
+        return (stat_info.st_mode & 0o170000) == self.S_IFDIR
+
     def _path_is_simple_dir(self, abs_path):
         """
             Check if path is a directory but doesn't contain ya.make file.
             We don't want to steal directory from nested project and treat it as a package
         """
-        return _path_isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
+        return self._isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
 
     def _find_module_in_paths(self, find_package_only, paths, module):
         """Auxiliary method. See _cache_module_path() for details"""

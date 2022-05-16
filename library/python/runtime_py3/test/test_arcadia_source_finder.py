@@ -1,5 +1,7 @@
+import stat
 import unittest
 import yaml
+from collections import namedtuple
 from unittest.mock import patch
 from parameterized import parameterized
 
@@ -17,9 +19,9 @@ class ImporterMocks(object):
         self._patchers = [
             patch('__res.iter_keys', wraps=self._iter_keys),
             patch('__res.__resource.find', wraps=self._resource_find),
-            patch('__res._path_isdir', wraps=self._path_isdir),
             patch('__res._path_isfile', wraps=self._path_isfile),
             patch('__res._os.listdir', wraps=self._os_listdir),
+            patch('__res._os.lstat', wraps=self._os_lstat),
         ]
         for patcher in self._patchers:
             patcher.start()
@@ -51,9 +53,10 @@ class ImporterMocks(object):
         f = self._lookup_mock_fs(filename)
         return isinstance(f, str)
 
-    def _path_isdir(self, filename):
+    def _os_lstat(self, filename):
         f = self._lookup_mock_fs(filename)
-        return isinstance(f, dict)
+        mode = stat.S_IFDIR if isinstance(f, dict) else stat.S_IFREG
+        return namedtuple('fake_stat_type', 'st_mode')(st_mode=mode)
 
     def _os_listdir(self, dirname):
         f = self._lookup_mock_fs(dirname)
