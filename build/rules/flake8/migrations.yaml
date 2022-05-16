@@ -2807,7 +2807,16 @@ migrations:
     - yt/python/contrib/python-requests
     - yt/python/contrib/python-six
     - yt/python/contrib/python-urllib3
-    - yt/python/yt
+    - yt/python/yt/clickhouse
+    - yt/python/yt/flask_helpers
+    - yt/python/yt/infra_api
+    - yt/python/yt/operations_archive
+    - yt/python/yt/packages
+    - yt/python/yt/scheduler_tools
+    - yt/python/yt/skiff
+    - yt/python/yt/tools
+    - yt/python/yt/transfer_manager
+    - yt/python/yt/wire_format
     - yt/yt/experiments/dyntables_stress_test
     - yweb/antimalware/visual_html_parser/yandex-search-antivirus-discovery
     - yweb/antiporno/bert/development/python/lib/google_bert
