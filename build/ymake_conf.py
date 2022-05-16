@@ -1779,18 +1779,7 @@ class Linker(object):
             return Linker.LLD
 
         elif self.build.target.is_linux:
-            # DEVTOOLS-6782: LLD8 fails to link LTO builds with in-memory ELF objects larger than 4 GiB
-            blacklist_lld = is_positive('CLANG7') and is_positive('USE_LTO') and not is_positive('MUSL')
-            if self.tc.is_clang and not blacklist_lld:
-                return Linker.LLD
-            else:
-                # GCC et al.
-
-                if self.tc.is_gcc and is_positive('MUSL'):
-                    # See MUSL_BFD comment below
-                    return Linker.BFD
-
-                return Linker.GOLD
+            return Linker.LLD
 
         # There is no linker choice on Darwin (ld64) or Windows (link.exe)
         return None
@@ -1882,11 +1871,6 @@ class LD(Linker):
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
-            if self.tc.is_gcc:
-                # MUSL_BFD: musl build uses --no-dynamic-linker linker flag
-                # which gold doesn't know about. And we can only specify linker
-                # type, not it's path as we do for Clang through linker selector.
-                self.ld_flags.append('-fuse-ld=bfd')
         elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
             if self.tc.is_gcc:
