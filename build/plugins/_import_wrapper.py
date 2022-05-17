@@ -1,6 +1,5 @@
 try:
     from ymake import CustomCommand as RealCustomCommand
-    from ymake import addrule
     from ymake import addparser
     from ymake import subst
 
@@ -13,7 +12,6 @@ try:
 
 except ImportError:
     from _custom_command import CustomCommand  # noqa
-    from _custom_command import addrule  # noqa
     from _custom_command import addparser  # noqa
 
 
