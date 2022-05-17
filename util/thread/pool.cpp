@@ -366,7 +366,7 @@ void TThreadPool::Stop() noexcept {
     Impl_.Destroy();
 }
 
-static TAtomic mtp_queue_counter = 0;
+static std::atomic<long> MtpQueueCounter = 0;
 
 class TAdaptiveThreadPool::TImpl {
 public:
@@ -427,7 +427,7 @@ public:
         , Free_(0)
         , IdleTime_(TDuration::Max())
     {
-        sprintf(Name_, "[mtp queue %ld]", (long)AtomicAdd(mtp_queue_counter, 1));
+        sprintf(Name_, "[mtp queue %ld]", ++MtpQueueCounter);
     }
 
     inline ~TImpl() {
@@ -471,16 +471,16 @@ public:
     }
 
     inline size_t Size() const noexcept {
-        return (size_t)ThrCount_;
+        return ThrCount_.load();
     }
 
 private:
     inline void IncThreadCount() noexcept {
-        AtomicAdd(ThrCount_, 1);
+        ++ThrCount_;
     }
 
     inline void DecThreadCount() noexcept {
-        AtomicAdd(ThrCount_, -1);
+        --ThrCount_;
     }
 
     inline void AddThreadNoLock() {
@@ -500,7 +500,7 @@ private:
 
         AllDone_ = true;
 
-        while (AtomicGet(ThrCount_)) {
+        while (ThrCount_.load()) {
             Mutex_.Release();
             CondReady_.Signal();
             Mutex_.Acquire();
@@ -535,7 +535,7 @@ private:
     TAdaptiveThreadPool* Parent_;
     const bool Catching;
     TThreadNamer Namer;
-    TAtomic ThrCount_;
+    std::atomic<size_t> ThrCount_;
     TMutex Mutex_;
     TCondVar CondReady_;
     TCondVar CondFree_;
