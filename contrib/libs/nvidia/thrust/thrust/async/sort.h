@@ -34,8 +34,7 @@
 
 #include <thrust/event.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
@@ -269,7 +268,7 @@ THRUST_INLINE_CONSTANT sort_detail::sort_fn sort{};
 
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
 

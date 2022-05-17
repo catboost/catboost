@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/memory.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup memory_management Memory Management
  *  \addtogroup memory_management_classes Memory Management Classes
@@ -185,8 +184,7 @@ inline device_ptr<T> device_pointer_cast(const device_ptr<T> &ptr);
 /*! \}
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_ptr.inl>
 #include <thrust/detail/raw_pointer_cast.h>
-

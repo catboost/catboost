@@ -43,11 +43,7 @@
 #include "../config.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -138,7 +134,7 @@ struct DeviceSegmentedReduce
         typename            T>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Reduce(
-        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                 *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
@@ -222,7 +218,7 @@ struct DeviceSegmentedReduce
         typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Sum(
-        void                  *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                  *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT        d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT       d_out,                              ///< [out] Pointer to the output aggregate
@@ -236,9 +232,9 @@ struct DeviceSegmentedReduce
         typedef int OffsetT;
 
         // The output value type
-        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            typename std::iterator_traits<InputIteratorT>::value_type,                                          // ... then the input iterator's value type,
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputT;                          // ... else the output iterator's value type
+        using OutputT =
+          cub::detail::non_void_value_t<OutputIteratorT,
+                                        cub::detail::value_t<InputIteratorT>>;
 
         return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Sum>::Dispatch(
             d_temp_storage,
@@ -309,7 +305,7 @@ struct DeviceSegmentedReduce
         typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Min(
-        void                  *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                  *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT        d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT       d_out,                              ///< [out] Pointer to the output aggregate
@@ -320,10 +316,10 @@ struct DeviceSegmentedReduce
         bool                  debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
-        typedef int OffsetT;
+        using OffsetT = int;
 
         // The input value type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
+        using InputT = cub::detail::value_t<InputIteratorT>;
 
         return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Min>::Dispatch(
             d_temp_storage,
@@ -396,7 +392,7 @@ struct DeviceSegmentedReduce
         typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t ArgMin(
-        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                 *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
@@ -407,21 +403,23 @@ struct DeviceSegmentedReduce
         bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
-        typedef int OffsetT;
+        using OffsetT = int;
 
         // The input type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type InputValueT;
+        using InputValueT = cub::detail::value_t<InputIteratorT>;
 
         // The output tuple type
-        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            KeyValuePair<OffsetT, InputValueT>,                                                                 // ... then the key value pair OffsetT + InputValueT
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputTupleT;                     // ... else the output iterator's value type
+        using OutputTupleT =
+          cub::detail::non_void_value_t<OutputIteratorT,
+                                        KeyValuePair<OffsetT, InputValueT>>;
 
         // The output value type
-        typedef typename OutputTupleT::Value OutputValueT;
+        using OutputValueT = typename OutputTupleT::Value;
 
         // Wrapped input iterator to produce index-value <OffsetT, InputT> tuples
-        typedef ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT> ArgIndexInputIteratorT;
+        using ArgIndexInputIteratorT =
+          ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT>;
+
         ArgIndexInputIteratorT d_indexed_in(d_in);
 
         // Initial value
@@ -496,7 +494,7 @@ struct DeviceSegmentedReduce
         typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t Max(
-        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                 *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
@@ -507,10 +505,10 @@ struct DeviceSegmentedReduce
         bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
-        typedef int OffsetT;
+        using OffsetT = int;
 
         // The input value type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type InputT;
+        using InputT = cub::detail::value_t<InputIteratorT>;
 
         return DispatchSegmentedReduce<InputIteratorT,  OutputIteratorT, BeginOffsetIteratorT, EndOffsetIteratorT, OffsetT, cub::Max>::Dispatch(
             d_temp_storage,
@@ -583,7 +581,7 @@ struct DeviceSegmentedReduce
         typename            EndOffsetIteratorT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t ArgMax(
-        void                 *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                 *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t               &temp_storage_bytes,                ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         InputIteratorT       d_in,                               ///< [in] Pointer to the input sequence of data items
         OutputIteratorT      d_out,                              ///< [out] Pointer to the output aggregate
@@ -594,21 +592,23 @@ struct DeviceSegmentedReduce
         bool                 debug_synchronous   = false)        ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
         // Signed integer type for global offsets
-        typedef int OffsetT;
+        using OffsetT = int;
 
         // The input type
-        typedef typename std::iterator_traits<InputIteratorT>::value_type InputValueT;
+        using InputValueT = cub::detail::value_t<InputIteratorT>;
 
         // The output tuple type
-        typedef typename If<(Equals<typename std::iterator_traits<OutputIteratorT>::value_type, void>::VALUE),  // OutputT =  (if output iterator's value type is void) ?
-            KeyValuePair<OffsetT, InputValueT>,                                                                 // ... then the key value pair OffsetT + InputValueT
-            typename std::iterator_traits<OutputIteratorT>::value_type>::Type OutputTupleT;                     // ... else the output iterator's value type
+        using OutputTupleT =
+          cub::detail::non_void_value_t<OutputIteratorT,
+                                        KeyValuePair<OffsetT, InputValueT>>;
 
         // The output value type
-        typedef typename OutputTupleT::Value OutputValueT;
+        using OutputValueT = typename OutputTupleT::Value;
 
         // Wrapped input iterator to produce index-value <OffsetT, InputT> tuples
-        typedef ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT> ArgIndexInputIteratorT;
+        using ArgIndexInputIteratorT =
+          ArgIndexInputIterator<InputIteratorT, OffsetT, OutputValueT>;
+
         ArgIndexInputIteratorT d_indexed_in(d_in);
 
         // Initial value
@@ -630,7 +630,6 @@ struct DeviceSegmentedReduce
 
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

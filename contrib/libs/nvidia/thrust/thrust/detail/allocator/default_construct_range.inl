@@ -21,8 +21,7 @@
 #include <thrust/for_each.h>
 #include <thrust/uninitialized_fill.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace allocator_traits_detail
@@ -107,5 +106,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -29,6 +29,65 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
+KEEP     COPYRIGHT_SERVICE_LABEL 3152381a97e8a2aa772c0bddcd12c226
+BELONGS ya.make
+    License text:
+         * Copyright (c) NVIDIA CORPORATION.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        cub/agent/agent_unique_by_key.cuh [2:2]
+        cub/device/dispatch/dispatch_unique_by_key.cuh [3:3]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 437f54f3aad0b5d2a2f9d8346bca8f22
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2011-2021, NVIDIA CORPORATION.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        cub/agent/agent_adjacent_difference.cuh [2:2]
+        cub/agent/agent_merge_sort.cuh [2:2]
+        cub/agent/agent_segmented_radix_sort.cuh [2:2]
+        cub/agent/agent_sub_warp_merge_sort.cuh [2:2]
+        cub/agent/agent_three_way_partition.cuh [2:2]
+        cub/block/block_adjacent_difference.cuh [3:3]
+        cub/block/block_merge_sort.cuh [2:2]
+        cub/block/block_run_length_decode.cuh [2:2]
+        cub/device/device_adjacent_difference.cuh [2:2]
+        cub/device/device_merge_sort.cuh [2:2]
+        cub/device/device_partition.cuh [3:3]
+        cub/device/device_segmented_sort.cuh [2:2]
+        cub/device/device_select.cuh [4:4]
+        cub/device/dispatch/dispatch_adjacent_difference.cuh [2:2]
+        cub/device/dispatch/dispatch_merge_sort.cuh [2:2]
+        cub/device/dispatch/dispatch_segmented_sort.cuh [2:2]
+        cub/device/dispatch/dispatch_three_way_partition.cuh [2:2]
+        cub/thread/thread_sort.cuh [2:2]
+        cub/util_namespace.cuh [3:3]
+        cub/warp/warp_exchange.cuh [2:2]
+        cub/warp/warp_load.cuh [2:2]
+        cub/warp/warp_merge_sort.cuh [2:2]
+        cub/warp/warp_store.cuh [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 92044b1d85689b47fc99543f5353d172
+BELONGS ya.make
+    License text:
+         *  Copyright 2021 NVIDIA Corporation
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        cub/detail/device_double_buffer.cuh [2:2]
+        cub/detail/device_synchronize.cuh [2:2]
+        cub/detail/exec_check_disable.cuh [2:2]
+        cub/detail/temporary_storage.cuh [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 975825a5980f615ca06dcac792de51f9
 BELONGS ya.make
     License text:
@@ -39,7 +98,20 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [1:1]
-        README.md [187:187]
+        README.md [191:191]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9d1993d8039cb2f20ad55cbac3545f4e
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        cub/agent/agent_scan_by_key.cuh [2:2]
+        cub/detail/type_traits.cuh [2:2]
+        cub/device/dispatch/dispatch_scan_by_key.cuh [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL b655b9b18c4d6b953441c203056f5e31
 BELONGS ya.make
@@ -62,7 +134,7 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [2:2]
-        README.md [188:188]
+        README.md [192:192]
         cub/agent/agent_histogram.cuh [3:3]
         cub/agent/agent_radix_sort_downsweep.cuh [3:3]
         cub/agent/agent_radix_sort_upsweep.cuh [3:3]
@@ -74,7 +146,6 @@ BELONGS ya.make
         cub/agent/agent_select_if.cuh [3:3]
         cub/agent/agent_spmv_orig.cuh [3:3]
         cub/agent/single_pass_scan_operators.cuh [3:3]
-        cub/block/block_adjacent_difference.cuh [3:3]
         cub/block/block_discontinuity.cuh [3:3]
         cub/block/block_exchange.cuh [3:3]
         cub/block/block_histogram.cuh [3:3]
@@ -96,17 +167,15 @@ BELONGS ya.make
         cub/block/specializations/block_scan_warp_scans3.cuh [3:3]
         cub/cub.cuh [3:3]
         cub/device/device_histogram.cuh [4:4]
-        cub/device/device_partition.cuh [4:4]
         cub/device/device_radix_sort.cuh [4:4]
         cub/device/device_reduce.cuh [4:4]
         cub/device/device_run_length_encode.cuh [4:4]
         cub/device/device_scan.cuh [4:4]
         cub/device/device_segmented_radix_sort.cuh [4:4]
         cub/device/device_segmented_reduce.cuh [4:4]
-        cub/device/device_select.cuh [4:4]
         cub/device/device_spmv.cuh [4:4]
         cub/device/dispatch/dispatch_histogram.cuh [4:4]
-        cub/device/dispatch/dispatch_radix_sort.cuh [4:4]
+        cub/device/dispatch/dispatch_radix_sort.cuh [3:3]
         cub/device/dispatch/dispatch_reduce.cuh [4:4]
         cub/device/dispatch/dispatch_reduce_by_key.cuh [4:4]
         cub/device/dispatch/dispatch_rle.cuh [4:4]
@@ -137,7 +206,6 @@ BELONGS ya.make
         cub/util_arch.cuh [3:3]
         cub/util_debug.cuh [3:3]
         cub/util_macro.cuh [3:3]
-        cub/util_namespace.cuh [3:3]
         cub/util_ptx.cuh [3:3]
         cub/util_type.cuh [3:3]
         cub/warp/specializations/warp_reduce_shfl.cuh [3:3]
@@ -205,7 +273,7 @@ BELONGS ya.make
         cub/block/specializations/block_scan_warp_scans3.cuh [2:2]
         cub/cub.cuh [2:2]
         cub/device/device_histogram.cuh [3:3]
-        cub/device/device_partition.cuh [3:3]
+        cub/device/device_partition.cuh [2:2]
         cub/device/device_radix_sort.cuh [3:3]
         cub/device/device_reduce.cuh [3:3]
         cub/device/device_run_length_encode.cuh [3:3]
@@ -215,7 +283,7 @@ BELONGS ya.make
         cub/device/device_select.cuh [3:3]
         cub/device/device_spmv.cuh [3:3]
         cub/device/dispatch/dispatch_histogram.cuh [3:3]
-        cub/device/dispatch/dispatch_radix_sort.cuh [3:3]
+        cub/device/dispatch/dispatch_radix_sort.cuh [2:2]
         cub/device/dispatch/dispatch_reduce.cuh [3:3]
         cub/device/dispatch/dispatch_reduce_by_key.cuh [3:3]
         cub/device/dispatch/dispatch_rle.cuh [3:3]

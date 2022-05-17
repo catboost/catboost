@@ -37,8 +37,7 @@
 #include <thrust/iterator/iterator_facade.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 /*! \addtogroup iterators
@@ -213,5 +212,5 @@ permutation_iterator<ElementIterator,IndexIterator> make_permutation_iterator(El
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

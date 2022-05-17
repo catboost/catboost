@@ -33,8 +33,7 @@
 
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -1317,5 +1316,5 @@ bool operator!=(const std::vector<T1,Alloc1>&         lhs,
     return !(lhs == rhs);
 }
 
-} // end thrust
+THRUST_NAMESPACE_END
 

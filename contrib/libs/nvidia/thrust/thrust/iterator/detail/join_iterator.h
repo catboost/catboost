@@ -23,8 +23,7 @@
 #include <thrust/detail/type_traits.h>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -130,5 +129,5 @@ join_iterator<RandomAccessIterator1,RandomAccessIterator2,Size> make_join_iterat
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

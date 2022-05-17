@@ -28,8 +28,7 @@
 #include <thrust/system/system_error.h>
 #include <thrust/system/cuda/error.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -240,5 +239,5 @@ using thrust::system::cuda::experimental::pinned_allocator;
 
 } // end cuda
 
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -26,9 +26,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup reductions
  *  \{
@@ -778,8 +776,6 @@ template<typename InputIterator1,
 /*! \} // end reductions
  */
 
-
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/reduce.inl>
-

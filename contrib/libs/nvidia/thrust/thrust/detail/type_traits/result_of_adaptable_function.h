@@ -22,8 +22,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -62,4 +61,4 @@ struct result_of_adaptable_function<
 };
 
 } // namespace detail
-} // namespace thrust
+THRUST_NAMESPACE_END

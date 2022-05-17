@@ -25,8 +25,8 @@
 
 #include <thrust/detail/execute_with_dependencies.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -99,7 +99,8 @@ struct dependencies_aware_execution_policy
 };
 
 } // end detail
-} // end thrust
+
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

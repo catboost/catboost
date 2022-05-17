@@ -35,8 +35,7 @@
 #include <cstddef> // for size_t
 #include <thrust/random/detail/random_core_access.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 namespace random
@@ -224,7 +223,7 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 // import names into thrust::
 using random::linear_feedback_shift_engine;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/linear_feedback_shift_engine.inl>
 

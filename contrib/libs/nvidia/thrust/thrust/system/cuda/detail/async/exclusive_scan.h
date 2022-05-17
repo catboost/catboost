@@ -52,8 +52,7 @@
 //    fixed in CUB first).
 //  - Need to check if CUB actually optimizes for sums before putting in effort
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace cuda
@@ -75,16 +74,19 @@ async_exclusive_scan_n(execution_policy<DerivedPolicy>& policy,
                        InitialValueType init,
                        BinaryOp op)
 {
+  using InputValueT = cub::detail::InputValue<InitialValueType>;
   using Dispatch32 = cub::DispatchScan<ForwardIt,
                                        OutputIt,
                                        BinaryOp,
-                                       InitialValueType,
+                                       InputValueT,
                                        thrust::detail::int32_t>;
   using Dispatch64 = cub::DispatchScan<ForwardIt,
                                        OutputIt,
                                        BinaryOp,
-                                       InitialValueType,
+                                       InputValueT,
                                        thrust::detail::int64_t>;
+
+  InputValueT init_value(init);
 
   auto const device_alloc = get_async_device_allocator(policy);
   unique_eager_event ev;
@@ -102,7 +104,7 @@ async_exclusive_scan_n(execution_policy<DerivedPolicy>& policy,
                                   first,
                                   out,
                                   op,
-                                  init,
+                                  init_value,
                                   n_fixed,
                                   nullptr,
                                   THRUST_DEBUG_SYNC_FLAG));
@@ -149,7 +151,7 @@ async_exclusive_scan_n(execution_policy<DerivedPolicy>& policy,
                                   first,
                                   out,
                                   op,
-                                  init,
+                                  init_value,
                                   n_fixed,
                                   user_raw_stream,
                                   THRUST_DEBUG_SYNC_FLAG));
@@ -191,7 +193,7 @@ THRUST_RETURNS(
 
 } // namespace cuda_cub
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

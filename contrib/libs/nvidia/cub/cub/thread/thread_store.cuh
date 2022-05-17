@@ -37,11 +37,7 @@
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \addtogroup UtilIo
@@ -405,7 +401,7 @@ __device__ __forceinline__ void ThreadStore(OutputIteratorT itr, T val)
         itr,
         val,
         Int2Type<MODIFIER>(),
-        Int2Type<IsPointer<OutputIteratorT>::VALUE>());
+        Int2Type<std::is_pointer<OutputIteratorT>::value>());
 }
 
 
@@ -416,5 +412,4 @@ __device__ __forceinline__ void ThreadStore(OutputIteratorT itr, T val)
 /** @} */       // end group UtilIo
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

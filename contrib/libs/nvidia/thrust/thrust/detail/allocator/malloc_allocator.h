@@ -20,8 +20,7 @@
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/detail/allocator/tagged_allocator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -46,7 +45,7 @@ template<typename T, typename System, typename Pointer>
 };
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/allocator/malloc_allocator.inl>
 

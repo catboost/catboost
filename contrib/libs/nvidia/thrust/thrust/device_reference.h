@@ -26,8 +26,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/reference.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup memory_management_classes Memory Management Classes
  *  \ingroup memory_management
@@ -986,5 +985,4 @@ operator<<(std::basic_ostream<charT, traits> &os, const device_reference<T> &y);
 /*! \}
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

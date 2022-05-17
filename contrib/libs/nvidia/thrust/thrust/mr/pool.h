@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/algorithm_wrapper.h>
 
 #include <thrust/host_vector.h>
@@ -31,8 +33,7 @@
 
 #include <cassert>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
@@ -501,5 +502,5 @@ public:
  */
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 

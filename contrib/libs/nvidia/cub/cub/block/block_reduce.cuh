@@ -41,11 +41,7 @@
 #include "../util_type.cuh"
 #include "../thread/thread_operators.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 
@@ -195,7 +191,7 @@ enum BlockReduceAlgorithm
  *
  * __global__ void ExampleKernel(...)
  * {
- *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+ *     // Specialize BlockReduce for a 1D block of 128 threads of type int
  *     typedef cub::BlockReduce<int, 128> BlockReduce;
  *
  *     // Allocate shared memory for BlockReduce
@@ -210,6 +206,11 @@ enum BlockReduceAlgorithm
  *
  * \endcode
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
  */
 template <
     typename                T,
@@ -238,11 +239,12 @@ private:
     typedef BlockReduceRaking<T, BLOCK_DIM_X, BLOCK_DIM_Y, BLOCK_DIM_Z, PTX_ARCH>                   Raking;
 
     /// Internal specialization type
-    typedef typename If<(ALGORITHM == BLOCK_REDUCE_WARP_REDUCTIONS),
-        WarpReductions,
-        typename If<(ALGORITHM == BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY),
-            RakingCommutativeOnly,
-            Raking>::Type>::Type InternalBlockReduce;     // BlockReduceRaking
+    using InternalBlockReduce = cub::detail::conditional_t<
+      ALGORITHM == BLOCK_REDUCE_WARP_REDUCTIONS,
+      WarpReductions,
+      cub::detail::conditional_t<ALGORITHM == BLOCK_REDUCE_RAKING_COMMUTATIVE_ONLY,
+                                 RakingCommutativeOnly,
+                                 Raking>>; // BlockReduceRaking
 
     /// Shared memory storage layout type for BlockReduce
     typedef typename InternalBlockReduce::TempStorage _TempStorage;
@@ -327,7 +329,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -371,7 +373,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -419,7 +421,7 @@ public:
      *
      * __global__ void ExampleKernel(int num_valid, ...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -478,7 +480,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -518,7 +520,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -562,7 +564,7 @@ public:
      *
      * __global__ void ExampleKernel(int num_valid, ...)
      * {
-     *     // Specialize BlockReduce for a 1D block of 128 threads on type int
+     *     // Specialize BlockReduce for a 1D block of 128 threads of type int
      *     typedef cub::BlockReduce<int, 128> BlockReduce;
      *
      *     // Allocate shared memory for BlockReduce
@@ -602,6 +604,5 @@ public:
  * \example example_block_reduce.cu
  */
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

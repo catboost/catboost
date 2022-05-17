@@ -26,9 +26,7 @@
 #include <thrust/system/detail/generic/partition.h>
 #include <thrust/system/detail/adl/partition.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy,
@@ -413,6 +411,4 @@ template<typename InputIterator, typename Predicate>
   return thrust::is_partitioned(select_system(system), first, last, pred);
 } // end is_partitioned()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

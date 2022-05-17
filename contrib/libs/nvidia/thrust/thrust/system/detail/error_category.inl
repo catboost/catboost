@@ -17,13 +17,14 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/error_code.h>
 #include <thrust/system/detail/errno.h>
 #include <thrust/functional.h>
 #include <cstring>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -232,5 +233,5 @@ const error_category &system_category(void)
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 

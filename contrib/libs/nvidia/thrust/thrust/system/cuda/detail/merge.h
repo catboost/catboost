@@ -26,6 +26,8 @@ j * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/detail/cstdint.h>
 #include <thrust/detail/temporary_array.h>
@@ -43,8 +45,7 @@ j * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
 #include <thrust/distance.h>
 
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __merge {
@@ -169,7 +170,7 @@ namespace __merge {
       Size partition_idx = blockDim.x * blockIdx.x + threadIdx.x;
       if (partition_idx < num_partitions)
       {
-        Size partition_at = thrust::min(partition_idx * items_per_tile,
+        Size partition_at = (thrust::min)(partition_idx * items_per_tile,
                                         keys1_count + keys2_count);
         Size partition_diag = merge_path(keys1,
                                          keys2,
@@ -188,7 +189,7 @@ namespace __merge {
 
   namespace mpl = thrust::detail::mpl::math;
 
-  template<size_t NOMINAL_4B_ITEMS_PER_THREAD, size_t INPUT_SIZE>
+  template<int NOMINAL_4B_ITEMS_PER_THREAD, size_t INPUT_SIZE>
   struct items_per_thread
   {
     enum
@@ -200,8 +201,8 @@ namespace __merge {
               mpl::max<
                   int,
                   1,
-                  (NOMINAL_4B_ITEMS_PER_THREAD * 4 / INPUT_SIZE)>::value>::value,
-      value = mpl::is_odd<size_t, ITEMS_PER_THREAD>::value
+                  static_cast<int>(NOMINAL_4B_ITEMS_PER_THREAD * 4 / INPUT_SIZE)>::value>::value,
+      value = mpl::is_odd<int, ITEMS_PER_THREAD>::value
                   ? ITEMS_PER_THREAD
                   : ITEMS_PER_THREAD + 1
     };
@@ -462,7 +463,7 @@ namespace __merge {
         Size partition_end = merge_partitions[tile_idx + 1];
 
         Size diag0 = ITEMS_PER_TILE * tile_idx;
-        Size diag1 = thrust::min(keys1_count + keys2_count, diag0 + ITEMS_PER_TILE);
+        Size diag1 = (thrust::min)(keys1_count + keys2_count, diag0 + ITEMS_PER_TILE);
 
         // compute bounding box for keys1 & keys2
         //
@@ -846,7 +847,7 @@ namespace __merge {
                                     debug_sync);
     cuda_cub::throw_on_error(status, "merge: failed on 2nd step");
 
-    status = cuda_cub::synchronize(policy);
+    status = cuda_cub::synchronize_optional(policy);
     cuda_cub::throw_on_error(status, "merge: failed to synchronize");
 
     return thrust::make_pair(keys_result + count, items_result + count);
@@ -1014,5 +1015,5 @@ merge_by_key(execution_policy<Derived> &policy,
 
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

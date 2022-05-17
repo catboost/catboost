@@ -37,8 +37,7 @@
 #include <thrust/iterator/detail/reverse_iterator_base.h>
 #include <thrust/iterator/iterator_facade.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -232,7 +231,7 @@ reverse_iterator<BidirectionalIterator> make_reverse_iterator(BidirectionalItera
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/reverse_iterator.inl>
 

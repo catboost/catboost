@@ -16,17 +16,17 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if  THRUST_CPP_DIALECT >= 2017
 #if __has_include(<version>)
 #  include <version>
 #endif
 #endif
 
-#include <thrust/detail/config.h>
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 #if defined(__cpp_lib_remove_cvref) && (__cpp_lib_remove_cvref >= 201711L)
 
@@ -50,5 +50,5 @@ using remove_cvref_t = typename remove_cvref<T>::type;
 
 #endif // THRUST_CPP_DIALECT >= 2020
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

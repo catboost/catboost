@@ -26,9 +26,7 @@
 #include <thrust/system/detail/generic/inner_product.h>
 #include <thrust/system/detail/adl/inner_product.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy,
@@ -103,6 +101,4 @@ inner_product(InputIterator1 first1, InputIterator1 last1,
   return thrust::inner_product(select_system(system1,system2), first1, last1, first2, init, binary_op1, binary_op2);
 } // end inner_product()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

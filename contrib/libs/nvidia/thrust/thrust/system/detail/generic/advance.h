@@ -19,8 +19,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -35,7 +34,7 @@ void advance(InputIterator& i, Distance n);
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/advance.inl>
 

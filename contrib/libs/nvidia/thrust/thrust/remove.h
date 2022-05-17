@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup stream_compaction Stream Compaction
  *  \ingroup reordering
@@ -799,8 +797,6 @@ template<typename InputIterator1,
 /*! \} // end stream_compaction
  */
 
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/remove.inl>
-

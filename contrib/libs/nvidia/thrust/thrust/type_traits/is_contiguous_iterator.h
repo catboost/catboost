@@ -38,8 +38,7 @@
   #endif
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -85,10 +84,11 @@ struct proclaim_contiguous_iterator : false_type {};
 /// <a href="https://en.cppreference.com/w/cpp/named_req/ContiguousIterator">ContiguousIterator</a>
 /// by specializing `thrust::proclaim_contiguous_iterator`.
 #define THRUST_PROCLAIM_CONTIGUOUS_ITERATOR(Iterator)                         \
-  namespace thrust {                                                          \
+  THRUST_NAMESPACE_BEGIN                                                      \
   template <>                                                                 \
-  struct proclaim_contiguous_iterator<Iterator> : ::thrust::true_type {};     \
-  } /* end namespace thrust */                                                \
+  struct proclaim_contiguous_iterator<Iterator>                               \
+      : THRUST_NS_QUALIFIER::true_type {};                                    \
+  THRUST_NAMESPACE_END                                                        \
   /**/
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -181,5 +181,5 @@ struct is_contiguous_iterator_impl
 
 } // namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

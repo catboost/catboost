@@ -14,10 +14,11 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/random/discard_block_engine.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -208,5 +209,5 @@ bool operator!=(const discard_block_engine<Engine,p,r> &lhs,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

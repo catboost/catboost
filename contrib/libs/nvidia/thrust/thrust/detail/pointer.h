@@ -25,9 +25,7 @@
 #include <thrust/detail/reference_forward_declaration.h>
 #include <ostream>
 
-
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename Element, typename Tag, typename Reference = use_default, typename Derived = use_default>
 class pointer;
@@ -46,15 +44,15 @@ struct iterator_traits<thrust::pointer<Element, Tag, Reference, Derived>>
   using reference         = typename pointer::reference;
 };
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 namespace std
 {
 
 template <typename Element, typename Tag, typename Reference, typename Derived>
-struct iterator_traits<thrust::pointer<Element, Tag, Reference, Derived>>
+struct iterator_traits<THRUST_NS_QUALIFIER::pointer<Element, Tag, Reference, Derived>>
 {
-  using pointer           = thrust::pointer<Element, Tag, Reference, Derived>;
+  using pointer           = THRUST_NS_QUALIFIER::pointer<Element, Tag, Reference, Derived>;
   using iterator_category = typename pointer::iterator_category;
   using value_type        = typename pointer::value_type;
   using difference_type   = typename pointer::difference_type;
@@ -63,7 +61,9 @@ struct iterator_traits<thrust::pointer<Element, Tag, Reference, Derived>>
 
 } // namespace std
 
-namespace thrust { namespace detail
+THRUST_NAMESPACE_BEGIN
+
+namespace detail
 {
 
 // this metafunction computes the type of iterator_adaptor thrust::pointer should inherit from
@@ -243,7 +243,7 @@ template <typename Element, typename Tag, typename Reference, typename Derived>
 __host__ __device__
 bool operator!=(pointer<Element, Tag, Reference, Derived> p, decltype(nullptr));
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/pointer.inl>
 

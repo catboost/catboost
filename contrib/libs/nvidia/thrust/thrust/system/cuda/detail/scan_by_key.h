@@ -26,6 +26,8 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/detail/cstdint.h>
 #include <thrust/detail/temporary_array.h>
@@ -40,8 +42,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __scan_by_key {
@@ -88,8 +89,8 @@ namespace __scan_by_key {
               int,
               1,
               ((NOMINAL_4B_ITEMS_PER_THREAD * 8) +
-               COMBINED_INPUT_BYTES - 1) /
-                  COMBINED_INPUT_BYTES>::value>::value,
+               static_cast<int>(COMBINED_INPUT_BYTES) - 1) /
+                  static_cast<int>(COMBINED_INPUT_BYTES)>::value>::value,
     };
 
     typedef PtxPolicy<128,
@@ -774,7 +775,7 @@ namespace __scan_by_key {
                                   debug_sync);
     cuda_cub::throw_on_error(status, "scan_by_key: failed on 2nd step");
 
-    status = cuda_cub::synchronize(policy);
+    status = cuda_cub::synchronize_optional(policy);
     cuda_cub::throw_on_error(status, "scan_by_key: failed to synchronize");
 
     return values_result + num_items;
@@ -999,7 +1000,7 @@ exclusive_scan_by_key(execution_policy<Derived> &policy,
 
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/scan.h>
 

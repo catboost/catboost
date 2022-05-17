@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -51,5 +50,5 @@ struct any_assign
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

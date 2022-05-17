@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/version.h>
 #include <thrust/detail/execution_policy.h>
 #include <thrust/iterator/detail/any_system_tag.h>
@@ -38,8 +40,7 @@
   #include <thrust/detail/dependencies_aware_execution_policy.h>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub
 {
@@ -95,5 +96,5 @@ using thrust::cuda_cub::execution_policy;
 
 } // namespace cuda
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

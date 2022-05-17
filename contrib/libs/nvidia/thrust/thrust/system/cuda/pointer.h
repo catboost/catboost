@@ -26,7 +26,8 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/reference.h>
 
-namespace thrust { namespace cuda_cub
+THRUST_NAMESPACE_BEGIN
+namespace cuda_cub
 {
 
 /*! \p cuda::pointer stores a pointer to an object allocated in memory
@@ -132,5 +133,5 @@ using thrust::cuda_cub::universal_pointer;
 using thrust::cuda_cub::reference;
 } // namespace cuda
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

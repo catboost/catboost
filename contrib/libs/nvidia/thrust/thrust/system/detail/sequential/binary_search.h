@@ -21,13 +21,14 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/advance.h>
 #include <thrust/distance.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/function.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -153,5 +154,5 @@ bool binary_search(sequential::execution_policy<DerivedPolicy> &exec,
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

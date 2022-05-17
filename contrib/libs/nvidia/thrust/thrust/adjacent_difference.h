@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup transformations Transformations
  *  \{
@@ -240,7 +238,7 @@ OutputIterator adjacent_difference(InputIterator first, InputIterator last,
 /*! \}
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/adjacent_difference.inl>
 

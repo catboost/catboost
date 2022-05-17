@@ -24,8 +24,7 @@
 #include <cstring>
 #include <thrust/system/detail/sequential/general_copy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -58,5 +57,5 @@ __host__ __device__
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

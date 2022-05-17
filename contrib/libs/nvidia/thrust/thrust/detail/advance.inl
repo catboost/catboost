@@ -27,8 +27,7 @@
 #include <thrust/detail/type_traits/has_nested_type.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 __THRUST_DEFINE_HAS_NESTED_TYPE(has_difference_type, difference_type)
 
@@ -75,5 +74,4 @@ typename detail::disable_if<
   return i;
 }
 
-} // namespace thrust
-
+THRUST_NAMESPACE_END

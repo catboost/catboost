@@ -20,8 +20,7 @@
 #include <thrust/detail/internal_functional.h>
 #include <thrust/mismatch.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -54,5 +53,5 @@ bool equal(thrust::execution_policy<DerivedPolicy> &exec, InputIterator1 first1,
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

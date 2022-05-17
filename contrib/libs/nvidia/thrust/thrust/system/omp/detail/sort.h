@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/omp/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -49,7 +48,7 @@ void stable_sort_by_key(execution_policy<DerivedPolicy> &exec,
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/omp/detail/sort.inl>
 

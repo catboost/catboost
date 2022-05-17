@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -35,8 +36,7 @@
 #include <thrust/system/cuda/detail/parallel_for.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 
@@ -233,7 +233,7 @@ namespace __transform {
                            num_items);
 
     cuda_cub::throw_on_error(
-      cuda_cub::synchronize(policy)
+      cuda_cub::synchronize_optional(policy)
     , "transform: failed to synchronize"
     );
 
@@ -279,7 +279,7 @@ namespace __transform {
                            num_items);
 
     cuda_cub::throw_on_error(
-      cuda_cub::synchronize(policy)
+      cuda_cub::synchronize_optional(policy)
     , "transform: failed to synchronize"
     );
 
@@ -422,5 +422,5 @@ transform(execution_policy<Derived> &policy,
 
 }    // namespace cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

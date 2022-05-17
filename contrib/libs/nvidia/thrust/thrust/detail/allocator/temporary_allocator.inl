@@ -20,13 +20,12 @@
 #include <thrust/system/detail/bad_alloc.h>
 #include <cassert>
 
-#if (defined(__NVCOMPILER_CUDA__) || defined(__CUDA_ARCH__)) && \
+#if (defined(_NVHPC_CUDA) || defined(__CUDA_ARCH__)) && \
     THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA
 #include <thrust/system/cuda/detail/terminate.h>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -71,5 +70,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

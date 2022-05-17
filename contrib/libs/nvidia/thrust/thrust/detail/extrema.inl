@@ -22,9 +22,7 @@
 #include <thrust/system/detail/generic/extrema.h>
 #include <thrust/system/detail/adl/extrema.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator>
@@ -167,6 +165,4 @@ minmax_element(ForwardIterator first, ForwardIterator last, BinaryPredicate comp
   return thrust::minmax_element(select_system(system), first, last, comp);
 } // end minmax_element()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

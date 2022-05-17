@@ -20,8 +20,7 @@
 #include <thrust/system/omp/detail/execution_policy.h>
 #include <thrust/system/detail/generic/extrema.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -62,6 +61,6 @@ thrust::pair<ForwardIterator,ForwardIterator> minmax_element(execution_policy<De
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 

@@ -19,8 +19,7 @@
 #include <thrust/transform_reduce.h>
 #include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -77,5 +76,5 @@ count_if(thrust::execution_policy<DerivedPolicy> &exec, InputIterator first, Inp
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

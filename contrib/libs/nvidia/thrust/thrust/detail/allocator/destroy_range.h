@@ -18,8 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -28,7 +27,7 @@ __host__ __device__
   inline void destroy_range(Allocator &a, Pointer p, Size n);
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/allocator/destroy_range.inl>
 

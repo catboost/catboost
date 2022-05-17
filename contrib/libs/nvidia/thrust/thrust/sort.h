@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup sorting
  *  \ingroup algorithms
@@ -1355,8 +1353,6 @@ template<typename ForwardIterator, typename Compare>
  *  \} // end reductions
  */
 
-
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/sort.inl>
-

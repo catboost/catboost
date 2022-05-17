@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/tbb/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -51,7 +50,7 @@ OutputIterator copy_n(execution_policy<DerivedPolicy> &exec,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/copy.inl>
 

@@ -22,8 +22,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup system
  *  \{
@@ -44,8 +43,7 @@ namespace system
 /*! \} // end system
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/error_code.h>
 #include <thrust/system/system_error.h>
-

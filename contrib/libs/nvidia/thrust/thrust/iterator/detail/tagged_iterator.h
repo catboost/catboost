@@ -22,8 +22,7 @@
 #include <thrust/detail/use_default.h>
 #include <thrust/type_traits/is_contiguous_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -67,5 +66,5 @@ struct proclaim_contiguous_iterator<
   detail::tagged_iterator<BaseIterator, Tag>
 > : is_contiguous_iterator<BaseIterator> {};
 
-} // end thrust
+THRUST_NAMESPACE_END
 

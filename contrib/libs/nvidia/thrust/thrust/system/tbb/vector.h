@@ -26,7 +26,8 @@
 #include <thrust/detail/vector_base.h>
 #include <vector>
 
-namespace thrust { namespace system { namespace tbb
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace tbb
 {
 
 /*! \p tbb::vector is a container that supports random access to elements,
@@ -78,4 +79,4 @@ using thrust::system::tbb::vector;
 using thrust::system::tbb::universal_vector;
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END

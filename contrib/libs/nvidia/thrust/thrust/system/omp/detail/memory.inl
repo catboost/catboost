@@ -20,8 +20,7 @@
 #include <thrust/system/cpp/memory.h>
 #include <limits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -80,5 +79,5 @@ inline void free(pointer<void> ptr)
 
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

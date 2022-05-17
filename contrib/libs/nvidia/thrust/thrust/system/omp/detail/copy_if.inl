@@ -20,8 +20,7 @@
 #include <thrust/system/omp/detail/copy_if.h>
 #include <thrust/system/detail/generic/copy_if.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -50,5 +49,5 @@ template<typename DerivedPolicy,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/tbb/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -64,7 +63,7 @@ thrust::pair<OutputIterator1,OutputIterator2>
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/merge.inl>
 

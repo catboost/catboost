@@ -21,8 +21,7 @@
 #include <thrust/pair.h>
 #include <thrust/detail/reference_forward_declaration.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -143,5 +142,5 @@ struct tuple_element<i, detail::tuple_of_iterator_references<T,Ts...>>
 };
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -43,8 +43,7 @@
 #include <mutex>
 #include <unordered_map>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub
 {
@@ -65,7 +64,7 @@ MR * get_per_device_resource(execution_policy<DerivedPolicy>&)
 
 }
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
 

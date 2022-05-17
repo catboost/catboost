@@ -28,8 +28,7 @@
 #include <stdexcept> // for std::runtime_error
 #include <utility> // for use of std::swap in the WAR below
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -549,5 +548,4 @@ __host__ __device__
   lhs.swap(rhs);
 } // end swap()
 
-} // end thrust
-
+THRUST_NAMESPACE_END

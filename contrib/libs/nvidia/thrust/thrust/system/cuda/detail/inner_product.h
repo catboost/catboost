@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <iterator>
@@ -33,8 +34,7 @@
 #include <thrust/detail/minmax.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 
@@ -90,5 +90,5 @@ inner_product(execution_policy<Derived> &policy,
 
 }    // namespace cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

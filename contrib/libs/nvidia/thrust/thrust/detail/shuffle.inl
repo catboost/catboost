@@ -28,7 +28,7 @@
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/generic/shuffle.h>
 
-namespace thrust {
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template <typename DerivedPolicy, typename RandomIterator, typename URBG>
@@ -80,6 +80,6 @@ __host__ __device__ void shuffle_copy(RandomIterator first, RandomIterator last,
                               result, g);
 }
 
-}  // namespace thrust
+THRUST_NAMESPACE_END
 
 #endif

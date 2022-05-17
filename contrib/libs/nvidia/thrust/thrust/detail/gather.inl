@@ -19,15 +19,15 @@
  *  \brief Inline file for gather.h.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/gather.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/generic/gather.h>
 #include <thrust/system/detail/adl/gather.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy,
@@ -161,6 +161,4 @@ template<typename InputIterator1,
   return thrust::gather_if(select_system(system1,system2,system3,system4), map_first, map_last, stencil, input_first, result, pred);
 } // end gather_if()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

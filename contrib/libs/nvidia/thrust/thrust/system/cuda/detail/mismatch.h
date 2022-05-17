@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -33,8 +34,7 @@
 #include <thrust/pair.h>
 #include <thrust/distance.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 template <class Derived,
@@ -57,12 +57,11 @@ mismatch(execution_policy<Derived>& policy,
          InputIt1                   last1,
          InputIt2                   first2);
 } // namespace cuda_
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/cuda/detail/find.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 template <class Derived,
@@ -113,5 +112,5 @@ mismatch(execution_policy<Derived>& policy,
 
 
 } // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

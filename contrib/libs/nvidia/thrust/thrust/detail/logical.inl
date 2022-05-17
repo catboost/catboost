@@ -25,9 +25,7 @@
 #include <thrust/system/detail/generic/logical.h>
 #include <thrust/system/detail/adl/logical.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename Predicate>
@@ -97,6 +95,4 @@ bool none_of(InputIterator first, InputIterator last, Predicate pred)
   return thrust::none_of(select_system(system), first, last, pred);
 }
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

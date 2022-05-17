@@ -20,8 +20,7 @@
 #include <thrust/system/tbb/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -53,7 +52,7 @@ template<typename ExecutionPolicy,
 } // end namespace detail
 } // end namespace tbb 
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/unique.inl>
 

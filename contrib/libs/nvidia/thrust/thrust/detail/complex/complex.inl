@@ -15,12 +15,13 @@
  *  limitations under the License.
  */
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 
 #include <thrust/type_traits/is_trivially_relocatable.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /* --- Constructors --- */
 
@@ -330,7 +331,7 @@ bool operator!=(const complex<T0>& x, const T1& y)
 template <typename T>
 struct proclaim_trivially_relocatable<complex<T> > : thrust::true_type {};
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/complex/arithmetic.h>
 #include <thrust/detail/complex/cproj.h>

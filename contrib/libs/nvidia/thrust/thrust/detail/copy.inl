@@ -21,9 +21,7 @@
 #include <thrust/system/detail/generic/copy.h>
 #include <thrust/system/detail/adl/copy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy, typename InputIterator, typename OutputIterator>
@@ -127,6 +125,4 @@ template<typename InputIterator,
   return thrust::detail::two_system_copy_n(system1, system2, first, n, result);
 } // end copy_n()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

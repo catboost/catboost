@@ -27,7 +27,8 @@
 #include <thrust/mr/allocator.h>
 #include <ostream>
 
-namespace thrust { namespace cuda_cub
+THRUST_NAMESPACE_BEGIN
+namespace cuda_cub
 {
 
 /*! Allocates an area of memory available to Thrust's <tt>cuda</tt> system.
@@ -102,7 +103,7 @@ using thrust::cuda_cub::allocator;
 using thrust::cuda_cub::universal_allocator;
 } // namespace cuda
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/cuda/detail/memory.inl>
 

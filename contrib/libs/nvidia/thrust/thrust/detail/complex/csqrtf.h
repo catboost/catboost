@@ -49,11 +49,13 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 #include <thrust/detail/complex/math_private.h>
 #include <cmath>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{		      	
 
@@ -144,4 +146,4 @@ inline complex<float> sqrt(const complex<float>& z){
   return detail::complex::csqrtf(z);
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END

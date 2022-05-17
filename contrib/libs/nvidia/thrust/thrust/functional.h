@@ -25,8 +25,7 @@
 #include <functional>
 #include <thrust/detail/functional/placeholder.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup function_objects Function Objects
  */
@@ -1712,8 +1711,7 @@ THRUST_INLINE_CONSTANT thrust::detail::functional::placeholder<9>::type _10;
 #undef THRUST_BINARY_FUNCTOR_VOID_SPECIALIZATION
 #undef THRUST_BINARY_FUNCTOR_VOID_SPECIALIZATION_OP
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/functional.inl>
 #include <thrust/detail/functional/operators.h>
-

@@ -93,4 +93,4 @@ Please email [cpp-conduct@nvidia.com] for any Code of Conduct related matters.
 [FAQ]: https://www.contributor-covenant.org/faq
 
 [NVIDIA RAPIDS]: https://docs.rapids.ai/resources/conduct/
-[Contributor Covenant]: https://www.contributor-covenant.org/version/1/4/code-of-conduct.html
+[Contributor Covenant version 1.4]: https://www.contributor-covenant.org/version/1/4/code-of-conduct.html

@@ -22,8 +22,7 @@
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // XXX WAR circular inclusion with this forward declaration
 template<typename,typename,typename> struct binary_function;
@@ -76,5 +75,5 @@ template<typename Eval, typename T>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

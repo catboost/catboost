@@ -26,6 +26,8 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/detail/util.h>
 
@@ -42,8 +44,7 @@
 #include <thrust/distance.h>
 #include <thrust/detail/alignment.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 
@@ -238,9 +239,9 @@ namespace __set_operations {
           mpl::max<
               int,
               1,
-              ((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
+              static_cast<int>(((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
                COMBINED_INPUT_BYTES - 1) /
-                  COMBINED_INPUT_BYTES>::value>::value,
+                  COMBINED_INPUT_BYTES)>::value>::value,
     };
 
     typedef PtxPolicy<128,
@@ -265,9 +266,9 @@ namespace __set_operations {
           mpl::max<
               int,
               1,
-              ((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
+              static_cast<int>(((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
                COMBINED_INPUT_BYTES - 1) /
-                  COMBINED_INPUT_BYTES>::value>::value,
+                  COMBINED_INPUT_BYTES)>::value>::value,
     };
 
     typedef PtxPolicy<256,
@@ -292,9 +293,9 @@ namespace __set_operations {
           mpl::max<
               int,
               1,
-              ((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
+              static_cast<int>(((NOMINAL_4B_ITEMS_PER_THREAD * 4) +
                COMBINED_INPUT_BYTES - 1) /
-                  COMBINED_INPUT_BYTES>::value>::value,
+                  COMBINED_INPUT_BYTES)>::value>::value,
     };
 
     typedef PtxPolicy<512,
@@ -1997,5 +1998,5 @@ set_union_by_key(execution_policy<Derived> &policy,
 }
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

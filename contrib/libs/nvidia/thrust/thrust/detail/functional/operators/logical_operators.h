@@ -22,8 +22,7 @@
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 #include <thrust/functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -140,5 +139,5 @@ operator!(const actor<Eval> &_1)
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -26,13 +26,13 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #include <thrust/system/cuda/config.h>
 #include <thrust/system/cuda/detail/execution_policy.h>
 #include <thrust/system/cuda/detail/cross_system.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename DerivedPolicy, typename InputIt, typename OutputIt>
 __host__ __device__ OutputIt
@@ -92,7 +92,7 @@ copy_n(cross_system<System1, System2> systems,
        OutputIterator result);
 
 }    // namespace cuda_
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 
 
@@ -100,8 +100,7 @@ copy_n(cross_system<System1, System2> systems,
 #include <thrust/system/cuda/detail/internal/copy_cross_system.h>
 #include <thrust/system/cuda/detail/par_to_seq.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 
@@ -192,7 +191,7 @@ copy_n(cross_system<System1, System2> systems,
 
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/memory.h>
 #include <thrust/detail/temporary_array.h>

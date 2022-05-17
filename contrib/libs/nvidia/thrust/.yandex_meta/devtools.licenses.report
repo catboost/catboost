@@ -94,6 +94,17 @@ BELONGS ya.make
     Files with this license:
         thrust/system/detail/adl/count.h [4:14]
 
+KEEP     BSD-3-Clause         5bfbc6c5d215315f76dc085bcd929199
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.39
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        thrust/system/omp/detail/pragma_omp.h [4:24]
+
 KEEP     Apache-2.0           6e1e6494215f4e52d7e59162b3923016
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -146,6 +157,17 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         thrust/system/detail/adl/extrema.h [4:14]
+
+KEEP     Apache-2.0           94a56d4b63563bcf099d4003f1e185f0
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        thrust/system/cuda/detail/binary_search.h [4:14]
 
 KEEP     Apache-2.0           95b0648ff3eb8cb85ac1ac4caf93acb0
 BELONGS ya.make
@@ -427,6 +449,7 @@ BELONGS ya.make
         thrust/detail/config/host_device.h [4:14]
         thrust/detail/config/host_system.h [4:14]
         thrust/detail/config/memory_resource.h [4:14]
+        thrust/detail/config/namespace.h [4:14]
         thrust/detail/config/simple_defines.h [4:14]
         thrust/detail/contiguous_storage.h [4:14]
         thrust/detail/contiguous_storage.inl [4:14]
@@ -487,6 +510,7 @@ BELONGS ya.make
         thrust/detail/modern_gcc_required.h [4:14]
         thrust/detail/mpl/math.h [4:14]
         thrust/detail/numeric_traits.h [4:14]
+        thrust/detail/numeric_wrapper.h [4:14]
         thrust/detail/overlapped_copy.h [4:14]
         thrust/detail/pair.inl [4:14]
         thrust/detail/partition.inl [4:14]
@@ -1085,7 +1109,6 @@ BELONGS ya.make
         thrust/system/cuda/detail/async/reduce.h [4:24]
         thrust/system/cuda/detail/async/scan.h [4:24]
         thrust/system/cuda/detail/async/transform.h [4:24]
-        thrust/system/cuda/detail/binary_search.h [4:24]
         thrust/system/cuda/detail/copy.h [4:24]
         thrust/system/cuda/detail/copy_if.h [4:24]
         thrust/system/cuda/detail/core/agent_launcher.h [4:24]
@@ -1105,7 +1128,6 @@ BELONGS ya.make
         thrust/system/cuda/detail/internal/copy_device_to_device.h [5:25]
         thrust/system/cuda/detail/merge.h [4:24]
         thrust/system/cuda/detail/mismatch.h [4:24]
-        thrust/system/cuda/detail/par.h [4:24]
         thrust/system/cuda/detail/par_to_seq.h [4:24]
         thrust/system/cuda/detail/parallel_for.h [4:24]
         thrust/system/cuda/detail/partition.h [4:24]
@@ -1132,6 +1154,13 @@ BELONGS ya.make
         thrust/system/cuda/detail/unique_by_key.h [4:24]
         thrust/system/cuda/detail/util.h [4:24]
         thrust/system/cuda/execution_policy.h [4:24]
+    Scancode info:
+        Original SPDX id: BSD-3-Clause
+        Score           : 95.39
+        Match type      : TEXT
+        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
+    Files with this license:
+        thrust/system/cuda/detail/par.h [4:24]
     Scancode info:
         Original SPDX id: BSD-3-Clause
         Score           : 97.64

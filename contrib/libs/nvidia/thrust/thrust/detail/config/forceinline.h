@@ -22,7 +22,7 @@
 
 #include <thrust/detail/config.h>
 
-#if defined(__CUDACC__) || defined(__NVCOMPILER_CUDA__)
+#if defined(__CUDACC__) || defined(_NVHPC_CUDA)
 
 #define __thrust_forceinline__ __forceinline__
 

@@ -21,9 +21,7 @@
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/adl/copy_if.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy,
@@ -104,6 +102,4 @@ template<typename InputIterator1,
   return thrust::copy_if(select_system(system1,system2,system3), first, last, stencil, result, pred);
 } // end copy_if()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

@@ -36,8 +36,7 @@
 #include <thrust/detail/temporary_array.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -398,5 +397,5 @@ equal_range(thrust::execution_policy<DerivedPolicy> &exec,
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

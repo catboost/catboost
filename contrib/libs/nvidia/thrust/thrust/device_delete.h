@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/device_ptr.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup deallocation_functions Deallocation Functions
  *  \ingroup memory_management_functions
@@ -50,7 +49,7 @@ template<typename T>
 /*! \}
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_delete.inl>
 

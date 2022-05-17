@@ -39,11 +39,7 @@
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \addtogroup UtilIo
@@ -102,11 +98,10 @@ enum CacheLoadModifier
  * \tparam MODIFIER             <b>[inferred]</b> CacheLoadModifier enumeration
  * \tparam InputIteratorT       <b>[inferred]</b> Input iterator type \iterator
  */
-template <
-    CacheLoadModifier MODIFIER,
-    typename InputIteratorT>
-__device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_type ThreadLoad(InputIteratorT itr);
-
+template <CacheLoadModifier MODIFIER,
+          typename InputIteratorT>
+__device__ __forceinline__ cub::detail::value_t<InputIteratorT>
+ThreadLoad(InputIteratorT itr);
 
 //@}  end member group
 
@@ -307,10 +302,10 @@ struct IterateThreadLoad<MAX, MAX>
  * ThreadLoad definition for LOAD_DEFAULT modifier on iterator types
  */
 template <typename InputIteratorT>
-__device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_type ThreadLoad(
-    InputIteratorT          itr,
-    Int2Type<LOAD_DEFAULT>  /*modifier*/,
-    Int2Type<false>         /*is_pointer*/)
+__device__ __forceinline__ cub::detail::value_t<InputIteratorT>
+ThreadLoad(InputIteratorT          itr,
+           Int2Type<LOAD_DEFAULT>  /*modifier*/,
+           Int2Type<false>         /*is_pointer*/)
 {
     return *itr;
 }
@@ -406,13 +401,14 @@ __device__ __forceinline__ T ThreadLoad(
 template <
     CacheLoadModifier MODIFIER,
     typename InputIteratorT>
-__device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_type ThreadLoad(InputIteratorT itr)
+__device__ __forceinline__ cub::detail::value_t<InputIteratorT>
+ThreadLoad(InputIteratorT itr)
 {
     // Apply tags for partial-specialization
     return ThreadLoad(
         itr,
         Int2Type<MODIFIER>(),
-        Int2Type<IsPointer<InputIteratorT>::VALUE>());
+        Int2Type<std::is_pointer<InputIteratorT>::value>());
 }
 
 
@@ -423,5 +419,4 @@ __device__ __forceinline__ typename std::iterator_traits<InputIteratorT>::value_
 /** @} */       // end group UtilIo
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

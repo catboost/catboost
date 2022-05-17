@@ -19,8 +19,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename Assignable1, typename Assignable2>
@@ -32,5 +31,5 @@ inline void swap(Assignable1 &a, Assignable2 &b)
   b = temp;
 } // end swap()
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

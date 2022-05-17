@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -79,7 +78,7 @@ bool binary_search(RandomAccessIterator first, RandomAccessIterator last, const 
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/scalar/binary_search.inl>
 

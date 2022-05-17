@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -44,8 +45,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename DerivedPolicy,
           typename ForwardIterator,
@@ -99,7 +99,7 @@ namespace __unique {
 
   namespace mpl = thrust::detail::mpl::math;
 
-  template<class T, size_t NOMINAL_4B_ITEMS_PER_THREAD>
+  template<class T, int NOMINAL_4B_ITEMS_PER_THREAD>
   struct items_per_thread
   {
     enum
@@ -109,7 +109,7 @@ namespace __unique {
           NOMINAL_4B_ITEMS_PER_THREAD,
           mpl::max<int,
                    1,
-                   (NOMINAL_4B_ITEMS_PER_THREAD * 4 /
+                   static_cast<int>(NOMINAL_4B_ITEMS_PER_THREAD * 4 /
                     sizeof(T))>::value>::value
     };
   };
@@ -795,7 +795,7 @@ unique(execution_policy<Derived> &policy,
 }
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 //
 #include <thrust/memory.h>

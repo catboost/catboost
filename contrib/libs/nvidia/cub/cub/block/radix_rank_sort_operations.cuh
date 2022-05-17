@@ -38,11 +38,7 @@
 #include "../util_type.cuh"
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /** \brief Twiddling keys for radix sort. */
 template <bool IS_DESCENDING, typename KeyT>
@@ -97,12 +93,14 @@ struct BaseDigitExtractor
 
     static __device__ __forceinline__ UnsignedBits ProcessFloatMinusZero(UnsignedBits key)
     {
-        if (!FLOAT_KEY) return key;
-        
-        UnsignedBits TWIDDLED_MINUS_ZERO_BITS =
-            TraitsT::TwiddleIn(UnsignedBits(1) << UnsignedBits(8 * sizeof(UnsignedBits) - 1));
-        UnsignedBits TWIDDLED_ZERO_BITS = TraitsT::TwiddleIn(0);
-        return key == TWIDDLED_MINUS_ZERO_BITS ? TWIDDLED_ZERO_BITS : key;
+        if (!FLOAT_KEY) {
+            return key;
+        } else {
+            UnsignedBits TWIDDLED_MINUS_ZERO_BITS =
+                TraitsT::TwiddleIn(UnsignedBits(1) << UnsignedBits(8 * sizeof(UnsignedBits) - 1));
+            UnsignedBits TWIDDLED_ZERO_BITS = TraitsT::TwiddleIn(0);
+            return key == TWIDDLED_MINUS_ZERO_BITS ? TWIDDLED_ZERO_BITS : key;
+        }
     }
 };
 
@@ -121,7 +119,7 @@ struct BFEDigitExtractor : BaseDigitExtractor<KeyT>
 
     __device__ __forceinline__ uint32_t Digit(UnsignedBits key)
     {
-        return BFE(ProcessFloatMinusZero(key), bit_start, num_bits);
+        return BFE(this->ProcessFloatMinusZero(key), bit_start, num_bits);
     }
 };
 
@@ -140,9 +138,8 @@ struct ShiftDigitExtractor : BaseDigitExtractor<KeyT>
 
     __device__ __forceinline__ uint32_t Digit(UnsignedBits key)
     {
-        return uint32_t(ProcessFloatMinusZero(key) >> UnsignedBits(bit_start)) & mask;
+        return uint32_t(this->ProcessFloatMinusZero(key) >> UnsignedBits(bit_start)) & mask;
     }
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

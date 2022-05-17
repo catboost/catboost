@@ -23,8 +23,7 @@
 #include <thrust/memory.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -79,7 +78,7 @@ template<typename T, typename System>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/allocator/temporary_allocator.inl>
 

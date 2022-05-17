@@ -20,15 +20,14 @@
  */
 
 #include <thrust/detail/config.h>
+#include <thrust/detail/function.h>
 #include <thrust/detail/static_assert.h>
 #include <thrust/distance.h>
-#include <thrust/detail/function.h>
-#include <thrust/iterator/iterator_traits.h>
-#include <thrust/distance.h>
 #include <thrust/for_each.h>
+#include <thrust/iterator/iterator_traits.h>
+#include <thrust/system/omp/detail/pragma_omp.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -62,14 +61,11 @@ RandomAccessIterator for_each_n(execution_policy<DerivedPolicy> &,
   // create a wrapped function for f
   thrust::detail::wrapped_function<UnaryFunction,void> wrapped_f(f);
 
-// do not attempt to compile the body of this function, which depends on #pragma omp,
-// without support from the compiler
-// XXX implement the body of this function in another file to eliminate this ugliness
-#if (THRUST_DEVICE_COMPILER_IS_OMP_CAPABLE == THRUST_TRUE)
   // use a signed type for the iteration variable or suffer the consequences of warnings
   typedef typename thrust::iterator_difference<RandomAccessIterator>::type DifferenceType;
   DifferenceType signed_n = n;
-#pragma omp parallel for
+
+  THRUST_PRAGMA_OMP(parallel for)
   for(DifferenceType i = 0;
       i < signed_n;
       ++i)
@@ -77,7 +73,6 @@ RandomAccessIterator for_each_n(execution_policy<DerivedPolicy> &,
     RandomAccessIterator temp = first + i;
     wrapped_f(*temp);
   }
-#endif // THRUST_DEVICE_COMPILER_IS_OMP_CAPABLE
 
   return first + n;
 } // end for_each_n() 
@@ -96,5 +91,5 @@ template<typename DerivedPolicy,
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

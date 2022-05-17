@@ -192,6 +192,17 @@ BELONGS ya.make
         thrust/detail/complex/csqrt.h [19:20]
         thrust/detail/complex/csqrtf.h [19:20]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 3f5d5b08584824a0e020bc3fcd2c9a4b
+BELONGS ya.make
+    License text:
+         *  Copyright 2008-2021 NVIDIA Corporation
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        thrust/detail/type_traits/has_member_function.h [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 438f42022e9982fb5e6079841ba3bacf
 BELONGS ya.make
     License text:
@@ -270,7 +281,6 @@ BELONGS ya.make
         thrust/system/cuda/detail/async/copy.h [2:2]
         thrust/system/cuda/detail/async/for_each.h [3:3]
         thrust/system/cuda/detail/async/reduce.h [2:2]
-        thrust/system/cuda/detail/binary_search.h [2:2]
         thrust/system/cuda/detail/copy.h [2:2]
         thrust/system/cuda/detail/copy_if.h [2:2]
         thrust/system/cuda/detail/core/agent_launcher.h [2:2]
@@ -460,7 +470,6 @@ BELONGS ya.make
         thrust/detail/tuple_meta_transform.h [2:2]
         thrust/detail/tuple_transform.h [2:2]
         thrust/detail/type_traits/function_traits.h [2:2]
-        thrust/detail/type_traits/has_member_function.h [2:2]
         thrust/detail/type_traits/has_nested_type.h [2:2]
         thrust/detail/type_traits/has_trivial_assign.h [2:2]
         thrust/detail/type_traits/is_call_possible.h [2:2]
@@ -1044,6 +1053,19 @@ BELONGS ya.make
         thrust/universal_ptr.h [2:2]
         thrust/universal_vector.h [2:2]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 92044b1d85689b47fc99543f5353d172
+BELONGS ya.make
+    License text:
+         *  Copyright 2021 NVIDIA Corporation
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        thrust/detail/config/namespace.h [2:2]
+        thrust/detail/numeric_wrapper.h [2:2]
+        thrust/system/cuda/detail/binary_search.h [2:2]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 92589ab4002f491f1c98d37ed1fc4869
 BELONGS ya.make
     License text:
@@ -1079,6 +1101,17 @@ BELONGS ya.make
     Files with this license:
         thrust/detail/complex/cexp.h [19:20]
         thrust/detail/complex/cexpf.h [19:20]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 9d1993d8039cb2f20ad55cbac3545f4e
+BELONGS ya.make
+    License text:
+        * Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        thrust/system/omp/detail/pragma_omp.h [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 9e8406d3e03e70bf0b0f143a70b9396e
 BELONGS ya.make

@@ -26,8 +26,7 @@
 #  include <type_traits>
 #endif
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 #if THRUST_CPP_DIALECT >= 2011
 
@@ -60,5 +59,5 @@ struct voider
 
 #endif
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

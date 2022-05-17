@@ -23,8 +23,7 @@
 #include <thrust/detail/type_traits/minimum_type.h>
 #include <thrust/detail/copy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -133,5 +132,5 @@ OutputIterator copy_n(execution_policy<DerivedPolicy> &exec,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

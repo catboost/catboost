@@ -25,9 +25,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup reordering
  *  \ingroup algorithms
@@ -1432,8 +1430,7 @@ template<typename InputIterator, typename Predicate>
  *  \} // end reductions
  */
 
-
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/partition.inl>
 

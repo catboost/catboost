@@ -25,7 +25,7 @@
 // #pragma nv_exec_check_disable is only recognized by NVCC.  Having a macro
 // expand to a #pragma (rather than _Pragma) only works with NVCC's compilation
 // model, not with other compilers.
-#if defined(__CUDACC__) && !defined(__NVCOMPILER_CUDA__) && \
+#if defined(__CUDACC__) && !defined(_NVHPC_CUDA) && \
     !(defined(__CUDA__) && defined(__clang__))
 
 #if THRUST_HOST_COMPILER == THRUST_HOST_COMPILER_MSVC

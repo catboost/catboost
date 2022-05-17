@@ -26,8 +26,7 @@
 #include <thrust/system/detail/generic/for_each.h>
 #include <thrust/system/detail/adl/for_each.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__ 
 template<typename DerivedPolicy,
@@ -87,6 +86,4 @@ InputIterator for_each_n(InputIterator first,
   return thrust::for_each_n(select_system(system), first, n, f);
 } // end for_each_n()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

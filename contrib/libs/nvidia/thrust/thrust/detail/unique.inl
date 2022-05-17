@@ -28,8 +28,7 @@
 #include <thrust/system/detail/adl/unique.h>
 #include <thrust/system/detail/adl/unique_by_key.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -332,5 +331,5 @@ template<typename InputIterator1,
 } // end unique_by_key_copy()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -21,8 +21,7 @@
 #include <thrust/detail/type_traits.h>
 #include <thrust/system/detail/generic/select_system_exists.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -175,5 +174,5 @@ thrust::device_system_tag select_system(thrust::any_system_tag)
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

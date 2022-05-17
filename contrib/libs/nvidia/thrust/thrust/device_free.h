@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/device_ptr.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup deallocation_functions Deallocation Functions
  *  \ingroup memory_management_functions
@@ -62,7 +61,7 @@ inline void device_free(thrust::device_ptr<void> ptr);
 /*! \}
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_free.inl>
 

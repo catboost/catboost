@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/detail/tuple_transform.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 template<typename IteratorTuple>
@@ -147,5 +148,5 @@ __host__ __device__
 } // end make_zip_iterator()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

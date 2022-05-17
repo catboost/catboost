@@ -28,8 +28,7 @@
 #include <vector>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup container_classes Container Classes
  *  \addtogroup host_containers Host Containers
@@ -508,5 +507,4 @@ template<typename T, typename Alloc>
 /*! \}
  */
 
-} // namespace thrust
-
+THRUST_NAMESPACE_END

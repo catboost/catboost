@@ -21,8 +21,7 @@
 #include <thrust/detail/functional/composite.h>
 #include <thrust/detail/functional/operators/operator_adaptors.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace functional
@@ -509,5 +508,5 @@ operator>>=(const actor<T1> &_1, const actor<T2> &_2)
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

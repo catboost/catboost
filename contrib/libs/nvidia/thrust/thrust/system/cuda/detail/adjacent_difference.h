@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -45,8 +46,7 @@
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename DerivedPolicy, typename InputIterator, typename OutputIterator, typename BinaryFunction>
 __host__ __device__ OutputIterator
@@ -108,7 +108,7 @@ namespace __adjacent_difference {
   {
     enum
     {
-      INPUT_SIZE                  = sizeof(T),
+      INPUT_SIZE                  = static_cast<int>(sizeof(T)),
       NOMINAL_4B_ITEMS_PER_THREAD = 7,
       ITEMS_PER_THREAD            = items_per_thread<INPUT_SIZE,
                                           NOMINAL_4B_ITEMS_PER_THREAD>::value
@@ -210,7 +210,6 @@ namespace __adjacent_difference {
                         Size tile_base)
       {
         input_type  input[ITEMS_PER_THREAD];
-        input_type  input_prev[ITEMS_PER_THREAD];
         output_type output[ITEMS_PER_THREAD];
 
         if (IS_LAST_TILE)
@@ -234,7 +233,7 @@ namespace __adjacent_difference {
         if (IS_FIRST_TILE)
         {
           BlockAdjacentDifference(temp_storage.discontinuity)
-              .FlagHeads(output, input, input_prev, binary_op);
+              .SubtractLeft(input, output, binary_op);
           if (threadIdx.x == 0)
             output[0] = input[0];
         }
@@ -242,7 +241,7 @@ namespace __adjacent_difference {
         {
           input_type tile_prev_input = first_tile_previous[tile_idx];
           BlockAdjacentDifference(temp_storage.discontinuity)
-              .FlagHeads(output, input, input_prev, binary_op, tile_prev_input);
+              .SubtractLeft(input, output, binary_op, tile_prev_input);
         }
 
         core::sync_threadblock();
@@ -467,7 +466,7 @@ namespace __adjacent_difference {
            num_items_fixed, stream, debug_sync));
     cuda_cub::throw_on_error(status, "adjacent_difference failed on 2nd step");
 
-    status = cuda_cub::synchronize(policy);
+    status = cuda_cub::synchronize_optional(policy);
     cuda_cub::throw_on_error(status, "adjacent_difference failed to synchronize");
 
     return result + num_items;
@@ -533,7 +532,7 @@ adjacent_difference(execution_policy<Derived> &policy,
 
 
 } // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 //
 #include <thrust/memory.h>

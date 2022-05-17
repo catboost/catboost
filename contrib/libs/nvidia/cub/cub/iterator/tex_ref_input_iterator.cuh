@@ -49,11 +49,7 @@
     #include <thrust/iterator/iterator_traits.h>
 #endif // THRUST_VERSION
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -82,6 +78,11 @@ struct CUB_DEPRECATED IteratorTexRef
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
+#pragma nv_diagnostic push
+#pragma nv_diag_suppress 1215
+#endif
+
     /// And by unique ID
     template <int UNIQUE_ID>
     struct TexId
@@ -103,13 +104,13 @@ struct CUB_DEPRECATED IteratorTexRef
         static TexRef ref;
 
         /// Bind texture
-        static cudaError_t BindTexture(void *d_in, size_t &offset)
+        static cudaError_t BindTexture(void *d_in, size_t &bytes, size_t &offset)
         {
             if (d_in)
             {
                 cudaChannelFormatDesc tex_desc = cudaCreateChannelDesc<TextureWord>();
                 ref.channelDesc = tex_desc;
-                return (CubDebug(cudaBindTexture(&offset, ref, d_in)));
+                return (CubDebug(cudaBindTexture(&offset, ref, d_in, bytes)));
             }
 
             return cudaSuccess;
@@ -145,6 +146,10 @@ template <int       UNIQUE_ID>
 typename IteratorTexRef<T>::template TexId<UNIQUE_ID>::TexRef IteratorTexRef<T>::template TexId<UNIQUE_ID>::ref = 0;
 
 // Re-enable deprecation warnings:
+#ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
+#pragma nv_diagnostic pop
+#endif
+
 #if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
 #pragma warning(default:4996)
 #elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
@@ -237,6 +242,11 @@ class CUB_DEPRECATED TexRefInputIterator
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
+#pragma nv_diagnostic push
+#pragma nv_diag_suppress 1215
+#endif
+
 public:
 
     // Required iterator traits
@@ -248,9 +258,9 @@ public:
 
 #if (THRUST_VERSION >= 100700)
     // Use Thrust's iterator categories so we can use these iterators in Thrust 1.7 (or newer) methods
-    typedef typename thrust::detail::iterator_facade_category<
-        thrust::device_system_tag,
-        thrust::random_access_traversal_tag,
+    typedef typename THRUST_NS_QUALIFIER::detail::iterator_facade_category<
+        THRUST_NS_QUALIFIER::device_system_tag,
+        THRUST_NS_QUALIFIER::random_access_traversal_tag,
         value_type,
         reference
       >::type iterator_category;                                        ///< The iterator category
@@ -279,12 +289,12 @@ public:
     template <typename QualifiedT>
     cudaError_t BindTexture(
         QualifiedT      *ptr,                   ///< Native pointer to wrap that is aligned to cudaDeviceProp::textureAlignment
-        size_t          /*bytes*/ = size_t(-1), ///< Number of bytes in the range
+        size_t          bytes,                  ///< Number of bytes in the range
         size_t          tex_offset = 0)         ///< OffsetT (in items) from \p ptr denoting the position of the iterator
     {
-        this->ptr = const_cast<typename RemoveQualifiers<QualifiedT>::Type *>(ptr);
+        this->ptr = const_cast<typename std::remove_cv<QualifiedT>::type *>(ptr);
         size_t offset;
-        cudaError_t retval = TexId::BindTexture(this->ptr + tex_offset, offset);
+        cudaError_t retval = TexId::BindTexture(this->ptr + tex_offset, bytes, offset);
         this->tex_offset = (difference_type) (offset / sizeof(QualifiedT));
         return retval;
     }
@@ -403,6 +413,11 @@ public:
     }
 
 // Re-enable deprecation warnings:
+
+#ifdef __NVCC_DIAG_PRAGMA_SUPPORT__
+#pragma nv_diagnostic pop
+#endif
+
 #if CUB_HOST_COMPILER == CUB_HOST_COMPILER_MSVC
 #pragma warning(default:4996)
 #elif CUB_HOST_COMPILER == CUB_HOST_COMPILER_GCC || \
@@ -416,7 +431,6 @@ public:
 
 /** @} */       // end group UtilIterator
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 #endif // CUDART_VERSION

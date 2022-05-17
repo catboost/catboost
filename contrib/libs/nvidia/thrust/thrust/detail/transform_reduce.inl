@@ -25,8 +25,7 @@
 #include <thrust/system/detail/generic/transform_reduce.h>
 #include <thrust/system/detail/adl/transform_reduce.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -68,5 +67,5 @@ template<typename InputIterator,
 } // end transform_reduce()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

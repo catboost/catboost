@@ -31,8 +31,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -110,4 +109,4 @@ template<typename Eval>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END

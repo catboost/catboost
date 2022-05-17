@@ -24,8 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/internal/decompose.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -39,7 +38,7 @@ thrust::system::detail::internal::uniform_decomposition<IndexType> default_decom
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/omp/detail/default_decomposition.inl>
 

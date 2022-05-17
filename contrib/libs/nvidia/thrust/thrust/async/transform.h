@@ -32,8 +32,7 @@
 
 #include <thrust/event.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
@@ -128,7 +127,6 @@ THRUST_INLINE_CONSTANT transform_detail::transform_fn transform{};
 
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
-

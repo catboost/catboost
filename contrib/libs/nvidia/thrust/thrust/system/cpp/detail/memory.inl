@@ -19,8 +19,7 @@
 #include <thrust/system/cpp/detail/malloc_and_free.h>
 #include <limits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace cpp
@@ -47,5 +46,5 @@ void free(pointer<void> ptr)
 
 } // end cpp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

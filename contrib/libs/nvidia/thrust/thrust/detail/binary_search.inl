@@ -26,9 +26,7 @@
 #include <thrust/system/detail/generic/binary_search.h>
 #include <thrust/system/detail/adl/binary_search.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__ 
 template <typename DerivedPolicy, typename ForwardIterator, typename LessThanComparable>
@@ -482,5 +480,4 @@ OutputIterator binary_search(ForwardIterator first,
     return thrust::binary_search(select_system(system1,system2,system3), first, last, values_first, values_last, output, comp);
 }
 
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

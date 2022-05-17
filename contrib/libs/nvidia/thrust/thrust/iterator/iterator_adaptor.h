@@ -37,8 +37,7 @@
 #include <thrust/detail/use_default.h>
 #include <thrust/iterator/detail/iterator_adaptor_base.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -239,5 +238,5 @@ template<typename Derived,
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

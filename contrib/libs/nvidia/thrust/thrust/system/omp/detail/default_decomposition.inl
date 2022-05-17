@@ -22,8 +22,7 @@
 #include <omp.h>
 #endif // omp support
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -56,5 +55,5 @@ thrust::system::detail::internal::uniform_decomposition<IndexType> default_decom
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -26,8 +26,7 @@
 #include <thrust/detail/memory_wrapper.h>
 #include <new>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -460,5 +459,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 
