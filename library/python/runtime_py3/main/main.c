@@ -7,6 +7,7 @@
 
 void Py_InitArgcArgv(int argc, wchar_t **argv);
 char* GetPyMain();
+int IsYaIdeVenv();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
 static const char* env_bytes_warning = "Y_PYTHON_BYTES_WARNING";
@@ -74,6 +75,9 @@ static int RunModule(const char *modname)
 }
 
 static int pymain(int argc, char** argv) {
+    if (IsYaIdeVenv()) {
+        return Py_BytesMain(argc, argv);
+    }
     PyStatus status = _PyRuntime_Initialize();
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);

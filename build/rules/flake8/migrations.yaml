@@ -38,7 +38,6 @@ migrations:
     - ads/quality/apc/gmg/make_lm_pool
     - ads/quality/apc/gmg/make_lm_pool/lib
     - ads/quality/apc/prgmgv3/workflow_constructor/lib
-    - ads/quality/bid_correction/lib
     - ads/quality/dssm/lib
     - ads/quality/dssm/prgmg/make_pool
     - ads/quality/dssm/search/201708/make_pool
@@ -76,7 +75,6 @@ migrations:
     - aurora/aurora/core/toloka
     - aurora/xpath/api/utils
     - aurora/xpath/applier
-    - balancer/test/functional/regexp_host
     - balancer/test/util
     - balancer/test/util/dnsfake
     - billing/apikeys/apikeys
@@ -124,7 +122,6 @@ migrations:
     - datacloud/score_api/validators
     - devtools/adept
     - devtools/distbuild/deploy/servants
-    - devtools/dummy_arcadia/test/test_cache_invalidation
     - devtools/import_contrib/projects/phonenumber
     - devtools/qafw/qyp
     - devtools/qafw/rtc_deploy/lib
@@ -263,19 +260,6 @@ migrations:
     - dict/ontodb/utils/string_utils
     - dict/ontodb/utils/support_words
     - dict/ontodb/utils/update_links
-    - dict/ontodb/wikicommon
-    - dict/ontodb/wikicommon/get_defin
-    - dict/ontodb/wikicommon/infobox
-    - dict/ontodb/wikicommon/link_to_ontoid
-    - dict/ontodb/wikicommon/on_add_short_defin
-    - dict/ontodb/wikicommon/on_build_card
-    - dict/ontodb/wikicommon/resource_files/wiki_fields
-    - dict/ontodb/wikicommon/text_mine_film_participants
-    - dict/ontodb/wikicommon/text_mine_interesting_facts
-    - dict/ontodb/wikicommon/text_mine_projects
-    - dict/ontodb/wikicommon/text_mine_sport_team_participants
-    - dict/ontodb/wikicommon/wiki
-    - dict/ontodb/wikicommon/wiki_syntax
     - dict/tools/find_synonym
     - disk/admin/monitors/common
     - disk/admin/robot_switcher
@@ -294,7 +278,6 @@ migrations:
     - entity/quality/metrics/film_lists/combine_attributes_for_stupids_marking
     - entity/quality/metrics/not_film_lists/combine_attributes_for_stupids_marking
     - entity/quality/metrics/passport
-    - entity/ugc/db/python/offline_processing
     - entity/ugc/quality/reviews_ranking/ml/lib/trueskill
     - entity/ugc/tests/lib
     - entity/ugc/tools/bell/replay_requests
@@ -414,8 +397,6 @@ migrations:
     - market/contrib/python/yaconf_v0.1.2/yaconf
     - market/idx/streams/yatf
     - market/library/cms_promo/py_utils
-    - market/mstat/ch-cache/lib
-    - market/mstat/ch-cache/lib/database
     - market/reductor/configure/lib
     - market/reductor/www
     - market/report/lite
@@ -547,14 +528,11 @@ migrations:
     - robot/salmon_agent/counters
     - robot/salmon_agent/utils
     - rt-research/broadmatching/mr/IRT-1517
-    - rt-research/broadmatching/scripts/dyn-smart-banners/update_dyn_trashfilter
     - rt-research/broadmatching/scripts/pylib
     - rt-research/broadmatching/scripts/pylib/bm
     - rt-research/broadmatching/scripts/yt/catalogia_mapper
     - rt-research/broadmatching/scripts/yt/cdict_generator
     - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners
-    - rt-research/broadmatching/scripts/yt/dyn-sources/generate_dse_banners/generate_filtered_links
-    - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/deploy/deploy
     - saas/tools/devops/lib
     - saas/tools/devops/lib23/tests/py2
@@ -603,8 +581,6 @@ migrations:
     - sandbox/projects/TickenatorBatchProcessing
     - sandbox/projects/TickenatorBatchProcessing/YasmScreenshoter
     - sandbox/projects/Travel/tasks/tools
-    - sandbox/projects/Ufo
-    - sandbox/projects/Ufo/CI
     - sandbox/projects/UpdateConfigGeneratorDb
     - sandbox/projects/UpdateMapsWizardPpoData
     - sandbox/projects/UpdateTestenvNewsdResources
@@ -714,15 +690,11 @@ migrations:
     - statbox/qb2
     - statbox/qb2/qb2_extensions/api/v1/extractors
     - statbox/qb2/qb2_extensions/api/v1/extractors/pool
-    - statbox/statkey/jam/jobs/cubes/desktop_installs/v2
     - strm/generate/lib/generate
     - sup/stat/find_pushes
     - talents/nlu/scripts/train/geoname
     - testenv/jobs/rtyserver
     - tools/mkdocs_builder/lib
-    - tools/mkdocs_builder/mkdocs_yandex
-    - tools/mkdocs_builder/mkdocs_yandex/mkdocs_yandex
-    - tools/mkdocs_builder/mkdocs_yandex/mkdocs_yandex/ext/markdown
     - tools/releaser/src
     - tools/ygetparam
     - travel/avia/library/python/common
@@ -768,12 +740,10 @@ migrations:
     - yabs/qa/b2b_utils/bsserver_b2b/engine/validate_scripts
     - yabs/qa/yabs_b2b_tank/qabs/b2b
     - yabs/sbyt/testing/core
-    - yabs/server/cs/pylibs/partner_interface_monitor
     - yabs/server/cs/pylibs/settings
     - yabs/server/infra/bstrbufbuf/plugin
     - yabs/server/infra/trivial_cron
     - yabs/server/libs/py_markdown_strings
-    - yabs/server/test/ft/BSDEV-73064
     - yabs/server/test/ft/BSSERVER-14195
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
@@ -805,7 +775,6 @@ migrations:
     - yaphone/localization_admin/src/models
     - yaphone/localization_admin/src/models/details
     - yaphone/localization_admin/src/models/support_info
-    - yp/scheduler_simulator/simtool
     - yql/tools/docs/custom_mkdocs
     - yql/tools/docs/wiki2markdown
     - yql/tools/mrjob/test
@@ -851,8 +820,6 @@ migrations:
     - yweb/structhtml/richsnippets/scripts/build_foto_recipes/prepare_to_deploy
     - yweb/verticals/scripts/sport_chats
     - yweb/verticals/scripts/sport_zen_updater/add_parsed_zen_urls
-    - yweb/video/vparsrobot/v2/tests
-    - yweb/video/vparsrobot/v2/tests-large
     - yweb/webdaemons/clickdaemon/tools/create_ammo_from_tcpdump
     - yweb/yasap/answers_nirvana/make_ammos
     - yweb/yasap/answers_quality/plagiarism/prepare_scraper_queries
@@ -909,8 +876,6 @@ migrations:
     - april/web/bas/ca/forms
     - april/web/bas/collector
     - aurora/scripts/parsers/zoon_ru
-    - balancer/test/functional/regexp_host
-    - balancer/test/functional/regexp_path
     - billing/apikeys/apikeys
     - billing/apikeys/apikeys/mapper
     - billing/bcl/bcl
@@ -956,7 +921,6 @@ migrations:
     - extsearch/video/transcoder/per_title/vmaf
     - geosuggest/conveyors/learn_pool/lst_weights/lib
     - haas/cmis/hwr_preorders
-    - haas/graphite_sync/get_report
     - infra/deploy_queue_controller/lib
     - infra/dist/dmover/bin/dmover
     - infra/dist/dmover/lib
@@ -995,7 +959,6 @@ migrations:
     - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
-    - market/mstat/ch-cache/tests
     - market/sre/services/cema-proxy/lib
     - market/sre/services/cema/lib
     - market/sre/services/cema/lib/classes
@@ -1054,7 +1017,6 @@ migrations:
     - robot/quality/samovar_conveyour/tools/get_samples
     - robot/quality/sendlink_conveyour/tools/max_rank_acceptance
     - robot/research/eval_nirvana_graph
-    - rt-research/broadmatching/scripts/yt/dyn-sources/yt_prepare_dyn_sources
     - rt-research/multik/tools/jupyter
     - rtmapreduce/tests/recipes/rtmr_processing_recipe
     - saas/tools/devops/check_backup
@@ -1104,7 +1066,6 @@ migrations:
     - skynet/kernel
     - skynet/kernel/util/tests
     - smart_devices/tools/launcher2/tests/restarts
-    - statbox/statkey/jam/jobs
     - strm/generate/lib/generate
     - taxi/graph/packages/taxigraphd
     - testenv/core/web_server
@@ -1144,7 +1105,6 @@ migrations:
     - yabs/server/cs/pylibs/full_graph_plot
     - yabs/server/cs/pylibs/gantt_chart/lib
     - yabs/server/cs/pylibs/settings
-    - yabs/server/test/ft/BSSERVER-13708
     - yabs/vh/cms-pgaas/sport_api_importer/sport_api_importer_lib
     - yabs/vh/frontend/test/ft/HOME-43539
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
@@ -1188,14 +1148,11 @@ migrations:
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - extsearch/geo/recommender/runtime/config/generation
     - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/outbound
     - mlp/mail/aspam/nirvana_operations/conveyor/calc_dsats
-    - passport/backend/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/neural_net/bert/bert/utils/distributed
     - quality/neural_net/bert/bert/utils/fs
     - sandbox/projects/tycoon/TycoonAdverts
@@ -1301,7 +1258,6 @@ migrations:
     - extsearch/ymusic/tools/crawl_test_data
     - extsearch/ymusic/tools/generate_test_data
     - infra/kernel/test/recipe/cgleak_check/example
-    - infra/yasm/zoom/python/tests
     - infra/yp_quota_distributor/lib
     - intranet/table_flow/tests
     - lbs/research_tools/find_keys_causing_losses
@@ -1315,7 +1271,6 @@ migrations:
     - maps/automotive/remote_tasks/manager/regression/ammo_generator
     - maps/b2bgeo/tools/load_testing/lib
     - maps/doc/proto/yandex/maps/proto/factory/tests
-    - maps/infopoint/statistics/lib
     - maps/infra/apiteka/client/tests
     - maps/infra/ecstatic/tool/ecstatic_api
     - maps/pylibs/test_helpers
@@ -1349,7 +1304,6 @@ migrations:
     - plus/oneyear/oneyear_by
     - quality/ab_testing/cofe/projects/alice
     - quality/ab_testing/cofe/projects/zalogin
-    - quality/ab_testing/cofe/python/metrics
     - quality/functionality/chats/common/bunker_client
     - quality/functionality/chats/common/requests_wrappers
     - quality/functionality/chats/feedback/src/feedback/api
@@ -1466,7 +1420,6 @@ migrations:
     - voicetech/spotter/difftools/score_output
     - voicetech/spotter/online_metrics/lib
     - voicetech/spotter/run/difftool
-    - voicetech/spotter/score/prepare_for_online_validation/bin
     - weather/workers/warnings/general
     - weather/workers/warnings/nowcasting
     - yabs/analytics/anomaly_analyzer/src
@@ -1483,14 +1436,10 @@ migrations:
     - yabs/qa/oneshots/sergtaim/BSSERVER-14259/AddKeywordToYT-Via-Simple-IudYtOneshot
     - yabs/qa/oneshots/serval/BSSERVER-14292/first_json_option_new
     - yabs/sbyt/ytstatcollector/advmachine/tests
-    - yabs/server/cs/pylibs/advmachine_export
     - yabs/server/cs/test/cs_import/yt_banner_with_history
-    - yabs/server/infra/yt_tables_freshness/solo
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107
-    - yabs/server/test/ft/BSSERVER-14110
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-2495
     - yabs/server/test/qabs_bsserver_pytest
@@ -1505,12 +1454,9 @@ migrations:
     - ydo/payments/balance_notifications_processor/lib
     - ydo/server/apphost_source/lib/endpoints
     - ydo/tools/direct/make_ya_clients_export
-    - yp/eviction_alerter/bin
-    - yp/scheduler_simulator/analysis/library
     - yql/library/test_framework
     - yweb/antimalware/mitb/mitb_monitor/lib
     - yweb/antiporno/cp_conv/text_classif/bin
-    - yweb/antispam/clean_web/router
     - yweb/antispam/mascot/monitorings/check_table_age
     - yweb/robot/limbo
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
@@ -1543,7 +1489,6 @@ migrations:
     - library/python/cyson
     - library/python/cyson/cyson
     - mail/freezing_tests/active_users_aggregation
-    - maps/analyzer/tools/online_jams/pylib
     - market/seo/offer_base
     - mediapers/feature_machine/nirvana/script_runner
     - mlp/mail/aspam/nirvana_operations/conveyor/build_prod_graph/inbound
@@ -1552,8 +1497,6 @@ migrations:
     - modadvert/programs/cv_app/tools/create_yt_env/it
     - modadvert/programs/grep_img_rejects/it
     - modadvert/programs/multik/it
-    - passport/backend/api/tests/views/bundle/change_avatar
-    - quality/ab_testing/cofe/projects/alice/sesame/v1_1
     - quality/functionality/chats/feedback/src/feedback/core
     - quality/functionality/chats/feedback/src/feedback/core/celery_tasks
     - quality/neural_net/bert/bert/utils/distributed
@@ -1612,7 +1555,6 @@ migrations:
     - adfox/rtd/reports
     - ads/bsyeti/libs/py_bt_profile
     - ads/bsyeti/scripts/sample_catalogia_queries
-    - ads/libs/py_categories
     - ads/libs/py_conf
     - ads/libs/py_core
     - ads/libs/py_ml_clusterization
@@ -1848,7 +1790,6 @@ migrations:
     - entity/recommender/nirvana/autodump
     - entity/recommender/nirvana/operations/whereami
     - entity/recommender/viewer
-    - entity/ugc/db/benchmark/generate_ammo
     - entity/ugc/tools/nirvana/appsearch_activity
     - entity/ugc/tools/nirvana/ugcdb1_process/backup
     - entity/ugc/tools/nirvana/ugcdb1_process/process_profiles
@@ -1915,7 +1856,6 @@ migrations:
     - geoproduct/geocrm_search/orm
     - geosuggest/prepare_data/toponyms_factor_mapper
     - haas/eng_topology/lib/struct
-    - haas/oebs_sync/oebs_lib
     - health/turbo_articles/parser/libs
     - health/turbo_articles/parser/manual_tests
     - health/yamd/libs/cross_links/tests/common
@@ -1950,7 +1890,6 @@ migrations:
     - infra/wall-e/sdk
     - infra/walle/server/tests/lib
     - infra/ya_salt/vendor/salt
-    - infra/yp/monitoring/pods_with_bad_ip
     - infra/yp/monitoring/tmp_account_monitoring
     - infra/yp_quota_distributor/app
     - intranet/audit/src
@@ -2000,7 +1939,6 @@ migrations:
     - library/python/django_template_common
     - library/python/django_tools_log_context
     - library/python/dssclient
-    - library/python/filelock
     - library/python/golovan_stats_aggregator
     - library/python/granular_settings
     - library/python/ids
@@ -2024,7 +1962,6 @@ migrations:
     - logbroker/tools/lb-cm
     - logbroker/tools/manual/send_projections_to_solomon
     - logbroker/tools/manual/test_front
-    - mail/contrib/aioconsole
     - mail/contrib/aiohttp-swagger
     - mail/contrib/asyncpgsa
     - mail/contrib/python/bottle
@@ -2094,7 +2031,6 @@ migrations:
     - mds/mastermind/core/foreign/opster
     - mds/mastermind/core/src
     - mds/mastermind/flowmastermind/src
-    - mds/mastermind/job_processor
     - mds/mastermind/jobs_integration_tests/src
     - mds/mastermind/minion
     - mds/mastermind/monolith
@@ -2306,7 +2242,6 @@ migrations:
     - robot/saved_copy/tools/phantom_ammo_generator
     - robot/zora/tools/digger
     - rt-research/multik/pylib/operations_queue/migrations
-    - rt-research/multik/server/multik/migrations
     - rtc/recorder
     - rtmapreduce/config/presets
     - rtmapreduce/config/src
@@ -2543,7 +2478,6 @@ migrations:
     - sandbox/projects/market/logistics
     - sandbox/projects/market/mcrp/MarketMcrpAbcSync
     - sandbox/projects/market/mcrp/MarketMcrpAbcTopServicesSync
-    - sandbox/projects/market/mcrp/MarketMcrpReport
     - sandbox/projects/market/monitoring
     - sandbox/projects/market/multitesting
     - sandbox/projects/market/promocoordinator
@@ -2575,7 +2509,6 @@ migrations:
     - sandbox/projects/sandbox
     - sandbox/projects/sandbox_ci
     - sandbox/projects/security/CodeQLArcadia
-    - sandbox/projects/security/logfeller_quarantine
     - sandbox/projects/setrace
     - sandbox/projects/shiny_discovery
     - sandbox/projects/skynet
@@ -2613,8 +2546,6 @@ migrations:
     - sandbox/projects/yf
     - sandbox/projects/younglings
     - sandbox/projects/yp/BuildYpEmergencyBreak
-    - sandbox/projects/yp/BuildYpPodEvictionMonitoring
-    - sandbox/projects/yp/BuildYpUnknownPodMonitoring
     - sandbox/projects/yql
     - sandbox/proxy/flask_uwsgi_websocket
     - sandbox/proxy/websocket
@@ -2688,7 +2619,6 @@ migrations:
     - sport/backend/tests/projects/batches
     - sprav/java/editor/recipe
     - sprav/mining/ontodb
-    - sprav/mining/partners/gis/lib
     - sprav/mining/quarantine/feature_grep/lib
     - sprav/tycoon/tools/add_table_replica
     - statbox/jam/jobs/outer-job/dmz_reports/superapp-1/app_sessions
@@ -2734,7 +2664,6 @@ migrations:
     - travel/avia/library/python/common/protobuf_converting/big_wizard/proto
     - travel/avia/library/python/common/saas/proto
     - travel/hotels/devops/l2_tool
-    - travel/hotels/feeders/lib
     - travel/hotels/tools/catroom_stat
     - travel/hotels/tools/cli
     - travel/hotels/tools/expedia_property_pansions_builder
@@ -2772,7 +2701,6 @@ migrations:
     - voicetech/asr/experiments/partial_prefetch/lib
     - voicetech/asr/pipeline/annotation/lib
     - voicetech/asr/pipeline/generate_texts/lib
-    - voicetech/asr/pipeline/train_pytorch/lib
     - voicetech/asr/tools/ctc_visualize
     - voicetech/asr/tools/decoder_sweeper/lib
     - voicetech/asr/tools/decoding_result_viewer
@@ -2965,7 +2893,6 @@ migrations:
     - yweb/younglings/education/regular/requests_timing/scripts/send_to_solomon
     - yweb/younglings/education/regular/yt_eventlog_grep_errors/generate_email
     - yweb/younglings/tasks/YOUNGLINGS-403/secondary_from_csv
-    - zootopia/hub/orgthief_project/orgthief
     - zootopia/hub/orgthief_project/tycoon
     - zootopia/library/py/latlon
     - zootopia/library/py/saaspy
@@ -3011,7 +2938,6 @@ migrations:
     - ads/pytorch/deploy/bindings/ut
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/adv_machine_models
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/turbo
-    - ads/quality/bid_correction/lib/ut
     - ads/quality/metric_eval/tests/ut
     - ads/sandbox_scripts/logs_scheme/fat
     - ads/targeting/cross_check/ut
@@ -3100,10 +3026,8 @@ migrations:
     - extsearch/video/robot/deletes/player_ban/tests
     - extsearch/video/robot/docbase/docauthor/tests
     - extsearch/video/robot/docbase/docfactor/tests
-    - extsearch/video/robot/docbase/factors/annfexport/tests
     - extsearch/video/robot/docbase/factors/authfexport/tests
     - extsearch/video/robot/docbase/factors/hostfexport/tests
-    - extsearch/video/robot/docbase/factors/thumbfexport/tests
     - extsearch/video/robot/docbase/indexdocs/tests
     - extsearch/video/robot/docbase/postcalc/tests
     - extsearch/video/robot/docbase/vegas/adaptor/tests
@@ -3137,7 +3061,6 @@ migrations:
     - library/cpp/deprecated/solartrie/test/tests
     - library/cpp/file_checker/test/tests
     - library/cpp/pybind/example/ut
-    - library/python/cyson/ut
     - library/python/vault_client/ut/tests
     - logbroker/push-client/ft
     - logfeller/lib/table_allocator/functional_tests/dyn_allocator_tests
@@ -3180,7 +3103,6 @@ migrations:
     - ml/cf_sharp/tests
     - modadvert/libs/algorithms/ut
     - modadvert/programs/catalogia_flags_diff/ut
-    - modadvert/programs/minus_regions/ut
     - mssngr/tools/pytests/setup/local
     - nirvana/libs/comparable_dumped_workflow/ut
     - nirvana/valhalla/tests
@@ -3262,12 +3184,9 @@ migrations:
     - quality/relev_tools/lboost_ops/makereqbundle/tests/from_qtree
     - quality/relev_tools/lboost_ops/tm_calc/tests
     - quality/relev_tools/vpcg/bin/ut
-    - quality/relev_tools/xfactor-yt/lib/ut/build_apply_dictionaries
-    - quality/relev_tools/xfactor-yt/lib/ut/collaborative_filtering
     - quality/relev_tools/xfactor-yt/lib/ut/convert_output
     - quality/relev_tools/xfactor-yt/lib/ut/metric_export
     - quality/relev_tools/xfactor-yt/lib/ut/prepare_input
-    - quality/relev_tools/xfactor-yt/yt_operations/ut
     - quality/short_beak/sg_collector/tests
     - quality/tools/scripts/tests
     - quality/traffic/tests/iterator/tests
@@ -3293,11 +3212,8 @@ migrations:
     - rtmapreduce/mrtasks/cocaine_log/tests
     - rtmapreduce/mrtasks/images_freon_sample/tests
     - rtmapreduce/mrtasks/keyslist/tests
-    - rtmapreduce/mrtasks/orgvisits/tests
     - rtmapreduce/mrtasks/parselib_errors/tests
-    - rtmapreduce/mrtasks/postprocess_sessions/tests
     - rtmapreduce/mrtasks/rtmr/pqout/tests
-    - rtmapreduce/mrtasks/rtmr/rtmr_kpi/tests
     - rtmapreduce/mrtasks/rtmr/splitter/tests
     - rtmapreduce/mrtasks/sample/tests
     - rtmapreduce/mrtasks/sbapi_split/tests
@@ -3354,7 +3270,6 @@ migrations:
     - voicetech/asr/cloud_engine/cli/app/pytest/medium
     - voicetech/asr/cloud_engine/server/stt/pytest/medium
     - weather/libs/secrets/tests
-    - weather/workers/apply/yt/apply/tests
     - weather/workers/common/location_indices/tests
     - yabs/indoor/tests
     - yabs/rmp/backend/tests/lib/zora
@@ -3405,7 +3320,6 @@ migrations:
     - yql/tests/multi_process
     - yt/admin/drive_monitor/tests/unit
     - yt/admin/perf_scraper/tests
-    - yt/admin/shiva/tests/unit
     - yt/odin/tests/suites
     - yweb/antimalware/libs/yttools/py/tests
     - yweb/antiporno/pyutil/draft/simple_yt/tests
@@ -3562,7 +3476,6 @@ migrations:
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/trashcan
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/turbo
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_admin/users
-    - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/kombu
     - yweb/yasap/pdb/pdb-backend/tests/lib/podb_ext/mongoengine
     - yweb/yasap/pdb/pdb-backend/tests/lib/saas
     - yweb/yasap/pdb/pdb-backend/tests/lib/sb
@@ -3576,8 +3489,6 @@ migrations:
     - ads/factor_check/features/tests
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
     - billing/agency_rewards/tests_platform
-    - balancer/test/functional/instance
-    - balancer/test/functional/aab_cookie_verify
     - dict/mystem/tests
     - infra/walle/server/tests
     - market/forecaster/lite
@@ -3605,16 +3516,7 @@ migrations:
     - ads/libs/py_autobudget/ft/test_scale_by_column_preprocessor
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/t
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt
-    - balancer/test/functional/rfc_http
-    - balancer/test/functional/dynamic
-    - balancer/test/functional/h100
-    - balancer/test/functional/errordocument
-    - balancer/test/functional/rendezvous_hashing
-    - balancer/test/functional/consistent_hashing
-    - balancer/test/functional/pingerprocess
-    - balancer/test/functional/unistat
     - ads/sandbox_scripts/visibility_stats/fat
-    - ads/pytorch/lib/preprocess/medium_ut
     - ads/pytorch/lib/online_learning/production/model_folder/medium_ut
     - ads/pytorch/ads_pytorch_integration_test
     - ads/nirvana/online_learning/prepare_factorization_table/tsar_preprocessor/ut

@@ -1,6 +1,6 @@
 --- contrib/python/numpy/py3/numpy/__init__.py	(index)
 +++ contrib/python/numpy/py3/numpy/__init__.py	(working tree)
-@@ -376,7 +376,7 @@ else:
+@@ -365,7 +365,7 @@ else:
      import sys
      if sys.platform == "darwin":
          with warnings.catch_warnings(record=True) as w:

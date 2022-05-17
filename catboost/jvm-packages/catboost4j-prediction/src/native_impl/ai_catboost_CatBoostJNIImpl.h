@@ -75,6 +75,22 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedC
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetUsedTextFeatureCount
+ * Signature: (J[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedTextFeatureCount
+  (JNIEnv *, jclass, jlong, jintArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetUsedEmbeddingFeatureCount
+ * Signature: (J[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedEmbeddingFeatureCount
+  (JNIEnv *, jclass, jlong, jintArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetFlatFeatureVectorExpectedSize
  * Signature: (J[I)Ljava/lang/String;
  */
@@ -115,6 +131,14 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextF
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetEmbeddingFeatures
+ * Signature: (J[[Ljava/lang/String;[[I[[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetEmbeddingFeatures
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetUsedFeatureIndices
  * Signature: (J[[I)Ljava/lang/String;
  */
@@ -132,34 +156,34 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeC
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelPredict
- * Signature: (J[F[Ljava/lang/String;[D)Ljava/lang/String;
+ * Signature: (J[F[Ljava/lang/String;[Ljava/lang/String;[[F[D)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3D
-  (JNIEnv *, jclass, jlong, jfloatArray, jobjectArray, jdoubleArray);
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3Ljava_lang_String_2_3_3F_3D
+  (JNIEnv *, jclass, jlong, jfloatArray, jobjectArray, jobjectArray, jobjectArray, jdoubleArray);
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelPredict
- * Signature: (J[F[I[D)Ljava/lang/String;
+ * Signature: (J[F[I[Ljava/lang/String;[[F[D)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3D
-  (JNIEnv *, jclass, jlong, jfloatArray, jintArray, jdoubleArray);
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3Ljava_lang_String_2_3_3F_3D
+  (JNIEnv *, jclass, jlong, jfloatArray, jintArray, jobjectArray, jobjectArray, jdoubleArray);
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelPredict
- * Signature: (J[[F[[Ljava/lang/String;[D)Ljava/lang/String;
+ * Signature: (J[[F[[Ljava/lang/String;[[Ljava/lang/String;[[[F[D)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jdoubleArray);
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3_3Ljava_lang_String_2_3_3_3F_3D
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jdoubleArray);
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelPredict
- * Signature: (J[[F[[I[D)Ljava/lang/String;
+ * Signature: (J[[F[[I[[Ljava/lang/String;[[[F[D)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3D
-  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jdoubleArray);
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3_3Ljava_lang_String_2_3_3_3F_3D
+  (JNIEnv *, jclass, jlong, jobjectArray, jobjectArray, jobjectArray, jobjectArray, jdoubleArray);
 
 #ifdef __cplusplus
 }

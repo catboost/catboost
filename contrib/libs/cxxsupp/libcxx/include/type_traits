@@ -598,6 +598,12 @@ inline constexpr bool is_same_v = is_same<_Tp, _Up>::value;
 #endif
 
 #endif // __is_same
+// _IsSame<T,U> has the same effect as is_same<T,U> but instantiates fewer types:
+// is_same<A,B> and is_same<C,D> are guaranteed to be different types, but
+// _IsSame<A,B> and _IsSame<C,D> are the same type (namely, false_type).
+// Neither GCC nor Clang can mangle the __is_same builtin, so _IsSame
+// mustn't be directly used anywhere that contributes to name-mangling
+// (such as in a dependent return type).
 
 template <class _Tp, class _Up>
 using _IsSame = _BoolConstant<
@@ -627,9 +633,9 @@ using __is_primary_template = _IsValidExpansion<
     __test_for_primary_template, _Tp
   >;
 
-struct __two {char __lx[2];};
+// helper class
 
-// helper class:
+struct __two {char __lx[2];};
 
 // is_const
 
@@ -1443,10 +1449,7 @@ template<class _Tp> using type_identity_t = typename type_identity<_Tp>::type;
 
 // is_signed
 
-// Before Clang 10, __is_signed didn't work for floating-point types or enums.
-#if __has_keyword(__is_signed) &&                                              \
-    !(defined(_LIBCPP_CLANG_VER) && _LIBCPP_CLANG_VER < 1000) &&               \
-    !defined(__CUDACC__)
+#if __has_keyword(__is_signed) && !defined(__CUDACC__)
 
 template<class _Tp>
 struct _LIBCPP_TEMPLATE_VIS is_signed : _BoolConstant<__is_signed(_Tp)> { };
@@ -2380,7 +2383,7 @@ struct __common_type_impl {};
 // Clang provides variadic templates in C++03 as an extension.
 #if !defined(_LIBCPP_CXX03_LANG) || defined(__clang__)
 # define _LIBCPP_OPTIONAL_PACK(...) , __VA_ARGS__
-template <class... Tp>
+template <class... _Tp>
 struct __common_types;
 template <class... _Tp>
 struct _LIBCPP_TEMPLATE_VIS common_type;
@@ -4009,7 +4012,7 @@ struct __nothrow_swappable_with {
 template <class _Tp, class _Up>
 struct __nothrow_swappable_with<_Tp, _Up, false> : false_type {};
 
-}  // __detail
+} // namespace __detail
 
 template <class _Tp>
 struct __is_swappable

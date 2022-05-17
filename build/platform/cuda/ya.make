@@ -1,6 +1,6 @@
 RESOURCES_LIBRARY()
 
-# https://wiki.yandex-team.ru/devtools/cuda/
+# https://docs.yandex-team.ru/ya-make/manual/project_specific/cuda#cuda_host_compiler
 
 
 
@@ -187,7 +187,12 @@ ENDIF()
 IF (HOST_OS_WINDOWS)
     LDFLAGS(cudadevrt.lib cudart_static.lib)
 ELSE()
-    EXTRALIBS(-lcudadevrt -lcudart_static -lculibos)
+    EXTRALIBS(-lcudadevrt -lculibos)
+    IF (USE_DYNAMIC_CUDA)
+        EXTRALIBS(-lcudart)
+    ELSE()
+        EXTRALIBS(-lcudart_static)
+    ENDIF()
 ENDIF()
 
 END()

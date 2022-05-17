@@ -1,9 +1,10 @@
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
+#define _MULTIARRAYMODULE
+
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <structmember.h>
-#include <string.h>
 
-#define _MULTIARRAYMODULE
 #include "numpy/arrayobject.h"
 #include "numpy/npy_3kcompat.h"
 #include "numpy/npy_math.h"
@@ -14,6 +15,8 @@
 #include "ctors.h"
 #include "common.h"
 #include "contrib/python/numpy/py3/numpy/core/src/common/simd/simd.h"
+
+#include <string.h>
 
 typedef enum {
     PACK_ORDER_LITTLE = 0,
@@ -1390,7 +1393,7 @@ arr_add_docstring(PyObject *NPY_UNUSED(dummy), PyObject *args)
 {
     PyObject *obj;
     PyObject *str;
-    #if PY_VERSION_HEX >= 0x030700A2 && (!defined(PYPY_VERSION_NUM) || PYPY_VERSION_NUM > 0x07030300)
+    #if !defined(PYPY_VERSION_NUM) || PYPY_VERSION_NUM > 0x07030300
     const char *docstr;
     #else
     char *docstr;

@@ -1,19 +1,15 @@
-#include "tls.h"
 #include "error.h"
 
-#include <util/string/strip.h>
 #include <util/generic/strfcpy.h>
 
 #include <cerrno>
-#include <cstdio>
 #include <cstring>
 
 #if defined(_win_)
+    #include <util/string/strip.h>
     #include <util/network/socket.h>
     #include <util/generic/singleton.h>
     #include "winint.h"
-#elif defined(_unix_)
-    #include <unistd.h>
 #endif
 
 void ClearLastSystemError() {

@@ -2,7 +2,6 @@
 
 #include <util/generic/yexception.h>
 #include <util/generic/string.h>
-#include <util/stream/output.h>
 
 #include "yassert.h"
 

@@ -80,9 +80,9 @@ namespace ranges {
     static constexpr bool _MustProvideSizeAtConstruction = !_StoreSize; // just to improve compiler diagnostics
     struct _Empty { constexpr _Empty(auto) noexcept { } };
     using _Size = conditional_t<_StoreSize, make_unsigned_t<iter_difference_t<_Iter>>, _Empty>;
-    [[no_unique_address]] _Iter __begin_ = _Iter();
-    [[no_unique_address]] _Sent __end_ = _Sent();
-    [[no_unique_address]] _Size __size_ = 0;
+    _LIBCPP_NO_UNIQUE_ADDRESS _Iter __begin_ = _Iter();
+    _LIBCPP_NO_UNIQUE_ADDRESS _Sent __end_ = _Sent();
+    _LIBCPP_NO_UNIQUE_ADDRESS _Size __size_ = 0;
 
   public:
     _LIBCPP_HIDE_FROM_ABI
@@ -91,14 +91,14 @@ namespace ranges {
     _LIBCPP_HIDE_FROM_ABI
     constexpr subrange(__convertible_to_non_slicing<_Iter> auto __iter, _Sent __sent)
       requires _MustProvideSizeAtConstruction
-      : __begin_(_VSTD::move(__iter)), __end_(std::move(__sent))
+      : __begin_(_VSTD::move(__iter)), __end_(_VSTD::move(__sent))
     { }
 
     _LIBCPP_HIDE_FROM_ABI
     constexpr subrange(__convertible_to_non_slicing<_Iter> auto __iter, _Sent __sent,
                        make_unsigned_t<iter_difference_t<_Iter>> __n)
       requires (_Kind == subrange_kind::sized)
-      : __begin_(_VSTD::move(__iter)), __end_(std::move(__sent)), __size_(__n)
+      : __begin_(_VSTD::move(__iter)), __end_(_VSTD::move(__sent)), __size_(__n)
     {
       if constexpr (sized_sentinel_for<_Sent, _Iter>)
         _LIBCPP_ASSERT((__end_ - __begin_) == static_cast<iter_difference_t<_Iter>>(__n),

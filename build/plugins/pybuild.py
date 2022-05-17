@@ -10,12 +10,14 @@ YA_IDE_VENV_VAR = 'YA_IDE_VENV'
 PY_NAMESPACE_PREFIX = 'py/namespace'
 BUILTIN_PROTO = 'builtin_proto'
 
+
 def is_arc_src(src, unit):
     return (
         src.startswith('${ARCADIA_ROOT}/') or
         src.startswith('${CURDIR}/') or
         unit.resolve_arc_path(src).startswith('$S/')
     )
+
 
 def is_extended_source_search_enabled(path, unit):
     if not is_arc_src(path, unit):
@@ -24,16 +26,19 @@ def is_extended_source_search_enabled(path, unit):
         return False
     return True
 
+
 def to_build_root(path, unit):
     if is_arc_src(path, unit):
         return '${ARCADIA_BUILD_ROOT}/' + rootrel_arc_src(path, unit)
     return path
+
 
 def uniq_suffix(path, unit):
     upath = unit.path()
     if '/' not in path:
         return ''
     return '.{}'.format(pathid(path)[:4])
+
 
 def pb2_arg(suf, path, mod, unit):
     return '{path}__int__{suf}={mod}{modsuf}'.format(
@@ -43,17 +48,22 @@ def pb2_arg(suf, path, mod, unit):
         modsuf=stripext(suf)
     )
 
+
 def proto_arg(path, mod, unit):
     return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
+
 
 def pb_cc_arg(suf, path, unit):
     return '{}{suf}'.format(stripext(to_build_root(path, unit)), suf=suf)
 
+
 def ev_cc_arg(path, unit):
     return '{}.ev.pb.cc'.format(stripext(to_build_root(path, unit)))
 
+
 def ev_arg(path, mod, unit):
     return '{}__int___ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
+
 
 def mangle(name):
     if '.' not in name:
@@ -104,11 +114,14 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
             else:
                 ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
 
+
 def has_pyx(args):
     return any(arg.endswith('.pyx') for arg in args)
 
+
 def get_srcdir(path, unit):
     return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
+
 
 def add_python_lint_checks(unit, py_ver, files):
     def get_resolved_files():
@@ -141,6 +154,11 @@ def add_python_lint_checks(unit, py_ver, files):
         resolved_files = get_resolved_files()
         flake8_cfg = 'build/config/tests/flake8/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
+
+    if files and unit.get('STYLE_PYTHON_VALUE') == 'yes' and is_py3(unit):
+        resolved_files = get_resolved_files()
+        black_cfg = 'devtools/ya/handlers/style/python_style_config.toml'
+        unit.onadd_check(['black', black_cfg] + resolved_files)
 
 
 def is_py3(unit):
@@ -622,6 +640,7 @@ def onpy_constructor(unit, arg):
         arg[arg.index(':')] = '='
     unit.onresource(['-', 'py/constructors/{}'.format(arg)])
 
+
 def onpy_enums_serialization(unit, *args):
     ns = ''
     args = iter(args)
@@ -637,6 +656,7 @@ def onpy_enums_serialization(unit, *args):
                 onpy_srcs(unit, 'NAMESPACE', ns, filename)
             else:
                 onpy_srcs(unit, filename)
+
 
 def oncpp_enums_serialization(unit, *args):
     args = iter(args)

@@ -20,6 +20,7 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/metric_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/quantization/grid_creator.h>
@@ -208,6 +209,39 @@ namespace NCatboostCuda {
         UpdatePinnedMemorySizeOption(dataProvider, testProvider, featuresManager, catBoostOptions);
     }
 
+    static void UpdateDefaultMetricPeriod(
+        const NCatboostOptions::TCatBoostOptions& trainOptions,
+        NCatboostOptions::TOutputFilesOptions* outputOptions
+    ) {
+        if (outputOptions->IsMetricPeriodSet()) {
+            return;
+        }
+        const auto& metricOptions = trainOptions.MetricOptions;
+        TSet<ELossFunction> cpuOnlyMetrics;
+        if (!HasGpuImplementation(metricOptions->EvalMetric->GetLossFunction())) {
+            cpuOnlyMetrics.insert(metricOptions->EvalMetric->GetLossFunction());
+        }
+        if (!HasGpuImplementation(metricOptions->ObjectiveMetric->GetLossFunction())) {
+            cpuOnlyMetrics.insert(metricOptions->ObjectiveMetric->GetLossFunction());
+        }
+        for (const auto& metric : metricOptions->CustomMetrics.Get()) {
+            if (!HasGpuImplementation(metric.GetLossFunction())) {
+                cpuOnlyMetrics.insert(metric.GetLossFunction());
+            }
+        }
+        if (cpuOnlyMetrics.size() > 0) {
+            constexpr ui32 HeavyMetricPeriod = 5;
+            const auto someMetric = *cpuOnlyMetrics.begin();
+            cpuOnlyMetrics.erase(someMetric);
+            CATBOOST_WARNING_LOG << "Default metric period is " << HeavyMetricPeriod << " because " << ToString(someMetric);
+            for (auto metric : cpuOnlyMetrics) {
+                CATBOOST_WARNING_LOG << ", " << ToString(metric);
+            }
+            CATBOOST_WARNING_LOG << " is/are not implemented for GPU" << Endl;
+            outputOptions->SetMetricPeriod(HeavyMetricPeriod);
+        }
+    }
+
     static void ConfigureCudaProfiler(bool isProfile, NCudaLib::TCudaProfiler* profiler) {
         if (isProfile) {
             profiler->SetDefaultProfileMode(NCudaLib::EProfileMode::ImplicitLabelSync);
@@ -383,10 +417,13 @@ namespace NCatboostCuda {
 
             CheckMetrics(updatedCatboostOptions.MetricOptions);
 
+            NCatboostOptions::TOutputFilesOptions updatedOutputOptions(outputOptions);
+            UpdateDefaultMetricPeriod(updatedCatboostOptions, &updatedOutputOptions);
+
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 updatedCatboostOptions,
-                outputOptions,
+                updatedOutputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
                 *trainingData.FeatureEstimators,

@@ -1093,7 +1093,8 @@ public:
     {
     }
 
-    TBitMap(const TBitMap<BitCount, TChunkType>&) = default;
+    TBitMap(const TBitMap&) = default;
+    TBitMap& operator=(const TBitMap&) = default;
 
     template <class T>
     TBitMap(const TBitMapOps<T>& bitmap)

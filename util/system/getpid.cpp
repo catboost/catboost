@@ -10,7 +10,6 @@
         #include <processthreadsapi.h>
     #endif
 #else
-    #include <sys/types.h>
     #include <unistd.h>
 #endif
 

@@ -147,6 +147,7 @@ def main():
             cmd += ["--checks", args.checks]
         res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = res.communicate()
+        out = out.replace(args.source_root, "$(SOURCE_ROOT)")
         exit_code = res.returncode
         profile = load_profile(profile_tmpdir)
         testing_src = os.path.relpath(args.testing_src, args.source_root)

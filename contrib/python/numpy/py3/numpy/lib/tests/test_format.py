@@ -1,7 +1,5 @@
 import sys
 import os
-import shutil
-import tempfile
 import warnings
 import pytest
 from io import BytesIO

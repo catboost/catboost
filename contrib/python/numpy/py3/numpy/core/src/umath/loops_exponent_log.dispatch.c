@@ -55,19 +55,19 @@
 
 #ifdef SIMD_AVX2_FMA3
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_get_full_load_mask_ps(void)
 {
     return _mm256_set1_ps(-1.0);
 }
 
-static NPY_INLINE __m256i
+NPY_FINLINE __m256i
 fma_get_full_load_mask_pd(void)
 {
     return _mm256_castpd_si256(_mm256_set1_pd(-1.0));
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_get_partial_load_mask_ps(const npy_int num_elem, const npy_int num_lanes)
 {
     float maskint[16] = {-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,-1.0,
@@ -76,7 +76,7 @@ fma_get_partial_load_mask_ps(const npy_int num_elem, const npy_int num_lanes)
     return _mm256_loadu_ps(addr);
 }
 
-static NPY_INLINE __m256i
+NPY_FINLINE __m256i
 fma_get_partial_load_mask_pd(const npy_int num_elem, const npy_int num_lanes)
 {
     npy_int maskint[16] = {-1,-1,-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,1,1};
@@ -84,7 +84,7 @@ fma_get_partial_load_mask_pd(const npy_int num_elem, const npy_int num_lanes)
     return _mm256_loadu_si256((__m256i*) addr);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_masked_gather_ps(__m256 src,
                      npy_float* addr,
                      __m256i vindex,
@@ -93,7 +93,7 @@ fma_masked_gather_ps(__m256 src,
     return _mm256_mask_i32gather_ps(src, addr, vindex, mask, 4);
 }
 
-static NPY_INLINE __m256d
+NPY_FINLINE __m256d
 fma_masked_gather_pd(__m256d src,
                      npy_double* addr,
                      __m128i vindex,
@@ -102,49 +102,49 @@ fma_masked_gather_pd(__m256d src,
     return _mm256_mask_i32gather_pd(src, addr, vindex, mask, 8);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_masked_load_ps(__m256 mask, npy_float* addr)
 {
     return _mm256_maskload_ps(addr, _mm256_cvtps_epi32(mask));
 }
 
-static NPY_INLINE __m256d
+NPY_FINLINE __m256d
 fma_masked_load_pd(__m256i mask, npy_double* addr)
 {
     return _mm256_maskload_pd(addr, mask);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_set_masked_lanes_ps(__m256 x, __m256 val, __m256 mask)
 {
     return _mm256_blendv_ps(x, val, mask);
 }
 
-static NPY_INLINE __m256d
+NPY_FINLINE __m256d
 fma_set_masked_lanes_pd(__m256d x, __m256d val, __m256d mask)
 {
     return _mm256_blendv_pd(x, val, mask);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_blend(__m256 x, __m256 y, __m256 ymask)
 {
     return _mm256_blendv_ps(x, y, ymask);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_invert_mask_ps(__m256 ymask)
 {
     return _mm256_andnot_ps(ymask, _mm256_set1_ps(-1.0));
 }
 
-static NPY_INLINE __m256i
+NPY_FINLINE __m256i
 fma_invert_mask_pd(__m256i ymask)
 {
     return _mm256_andnot_si256(ymask, _mm256_set1_epi32(0xFFFFFFFF));
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_get_exponent(__m256 x)
 {
     /*
@@ -159,8 +159,8 @@ fma_get_exponent(__m256 x)
     __m256 normal_mask = _mm256_cmp_ps(x, _mm256_set1_ps(FLT_MIN), _CMP_GE_OQ);
 
     /*
-     * It is necessary for temp1 to be volatile, a bug in clang optimizes it out which leads
-     * to an overflow warning in some cases. See https://github.com/numpy/numpy/issues/18005
+     * The volatile is probably unnecessary now since we compile clang with
+     * `-ftrapping-math`: https://github.com/numpy/numpy/issues/18005
      */
     volatile __m256 temp1 = _mm256_blendv_ps(x, _mm256_set1_ps(0.0f), normal_mask);
     __m256 temp = _mm256_mul_ps(temp1, two_power_100);
@@ -175,7 +175,7 @@ fma_get_exponent(__m256 x)
     return _mm256_blendv_ps(exp, denorm_exp, denormal_mask);
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_get_mantissa(__m256 x)
 {
     /*
@@ -190,8 +190,8 @@ fma_get_mantissa(__m256 x)
     __m256 normal_mask = _mm256_cmp_ps(x, _mm256_set1_ps(FLT_MIN), _CMP_GE_OQ);
 
     /*
-     * It is necessary for temp1 to be volatile, a bug in clang optimizes it out which leads
-     * to an overflow warning in some cases. See https://github.com/numpy/numpy/issues/18005
+     * The volatile is probably unnecessary now since we compile clang with
+     * `-ftrapping-math`: https://github.com/numpy/numpy/issues/18005
      */
     volatile __m256 temp1 = _mm256_blendv_ps(x, _mm256_set1_ps(0.0f), normal_mask);
     __m256 temp = _mm256_mul_ps(temp1, two_power_100);
@@ -205,7 +205,7 @@ fma_get_mantissa(__m256 x)
                         _mm256_castps_si256(x), mantissa_bits), exp_126_bits));
 }
 
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 fma_scalef_ps(__m256 poly, __m256 quadrant)
 {
     /*
@@ -248,31 +248,31 @@ fma_scalef_ps(__m256 poly, __m256 quadrant)
 
 #ifdef SIMD_AVX512F
 
-static NPY_INLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
+NPY_FINLINE NPY_GCC_OPT_3 NPY_GCC_TARGET_AVX512F __mmask16
 avx512_get_full_load_mask_ps(void)
 {
     return 0xFFFF;
 }
 
-static NPY_INLINE __mmask8
+NPY_FINLINE __mmask8
 avx512_get_full_load_mask_pd(void)
 {
     return 0xFF;
 }
 
-static NPY_INLINE __mmask16
+NPY_FINLINE __mmask16
 avx512_get_partial_load_mask_ps(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x0001 << num_elem) - 0x0001;
 }
 
-static NPY_INLINE __mmask8
+NPY_FINLINE __mmask8
 avx512_get_partial_load_mask_pd(const npy_int num_elem, const npy_int total_elem)
 {
     return (0x01 << num_elem) - 0x01;
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_masked_gather_ps(__m512 src,
                         npy_float* addr,
                         __m512i vindex,
@@ -281,7 +281,7 @@ avx512_masked_gather_ps(__m512 src,
     return _mm512_mask_i32gather_ps(src, kmask, vindex, addr, 4);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_masked_gather_pd(__m512d src,
                         npy_double* addr,
                         __m256i vindex,
@@ -290,67 +290,67 @@ avx512_masked_gather_pd(__m512d src,
     return _mm512_mask_i32gather_pd(src, kmask, vindex, addr, 8);
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_masked_load_ps(__mmask16 mask, npy_float* addr)
 {
     return _mm512_maskz_loadu_ps(mask, (__m512 *)addr);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_masked_load_pd(__mmask8 mask, npy_double* addr)
 {
     return _mm512_maskz_loadu_pd(mask, (__m512d *)addr);
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_set_masked_lanes_ps(__m512 x, __m512 val, __mmask16 mask)
 {
     return _mm512_mask_blend_ps(mask, x, val);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_set_masked_lanes_pd(__m512d x, __m512d val, __mmask8 mask)
 {
     return _mm512_mask_blend_pd(mask, x, val);
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_blend(__m512 x, __m512 y, __mmask16 ymask)
 {
     return _mm512_mask_mov_ps(x, ymask, y);
 }
 
-static NPY_INLINE __mmask16
+NPY_FINLINE __mmask16
 avx512_invert_mask_ps(__mmask16 ymask)
 {
     return _mm512_knot(ymask);
 }
 
-static NPY_INLINE __mmask8
+NPY_FINLINE __mmask8
 avx512_invert_mask_pd(__mmask8 ymask)
 {
     return _mm512_knot(ymask);
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_get_exponent(__m512 x)
 {
     return _mm512_add_ps(_mm512_getexp_ps(x), _mm512_set1_ps(1.0f));
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_get_mantissa(__m512 x)
 {
     return _mm512_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
 }
 
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 avx512_scalef_ps(__m512 poly, __m512 quadrant)
 {
     return _mm512_scalef_ps(poly, quadrant);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_permute_x4var_pd(__m512d t0,
                         __m512d t1,
                         __m512d t2,
@@ -365,7 +365,7 @@ avx512_permute_x4var_pd(__m512d t0,
     return _mm512_mask_blend_pd(lut_mask, res1, res2);
 }
 
-static NPY_INLINE __m512d
+NPY_FINLINE __m512d
 avx512_permute_x8var_pd(__m512d t0, __m512d t1, __m512d t2, __m512d t3,
                         __m512d t4, __m512d t5, __m512d t6, __m512d t7,
                         __m512i index)
@@ -393,7 +393,7 @@ avx512_permute_x8var_pd(__m512d t0, __m512d t1, __m512d t2, __m512d t3,
  * 3) x* = x - y*c3
  * c1, c2 are exact floating points, c3 = C - c1 - c2 simulates higher precision
  */
-static NPY_INLINE __m256
+NPY_FINLINE __m256
 simd_range_reduction(__m256 x, __m256 y, __m256 c1, __m256 c2, __m256 c3)
 {
     __m256 reduced_x = _mm256_fmadd_ps(y, c1, x);
@@ -689,7 +689,7 @@ simd_log_FLOAT(npy_float * op,
  * 3) x* = x - y*c3
  * c1, c2 are exact floating points, c3 = C - c1 - c2 simulates higher precision
  */
-static NPY_INLINE __m512
+NPY_FINLINE __m512
 simd_range_reduction(__m512 x, __m512 y, __m512 c1, __m512 c2, __m512 c3)
 {
     __m512 reduced_x = _mm512_fmadd_ps(y, c1, x);
@@ -826,11 +826,11 @@ simd_exp_FLOAT(npy_float * op,
         num_remaining_elements -= num_lanes;
     }
 
-    if ((overflow_mask)) {
+    if (npyv_tobits_b32(overflow_mask)) {
         npy_set_floatstatus_overflow();
     }
 
-    if ((underflow_mask)) {
+    if (npyv_tobits_b32(underflow_mask)) {
         npy_set_floatstatus_underflow();
     }
 }
@@ -966,10 +966,10 @@ simd_log_FLOAT(npy_float * op,
         num_remaining_elements -= num_lanes;
     }
 
-    if ((invalid_mask)) {
+    if (npyv_tobits_b32(invalid_mask)) {
         npy_set_floatstatus_invalid();
     }
-    if ((divide_by_zero_mask)) {
+    if (npyv_tobits_b32(divide_by_zero_mask)) {
         npy_set_floatstatus_divbyzero();
     }
 }
@@ -1088,7 +1088,7 @@ AVX512F_exp_DOUBLE(npy_double * op,
         q = _mm512_fmadd_pd(q, r, mA2);
         q = _mm512_fmadd_pd(q, r, mA1);
         q = _mm512_mul_pd(q, r);
-        __m512d p = _mm512_fmadd_pd(r, q, r2);;
+        __m512d p = _mm512_fmadd_pd(r, q, r2);
         p = _mm512_add_pd(r1, p);
 
         /* Get 2^(j/32) from lookup table */
@@ -1121,11 +1121,19 @@ AVX512F_exp_DOUBLE(npy_double * op,
         op += num_lanes;
         num_remaining_elements -= num_lanes;
     }
-    if (overflow_mask) {
+    /*
+     * Don't count on the compiler for cast between mask and int registers.
+     * On gcc7 with flags -march>=nocona -O3 can cause FP stack overflow
+     * which may lead to putting NaN into certain HW/FP calculations.
+     *
+     * For more details, please check the comments in:
+     * - https://github.com/numpy/numpy/issues/20356
+     */
+    if (npyv_tobits_b64(overflow_mask)) {
         npy_set_floatstatus_overflow();
     }
 
-    if (underflow_mask) {
+    if (npyv_tobits_b64(underflow_mask)) {
         npy_set_floatstatus_underflow();
     }
 }
@@ -1156,6 +1164,32 @@ AVX512F_exp_DOUBLE(npy_double * op,
  *               = p(r)
  *               = 2((r/2) + 1/3*(r/2)^3 + 1/5*(r/2)^5 + ...)
  */
+
+/* LLVM has a bug where AVX-512F intrinsic `_mm512_mask_mul_pd` emits an
+ * unmasked operation with a masked store.  This can cause FP exceptions to
+ * occur for the lanes that are suppose to have been masked.
+ *
+ * See https://bugs.llvm.org/show_bug.cgi?id=51988
+ *
+ * Note, this affects LLVM based compilers like Apple Clang, Clang, and Intel's
+ * ICX.
+ */
+#if defined(__clang__)
+    #if defined(__apple_build_version__)
+    // Apple Clang
+        #if __apple_build_version__ > 11000000
+        // Apple Clang after v11
+        #define WORKAROUND_LLVM__mm512_mask_mul_pd
+        #endif
+    #else
+    // Clang, not Apple Clang
+        #if __clang_major__ > 9
+        // Clang v9+
+        #define WORKAROUND_LLVM__mm512_mask_mul_pd
+        #endif
+    #endif
+#endif
+
 static void
 AVX512F_log_DOUBLE(npy_double * op,
                 npy_double * ip,
@@ -1189,49 +1223,49 @@ AVX512F_log_DOUBLE(npy_double * op,
     __m256i vindex = _mm256_loadu_si256((__m256i*)&indexarr[0]);
 
     /* Load lookup table data */
-    #line 907
+    #line 941
 
     __m512d mLUT_TOP_0 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*0]));
     __m512d mLUT_TAIL_0 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*0]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_1 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*1]));
     __m512d mLUT_TAIL_1 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*1]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_2 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*2]));
     __m512d mLUT_TAIL_2 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*2]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_3 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*3]));
     __m512d mLUT_TAIL_3 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*3]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_4 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*4]));
     __m512d mLUT_TAIL_4 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*4]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_5 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*5]));
     __m512d mLUT_TAIL_5 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*5]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_6 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*6]));
     __m512d mLUT_TAIL_6 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*6]));
 
     
-#line 907
+#line 941
 
     __m512d mLUT_TOP_7 = _mm512_loadu_pd(&(LOG_TABLE_TOP[8*7]));
     __m512d mLUT_TAIL_7 = _mm512_loadu_pd(&(LOG_TABLE_TAIL[8*7]));
@@ -1282,8 +1316,12 @@ AVX512F_log_DOUBLE(npy_double * op,
             denormal_mask = _mm512_cmp_epi64_mask(top12, _mm512_set1_epi64(0),
                                 _CMP_EQ_OQ);
             denormal_mask = (~zero_mask) & denormal_mask;
+            __m512d masked_x = x;
+            #ifdef WORKAROUND_LLVM__mm512_mask_mul_pd
+            masked_x = avx512_set_masked_lanes_pd(masked_x, zeros_d, (~denormal_mask));
+            #endif
             ix = _mm512_castpd_si512(_mm512_mask_mul_pd(x, denormal_mask,
-                                    x, _mm512_set1_pd(0x1p52)));
+                                    masked_x, _mm512_set1_pd(0x1p52)));
             ix = _mm512_mask_sub_epi64(ix, denormal_mask,
                                     ix, _mm512_set1_epi64(52ULL << 52));
 
@@ -1360,17 +1398,20 @@ AVX512F_log_DOUBLE(npy_double * op,
         num_remaining_elements -= num_lanes;
     }
 
-    if (invalid_mask) {
+    if (npyv_tobits_b64(invalid_mask)) {
         npy_set_floatstatus_invalid();
     }
-    if (divide_by_zero_mask) {
+    if (npyv_tobits_b64(divide_by_zero_mask)) {
         npy_set_floatstatus_divbyzero();
     }
 }
+
+#undef WORKAROUND_LLVM__mm512_mask_mul_pd
+
 #endif // AVX512F_NOCLANG_BUG
 
 #ifdef SIMD_AVX512_SKX
-#line 1063
+#line 1104
 static NPY_INLINE void
 AVX512_SKX_ldexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -1517,7 +1558,7 @@ AVX512_SKX_frexp_FLOAT(char **args, npy_intp const *dimensions, npy_intp const *
     }
 }
 
-#line 1063
+#line 1104
 static NPY_INLINE void
 AVX512_SKX_ldexp_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const *steps)
 {
@@ -1670,7 +1711,7 @@ AVX512_SKX_frexp_DOUBLE(char **args, npy_intp const *dimensions, npy_intp const 
 /********************************************************************************
  ** Defining ufunc inner functions
  ********************************************************************************/
-#line 1219
+#line 1260
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1699,7 +1740,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_exp)
 #endif
 }
 
-#line 1219
+#line 1260
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1729,7 +1770,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_log)
 }
 
 
-#line 1252
+#line 1293
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1745,7 +1786,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_exp)
     }
 }
 
-#line 1252
+#line 1293
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(data))
 {
@@ -1762,7 +1803,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_log)
 }
 
 
-#line 1275
+#line 1316
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_frexp)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {
@@ -1794,7 +1835,7 @@ NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(FLOAT_ldexp)
     }
 }
 
-#line 1275
+#line 1316
 NPY_NO_EXPORT void NPY_CPU_DISPATCH_CURFX(DOUBLE_frexp)
 (char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
 {

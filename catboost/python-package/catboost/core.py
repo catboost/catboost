@@ -1,6 +1,7 @@
-import sys
+from contextlib import contextmanager  # noqa E402
 from copy import deepcopy
-from six import iteritems, string_types, integer_types
+import logging
+import sys
 import os
 
 if sys.version_info >= (3, 3):
@@ -9,6 +10,8 @@ else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
 from collections import OrderedDict, defaultdict
+
+from six import iteritems, string_types, integer_types
 
 import warnings
 import numpy as np
@@ -78,8 +81,7 @@ fspath = _catboost.fspath
 _eval_metric_util = _catboost._eval_metric_util
 
 
-from contextlib import contextmanager  # noqa E402
-
+logger = logging.getLogger(__name__)
 
 _configure_malloc()
 _catboost._library_init()
@@ -115,14 +117,26 @@ def _get_stream_like_object(obj):
         'Expected callable object or stream-like object'
     )
 
+catboost_logger_lock = Lock()
 
 @contextmanager
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
-    try:
-        _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+    if catboost_logger_lock.acquire(False):
+        try:
+            _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+            yield
+        finally:
+            _reset_logger()
+            catboost_logger_lock.release()
+    else:
+        if log_cout is not sys.stdout or log_cerr is not sys.stderr:
+            logger.warning(
+                'CatBoost custom logger function is already set in another thread, ' +
+                'will use it from this thread. If you are training CatBoost models from different threads, ' +
+                'consider using sys.stdout and sys.stderr default loggers'
+            )
         yield
-    finally:
-        _reset_logger()
+
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
@@ -207,6 +221,8 @@ class EFstrType(Enum):
     PredictionDiff = 5
     """Calculate SHAP Interaction Values pairwise between every feature for every object."""
     ShapInteractionValues = 6
+    """Calculate SAGE Values for every feature"""
+    SageValues = 7
 
 
 class EShapCalcType(Enum):
@@ -539,6 +555,7 @@ class Pool(_PoolBase):
         cat_features=None,
         text_features=None,
         embedding_features=None,
+        embedding_features_data=None,
         column_description=None,
         pairs=None,
         delimiter='\t',
@@ -593,6 +610,12 @@ class Pool(_PoolBase):
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
+
+        embedding_features_data : list or dict, optional (default=None)
+            If not None, giving the data of Embedding features (instead of data in main 'data' parameter).
+            If list - list containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+            If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+                Dict keys must be the same as specified in 'embedding_features' parameter
 
         column_description : string or pathlib.Path, optional (default=None)
             ColumnsDescription parameter.
@@ -687,10 +710,10 @@ class Pool(_PoolBase):
             if column_description is not None and not isinstance(data, PATH_TYPES):
                 raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
             if isinstance(data, PATH_TYPES):
-                if any(v is not None for v in [cat_features, text_features, embedding_features, weight, group_id, group_weight,
+                if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight,
                                                subgroup_id, pairs_weight, baseline, label]):
                     raise CatBoostError(
-                        "cat_features, text_features, embedding_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
+                        "cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight, subgroup_id, pairs_weight, "
                         "baseline, label should have the None type when the pool is read from the file."
                     )
                 if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
@@ -701,9 +724,9 @@ class Pool(_PoolBase):
                            log_cout=log_cout, log_cerr=log_cerr)
             else:
                 if isinstance(data, FeaturesData):
-                    if any(v is not None for v in [cat_features, text_features, embedding_features, feature_names]):
+                    if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, feature_names]):
                         raise CatBoostError(
-                            "cat_features, text_features, embedding_features, feature_names should have the None type"
+                            "cat_features, text_features, embedding_features, embedding_features_data, feature_names should have the None type"
                             " when 'data' parameter has FeaturesData type"
                         )
                 elif isinstance(data, np.ndarray):
@@ -718,10 +741,11 @@ class Pool(_PoolBase):
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
                     if (data.dtype.kind != 'O') and (embedding_features is not None) and (len(embedding_features) > 0):
-                        raise CatBoostError(
-                            "'data' is numpy array of non-object type, it means no embedding features,"
-                            " but 'embedding_features' parameter specifies nonzero number of embedding features"
-                        )
+                        if embedding_features_data is None:
+                            raise CatBoostError(
+                                "'data' is numpy array of non-object type, it means no embedding features,"
+                                " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                            )
                 elif isinstance(data, scipy.sparse.spmatrix):
                     if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
                         raise CatBoostError(
@@ -733,10 +757,30 @@ class Pool(_PoolBase):
                             "'data' is scipy.sparse.spmatrix, it means no text features,"
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
-                    if (embedding_features is not None) and (len(embedding_features) > 0):
+                    if (embedding_features is not None) and (len(embedding_features) > 0) and (embedding_features_data is None):
                         raise CatBoostError(
-                            "'data' is scipy.sparse.spmatrix, it means no embedding features,"
+                            "'data' is scipy.sparse.spmatrix and 'embedding_features_data' is None, it means no embedding features,"
                             " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                        )
+
+                if embedding_features_data is not None:
+                    if embedding_features is None:
+                        raise CatBoostError(
+                            "'embedding_features_data' is not None, but 'embedding_features' parameter is not specified"
+                        )
+                    if isinstance(embedding_features_data, list):
+                        if len(embedding_features) != len(embedding_features_data):
+                            raise CatBoostError(
+                                "'embedding_features_data' and 'embedding_features' contain different numbers of features"
+                            )
+                    elif isinstance(embedding_features_data, dict):
+                        if set(embedding_features) != set(embedding_features_data.keys()):
+                            raise CatBoostError(
+                                "keys of 'embedding_features_data' dict do not correspond to 'embedding_features'"
+                            )
+                    else:
+                        raise CatBoostError(
+                            "'embedding_features_data' must have either 'list' or 'dict' type"
                         )
 
                 if isinstance(feature_names, PATH_TYPES):
@@ -745,7 +789,7 @@ class Pool(_PoolBase):
                         "python objects."
                     )
 
-                self._init(data, label, cat_features, text_features, embedding_features, pairs, weight,
+                self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                            group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
         super(Pool, self).__init__()
 
@@ -1237,6 +1281,7 @@ class Pool(_PoolBase):
         cat_features,
         text_features,
         embedding_features,
+        embedding_features_data,
         pairs, weight,
         group_id,
         group_weight,
@@ -1263,6 +1308,13 @@ class Pool(_PoolBase):
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
             samples_count, features_count = np.shape(data)
+            if embedding_features_data is not None:
+                features_count += len(embedding_features_data)
+                for embedding_feature_data in embedding_features_data:
+                    if len(embedding_feature_data) != samples_count:
+                        raise CatBoostError(
+                            "samples count in 'embeddings_features_data' does not correspond to samples count in main data"
+                        )
         pairs_len = 0
         if label is not None:
             self._check_label_type(label)
@@ -1322,7 +1374,7 @@ class Pool(_PoolBase):
             self._check_timestamp_shape(timestamp, samples_count)
         if feature_tags is not None:
             feature_tags = self._check_transform_tags(feature_tags, feature_names)
-        self._init_pool(data, label, cat_features, text_features, embedding_features, pairs, weight,
+        self._init_pool(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                         group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
 
 
@@ -1686,8 +1738,8 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type):
-        return self._object._calc_fstr(type.name, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type)
+    def _calc_fstr(self, type, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence):
+        return self._object._calc_fstr(type.name, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -2814,7 +2866,11 @@ class CatBoost(_CatBoostBase):
             return np.array(getattr(self, "_prediction_values_change", None))
 
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", model_output="Raw", interaction_indices=None, shap_calc_type="Regular", reference_data=None, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False,
+                               thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto",
+                               model_output="Raw", interaction_indices=None, shap_calc_type="Regular",
+                               reference_data=None, sage_n_samples=128, sage_batch_size=512,
+                               sage_detect_convergence=True, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Parameters
         ----------
@@ -2822,6 +2878,8 @@ class CatBoost(_CatBoostBase):
             Data to get feature importance.
             If type in ('LossFunctionChange', 'ShapValues', 'ShapInteractionValues') data must of Pool type.
                 For every object in this dataset feature importances will be calculated.
+            if type == 'SageValues' data must of Pool type.
+                For every feature in this dataset importance will be calculated.
             If type == 'PredictionValuesChange', data is None or a dataset of Pool type
                 Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
             If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
@@ -2849,9 +2907,10 @@ class CatBoost(_CatBoostBase):
                     Calculate pairwise score between every feature.
                 - PredictionDiff
                     Calculate most important features explaining difference in predictions for a pair of documents.
+                - SageValues
+                    Calculate SAGE value for every feature
 
         prettified : bool, optional (default=False)
-            used only for PredictionValuesChange type
             change returned data format to the list of (feature_id, importance) pairs sorted by importance
 
         thread_count : int, optional (default=-1)
@@ -2898,6 +2957,16 @@ class CatBoost(_CatBoostBase):
             Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
             if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
 
+        sage_n_samples: int, optional (default=32)
+            Number of outer samples used in SAGE values approximation algorithm
+
+        sage_batch_size: int, optional (default=min(512, number of samples in dataset))
+            Number of samples used on each step of SAGE values approximation algorithm
+
+        sage_detect_convergence: bool, optional (default=False)
+            If set True, sage values calculation will be stopped either when sage values converge
+            or when sage_n_samples iterations of algorithm pass
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -2907,9 +2976,9 @@ class CatBoost(_CatBoostBase):
         depends on type:
             - FeatureImportance
                 See PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics.
-            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=False (default)
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff, SageValues with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
-            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff, SageValues with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
                 np.ndarray of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
@@ -2968,8 +3037,9 @@ class CatBoost(_CatBoostBase):
         with log_fixup(log_cout, log_cerr):
             shap_calc_type = enum_from_enum_or_str(EShapCalcType, shap_calc_type).value
             fstr, feature_names = self._calc_fstr(type, data, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices,
-                                                  shap_calc_type)
-        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.PredictionDiff):
+                                                  shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
+        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange,
+                    EFstrType.PredictionDiff, EFstrType.SageValues):
             feature_importances = [value[0] for value in fstr]
             attribute_name = None
             if type == EFstrType.PredictionValuesChange:

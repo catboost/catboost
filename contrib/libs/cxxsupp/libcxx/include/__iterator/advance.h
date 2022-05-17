@@ -12,13 +12,12 @@
 
 #include <__config>
 #include <__debug>
-#include <__function_like.h>
 #include <__iterator/concepts.h>
 #include <__iterator/incrementable_traits.h>
 #include <__iterator/iterator_traits.h>
 #include <__utility/move.h>
-#include <cstdlib>
 #include <concepts>
+#include <cstdlib>
 #include <limits>
 #include <type_traits>
 
@@ -67,9 +66,12 @@ void advance(_InputIter& __i, _Distance __orig_n) {
 
 #if !defined(_LIBCPP_HAS_NO_RANGES)
 
-namespace ranges {
 // [range.iter.op.advance]
-struct __advance_fn final : private __function_like {
+
+namespace ranges {
+namespace __advance {
+
+struct __fn {
 private:
   template <class _Tp>
   _LIBCPP_HIDE_FROM_ABI
@@ -96,8 +98,6 @@ private:
   }
 
 public:
-  constexpr explicit __advance_fn(__tag __x) noexcept : __function_like(__x) {}
-
   // Preconditions: If `I` does not model `bidirectional_iterator`, `n` is not negative.
   template <input_or_output_iterator _Ip>
   _LIBCPP_HIDE_FROM_ABI
@@ -185,7 +185,11 @@ public:
   }
 };
 
-inline constexpr auto advance = __advance_fn(__function_like::__tag());
+} // namespace __advance
+
+inline namespace __cpo {
+  inline constexpr auto advance = __advance::__fn{};
+} // namespace __cpo
 } // namespace ranges
 
 #endif // !defined(_LIBCPP_HAS_NO_RANGES)

@@ -202,6 +202,8 @@ def urlopen(url, data=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT,
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH,
                                              cafile=cafile,
                                              capath=capath)
+        # send ALPN extension to indicate HTTP/1.1 protocol
+        context.set_alpn_protocols(['http/1.1'])
         https_handler = HTTPSHandler(context=context)
         opener = build_opener(https_handler)
     elif context:
@@ -887,10 +889,10 @@ class HTTPPasswordMgr:
             return True
         if base[0] != test[0]:
             return False
-        common = posixpath.commonprefix((base[1], test[1]))
-        if len(common) == len(base[1]):
-            return True
-        return False
+        prefix = base[1]
+        if prefix[-1:] != '/':
+            prefix += '/'
+        return test[1].startswith(prefix)
 
 
 class HTTPPasswordMgrWithDefaultRealm(HTTPPasswordMgr):

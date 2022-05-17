@@ -3269,7 +3269,7 @@ TMetricHolder TAUCMetric::Eval(
         for (int i : xrange(begin, end)) {
             samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));
         }
-        error.Stats[0] = CalcAUC(&samples, &executor);
+        error.Stats[0] = CalcAUC(&samples, nullptr, nullptr, &executor);
     } else {
         TVector<NMetrics::TBinClassSample> positiveSamples, negativeSamples;
         for (int i : xrange(begin, end)) {
@@ -3409,7 +3409,7 @@ TMetricHolder TNormalizedGini::Eval(
     }
 
     TMetricHolder error(2);
-    error.Stats[0] = 2.0 * CalcAUC(&samples, &executor) - 1.0;
+    error.Stats[0] = 2.0 * CalcAUC(&samples, nullptr, nullptr, &executor) - 1.0;
     error.Stats[1] = 1.0;
     return error;
 }
@@ -5112,6 +5112,7 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
         return Type == EAucType::OneVsAll ? target[idx] == static_cast<double>(PositiveClass) : target[idx];
     };
 
+    TVector<NMetrics::TSample> samples;
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         auto startIdx = queriesInfo[queryIndex].Begin;
         auto endIdx = queriesInfo[queryIndex].End;
@@ -5119,7 +5120,7 @@ TMetricHolder TQueryAUCMetric::EvalSingleThread(
         const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
 
         if (Type == EAucType::Ranking) {
-            TVector<NMetrics::TSample> samples;
+            samples.clear();
             samples.reserve(endIdx - startIdx);
             for (int i : xrange(startIdx, endIdx)) {
                 samples.emplace_back(realTarget(i), realApprox(i), realWeight(i));

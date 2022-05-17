@@ -1,7 +1,5 @@
 #include "pathsplit.h"
 
-#include "dirut.h"
-
 #include <util/stream/output.h>
 #include <util/generic/yexception.h>
 

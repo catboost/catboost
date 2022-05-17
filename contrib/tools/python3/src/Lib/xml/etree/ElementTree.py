@@ -1248,8 +1248,14 @@ def iterparse(source, events=None, parser=None):
     # Use the internal, undocumented _parser argument for now; When the
     # parser argument of iterparse is removed, this can be killed.
     pullparser = XMLPullParser(events=events, _parser=parser)
-    def iterator():
+
+    def iterator(source):
+        close_source = False
         try:
+            if not hasattr(source, "read"):
+                source = open(source, "rb")
+                close_source = True
+            yield None
             while True:
                 yield from pullparser.read_events()
                 # load event buffer
@@ -1265,16 +1271,12 @@ def iterparse(source, events=None, parser=None):
                 source.close()
 
     class IterParseIterator(collections.abc.Iterator):
-        __next__ = iterator().__next__
+        __next__ = iterator(source).__next__
     it = IterParseIterator()
     it.root = None
     del iterator, IterParseIterator
 
-    close_source = False
-    if not hasattr(source, "read"):
-        source = open(source, "rb")
-        close_source = True
-
+    next(it)
     return it
 
 
@@ -1560,7 +1562,6 @@ class XMLParser:
         # Configure pyexpat: buffering, new-style attribute handling.
         parser.buffer_text = 1
         parser.ordered_attributes = 1
-        parser.specified_attributes = 1
         self._doctype = None
         self.entity = {}
         try:
@@ -1580,7 +1581,6 @@ class XMLParser:
         for event_name in events_to_report:
             if event_name == "start":
                 parser.ordered_attributes = 1
-                parser.specified_attributes = 1
                 def handler(tag, attrib_in, event=event_name, append=append,
                             start=self._start):
                     append((event, start(tag, attrib_in)))

@@ -1,6 +1,9 @@
 ALLOW alice/megamind -> alice/megamind/library
 ALLOW junk -> alice/megamind/library
 ALLOW alice/apphost/graph_generator -> alice/megamind/library/config/protos
+ALLOW alice/apphost/graph_generator -> alice/megamind/library/config/scenario_protos
+ALLOW sandbox/projects/megamind -> alice/megamind/library/config/scenario_protos
+ALLOW alice/kronstadt/tools/graph_generator -> alice/megamind/library/config/scenario_protos
 
 # DO NOT ADD NEW ALLOW RULES
 ALLOW alice/bass -> alice/megamind/library/search/protos
@@ -21,13 +24,14 @@ ALLOW alice/hollywood/library/scenarios/goodwin/handlers -> alice/megamind/libra
 ALLOW alice/hollywood/library/scenarios/goodwin/handlers -> alice/megamind/library/testing
 ALLOW alice/hollywood/library/scenarios/music -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/music/music_backend_api -> alice/megamind/library/util
+ALLOW alice/hollywood/library/scenarios/news/ut -> alice/megamind/library/util
+ALLOW alice/hollywood/library/scenarios/news/ut_render -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/notifications -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/search/scenarios -> alice/megamind/library/experiments
 ALLOW alice/hollywood/library/scenarios/suggesters/games/ut -> alice/megamind/library/frame_builder
 ALLOW alice/hollywood/library/scenarios/suggesters/movie_akinator -> alice/megamind/library/util
 ALLOW alice/hollywood/library/scenarios/suggesters/movie_akinator/ammo_generator -> alice/megamind/library/session/protos
 ALLOW alice/hollywood/library/scenarios/suggesters/movies/ut -> alice/megamind/library/util
-ALLOW alice/library/nlg -> alice/megamind/library/util
 ALLOW alice/library/video_common/ut -> alice/megamind/library/testing
 ALLOW alice/library/websearch -> alice/megamind/library/search/protos
 ALLOW alice/tools/sessions_tool -> alice/megamind/library/session
@@ -36,7 +40,6 @@ ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/context
 ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/handlers/utils
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/frame_builder
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/util
-ALLOW dj/services/alisa_skills/recommender -> alice/megamind/library/walker
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/classifiers/formulas/protos
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/config/protos
 ALLOW search/begemot/rules/alice_iot -> alice/megamind/library/scenarios/iot

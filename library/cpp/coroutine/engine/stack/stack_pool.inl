@@ -5,7 +5,7 @@
 namespace NCoro::NStack {
 
     template<typename TGuard>
-    TPool<TGuard>::TPool(uint64_t stackSize, const TPoolAllocatorSettings& settings, const TGuard& guard)
+    TPool<TGuard>::TPool(size_t stackSize, const TPoolAllocatorSettings& settings, const TGuard& guard)
         : StackSize_(stackSize)
         , RssPagesToKeep_(IsSmallStack() ? settings.SmallStackRssPagesToKeep : settings.RssPagesToKeep)
         , Guard_(guard)
@@ -16,7 +16,7 @@ namespace NCoro::NStack {
             RssPagesToKeep_ = 1; // at least guard should be kept
         }
 
-        const uint64_t stackSizeInPages = stackSize / PageSize;
+        const size_t stackSizeInPages = stackSize / PageSize;
         Y_ASSERT(stackSizeInPages >= RssPagesToKeep_);
         if (stackSizeInPages < RssPagesToKeep_) {
             RssPagesToKeep_ = stackSizeInPages; // keep all stack pages
@@ -77,17 +77,17 @@ namespace NCoro::NStack {
     }
 
     template<typename TGuard>
-    uint64_t TPool<TGuard>::GetReleasedSize() const noexcept {
+    size_t TPool<TGuard>::GetReleasedSize() const noexcept {
         return Storage_->GetReleasedSize();
     }
     template<typename TGuard>
-    uint64_t TPool<TGuard>::GetFullSize() const noexcept {
+    size_t TPool<TGuard>::GetFullSize() const noexcept {
         return Storage_->GetFullSize();
     }
 
     template<typename TGuard>
     void TPool<TGuard>::AllocNewMemoryChunk() {
-        const uint64_t totalSizeInPages = ChunkSize_ / PageSize;
+        const size_t totalSizeInPages = ChunkSize_ / PageSize;
 
         TMemory memory;
         const auto res = GetAlignedMemory(totalSizeInPages, memory.Raw, memory.Aligned);

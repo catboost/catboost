@@ -763,7 +763,7 @@ cdef class RandomState:
         else:
             raise TypeError('Unsupported dtype %r for randint' % _dtype)
 
-        if size is None and dtype in (bool, int, np.compat.long):
+        if size is None and dtype in (bool, int):
             if np.array(ret).shape == ():
                 return dtype(ret)
         return ret
@@ -1033,7 +1033,10 @@ cdef class RandomState:
             greater than or equal to low.  The default value is 0.
         high : float or array_like of floats
             Upper boundary of the output interval.  All values generated will be
-            less than or equal to high.  The default value is 1.0.
+            less than or equal to high.  The high limit may be included in the 
+            returned array of floats due to floating-point rounding in the 
+            equation ``low + (high-low) * random_sample()``.  The default value 
+            is 1.0.
         size : int or tuple of ints, optional
             Output shape.  If the given shape is, e.g., ``(m, n, k)``, then
             ``m * n * k`` samples are drawn.  If size is ``None`` (default),
@@ -2524,7 +2527,7 @@ cdef class RandomState:
         Raises
         ------
         ValueError
-            If a < 1.
+            If a <= 0.
 
         See Also
         --------
@@ -3606,7 +3609,7 @@ cdef class RandomState:
         `a` > 1.
 
         The Zipf distribution (also known as the zeta distribution) is a
-        continuous probability distribution that satisfies Zipf's law: the
+        discrete probability distribution that satisfies Zipf's law: the
         frequency of an item is inversely proportional to its rank in a
         frequency table.
 
@@ -3639,9 +3642,10 @@ cdef class RandomState:
         -----
         The probability density for the Zipf distribution is
 
-        .. math:: p(x) = \\frac{x^{-a}}{\\zeta(a)},
+        .. math:: p(k) = \\frac{k^{-a}}{\\zeta(a)},
 
-        where :math:`\\zeta` is the Riemann Zeta function.
+        for integers :math:`k \geq 1`, where :math:`\\zeta` is the Riemann Zeta
+        function.
 
         It is named for the American linguist George Kingsley Zipf, who noted
         that the frequency of any word in a sample of a language is inversely
@@ -3657,21 +3661,29 @@ cdef class RandomState:
         --------
         Draw samples from the distribution:
 
-        >>> a = 2. # parameter
-        >>> s = np.random.zipf(a, 1000)
+        >>> a = 4.0
+        >>> n = 20000
+        >>> s = np.random.zipf(a, n)
 
         Display the histogram of the samples, along with
-        the probability density function:
+        the expected histogram based on the probability
+        density function:
 
         >>> import matplotlib.pyplot as plt
-        >>> from scipy import special  # doctest: +SKIP
+        >>> from scipy.special import zeta  # doctest: +SKIP
 
-        Truncate s values at 50 so plot is interesting:
+        `bincount` provides a fast histogram for small integers.
 
-        >>> count, bins, ignored = plt.hist(s[s<50], 50, density=True)
-        >>> x = np.arange(1., 50.)
-        >>> y = x**(-a) / special.zetac(a)  # doctest: +SKIP
-        >>> plt.plot(x, y/max(y), linewidth=2, color='r')  # doctest: +SKIP
+        >>> count = np.bincount(s)
+        >>> k = np.arange(1, s.max() + 1)
+
+        >>> plt.bar(k, count[1:], alpha=0.5, label='sample count')
+        >>> plt.plot(k, n*(k**-a)/zeta(a), 'k.-', alpha=0.5,
+        ...          label='expected count')   # doctest: +SKIP
+        >>> plt.semilogy()
+        >>> plt.grid(alpha=0.4)
+        >>> plt.legend()
+        >>> plt.title(f'Zipf sample, a={a}, size={n}')
         >>> plt.show()
 
         """
@@ -4222,18 +4234,21 @@ cdef class RandomState:
         ValueError: pvals < 0, pvals > 1 or pvals contains NaNs
 
         """
-        cdef np.npy_intp d, i, sz, offset
+        cdef np.npy_intp d, i, sz, offset, niter
         cdef np.ndarray parr, mnarr
         cdef double *pix
         cdef long *mnix
         cdef long ni
 
-        d = len(pvals)
         parr = <np.ndarray>np.PyArray_FROMANY(
-            pvals, np.NPY_DOUBLE, 1, 1, np.NPY_ARRAY_ALIGNED | np.NPY_ARRAY_C_CONTIGUOUS)
+            pvals, np.NPY_DOUBLE, 0, 1, np.NPY_ARRAY_ALIGNED | np.NPY_ARRAY_C_CONTIGUOUS)
+        if np.PyArray_NDIM(parr) == 0:
+            raise TypeError("pvals must be a 1-d sequence")
+        d = np.PyArray_SIZE(parr)
         pix = <double*>np.PyArray_DATA(parr)
         check_array_constraint(parr, 'pvals', CONS_BOUNDED_0_1)
-        if kahan_sum(pix, d-1) > (1.0 + 1e-12):
+        # Only check if pvals is non-empty due no checks in kahan_sum
+        if d and kahan_sum(pix, d-1) > (1.0 + 1e-12):
             # When floating, but not float dtype, and close, improve the error
             # 1.0001 works for float16 and float32
             if (isinstance(pvals, np.ndarray)
@@ -4248,7 +4263,6 @@ cdef class RandomState:
             else:
                 msg = "sum(pvals[:-1]) > 1.0"
             raise ValueError(msg)
-
         if size is None:
             shape = (d,)
         else:
@@ -4256,7 +4270,6 @@ cdef class RandomState:
                 shape = (operator.index(size), d)
             except:
                 shape = tuple(size) + (d,)
-
         multin = np.zeros(shape, dtype=int)
         mnarr = <np.ndarray>multin
         mnix = <long*>np.PyArray_DATA(mnarr)
@@ -4264,8 +4277,10 @@ cdef class RandomState:
         ni = n
         check_constraint(ni, 'n', CONS_NON_NEGATIVE)
         offset = 0
+        # gh-20483: Avoids divide by 0
+        niter = sz // d if d else 0
         with self.lock, nogil:
-            for i in range(sz // d):
+            for i in range(niter):
                 legacy_random_multinomial(&self._bitgen, ni, &mnix[offset], pix, d, &self._binomial)
                 offset += d
 
@@ -4472,7 +4487,7 @@ cdef class RandomState:
             # Fast, statically typed path: shuffle the underlying buffer.
             # Only for non-empty, 1d objects of class ndarray (subclasses such
             # as MaskedArrays may not support this approach).
-            x_ptr = <char*><size_t>np.PyArray_DATA(x)
+            x_ptr = np.PyArray_BYTES(x)
             stride = x.strides[0]
             itemsize = x.dtype.itemsize
             # As the array x could contain python objects we use a buffer
@@ -4480,7 +4495,7 @@ cdef class RandomState:
             # within the buffer and erroneously decrementing it's refcount
             # when the function exits.
             buf = np.empty(itemsize, dtype=np.int8)  # GC'd at function exit
-            buf_ptr = <char*><size_t>np.PyArray_DATA(buf)
+            buf_ptr = np.PyArray_BYTES(buf)
             with self.lock:
                 # We trick gcc into providing a specialized implementation for
                 # the most common case, yielding a ~33% performance improvement.

@@ -12,8 +12,11 @@
 
 #include "common.h"
 
+// Having the declaration here silences clang -Wmissing-variable-declarations.
+extern const uint32_t lzma_crc32_table[8][256];
+
 #ifdef WORDS_BIGENDIAN
-#	include "crc32_table_be.h"
+#	error #include "crc32_table_be.h"
 #else
 #	include "crc32_table_le.h"
 #endif

@@ -13,8 +13,8 @@ from .multiarray import (
     WRAP, arange, array, asarray, asanyarray, ascontiguousarray,
     asfortranarray, broadcast, can_cast, compare_chararrays,
     concatenate, copyto, dot, dtype, empty,
-    empty_like, flatiter, frombuffer, fromfile, fromiter, fromstring,
-    inner, lexsort, matmul, may_share_memory,
+    empty_like, flatiter, frombuffer, _from_dlpack, fromfile, fromiter,
+    fromstring, inner, lexsort, matmul, may_share_memory,
     min_scalar_type, ndarray, nditer, nested_iters, promote_types,
     putmask, result_type, set_numeric_ops, shares_memory, vdot, where,
     zeros, normalize_axis_index)
@@ -41,7 +41,7 @@ __all__ = [
     'newaxis', 'ndarray', 'flatiter', 'nditer', 'nested_iters', 'ufunc',
     'arange', 'array', 'asarray', 'asanyarray', 'ascontiguousarray',
     'asfortranarray', 'zeros', 'count_nonzero', 'empty', 'broadcast', 'dtype',
-    'fromstring', 'fromfile', 'frombuffer', 'where',
+    'fromstring', 'fromfile', 'frombuffer', '_from_dlpack', 'where',
     'argwhere', 'copyto', 'concatenate', 'fastCopyAndTranspose', 'lexsort',
     'set_numeric_ops', 'can_cast', 'promote_types', 'min_scalar_type',
     'result_type', 'isfortran', 'empty_like', 'zeros_like', 'ones_like',
@@ -1184,7 +1184,7 @@ def roll(a, shift, axis=None):
     >>> np.roll(x, -2)
     array([2, 3, 4, 5, 6, 7, 8, 9, 0, 1])
 
-    >>> x2 = np.reshape(x, (2,5))
+    >>> x2 = np.reshape(x, (2, 5))
     >>> x2
     array([[0, 1, 2, 3, 4],
            [5, 6, 7, 8, 9]])
@@ -1206,6 +1206,12 @@ def roll(a, shift, axis=None):
     >>> np.roll(x2, -1, axis=1)
     array([[1, 2, 3, 4, 0],
            [6, 7, 8, 9, 5]])
+    >>> np.roll(x2, (1, 1), axis=(1, 0))
+    array([[9, 5, 6, 7, 8],
+           [4, 0, 1, 2, 3]])
+    >>> np.roll(x2, (2, 1), axis=(1, 0))
+    array([[8, 9, 5, 6, 7],
+           [3, 4, 0, 1, 2]])
 
     """
     a = asanyarray(a)
@@ -1464,11 +1470,6 @@ def moveaxis(a, source, destination):
 
     result = transpose(order)
     return result
-
-
-# fix hack in scipy which imports this function
-def _move_axis_to_0(a, axis):
-    return moveaxis(a, axis, 0)
 
 
 def _cross_dispatcher(a, b, axisa=None, axisb=None, axisc=None, axis=None):
@@ -2231,6 +2232,7 @@ def allclose(a, b, rtol=1.e-5, atol=1.e-8, equal_nan=False):
     `equal` but not `array_equal`.
 
     `allclose` is not defined for non-numeric data types.
+    `bool` is considered a numeric data-type for this purpose.
 
     Examples
     --------
@@ -2312,6 +2314,7 @@ def isclose(a, b, rtol=1.e-5, atol=1.e-8, equal_nan=False):
     for `atol` will result in `False` if either `a` or `b` is zero.
 
     `isclose` is not defined for non-numeric data types.
+    `bool` is considered a numeric data-type for this purpose.
 
     Examples
     --------

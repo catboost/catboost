@@ -7,7 +7,6 @@
 #include <util/memory/blob.h>
 #include <util/generic/list.h>
 #include <util/generic/map.h>
-#include <util/generic/set.h>
 #include <util/generic/hash.h>
 #include <util/generic/deque.h>
 #include <util/generic/string.h>
@@ -15,7 +14,6 @@
 #include <util/generic/buffer.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/maybe.h>
-#include <util/generic/variant.h>
 
 static inline char* AllocateFromPool(TMemoryPool& pool, size_t len) {
     return (char*)pool.Allocate(len);

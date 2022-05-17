@@ -156,6 +156,18 @@ void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
 
+/**
+ * Formats current exception for logging purposes. Includes formatted backtrace if it is stored 
+ * alongside the exception.
+ * The output format is a subject to change, do not depend or canonize it.
+ * The speed of this method is not guaranteed either. Do not call it in hot paths of your code.
+ * 
+ * The lack of current exception prior to the invocation indicates logical bug in the client code.
+ * Y_VERIFY asserts the existence of exception, otherwise panic and abort.
+ */
+TString FormatCurrentException();
+void FormatCurrentExceptionTo(IOutputStream& out);
+
 /*
  * A neat method that detects wrether stack unwinding is in progress.
  * As its std counterpart (that is std::uncaught_exception())

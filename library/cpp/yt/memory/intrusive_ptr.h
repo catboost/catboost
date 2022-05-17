@@ -288,9 +288,6 @@ bool operator!=(const TIntrusivePtr<T>& lhs, const TIntrusivePtr<U>& rhs)
 template <class T, class U>
 bool operator==(const TIntrusivePtr<T>& lhs, U* rhs)
 {
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
     return lhs.Get() == rhs;
 }
 
@@ -306,9 +303,6 @@ bool operator!=(const TIntrusivePtr<T>& lhs, U* rhs)
 template <class T, class U>
 bool operator==(T* lhs, const TIntrusivePtr<U>& rhs)
 {
-    static_assert(
-        std::is_convertible_v<U*, T*>,
-        "U* must be convertible to T*");
     return lhs == rhs.Get();
 }
 

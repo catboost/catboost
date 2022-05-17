@@ -224,6 +224,7 @@
   - Security/SecureTransport.h
   - Security/Security.h
   - SystemConfiguration/SystemConfiguration.h
+  - SystemConfiguration/SCDynamicStoreCopySpecific.h
   - UIKit/UIImage.h
   - UIKit/UIKit.h
   - UIKit/UIScreen.h

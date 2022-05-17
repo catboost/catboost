@@ -57,6 +57,8 @@ namespace NCatboostCuda {
             return Options.Policy == EGrowPolicy::SymmetricTree;
         }
 
+        bool HaveFixedSplits(ui32 depth) const;
+
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
         const TTreeStructureSearcherOptions& Options;

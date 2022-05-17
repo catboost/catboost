@@ -255,8 +255,6 @@ set_last_error(PyObject *self, PyObject *args)
     return set_error_internal(self, args, 1);
 }
 
-PyObject *ComError;
-
 static WCHAR *FormatError(DWORD code)
 {
     WCHAR *lpMsgBuf;
@@ -478,7 +476,7 @@ static void
 PyCArg_dealloc(PyCArgObject *self)
 {
     Py_XDECREF(self->obj);
-    PyObject_Del(self);
+    PyObject_Free(self);
 }
 
 static int
@@ -703,7 +701,6 @@ static int ConvParam(PyObject *obj, Py_ssize_t index, struct argument *pa)
         return 0;
     }
 
-#ifdef CTYPES_UNICODE
     if (PyUnicode_Check(obj)) {
         pa->ffi_type = &ffi_type_pointer;
         pa->value.p = PyUnicode_AsWideCharString(obj, NULL);
@@ -716,7 +713,6 @@ static int ConvParam(PyObject *obj, Py_ssize_t index, struct argument *pa)
         }
         return 0;
     }
-#endif
 
     {
         _Py_IDENTIFIER(_as_parameter_);
@@ -1350,7 +1346,6 @@ module. load_flags are as defined for LoadLibraryEx in the\n\
 Windows API.\n";
 static PyObject *load_library(PyObject *self, PyObject *args)
 {
-    const WCHAR *name;
     PyObject *nameobj;
     int load_flags = 0;
     HMODULE hMod;
@@ -1359,16 +1354,13 @@ static PyObject *load_library(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "U|i:LoadLibrary", &nameobj, &load_flags))
         return NULL;
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    name = _PyUnicode_AsUnicode(nameobj);
-_Py_COMP_DIAG_POP
-    if (!name)
-        return NULL;
-
     if (PySys_Audit("ctypes.dlopen", "O", nameobj) < 0) {
         return NULL;
     }
+
+    WCHAR *name = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!name)
+        return NULL;
 
     Py_BEGIN_ALLOW_THREADS
     /* bpo-36085: Limit DLL search directories to avoid pre-loading
@@ -1378,6 +1370,7 @@ _Py_COMP_DIAG_POP
     err = hMod ? 0 : GetLastError();
     Py_END_ALLOW_THREADS
 
+    PyMem_Free(name);
     if (err == ERROR_MOD_NOT_FOUND) {
         PyErr_Format(PyExc_FileNotFoundError,
                      ("Could not find module '%.500S' (or one of its "

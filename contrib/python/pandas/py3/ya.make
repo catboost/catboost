@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
-VERSION(1.3.5)
+VERSION(1.4.2)
 
 
 
@@ -23,6 +23,8 @@ ADDINCL(
 )
 
 NO_CHECK_IMPORTS(
+    pandas._testing._hypothesis
+    pandas.core._numba.*
     pandas.core.arrays._arrow_utils
     pandas.io.*
     pandas.plotting.*
@@ -118,6 +120,7 @@ PY_SRCS(
     pandas/_libs/tslibs/__init__.py
     pandas/_libs/window/__init__.py
     pandas/_testing/__init__.py
+    pandas/_testing/_hypothesis.py
     pandas/_testing/_io.py
     pandas/_testing/_random.py
     pandas/_testing/_warnings.py
@@ -139,8 +142,15 @@ PY_SRCS(
     pandas/compat/pickle_compat.py
     pandas/compat/pyarrow.py
     pandas/core/__init__.py
+    pandas/core/_numba/__init__.py
+    pandas/core/_numba/executor.py
+    pandas/core/_numba/kernels/__init__.py
+    pandas/core/_numba/kernels/mean_.py
+    pandas/core/_numba/kernels/min_max_.py
+    pandas/core/_numba/kernels/shared.py
+    pandas/core/_numba/kernels/sum_.py
+    pandas/core/_numba/kernels/var_.py
     pandas/core/accessor.py
-    pandas/core/aggregation.py
     pandas/core/algorithms.py
     pandas/core/api.py
     pandas/core/apply.py
@@ -213,10 +223,13 @@ PY_SRCS(
     pandas/core/groupby/generic.py
     pandas/core/groupby/groupby.py
     pandas/core/groupby/grouper.py
+    pandas/core/groupby/indexing.py
     pandas/core/groupby/numba_.py
     pandas/core/groupby/ops.py
     pandas/core/index.py
-    pandas/core/indexers.py
+    pandas/core/indexers/__init__.py
+    pandas/core/indexers/objects.py
+    pandas/core/indexers/utils.py
     pandas/core/indexes/__init__.py
     pandas/core/indexes/accessors.py
     pandas/core/indexes/api.py
@@ -264,6 +277,7 @@ PY_SRCS(
     pandas/core/reshape/tile.py
     pandas/core/reshape/util.py
     pandas/core/roperator.py
+    pandas/core/sample.py
     pandas/core/series.py
     pandas/core/shared_docs.py
     pandas/core/sorting.py
@@ -286,7 +300,6 @@ PY_SRCS(
     pandas/core/window/doc.py
     pandas/core/window/ewm.py
     pandas/core/window/expanding.py
-    pandas/core/window/indexers.py
     pandas/core/window/numba_.py
     pandas/core/window/online.py
     pandas/core/window/rolling.py
@@ -332,6 +345,7 @@ PY_SRCS(
     pandas/io/orc.py
     pandas/io/parquet.py
     pandas/io/parsers/__init__.py
+    pandas/io/parsers/arrow_parser_wrapper.py
     pandas/io/parsers/base_parser.py
     pandas/io/parsers/c_parser_wrapper.py
     pandas/io/parsers/python_parser.py
@@ -354,6 +368,7 @@ PY_SRCS(
     pandas/plotting/_matplotlib/compat.py
     pandas/plotting/_matplotlib/converter.py
     pandas/plotting/_matplotlib/core.py
+    pandas/plotting/_matplotlib/groupby.py
     pandas/plotting/_matplotlib/hist.py
     pandas/plotting/_matplotlib/misc.py
     pandas/plotting/_matplotlib/style.py
@@ -368,7 +383,6 @@ PY_SRCS(
     pandas/tseries/offsets.py
     pandas/util/__init__.py
     pandas/util/_decorators.py
-    pandas/util/_depr_module.py
     pandas/util/_doctools.py
     pandas/util/_exceptions.py
     pandas/util/_print_versions.py
@@ -387,10 +401,13 @@ PY_SRCS(
     pandas/_libs/internals.pyi
     pandas/_libs/join.pyi
     pandas/_libs/lib.pyi
+    pandas/_libs/missing.pyi
     pandas/_libs/ops.pyi
     pandas/_libs/ops_dispatch.pyi
     pandas/_libs/parsers.pyi
+    pandas/_libs/properties.pyi
     pandas/_libs/reshape.pyi
+    pandas/_libs/sparse.pyi
     pandas/_libs/testing.pyi
     pandas/_libs/tslib.pyi
     pandas/_libs/tslibs/ccalendar.pyi
@@ -398,6 +415,7 @@ PY_SRCS(
     pandas/_libs/tslibs/dtypes.pyi
     pandas/_libs/tslibs/fields.pyi
     pandas/_libs/tslibs/nattype.pyi
+    pandas/_libs/tslibs/np_datetime.pyi
     pandas/_libs/tslibs/parsing.pyi
     pandas/_libs/tslibs/period.pyi
     pandas/_libs/tslibs/strptime.pyi
@@ -420,6 +438,8 @@ RESOURCE_FILES(
     pandas/io/formats/templates/html_style.tpl
     pandas/io/formats/templates/html_table.tpl
     pandas/io/formats/templates/latex.tpl
+    pandas/io/formats/templates/latex_longtable.tpl
+    pandas/io/formats/templates/latex_table.tpl
 )
 
 END()

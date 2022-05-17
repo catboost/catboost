@@ -1,8 +1,5 @@
 #include "tls.h"
-#include "mutex.h"
-#include "thread.h"
 
-#include <util/generic/set.h>
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/singleton.h>

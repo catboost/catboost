@@ -743,6 +743,12 @@ SIMD_IMPL_INTRIN_1(abs_u8, vu8, vu8)
 #line 386
 SIMD_IMPL_INTRIN_1(square_u8, vu8, vu8)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_u8, vu8, vu8)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_u8, vu8, vu8)
+
 #endif
 
 #line 393
@@ -1493,6 +1499,12 @@ SIMD_IMPL_INTRIN_1(abs_s8, vs8, vs8)
 
 #line 386
 SIMD_IMPL_INTRIN_1(square_s8, vs8, vs8)
+
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_s8, vs8, vs8)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_s8, vs8, vs8)
 
 #endif
 
@@ -2245,6 +2257,12 @@ SIMD_IMPL_INTRIN_1(abs_u16, vu16, vu16)
 #line 386
 SIMD_IMPL_INTRIN_1(square_u16, vu16, vu16)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_u16, vu16, vu16)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_u16, vu16, vu16)
+
 #endif
 
 #line 393
@@ -2995,6 +3013,12 @@ SIMD_IMPL_INTRIN_1(abs_s16, vs16, vs16)
 
 #line 386
 SIMD_IMPL_INTRIN_1(square_s16, vs16, vs16)
+
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_s16, vs16, vs16)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_s16, vs16, vs16)
 
 #endif
 
@@ -3747,6 +3771,12 @@ SIMD_IMPL_INTRIN_1(abs_u32, vu32, vu32)
 #line 386
 SIMD_IMPL_INTRIN_1(square_u32, vu32, vu32)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_u32, vu32, vu32)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_u32, vu32, vu32)
+
 #endif
 
 #line 393
@@ -4497,6 +4527,12 @@ SIMD_IMPL_INTRIN_1(abs_s32, vs32, vs32)
 
 #line 386
 SIMD_IMPL_INTRIN_1(square_s32, vs32, vs32)
+
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_s32, vs32, vs32)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_s32, vs32, vs32)
 
 #endif
 
@@ -5249,6 +5285,12 @@ SIMD_IMPL_INTRIN_1(abs_u64, vu64, vu64)
 #line 386
 SIMD_IMPL_INTRIN_1(square_u64, vu64, vu64)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_u64, vu64, vu64)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_u64, vu64, vu64)
+
 #endif
 
 #line 393
@@ -5999,6 +6041,12 @@ SIMD_IMPL_INTRIN_1(abs_s64, vs64, vs64)
 
 #line 386
 SIMD_IMPL_INTRIN_1(square_s64, vs64, vs64)
+
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_s64, vs64, vs64)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_s64, vs64, vs64)
 
 #endif
 
@@ -6751,6 +6799,12 @@ SIMD_IMPL_INTRIN_1(abs_f32, vf32, vf32)
 #line 386
 SIMD_IMPL_INTRIN_1(square_f32, vf32, vf32)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_f32, vf32, vf32)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_f32, vf32, vf32)
+
 #endif
 
 #line 393
@@ -7502,6 +7556,12 @@ SIMD_IMPL_INTRIN_1(abs_f64, vf64, vf64)
 #line 386
 SIMD_IMPL_INTRIN_1(square_f64, vf64, vf64)
 
+#line 386
+SIMD_IMPL_INTRIN_1(ceil_f64, vf64, vf64)
+
+#line 386
+SIMD_IMPL_INTRIN_1(trunc_f64, vf64, vf64)
+
 #endif
 
 #line 393
@@ -7891,6 +7951,12 @@ SIMD_INTRIN_DEF(abs_u8)
 #line 620
 SIMD_INTRIN_DEF(square_u8)
 
+#line 620
+SIMD_INTRIN_DEF(ceil_u8)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_u8)
+
 #endif
 
 #line 627
@@ -8201,6 +8267,12 @@ SIMD_INTRIN_DEF(abs_s8)
 
 #line 620
 SIMD_INTRIN_DEF(square_s8)
+
+#line 620
+SIMD_INTRIN_DEF(ceil_s8)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_s8)
 
 #endif
 
@@ -8513,6 +8585,12 @@ SIMD_INTRIN_DEF(abs_u16)
 #line 620
 SIMD_INTRIN_DEF(square_u16)
 
+#line 620
+SIMD_INTRIN_DEF(ceil_u16)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_u16)
+
 #endif
 
 #line 627
@@ -8823,6 +8901,12 @@ SIMD_INTRIN_DEF(abs_s16)
 
 #line 620
 SIMD_INTRIN_DEF(square_s16)
+
+#line 620
+SIMD_INTRIN_DEF(ceil_s16)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_s16)
 
 #endif
 
@@ -9135,6 +9219,12 @@ SIMD_INTRIN_DEF(abs_u32)
 #line 620
 SIMD_INTRIN_DEF(square_u32)
 
+#line 620
+SIMD_INTRIN_DEF(ceil_u32)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_u32)
+
 #endif
 
 #line 627
@@ -9445,6 +9535,12 @@ SIMD_INTRIN_DEF(abs_s32)
 
 #line 620
 SIMD_INTRIN_DEF(square_s32)
+
+#line 620
+SIMD_INTRIN_DEF(ceil_s32)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_s32)
 
 #endif
 
@@ -9757,6 +9853,12 @@ SIMD_INTRIN_DEF(abs_u64)
 #line 620
 SIMD_INTRIN_DEF(square_u64)
 
+#line 620
+SIMD_INTRIN_DEF(ceil_u64)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_u64)
+
 #endif
 
 #line 627
@@ -10067,6 +10169,12 @@ SIMD_INTRIN_DEF(abs_s64)
 
 #line 620
 SIMD_INTRIN_DEF(square_s64)
+
+#line 620
+SIMD_INTRIN_DEF(ceil_s64)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_s64)
 
 #endif
 
@@ -10379,6 +10487,12 @@ SIMD_INTRIN_DEF(abs_f32)
 #line 620
 SIMD_INTRIN_DEF(square_f32)
 
+#line 620
+SIMD_INTRIN_DEF(ceil_f32)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_f32)
+
 #endif
 
 #line 627
@@ -10689,6 +10803,12 @@ SIMD_INTRIN_DEF(abs_f64)
 
 #line 620
 SIMD_INTRIN_DEF(square_f64)
+
+#line 620
+SIMD_INTRIN_DEF(ceil_f64)
+
+#line 620
+SIMD_INTRIN_DEF(trunc_f64)
 
 #endif
 

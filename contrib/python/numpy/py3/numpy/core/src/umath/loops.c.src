@@ -1,10 +1,10 @@
 /* -*- c -*- */
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 #define _UMATHMODULE
 #define _MULTIARRAYMODULE
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
-
-#include "Python.h"
 
 #include "npy_config.h"
 #include "numpy/npy_common.h"
@@ -1340,7 +1340,7 @@ TIMEDELTA_mq_m_divide(char **args, npy_intp const *dimensions, npy_intp const *s
                     *((npy_timedelta *)op1) = NPY_DATETIME_NAT;
                 }
                 else {
-                    *((npy_timedelta *)op1) = libdivide_s64_do(in1, &fast_d);;
+                    *((npy_timedelta *)op1) = libdivide_s64_do(in1, &fast_d);
                 }
             }
         }
@@ -1532,8 +1532,8 @@ TIMEDELTA_mm_qm_divmod(char **args, npy_intp const *dimensions, npy_intp const *
  */
 
 /**begin repeat
- *  #func = rint, ceil, floor, trunc#
- *  #scalarf = npy_rint, npy_ceil, npy_floor, npy_trunc#
+ *  #func = rint, floor, trunc#
+ *  #scalarf = npy_rint, npy_floor, npy_trunc#
  */
 
 /**begin repeat1
@@ -1568,8 +1568,8 @@ NPY_NO_EXPORT NPY_GCC_OPT_3 void
  */
 
 /**begin repeat2
- *  #func = rint, ceil, floor, trunc#
- *  #scalarf = npy_rint, npy_ceil, npy_floor, npy_trunc#
+ *  #func = rint, floor, trunc#
+ *  #scalarf = npy_rint, npy_floor, npy_trunc#
  */
 
 NPY_NO_EXPORT NPY_GCC_OPT_3 void
@@ -2415,42 +2415,6 @@ NPY_NO_EXPORT void
     }
 }
 
-
-NPY_NO_EXPORT void
-@TYPE@_floor_divide(char **args, npy_intp const *dimensions, npy_intp const *steps, void *NPY_UNUSED(func))
-{
-    BINARY_LOOP {
-        const @ftype@ in1r = ((@ftype@ *)ip1)[0];
-        const @ftype@ in1i = ((@ftype@ *)ip1)[1];
-        const @ftype@ in2r = ((@ftype@ *)ip2)[0];
-        const @ftype@ in2i = ((@ftype@ *)ip2)[1];
-#if defined(__APPLE__) && defined(__aarch64__)
-        // On macos-arm64 without this block of code,
-        // when branch prediction goes wrong, the floating point exception
-        // register does not get cleared and an exception for the
-        // wrong branch is thrown.
-        if (in2i == 0) {
-            ((@ftype@ *)op1)[0] = npy_floor@c@(in1r/in2r);
-            ((@ftype@ *)op1)[1] = 0;
-        }
-        else if (in2r == 0) {
-            ((@ftype@ *)op1)[0] = npy_floor@c@(in1i/in2i);
-            ((@ftype@ *)op1)[1] = 0;
-        }
-        else
-#endif
-        if (npy_fabs@c@(in2r) >= npy_fabs@c@(in2i)) {
-            const @ftype@ rat = in2i/in2r;
-            ((@ftype@ *)op1)[0] = npy_floor@c@((in1r + in1i*rat)/(in2r + in2i*rat));
-            ((@ftype@ *)op1)[1] = 0;
-        }
-        else {
-            const @ftype@ rat = in2r/in2i;
-            ((@ftype@ *)op1)[0] = npy_floor@c@((in1r*rat + in1i)/(in2i + in2r*rat));
-            ((@ftype@ *)op1)[1] = 0;
-        }
-    }
-}
 
 /**begin repeat1
  * #kind= greater, greater_equal, less, less_equal, equal, not_equal#

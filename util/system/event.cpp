@@ -1,7 +1,4 @@
-#include "datetime.h"
 #include "defaults.h"
-
-#include <cstdio>
 
 #include "atomic.h"
 #include "event.h"

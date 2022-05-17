@@ -1,9 +1,10 @@
 """Access and control log capturing."""
+import io
 import logging
 import os
 import re
-import sys
 from contextlib import contextmanager
+from contextlib import nullcontext
 from io import StringIO
 from pathlib import Path
 from typing import AbstractSet
@@ -13,6 +14,7 @@ from typing import List
 from typing import Mapping
 from typing import Optional
 from typing import Tuple
+from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
 
@@ -20,7 +22,6 @@ from _pytest import nodes
 from _pytest._io import TerminalWriter
 from _pytest.capture import CaptureManager
 from _pytest.compat import final
-from _pytest.compat import nullcontext
 from _pytest.config import _strtobool
 from _pytest.config import Config
 from _pytest.config import create_terminal_writer
@@ -33,6 +34,11 @@ from _pytest.fixtures import FixtureRequest
 from _pytest.main import Session
 from _pytest.stash import StashKey
 from _pytest.terminal import TerminalReporter
+
+if TYPE_CHECKING:
+    logging_StreamHandler = logging.StreamHandler[StringIO]
+else:
+    logging_StreamHandler = logging.StreamHandler
 
 
 DEFAULT_LOG_FORMAT = "%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s"
@@ -322,10 +328,8 @@ class catching_logs:
         root_logger.removeHandler(self.handler)
 
 
-class LogCaptureHandler(logging.StreamHandler):
+class LogCaptureHandler(logging_StreamHandler):
     """A logging handler that stores log records and the log text."""
-
-    stream: StringIO
 
     def __init__(self) -> None:
         """Create a new log handler."""
@@ -621,20 +625,11 @@ class LoggingPlugin:
         if not fpath.parent.exists():
             fpath.parent.mkdir(exist_ok=True, parents=True)
 
-        stream = fpath.open(mode="w", encoding="UTF-8")
-        if sys.version_info >= (3, 7):
-            old_stream = self.log_file_handler.setStream(stream)
-        else:
-            old_stream = self.log_file_handler.stream
-            self.log_file_handler.acquire()
-            try:
-                self.log_file_handler.flush()
-                self.log_file_handler.stream = stream
-            finally:
-                self.log_file_handler.release()
+        # https://github.com/python/mypy/issues/11193
+        stream: io.TextIOWrapper = fpath.open(mode="w", encoding="UTF-8")  # type: ignore[assignment]
+        old_stream = self.log_file_handler.setStream(stream)
         if old_stream:
-            # https://github.com/python/typeshed/pull/5663
-            old_stream.close()  # type:ignore[attr-defined]
+            old_stream.close()
 
     def _log_cli_enabled(self):
         """Return whether live logging is enabled."""
@@ -758,7 +753,7 @@ class _FileHandler(logging.FileHandler):
         pass
 
 
-class _LiveLoggingStreamHandler(logging.StreamHandler):
+class _LiveLoggingStreamHandler(logging_StreamHandler):
     """A logging StreamHandler used by the live logging feature: it will
     write a newline before the first log message in each test.
 

@@ -197,7 +197,7 @@ namespace NKernel {
 
         ui64 seed = (1664525 * threadIdx.x + 1013904223) & 0xFFFFFF;
 
-        #pragma unroll 32
+        #pragma unroll 16
         for (int i = 0; i < 32; ++i) {
             const int idx = static_cast<int>(AdvanceSeed(&seed) % size);
             float val = StreamLoad(values + idx);

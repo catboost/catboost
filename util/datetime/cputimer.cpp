@@ -9,9 +9,6 @@
 #if defined(_unix_)
     #include <unistd.h>
     #include <sched.h>
-    #include <sys/types.h>
-    #include <sys/resource.h>
-    #include <sys/param.h>
 #elif defined(_win_)
     #include <util/system/winint.h>
 #endif

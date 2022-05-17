@@ -875,7 +875,10 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         EPreCalcShapValues mode,
         int logPeriod,
         ECalcTypeShapValues calcType,
-        EExplainableModelOutput modelOutputType
+        EExplainableModelOutput modelOutputType,
+        size_t sageNSamples,
+        size_t sageBatchSize,
+        bool_t sageDetectConvergence
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
@@ -1704,8 +1707,14 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-            if (issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)):
+            is_multitarget_metric = issubclass(params["eval_metric"].__class__, MultiTargetCustomMetric)
+            if is_multitarget_objective(params_to_json["loss_function"]):
+                assert is_multitarget_metric, \
+                    "Custom eval metric should be inherited from MultiTargetCustomMetric for multi-target objective"
                 params_to_json["eval_metric"] = "PythonUserDefinedMultiTarget"
+            else:
+                assert not is_multitarget_metric, \
+                    "Custom eval metric should not be inherited from MultiTargetCustomMetric for single-target objective"
 
         if params_to_json.get("callbacks") == "PythonUserDefinedPerObject":
             self.customCallbackDescriptor = _BuildCustomCallbackDescritor(params["callbacks"])
@@ -1996,6 +2005,7 @@ cdef void list_to_vector(values_list, TVector[ui32]* values_vector) except *:
 
 cdef TFeaturesLayout* _init_features_layout(
     data,
+    embedding_features_data, 
     cat_features,
     text_features,
     embedding_features,
@@ -2015,6 +2025,8 @@ cdef TFeaturesLayout* _init_features_layout(
         feature_names = data.get_feature_names()
     else:
         feature_count = np.shape(data)[1]
+        if embedding_features_data is not None:
+            feature_count += len(embedding_features_data)
 
     list_to_vector(cat_features, &cat_features_vector)
     list_to_vector(text_features, &text_features_vector)
@@ -2032,7 +2044,10 @@ cdef TFeaturesLayout* _init_features_layout(
 
     all_features_are_sparse = False
     if isinstance(data, SPARSE_MATRIX_TYPES):
-        all_features_are_sparse = True
+        if embedding_features_data is not None:    
+            all_features_are_sparse = all([isinstance(embedding_data, SPARSE_MATRIX_TYPES) for embedding_data in embedding_features_data])
+        else:
+            all_features_are_sparse = True
 
     return new TFeaturesLayout(
         <ui32>feature_count,
@@ -3760,7 +3775,7 @@ cdef class _PoolBase:
         self.__data_holders = new_data_holders
 
 
-    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
+    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
                      group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags,
                      thread_count):
         if group_weight is not None and weight is not None:
@@ -3784,6 +3799,7 @@ cdef class _PoolBase:
 
         data_meta_info.FeaturesLayout = _init_features_layout(
             data,
+            embedding_features_data, 
             cat_features,
             text_features,
             embedding_features,
@@ -4637,7 +4653,9 @@ cdef class _CatBoost:
         )
         return _vector_of_double_to_np_array(fstr)
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, _PoolBase reference_data, int thread_count, int verbose, model_output_name, shap_mode_name, interaction_indices, shap_calc_type):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, _PoolBase reference_data, int thread_count, int verbose,
+                     model_output_name, shap_mode_name, interaction_indices, shap_calc_type, int sage_n_samples,
+                     int sage_batch_size, bool_t sage_detect_convergence):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4709,7 +4727,10 @@ cdef class _CatBoost:
                     shap_mode,
                     verbose,
                     calc_type,
-                    model_output
+                    model_output,
+                    sage_n_samples,
+                    sage_batch_size,
+                    sage_detect_convergence
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 

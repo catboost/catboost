@@ -52,7 +52,6 @@ from _pytest.config import _PluggyPlugin
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 from _pytest.deprecated import check_ispytest
-from _pytest.deprecated import FILLFUNCARGS
 from _pytest.deprecated import YIELD_FIXTURE
 from _pytest.mark import Mark
 from _pytest.mark import ParameterSet
@@ -73,7 +72,6 @@ if TYPE_CHECKING:
     from _pytest.scope import _ScopeName
     from _pytest.main import Session
     from _pytest.python import CallSpec2
-    from _pytest.python import Function
     from _pytest.python import Metafunc
 
 
@@ -352,41 +350,6 @@ def reorder_items_atscope(
     return items_done
 
 
-def _fillfuncargs(function: "Function") -> None:
-    """Fill missing fixtures for a test function, old public API (deprecated)."""
-    warnings.warn(FILLFUNCARGS.format(name="pytest._fillfuncargs()"), stacklevel=2)
-    _fill_fixtures_impl(function)
-
-
-def fillfixtures(function: "Function") -> None:
-    """Fill missing fixtures for a test function (deprecated)."""
-    warnings.warn(
-        FILLFUNCARGS.format(name="_pytest.fixtures.fillfixtures()"), stacklevel=2
-    )
-    _fill_fixtures_impl(function)
-
-
-def _fill_fixtures_impl(function: "Function") -> None:
-    """Internal implementation to fill fixtures on the given function object."""
-    try:
-        request = function._request
-    except AttributeError:
-        # XXX this special code path is only expected to execute
-        # with the oejskit plugin.  It uses classes with funcargs
-        # and we thus have to work a bit to allow this.
-        fm = function.session._fixturemanager
-        assert function.parent is not None
-        fi = fm.getfixtureinfo(function.parent, function.obj, None)
-        function._fixtureinfo = fi
-        request = function._request = FixtureRequest(function, _ispytest=True)
-        fm.session._setupstate.setup(function)
-        request._fillfixtures()
-        # Prune out funcargs for jstests.
-        function.funcargs = {name: function.funcargs[name] for name in fi.argnames}
-    else:
-        request._fillfixtures()
-
-
 def get_direct_param_fixture_func(request):
     return request.param
 
@@ -634,8 +597,17 @@ class FixtureRequest:
         funcitem = self._pyfuncitem
         scope = fixturedef._scope
         try:
-            param = funcitem.callspec.getparam(argname)
-        except (AttributeError, ValueError):
+            callspec = funcitem.callspec
+        except AttributeError:
+            callspec = None
+        if callspec is not None and argname in callspec.params:
+            param = callspec.params[argname]
+            param_index = callspec.indices[argname]
+            # If a parametrize invocation set a scope it will override
+            # the static scope defined with the fixture function.
+            with suppress(KeyError):
+                scope = callspec._arg2scope[argname]
+        else:
             param = NOTSET
             param_index = 0
             has_params = fixturedef.params is not None
@@ -675,12 +647,6 @@ class FixtureRequest:
                     )
                 )
                 fail(msg, pytrace=False)
-        else:
-            param_index = funcitem.callspec.indices[argname]
-            # If a parametrize invocation set a scope it will override
-            # the static scope defined with the fixture function.
-            with suppress(KeyError):
-                scope = funcitem.callspec._arg2scope[argname]
 
         subrequest = SubRequest(
             self, scope, param, param_index, fixturedef, _ispytest=True
@@ -964,7 +930,7 @@ def _eval_scope_callable(
 
 @final
 class FixtureDef(Generic[FixtureValue]):
-    """A container for a factory definition."""
+    """A container for a fixture definition."""
 
     def __init__(
         self,
@@ -976,33 +942,56 @@ class FixtureDef(Generic[FixtureValue]):
         params: Optional[Sequence[object]],
         unittest: bool = False,
         ids: Optional[
-            Union[
-                Tuple[Union[None, str, float, int, bool], ...],
-                Callable[[Any], Optional[object]],
-            ]
+            Union[Tuple[Optional[object], ...], Callable[[Any], Optional[object]]]
         ] = None,
     ) -> None:
         self._fixturemanager = fixturemanager
+        # The "base" node ID for the fixture.
+        #
+        # This is a node ID prefix. A fixture is only available to a node (e.g.
+        # a `Function` item) if the fixture's baseid is a parent of the node's
+        # nodeid (see the `iterparentnodeids` function for what constitutes a
+        # "parent" and a "prefix" in this context).
+        #
+        # For a fixture found in a Collector's object (e.g. a `Module`s module,
+        # a `Class`'s class), the baseid is the Collector's nodeid.
+        #
+        # For a fixture found in a conftest plugin, the baseid is the conftest's
+        # directory path relative to the rootdir.
+        #
+        # For other plugins, the baseid is the empty string (always matches).
         self.baseid = baseid or ""
+        # Whether the fixture was found from a node or a conftest in the
+        # collection tree. Will be false for fixtures defined in non-conftest
+        # plugins.
         self.has_location = baseid is not None
+        # The fixture factory function.
         self.func = func
+        # The name by which the fixture may be requested.
         self.argname = argname
         if scope is None:
             scope = Scope.Function
         elif callable(scope):
             scope = _eval_scope_callable(scope, argname, fixturemanager.config)
-
         if isinstance(scope, str):
             scope = Scope.from_user(
                 scope, descr=f"Fixture '{func.__name__}'", where=baseid
             )
         self._scope = scope
+        # If the fixture is directly parametrized, the parameter values.
         self.params: Optional[Sequence[object]] = params
-        self.argnames: Tuple[str, ...] = getfuncargnames(
-            func, name=argname, is_method=unittest
-        )
-        self.unittest = unittest
+        # If the fixture is directly parametrized, a tuple of explicit IDs to
+        # assign to the parameter values, or a callable to generate an ID given
+        # a parameter value.
         self.ids = ids
+        # The names requested by the fixtures.
+        self.argnames = getfuncargnames(func, name=argname, is_method=unittest)
+        # Whether the fixture was collected from a unittest TestCase class.
+        # Note that it really only makes sense to define autouse fixtures in
+        # unittest TestCases.
+        self.unittest = unittest
+        # If the fixture was executed, the current value of the fixture.
+        # Can change if the fixture is executed with different parameters.
         self.cached_result: Optional[_FixtureCachedResult[FixtureValue]] = None
         self._finalizers: List[Callable[[], object]] = []
 
@@ -1029,8 +1018,8 @@ class FixtureDef(Generic[FixtureValue]):
             if exc:
                 raise exc
         finally:
-            hook = self._fixturemanager.session.gethookproxy(request.node.path)
-            hook.pytest_fixture_post_finalizer(fixturedef=self, request=request)
+            ihook = request.node.ihook
+            ihook.pytest_fixture_post_finalizer(fixturedef=self, request=request)
             # Even if finalization fails, we invalidate the cached fixture
             # value and remove all finalizers because they may be bound methods
             # which will keep instances alive.
@@ -1064,8 +1053,8 @@ class FixtureDef(Generic[FixtureValue]):
             self.finish(request)
             assert self.cached_result is None
 
-        hook = self._fixturemanager.session.gethookproxy(request.node.path)
-        result = hook.pytest_fixture_setup(fixturedef=self, request=request)
+        ihook = request.node.ihook
+        result = ihook.pytest_fixture_setup(fixturedef=self, request=request)
         return result
 
     def cache_key(self, request: SubRequest) -> object:
@@ -1130,18 +1119,8 @@ def pytest_fixture_setup(
 
 
 def _ensure_immutable_ids(
-    ids: Optional[
-        Union[
-            Iterable[Union[None, str, float, int, bool]],
-            Callable[[Any], Optional[object]],
-        ]
-    ],
-) -> Optional[
-    Union[
-        Tuple[Union[None, str, float, int, bool], ...],
-        Callable[[Any], Optional[object]],
-    ]
-]:
+    ids: Optional[Union[Sequence[Optional[object]], Callable[[Any], Optional[object]]]]
+) -> Optional[Union[Tuple[Optional[object], ...], Callable[[Any], Optional[object]]]]:
     if ids is None:
         return None
     if callable(ids):
@@ -1185,9 +1164,8 @@ class FixtureFunctionMarker:
     scope: "Union[_ScopeName, Callable[[str, Config], _ScopeName]]"
     params: Optional[Tuple[object, ...]] = attr.ib(converter=_params_converter)
     autouse: bool = False
-    ids: Union[
-        Tuple[Union[None, str, float, int, bool], ...],
-        Callable[[Any], Optional[object]],
+    ids: Optional[
+        Union[Tuple[Optional[object], ...], Callable[[Any], Optional[object]]]
     ] = attr.ib(
         default=None,
         converter=_ensure_immutable_ids,
@@ -1228,10 +1206,7 @@ def fixture(
     params: Optional[Iterable[object]] = ...,
     autouse: bool = ...,
     ids: Optional[
-        Union[
-            Iterable[Union[None, str, float, int, bool]],
-            Callable[[Any], Optional[object]],
-        ]
+        Union[Sequence[Optional[object]], Callable[[Any], Optional[object]]]
     ] = ...,
     name: Optional[str] = ...,
 ) -> FixtureFunction:
@@ -1246,10 +1221,7 @@ def fixture(
     params: Optional[Iterable[object]] = ...,
     autouse: bool = ...,
     ids: Optional[
-        Union[
-            Iterable[Union[None, str, float, int, bool]],
-            Callable[[Any], Optional[object]],
-        ]
+        Union[Sequence[Optional[object]], Callable[[Any], Optional[object]]]
     ] = ...,
     name: Optional[str] = None,
 ) -> FixtureFunctionMarker:
@@ -1263,10 +1235,7 @@ def fixture(
     params: Optional[Iterable[object]] = None,
     autouse: bool = False,
     ids: Optional[
-        Union[
-            Iterable[Union[None, str, float, int, bool]],
-            Callable[[Any], Optional[object]],
-        ]
+        Union[Sequence[Optional[object]], Callable[[Any], Optional[object]]]
     ] = None,
     name: Optional[str] = None,
 ) -> Union[FixtureFunctionMarker, FixtureFunction]:
@@ -1308,7 +1277,7 @@ def fixture(
         the fixture.
 
     :param ids:
-        List of string ids each corresponding to the params so that they are
+        Sequence of ids each corresponding to the params so that they are
         part of the test id. If no ids are provided they will be generated
         automatically from the params.
 

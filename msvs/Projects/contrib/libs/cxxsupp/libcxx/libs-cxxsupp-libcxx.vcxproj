@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_BUILDING_LIBRARY  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF   -D_LIBCPP_BUILDING_LIBRARY  -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF   -D_LIBCPP_BUILDING_LIBRARY  -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -107,6 +107,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\random.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\random_shuffle.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\regex.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\ryu\d2fixed.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\ryu\d2s.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\ryu\f2s.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\shared_mutex.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\stdexcept.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\string.cpp"/>
@@ -150,6 +153,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\generate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\generate_n.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\half_positive.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\in_in_result.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\in_out_result.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\includes.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\inplace_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\is_heap.h"/>
@@ -217,18 +222,30 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\unwrap_iter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__algorithm\upper_bound.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__bit\bit_cast.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__bit\byteswap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__bsd_locale_defaults.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__bsd_locale_fallbacks.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__charconv\chars_format.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__charconv\from_chars_result.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__charconv\to_chars_result.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\calendar.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\convert_to_timespec.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\duration.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\file_clock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\high_resolution_clock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\steady_clock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\system_clock.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__chrono\time_point.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\common_comparison_category.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\compare_three_way.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\compare_three_way_result.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\is_eq.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\ordering.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\partial_order.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\strong_order.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\synth_three_way.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\three_way_comparable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__compare\weak_order.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\arithmetic.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\assignable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\boolean_testable.h"/>
@@ -251,6 +268,22 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\semiregular.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\swappable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__concepts\totally_ordered.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\copy_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\directory_entry.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\directory_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\directory_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\file_status.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\file_time_type.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\file_type.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\filesystem_error.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\operations.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\path.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\path_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\perm_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\perms.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\recursive_directory_iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\space_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__filesystem\u8path.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\format_arg.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\format_args.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\format_context.h"/>
@@ -262,11 +295,12 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_bool.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_char.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_floating_point.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_integer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_integral.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_pointer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\formatter_string.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__format\parser_std_format_spec.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__function_like.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binary_function.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\binary_negate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__functional\bind.h"/>
@@ -307,6 +341,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\erase_if_container.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\front_insert_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\incrementable_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\indirectly_comparable.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\insert_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\istream_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__iterator\istreambuf_iterator.h"/>
@@ -334,17 +369,70 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\allocator_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\auto_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\compressed_pair.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\concepts.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\construct_at.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\pointer_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\ranges_construct_at.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\ranges_uninitialized_algorithms.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\raw_storage_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\shared_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\temporary_buffer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\uninitialized_algorithms.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\unique_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\uses_allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__memory\voidify.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\accumulate.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\adjacent_difference.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\exclusive_scan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\gcd_lcm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\inclusive_scan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\inner_product.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\iota.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\midpoint.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\partial_sum.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\reduce.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\transform_exclusive_scan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\transform_inclusive_scan.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__numeric\transform_reduce.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\bernoulli_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\binomial_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\cauchy_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\chi_squared_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\clamp_to_integral.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\default_random_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\discard_block_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\discrete_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\exponential_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\extreme_value_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\fisher_f_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\gamma_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\generate_canonical.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\geometric_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\independent_bits_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\is_seed_sequence.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\knuth_b.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\linear_congruential_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\log2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\lognormal_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\mersenne_twister_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\negative_binomial_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\normal_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\piecewise_constant_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\piecewise_linear_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\poisson_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\random_device.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\ranlux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\seed_seq.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\shuffle_order_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\student_t_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\subtract_with_carry_engine.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\uniform_int_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\uniform_random_bit_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\uniform_real_distribution.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__random\weibull_distribution.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\access.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\concepts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\dangling.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\data.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\enable_borrowed_range.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__ranges\enable_view.h"/>
@@ -368,9 +456,10 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__support\xlocale\__posix_l_fallback.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__support\xlocale\__strtonum_fallback.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__thread\poll_with_backoff.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__thread\timed_backoff_policy.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\as_const.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\auto_cast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\cmp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\decay_copy.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\declval.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\exchange.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\forward.h"/>
@@ -379,9 +468,11 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\move.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\pair.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\piecewise_construct.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\priority_tag.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\rel_ops.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\swap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\to_underlying.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__utility\transaction.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\__variant\monostate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\complex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\ctype.h"/>
@@ -403,13 +494,25 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\unwind.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\wchar.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\wctype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\chrono_system_time_init.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\filesystem_common.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\filesystem\posix_compat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\apple_availability.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\atomic_support.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\config_elast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\refstring.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\d2fixed.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\d2fixed_full_table.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\d2s.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\d2s_full_table.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\d2s_intrinsics.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\digit_table.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\f2s.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\ryu\ryu.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\sso_allocator.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\include\to_chars_floating_point.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\src\iostream_init.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

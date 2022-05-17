@@ -13,7 +13,6 @@ from typing import Union
 
 from pluggy import HookspecMarker
 
-from _pytest.deprecated import WARNING_CAPTURED_HOOK
 from _pytest.deprecated import WARNING_CMDLINE_PREPARSE_HOOK
 
 if TYPE_CHECKING:
@@ -34,10 +33,10 @@ if TYPE_CHECKING:
     from _pytest.nodes import Collector
     from _pytest.nodes import Item
     from _pytest.outcomes import Exit
+    from _pytest.python import Class
     from _pytest.python import Function
     from _pytest.python import Metafunc
     from _pytest.python import Module
-    from _pytest.python import PyCollector
     from _pytest.reports import CollectReport
     from _pytest.reports import TestReport
     from _pytest.runner import CallInfo
@@ -360,7 +359,7 @@ def pytest_pycollect_makemodule(
 
 @hookspec(firstresult=True)
 def pytest_pycollect_makeitem(
-    collector: "PyCollector", name: str, obj: object
+    collector: Union["Module", "Class"], name: str, obj: object
 ) -> Union[None, "Item", "Collector", List[Union["Item", "Collector"]]]:
     """Return a custom item/collector for a Python object in a module, or None.
 
@@ -774,41 +773,6 @@ def pytest_terminal_summary(
 
     .. versionadded:: 4.2
         The ``config`` parameter.
-    """
-
-
-@hookspec(historic=True, warn_on_impl=WARNING_CAPTURED_HOOK)
-def pytest_warning_captured(
-    warning_message: "warnings.WarningMessage",
-    when: "Literal['config', 'collect', 'runtest']",
-    item: Optional["Item"],
-    location: Optional[Tuple[str, int, str]],
-) -> None:
-    """(**Deprecated**) Process a warning captured by the internal pytest warnings plugin.
-
-    .. deprecated:: 6.0
-
-    This hook is considered deprecated and will be removed in a future pytest version.
-    Use :func:`pytest_warning_recorded` instead.
-
-    :param warnings.WarningMessage warning_message:
-        The captured warning. This is the same object produced by :py:func:`warnings.catch_warnings`, and contains
-        the same attributes as the parameters of :py:func:`warnings.showwarning`.
-
-    :param str when:
-        Indicates when the warning was captured. Possible values:
-
-        * ``"config"``: during pytest configuration/initialization stage.
-        * ``"collect"``: during test collection.
-        * ``"runtest"``: during test execution.
-
-    :param pytest.Item|None item:
-        The item being executed if ``when`` is ``"runtest"``, otherwise ``None``.
-
-    :param tuple location:
-        When available, holds information about the execution context of the captured
-        warning (filename, linenumber, function). ``function`` evaluates to <module>
-        when the execution context is at the module level.
     """
 
 

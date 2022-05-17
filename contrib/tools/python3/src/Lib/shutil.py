@@ -32,16 +32,6 @@ try:
 except ImportError:
     _LZMA_SUPPORTED = False
 
-try:
-    from pwd import getpwnam
-except ImportError:
-    getpwnam = None
-
-try:
-    from grp import getgrnam
-except ImportError:
-    getgrnam = None
-
 _WINDOWS = os.name == 'nt'
 posix = nt = None
 if os.name == 'posix':
@@ -656,6 +646,7 @@ def _rmtree_safe_fd(topfd, path, onerror):
         if is_dir:
             try:
                 dirfd = os.open(entry.name, os.O_RDONLY, dir_fd=topfd)
+                dirfd_closed = False
             except OSError:
                 onerror(os.open, fullname, sys.exc_info())
             else:
@@ -663,6 +654,8 @@ def _rmtree_safe_fd(topfd, path, onerror):
                     if os.path.samestat(orig_st, os.fstat(dirfd)):
                         _rmtree_safe_fd(dirfd, fullname, onerror)
                         try:
+                            os.close(dirfd)
+                            dirfd_closed = True
                             os.rmdir(entry.name, dir_fd=topfd)
                         except OSError:
                             onerror(os.rmdir, fullname, sys.exc_info())
@@ -676,7 +669,8 @@ def _rmtree_safe_fd(topfd, path, onerror):
                         except OSError:
                             onerror(os.path.islink, fullname, sys.exc_info())
                 finally:
-                    os.close(dirfd)
+                    if not dirfd_closed:
+                        os.close(dirfd)
         else:
             try:
                 os.unlink(entry.name, dir_fd=topfd)
@@ -719,6 +713,7 @@ def rmtree(path, ignore_errors=False, onerror=None):
             return
         try:
             fd = os.open(path, os.O_RDONLY)
+            fd_closed = False
         except Exception:
             onerror(os.open, path, sys.exc_info())
             return
@@ -726,6 +721,8 @@ def rmtree(path, ignore_errors=False, onerror=None):
             if os.path.samestat(orig_st, os.fstat(fd)):
                 _rmtree_safe_fd(fd, path, onerror)
                 try:
+                    os.close(fd)
+                    fd_closed = True
                     os.rmdir(path)
                 except OSError:
                     onerror(os.rmdir, path, sys.exc_info())
@@ -736,7 +733,8 @@ def rmtree(path, ignore_errors=False, onerror=None):
                 except OSError:
                     onerror(os.path.islink, path, sys.exc_info())
         finally:
-            os.close(fd)
+            if not fd_closed:
+                os.close(fd)
     else:
         try:
             if _rmtree_islink(path):
@@ -852,8 +850,14 @@ def _is_immutable(src):
 
 def _get_gid(name):
     """Returns a gid, given a group name."""
-    if getgrnam is None or name is None:
+    if name is None:
         return None
+
+    try:
+        from grp import getgrnam
+    except ImportError:
+        return None
+
     try:
         result = getgrnam(name)
     except KeyError:
@@ -864,8 +868,14 @@ def _get_gid(name):
 
 def _get_uid(name):
     """Returns an uid, given a user name."""
-    if getpwnam is None or name is None:
+    if name is None:
         return None
+
+    try:
+        from pwd import getpwnam
+    except ImportError:
+        return None
+
     try:
         result = getpwnam(name)
     except KeyError:

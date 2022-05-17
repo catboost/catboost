@@ -14,45 +14,14 @@
 
 namespace std {
   // [format.context], class template basic_format_context
-  template<class Out, class charT>
-  class basic_format_context {
-    basic_format_args<basic_format_context> args_;      // exposition only
-    Out out_;                                           // exposition only
-
-  public:
-    using iterator = Out;
-    using char_type = charT;
-    template<class T> using formatter_type = formatter<T, charT>;
-
-    basic_format_arg<basic_format_context> arg(size_t id) const;
-    std::locale locale();
-
-    iterator out();
-    void advance_to(iterator it);
-  };
+  template<class Out, class charT> class basic_format_context;
   using format_context = basic_format_context<unspecified, char>;
   using wformat_context = basic_format_context<unspecified, wchar_t>;
 
   // [format.args], class template basic_format_args
-  template<class Context>
-  class basic_format_args {
-    size_t size_;                               // exposition only
-    const basic_format_arg<Context>* data_;     // exposition only
-
-  public:
-    basic_format_args() noexcept;
-
-    template<class... Args>
-      basic_format_args(const format-arg-store<Context, Args...>& store) noexcept;
-
-    basic_format_arg<Context> get(size_t i) const noexcept;
-  };
+  template<class Context> class basic_format_args;
   using format_args = basic_format_args<format_context>;
   using wformat_args = basic_format_args<wformat_context>;
-
-
-  template<class Out, class charT>
-    using format_args_t = basic_format_args<basic_format_context<Out, charT>>;
 
   // [format.functions], formatting functions
   template<class... Args>
@@ -79,24 +48,21 @@ namespace std {
     Out format_to(Out out, const locale& loc, wstring_view fmt, const Args&... args);
 
   template<class Out>
-    Out vformat_to(Out out, string_view fmt,
-                   format_args_t<type_identity_t<Out>, char> args);
+    Out vformat_to(Out out, string_view fmt, format_args args);
   template<class Out>
-    Out vformat_to(Out out, wstring_view fmt,
-                   format_args_t<type_identity_t<Out>, wchar_t> args);
+    Out vformat_to(Out out, wstring_view fmt, wformat_args args);
   template<class Out>
     Out vformat_to(Out out, const locale& loc, string_view fmt,
-                   format_args_t<type_identity_t<Out>, char> args);
+                   format_args char> args);
   template<class Out>
     Out vformat_to(Out out, const locale& loc, wstring_view fmt,
-                   format_args_t<type_identity_t<Out>, wchar_t> args);
+                   wformat_args args);
 
   template<class Out> struct format_to_n_result {
     Out out;
     iter_difference_t<Out> size;
   };
-
- template<class Out, class... Args>
+  template<class Out, class... Args>
     format_to_n_result<Out> format_to_n(Out out, iter_difference_t<Out> n,
                                         string_view fmt, const Args&... args);
   template<class Out, class... Args>
@@ -121,99 +87,22 @@ namespace std {
     size_t formatted_size(const locale& loc, wstring_view fmt, const Args&... args);
 
   // [format.formatter], formatter
-  template<> struct formatter<char, char>;
-  template<> struct formatter<char, wchar_t>;
-  template<> struct formatter<wchar_t, wchar_t>;
-
-  template<> struct formatter<charT*, charT>;
-  template<> struct formatter<const charT*, charT>;
-  template<size_t N> struct formatter<const charT[N], charT>;
-  template<class traits, class Allocator>
-    struct formatter<basic_string<charT, traits, Allocator>, charT>;
-  template<class traits>
-    struct formatter<basic_string_view<charT, traits>, charT>;
+  template<class T, class charT = char> struct formatter;
 
   // [format.parse.ctx], class template basic_format_parse_context
-  template<class charT>
-  class basic_format_parse_context {
-  public:
-    using char_type = charT;
-    using const_iterator = typename basic_string_view<charT>::const_iterator;
-    using iterator = const_iterator;
-
-  private:
-    iterator begin_;                                    // exposition only
-    iterator end_;                                      // exposition only
-    enum indexing { unknown, manual, automatic };       // exposition only
-    indexing indexing_;                                 // exposition only
-    size_t next_arg_id_;                                // exposition only
-    size_t num_args_;                                   // exposition only
-
-  public:
-    constexpr explicit basic_format_parse_context(basic_string_view<charT> fmt,
-                                                  size_t num_args = 0) noexcept;
-    basic_format_parse_context(const basic_format_parse_context&) = delete;
-    basic_format_parse_context& operator=(const basic_format_parse_context&) = delete;
-
-    constexpr const_iterator begin() const noexcept;
-    constexpr const_iterator end() const noexcept;
-    constexpr void advance_to(const_iterator it);
-
-    constexpr size_t next_arg_id();
-    constexpr void check_arg_id(size_t id);
-  };
+  template<class charT> class basic_format_parse_context;
   using format_parse_context = basic_format_parse_context<char>;
   using wformat_parse_context = basic_format_parse_context<wchar_t>;
 
   // [format.arguments], arguments
   // [format.arg], class template basic_format_arg
-  template<class Context>
-  class basic_format_arg {
-  public:
-    class handle;
-
-  private:
-    using char_type = typename Context::char_type;                              // exposition only
-
-    variant<monostate, bool, char_type,
-            int, unsigned int, long long int, unsigned long long int,
-            float, double, long double,
-            const char_type*, basic_string_view<char_type>,
-            const void*, handle> value;                                         // exposition only
-
-    template<class T> explicit basic_format_arg(const T& v) noexcept;           // exposition only
-    explicit basic_format_arg(float n) noexcept;                                // exposition only
-    explicit basic_format_arg(double n) noexcept;                               // exposition only
-    explicit basic_format_arg(long double n) noexcept;                          // exposition only
-    explicit basic_format_arg(const char_type* s);                              // exposition only
-
-    template<class traits>
-      explicit basic_format_arg(
-        basic_string_view<char_type, traits> s) noexcept;                       // exposition only
-
-    template<class traits, class Allocator>
-      explicit basic_format_arg(
-        const basic_string<char_type, traits, Allocator>& s) noexcept;          // exposition only
-
-    explicit basic_format_arg(nullptr_t) noexcept;                              // exposition only
-
-    template<class T>
-      explicit basic_format_arg(const T* p) noexcept;                           // exposition only
-
-  public:
-    basic_format_arg() noexcept;
-
-    explicit operator bool() const noexcept;
-  };
+  template<class Context> class basic_format_arg;
 
   template<class Visitor, class Context>
     see below visit_format_arg(Visitor&& vis, basic_format_arg<Context> arg);
 
   // [format.arg.store], class template format-arg-store
-  template<class Context, class... Args>
-  struct format-arg-store {      // exposition only
-    array<basic_format_arg<Context>, sizeof...(Args)> args;
-  };
+  template<class Context, class... Args> struct format-arg-store;      // exposition only
 
   template<class Context = format_context, class... Args>
     format-arg-store<Context, Args...>
@@ -223,43 +112,7 @@ namespace std {
       make_wformat_args(const Args&... args);
 
   // [format.error], class format_error
-  class format_error : public runtime_error {
-  public:
-    explicit format_error(const string& what_arg);
-    explicit format_error(const char* what_arg);
-  };
-
-  // [format.parse.ctx], class template basic_format_parse_context
-  template<class charT>
-  class basic_format_parse_context {
-  public:
-    using char_type = charT;
-    using const_iterator = typename basic_string_view<charT>::const_iterator;
-    using iterator = const_iterator;
-
-  private:
-    iterator begin_;                                    // exposition only
-    iterator end_;                                      // exposition only
-    enum indexing { unknown, manual, automatic };       // exposition only
-    indexing indexing_;                                 // exposition only
-    size_t next_arg_id_;                                // exposition only
-    size_t num_args_;                                   // exposition only
-
-  public:
-    constexpr explicit basic_format_parse_context(basic_string_view<charT> fmt,
-                                                  size_t num_args = 0) noexcept;
-    basic_format_parse_context(const basic_format_parse_context&) = delete;
-    basic_format_parse_context& operator=(const basic_format_parse_context&) = delete;
-
-    constexpr const_iterator begin() const noexcept;
-    constexpr const_iterator end() const noexcept;
-    constexpr void advance_to(const_iterator it);
-
-    constexpr size_t next_arg_id();
-    constexpr void check_arg_id(size_t id);
-  };
-  using format_parse_context = basic_format_parse_context<char>;
-  using wformat_parse_context = basic_format_parse_context<wchar_t>;
+  class format_error;
 }
 
 */
@@ -282,7 +135,9 @@ namespace std {
 #include <__format/formatter.h>
 #include <__format/formatter_bool.h>
 #include <__format/formatter_char.h>
+#include <__format/formatter_floating_point.h>
 #include <__format/formatter_integer.h>
+#include <__format/formatter_pointer.h>
 #include <__format/formatter_string.h>
 #include <__format/parser_std_format_spec.h>
 #include <__variant/monostate.h>
@@ -324,9 +179,6 @@ using format_args = basic_format_args<format_context>;
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 using wformat_args = basic_format_args<wformat_context>;
 #endif
-
-template <class _OutIt, class _CharT>
-using format_args_t = basic_format_args<basic_format_context<_OutIt, _CharT>>;
 
 template <class _Context, class... _Args>
 struct _LIBCPP_TEMPLATE_VIS __format_arg_store {
@@ -375,6 +227,8 @@ __handle_replacement_field(const _CharT* __begin, const _CharT* __end,
       [&](auto __arg) {
         if constexpr (same_as<decltype(__arg), monostate>)
           __throw_format_error("Argument index out of bounds");
+        else if constexpr (same_as<decltype(__arg), typename basic_format_arg<_Ctx>::handle>)
+          __arg.format(__parse_ctx, __ctx);
         else {
           formatter<decltype(__arg), _CharT> __formatter;
           __parse_ctx.advance_to(__formatter.parse(__parse_ctx));
@@ -436,51 +290,55 @@ __vformat_to(_ParseCtx&& __parse_ctx, _Ctx&& __ctx) {
 
 } // namespace __format
 
-template <class _OutIt, class _CharT>
+template <class _OutIt, class _CharT, class _FormatOutIt>
 requires(output_iterator<_OutIt, const _CharT&>) _LIBCPP_HIDE_FROM_ABI _OutIt
-    __vformat_to(_OutIt __out_it, basic_string_view<_CharT> __fmt,
-                 format_args_t<type_identity_t<_OutIt>, _CharT> __args) {
-  return __format::__vformat_to(
-      basic_format_parse_context{__fmt, __args.__size()},
-      _VSTD::__format_context_create(_VSTD::move(__out_it), __args));
+    __vformat_to(
+        _OutIt __out_it, basic_string_view<_CharT> __fmt,
+        basic_format_args<basic_format_context<_FormatOutIt, _CharT>> __args) {
+  if constexpr (same_as<_OutIt, _FormatOutIt>)
+    return _VSTD::__format::__vformat_to(
+        basic_format_parse_context{__fmt, __args.__size()},
+        _VSTD::__format_context_create(_VSTD::move(__out_it), __args));
+  else {
+    basic_string<_CharT> __str;
+    _VSTD::__format::__vformat_to(
+        basic_format_parse_context{__fmt, __args.__size()},
+        _VSTD::__format_context_create(_VSTD::back_inserter(__str), __args));
+    return _VSTD::copy_n(__str.begin(), __str.size(), _VSTD::move(__out_it));
+  }
 }
 
 template <output_iterator<const char&> _OutIt>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
-vformat_to(_OutIt __out_it, string_view __fmt,
-           format_args_t<type_identity_t<_OutIt>, char> __args) {
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
+vformat_to(_OutIt __out_it, string_view __fmt, format_args __args) {
   return _VSTD::__vformat_to(_VSTD::move(__out_it), __fmt, __args);
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <output_iterator<const wchar_t&> _OutIt>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
-vformat_to(_OutIt __out_it, wstring_view __fmt,
-           format_args_t<type_identity_t<_OutIt>, wchar_t> __args) {
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
+vformat_to(_OutIt __out_it, wstring_view __fmt, wformat_args __args) {
   return _VSTD::__vformat_to(_VSTD::move(__out_it), __fmt, __args);
 }
 #endif
 
 template <output_iterator<const char&> _OutIt, class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
 format_to(_OutIt __out_it, string_view __fmt, const _Args&... __args) {
-  return _VSTD::vformat_to(
-      _VSTD::move(__out_it), __fmt,
-      _VSTD::make_format_args<basic_format_context<_OutIt, char>>(__args...));
+  return _VSTD::vformat_to(_VSTD::move(__out_it), __fmt,
+                           _VSTD::make_format_args(__args...));
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <output_iterator<const wchar_t&> _OutIt, class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
 format_to(_OutIt __out_it, wstring_view __fmt, const _Args&... __args) {
-  return _VSTD::vformat_to(
-      _VSTD::move(__out_it), __fmt,
-      _VSTD::make_format_args<basic_format_context<_OutIt, wchar_t>>(
-          __args...));
+  return _VSTD::vformat_to(_VSTD::move(__out_it), __fmt,
+                           _VSTD::make_wformat_args(__args...));
 }
 #endif
 
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
+_LIBCPP_ALWAYS_INLINE inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
 vformat(string_view __fmt, format_args __args) {
   string __res;
   _VSTD::vformat_to(_VSTD::back_inserter(__res), __fmt, __args);
@@ -488,7 +346,7 @@ vformat(string_view __fmt, format_args __args) {
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
+_LIBCPP_ALWAYS_INLINE inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
 vformat(wstring_view __fmt, wformat_args __args) {
   wstring __res;
   _VSTD::vformat_to(_VSTD::back_inserter(__res), __fmt, __args);
@@ -497,14 +355,14 @@ vformat(wstring_view __fmt, wformat_args __args) {
 #endif
 
 template <class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
 format(string_view __fmt, const _Args&... __args) {
   return _VSTD::vformat(__fmt, _VSTD::make_format_args(__args...));
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
 format(wstring_view __fmt, const _Args&... __args) {
   return _VSTD::vformat(__fmt, _VSTD::make_wformat_args(__args...));
 }
@@ -556,54 +414,59 @@ formatted_size(wstring_view __fmt, const _Args&... __args) {
 
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 
-template <class _OutIt, class _CharT>
+template <class _OutIt, class _CharT, class _FormatOutIt>
 requires(output_iterator<_OutIt, const _CharT&>) _LIBCPP_HIDE_FROM_ABI _OutIt
-    __vformat_to(_OutIt __out_it, locale __loc, basic_string_view<_CharT> __fmt,
-                 format_args_t<type_identity_t<_OutIt>, _CharT> __args) {
-  return __format::__vformat_to(
-      basic_format_parse_context{__fmt, __args.__size()},
-      _VSTD::__format_context_create(_VSTD::move(__out_it), __args,
-                                     _VSTD::move(__loc)));
+    __vformat_to(
+        _OutIt __out_it, locale __loc, basic_string_view<_CharT> __fmt,
+        basic_format_args<basic_format_context<_FormatOutIt, _CharT>> __args) {
+  if constexpr (same_as<_OutIt, _FormatOutIt>)
+    return _VSTD::__format::__vformat_to(
+        basic_format_parse_context{__fmt, __args.__size()},
+        _VSTD::__format_context_create(_VSTD::move(__out_it), __args,
+                                       _VSTD::move(__loc)));
+  else {
+    basic_string<_CharT> __str;
+    _VSTD::__format::__vformat_to(
+        basic_format_parse_context{__fmt, __args.__size()},
+        _VSTD::__format_context_create(_VSTD::back_inserter(__str), __args,
+                                       _VSTD::move(__loc)));
+    return _VSTD::copy_n(__str.begin(), __str.size(), _VSTD::move(__out_it));
+  }
 }
 
 template <output_iterator<const char&> _OutIt>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
-vformat_to(_OutIt __out_it, locale __loc, string_view __fmt,
-           format_args_t<type_identity_t<_OutIt>, char> __args) {
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt vformat_to(
+    _OutIt __out_it, locale __loc, string_view __fmt, format_args __args) {
   return _VSTD::__vformat_to(_VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
                              __args);
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <output_iterator<const wchar_t&> _OutIt>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt
-vformat_to(_OutIt __out_it, locale __loc, wstring_view __fmt,
-           format_args_t<type_identity_t<_OutIt>, wchar_t> __args) {
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt vformat_to(
+    _OutIt __out_it, locale __loc, wstring_view __fmt, wformat_args __args) {
   return _VSTD::__vformat_to(_VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
                              __args);
 }
 #endif
 
 template <output_iterator<const char&> _OutIt, class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt format_to(
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt format_to(
     _OutIt __out_it, locale __loc, string_view __fmt, const _Args&... __args) {
-  return _VSTD::vformat_to(
-      _VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
-      _VSTD::make_format_args<basic_format_context<_OutIt, char>>(__args...));
+  return _VSTD::vformat_to(_VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
+                           _VSTD::make_format_args(__args...));
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <output_iterator<const wchar_t&> _OutIt, class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt format_to(
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT _OutIt format_to(
     _OutIt __out_it, locale __loc, wstring_view __fmt, const _Args&... __args) {
-  return _VSTD::vformat_to(
-      _VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
-      _VSTD::make_format_args<basic_format_context<_OutIt, wchar_t>>(
-          __args...));
+  return _VSTD::vformat_to(_VSTD::move(__out_it), _VSTD::move(__loc), __fmt,
+                           _VSTD::make_wformat_args(__args...));
 }
 #endif
 
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
+_LIBCPP_ALWAYS_INLINE inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
 vformat(locale __loc, string_view __fmt, format_args __args) {
   string __res;
   _VSTD::vformat_to(_VSTD::back_inserter(__res), _VSTD::move(__loc), __fmt,
@@ -612,7 +475,7 @@ vformat(locale __loc, string_view __fmt, format_args __args) {
 }
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
-inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
+_LIBCPP_ALWAYS_INLINE inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
 vformat(locale __loc, wstring_view __fmt, wformat_args __args) {
   wstring __res;
   _VSTD::vformat_to(_VSTD::back_inserter(__res), _VSTD::move(__loc), __fmt,
@@ -622,7 +485,7 @@ vformat(locale __loc, wstring_view __fmt, wformat_args __args) {
 #endif
 
 template <class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT string
 format(locale __loc, string_view __fmt, const _Args&... __args) {
   return _VSTD::vformat(_VSTD::move(__loc), __fmt,
                         _VSTD::make_format_args(__args...));
@@ -630,7 +493,7 @@ format(locale __loc, string_view __fmt, const _Args&... __args) {
 
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 template <class... _Args>
-_LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
+_LIBCPP_ALWAYS_INLINE _LIBCPP_HIDE_FROM_ABI _LIBCPP_AVAILABILITY_FORMAT wstring
 format(locale __loc, wstring_view __fmt, const _Args&... __args) {
   return _VSTD::vformat(_VSTD::move(__loc), __fmt,
                         _VSTD::make_wformat_args(__args...));

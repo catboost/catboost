@@ -23,22 +23,24 @@ def macro_calls_to_dict(unit, calls):
     return dict(filter(None, map(split_args, calls)))
 
 
-def onprocess_docs(unit, *args):
-    build_tool = unit.get('_DOCS_BUILDER_VALUE')
-    if build_tool:
-        if build_tool not in ['mkdocs', 'yfm']:
-            unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
-    else:
-        build_tool = 'yfm'
-        unit.ondocs_builder([build_tool])
-    if build_tool == 'yfm' and unit.enabled('_DOCS_USE_PLANTUML'):
-        unit.on_docs_yfm_use_plantuml([])
+def get_variables(unit):
     orig_variables = macro_calls_to_dict(unit, extract_macro_calls(unit, '_DOCS_VARS_VALUE'))
-    variables = {k: unit.get(k) or v for k, v in orig_variables.items()}
+    return {k: unit.get(k) or v for k, v in orig_variables.items()}
+
+
+def onprocess_docs(unit, *args):
+    if unit.enabled('_DOCS_USE_PLANTUML'):
+        unit.on_docs_yfm_use_plantuml([])
+
+    if unit.get('_DOCS_DIR_VALUE') == '':
+        unit.on_yfm_docs_dir([unit.get('_YFM_DOCS_DIR_DEFAULT_VALUE')])
+
+    variables = get_variables(unit)
     if variables:
-        if build_tool == 'mkdocs':
-            unit.set(['_DOCS_VARS_FLAG', ' '.join(['--var {}={}'.format(k, v) for k, v in variables.items()])])
-        elif build_tool == 'yfm':
-            unit.set(['_DOCS_VARS_FLAG', '--vars {}'.format(json.dumps(json.dumps(variables, sort_keys=True)))])
-        else:
-            assert False, 'Unexpected build_tool value: [{}]'.format(build_tool)
+        unit.set(['_DOCS_VARS_FLAG', '--vars {}'.format(json.dumps(json.dumps(variables, sort_keys=True)))])
+
+
+def onprocess_mkdocs(unit, *args):
+    variables = get_variables(unit)
+    if variables:
+        unit.set(['_DOCS_VARS_FLAG', ' '.join(['--var {}={}'.format(k, v) for k, v in variables.items()])])

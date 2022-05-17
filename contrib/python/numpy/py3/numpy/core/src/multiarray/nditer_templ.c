@@ -129,7 +129,7 @@ npyiter_iternext_itflags0_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -276,7 +276,7 @@ npyiter_iternext_itflags0_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -423,7 +423,7 @@ npyiter_iternext_itflags0_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -572,7 +572,7 @@ npyiter_iternext_itflags0_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -719,7 +719,7 @@ npyiter_iternext_itflags0_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -866,7 +866,7 @@ npyiter_iternext_itflags0_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1015,7 +1015,7 @@ npyiter_iternext_itflags0_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1162,7 +1162,7 @@ npyiter_iternext_itflags0_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1309,7 +1309,7 @@ npyiter_iternext_itflags0_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1460,7 +1460,7 @@ npyiter_iternext_itflagsIND_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1607,7 +1607,7 @@ npyiter_iternext_itflagsIND_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1754,7 +1754,7 @@ npyiter_iternext_itflagsIND_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -1903,7 +1903,7 @@ npyiter_iternext_itflagsIND_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2050,7 +2050,7 @@ npyiter_iternext_itflagsIND_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2197,7 +2197,7 @@ npyiter_iternext_itflagsIND_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2346,7 +2346,7 @@ npyiter_iternext_itflagsIND_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2493,7 +2493,7 @@ npyiter_iternext_itflagsIND_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2640,7 +2640,7 @@ npyiter_iternext_itflagsIND_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2791,7 +2791,7 @@ npyiter_iternext_itflagsNOINN_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -2938,7 +2938,7 @@ npyiter_iternext_itflagsNOINN_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3085,7 +3085,7 @@ npyiter_iternext_itflagsNOINN_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3234,7 +3234,7 @@ npyiter_iternext_itflagsNOINN_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3381,7 +3381,7 @@ npyiter_iternext_itflagsNOINN_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3528,7 +3528,7 @@ npyiter_iternext_itflagsNOINN_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3677,7 +3677,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3824,7 +3824,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -3971,7 +3971,7 @@ npyiter_iternext_itflagsNOINN_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4122,7 +4122,7 @@ npyiter_iternext_itflagsRNG_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4269,7 +4269,7 @@ npyiter_iternext_itflagsRNG_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4416,7 +4416,7 @@ npyiter_iternext_itflagsRNG_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4565,7 +4565,7 @@ npyiter_iternext_itflagsRNG_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4712,7 +4712,7 @@ npyiter_iternext_itflagsRNG_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -4859,7 +4859,7 @@ npyiter_iternext_itflagsRNG_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5008,7 +5008,7 @@ npyiter_iternext_itflagsRNG_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5155,7 +5155,7 @@ npyiter_iternext_itflagsRNG_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5302,7 +5302,7 @@ npyiter_iternext_itflagsRNG_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5453,7 +5453,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5600,7 +5600,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5747,7 +5747,7 @@ npyiter_iternext_itflagsRNGuIND_dims1_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -5896,7 +5896,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6043,7 +6043,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6190,7 +6190,7 @@ npyiter_iternext_itflagsRNGuIND_dims2_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6339,7 +6339,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_iters1(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6486,7 +6486,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_iters2(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];
@@ -6633,7 +6633,7 @@ npyiter_iternext_itflagsRNGuIND_dimsANY_itersANY(
         /* Reset the 1st and 2nd indices to 0 */
         NAD_INDEX(axisdata0) = 0;
         NAD_INDEX(axisdata1) = 0;
-        /* Reset the 1st and 2nd pointers to the value of the 3nd */
+        /* Reset the 1st and 2nd pointers to the value of the 3rd */
         for (istrides = 0; istrides < nstrides; ++istrides) {
             NAD_PTRS(axisdata0)[istrides] = NAD_PTRS(axisdata2)[istrides];
             NAD_PTRS(axisdata1)[istrides] = NAD_PTRS(axisdata2)[istrides];

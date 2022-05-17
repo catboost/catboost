@@ -2087,6 +2087,8 @@ class TestIQR(object):
                              [1, np.nan, 1])
                 if numpy_version <= '1.16.6':
                     _check_warnings(w, RuntimeWarning, 6)
+                elif numpy_version >= '1.22.3':
+                    _check_warnings(w, DeprecationWarning, 6)
                 else:
                     _check_warnings(w, RuntimeWarning, 0)
 

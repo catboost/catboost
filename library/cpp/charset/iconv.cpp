@@ -1,6 +1,6 @@
 #include "iconv.h"
 
-#include <contrib/libs/libiconv/iconv.h>
+#include <iconv.h>
 
 using namespace NICONVPrivate;
 

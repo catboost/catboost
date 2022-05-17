@@ -3,8 +3,14 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# taxi/tools/dorblu is legacy tool, only hotfixes are made
+ALLOW taxi/tools/dorblu/lib -> contrib/restricted/boost/libs
+
 # scale_ipp filter for ffmpeg use Intel IPP hence it is nonfree
 ALLOW strm/cv/ffmpeg_adcv/toshik_filters -> contrib/restricted/ffmpeg-3-scale-ipp
+
+# libzvbi is GPL
+ALLOW strm/cv/ffmpeg_adcv/libavcodec -> contrib/restricted/libzvbi
 
 # CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
 ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
@@ -41,8 +47,14 @@ ALLOW passport/infra -> contrib/restricted/keyutils
 # For Apache Arrow: CONTRIB-1662
 ALLOW mds -> contrib/restricted/uriparser
 
+# For patched imagemagick CONTRIB-1902
+ALLOW mds -> contrib/restricted/ImageMagickMDS
+
 # https://st.yandex-team.ru/CONTRIB-2020
 ALLOW weather -> contrib/restricted/range-v3
+
+# https://st.yandex-team.ru/CONTRIB-2492
+ALLOW weather -> contrib/restricted/aviso-fes
 
 # ALSA library is LGPL
 ALLOW yandex_io -> contrib/restricted/alsa-lib
@@ -61,6 +73,11 @@ ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gstreamer
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-base
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-good
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-plugins-ugly
+ALLOW sdg/infra/rtsp_probe -> contrib/restricted/gst-rtsp-server
 ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
@@ -183,6 +200,8 @@ ALLOW .* -> contrib/restricted/librseq/headeronly
 ALLOW cloud/filestore/gateway/nfs -> contrib/restricted/nfs_ganesha
 
 ALLOW yandex_io -> contrib/restricted/patched/hostap_client
+
+ALLOW yandex_io -> contrib/restricted/tgcalls
 
 # Default policies:
 #

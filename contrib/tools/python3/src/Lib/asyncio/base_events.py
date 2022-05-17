@@ -49,7 +49,7 @@ from . import trsock
 from .log import logger
 
 
-__all__ = 'BaseEventLoop',
+__all__ = 'BaseEventLoop','Server',
 
 
 # Minimum number of _scheduled timer handles before cleanup of
@@ -200,6 +200,11 @@ if hasattr(socket, 'TCP_NODELAY'):
 else:
     def _set_nodelay(sock):
         pass
+
+
+def _check_ssl_socket(sock):
+    if ssl is not None and isinstance(sock, ssl.SSLSocket):
+        raise TypeError("Socket cannot be of type SSLSocket")
 
 
 class _SendfileFallbackProtocol(protocols.Protocol):
@@ -539,10 +544,9 @@ class BaseEventLoop(events.AbstractEventLoop):
         closing_agens = list(self._asyncgens)
         self._asyncgens.clear()
 
-        results = await tasks._gather(
+        results = await tasks.gather(
             *[ag.aclose() for ag in closing_agens],
-            return_exceptions=True,
-            loop=self)
+            return_exceptions=True)
 
         for result, agen in zip(results, closing_agens):
             if isinstance(result, Exception):
@@ -864,6 +868,7 @@ class BaseEventLoop(events.AbstractEventLoop):
                             *, fallback=True):
         if self._debug and sock.gettimeout() != 0:
             raise ValueError("the socket must be non-blocking")
+        _check_ssl_socket(sock)
         self._check_sendfile_params(sock, file, offset, count)
         try:
             return await self._sock_sendfile_native(sock, file,
@@ -973,7 +978,7 @@ class BaseEventLoop(events.AbstractEventLoop):
             happy_eyeballs_delay=None, interleave=None):
         """Connect to a TCP server.
 
-        Create a streaming transport connection to a given Internet host and
+        Create a streaming transport connection to a given internet host and
         port: socket family AF_INET or socket.AF_INET6 depending on host (or
         family if specified), socket type SOCK_STREAM. protocol_factory must be
         a callable returning a protocol instance.
@@ -1004,6 +1009,9 @@ class BaseEventLoop(events.AbstractEventLoop):
         if ssl_handshake_timeout is not None and not ssl:
             raise ValueError(
                 'ssl_handshake_timeout is only meaningful with ssl')
+
+        if sock is not None:
+            _check_ssl_socket(sock)
 
         if happy_eyeballs_delay is not None and interleave is None:
             # If using happy eyeballs, default to interleave addresses by family
@@ -1290,8 +1298,8 @@ class BaseEventLoop(events.AbstractEventLoop):
                 addr_infos = {}  # Using order preserving dict
                 for idx, addr in ((0, local_addr), (1, remote_addr)):
                     if addr is not None:
-                        if not (isinstance(addr, tuple) and len(addr) == 2):
-                            raise TypeError('2-tuple is expected')
+                        assert isinstance(addr, tuple) and len(addr) == 2, (
+                            '2-tuple is expected')
 
                         infos = await self._ensure_resolved(
                             addr, family=family, type=socket.SOCK_DGRAM,
@@ -1438,6 +1446,9 @@ class BaseEventLoop(events.AbstractEventLoop):
             raise ValueError(
                 'ssl_handshake_timeout is only meaningful with ssl')
 
+        if sock is not None:
+            _check_ssl_socket(sock)
+
         if host is not None or port is not None:
             if sock is not None:
                 raise ValueError(
@@ -1457,7 +1468,7 @@ class BaseEventLoop(events.AbstractEventLoop):
             fs = [self._create_server_getaddrinfo(host, port, family=family,
                                                   flags=flags)
                   for host in hosts]
-            infos = await tasks._gather(*fs, loop=self)
+            infos = await tasks.gather(*fs)
             infos = set(itertools.chain.from_iterable(infos))
 
             completed = False
@@ -1525,20 +1536,15 @@ class BaseEventLoop(events.AbstractEventLoop):
             self, protocol_factory, sock,
             *, ssl=None,
             ssl_handshake_timeout=None):
-        """Handle an accepted connection.
-
-        This is used by servers that accept connections outside of
-        asyncio but that use asyncio to handle connections.
-
-        This method is a coroutine.  When completed, the coroutine
-        returns a (transport, protocol) pair.
-        """
         if sock.type != socket.SOCK_STREAM:
             raise ValueError(f'A Stream Socket was expected, got {sock!r}')
 
         if ssl_handshake_timeout is not None and not ssl:
             raise ValueError(
                 'ssl_handshake_timeout is only meaningful with ssl')
+
+        if sock is not None:
+            _check_ssl_socket(sock)
 
         transport, protocol = await self._create_connection_transport(
             sock, protocol_factory, ssl, '', server_side=True,

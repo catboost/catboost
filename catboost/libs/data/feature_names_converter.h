@@ -108,6 +108,7 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
+void ConvertFixedBinarySplitsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions);
 
 template <typename TSource>
 void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndicesMatchingSource, NJson::TJsonValue* featuresSelectJsonOptions) {

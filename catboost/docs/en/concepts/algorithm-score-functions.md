@@ -68,7 +68,15 @@ $L(a^{t-1}_{i} + \phi , y) \approx \displaystyle\sum w_{i} \left[ l_{i} + l^{'}_
 
 Since the first term is constant in optimization, the formula takes the following form after regrouping by leaves:
 
-$L \approx \sum\limits_{i} w_{i} \left[ l^{'}_{i} \phi + \frac{1}{2} (l^{''}_{i} + \frac{\lambda}{w_{i}})\phi^{2} \right] = \sum\limits_{leaf}\left[  \left(\sum w_{i} l^{'}_{i} \right) \phi_{leaf} + \frac{1}{2}\left(\sum w_{i} l^{''}_{i} +\lambda \right) \phi^{2}_{leaf}  \right]$
+$\sum\limits_{leaf=1}^{L} \left( \sum\limits_{i \in leaf} w_{i} \left[ l_{i} + l^{'}_{i} \phi_{leaf} + \frac{1}{2} l^{''}_{i} \phi^{2} \right] + \frac{1}{2} \lambda \phi_{leaf}^{2} \right) \to min$
+
+Then let's minimize this expression for each leaf independently:
+
+$\sum\limits_{i \in leaf} w_{i} \left[ l_{i} + l^{'}_{i} \phi_{leaf} + \frac{1}{2} l^{''}_{i} \phi^{2}_{leaf} \right] + \frac{1}{2} \lambda \phi_{leaf}^2 \to min$
+
+Differentiate by leaf value $\phi_{leaf}$:
+
+$\sum\limits_{i \in leaf} w_{i} \left[ l^{'}_{i} + l^{''}_{i} \phi_{leaf} \right] + \lambda \phi_{leaf} = 0$
 
 So, the optimal value of $\phi_{leaf}$ is:
 

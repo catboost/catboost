@@ -66,7 +66,8 @@ $\displaystyle\sqrt{\displaystyle\frac{\sum\limits_{i=1}^N (a_{i}-t_{i})^2 w_{i}
 
 ### RMSEWithUncertainty {#RMSEWithUncertainty}
 
-$-\frac{1}{N} \sum_{i=1}^N \log p(t_i \vert a_i) = -\frac{1}{N} \sum_{i=1}^N \log(\frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})) = C +\frac{1}{N}\sum_{i=1}^N \left(a_{i,1} + \frac{1}{2} \exp(-2 a_{i,1} (t_i - a_{i, 0})^2) \right)$, where t is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\log \sigma$ predict, and $p$ has normal distribution $p(t \vert a) = N(y \vert a_0, e^{2a_1}) = N(y \vert \mu, \sigma^2) = \frac{1}{2 \pi\sigma^2} \exp(-\frac{(y-\mu)^2}{2\sigma^2})$
+$\displaystyle-\frac{\sum_{i=1}^N w_i \log N(t_{i} \vert a_{i,0}, e^{2a_{i,1}})}{\sum_{i=1}^{N}w_{i}} = \frac{1}{2}\log(2\pi) +\frac{\sum_{i=1}^N w_i\left(a_{i,1} + \frac{1}{2} e^{-2a_{i,1}}(t_i - a_{i, 0})^2 \right)}{\sum_{i=1}^{N}w_{i}}$,
+where $t$ is target, a 2-dimensional approx $a_0$ is target predict, $a_1$ is $\log \sigma$ predict, and $N(y\vert \mu,\sigma^2) = \frac{1}{\sqrt{2 \pi\sigma^2}} \exp(-\frac{(y-\mu)^2}{2\sigma^2})$ is the probability density function of the normal distribution.
 
 See the [Uncertainty section](../references/uncertainty.md) for more details.
 
@@ -177,6 +178,17 @@ _Default:_ {{ loss-functions__params__q__default }}
 
 {% endcut %}
 
+### {{ error-function__LogCosh }} {#LogCosh}
+
+$\frac{\sum_{i=1}^N w_i \log(\cosh(a_i - t_i))}{\sum_{i=1}^N w_i}$
+
+**{{ optimization }}** See [more](#optimization).
+
+**{{ title__loss-functions__text__user-defined-params }}**
+
+{% include [use-weights__desc__with_default_value](../_includes/work_src/reusage-loss-functions/use-weights__desc__with__default__value.md) %}
+
+
 ### {{ error-function__FairLoss }} {#FairLoss}
 
 $\displaystyle\frac{\sum\limits_{i=1}^{N} c^2(\frac{|t_{i} - a_{i} |}{c} - \ln(\frac{|t_{i} - a_{i} |}{c} + 1))w_{i}}{\sum\limits_{i=1}^{N} w_{i}} { , where}$
@@ -275,6 +287,7 @@ No.
 [{{ error-function__Huber }}](#Huber)                             |     +                   |
 [{{ error-function__Expectile }}](#Expectile)                     |     +                   |
 [{{ error-function__Tweedie }}](#Tweedie)                         |     +                   |
+[{{ error-function__LogCosh }}](#LogCosh)                         |     +                   |
 [{{ error-function__FairLoss }}](#FairLoss)                       |     -                   |
 [{{ error-function__NumErrors }}](#NumErrors)                     |     -                   |
 [{{ error-function__SMAPE }}](#SMAPE)                             |     -                   |

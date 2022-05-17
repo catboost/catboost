@@ -144,6 +144,14 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
   ): CatBoostRegressionModel = {
     new CatBoostRegressionModel(native_impl.native_impl.ReadModel(fileName, format))
   }
+
+  def sum(
+    models: Array[CatBoostRegressionModel],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
+  ): CatBoostRegressionModel = {
+    new CatBoostRegressionModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostRegressionModel]], weights, ctrMergePolicy))
+  } 
 }
 
 

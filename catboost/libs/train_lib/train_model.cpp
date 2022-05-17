@@ -2,6 +2,7 @@
 #include "options_helper.h"
 #include "cross_validation.h"
 #include "dir_helper.h"
+#include "trainer_env.h"
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/data.h>
@@ -1613,6 +1614,8 @@ void TrainModel(
     ConvertParamsToCanonicalFormat(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
 
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
+
+    auto trainerEnv = NCB::CreateTrainerEnv(NCatboostOptions::LoadOptions(trainOptionsJson));
 
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputFilesOptionsJson);

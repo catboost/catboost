@@ -6,14 +6,11 @@
     #include <alloca.h>
 #endif
 
-#include <cerrno>
 #include <cstring>
 
 #ifdef _win_
     #include "winint.h"
 #else
-    #include <signal.h>
-    #include <unistd.h>
     #include <semaphore.h>
 
     #if defined(_bionic_) || defined(_darwin_) && defined(_arm_)
@@ -42,8 +39,11 @@ union semun arg;
 
 #include <util/digest/city.h>
 #include <util/string/cast.h>
-#include <util/random/random.h>
 #include <util/random/fast.h>
+
+#if !defined(_unix_) || defined(_darwin_)
+    #include <util/random/random.h>
+#endif
 
 namespace {
     class TSemaphoreImpl {

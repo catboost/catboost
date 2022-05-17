@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,33 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_38ba08a4e1d37d787159165ef7.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_38ba08a4e1d37d787159165ef7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_38ba08a4e1d37d787159165ef7.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_b55b5693f0e6408f516f46a5bb.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
@@ -131,6 +104,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/setuptools/py3/_b55b5693f0e6408f516f46a5bb.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_b55b5693f0e6408f516f46a5bb.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_b55b5693f0e6408f516f46a5bb.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_f6b91e32f3e139c372fac75d87.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_f6b91e32f3e139c372fac75d87.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_f6b91e32f3e139c372fac75d87.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_ff108f4eec998df280ac44cbf5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -630,7 +630,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.yasm" "-" "contrib/python/setuptools/py3/.dist-info/METADATA" "_44bafc9727b1ff46cc03c37d3b.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_b7d94d34330c18ec9ed77fa865.rodata" "-" "contrib/python/setuptools/py3/.dist-info/entry_points.txt" "_9c4dde4c5df85ee2645d11583f.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_365d483ad03cc12d1e79f1fa22.rodata" "-" "contrib/python/setuptools/py3/.dist-info/top_level.txt" "_243cebdb9741e41545292fa4c7.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_d0ff0721ff1891ff6bd2eea2d6.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.yasm" "-" "contrib/python/setuptools/py3/.dist-info/METADATA" "_44bafc9727b1ff46cc03c37d3b.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_b7d94d34330c18ec9ed77fa865.rodata" "-" "contrib/python/setuptools/py3/.dist-info/entry_points.txt" "_9c4dde4c5df85ee2645d11583f.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_365d483ad03cc12d1e79f1fa22.rodata" "-" "contrib/python/setuptools/py3/.dist-info/top_level.txt" "_243cebdb9741e41545292fa4c7.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_d0ff0721ff1891ff6bd2eea2d6.rodata" "-" "contrib/python/setuptools/py3/setuptools/script.tmpl" "_b76bcbec91cd8ed5a80be6a9be.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/setuptools/script.tmpl" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_2bdc68366f4ab69463575c9797.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -641,7 +641,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools\py3
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.yasm" "-" "contrib/python/setuptools/py3/.dist-info/METADATA" "_44bafc9727b1ff46cc03c37d3b.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_b7d94d34330c18ec9ed77fa865.rodata" "-" "contrib/python/setuptools/py3/.dist-info/entry_points.txt" "_9c4dde4c5df85ee2645d11583f.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_365d483ad03cc12d1e79f1fa22.rodata" "-" "contrib/python/setuptools/py3/.dist-info/top_level.txt" "_243cebdb9741e41545292fa4c7.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_d0ff0721ff1891ff6bd2eea2d6.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.yasm" "-" "contrib/python/setuptools/py3/.dist-info/METADATA" "_44bafc9727b1ff46cc03c37d3b.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_b7d94d34330c18ec9ed77fa865.rodata" "-" "contrib/python/setuptools/py3/.dist-info/entry_points.txt" "_9c4dde4c5df85ee2645d11583f.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/entry_points.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_365d483ad03cc12d1e79f1fa22.rodata" "-" "contrib/python/setuptools/py3/.dist-info/top_level.txt" "_243cebdb9741e41545292fa4c7.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_d0ff0721ff1891ff6bd2eea2d6.rodata" "-" "contrib/python/setuptools/py3/setuptools/script.tmpl" "_b76bcbec91cd8ed5a80be6a9be.rodata" "$(SolutionDir)../contrib/python/setuptools/py3/setuptools/script.tmpl" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/py3/_2bdc68366f4ab69463575c9797.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -649,9 +649,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/py3/_38ba08a4e1d37d787159165ef7.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\entry_points.txt;$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_38ba08a4e1d37d787159165ef7.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_b7d94d34330c18ec9ed77fa865.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_365d483ad03cc12d1e79f1fa22.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_d0ff0721ff1891ff6bd2eea2d6.rodata;</Outputs>
+      <Message>$B/contrib/python/setuptools/py3/_f6b91e32f3e139c372fac75d87.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\entry_points.txt;$(SolutionDir)..\contrib\python\setuptools\py3\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\setuptools\py3\setuptools\script.tmpl;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_f6b91e32f3e139c372fac75d87.yasm;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_b7d94d34330c18ec9ed77fa865.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_365d483ad03cc12d1e79f1fa22.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_d0ff0721ff1891ff6bd2eea2d6.rodata;$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\_2bdc68366f4ab69463575c9797.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\setuptools\py3\_distutils_hack\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -5021,9 +5021,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xxhash\contrib-libs-xxhash.vcxproj">
       <Project>{93F9D338-B2A4-2DC4-8B30-A39701C2F9EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\common\libs-xz-common.vcxproj">
-      <Project>{F9804092-4C13-EB40-22ED-4230BA4B282E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\liblzma\libs-xz-liblzma.vcxproj">
       <Project>{D34AC41F-BA71-4FE6-9395-4F644C2FED80}</Project>

@@ -8,7 +8,6 @@ ALLOW taxi/tools/dorblu -> maps/libs/deprecated/mongo
 # Use maps/libs/locale instead
 ALLOW maps/automotive/remote_access/libs/i18n -> maps/libs/deprecated/localeutils
 ALLOW maps/carparks/renderer/datasource -> maps/libs/deprecated/localeutils
-ALLOW maps/fastcgi/tilerenderer-serv -> maps/libs/deprecated/localeutils
 ALLOW maps/garden/modules/renderer_denormalization -> maps/libs/deprecated/localeutils
 ALLOW maps/infopoint -> maps/libs/deprecated/localeutils
 ALLOW maps/jams/renderer2 -> maps/libs/deprecated/localeutils
@@ -42,6 +41,7 @@ DENY .* -> maps/libs/deprecated
 ALLOW .* -> maps/doc/proto
 
 # These libraries are allowed for general use
+ALLOW .* -> maps/libs/chrono
 ALLOW .* -> maps/libs/common
 ALLOW .* -> maps/libs/csv
 ALLOW .* -> maps/libs/enum_io
@@ -149,17 +149,27 @@ ALLOW taxi/tools/dorblu/aggregator -> maps/libs/log8
 ALLOW taxi/tools/dorblu/lib -> maps/libs/http
 ALLOW yql/udfs/taxi/graph -> maps/libs/leptidea
 
+ALLOW drive/backend/tracks/yt -> maps/libs/road_graph
+ALLOW drive/backend/tracks/yt -> maps/libs/road_graph/serialization
+ALLOW drive/backend/tracks/yt -> maps/libs/succinct_rtree
+ALLOW drive/backend/tracks/yt -> maps/libs/succinct_rtree/serialization
+ALLOW drive/backend/tracks/yt -> maps/libs/leptidea/include
+ALLOW drive/backend/tracks/yt -> maps/libs/leptidea
+ALLOW drive/backend/tracks/yt -> maps/analyzer/libs/graphmatching
+
 ALLOW maps/ -> maps/
 ALLOW sandbox/projects/maps -> maps/
 ALLOW sandbox/projects/mapsearch -> maps/
 ALLOW sandbox/projects/masstransit -> maps/
 ALLOW sprav/altay/panorama -> maps/streetview/libs
+ALLOW sprav -> maps/libs
 ALLOW yql/udfs/maps -> maps/
 
 # maps_adv will be split into maps and smb
 ALLOW maps_adv/ -> maps/
 ALLOW maps_adv/ -> maps_adv/
 ALLOW smb/ -> maps_adv/
+ALLOW (geoadv/|direct/) -> maps_adv/geosmb/landlord/proto
 DENY .* -> maps_adv/
 
 ALLOW sdg/library/python/revision_manager -> maps/wikimap/mapspro/libs/common

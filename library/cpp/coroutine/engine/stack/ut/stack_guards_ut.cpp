@@ -32,7 +32,7 @@ namespace NCoro::NStack::Tests {
     }
 
     TYPED_TEST(TGuardFixture, StackWorkspace) {
-        for (uint64_t sizeInPages : {2, 5, 12}) {
+        for (size_t sizeInPages : {2, 5, 12}) {
             char *rawPtr, *alignedPtr = nullptr;
             ASSERT_TRUE(GetAlignedMemory(sizeInPages, rawPtr, alignedPtr));
             auto workspace = this->Guard_.GetWorkspace(alignedPtr, sizeInPages * PageSize);
@@ -52,7 +52,7 @@ namespace NCoro::NStack::Tests {
 
     TYPED_TEST(TGuardFixture, SetRemoveProtectionWorks) {
         char *rawPtr, *alignedPtr = nullptr;
-        constexpr uint64_t sizeInPages = 4;
+        constexpr size_t sizeInPages = 4;
         ASSERT_TRUE(GetAlignedMemory(sizeInPages + 1, rawPtr, alignedPtr));
 
         this->Guard_.Protect(alignedPtr, PageSize, false); // set previous guard
@@ -72,7 +72,7 @@ namespace NCoro::NStack::Tests {
         const auto& guard = GetGuard<TCanaryGuard>();
 
         char *rawPtr, *alignedPtr = nullptr;
-        constexpr uint64_t sizeInPages = 4;
+        constexpr size_t sizeInPages = 4;
         ASSERT_TRUE(GetAlignedMemory(sizeInPages + 1, rawPtr, alignedPtr));
         guard.Protect(alignedPtr, PageSize, false); // set previous guard
         alignedPtr += PageSize; // leave first page for previous guard
@@ -93,7 +93,7 @@ namespace NCoro::NStack::Tests {
         const auto& guard = GetGuard<TCanaryGuard>();
 
         char *rawPtr, *alignedPtr = nullptr;
-        constexpr uint64_t sizeInPages = 4;
+        constexpr size_t sizeInPages = 4;
         ASSERT_TRUE(GetAlignedMemory(sizeInPages + 1, rawPtr, alignedPtr));
         guard.Protect(alignedPtr, PageSize, false); // set previous guard
         alignedPtr += PageSize; // leave first page for previous guard
@@ -116,7 +116,7 @@ namespace NCoro::NStack::Tests {
 
             char* rawPtr = nullptr;
             char* alignedPtr = nullptr;
-            constexpr uint64_t sizeInPages = 4;
+            constexpr size_t sizeInPages = 4;
             ASSERT_TRUE(GetAlignedMemory(sizeInPages + 1, rawPtr, alignedPtr));
 
             guard.Protect(alignedPtr, PageSize, false); // set previous guard
@@ -139,7 +139,7 @@ namespace NCoro::NStack::Tests {
 
             char* rawPtr = nullptr;
             char* alignedPtr = nullptr;
-            constexpr uint64_t sizeInPages = 4;
+            constexpr size_t sizeInPages = 4;
             ASSERT_TRUE(GetAlignedMemory(sizeInPages + 1, rawPtr, alignedPtr));
             guard.Protect(alignedPtr, PageSize, false); // set previous guard
             alignedPtr += PageSize; // leave first page for previous guard

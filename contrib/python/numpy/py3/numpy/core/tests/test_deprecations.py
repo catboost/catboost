@@ -314,21 +314,6 @@ class TestBinaryReprInsufficientWidthParameterForRepresentation(_DeprecationTest
         self.assert_deprecated(np.binary_repr, args=args, kwargs=kwargs)
 
 
-class TestNumericStyleTypecodes(_DeprecationTestCase):
-    """
-    Most numeric style typecodes were previously deprecated (and removed)
-    in 1.20. This also deprecates the remaining ones.
-    """
-    # 2020-06-09, NumPy 1.20
-    def test_all_dtypes(self):
-        deprecated_types = ['Bytes0', 'Datetime64', 'Str0']
-        # Depending on intp size, either Uint32 or Uint64 is defined:
-        deprecated_types.append(f"U{np.dtype(np.intp).name}")
-        for dt in deprecated_types:
-            self.assert_deprecated(np.dtype, exceptions=(TypeError,),
-                                   args=(dt,))
-
-
 class TestDTypeAttributeIsDTypeDeprecation(_DeprecationTestCase):
     # Deprecated 2021-01-05, NumPy 1.21
     message = r".*`.dtype` attribute"
@@ -806,7 +791,7 @@ class TestFutureWarningArrayLikeNotIterable(_DeprecationTestCase):
         *not* define the sequence protocol.
 
         NOTE: Tests for the versions including __len__ and __getitem__ exist
-              in `test_array_coercion.py` and they can be modified or ammended
+              in `test_array_coercion.py` and they can be modified or amended
               when this deprecation expired.
         """
         blueprint = np.arange(10)
@@ -1207,3 +1192,61 @@ class TestUFuncForcedDTypeWarning(_DeprecationTestCase):
             np.maximum(arr, arr, dtype="m8[ns]")  # previously used the "ns"
         with pytest.warns(DeprecationWarning, match=self.message):
             np.maximum.reduce(arr, dtype="m8[ns]")  # never preserved the "ns"
+
+
+PARTITION_DICT = {
+    "partition method": np.arange(10).partition,
+    "argpartition method": np.arange(10).argpartition,
+    "partition function": lambda kth: np.partition(np.arange(10), kth),
+    "argpartition function": lambda kth: np.argpartition(np.arange(10), kth),
+}
+
+
+@pytest.mark.parametrize("func", PARTITION_DICT.values(), ids=PARTITION_DICT)
+class TestPartitionBoolIndex(_DeprecationTestCase):
+    # Deprecated 2021-09-29, NumPy 1.22
+    warning_cls = DeprecationWarning
+    message = "Passing booleans as partition index is deprecated"
+
+    def test_deprecated(self, func):
+        self.assert_deprecated(lambda: func(True))
+        self.assert_deprecated(lambda: func([False, True]))
+
+    def test_not_deprecated(self, func):
+        self.assert_not_deprecated(lambda: func(1))
+        self.assert_not_deprecated(lambda: func([0, 1]))
+
+
+class TestMachAr(_DeprecationTestCase):
+    # Deprecated 2021-10-19, NumPy 1.22
+    warning_cls = DeprecationWarning
+
+    def test_deprecated(self):
+        self.assert_deprecated(lambda: np.MachAr)
+
+    def test_deprecated_module(self):
+        self.assert_deprecated(lambda: getattr(np.core, "machar"))
+
+    def test_deprecated_attr(self):
+        finfo = np.finfo(float)
+        self.assert_deprecated(lambda: getattr(finfo, "machar"))
+
+
+class TestQuantileInterpolationDeprecation(_DeprecationTestCase):
+    # Deprecated 2021-11-08, NumPy 1.22
+    @pytest.mark.parametrize("func",
+        [np.percentile, np.quantile, np.nanpercentile, np.nanquantile])
+    def test_deprecated(self, func):
+        self.assert_deprecated(
+            lambda: func([0., 1.], 0., interpolation="linear"))
+        self.assert_deprecated(
+            lambda: func([0., 1.], 0., interpolation="nearest"))
+
+    @pytest.mark.parametrize("func",
+            [np.percentile, np.quantile, np.nanpercentile, np.nanquantile])
+    def test_both_passed(self, func):
+        with warnings.catch_warnings():
+            # catch the DeprecationWarning so that it does not raise:
+            warnings.simplefilter("always", DeprecationWarning)
+            with pytest.raises(TypeError):
+                func([0., 1.], 0., interpolation="nearest", method="nearest")

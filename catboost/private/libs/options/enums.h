@@ -182,6 +182,7 @@ enum class ELossFunction {
     Recall,
     F1,
     TotalF1,
+    F,
     MCC,
     ZeroOneLoss,
     HammingLoss,
@@ -253,15 +254,16 @@ enum class EPredictionType {
 };
 
 enum class EFstrType {
-    PredictionValuesChange,
-    LossFunctionChange,
     FeatureImportance,
-    InternalFeatureImportance,
     Interaction,
+    InternalFeatureImportance,
     InternalInteraction,
-    ShapValues,
+    LossFunctionChange,
     PredictionDiff,
-    ShapInteractionValues
+    PredictionValuesChange,
+    SageValues,
+    ShapInteractionValues,
+    ShapValues
 };
 
 enum class EFstrCalculatedInFitType {

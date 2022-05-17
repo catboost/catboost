@@ -1,5 +1,6 @@
 DLL(catboost)
 EXPORTS_SCRIPT(catboost.exports)
+CMAKE_EXPORTED_TARGET_NAME(catboost_train_interface)
 
 
 

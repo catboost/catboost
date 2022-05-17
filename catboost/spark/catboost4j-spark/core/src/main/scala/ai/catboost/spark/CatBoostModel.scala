@@ -437,6 +437,25 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   }
 }
 
+private[spark] object CatBoostModel {
+  def sum[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]](
+    models: Array[CatBoostModelTrait[Model]],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = ECtrTableMergePolicy.IntersectingCountersAverage
+  ) : TFullModel = {
+    val nativeModels = new TVector_const_TFullModel_ptr
+    for (model <- models) {
+      nativeModels.add(model.nativeModel)
+    }
+    val weightsVector = if (weights != null) {
+      new TVector_double(weights)
+    } else {
+      new TVector_double(Iterator.fill(models.length)(1.0).toArray)
+    }
+    native_impl.SumModels(nativeModels, weightsVector, ctrMergePolicy)
+  }
+}
+
 private[spark] trait CatBoostModelReaderTrait {
   case class Metadata(
     className: String,

@@ -1,10 +1,11 @@
-"""A module with platform-specific extended precision `numpy.number` subclasses.
+"""A module with platform-specific extended precision
+`numpy.number` subclasses.
 
 The subclasses are defined here (instead of ``__init__.pyi``) such
 that they can be imported conditionally via the numpy's mypy plugin.
 """
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 from . import (

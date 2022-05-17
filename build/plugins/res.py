@@ -1,4 +1,5 @@
 from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir, filter_out_by_keyword
+import ymake
 
 
 def split(lst, limit):
@@ -88,6 +89,9 @@ def onresource_files(unit, *args):
 
     args = iter(args[first:])
     for arg in args:
+        if arg == 'DONT_PARSE':
+            # ignore explicit specification
+            continue
         if arg == 'PREFIX':
             prefix, dest = next(args), None
         elif arg == 'DEST':
@@ -104,3 +108,10 @@ def onresource_files(unit, *args):
         unit.on_go_resource(res)
     else:
         unit.onresource(res)
+
+def onall_resource_files(unit, *args):
+    # This is only validation, actual work is done in ymake.core.conf implementation
+    for arg in args:
+        if '*' in arg or '?' in arg:            
+            ymake.report_configure_error('Wildcards in [[imp]]ALL_RESOURCE_FILES[[rst]] are not allowed')
+

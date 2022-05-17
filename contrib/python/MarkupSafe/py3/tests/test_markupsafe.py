@@ -69,7 +69,15 @@ def test_dict_interpol():
 
 def test_escaping(escape):
     assert escape("\"<>&'") == "&#34;&lt;&gt;&amp;&#39;"
-    assert Markup("<em>Foo &amp; Bar</em>").striptags() == "Foo & Bar"
+    assert (
+        Markup(
+            "<!-- outer comment -->"
+            "<em>Foo &amp; Bar"
+            "<!-- inner comment about <em> -->"
+            "</em>"
+        ).striptags()
+        == "Foo & Bar"
+    )
 
 
 def test_unescape():

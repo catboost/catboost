@@ -122,7 +122,6 @@
   - getopt.h:               contrib/libs/musl/include/getopt.h
   - glob.h:                 contrib/libs/musl/include/glob.h
   - grp.h:                  contrib/libs/musl/include/grp.h
-  - iconv.h:                contrib/libs/musl/include/iconv.h
   - ifaddrs.h:              contrib/libs/musl/include/ifaddrs.h
   - iso646.h:               contrib/libs/musl/include/iso646.h
   - langinfo.h:             contrib/libs/musl/include/langinfo.h

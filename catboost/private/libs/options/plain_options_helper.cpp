@@ -369,6 +369,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "sampling_frequency", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_max_ctr_complexity_for_borders_cache", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "observations_to_bootstrap", &treeOptions, &seenKeys);
+    CopyOption(plainOptions, "fixed_binary_splits", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "monotone_constraints", &treeOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_approxes", &treeOptions, &seenKeys);
 
@@ -727,6 +728,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(treeOptions, "observations_to_bootstrap", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "observations_to_bootstrap");
+
+        CopyOption(treeOptions, "fixed_binary_splits", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyTree, "fixed_binary_splits");
 
         CopyOption(treeOptions, "monotone_constraints", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyTree, "monotone_constraints");

@@ -11,7 +11,6 @@
 #include <util/charset/wide.h>
 
 #include <string>
-#include <iostream>
 
 class TStreamsTest: public TTestBase {
     UNIT_TEST_SUITE(TStreamsTest);

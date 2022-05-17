@@ -120,7 +120,7 @@ ALLOW .* -> vendor/github.com/sony/gobreaker
 ALLOW .* -> vendor/cuelang.org/go
 
 # driver for write to and read from XLSX files
-ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
+ALLOW .* -> vendor/github.com/xuri/excelize/v2
 
 # in-process redis server for tests
 ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
@@ -137,6 +137,7 @@ ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/ec2
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/route53
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/kinesis
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/sts
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/iam
 
 # TOML parser/encoder with reflection
 ALLOW .* -> vendor/github.com/BurntSushi/toml
@@ -186,6 +187,7 @@ ALLOW .* -> vendor/github.com/davecgh/go-spew/spew
 
 # CONTRIB-425 implementation of JSON Web Tokens (JWT)
 ALLOW .* -> vendor/github.com/golang-jwt/jwt
+ALLOW .* -> vendor/github.com/golang-jwt/jwt/v4
 
 # Docker API client
 # docker tests depends on broken package: gotest.tools
@@ -309,7 +311,17 @@ ALLOW .* -> vendor/github.com/mitchellh/go-homedir
 ALLOW .* -> vendor/github.com/montanaflynn/stats
 
 # runtime dependencies of go-swagger
-ALLOW .* -> vendor/github.com/go-openapi
+ALLOW .* -> vendor/github.com/go-openapi/analysis
+ALLOW .* -> vendor/github.com/go-openapi/errors
+ALLOW .* -> vendor/github.com/go-openapi/inflect
+ALLOW .* -> vendor/github.com/go-openapi/jsonpointer
+ALLOW .* -> vendor/github.com/go-openapi/jsonreference
+ALLOW .* -> vendor/github.com/go-openapi/loads
+ALLOW .* -> vendor/github.com/go-openapi/runtime
+ALLOW .* -> vendor/github.com/go-openapi/spec
+ALLOW .* -> vendor/github.com/go-openapi/strfmt
+ALLOW .* -> vendor/github.com/go-openapi/swag
+ALLOW .* -> vendor/github.com/go-openapi/validate
 
 # CONTRIB-469: swagger code generator for both client and server
 ALLOW .* -> vendor/github.com/go-swagger/go-swagger/cmd/swagger
@@ -833,7 +845,7 @@ ALLOW .* -> vendor/github.com/godror/godror
 ALLOW .* -> vendor/github.com/elimity-com/scim
 
 # CONTRIB-2363 JSON Schema
-ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema
+ALLOW .* -> vendor/github.com/santhosh-tekuri/jsonschema/v5
 
 # CONTRIB-2356 Django-syntax like template-engine
 ALLOW .* -> vendor/github.com/flosch/pongo2/v4
@@ -864,6 +876,43 @@ ALLOW .* -> vendor/github.com/scim2/filter-parser/v2
 
 # CONTRIB-2488 reading and writing SSH Key Revocation Lists
 ALLOW .* -> vendor/github.com/stripe/krl
+
+# CONTRIB-2460
+ALLOW .* -> vendor/github.com/dgraph-io/ristretto
+
+# CONTRIB-2465
+ALLOW .* -> vendor/github.com/go-playground/form/v4
+
+# CONTRIB-2470
+# go-autorest requried to be used for authentication and authorization in Azure sdk
+ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
+# whole SDK is HUGE (~500MiB commit size) and, for now, we need only network management part
+# new parts of SDK may be added later, as needed
+ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
+
+# CONTRIB-2483
+ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
+
+# CONTRIB-2485
+ALLOW .* -> vendor/github.com/nxadm/tail
+
+# CONTRIB-2486
+ALLOW .* -> vendor/github.com/zclconf/go-cty/cty
+
+# CONTRIB-553
+ALLOW .* -> vendor/github.com/google/brotli/go/cbrotli
+
+# CONTRIB-2505
+ALLOW .* -> vendor/github.com/zeebo/bencode
+
+# CONTRIB-2516
+ALLOW .* -> vendor/github.com/gocql/gocql
+
+# CONTRIB-2524
+ALLOW .* -> vendor/github.com/ryanrolds/sqlclosecheck
+
+# CONTRIB-2546
+ALLOW .* -> vendor/github.com/ncruces/go-proxied
 
 #
 # Tools
@@ -1030,6 +1079,9 @@ ALLOW trust/psp/core/handler -> vendor/github.com/gorilla/mux
 ALLOW cloud/compute/go-common/pkg/validation -> vendor/github.com/go-playground/validator/v10
 
 # CONTRIB-2412
+ALLOW library/go/k8s/protoc_gen_crd -> vendor/github.com/google/gnostic/openapiv3
+ALLOW library/go/k8s/protoc_gen_crd -> vendor/github.com/google/gnostic/compiler
+ALLOW library/go/k8s/protoc_gen_crd -> vendor/gopkg.in/yaml.v3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/openapiv3
 ALLOW infra/infractl/.* -> vendor/github.com/google/gnostic/compiler
 ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
@@ -1040,27 +1092,42 @@ ALLOW infra/infractl/.* -> vendor/github.com/ghodss/yaml
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
 
-# CONTRIB-2460
-ALLOW .* -> vendor/github.com/dgraph-io/ristretto
+# CONTRIB-2502
+ALLOW .* -> vendor/github.com/anatol/luks.go
+DENY .* -> vendor/github.com/anatol/luks.go;test
+DENY .* -> vendor/github.com/anatol/vmtest;test
+DENY .* -> vendor/github.com/anatol/devmapper.go;test
 
-# CONTRIB-2465
-ALLOW .* -> vendor/github.com/go-playground/form
+# CONTRIB-2497
+ALLOW .* -> vendor/github.com/chzyer/readline
+DENY .* -> vendor/github.com/chzyer/readline;test
 
-# CONTRIB-2470
-# go-autorest requried to be used for authentication and authorization in Azure sdk
-ALLOW .* -> vendor/github.com/Azure/go-autorest/autorest
-# whole SDK is HUGE (~500MiB commit size) and, for now, we need only network management part
-# new parts of SDK may be added later, as needed
-ALLOW .* -> vendor/github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
+# CONTRIB-2498
+ALLOW .* -> vendor/github.com/fatih/color
 
-# CONTRIB-2483
-ALLOW .* -> vendor/github.com/hashicorp/hcl/v2
+# CONTRIB-2519
+ALLOW .* -> vendor/github.com/nathan-osman/go-sunrise
 
-# CONTRIB-2485
-ALLOW .* -> vendor/github.com/nxadm/tail
+# CONTRIB-2529
+ALLOW .* -> vendor/github.com/rivo/tview
 
-# CONTRIB-2486
-ALLOW .* -> vendor/github.com/zclconf/go-cty/cty
+# CONTRIB-2541
+ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-gonic/gin
+
+# CONTRIB-2542
+ALLOW noc/traffic/dns/.* -> vendor/github.com/gin-contrib/gzip
+
+# CONTRIB-1735
+ALLOW .* -> vendor/gonum.org/v1/gonum
+DENY .* -> vendor/gonum.org/v1/gonum;test
+DENY .* -> vendor/gonum.org/v1/plot;test
+DENY .* -> vendor/gonum.org/v1/netlib;test
+
+# CONTRIB-2548
+ALLOW .* -> vendor/github.com/yandex-cloud/go-sdk
+
+# CONTRIB-2537
+ALLOW infra/awacs/.* -> vendor/github.com/anttsov/curator
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.

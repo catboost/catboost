@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9184729 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9403851 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DUNQUOTED_VERSION=2.7 /DXMLCALL= /DXMLIMPORT= -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -81,11 +81,13 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\bootstrap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\rodata2asm.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQVfdHlwZXEDVQZ4ODZfNjRxBFUEX2ZtdHEFVQV3aW42NHEGVQxfcHJlX2luY2x1ZGVxB11xCFUHX3ByZWZpeHEJVQBxClUJX3BsYXRmb3JtcQtdcQxVBVdJTjMycQ1hVQZfZmxhZ3NxDl1xD1UFX3BhdGhxEFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxEXWFcRJiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "--includes" "$(SolutionDir)$(Configuration)" "$(SolutionDir).."
+"python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +98,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQVfdHlwZXEDVQZ4ODZfNjRxBFUEX2ZtdHEFVQV3aW42NHEGVQxfcHJlX2luY2x1ZGVxB11xCFUHX3ByZWZpeHEJVQBxClUJX3BsYXRmb3JtcQtdcQxVBVdJTjMycQ1hVQZfZmxhZ3NxDl1xD1UFX3BhdGhxEFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxEXWFcRJiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "--includes" "$(SolutionDir)$(Configuration)" "$(SolutionDir).."
+"python3.exe" "$(SolutionDir)../build/scripts/rodata2asm.py" "python_frozen_modules" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.obj" "$(SolutionDir)$(Configuration)/contrib/tools/python/lib/python_frozen_modules.rodata.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,11 +108,10 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/tools/python/lib/python_frozen_modules.o	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.o;</Outputs>
+      <Message>$B/contrib/tools/python/lib/python_frozen_modules.rodata.asm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\rodata2asm.py;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.asm;$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.o"/>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python\lib\bootstrap.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
@@ -145,6 +148,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

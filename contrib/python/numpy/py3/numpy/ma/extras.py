@@ -33,7 +33,6 @@ from .core import (
 
 import numpy as np
 from numpy import ndarray, array as nxarray
-import numpy.core.umath as umath
 from numpy.core.multiarray import normalize_axis_index
 from numpy.core.numeric import normalize_axis_tuple
 from numpy.lib.function_base import _ureduce
@@ -744,7 +743,6 @@ def _median(a, axis=None, out=None, overwrite_input=False):
         return np.ma.mean(asorted[indexer], axis=axis, out=out)
 
     if asorted.ndim == 1:
-        counts = count(asorted)
         idx, odd = divmod(count(asorted), 2)
         mid = asorted[idx + odd - 1:idx + 1]
         if np.issubdtype(asorted.dtype, np.inexact) and asorted.size > 0:
@@ -752,7 +750,7 @@ def _median(a, axis=None, out=None, overwrite_input=False):
             s = mid.sum(out=out)
             if not odd:
                 s = np.true_divide(s, 2., casting='safe', out=out)
-            s = np.lib.utils._median_nancheck(asorted, s, axis, out)
+            s = np.lib.utils._median_nancheck(asorted, s, axis)
         else:
             s = mid.mean(out=out)
 
@@ -792,7 +790,7 @@ def _median(a, axis=None, out=None, overwrite_input=False):
         s = np.ma.sum(low_high, axis=axis, out=out)
         np.true_divide(s.data, 2., casting='unsafe', out=s.data)
 
-        s = np.lib.utils._median_nancheck(asorted, s, axis, out)
+        s = np.lib.utils._median_nancheck(asorted, s, axis)
     else:
         s = np.ma.mean(low_high, axis=axis, out=out)
 

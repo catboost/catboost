@@ -15,7 +15,6 @@ cdef value_count_complex128(const complex128_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         khcomplex128_t val
 
@@ -194,7 +193,6 @@ cdef value_count_complex64(const complex64_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         khcomplex64_t val
 
@@ -373,7 +371,6 @@ cdef value_count_float64(const float64_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         float64_t val
 
@@ -552,7 +549,6 @@ cdef value_count_float32(const float32_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         float32_t val
 
@@ -731,7 +727,6 @@ cdef value_count_uint64(const uint64_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         uint64_t val
 
@@ -910,7 +905,6 @@ cdef value_count_uint32(const uint32_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         uint32_t val
 
@@ -1089,7 +1083,6 @@ cdef value_count_uint16(const uint16_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         uint16_t val
 
@@ -1268,7 +1261,6 @@ cdef value_count_uint8(const uint8_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         uint8_t val
 
@@ -1439,7 +1431,7 @@ cdef mode_uint8(const uint8_t[:] values, bint dropna):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-cdef value_count_object(ndarray[object] values, bint dropna, navalue=np.NaN):
+cdef value_count_object(ndarray[object] values, bint dropna):
     cdef:
         Py_ssize_t i = 0
         Py_ssize_t n = len(values)
@@ -1447,7 +1439,6 @@ cdef value_count_object(ndarray[object] values, bint dropna, navalue=np.NaN):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         object val
 
@@ -1465,11 +1456,7 @@ cdef value_count_object(ndarray[object] values, bint dropna, navalue=np.NaN):
 
     for i in range(n):
         val = values[i]
-        is_null = checknull(val)
-        if not is_null or not dropna:
-            # all nas become the same representative:
-            if is_null:
-                val = navalue
+        if not dropna or not checknull(val):
             k = kh_get_pymap(table, <PyObject*>val)
             if k != table.n_buckets:
                 table.vals[k] += 1
@@ -1619,7 +1606,6 @@ cdef value_count_int64(const int64_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         int64_t val
 
@@ -1798,7 +1784,6 @@ cdef value_count_int32(const int32_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         int32_t val
 
@@ -1977,7 +1962,6 @@ cdef value_count_int16(const int16_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         int16_t val
 
@@ -2156,7 +2140,6 @@ cdef value_count_int8(const int8_t[:] values, bint dropna):
 
         # Don't use Py_ssize_t, since table.n_buckets is unsigned
         khiter_t k
-        bint is_null
 
         int8_t val
 
@@ -2483,3 +2466,74 @@ cpdef mode(ndarray[htfunc_t] values, bint dropna):
 
     else:
         raise TypeError(values.dtype)
+
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def _unique_label_indices_int64(const int64_t[:] labels) -> ndarray:
+    """
+    Indices of the first occurrences of the unique labels
+    *excluding* -1. equivalent to:
+        np.unique(labels, return_index=True)[1]
+    """
+    cdef:
+        int ret = 0
+        Py_ssize_t i, n = len(labels)
+        kh_int64_t *table = kh_init_int64()
+        Int64Vector idx = Int64Vector()
+        ndarray[int64_t, ndim=1] arr
+        Int64VectorData *ud = idx.data
+
+    kh_resize_int64(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
+
+    with nogil:
+        for i in range(n):
+            kh_put_int64(table, labels[i], &ret)
+            if ret != 0:
+                if needs_resize(ud):
+                    with gil:
+                        idx.resize()
+                append_data_int64(ud, i)
+
+    kh_destroy_int64(table)
+
+    arr = idx.to_array()
+    arr = arr[np.asarray(labels)[arr].argsort()]
+
+    return arr[1:] if arr.size != 0 and labels[arr[0]] == -1 else arr
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def _unique_label_indices_int32(const int32_t[:] labels) -> ndarray:
+    """
+    Indices of the first occurrences of the unique labels
+    *excluding* -1. equivalent to:
+        np.unique(labels, return_index=True)[1]
+    """
+    cdef:
+        int ret = 0
+        Py_ssize_t i, n = len(labels)
+        kh_int32_t *table = kh_init_int32()
+        Int32Vector idx = Int32Vector()
+        ndarray[int32_t, ndim=1] arr
+        Int32VectorData *ud = idx.data
+
+    kh_resize_int32(table, min(kh_needed_n_buckets(n), SIZE_HINT_LIMIT))
+
+    with nogil:
+        for i in range(n):
+            kh_put_int32(table, labels[i], &ret)
+            if ret != 0:
+                if needs_resize(ud):
+                    with gil:
+                        idx.resize()
+                append_data_int32(ud, i)
+
+    kh_destroy_int32(table)
+
+    arr = idx.to_array()
+    arr = arr[np.asarray(labels)[arr].argsort()]
+
+    return arr[1:] if arr.size != 0 and labels[arr[0]] == -1 else arr

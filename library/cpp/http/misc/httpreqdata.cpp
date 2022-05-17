@@ -128,7 +128,8 @@ const TString& TBaseServerRequestData::GetCurPage() const {
 bool TBaseServerRequestData::Parse(TStringBuf origReq) {
     ParseBuf_.reserve(origReq.size() + 16);
     ParseBuf_.assign(origReq.begin(), origReq.end());
-    ParseBuf_.insert(ParseBuf_.end(), 16, ' ');
+    ParseBuf_.insert(ParseBuf_.end(), 15, ' ');
+    ParseBuf_.push_back('\0');
     char* req = ParseBuf_.data();
 
     while (*req == ' ' || *req == '\t')

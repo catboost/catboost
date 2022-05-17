@@ -316,7 +316,7 @@ class ParsingError(Error):
     def filename(self):
         """Deprecated, use `source'."""
         warnings.warn(
-            "The 'filename' attribute will be removed in future versions.  "
+            "The 'filename' attribute will be removed in Python 3.12. "
             "Use 'source' instead.",
             DeprecationWarning, stacklevel=2
         )
@@ -326,7 +326,7 @@ class ParsingError(Error):
     def filename(self, value):
         """Deprecated, user `source'."""
         warnings.warn(
-            "The 'filename' attribute will be removed in future versions.  "
+            "The 'filename' attribute will be removed in Python 3.12. "
             "Use 'source' instead.",
             DeprecationWarning, stacklevel=2
         )
@@ -563,7 +563,7 @@ class RawConfigParser(MutableMapping):
     # Regular expressions for parsing section headers and options
     _SECT_TMPL = r"""
         \[                                 # [
-        (?P<header>[^]]+)                  # very permissive!
+        (?P<header>.+)                     # very permissive!
         \]                                 # ]
         """
     _OPT_TMPL = r"""
@@ -690,6 +690,7 @@ class RawConfigParser(MutableMapping):
         """
         if isinstance(filenames, (str, bytes, os.PathLike)):
             filenames = [filenames]
+        encoding = io.text_encoding(encoding)
         read_ok = []
         for filename in filenames:
             try:
@@ -756,7 +757,7 @@ class RawConfigParser(MutableMapping):
     def readfp(self, fp, filename=None):
         """Deprecated, use read_file instead."""
         warnings.warn(
-            "This method will be removed in future versions.  "
+            "This method will be removed in Python 3.12. "
             "Use 'parser.read_file()' instead.",
             DeprecationWarning, stacklevel=2
         )
@@ -1231,7 +1232,7 @@ class SafeConfigParser(ConfigParser):
         super().__init__(*args, **kwargs)
         warnings.warn(
             "The SafeConfigParser class has been renamed to ConfigParser "
-            "in Python 3.2. This alias will be removed in future versions."
+            "in Python 3.2. This alias will be removed in Python 3.12."
             " Use ConfigParser directly instead.",
             DeprecationWarning, stacklevel=2
         )

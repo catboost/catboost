@@ -13,6 +13,7 @@
 #include <__config>
 #include <__threading_support>
 #include <chrono>
+#include <ratio>
 #include <system_error>
 #include <time.h>
 
@@ -140,11 +141,9 @@ public:
             __m_->unlock();
     }
 
-private:
-    unique_lock(unique_lock const&); // = delete;
-    unique_lock& operator=(unique_lock const&); // = delete;
+    unique_lock(unique_lock const&) = delete;
+    unique_lock& operator=(unique_lock const&) = delete;
 
-public:
     _LIBCPP_INLINE_VISIBILITY
     unique_lock(unique_lock&& __u) _NOEXCEPT
         : __m_(__u.__m_), __owns_(__u.__owns_)

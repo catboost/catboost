@@ -6,9 +6,10 @@ LICENSE(BSD-3-Clause)
 
 PROVIDES(numpy)
 
-VERSION(1.21.5)
+VERSION(1.22.3)
 
 NO_COMPILER_WARNINGS()
+NO_EXTENDED_SOURCE_SEARCH()
 
 PEERDIR(
     contrib/libs/clapack
@@ -49,6 +50,7 @@ NO_CHECK_IMPORTS(
     numpy.distutils.command.*
     numpy.distutils.msvc9compiler
     numpy.testing._private.noseclasses
+    numpy.typing._extended_precision
 )
 
 NO_LINT()
@@ -61,8 +63,23 @@ PY_SRCS(
     numpy/_distributor_init.py
     numpy/_globals.py
     numpy/_pytesttester.py
+    numpy/_pytesttester.pyi
     numpy/_version.py
-    numpy/char.pyi
+    numpy/array_api/__init__.py
+    numpy/array_api/_array_object.py
+    numpy/array_api/_constants.py
+    numpy/array_api/_creation_functions.py
+    numpy/array_api/_data_type_functions.py
+    numpy/array_api/_dtypes.py
+    numpy/array_api/_elementwise_functions.py
+    numpy/array_api/_manipulation_functions.py
+    numpy/array_api/_searching_functions.py
+    numpy/array_api/_set_functions.py
+    numpy/array_api/_sorting_functions.py
+    numpy/array_api/_statistical_functions.py
+    numpy/array_api/_typing.py
+    numpy/array_api/_utility_functions.py
+    numpy/array_api/linalg.py
     numpy/compat/__init__.py
     numpy/compat/_inspect.py
     numpy/compat/py3k.py
@@ -77,6 +94,7 @@ PY_SRCS(
     numpy/core/_exceptions.py
     numpy/core/_internal.py
     numpy/core/_internal.pyi
+    numpy/core/_machar.py
     numpy/core/_methods.py
     numpy/core/_string_helpers.py
     numpy/core/_type_aliases.py
@@ -86,6 +104,7 @@ PY_SRCS(
     numpy/core/arrayprint.py
     numpy/core/arrayprint.pyi
     numpy/core/defchararray.py
+    numpy/core/defchararray.pyi
     numpy/core/einsumfunc.py
     numpy/core/einsumfunc.pyi
     numpy/core/fromnumeric.py
@@ -93,15 +112,18 @@ PY_SRCS(
     numpy/core/function_base.py
     numpy/core/function_base.pyi
     numpy/core/getlimits.py
-    numpy/core/machar.py
+    numpy/core/getlimits.pyi
     numpy/core/memmap.py
+    numpy/core/memmap.pyi
     numpy/core/multiarray.py
+    numpy/core/multiarray.pyi
     numpy/core/numeric.py
     numpy/core/numeric.pyi
     numpy/core/numerictypes.py
     numpy/core/numerictypes.pyi
     numpy/core/overrides.py
     numpy/core/records.py
+    numpy/core/records.pyi
     numpy/core/setup_common.py
     numpy/core/shape_base.py
     numpy/core/shape_base.pyi
@@ -113,6 +135,7 @@ PY_SRCS(
     numpy/distutils/__init__.py
     numpy/distutils/__init__.pyi
     numpy/distutils/_shell_utils.py
+    numpy/distutils/armccompiler.py
     numpy/distutils/ccompiler.py
     numpy/distutils/ccompiler_opt.py
     numpy/distutils/command/__init__.py
@@ -140,6 +163,7 @@ PY_SRCS(
     numpy/distutils/extension.py
     numpy/distutils/fcompiler/__init__.py
     numpy/distutils/fcompiler/absoft.py
+    numpy/distutils/fcompiler/arm.py
     numpy/distutils/fcompiler/compaq.py
     numpy/distutils/fcompiler/environment.py
     numpy/distutils/fcompiler/fujitsu.py
@@ -178,7 +202,9 @@ PY_SRCS(
     numpy/fft/__init__.py
     numpy/fft/__init__.pyi
     numpy/fft/_pocketfft.py
+    numpy/fft/_pocketfft.pyi
     numpy/fft/helper.py
+    numpy/fft/helper.pyi
     numpy/lib/__init__.py
     numpy/lib/__init__.pyi
     numpy/lib/_datasource.py
@@ -226,6 +252,7 @@ PY_SRCS(
     numpy/linalg/__init__.py
     numpy/linalg/__init__.pyi
     numpy/linalg/linalg.py
+    numpy/linalg/linalg.pyi
     numpy/ma/__init__.py
     numpy/ma/__init__.pyi
     numpy/ma/bench.py
@@ -241,6 +268,7 @@ PY_SRCS(
     numpy/matrixlib/__init__.py
     numpy/matrixlib/__init__.pyi
     numpy/matrixlib/defmatrix.py
+    numpy/matrixlib/defmatrix.pyi
     numpy/polynomial/__init__.py
     numpy/polynomial/__init__.pyi
     numpy/polynomial/_polybase.py
@@ -259,26 +287,28 @@ PY_SRCS(
     numpy/polynomial/polynomial.pyi
     numpy/polynomial/polyutils.py
     numpy/polynomial/polyutils.pyi
-    numpy/rec.pyi
     numpy/testing/__init__.py
     numpy/testing/__init__.pyi
     numpy/testing/_private/__init__.py
     numpy/testing/_private/decorators.py
+    numpy/testing/_private/extbuild.py
     numpy/testing/_private/noseclasses.py
     numpy/testing/_private/nosetester.py
     numpy/testing/_private/parameterized.py
     numpy/testing/_private/utils.py
+    numpy/testing/_private/utils.pyi
     numpy/testing/print_coercion_tables.py
     numpy/testing/utils.py
     numpy/typing/__init__.py
     numpy/typing/_add_docstring.py
     numpy/typing/_array_like.py
-    numpy/typing/_callable.py
+    numpy/typing/_callable.pyi
     numpy/typing/_char_codes.py
     numpy/typing/_dtype_like.py
     numpy/typing/_extended_precision.py
     numpy/typing/_generic_alias.py
     numpy/typing/_nbit.py
+    numpy/typing/_nested_sequence.py
     numpy/typing/_scalars.py
     numpy/typing/_shape.py
     numpy/typing/_ufunc.pyi
@@ -293,6 +323,7 @@ SRCS(
     numpy/core/src/common/mem_overlap.c
     numpy/core/src/common/npy_argparse.c
     numpy/core/src/common/npy_cpu_features.c
+    numpy/core/src/common/npy_hashtable.c
     numpy/core/src/common/npy_longdouble.c
     numpy/core/src/common/numpyos.c
     # numpy/core/src/common/python_xerbla.c is defined in blas.
@@ -323,11 +354,13 @@ SRCS(
     numpy/core/src/multiarray/datetime_busdaycal.c
     numpy/core/src/multiarray/datetime_strings.c
     numpy/core/src/multiarray/descriptor.c
+    numpy/core/src/multiarray/dlpack.c
     numpy/core/src/multiarray/dragon4.c
     numpy/core/src/multiarray/dtype_transfer.c
     numpy/core/src/multiarray/dtypemeta.c
     numpy/core/src/multiarray/einsum.c
     numpy/core/src/multiarray/einsum_sumprod.c
+    numpy/core/src/multiarray/experimental_public_dtype_api.c
     numpy/core/src/multiarray/flagsobject.c
     numpy/core/src/multiarray/getset.c
     numpy/core/src/multiarray/hashdescr.c
@@ -362,15 +395,18 @@ SRCS(
     numpy/core/src/npysort/heapsort.c
     numpy/core/src/npysort/mergesort.c
     numpy/core/src/npysort/quicksort.c
-    numpy/core/src/npysort/radixsort.c
+    numpy/core/src/npysort/radixsort.cpp
     numpy/core/src/npysort/selection.c
     numpy/core/src/npysort/timsort.c
     numpy/core/src/umath/_operand_flag_tests.c
     numpy/core/src/umath/_rational_tests.c
+    numpy/core/src/umath/_scaled_float_dtype.c
     numpy/core/src/umath/_struct_ufunc_tests.c
     numpy/core/src/umath/_umath_tests.c
-    numpy/core/src/umath/clip.c
+    numpy/core/src/umath/clip.cpp
+    numpy/core/src/umath/dispatching.c
     numpy/core/src/umath/extobj.c
+    numpy/core/src/umath/legacy_array_method.c
     numpy/core/src/umath/loops.c
     numpy/core/src/umath/matmul.c
     numpy/core/src/umath/override.c
@@ -415,7 +451,10 @@ IF (ARCH_X86_64)
     SRC(numpy/core/src/umath/loops_trigonometric.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
     SRC(numpy/core/src/umath/loops_trigonometric.dispatch.c)
     SRC_C_AVX2(numpy/core/src/umath/loops_trigonometric.dispatch.fma3.avx2.c $F16C_FLAGS)
+    SRC(numpy/core/src/umath/loops_umath_fp.dispatch.avx512_skx.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
+    SRC(numpy/core/src/umath/loops_umath_fp.dispatch.c)
     SRC(numpy/core/src/umath/loops_unary_fp.dispatch.c)
+    SRC(numpy/core/src/umath/loops_unary_fp.dispatch.sse41.c)
 ENDIF()
 
 PY_REGISTER(

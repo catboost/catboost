@@ -7,6 +7,7 @@
 #include <util/generic/intrlist.h>
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
+#include <util/generic/scope.h>
 #include <util/generic/set.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
@@ -200,6 +201,10 @@ namespace NUnitTest {
         virtual void SetUp();
 
         virtual void TearDown();
+
+        virtual void GlobalSuiteSetUp() {}
+
+        virtual void GlobalSuiteTearDown() {}
 
         void AddError(const char* msg, const TString& backtrace = TString(), TTestContext* context = nullptr);
 
@@ -947,6 +952,7 @@ public:                       \
                                                                                                                         \
             virtual void Execute() {                                                                                    \
                 this->AtStart();                                                                                        \
+                this->GlobalSuiteSetUp();                                                                               \
                 for (TTests::iterator it = Tests().begin(), ie = Tests().end(); it != ie; ++it) {                       \
                     const auto i = (*it)();                                                                             \
                     if (!this->CheckAccessTest(i->Name_)) {                                                             \
@@ -957,10 +963,21 @@ public:                       \
                         this->BeforeTest(i->Name_);                                                                     \
                         {                                                                                               \
                             TCleanUp cleaner(this);                                                                     \
-                            auto testCase = [&i, &context] {                                                            \
+                            auto testCase = [this, &i, &context] {                                                      \
+                                Y_DEFER {                                                                               \
+                                    try {                                                                               \
+                                        i->TearDown(context);                                                           \
+                                    } catch (const ::NUnitTest::TAssertException&) {                                    \
+                                    } catch (const yexception& e) {                                                     \
+                                        CATCH_REACTION_BT(i->Name_, e, &context);                                       \
+                                    } catch (const std::exception& e) {                                                 \
+                                        CATCH_REACTION(i->Name_, e, &context);                                          \
+                                    } catch (...) {                                                                     \
+                                        this->AddError("non-std exception!", &context);                                 \
+                                    }                                                                                   \
+                                };                                                                                      \
                                 i->SetUp(context);                                                                      \
                                 i->Execute_(context);                                                                   \
-                                i->TearDown(context);                                                                   \
                             };                                                                                          \
                             this->T::Run(testCase, StaticName(), i->Name_, i->ForceFork_);                              \
                         }                                                                                               \
@@ -974,6 +991,7 @@ public:                       \
                     }                                                                                                   \
                     this->Finish(i->Name_, &context);                                                                   \
                 }                                                                                                       \
+                this->GlobalSuiteTearDown();                                                                            \
                 this->AtEnd();                                                                                          \
             }                                                                                                           \
         };                                                                                                              \

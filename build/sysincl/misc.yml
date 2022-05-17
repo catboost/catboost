@@ -47,28 +47,27 @@
     - contrib/libs/jdk/include/linux/jni_md.h
     - contrib/libs/jdk/include/win32/jni_md.h
 
-# libunistring has its own libc header wrappers that are added to ADDINCL and
-# need to be added here for consistensy between ADDINCL and sysincl resolving.
+# libunistring, libidn and libidn2
+# have its own libc header wrappers that are added to ADDINCL
+# and need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
 # but sysincl resolving will save us here, as it will resolve to both of them.
 - source_filter: "^contrib/libs/libunistring"
   includes:
     - alloca.h:      contrib/libs/libunistring/alloca.h
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
-    - limits.h:      contrib/libs/libunistring/limits.h
-    - math.h:        contrib/libs/libunistring/math.h
     - minmax.h:      contrib/libs/libunistring/minmax.h
-    - stdlib.h:      contrib/libs/libunistring/stdlib.h
-    - string.h:      contrib/libs/libunistring/string.h
-    - sys/types.h:   contrib/libs/libunistring/sys/types.h
-    - unistd.h:      contrib/libs/libunistring/unistd.h
-    - wchar.h:       contrib/libs/libunistring/wchar.h
-    - wctype.h:      contrib/libs/libunistring/wctype.h
+
+- source_filter: "^contrib/libs/libidn/"
+  includes:
+    - alloca.h:     contrib/libs/libidn/gl/alloca.h
+    - error.h:      contrib/libs/libidn/gl/error.h
+    - iconv.h:      contrib/libs/libidn/lib/gl/iconv.h
 
 - source_filter: "^contrib/libs/libidn2/"
   includes:
-    - error.h:  contrib/libs/libidn2/gl/error.h
-    - unistd.h: contrib/libs/libunistring/include/unistd.h
+    - alloca.h:     contrib/libs/libidn2/gl/alloca.h
+    - error.h:      contrib/libs/libidn2/gl/error.h
 
 # Same as libunistring - lftp has own libc header wrappers/replacements.
 # However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
@@ -115,13 +114,13 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
-- source_filter: "^contrib/libs/clang11-rt"
-  includes:
-    - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
-
 - source_filter: "^contrib/libs/clang12-rt"
   includes:
     - xray/xray_interface.h: contrib/libs/clang12-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/clang14-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang14-rt/include/xray/xray_interface.h
 
 - source_filter: "^contrib/libs/llvm"
   includes:
@@ -240,7 +239,7 @@
     - fstream.h
     - ../include/fenv.h
 
-- source_filter: "^contrib/restricted/boost/boost/stacktrace/detail"
+- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
   includes:
     - backtrace.h: contrib/libs/backtrace/backtrace.h
 
@@ -283,10 +282,6 @@
 - source_filter: "^contrib/deprecated/glib"
   includes:
     - configmake.h
-
-- source_filter: "^contrib/libs/ImageMagick"
-  includes:
-    - ltdl.h
 
 - source_filter: "^contrib/libs/authparser"
   includes:

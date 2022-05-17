@@ -53,6 +53,8 @@ namespace NCatboostOptions {
         TGpuOnlyOption<float> MetaL2Exponent;
         TGpuOnlyOption<float> MetaL2Frequency;
 
+        TGpuOnlyOption<TVector<ui32>> FixedBinarySplits;
+
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;
         TCpuOnlyOption<TFeaturePenaltiesOptions> FeaturePenalties;
