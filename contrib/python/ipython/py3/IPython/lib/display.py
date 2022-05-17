@@ -65,34 +65,47 @@ class Audio(DisplayObject):
 
     Examples
     --------
-    ::
 
-        # Generate a sound
-        import numpy as np
-        framerate = 44100
-        t = np.linspace(0,5,framerate*5)
-        data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
-        Audio(data,rate=framerate)
+    >>> import pytest
+    >>> np = pytest.importorskip("numpy")
 
-        # Can also do stereo or more channels
-        dataleft = np.sin(2*np.pi*220*t)
-        dataright = np.sin(2*np.pi*224*t)
-        Audio([dataleft, dataright],rate=framerate)
+    Generate a sound
 
-        Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # From URL
-        Audio(url="http://www.w3schools.com/html/horse.ogg")
+    >>> import numpy as np
+    >>> framerate = 44100
+    >>> t = np.linspace(0,5,framerate*5)
+    >>> data = np.sin(2*np.pi*220*t) + np.sin(2*np.pi*224*t)
+    >>> Audio(data, rate=framerate)
+    <IPython.lib.display.Audio object>
 
-        Audio('/path/to/sound.wav')  # From file
-        Audio(filename='/path/to/sound.ogg')
+    Can also do stereo or more channels
 
-        Audio(b'RAW_WAV_DATA..)  # From bytes
-        Audio(data=b'RAW_WAV_DATA..)
+    >>> dataleft = np.sin(2*np.pi*220*t)
+    >>> dataright = np.sin(2*np.pi*224*t)
+    >>> Audio([dataleft, dataright], rate=framerate)
+    <IPython.lib.display.Audio object>
+
+    From URL:
+
+    >>> Audio("http://www.nch.com.au/acm/8k16bitpcm.wav")  # doctest: +SKIP
+    >>> Audio(url="http://www.w3schools.com/html/horse.ogg")  # doctest: +SKIP
+
+    From a File:
+
+    >>> Audio('IPython/lib/tests/test.wav')  # doctest: +SKIP
+    >>> Audio(filename='IPython/lib/tests/test.wav')  # doctest: +SKIP
+
+    From Bytes:
+
+    >>> Audio(b'RAW_WAV_DATA..')  # doctest: +SKIP
+    >>> Audio(data=b'RAW_WAV_DATA..')  # doctest: +SKIP
 
     See Also
     --------
-    
-    See also the ``Audio`` widgets form the ``ipywidget`` package for more flexibility and options.
-    
+    ipywidgets.Audio
+
+         Audio widget with more more flexibility and options.
+
     """
     _read_flags = 'rb'
 
@@ -183,9 +196,9 @@ class Audio(DisplayObject):
 
         try:
             max_abs_value = float(max([abs(x) for x in data]))
-        except TypeError:
+        except TypeError as e:
             raise TypeError('Only lists of mono audio are '
-                'supported if numpy is not installed')
+                'supported if numpy is not installed') from e
 
         normalization_factor = Audio._get_normalization_factor(max_abs_value, normalize)
         scaled = array.array('h', [int(x / normalization_factor * 32767) for x in data])
@@ -272,10 +285,7 @@ class IFrame(object):
     def _repr_html_(self):
         """return the embed iframe"""
         if self.params:
-            try:
-                from urllib.parse import urlencode # Py 3
-            except ImportError:
-                from urllib import urlencode
+            from urllib.parse import urlencode
             params = "?" + urlencode(self.params)
         else:
             params = ""
@@ -500,27 +510,25 @@ class FileLinks(FileLink):
 
         self.recursive = recursive
 
-    def _get_display_formatter(self,
-                               dirname_output_format,
-                               fname_output_format,
-                               fp_format,
-                               fp_cleaner=None):
-        """ generate built-in formatter function
+    def _get_display_formatter(
+        self, dirname_output_format, fname_output_format, fp_format, fp_cleaner=None
+    ):
+        """generate built-in formatter function
 
-           this is used to define both the notebook and terminal built-in
-            formatters as they only differ by some wrapper text for each entry
+        this is used to define both the notebook and terminal built-in
+         formatters as they only differ by some wrapper text for each entry
 
-           dirname_output_format: string to use for formatting directory
-            names, dirname will be substituted for a single "%s" which
-            must appear in this string
-           fname_output_format: string to use for formatting file names,
-            if a single "%s" appears in the string, fname will be substituted
-            if two "%s" appear in the string, the path to fname will be
-             substituted for the first and fname will be substituted for the
-             second
-           fp_format: string to use for formatting filepaths, must contain
-            exactly two "%s" and the dirname will be substituted for the first
-            and fname will be substituted for the second
+        dirname_output_format: string to use for formatting directory
+         names, dirname will be substituted for a single "%s" which
+         must appear in this string
+        fname_output_format: string to use for formatting file names,
+         if a single "%s" appears in the string, fname will be substituted
+         if two "%s" appear in the string, the path to fname will be
+          substituted for the first and fname will be substituted for the
+          second
+        fp_format: string to use for formatting filepaths, must contain
+         exactly two "%s" and the dirname will be substituted for the first
+         and fname will be substituted for the second
         """
         def f(dirname, fnames, included_suffixes=None):
             result = []

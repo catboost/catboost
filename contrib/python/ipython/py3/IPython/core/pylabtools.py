@@ -185,8 +185,8 @@ def mpl_runner(safe_execfile):
     Parameters
     ----------
     safe_execfile : function
-      This must be a function with the same interface as the
-      :meth:`safe_execfile` method of IPython.
+        This must be a function with the same interface as the
+        :meth:`safe_execfile` method of IPython.
 
     Returns
     -------
@@ -231,8 +231,8 @@ def _reshow_nbagg_figure(fig):
     """reshow an nbagg figure"""
     try:
         reshow = fig.canvas.manager.reshow
-    except AttributeError:
-        raise NotImplementedError()
+    except AttributeError as e:
+        raise NotImplementedError() from e
     else:
         reshow()
 
@@ -241,7 +241,7 @@ def select_figure_formats(shell, formats, **kwargs):
     """Select figure formats for the inline backend.
 
     Parameters
-    ==========
+    ----------
     shell : InteractiveShell
         The main IPython instance.
     formats : str or set
@@ -391,7 +391,7 @@ def import_pylab(user_ns, import_all=True):
 
     # IPython symbols to add
     user_ns['figsize'] = figsize
-    from IPython.core.display import display
+    from IPython.display import display
     # Add display and getfigs to the user's namespace
     user_ns['display'] = display
     user_ns['getfigs'] = getfigs
@@ -408,7 +408,6 @@ def configure_inline_support(shell, backend):
     Parameters
     ----------
     shell : InteractiveShell instance
-
     backend : matplotlib backend
     """
     warnings.warn(
@@ -418,6 +417,8 @@ def configure_inline_support(shell, backend):
         stacklevel=2,
     )
 
-    from matplotlib_inline.backend_inline import configure_inline_support as configure_inline_support_orig
+    from matplotlib_inline.backend_inline import (
+        configure_inline_support as configure_inline_support_orig,
+    )
 
     configure_inline_support_orig(shell, backend)

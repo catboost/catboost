@@ -17,6 +17,7 @@ import inspect, os, sys, textwrap
 
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.testing.skipdoctest import skip_doctest
 from traitlets import Bool
 
 
@@ -74,6 +75,7 @@ class StoreMagics(Magics):
         if self.autorestore:
             restore_data(self.shell)
 
+    @skip_doctest
     @line_magic
     def store(self, parameter_s=''):
         """Lightweight persistence for python variables.
@@ -82,6 +84,7 @@ class StoreMagics(Magics):
 
           In [1]: l = ['hello',10,'world']
           In [2]: %store l
+          Stored 'l' (list)
           In [3]: exit
 
           (IPython session is closed and started again...)
@@ -126,13 +129,13 @@ class StoreMagics(Magics):
         if 'd' in opts:
             try:
                 todel = args[0]
-            except IndexError:
-                raise UsageError('You must provide the variable to forget')
+            except IndexError as e:
+                raise UsageError('You must provide the variable to forget') from e
             else:
                 try:
                     del db['autorestore/' + todel]
-                except:
-                    raise UsageError("Can't delete variable '%s'" % todel)
+                except BaseException as e:
+                    raise UsageError("Can't delete variable '%s'" % todel) from e
         # reset
         elif 'z' in opts:
             for k in db.keys('autorestore/*'):
@@ -173,12 +176,12 @@ class StoreMagics(Magics):
         # default action - store the variable
         else:
             # %store foo >file.txt or >>file.txt
-            if len(args) > 1 and args[1].startswith('>'):
-                fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
-                if args[1].startswith('>>'):
-                    fil = open(fnam, 'a')
+            if len(args) > 1 and args[1].startswith(">"):
+                fnam = os.path.expanduser(args[1].lstrip(">").lstrip())
+                if args[1].startswith(">>"):
+                    fil = open(fnam, "a", encoding="utf-8")
                 else:
-                    fil = open(fnam, 'w')
+                    fil = open(fnam, "w", encoding="utf-8")
                 with fil:
                     obj = ip.ev(args[0])
                     print("Writing '%s' (%s) to file '%s'." % (args[0],
@@ -203,8 +206,8 @@ class StoreMagics(Magics):
                     name = arg
                     try:
                         cmd = ip.alias_manager.retrieve_alias(name)
-                    except ValueError:
-                        raise UsageError("Unknown variable '%s'" % name)
+                    except ValueError as e:
+                        raise UsageError("Unknown variable '%s'" % name) from e
 
                     staliases = db.get('stored_aliases',{})
                     staliases[name] = cmd

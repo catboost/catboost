@@ -8,12 +8,11 @@ bindings, which is unstable and likely to crash
 This is used primarily by qt and qt_for_kernel, and shouldn't
 be accessed directly from the outside
 """
+import importlib.abc
 import sys
 import types
 from functools import partial, lru_cache
 import operator
-
-from IPython.utils.version import check_version
 
 # ### Available APIs.
 # Qt6
@@ -47,7 +46,7 @@ api_to_module = {
 }
 
 
-class ImportDenier(object):
+class ImportDenier(importlib.abc.MetaPathFinder):
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
@@ -59,17 +58,17 @@ class ImportDenier(object):
         sys.modules.pop(module_name, None)
         self.__forbidden.add(module_name)
 
-    def find_module(self, fullname, path=None):
+    def find_spec(self, fullname, path, target=None):
         if path:
             return
         if fullname in self.__forbidden:
-            return self
-
-    def load_module(self, fullname):
-        raise ImportError("""
+            raise ImportError(
+                """
     Importing %s disabled by IPython, which has
     already imported an Incompatible QT Binding: %s
-    """ % (fullname, loaded_api()))
+    """
+                % (fullname, loaded_api())
+            )
 
 
 ID = ImportDenier()
@@ -78,7 +77,7 @@ sys.meta_path.insert(0, ID)
 
 def commit_api(api):
     """Commit to a particular API, and trigger ImportErrors on subsequent
-       dangerous imports"""
+    dangerous imports"""
     modules = set(api_to_module.values())
 
     modules.remove(api_to_module[api])
@@ -118,15 +117,15 @@ def loaded_api():
 def has_binding(api):
     """Safely check for PyQt4/5, PySide or PySide2, without importing submodules
 
-        Parameters
-        ----------
-        api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
-             Which module to check for
+    Parameters
+    ----------
+    api : str [ 'pyqtv1' | 'pyqt' | 'pyqt5' | 'pyside' | 'pyside2' | 'pyqtdefault']
+        Which module to check for
 
-        Returns
-        -------
-        True if the relevant module appears to be importable
-     """
+    Returns
+    -------
+    True if the relevant module appears to be importable
+    """
     module_name = api_to_module[api]
     from importlib.util import find_spec
 
@@ -149,7 +148,8 @@ def has_binding(api):
     if api == QT_API_PYSIDE:
         # We can also safely check PySide version
         import PySide
-        return check_version(PySide.__version__, '1.0.3')
+
+        return PySide.__version_info__ >= (1, 0, 3)
 
     return True
 
@@ -195,10 +195,9 @@ def import_pyqt4(version=2):
     Parameters
     ----------
     version : 1, 2, or None
-      Which QString/QVariant API to use. Set to None to use the system
-      default
-
-    ImportErrors rasied within this function are non-recoverable
+        Which QString/QVariant API to use. Set to None to use the system
+        default
+    ImportErrors raised within this function are non-recoverable
     """
     # The new-style string API (version=2) automatically
     # converts QStrings to Unicode Python strings. Also, automatically unpacks
@@ -211,7 +210,7 @@ def import_pyqt4(version=2):
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
-    if not check_version(QtCore.PYQT_VERSION_STR, '4.7'):
+    if QtCore.PYQT_VERSION < 0x040700:
         raise ImportError("IPython requires PyQt4 >= 4.7, found %s" %
                           QtCore.PYQT_VERSION_STR)
 
@@ -229,7 +228,7 @@ def import_pyqt5():
     """
     Import PyQt5
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
 
     from PyQt5 import QtCore, QtSvg, QtWidgets, QtGui
@@ -251,7 +250,7 @@ def import_pyqt6():
     """
     Import PyQt6
 
-    ImportErrors rasied within this function are non-recoverable
+    ImportErrors raised within this function are non-recoverable
     """
 
     from PyQt6 import QtCore, QtSvg, QtWidgets, QtGui
@@ -321,13 +320,12 @@ def load_qt(api_options):
 
     Parameters
     ----------
-    api_options: List of strings
+    api_options : List of strings
         The order of APIs to try. Valid items are 'pyside', 'pyside2',
         'pyqt', 'pyqt5', 'pyqtv1' and 'pyqtdefault'
 
     Returns
     -------
-
     A tuple of QtCore, QtGui, QtSvg, QT_API
     The first three are the Qt modules. The last is the
     string indicating which module was loaded.

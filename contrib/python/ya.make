@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    asttokens
     atomicwrites
     attrs
     backcall
@@ -12,6 +13,7 @@ RECURSE(
     dateutil
     decorator
     enum34
+    executing
     faulthandler
     filelock
     funcsigs
@@ -39,6 +41,7 @@ RECURSE(
     prompt-toolkit
     protobuf
     ptyprocess
+    pure-eval
     py
     Pygments
     pyparsing
@@ -50,6 +53,7 @@ RECURSE(
     setuptools
     simplegeneric
     six
+    stack-data
     subprocess32
     testpath
     tomli

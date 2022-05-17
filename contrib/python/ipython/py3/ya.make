@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(7.33.0)
+VERSION(8.3.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -17,6 +17,7 @@ PEERDIR(
     contrib/python/pickleshare
     contrib/python/prompt-toolkit
     contrib/python/setuptools
+    contrib/python/stack-data
     contrib/python/traitlets
 )
 
@@ -46,7 +47,6 @@ PY_SRCS(
     TOP_LEVEL
     IPython/__init__.py
     IPython/__main__.py
-    IPython/config.py
     IPython/consoleapp.py
     IPython/core/__init__.py
     IPython/core/alias.py
@@ -60,6 +60,7 @@ PY_SRCS(
     IPython/core/crashhandler.py
     IPython/core/debugger.py
     IPython/core/display.py
+    IPython/core/display_functions.py
     IPython/core/display_trap.py
     IPython/core/displayhook.py
     IPython/core/displaypub.py
@@ -113,35 +114,10 @@ PY_SRCS(
     IPython/display.py
     IPython/extensions/__init__.py
     IPython/extensions/autoreload.py
-    IPython/extensions/cythonmagic.py
-    IPython/extensions/rmagic.py
     IPython/extensions/storemagic.py
-    IPython/extensions/sympyprinting.py
     IPython/external/__init__.py
-    IPython/external/decorators/__init__.py
-    IPython/external/decorators/_decorators.py
-    IPython/external/decorators/_numpy_testing_noseclasses.py
-    IPython/external/mathjax.py
     IPython/external/qt_for_kernel.py
     IPython/external/qt_loaders.py
-    IPython/frontend.py
-    IPython/html.py
-    IPython/kernel/__init__.py
-    IPython/kernel/__main__.py
-    IPython/kernel/adapter.py
-    IPython/kernel/channels.py
-    IPython/kernel/channelsabc.py
-    IPython/kernel/client.py
-    IPython/kernel/clientabc.py
-    IPython/kernel/connect.py
-    IPython/kernel/kernelspec.py
-    IPython/kernel/kernelspecapp.py
-    IPython/kernel/launcher.py
-    IPython/kernel/manager.py
-    IPython/kernel/managerabc.py
-    IPython/kernel/multikernelmanager.py
-    IPython/kernel/restarter.py
-    IPython/kernel/threaded.py
     IPython/lib/__init__.py
     IPython/lib/backgroundjobs.py
     IPython/lib/clipboard.py
@@ -150,24 +126,10 @@ PY_SRCS(
     IPython/lib/display.py
     IPython/lib/editorhooks.py
     IPython/lib/guisupport.py
-    IPython/lib/inputhook.py
-    IPython/lib/inputhookglut.py
-    IPython/lib/inputhookgtk.py
-    IPython/lib/inputhookgtk3.py
-    IPython/lib/inputhookgtk4.py
-    IPython/lib/inputhookpyglet.py
-    IPython/lib/inputhookqt4.py
-    IPython/lib/inputhookwx.py
-    IPython/lib/kernel.py
     IPython/lib/latextools.py
     IPython/lib/lexers.py
     IPython/lib/pretty.py
-    IPython/lib/security.py
-    IPython/nbconvert.py
-    IPython/nbformat.py
-    IPython/parallel.py
     IPython/paths.py
-    IPython/qt.py
     IPython/sphinxext/__init__.py
     IPython/sphinxext/custom_doctests.py
     IPython/sphinxext/ipython_console_highlighting.py
@@ -191,22 +153,17 @@ PY_SRCS(
     IPython/terminal/pt_inputhooks/qt.py
     IPython/terminal/pt_inputhooks/tk.py
     IPython/terminal/pt_inputhooks/wx.py
-    IPython/terminal/ptshell.py
     IPython/terminal/ptutils.py
     IPython/terminal/shortcuts.py
     IPython/testing/__init__.py
-    IPython/testing/__main__.py
     IPython/testing/decorators.py
     IPython/testing/globalipapp.py
-    IPython/testing/iptest.py
-    IPython/testing/iptestcontroller.py
     IPython/testing/ipunittest.py
     IPython/testing/plugin/__init__.py
     IPython/testing/plugin/dtexample.py
     IPython/testing/plugin/ipdoctest.py
-    IPython/testing/plugin/iptest.py
+    IPython/testing/plugin/pytest_ipdoctest.py
     IPython/testing/plugin/setup.py
-    IPython/testing/plugin/show_refs.py
     IPython/testing/plugin/simple.py
     IPython/testing/plugin/simplevars.py
     IPython/testing/plugin/test_ipdoctest.py
@@ -242,7 +199,6 @@ PY_SRCS(
     IPython/utils/module_paths.py
     IPython/utils/openpy.py
     IPython/utils/path.py
-    IPython/utils/pickleutil.py
     IPython/utils/process.py
     IPython/utils/py3compat.py
     IPython/utils/sentinel.py

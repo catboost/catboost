@@ -22,9 +22,10 @@ import tempfile
 import subprocess
 
 from io import UnsupportedOperation
+from pathlib import Path
 
 from IPython import get_ipython
-from IPython.core.display import display
+from IPython.display import display
 from IPython.core.error import TryNext
 from IPython.utils.data import chop
 from IPython.utils.process import system
@@ -45,7 +46,7 @@ def display_page(strng, start=0, screen_lines=25):
 
 def as_hook(page_func):
     """Wrap a pager func to strip the `self` arg
-    
+
     so it can be called as a hook.
     """
     return lambda self, *args, **kwargs: page_func(*args, **kwargs)
@@ -106,7 +107,7 @@ def _detect_screen_size(screen_lines_def):
         term_flags = termios.tcgetattr(sys.stdout)
     except termios.error as err:
         # can fail on Linux 2.6, pager_page will catch the TypeError
-        raise TypeError('termios error: {0}'.format(err))
+        raise TypeError('termios error: {0}'.format(err)) from err
 
     try:
         scr = curses.initscr()
@@ -126,7 +127,7 @@ def _detect_screen_size(screen_lines_def):
 
 def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
     """Display a string, piping through a pager after a certain length.
-    
+
     strng can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type.
 
@@ -195,28 +196,32 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = 1
             else:
                 fd, tmpname = tempfile.mkstemp('.txt')
+                tmppath = Path(tmpname)
                 try:
                     os.close(fd)
-                    with open(tmpname, 'wt') as tmpfile:
+                    with tmppath.open("wt", encoding="utf-8") as tmpfile:
                         tmpfile.write(strng)
-                        cmd = "%s < %s" % (pager_cmd, tmpname)
+                        cmd = "%s < %s" % (pager_cmd, tmppath)
                     # tmpfile needs to be closed for windows
                     if os.system(cmd):
                         retval = 1
                     else:
                         retval = None
                 finally:
-                    os.remove(tmpname)
+                    Path.unlink(tmppath)
         else:
             try:
                 retval = None
                 # Emulate os.popen, but redirect stderr
-                proc = subprocess.Popen(pager_cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                stderr=subprocess.DEVNULL
-                                )
-                pager = os._wrap_close(io.TextIOWrapper(proc.stdin), proc)
+                proc = subprocess.Popen(
+                    pager_cmd,
+                    shell=True,
+                    stdin=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                pager = os._wrap_close(
+                    io.TextIOWrapper(proc.stdin, encoding="utf-8"), proc
+                )
                 try:
                     pager_encoding = pager.encoding or sys.stdout.encoding
                     pager.write(strng)
@@ -236,10 +241,10 @@ def pager_page(strng, start=0, screen_lines=0, pager_cmd=None):
 
 def page(data, start=0, screen_lines=0, pager_cmd=None):
     """Display content in a pager, piping through a pager after a certain length.
-    
+
     data can be a mime-bundle dict, supplying multiple representations,
     keyed by mime-type, or text.
-    
+
     Pager is dispatched via the `show_in_pager` IPython hook.
     If no hook is registered, `pager_page` will be used.
     """
@@ -275,7 +280,7 @@ def page_file(fname, start=0, pager_cmd=None):
         try:
             if start > 0:
                 start -= 1
-            page(open(fname).read(),start)
+            page(open(fname, encoding="utf-8").read(), start)
         except:
             print('Unable to show file',repr(fname))
 
