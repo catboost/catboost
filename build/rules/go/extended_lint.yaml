@@ -10,6 +10,8 @@ scopes:
     - importcheck
   a.yandex-team.ru/noc:
     - importcheck
+  a.yandex-team.ru/noc/snmptrapper:
+    - exhaustivestruct
   a.yandex-team.ru/noc/cmdb:
     - exhaustivestruct
   a.yandex-team.ru/noc/nocauth:
