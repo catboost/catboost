@@ -1,3 +1,27 @@
+# Release 1.0.6
+## New features
+
+* Fixed splits for binary features on gpu for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
+
+
+## Documentation
+
+* New sections on [MultiRMSEWithMissingValues](https://catboost.ai/en/docs/concepts/loss-functions-multiregression#MultiRMSEWithMissingValues)
+and [LogCosh](https://catboost.ai/en/docs/concepts/loss-functions-regression#LogCosh)
+* New section on [get_embedding_feature_indices](https://catboost.ai/en/docs/concepts/python-reference_pool_get_embedding_feature_indices)
+* Add info on gpu support for metrics
+
+
+## Bug-fixes
+
+* Fix warning about resetting logger when logging to sys.stdout & sys.stderr from different threads #1855
+* Fix model summation in CatBoost for Apache Spark
+* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 cpu cores 0.55s -> 0.04s)
+* Fix support for text features and embeddings in Java applier #2043
+* Fix nan/inf split scores with yeti rank pairwise loss
+* Fix nan/inf feature strengths in pair logit on cpu
+
+
 # Release 1.0.5
 ## New features
 
