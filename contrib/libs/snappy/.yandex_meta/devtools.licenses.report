@@ -96,7 +96,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/generic-cla.LICENSE
     Files with this license:
-        CONTRIBUTING.md [6:6]
+        CONTRIBUTING.md [26:26]
 
 KEEP     BSD-3-Clause         6aa235708ac9f5dd8e5c6ac415fc5837
 BELONGS ya.make
@@ -143,7 +143,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        NEWS [178:178]
+        NEWS [184:184]
 
 SKIP     LicenseRef-scancode-unknown-license-reference bfebd3ac57e8aa2b8b978019ed709cd1
 BELONGS ya.make
@@ -156,7 +156,7 @@ BELONGS ya.make
         Match type      : INTRO
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
     Files with this license:
-        README.md [23:23]
+        README.md [25:25]
 
 SKIP     LicenseRef-scancode-generic-cla d72fcd21b18e44b666a94e6225ed43eb
 BELONGS ya.make
@@ -169,7 +169,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/generic-cla.LICENSE
     Files with this license:
-        CONTRIBUTING.md [8:9]
+        CONTRIBUTING.md [28:29]
 
 KEEP     BSD-3-Clause         f8141230e736a81272884d33c51c5ad4
 BELONGS ya.make
