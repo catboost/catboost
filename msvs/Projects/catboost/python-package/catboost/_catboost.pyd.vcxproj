@@ -471,6 +471,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py3\pypython-Pygments-py3.global.vcxproj">
       <Project>{299EF6AD-1318-6A52-A723-2E76CE412492}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\asttokens\pycontrib-python-asttokens.global.vcxproj">
+      <Project>{982D451B-0606-EC54-BBAD-20349948A9A6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\py3contrib-python-atomicwrites.global.vcxproj">
       <Project>{3F261226-11A9-6451-F0B7-B02A21FAA986}</Project>
     </ProjectReference>
@@ -518,6 +521,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.global.vcxproj">
       <Project>{AD4A4B13-2D84-78DE-A26F-CB7E85542D3F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
+      <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.global.vcxproj">
       <Project>{1A23756F-1E49-66E3-3B01-B3FDF631CF54}</Project>
@@ -609,6 +615,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.global.vcxproj">
       <Project>{EDCD8B7B-7FD1-A35B-0E2C-CEC73756FF8B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pure-eval\pycontrib-python-pure-eval.global.vcxproj">
+      <Project>{98FBD6BD-78AD-1C21-FFC7-39D203C48715}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\py3contrib-python-py.global.vcxproj">
       <Project>{364FEC92-377E-1941-F20C-DD358F828BD7}</Project>
     </ProjectReference>
@@ -650,6 +659,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.global.vcxproj">
       <Project>{DBA6354E-4A60-1922-EC62-1291EF2B35E3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\stack-data\pycontrib-python-stack-data.global.vcxproj">
+      <Project>{E8BA9A87-70AA-A7BC-FD5C-6D05BE4645F5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\pycontrib-python-subprocess32.global.vcxproj">
       <Project>{610470B6-7435-6A0D-6E61-7D9830D7F79D}</Project>
