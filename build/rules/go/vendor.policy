@@ -729,11 +729,6 @@ ALLOW .* -> vendor/github.com/insomniacslk/dhcp
 # CONTRIB-2094
 ALLOW .* -> vendor/github.com/osrg/gobgp
 
-#
-# CONTRIB-2097 QUIC(HTTP/3) implementation library
-#
-ALLOW .* -> vendor/github.com/lucas-clemente/quic-go
-
 # CONTRIB-2111 distributed lock on redis
 ALLOW .* -> vendor/github.com/go-redsync/redsync/v4
 
