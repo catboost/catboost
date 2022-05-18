@@ -891,7 +891,6 @@ migrations:
     - dict/mt/g2p/asr/graph
     - dict/ontodb/onto_lib/sources/wikidata
     - dict/ontodb/proto/direct/ut
-    - dict/ontodb/utils/export_src_codes
     - direct/infra/direct_zkcli
     - direct/infra/dt-dump-b2yt-data
     - district/logbroker_consumers/lib
@@ -986,7 +985,6 @@ migrations:
     - music/tools/download-info
     - passport/backend/library/distprim
     - passport/backend/library/distprim/threading
-    - passport/backend/meltingpot/utils
     - plus/gift/gift
     - plus/gift/gift/admin
     - quality/ab_testing/cofe/projects/zalogin
@@ -1136,9 +1134,6 @@ migrations:
     - cv/short2long/nirvana/lib
     - devtools/signer/signer
     - dict/ontodb/cmpy/lib
-    - dict/ontodb/isa/libshorttext/converter/stemmer
-    - dict/ontodb/report/common
-    - dict/ontodb/utils/export_src_codes
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - extsearch/geo/recommender/runtime/config/generation
@@ -1161,19 +1156,6 @@ migrations:
     - travel/avia/avia_api/avia/settings
     - travel/avia/avia_api/avia/v1/schemas
     - travel/avia/avia_api/tests
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/tools/language_model/tests/test_linear_merge
     - yabs/outdoor/viewer/back/logic
   F401:
     ignore:
@@ -1397,11 +1379,6 @@ migrations:
     - travel/avia/shared_flights/data_importer
     - travel/library/python/sender
     - vcs/svn/migrations
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/markup/lib
     - voicetech/asr/pipeline/train
     - voicetech/asr/tools/question/make_train_from_vt
@@ -1473,9 +1450,6 @@ migrations:
     - cloud/ai/speechkit/stt/tests/data_pipeline/join
     - devtools/signer/signer
     - dict/lm/sources/lib/launcher
-    - dict/ontodb/isa/libshorttext/converter/stemmer
-    - dict/ontodb/report/common
-    - dict/ontodb/utils/export_src_codes
     - dj/nirvana/nirvana_make
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
@@ -1511,19 +1485,6 @@ migrations:
     - travel/avia/avia_api/tests
     - vcs/svn/flat
     - vcs/svn/hooks/test
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_kenlm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/aggregate_subword_lm_outputs
-    - voicetech/asr/cloud_engine/cli/nirvana/build_lm
-    - voicetech/asr/cloud_engine/cli/nirvana/make_kenlm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/make_subword_lm_lingware
-    - voicetech/asr/cloud_engine/cli/nirvana/merge_lingwares
-    - voicetech/asr/cloud_engine/cli/nirvana/select_best_kenlm
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_freq_table
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_mixture_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/build_model
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
-    - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
-    - voicetech/asr/tools/language_model/tests/test_linear_merge
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/tellurium/ui
   no_lint:
@@ -2093,7 +2054,6 @@ migrations:
     - passport/backend/core/yasms/test
     - passport/backend/library/historydbloader
     - passport/backend/logbroker_client/core
-    - passport/backend/meltingpot/core/meltingpot
     - passport/backend/configs/golovan
     - passport/backend/contrib/cassandra
     - passport/backend/contrib/django_contrib_comments
@@ -2809,11 +2769,8 @@ migrations:
     - yt/python/contrib/python-urllib3
     - yt/python/yt/clickhouse
     - yt/python/yt/flask_helpers
-    - yt/python/yt/infra_api
     - yt/python/yt/operations_archive
     - yt/python/yt/packages
-    - yt/python/yt/scheduler_tools
-    - yt/python/yt/skiff
     - yt/python/yt/tools
     - yt/python/yt/transfer_manager
     - yt/python/yt/wire_format
