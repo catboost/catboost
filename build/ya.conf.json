@@ -311,16 +311,16 @@
         "saas2": {
             "description": "Run saas2 cli"
         },
-        "go": {
+        "go_1.17": {
             "description": "Run go tool (1.17.8)"
         },
-        "gofmt": {
+        "gofmt_1.17": {
             "description": "Run gofmt tool (1.17.8)"
         },
-        "go_1.18": {
+        "go": {
             "description": "Run go tool (1.18.2)"
         },
-        "gofmt_1.18": {
+        "gofmt": {
             "description": "Run gofmt tool (1.18.2)"
         },
         "godoc": {
@@ -5512,17 +5512,17 @@
         },
         "golang_1_17_8": {
             "tools": {
-                "golang": {
+                "golang_1.17": {
                     "bottle": "golang_1.17.8",
-                    "executable": "golang"
+                    "executable": "golang_1.17"
                 },
-                "go": {
+                "go_1.17": {
                     "bottle": "golang_1.17.8",
-                    "executable": "go"
+                    "executable": "go_1.17"
                 },
-                "gofmt": {
+                "gofmt_1.17": {
                     "bottle": "golang_1.17.8",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.17"
                 }
             },
             "platforms": [
@@ -5559,17 +5559,17 @@
         },
         "golang_1.18": {
             "tools": {
-                "golang_1.18": {
+                "golang": {
                     "bottle": "golang_1.18",
-                    "executable": "golang_1.18"
+                    "executable": "golang"
                 },
-                "go_1.18": {
+                "go": {
                     "bottle": "golang_1.18",
-                    "executable": "go_1.18"
+                    "executable": "go"
                 },
-                "gofmt_1.18": {
+                "gofmt": {
                     "bottle": "golang_1.18",
-                    "executable": "gofmt_1.18"
+                    "executable": "gofmt"
                 }
             },
             "platforms": [
@@ -6667,7 +6667,7 @@
         },
         "yoimports": {
             "formula": {
-                "sandbox_id": 1113620552,
+                "sandbox_id": 1313057974,
                 "match": "yoimports"
             },
             "executable": {
@@ -8253,11 +8253,11 @@
                 "match": "GOLANG"
             },
             "executable": {
-                "go": [
+                "go_1.17": [
                     "bin",
                     "go"
                 ],
-                "gofmt": [
+                "gofmt_1.17": [
                     "bin",
                     "gofmt"
                 ]
@@ -8266,19 +8266,19 @@
         "golang_1.18": {
             "formula": {
                 "sandbox_id": [
-                    1307768932,
-                    1306598930,
-                    1306598927,
-                    1306598929
+                    1312106822,
+                    1312106821,
+                    1312106819,
+                    1312106817
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.18": [
+                "go": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.18": [
+                "gofmt": [
                     "bin",
                     "gofmt"
                 ]

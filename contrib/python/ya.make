@@ -65,7 +65,7 @@ RECURSE(
 
 IF (OS_WINDOWS)
     RECURSE(
-    win_unicode_console
+    win-unicode-console
 )
 ENDIF()
 

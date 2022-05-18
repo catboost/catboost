@@ -1024,7 +1024,6 @@ haas/inventory/backend
 haas/inventory/frontend
 classifieds/vtf-tools
 a.yandex-team.ru/arc/trunk/arcadia/classifieds/infra/sender-proxy
-geoadv/backend
 market/mbo/archive/market-markup-worker
 data-ui/charts-pdf
 mds/admin/storage-juggler-config
@@ -1425,3 +1424,7 @@ classifieds/incite
 samsara/samsara-search/samsara-search-extended
 noc/linux-commit-api
 nirvana/frontend
+billing/balance/configs
+adv/pcode/mobileadssdk/sdk/unity/plugin
+callab/delta
+devtools/cache_test_trigger
