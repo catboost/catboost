@@ -1,5 +1,4 @@
 #include "atexit.h"
-#include "atomic.h"
 #include "yassert.h"
 #include "spinlock.h"
 #include "thread.h"
@@ -9,6 +8,7 @@
 #include <util/generic/deque.h>
 #include <util/generic/queue.h>
 
+#include <atomic>
 #include <tuple>
 
 #include <cstdlib>
@@ -30,12 +30,12 @@ namespace {
 
     public:
         inline TAtExit() noexcept
-            : FinishStarted_(0)
+            : FinishStarted_(false)
         {
         }
 
         inline void Finish() noexcept {
-            AtomicSet(FinishStarted_, 1);
+            FinishStarted_.store(true);
 
             auto guard = Guard(Lock_);
 
@@ -66,12 +66,12 @@ namespace {
         }
 
         inline bool FinishStarted() const {
-            return AtomicGet(FinishStarted_);
+            return FinishStarted_.load();
         }
 
     private:
         TAdaptiveLock Lock_;
-        TAtomic FinishStarted_;
+        std::atomic<bool> FinishStarted_;
         TDeque<TFunc> Store_;
         TPriorityQueue<TFunc*, TVector<TFunc*>, TCmp> Items_;
     };

@@ -2,7 +2,6 @@
 #include "user.h"
 #include "nice.h"
 #include "sigset.h"
-#include "atomic.h"
 
 #include <util/folder/dirut.h>
 #include <util/generic/algorithm.h>
@@ -198,7 +197,7 @@ private:
     TShellCommandOptions::EHandleMode InputMode = TShellCommandOptions::HANDLE_STREAM;
 
     TPid Pid;
-    TAtomic ExecutionStatus; // TShellCommand::ECommandStatus
+    std::atomic<size_t> ExecutionStatus; // TShellCommand::ECommandStatus
     TThread* WatchThread;
     bool TerminateFlag = false;
 
@@ -253,7 +252,7 @@ private:
         TRealPipeHandle* Pipe;
         IOutputStream* OutputStream;
         IInputStream* InputStream;
-        TAtomic* ShouldClosePipe;
+        std::atomic<bool>* ShouldClosePipe;
         TString InternalError;
     };
 
@@ -298,35 +297,35 @@ public:
     }
 
     inline void AppendArgument(const TStringBuf argument) {
-        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
+        if (ExecutionStatus.load(std::memory_order_acquire) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot change command parameters while process is running";
         }
         Arguments.push_back(ToString(argument));
     }
 
     inline const TString& GetOutput() const {
-        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
+        if (ExecutionStatus.load(std::memory_order_acquire) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedOutput;
     }
 
     inline const TString& GetError() const {
-        if (AtomicGet(ExecutionStatus) == SHELL_RUNNING) {
+        if (ExecutionStatus.load(std::memory_order_acquire) == SHELL_RUNNING) {
             ythrow yexception() << "You cannot retrieve output while process is running.";
         }
         return CollectedError;
     }
 
     inline const TString& GetInternalError() const {
-        if (AtomicGet(ExecutionStatus) != SHELL_INTERNAL_ERROR) {
+        if (ExecutionStatus.load(std::memory_order_acquire) != SHELL_INTERNAL_ERROR) {
             ythrow yexception() << "Internal error hasn't occured so can't be retrieved.";
         }
         return InternalError;
     }
 
     inline ECommandStatus GetStatus() const {
-        return static_cast<ECommandStatus>(AtomicGet(ExecutionStatus));
+        return static_cast<ECommandStatus>(ExecutionStatus.load(std::memory_order_acquire));
     }
 
     inline TMaybe<int> GetExitCode() const {
@@ -357,7 +356,7 @@ public:
     void Run();
 
     inline void Terminate() {
-        if (!!Pid && (AtomicGet(ExecutionStatus) == SHELL_RUNNING)) {
+        if (!!Pid && (ExecutionStatus.load(std::memory_order_acquire) == SHELL_RUNNING)) {
             bool ok =
 #if defined(_unix_)
                 kill(Options_.DetachSession ? -1 * Pid : Pid, SIGTERM) == 0;
@@ -382,7 +381,7 @@ public:
     }
 
     inline void CloseInput() {
-        AtomicSet(Options_.ShouldCloseInput, true);
+        Options_.ShouldCloseInput.store(true);
     }
 
     inline static bool TerminateIsRequired(void* processInfo) {
@@ -451,7 +450,7 @@ public:
                 if (!bytesToWrite) {
                     bytesToWrite = pump->InputStream->Read(buffer.Data(), buffer.Capacity());
                     if (bytesToWrite == 0) {
-                        if (AtomicGet(pump->ShouldClosePipe)) {
+                        if (pump->ShouldClosePipe->load(std::memory_order_acquire)) {
                             break;
                         }
                         continue;
@@ -583,7 +582,7 @@ void TShellCommand::TImpl::StartProcess(TShellCommand::TImpl::TPipes& pipes) {
     }
 
     if (!res) {
-        AtomicSet(ExecutionStatus, SHELL_ERROR);
+        ExecutionStatus.store(SHELL_ERROR, std::memory_order_release);
         /// @todo: write to error stream if set
         TStringOutput out(CollectedError);
         out << "Process was not created: " << LastSystemErrorText() << " command text was: '" << GetAString(cmdcopy.Data()) << "'";
@@ -723,7 +722,7 @@ void TShellCommand::TImpl::OnFork(TPipes& pipes, sigset_t oldmask, char* const* 
 #endif
 
 void TShellCommand::TImpl::Run() {
-    Y_ENSURE(AtomicGet(ExecutionStatus) != SHELL_RUNNING, TStringBuf("Process is already running"));
+    Y_ENSURE(ExecutionStatus.load(std::memory_order_acquire) != SHELL_RUNNING, TStringBuf("Process is already running"));
     // Prepare I/O streams
     CollectedOutput.clear();
     CollectedError.clear();
@@ -739,7 +738,7 @@ void TShellCommand::TImpl::Run() {
         TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1], CloseOnExec);
     }
 
-    AtomicSet(ExecutionStatus, SHELL_RUNNING);
+    ExecutionStatus.store(SHELL_RUNNING, std::memory_order_release);
 
 #if defined(_unix_)
     // block all signals to avoid signal handler race after fork()
@@ -786,7 +785,7 @@ void TShellCommand::TImpl::Run() {
 
     pid_t pid = fork();
     if (pid == -1) {
-        AtomicSet(ExecutionStatus, SHELL_ERROR);
+        ExecutionStatus.store(SHELL_ERROR, std::memory_order_release);
         /// @todo check if pipes are still open
         ythrow TSystemError() << "Cannot fork";
     } else if (pid == 0) { // child
@@ -807,7 +806,7 @@ void TShellCommand::TImpl::Run() {
 #endif
     pipes.PrepareParents();
 
-    if (AtomicGet(ExecutionStatus) != SHELL_RUNNING) {
+    if (ExecutionStatus.load(std::memory_order_acquire) != SHELL_RUNNING) {
         return;
     }
 
@@ -1002,7 +1001,7 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
                 if (!bytesToWrite) {
                     bytesToWrite = input->Read(inputBuffer.Data(), inputBuffer.Capacity());
                     if (bytesToWrite == 0) {
-                        if (AtomicGet(pi->Parent->Options_.ShouldCloseInput)) {
+                        if (pi->Parent->Options_.ShouldCloseInput.load(std::memory_order_acquire)) {
                             input = nullptr;
                         }
                         continue;
@@ -1051,9 +1050,9 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
 #endif
         pi->Parent->ExitCode = processExitCode;
         if (cleanExit) {
-            AtomicSet(pi->Parent->ExecutionStatus, SHELL_FINISHED);
+            pi->Parent->ExecutionStatus.store(SHELL_FINISHED, std::memory_order_release);
         } else {
-            AtomicSet(pi->Parent->ExecutionStatus, SHELL_ERROR);
+            pi->Parent->ExecutionStatus.store(SHELL_ERROR, std::memory_order_release);
         }
 
 #if defined(_win_)
@@ -1076,7 +1075,7 @@ void TShellCommand::TImpl::Communicate(TProcessInfo* pi) {
 #endif
     } catch (const yexception& e) {
         // Some error in watch occured, set result to error
-        AtomicSet(pi->Parent->ExecutionStatus, SHELL_INTERNAL_ERROR);
+        pi->Parent->ExecutionStatus.store(SHELL_INTERNAL_ERROR, std::memory_order_release);
         pi->Parent->InternalError = e.what();
         if (input) {
             pi->InputFd.Close();

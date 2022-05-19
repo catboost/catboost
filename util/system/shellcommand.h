@@ -14,7 +14,23 @@
 #include "mutex.h"
 #include <sys/types.h>
 
+#include <atomic>
+
 class TShellCommandOptions {
+    class TCopyableAtomicBool: public std::atomic<bool> {
+    public:
+        using std::atomic<bool>::atomic;
+        TCopyableAtomicBool(const TCopyableAtomicBool& other)
+            : std::atomic<bool>(other.load(std::memory_order_acquire))
+        {
+        }
+
+        TCopyableAtomicBool& operator=(const TCopyableAtomicBool& other) {
+            this->store(other.load(std::memory_order_acquire), std::memory_order_release);
+            return *this;
+        }
+    };
+
 public:
     struct TUserOptions {
         TString Name;
@@ -185,7 +201,7 @@ public:
     * @return self
     */
     inline TShellCommandOptions& SetCloseInput(bool val) {
-        ShouldCloseInput = val;
+        ShouldCloseInput.store(val);
         return *this;
     }
 
@@ -307,7 +323,7 @@ public:
     bool QuoteArguments = false;
     bool DetachSession = false;
     bool CloseStreams = false;
-    TAtomic ShouldCloseInput = false;
+    TCopyableAtomicBool ShouldCloseInput = false;
     EHandleMode InputMode = HANDLE_STREAM;
     EHandleMode OutputMode = HANDLE_STREAM;
     EHandleMode ErrorMode = HANDLE_STREAM;

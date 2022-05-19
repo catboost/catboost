@@ -9,8 +9,8 @@ VERSION(5.10.0)
 LICENSE(BSD-3-Clause)
 
 PEERDIR(
+    contrib/deprecated/python/backports.shutil-get-terminal-size
     contrib/python/Pygments
-    contrib/python/backports.shutil-get-terminal-size
     contrib/python/decorator
     contrib/python/pathlib2
     contrib/python/pickleshare
