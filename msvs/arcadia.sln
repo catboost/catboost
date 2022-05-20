@@ -403,6 +403,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "certs", "Projects\certs\cer
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contrib", "Projects\contrib", "{7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "python", "Projects\contrib\deprecated\python", "{632B7814-597B-094D-758C-01CADC7C0DE8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backports.functools-lru-cache", "Projects\contrib\deprecated\python\backports.functools-lru-cache", "{BE2D0A87-BAE0-CEA5-125D-E50A7C1F2526}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-backports.functools-lru-cache", "Projects\contrib\deprecated\python\backports.functools-lru-cache\pydeprecated-python-backports.functools-lru-cache.vcxproj", "{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-backports.functools-lru-cache.global", "Projects\contrib\deprecated\python\backports.functools-lru-cache\pydeprecated-python-backports.functools-lru-cache.global.vcxproj", "{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backports.shutil-get-terminal-size", "Projects\contrib\deprecated\python\backports.shutil-get-terminal-size", "{9DAFBF29-FE11-998A-48A7-8FB5726CB25D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-backports.shutil-get-terminal-size", "Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.vcxproj", "{B1908B71-AB54-E981-2D53-A2B8C8086C94}"
@@ -656,12 +664,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3contrib-python-backcall", "Projects\contrib\python\backcall\py3contrib-python-backcall.vcxproj", "{92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "py3contrib-python-backcall.global", "Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj", "{473BBBA7-56F6-21FD-E4E7-833A72D068E1}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "backports.functools-lru-cache", "Projects\contrib\python\backports.functools-lru-cache", "{93917F9A-6DC7-7184-555C-B8EC304CDE68}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports.functools-lru-cache", "Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.vcxproj", "{72CAF43F-970B-5E9F-7DD3-7C13627D483E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-backports.functools-lru-cache.global", "Projects\contrib\python\backports.functools-lru-cache\pycontrib-python-backports.functools-lru-cache.global.vcxproj", "{1600D1CB-87D7-B743-B183-D410DB997543}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "colorama", "Projects\contrib\python\colorama", "{C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}"
 EndProject
@@ -2655,6 +2657,14 @@ Global
 		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Debug|x64.Build.0 = Debug|x64
 		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Release|x64.ActiveCfg = Release|x64
 		{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}.Release|x64.Build.0 = Release|x64
+		{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}.Debug|x64.ActiveCfg = Debug|x64
+		{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}.Debug|x64.Build.0 = Debug|x64
+		{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}.Release|x64.ActiveCfg = Release|x64
+		{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}.Release|x64.Build.0 = Release|x64
+		{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}.Debug|x64.ActiveCfg = Debug|x64
+		{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}.Debug|x64.Build.0 = Debug|x64
+		{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}.Release|x64.ActiveCfg = Release|x64
+		{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440}.Release|x64.Build.0 = Release|x64
 		{B1908B71-AB54-E981-2D53-A2B8C8086C94}.Debug|x64.ActiveCfg = Debug|x64
 		{B1908B71-AB54-E981-2D53-A2B8C8086C94}.Debug|x64.Build.0 = Debug|x64
 		{B1908B71-AB54-E981-2D53-A2B8C8086C94}.Release|x64.ActiveCfg = Release|x64
@@ -3043,14 +3053,6 @@ Global
 		{473BBBA7-56F6-21FD-E4E7-833A72D068E1}.Debug|x64.Build.0 = Debug|x64
 		{473BBBA7-56F6-21FD-E4E7-833A72D068E1}.Release|x64.ActiveCfg = Release|x64
 		{473BBBA7-56F6-21FD-E4E7-833A72D068E1}.Release|x64.Build.0 = Release|x64
-		{72CAF43F-970B-5E9F-7DD3-7C13627D483E}.Debug|x64.ActiveCfg = Debug|x64
-		{72CAF43F-970B-5E9F-7DD3-7C13627D483E}.Debug|x64.Build.0 = Debug|x64
-		{72CAF43F-970B-5E9F-7DD3-7C13627D483E}.Release|x64.ActiveCfg = Release|x64
-		{72CAF43F-970B-5E9F-7DD3-7C13627D483E}.Release|x64.Build.0 = Release|x64
-		{1600D1CB-87D7-B743-B183-D410DB997543}.Debug|x64.ActiveCfg = Debug|x64
-		{1600D1CB-87D7-B743-B183-D410DB997543}.Debug|x64.Build.0 = Debug|x64
-		{1600D1CB-87D7-B743-B183-D410DB997543}.Release|x64.ActiveCfg = Release|x64
-		{1600D1CB-87D7-B743-B183-D410DB997543}.Release|x64.Build.0 = Release|x64
 		{C993C962-3FFE-726E-1312-B37C3A414F52}.Debug|x64.ActiveCfg = Debug|x64
 		{C993C962-3FFE-726E-1312-B37C3A414F52}.Debug|x64.Build.0 = Debug|x64
 		{C993C962-3FFE-726E-1312-B37C3A414F52}.Release|x64.ActiveCfg = Release|x64
@@ -5338,7 +5340,11 @@ Global
 		{CD41E2CD-2711-0E03-DDA3-B2B8243487A4} = {86A8C76E-6302-85F7-984C-B92D83E87465}
 		{A3A716F4-A45D-1329-3573-2DB4F168086E} = {CD41E2CD-2711-0E03-DDA3-B2B8243487A4}
 		{52A4E0D4-99AD-0864-3BDA-5EC48B9B5392} = {CD41E2CD-2711-0E03-DDA3-B2B8243487A4}
-		{9DAFBF29-FE11-998A-48A7-8FB5726CB25D} = {7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}
+		{632B7814-597B-094D-758C-01CADC7C0DE8} = {7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}
+		{BE2D0A87-BAE0-CEA5-125D-E50A7C1F2526} = {632B7814-597B-094D-758C-01CADC7C0DE8}
+		{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8} = {BE2D0A87-BAE0-CEA5-125D-E50A7C1F2526}
+		{ACD9E7B5-F469-AC70-C9C8-A4DDF0CA3440} = {BE2D0A87-BAE0-CEA5-125D-E50A7C1F2526}
+		{9DAFBF29-FE11-998A-48A7-8FB5726CB25D} = {632B7814-597B-094D-758C-01CADC7C0DE8}
 		{B1908B71-AB54-E981-2D53-A2B8C8086C94} = {9DAFBF29-FE11-998A-48A7-8FB5726CB25D}
 		{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1} = {9DAFBF29-FE11-998A-48A7-8FB5726CB25D}
 		{5A6BA3D4-700F-320B-BC81-8F7B463F1DBE} = {7B85CA1A-8311-CE55-344B-96CBB3DE4F3B}
@@ -5465,9 +5471,6 @@ Global
 		{F7E21DC0-E9CF-550D-70FD-75B047805467} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5} = {F7E21DC0-E9CF-550D-70FD-75B047805467}
 		{473BBBA7-56F6-21FD-E4E7-833A72D068E1} = {F7E21DC0-E9CF-550D-70FD-75B047805467}
-		{93917F9A-6DC7-7184-555C-B8EC304CDE68} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
-		{72CAF43F-970B-5E9F-7DD3-7C13627D483E} = {93917F9A-6DC7-7184-555C-B8EC304CDE68}
-		{1600D1CB-87D7-B743-B183-D410DB997543} = {93917F9A-6DC7-7184-555C-B8EC304CDE68}
 		{C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{C993C962-3FFE-726E-1312-B37C3A414F52} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
 		{0E0E70FC-148C-4937-1103-230DC41150C2} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
