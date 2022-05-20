@@ -911,6 +911,15 @@ ALLOW .* -> vendor/github.com/ryanrolds/sqlclosecheck
 # CONTRIB-2546
 ALLOW .* -> vendor/github.com/ncruces/go-proxied
 
+# CONTRIB-2568
+DENY .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver
+DENY .* -> vendor/github.com/distribution/distribution/v3/cmd
+ALLOW .* -> vendor/github.com/distribution/distribution/v3
+ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/base
+ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/factory
+ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/inmemory
+ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/testsuites
+
 #
 # Tools
 #
@@ -1085,6 +1094,9 @@ ALLOW infra/infractl/.* -> vendor/gopkg.in/yaml.v3
 
 # CONTRIB-2489
 ALLOW infra/infractl/.* -> vendor/github.com/ghodss/yaml
+
+# CONTRIB-2572
+ALLOW infra/infractl/.* -> vendor/github.com/magiconair/properties
 
 # CONTRIB-2445
 ALLOW psp -> vendor/github.com/zimmski/go-mutesting
