@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\56879694a1bbe08a7ffcfb54b1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\850f9f70467807a358f4a66b15.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\dedcbb61132413071320f5be12.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\wcwidth\eba70071a77093dc8176c1c98c.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
@@ -89,11 +89,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp" "_00480085b89c9599719f84576c=resfs/src/resfs/file/py/wcwidth/__init__.py" "_ba116a7f96593f9ba1a57e6dbc=resfs/file/py/wcwidth/__init__.py" "_032d6d66ecb2a6835f18b4c570=resfs/src/resfs/file/py/wcwidth/__init__.py.yapyc3" "_f9514b5e309600068865d58d99=resfs/file/py/wcwidth/__init__.py.yapyc3" "_78eb415f68ec7a8a60fb1c77a0=resfs/src/resfs/file/py/wcwidth/table_wide.py" "_2bf3a57ae22bbbebb1765c5a43=resfs/file/py/wcwidth/table_wide.py" "_bd8ad66b61ceb11d9304bca211=resfs/src/resfs/file/py/wcwidth/table_wide.py.yapyc3" "_69a85c4eee0e0896605b49cf58=resfs/file/py/wcwidth/table_wide.py.yapyc3" "_93693c67c58a217b44b1624392=resfs/src/resfs/file/py/wcwidth/table_zero.py" "_b889488a9f67aaf1d1df6924d4=resfs/file/py/wcwidth/table_zero.py" "_e9aa0a9dfd0be7cbb3739ad662=resfs/src/resfs/file/py/wcwidth/table_zero.py.yapyc3" "_aa8ea1cacd3ca20b02bfea58fe=resfs/file/py/wcwidth/table_zero.py.yapyc3" "_a041a6e2542d590127e7220a2f=resfs/src/resfs/file/py/wcwidth/unicode_versions.py" "_37f38d21ceb0ed4e3ad4ea4e99=resfs/file/py/wcwidth/unicode_versions.py" "_f49d1cbfbdce670a6b7c6835f3=resfs/src/resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_7fa2c7119fd8bfc93fded5c302=resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_c4ed0f10234e380d7f2e62dd75=resfs/src/resfs/file/py/wcwidth/wcwidth.py" "_9e01734f7697622ab86b22efd3=resfs/file/py/wcwidth/wcwidth.py" "_dd3353766b5e98a0b61b575d68=resfs/src/resfs/file/py/wcwidth/wcwidth.py.yapyc3" "_884b7503349ebe4b046c22bee2=resfs/file/py/wcwidth/wcwidth.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/850f9f70467807a358f4a66b15.cpp" "_5192f48d6b126e7024c4873edc=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_9874134f4dcf4f23b8e018324f=resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_e440ced00bfa542421cc8c0775=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_7f036cdd07c599e74ad9c79548=resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_bb55b0a3acecc3e68c6a06efe2=resfs/src/resfs/file/contrib/python/wcwidth/wcwidth/version.json" "_c083cc0d5b5beb5f62f68e9f00=resfs/file/contrib/python/wcwidth/wcwidth/version.json"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/eba70071a77093dc8176c1c98c.cpp" "_5192f48d6b126e7024c4873edc=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_9874134f4dcf4f23b8e018324f=resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_e440ced00bfa542421cc8c0775=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_7f036cdd07c599e74ad9c79548=resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp" "_00480085b89c9599719f84576c=resfs/src/resfs/file/py/wcwidth/__init__.py" "_ba116a7f96593f9ba1a57e6dbc=resfs/file/py/wcwidth/__init__.py" "_032d6d66ecb2a6835f18b4c570=resfs/src/resfs/file/py/wcwidth/__init__.py.yapyc3" "_f9514b5e309600068865d58d99=resfs/file/py/wcwidth/__init__.py.yapyc3" "_78eb415f68ec7a8a60fb1c77a0=resfs/src/resfs/file/py/wcwidth/table_wide.py" "_2bf3a57ae22bbbebb1765c5a43=resfs/file/py/wcwidth/table_wide.py" "_bd8ad66b61ceb11d9304bca211=resfs/src/resfs/file/py/wcwidth/table_wide.py.yapyc3" "_69a85c4eee0e0896605b49cf58=resfs/file/py/wcwidth/table_wide.py.yapyc3" "_93693c67c58a217b44b1624392=resfs/src/resfs/file/py/wcwidth/table_zero.py" "_b889488a9f67aaf1d1df6924d4=resfs/file/py/wcwidth/table_zero.py" "_e9aa0a9dfd0be7cbb3739ad662=resfs/src/resfs/file/py/wcwidth/table_zero.py.yapyc3" "_aa8ea1cacd3ca20b02bfea58fe=resfs/file/py/wcwidth/table_zero.py.yapyc3" "_a041a6e2542d590127e7220a2f=resfs/src/resfs/file/py/wcwidth/unicode_versions.py" "_37f38d21ceb0ed4e3ad4ea4e99=resfs/file/py/wcwidth/unicode_versions.py" "_f49d1cbfbdce670a6b7c6835f3=resfs/src/resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_7fa2c7119fd8bfc93fded5c302=resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_c4ed0f10234e380d7f2e62dd75=resfs/src/resfs/file/py/wcwidth/wcwidth.py" "_9e01734f7697622ab86b22efd3=resfs/file/py/wcwidth/wcwidth.py" "_dd3353766b5e98a0b61b575d68=resfs/src/resfs/file/py/wcwidth/wcwidth.py.yapyc3" "_884b7503349ebe4b046c22bee2=resfs/file/py/wcwidth/wcwidth.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,11 +108,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp" "_00480085b89c9599719f84576c=resfs/src/resfs/file/py/wcwidth/__init__.py" "_ba116a7f96593f9ba1a57e6dbc=resfs/file/py/wcwidth/__init__.py" "_032d6d66ecb2a6835f18b4c570=resfs/src/resfs/file/py/wcwidth/__init__.py.yapyc3" "_f9514b5e309600068865d58d99=resfs/file/py/wcwidth/__init__.py.yapyc3" "_78eb415f68ec7a8a60fb1c77a0=resfs/src/resfs/file/py/wcwidth/table_wide.py" "_2bf3a57ae22bbbebb1765c5a43=resfs/file/py/wcwidth/table_wide.py" "_bd8ad66b61ceb11d9304bca211=resfs/src/resfs/file/py/wcwidth/table_wide.py.yapyc3" "_69a85c4eee0e0896605b49cf58=resfs/file/py/wcwidth/table_wide.py.yapyc3" "_93693c67c58a217b44b1624392=resfs/src/resfs/file/py/wcwidth/table_zero.py" "_b889488a9f67aaf1d1df6924d4=resfs/file/py/wcwidth/table_zero.py" "_e9aa0a9dfd0be7cbb3739ad662=resfs/src/resfs/file/py/wcwidth/table_zero.py.yapyc3" "_aa8ea1cacd3ca20b02bfea58fe=resfs/file/py/wcwidth/table_zero.py.yapyc3" "_a041a6e2542d590127e7220a2f=resfs/src/resfs/file/py/wcwidth/unicode_versions.py" "_37f38d21ceb0ed4e3ad4ea4e99=resfs/file/py/wcwidth/unicode_versions.py" "_f49d1cbfbdce670a6b7c6835f3=resfs/src/resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_7fa2c7119fd8bfc93fded5c302=resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_c4ed0f10234e380d7f2e62dd75=resfs/src/resfs/file/py/wcwidth/wcwidth.py" "_9e01734f7697622ab86b22efd3=resfs/file/py/wcwidth/wcwidth.py" "_dd3353766b5e98a0b61b575d68=resfs/src/resfs/file/py/wcwidth/wcwidth.py.yapyc3" "_884b7503349ebe4b046c22bee2=resfs/file/py/wcwidth/wcwidth.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/850f9f70467807a358f4a66b15.cpp" "_5192f48d6b126e7024c4873edc=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_9874134f4dcf4f23b8e018324f=resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_e440ced00bfa542421cc8c0775=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_7f036cdd07c599e74ad9c79548=resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_bb55b0a3acecc3e68c6a06efe2=resfs/src/resfs/file/contrib/python/wcwidth/wcwidth/version.json" "_c083cc0d5b5beb5f62f68e9f00=resfs/file/contrib/python/wcwidth/wcwidth/version.json"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\wcwidth
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/eba70071a77093dc8176c1c98c.cpp" "_5192f48d6b126e7024c4873edc=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_9874134f4dcf4f23b8e018324f=resfs/file/contrib/python/wcwidth/.dist-info/METADATA" "_e440ced00bfa542421cc8c0775=resfs/src/resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt" "_7f036cdd07c599e74ad9c79548=resfs/file/contrib/python/wcwidth/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp" "_00480085b89c9599719f84576c=resfs/src/resfs/file/py/wcwidth/__init__.py" "_ba116a7f96593f9ba1a57e6dbc=resfs/file/py/wcwidth/__init__.py" "_032d6d66ecb2a6835f18b4c570=resfs/src/resfs/file/py/wcwidth/__init__.py.yapyc3" "_f9514b5e309600068865d58d99=resfs/file/py/wcwidth/__init__.py.yapyc3" "_78eb415f68ec7a8a60fb1c77a0=resfs/src/resfs/file/py/wcwidth/table_wide.py" "_2bf3a57ae22bbbebb1765c5a43=resfs/file/py/wcwidth/table_wide.py" "_bd8ad66b61ceb11d9304bca211=resfs/src/resfs/file/py/wcwidth/table_wide.py.yapyc3" "_69a85c4eee0e0896605b49cf58=resfs/file/py/wcwidth/table_wide.py.yapyc3" "_93693c67c58a217b44b1624392=resfs/src/resfs/file/py/wcwidth/table_zero.py" "_b889488a9f67aaf1d1df6924d4=resfs/file/py/wcwidth/table_zero.py" "_e9aa0a9dfd0be7cbb3739ad662=resfs/src/resfs/file/py/wcwidth/table_zero.py.yapyc3" "_aa8ea1cacd3ca20b02bfea58fe=resfs/file/py/wcwidth/table_zero.py.yapyc3" "_a041a6e2542d590127e7220a2f=resfs/src/resfs/file/py/wcwidth/unicode_versions.py" "_37f38d21ceb0ed4e3ad4ea4e99=resfs/file/py/wcwidth/unicode_versions.py" "_f49d1cbfbdce670a6b7c6835f3=resfs/src/resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_7fa2c7119fd8bfc93fded5c302=resfs/file/py/wcwidth/unicode_versions.py.yapyc3" "_c4ed0f10234e380d7f2e62dd75=resfs/src/resfs/file/py/wcwidth/wcwidth.py" "_9e01734f7697622ab86b22efd3=resfs/file/py/wcwidth/wcwidth.py" "_dd3353766b5e98a0b61b575d68=resfs/src/resfs/file/py/wcwidth/wcwidth.py.yapyc3" "_884b7503349ebe4b046c22bee2=resfs/file/py/wcwidth/wcwidth.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/wcwidth/56879694a1bbe08a7ffcfb54b1.cpp	$B/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp	$B/contrib/python/wcwidth/eba70071a77093dc8176c1c98c.cpp	</Message>
+      <Message>$B/contrib/python/wcwidth/56879694a1bbe08a7ffcfb54b1.cpp	$B/contrib/python/wcwidth/850f9f70467807a358f4a66b15.cpp	$B/contrib/python/wcwidth/dedcbb61132413071320f5be12.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\56879694a1bbe08a7ffcfb54b1.cpp;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\dedcbb61132413071320f5be12.cpp;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\eba70071a77093dc8176c1c98c.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\wcwidth\56879694a1bbe08a7ffcfb54b1.cpp;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\850f9f70467807a358f4a66b15.cpp;$(SolutionDir)$(Configuration)\contrib\python\wcwidth\dedcbb61132413071320f5be12.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -176,15 +176,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3\pypython-setuptools-py3.vcxproj">
-      <Project>{7B88BE8A-26E1-5596-FE7C-CF79CBCB2D3D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py3contrib-python-setuptools.vcxproj">
-      <Project>{62979E22-6FCA-5446-4C8A-EE18209B5DE2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
-      <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -217,9 +208,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\py3library-python-resource.vcxproj">
-      <Project>{56BE61DD-902F-46E5-A0C0-F54A78D0B209}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>

@@ -5,7 +5,6 @@ RECURSE(
     atomicwrites
     attrs
     backcall
-    backports.functools-lru-cache
     colorama
     configparser
     contextlib2
