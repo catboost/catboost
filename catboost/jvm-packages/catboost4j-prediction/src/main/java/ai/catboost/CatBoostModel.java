@@ -656,7 +656,7 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
-     * Same as {@link #predict(float[][], String[][], Strinp[][], float[][][], floatCatBoostPredictions)}, but accept categoric features as hashes
+     * Same as {@link #predict(float[][], String[][], String[][], float[][][], CatBoostPredictions)}, but accept categoric features as hashes
      * computed by {@link #hashCategoricalFeature(String)}.
      *
      * @param numericFeatures   Numeric features.
