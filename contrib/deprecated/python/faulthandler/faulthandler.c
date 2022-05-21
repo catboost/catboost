@@ -14,7 +14,7 @@
 #  include <sys/resource.h>
 #endif
 
-#define LIB_VERSION 0x302
+#define VERSION 0x302
 
 /* Allocate at maximum 100 MB of the stack to raise the stack overflow */
 #define STACK_OVERFLOW_MAX_SIZE (100*1024*1024)
@@ -1342,15 +1342,15 @@ initfaulthandler(void)
 
     (void)Py_AtExit(faulthandler_unload);
 
-    version = Py_BuildValue("(ii)", LIB_VERSION >> 8, LIB_VERSION & 0xFF);
+    version = Py_BuildValue("(ii)", VERSION >> 8, VERSION & 0xFF);
     if (version == NULL)
         goto error;
     PyModule_AddObject(m, "version", version);
 
 #if PY_MAJOR_VERSION >= 3
-    version = PyUnicode_FromFormat("%i.%i", LIB_VERSION >> 8, LIB_VERSION & 0xFF);
+    version = PyUnicode_FromFormat("%i.%i", VERSION >> 8, VERSION & 0xFF);
 #else
-    version = PyString_FromFormat("%i.%i", LIB_VERSION >> 8, LIB_VERSION & 0xFF);
+    version = PyString_FromFormat("%i.%i", VERSION >> 8, VERSION & 0xFF);
 #endif
     if (version == NULL)
         goto error;
