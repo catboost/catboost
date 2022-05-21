@@ -29,6 +29,7 @@
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
+  - CommonCrypto/CommonRandom.h
   - ConditionalMacros.h
   - DiskArbitration/DiskArbitration.h
   - Endian.h
