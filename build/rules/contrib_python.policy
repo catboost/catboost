@@ -5,6 +5,7 @@ ALLOW ads/yacontext/apps/procontext -> contrib/python/django/django-1.11
 ALLOW devtools/dummy_arcadia/django_settings -> contrib/python/django/django-1.11
 ALLOW devtools/signer/signer -> contrib/python/django/django-1.11
 ALLOW douber/backend -> contrib/python/django/django-1.11
+ALLOW infra/cauth/server/common -> contrib/python/django/django-1.11
 ALLOW intranet/audit/src -> contrib/python/django/django-1.11
 ALLOW intranet/crt/tests -> contrib/python/django/django-1.11
 ALLOW intranet/crt -> contrib/python/django/django-1.11

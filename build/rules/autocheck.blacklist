@@ -812,7 +812,6 @@ portal/archive/export-pusher
 portal/www-curl
 noc/heatmap/dashboards
 portal/archive/postcards2
-infra/cauth/server
 trust/frontend/legacy/trust-frontend-disk
 trust/frontend/legacy/trust-frontend-invest
 trust/frontend/legacy/trust-frontend-kinopoisk-plus--smarttv
