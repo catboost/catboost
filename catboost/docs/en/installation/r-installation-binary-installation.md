@@ -27,15 +27,15 @@ To install the released {{ r-package }} binary with GPU support:
        - `--no-multiarch` is an optional parameter for multiarch support.
        - `--no-test-load` is an argument which suppresses the testing phase.
 
-    For example, use the following code to install the Windows' version 0.6.1.1 of the R binary with multiarch support:
+    For example, use the following code to install the Windows' version {{ release-version }} of the R binary with multiarch support:
     ```
     install.packages('devtools')
-    devtools::install_url('https://github.com/catboost/catboost/releases/download/v0.20/catboost-R-Windows-0.20.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
+    devtools::install_url('https://github.com/catboost/catboost/releases/download/v{{ release-version }}/catboost-R-Windows-{{ release-version }}.tgz', INSTALL_opts = c("--no-multiarch", "--no-test-load"))
     ```
 
     {% note warning %}
 
-    Do not forget to change the package version to the required one. The example above illustrates the installation of the version 0.6.1.1.
+    Do not forget to change the package version to the required one. The example above illustrates the installation of the version {{ release-version }}.
 
     To install another version, let's say 0.16.5, change the code to the following:
     ```
