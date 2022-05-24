@@ -46,6 +46,23 @@ bool TCgiParameters::Erase(const TStringBuf name, const TStringBuf val) {
     return found;
 }
 
+bool TCgiParameters::ErasePattern(const TStringBuf name, const TStringBuf pat) {
+    const auto pair = equal_range(name);
+
+    bool found = false;
+    for (auto it = pair.first; it != pair.second;) {
+        bool startsWith = it->second.StartsWith(pat);
+        if (startsWith) {
+            it = erase(it);
+            found = true;
+        } else {
+            ++it;
+        }
+    }
+
+    return found;
+}
+
 size_t TCgiParameters::EraseAll(const TStringBuf name) {
     size_t num = 0;
 
