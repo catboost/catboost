@@ -29,8 +29,6 @@
   - wctype.h:   contrib/libs/cxxsupp/libcxx/include/wctype.h
 
 - includes:
-  - atomic.h:
-    - contrib/libs/cxxsupp/libcxxrt/atomic.h
   - cxxabi.h:
     - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
     - contrib/libs/cxxsupp/libcxxrt/cxxabi.h

@@ -150,11 +150,19 @@
   includes:
     - atomic.h: contrib/restricted/openal-soft/common/atomic.h
 
-- source_filter: "^contrib/libs/ffmpeg-3"
+- source_filter: "^contrib/libs/ffmpeg-3/"
   includes:
     - fontconfig/fontconfig.h
     - fribidi.h
-    - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+    - stdatomic.h:    contrib/libs/ffmpeg-3/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/libs/ffmpeg-3/libavutil/atomic.h
+
+- source_filter: "^contrib/libs/ffmpeg-3.4.1/"
+  includes:
+    - fontconfig/fontconfig.h
+    - fribidi.h
+    - stdatomic.h:    contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/libs/ffmpeg-3.4.1/libavutil/atomic.h
 
 - source_filter: "^contrib/libs/glog"
   includes:
@@ -235,7 +243,6 @@
 # unused legacy include in boost
 - source_filter: "^contrib/restricted/boost"
   includes:
-    - atomic.h
     - fstream.h
     - ../include/fenv.h
 
@@ -258,10 +265,6 @@
   includes:
     - sasl/sasl.h
     - sasl/saslutil.h
-
-- source_filter: "^contrib/libs/apache/apr"
-  includes:
-    - atomic.h
 
 - source_filter: "^contrib/libs/(apache/apr|httpd|llvm)"
   includes:
@@ -466,3 +469,7 @@
     - filter.h: contrib/restricted/noc/frr/lib/filter.h
     - memory.h: contrib/restricted/noc/frr/lib/memory.h
     - thread.h: contrib/restricted/noc/frr/lib/thread.h
+
+- source_filter: "^contrib/libs/cxxsupp/libcxxrt"
+  includes:
+    - atomic.h: contrib/libs/cxxsupp/libcxxrt/atomic.h

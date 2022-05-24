@@ -550,7 +550,6 @@
   - sys/systemcfg.h
   - sys/thread.h
   #endif
-  - mbarrier.h
   - iostream.h
   - streambuf.h
   - ostream.h
