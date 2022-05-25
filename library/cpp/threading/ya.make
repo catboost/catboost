@@ -2,7 +2,6 @@ RECURSE(
     atomic
     atomic/ut
     chunk_queue
-    chunk_queue/ut
     future
     future/perf
     future/subscription

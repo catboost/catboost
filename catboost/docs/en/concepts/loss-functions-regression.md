@@ -38,7 +38,7 @@ $\displaystyle\frac{\sum\limits_{i=1}^{N} w_{i} \left(e^{a_{i}} - a_{i}t_{i}\rig
 
 ### {{ error-function--Quantile }} {#Quantile}
 
-$\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - 1(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
+$\displaystyle\frac{\sum\limits_{i=1}^{N} (\alpha - I(t_{i} \leq a_{i}))(t_{i} - a_{i}) w_{i} }{\sum\limits_{i=1}^{N} w_{i}}$
 
 **{{ optimization }}** See [more](#usage-information).
 

@@ -6,8 +6,6 @@ RECURSE(
     accurate_accumulate/benchmark/metrics
     archive/ut
     binsaver
-    binsaver/ut
-    binsaver/ut_util
     blockcodecs
     blockcodecs/fuzz
     build_info

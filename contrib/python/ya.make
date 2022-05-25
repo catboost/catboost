@@ -51,7 +51,6 @@ RECURSE(
     simplegeneric
     six
     stack-data
-    subprocess32
     testpath
     tomli
     tornado

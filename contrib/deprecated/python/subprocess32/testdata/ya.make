@@ -7,7 +7,7 @@ SIZE(MEDIUM)
 NO_LINT()
 
 SRCDIR(
-    contrib/python/subprocess32
+    contrib/deprecated/python/subprocess32
 )
 
 TEST_SRCS(
@@ -15,7 +15,7 @@ TEST_SRCS(
 )
 
 TEST_CWD(
-    contrib/python/subprocess32
+    contrib/deprecated/python/subprocess32
 )
 
 END()
