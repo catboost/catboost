@@ -58,7 +58,7 @@ namespace NEnumSerializationRuntime {
 
     private:
         TMap<TRepresentationType, TString> Names;
-        TMap<TString, TRepresentationType> Values;
+        TMap<TStringBuf, TRepresentationType> Values;
         TString AllNames;
         TVector<TString> AllCppNames;
         TString ClassName;

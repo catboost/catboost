@@ -1075,7 +1075,6 @@ migrations:
     - voicetech/infra/uniproxy/tests/session
     - voicetech/infra/voice_ext_mon/bin
     - voicetech/spotter/selection_for_annotation/bin
-    - voicetech/spotter/train/lib
     - weather/workers/warnings/push
     - yabs/analytics/anomaly_analyzer/src
     - yabs/analytics/new_traffic_generation/src
@@ -2731,8 +2730,6 @@ migrations:
     - yt/admin/acl_dumper/src
     - yt/admin/brahmagupta/src/brahmagupta_api
     - yt/admin/core
-    - yt/admin/perf_scraper/src
-    - yt/admin/perf_scraper/vendor/supervise
     - yt/admin/shiva/services
     - yt/admin/ytcfgen/vendor/pyinotify/python2
     - yt/cron/balance_bundles
@@ -3268,7 +3265,6 @@ migrations:
     - yql/tests/jdbc
     - yql/tests/multi_process
     - yt/admin/drive_monitor/tests/unit
-    - yt/admin/perf_scraper/tests
     - yt/odin/tests/suites
     - yweb/antimalware/libs/yttools/py/tests
     - yweb/antiporno/pyutil/draft/simple_yt/tests
