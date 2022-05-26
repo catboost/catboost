@@ -920,6 +920,9 @@ ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driv
 ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/inmemory
 ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driver/testsuites
 
+# CONTRIB-2578 JSONRPC client
+ALLOW .* -> vendor/github.com/ybbus/jsonrpc/v3
+
 #
 # Tools
 #
