@@ -1,0 +1,41 @@
+
+# This file was gererated by the build system used internally in the Yandex monorepo.
+# Only simple modifications are allowed (adding source-files to targets, adding simple properties
+# like target_include_directories). These modifications will be ported to original
+# ya.make files by maintainers. Any complex modifications which can't be ported back to the
+# original buildsystem will not be accepted.
+
+
+
+add_library(random-internal-pool_urbg)
+target_compile_options(random-internal-pool_urbg PRIVATE
+  -DNOMINMAX
+)
+target_include_directories(random-internal-pool_urbg PUBLIC
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+target_include_directories(random-internal-pool_urbg PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+target_link_libraries(random-internal-pool_urbg PUBLIC
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  base-internal-raw_logging
+  base-internal-spinlock_wait
+  base-internal-throw_delegate
+  absl-base-log_severity
+  abseil-cpp-absl-numeric
+  random-internal-randen
+  random-internal-randen_detect
+  random-internal-randen_hwaes
+  random-internal-randen_round_keys
+  random-internal-randen_slow
+  random-internal-seed_material
+  absl-random-seed_gen_exception
+  abseil-cpp-absl-strings
+  strings-internal-absl_strings_internal
+  absl-types-bad_optional_access
+)
+target_sources(random-internal-pool_urbg PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/random/internal/pool_urbg.cc
+)
