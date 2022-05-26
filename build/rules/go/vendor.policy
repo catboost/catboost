@@ -173,6 +173,9 @@ ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/journal
 # systemd dbus
 ALLOW .* -> vendor/github.com/coreos/go-systemd/v22/dbus
 
+# CONTRIB-2577
+ALLOW .* -> vendor/github.com/coreos/go-systemd/daemon
+
 # mocking for database/sql
 ALLOW .* -> vendor/github.com/DATA-DOG/go-sqlmock
 

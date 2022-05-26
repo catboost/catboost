@@ -1426,7 +1426,6 @@ callab/delta
 devtools/cache_test_trigger
 haas/eine/eine-firmware
 adv/pcode/mobileadssdk/sdk/unity/plugin-internal
-samsara/samsara
 pay/pay-frontend
 mail/maillists
 mail/dkim-export
@@ -1434,3 +1433,4 @@ noc/packages/mondata/utils
 mail/fetches
 haas/trash/bot/tel
 taxi/mobile_qa_test_app
+classifieds/reviews
