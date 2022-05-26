@@ -1570,6 +1570,24 @@ public:
         return rep.insert_unique(obj);
     }
 
+    template <class M>
+    std::pair<iterator, bool> insert_or_assign(const Key& k, M&& value) {
+        auto result = try_emplace(k, std::forward<M>(value));
+        if (!result.second) {
+            result.first->second = std::forward<M>(value);
+        }
+        return result;
+    }
+
+    template <class M>
+    std::pair<iterator, bool> insert_or_assign(Key&& k, M&& value) {
+        auto result = try_emplace(std::move(k), std::forward<M>(value));
+        if (!result.second) {
+            result.first->second = std::forward<M>(value);
+        }
+        return result;
+    }
+
     template <typename... Args>
     std::pair<iterator, bool> emplace(Args&&... args) {
         return rep.emplace_unique(std::forward<Args>(args)...);

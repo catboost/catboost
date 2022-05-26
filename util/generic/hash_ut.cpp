@@ -42,6 +42,7 @@ class THashTest: public TTestBase {
     UNIT_TEST(TestEmplaceDirect);
     UNIT_TEST(TestTryEmplace);
     UNIT_TEST(TestTryEmplaceCopyKey);
+    UNIT_TEST(TestInsertOrAssign);
     UNIT_TEST(TestHMMapEmplace);
     UNIT_TEST(TestHMMapEmplaceNoresize);
     UNIT_TEST(TestHMMapEmplaceDirect);
@@ -94,6 +95,7 @@ protected:
     void TestEmplaceDirect();
     void TestTryEmplace();
     void TestTryEmplaceCopyKey();
+    void TestInsertOrAssign();
     void TestHSetEmplace();
     void TestHSetEmplaceNoresize();
     void TestHSetEmplaceDirect();
@@ -979,6 +981,57 @@ void THashTest::TestTryEmplaceCopyKey() {
         auto r = hash.try_emplace(key, 2);
         UNIT_ASSERT(!r.second);
         UNIT_ASSERT_VALUES_EQUAL(1, counter);
+    }
+}
+
+void THashTest::TestInsertOrAssign() {
+    static int constructorCounter = 0;
+    static int assignmentCounter = 0;
+
+    struct TCountConstruct {
+        explicit TCountConstruct(int v)
+            : Value(v)
+        {
+            ++constructorCounter;
+        }
+
+        TCountConstruct& operator=(int v) {
+            Value = v;
+            ++assignmentCounter;
+            return *this;
+        }
+
+        TCountConstruct(const TCountConstruct&) = delete;
+        int Value;
+    };
+
+    THashMap<int, TCountConstruct> hash;
+    {
+        auto r = hash.insert_or_assign(TNonCopyableInt<4>(4), 1);
+        UNIT_ASSERT(r.second);
+        UNIT_ASSERT_VALUES_EQUAL(1, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(1, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(0, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(1, r.first->second.Value);
+    }
+    {
+        auto r = hash.insert_or_assign(TNonCopyableInt<4>(4), 5);
+        UNIT_ASSERT(!r.second);
+        UNIT_ASSERT_VALUES_EQUAL(1, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(1, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(1, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(5, r.first->second.Value);
+    }
+    {
+        constexpr int iterations = 200;
+        for (int iteration = 0; iteration < iterations; ++iteration) {
+            hash.insert_or_assign(iteration, iteration);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(iterations, hash.size());
+        UNIT_ASSERT_VALUES_EQUAL(iterations, constructorCounter);
+        UNIT_ASSERT_VALUES_EQUAL(2, assignmentCounter);
+        UNIT_ASSERT_VALUES_EQUAL(4, hash.at(4).Value);
+        UNIT_ASSERT_VALUES_EQUAL(44, hash.at(44).Value);
     }
 }
 
