@@ -199,7 +199,6 @@ SRCS(
     src/exception.cpp
     src/filesystem/directory_iterator.cpp
     src/filesystem/operations.cpp
-    src/format.cpp
     src/functional.cpp
     src/future.cpp
     src/hash.cpp
@@ -230,6 +229,14 @@ SRCS(
     src/variant.cpp
     src/vector.cpp
 )
+
+IF (NOT GCC)
+    # compiling src/format.cpp requires -std=c++20,
+    # yet our GCC version it too auld for this.
+    SRCS(
+        src/format.cpp
+    )
+ENDIF()
 
 IF (NOT OS_WINDOWS)
     SRCS(

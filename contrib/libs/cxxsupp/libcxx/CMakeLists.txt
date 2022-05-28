@@ -43,7 +43,6 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/exception.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/directory_iterator.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/filesystem/operations.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/format.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/functional.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/future.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/hash.cpp
@@ -73,5 +72,6 @@ target_sources(libs-cxxsupp-libcxx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/valarray.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/variant.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/vector.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/format.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxx/src/new.cpp
 )
