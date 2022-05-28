@@ -1,5 +1,5 @@
 function(add_fat_object Target)
-  add_executable(${Target})
+  add_executable(${Target} EXCLUDE_FROM_ALL)
   set_property(TARGET ${Target} PROPERTY EchoString "Partial linking ${FAT_OBJECT_PREFIX}${Target}${FAT_OBJECT_SUFFIX}")
   set_property(TARGET ${Target} PROPERTY SUFFIX ${FAT_OBJECT_SUFFIX})
   set_property(TARGET ${Target} PROPERTY PREFIX ${FAT_OBJECT_PREFIX})
