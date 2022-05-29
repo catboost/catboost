@@ -141,6 +141,12 @@ namespace NCB {
         out << --indent << ")" << '\n';
     };
 
+    void TCatboostModelToPythonConverter::WriteHeader(bool nanModeMax) {
+        if (nanModeMax) {
+           Out << "import math" << '\n';
+        }
+        Out << '\n';
+    }
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");
@@ -152,6 +158,7 @@ namespace NCB {
 
         TIndent indent(0);
         TSequenceCommaSeparator comma;
+        Out << indent << "import math" << '\n';
         Out << indent << "###  Model data" << '\n';
 
         Out << indent++ << "class catboost_model(object):" << '\n';
@@ -248,8 +255,13 @@ namespace NCB {
         Out << '\n';
     };
 
-    void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {
-        Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
+    void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures(bool nanModeMax) {
+        if (nanModeMax){
+            Out << NResource::Find("catboost_model_export_python_nan_max_model_applicator") << '\n';
+        }
+        else{
+            Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
+        }
     };
 
 }

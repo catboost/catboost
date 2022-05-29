@@ -20,7 +20,7 @@ namespace NCB {
      * Tiny code for case when cat features not present
      */
 
-    void TCatboostModelToCppConverter::WriteApplicator() {
+    void TCatboostModelToCppConverter::WriteApplicator(bool nanModeMax) {
         Out << "/* Model applicator */" << '\n';
         Out << "double ApplyCatboostModel(" << '\n';
         Out << "    const std::vector<float>& features" << '\n';
@@ -32,7 +32,12 @@ namespace NCB {
         Out << "    unsigned int binFeatureIndex = 0;" << '\n';
         Out << "    for (unsigned int i = 0; i < model.FloatFeatureCount; ++i) {" << '\n';
         Out << "        for(unsigned int j = 0; j < model.BorderCounts[i]; ++j) {" << '\n';
-        Out << "            binaryFeatures[binFeatureIndex] = (unsigned char)(features[i] > model.Borders[binFeatureIndex]);" << '\n';
+        if (nanModeMax){
+            Out << "            binaryFeatures[binFeatureIndex] = (unsigned char)((features[i] > model.Borders[binFeatureIndex]) || std::isnan(features[i]));" << '\n';
+        }
+        else{
+            Out << "            binaryFeatures[binFeatureIndex] = (unsigned char)(features[i] > model.Borders[binFeatureIndex]);" << '\n';
+        }
         Out << "            ++binFeatureIndex;" << '\n';
         Out << "        }" << '\n';
         Out << "    }" << '\n';
@@ -93,9 +98,12 @@ namespace NCB {
         Out << '\n';
     }
 
-    void TCatboostModelToCppConverter::WriteHeader(bool forCatFeatures) {
+    void TCatboostModelToCppConverter::WriteHeader(bool forCatFeatures, bool nanModeMax) {
         if (forCatFeatures) {
            Out << "#include <cassert>" << '\n';
+        }
+        if (nanModeMax){
+            Out << "#include <cmath>" << '\n';
         }
         Out << "#include <string>" << '\n';
         Out << "#include <vector>" << '\n';
@@ -328,9 +336,14 @@ namespace NCB {
         Out << '\n';
     }
 
-    void TCatboostModelToCppConverter::WriteApplicatorCatFeatures() {
+    void TCatboostModelToCppConverter::WriteApplicatorCatFeatures(bool nanModeMax) {
         Out << NResource::Find("catboost_model_export_cpp_ctr_calcer");
         Out << '\n';
-        Out << NResource::Find("catboost_model_export_cpp_model_applicator");
+        if (nanModeMax){
+            Out << NResource::Find("catboost_model_export_cpp_nan_max_model_applicator");
+        }
+        else{
+            Out << NResource::Find("catboost_model_export_cpp_model_applicator");
+        }
     }
 }
