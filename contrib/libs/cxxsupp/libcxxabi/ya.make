@@ -20,7 +20,7 @@ ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/c1a14a5c3e6fef181f9
 ADDINCL(
     contrib/libs/cxxsupp/libcxxabi/include
     contrib/libs/cxxsupp/libcxx/include
-    contrib/libs/cxxsupp/libcxx
+    contrib/libs/cxxsupp/libcxx/src
 )
 
 NO_COMPILER_WARNINGS()

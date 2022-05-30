@@ -126,7 +126,7 @@ IF (CXX_RT == "libcxxrt")
         contrib/libs/cxxsupp/builtins
     )
     ADDINCL(
-        contrib/libs/cxxsupp/libcxxrt
+        GLOBAL contrib/libs/cxxsupp/libcxxrt/include
     )
     CFLAGS(
         GLOBAL -DLIBCXX_BUILDING_LIBCXXRT
@@ -167,7 +167,14 @@ IF (NEED_GLIBCXX_CXX17_SHIMS)
     IF (GCC)
         # Assume GCC is bundled with a modern enough version of C++ runtime
     ELSEIF (OS_SDK == "ubuntu-12" OR OS_SDK == "ubuntu-14" OR OS_SDK == "ubuntu-16")
+        # FIXME:
+        # This looks extremely weird and we have to use cxxabi.h from libsupc++ instead.
+        # This ADDINCL is placed here just to fix the status quo
+        ADDINCL(
+            GLOBAL contrib/libs/cxxsupp/libcxxrt/include
+        )
         # Prior to ubuntu-18, system C++ runtime for C++17 is incomplete
+        # and requires std::uncaught_exceptions() to be implemented.
         SRCS(
             glibcxx_eh_cxx17.cpp
         )
