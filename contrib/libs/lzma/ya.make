@@ -2,15 +2,15 @@
 
 LIBRARY()
 
+LICENSE(Public-Domain)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 
 
 VERSION(5.2.5)
 
 ORIGINAL_SOURCE(https://tukaani.org/xz/xz-5.2.5.tar.bz2)
-
-LICENSE(Public-Domain)
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/lzma/liblzma/api

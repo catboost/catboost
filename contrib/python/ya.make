@@ -59,12 +59,6 @@ RECURSE(
     wcwidth
 )
 
-IF (OS_WINDOWS)
-    RECURSE(
-    win-unicode-console
-)
-ENDIF()
-
 IF (OS_DARWIN)
     RECURSE(
     appnope

@@ -2,18 +2,18 @@
 
 LIBRARY()
 
-
-
-VERSION(3.3)
-
-ORIGINAL_SOURCE(https://sourceware.org/pub/libffi/libffi-3.3.tar.gz)
-
 LICENSE(
     CC-PDDC AND
     MIT
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+
+
+VERSION(3.3)
+
+ORIGINAL_SOURCE(https://sourceware.org/pub/libffi/libffi-3.3.tar.gz)
 
 ADDINCL(
     contrib/restricted/libffi

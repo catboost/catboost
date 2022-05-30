@@ -2,18 +2,18 @@
 
 LIBRARY()
 
-
-
-VERSION(5.3.0)
-
-ORIGINAL_SOURCE(https://github.com/jemalloc/jemalloc/releases/download/5.3.0/jemalloc-5.3.0.tar.bz2)
-
 LICENSE(
     BSD-2-Clause AND
     Public-Domain
 )
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
+
+
+VERSION(5.3.0)
+
+ORIGINAL_SOURCE(https://github.com/jemalloc/jemalloc/releases/download/5.3.0/jemalloc-5.3.0.tar.bz2)
 
 ADDINCL(
     contrib/libs/jemalloc/include

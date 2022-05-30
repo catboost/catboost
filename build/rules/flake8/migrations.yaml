@@ -1255,7 +1255,6 @@ migrations:
     - market/mobile_validator/mt
     - market/seo/tools/postgres_local/recipe
     - market/yamarec/yamarec/yamarec1
-    - mds/nscfg/server
     - metrika/admin/python/cms/agent/lib
     - metrika/core/monitoring/clickhouse-table-structure-check
     - metrika/core/programs/mobile_yt_to_yc_export
@@ -1980,7 +1979,6 @@ migrations:
     - mds/mastermind/minion
     - mds/mastermind/monolith
     - mds/mastermind/scheduler
-    - mds/nscfg/lib
     - metrika/admin/python/cms/frontend/base
     - metrika/core/programs/mobile_startup_admin/base
     - metrika/pylib/auth
@@ -2327,8 +2325,6 @@ migrations:
     - sandbox/projects/common
     - sandbox/projects/cornholio
     - sandbox/projects/devtools/ChangesDetector
-    - sandbox/projects/direct/DirectDeploy
-    - sandbox/projects/direct/tanker_translations
     - sandbox/projects/direct_internal_analytics
     - sandbox/projects/distbuild
     - sandbox/projects/dj
@@ -2689,7 +2685,6 @@ migrations:
     - yabs/cache-proxy/plugin/proxy_b2b/templates
     - yabs/libs/ua_traits/orig/pymodules
     - yabs/qa/b2b_utils/bsserver_b2b/engine/external_logs
-    - yabs/qa/bsinfo
     - yabs/qa/oneshots/inna-kudelkina/BSDEV-75160/create_new_templates
     - yabs/qa/oneshots/inna-kudelkina/BSDEV-75160/test_681_684_697_725_json_templates
     - yabs/qa/oneshots/inna-kudelkina/BSDEV-75160/test_add_callouts_to_681_684_697_725_json_templates
