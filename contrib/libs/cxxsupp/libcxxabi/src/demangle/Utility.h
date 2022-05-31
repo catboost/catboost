@@ -6,7 +6,10 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// Provide some utility classes for use in the demangler(s).
+// Provide some utility classes for use in the demangler.
+// There are two copies of this file in the source tree.  The one in libcxxabi
+// is the original and the one in llvm is the copy.  Use cp-to-llvm.sh to update
+// the copy.  See README.txt for more details.
 //
 //===----------------------------------------------------------------------===//
 
@@ -14,10 +17,11 @@
 #define DEMANGLE_UTILITY_H
 
 #include "StringView.h"
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <iterator>
+#include <exception>
 #include <limits>
 
 DEMANGLE_NAMESPACE_BEGIN
@@ -48,8 +52,8 @@ class OutputBuffer {
       return;
     }
 
-    char Temp[21];
-    char *TempPtr = std::end(Temp);
+    std::array<char, 21> Temp;
+    char *TempPtr = Temp.data() + Temp.size();
 
     while (N) {
       *--TempPtr = char('0' + N % 10);
@@ -59,7 +63,7 @@ class OutputBuffer {
     // Add negative sign...
     if (isNeg)
       *--TempPtr = '-';
-    this->operator<<(StringView(TempPtr, std::end(Temp)));
+    this->operator<<(StringView(TempPtr, Temp.data() + Temp.size()));
   }
 
 public:
