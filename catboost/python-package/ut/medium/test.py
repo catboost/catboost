@@ -39,6 +39,7 @@ from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, selec
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
+import pandas as pd
 from pandas import read_csv, DataFrame, Series, Categorical
 from pandas.arrays import SparseArray
 import scipy.sparse
@@ -10378,3 +10379,10 @@ def test_embedding_features_data_dict_with_data_with_objects_order():
     )
 
     assert _have_equal_features(pool1, pool2)
+
+
+def test_pandas_integer_array():
+    X = DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
+    y = list(range(10))
+    cb = CatBoostRegressor(iterations=1)
+    cb.fit(X, y)
