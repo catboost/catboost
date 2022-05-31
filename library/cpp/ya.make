@@ -4,7 +4,6 @@ RECURSE(
     accurate_accumulate
     binsaver
     blockcodecs
-    blockcodecs/fuzz
     build_info
     cache
     case_insensitive_string
@@ -21,7 +20,6 @@ RECURSE(
     diff
     digest
     dns
-    dns/ut
     dot_product
     dot_product/bench
     dot_product/ut
@@ -56,18 +54,12 @@ RECURSE(
     langs
     langs/ut
     lcs
-    lcs/ut
     lfalloc
     lfalloc/dbg
     lfalloc/dbg_info
     lfalloc/yt
     linear_regression
-    linear_regression/benchmark
-    linear_regression/ut
     logger
-    logger/global
-    logger/global/ut
-    logger/ut
     malloc
     neh
     neh/asio/ut
@@ -82,10 +74,7 @@ RECURSE(
     packers/ut
     par
     pop_count
-    pop_count/benchmark
-    pop_count/ut
     resource
-    resource/ut
     sse
     statistics
     statistics/ut

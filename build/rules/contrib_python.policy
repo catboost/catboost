@@ -111,8 +111,7 @@ DENY .* -> contrib/libs/sophos
 ALLOW contrib/deprecated/python/backports.tempfile ->  contrib/deprecated/python/backports.weakref
 DENY .* ->  contrib/deprecated/python/backports.weakref
 
-ALLOW contrib/python/thrift/tests -> contrib/python/thrift
-ALLOW contrib/python/jaeger-client -> contrib/python/thrift
+ALLOW contrib/python/ -> contrib/python/thrift
 ALLOW search/mon/wabbajack/libs/generated/iss3 -> contrib/python/thrift
 ALLOW search/mon/wabbajack/libs/modlib/api_wrappers/casher -> contrib/python/thrift
 DENY .* -> contrib/python/thrift
