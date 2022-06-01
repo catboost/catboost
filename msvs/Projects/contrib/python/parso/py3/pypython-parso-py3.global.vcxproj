@@ -191,7 +191,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/parso/py3/join_cfd139150e97effe39bfc99f80.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_9893373746e78c69695b36b138.yasm;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_b19ddbd8182a05ebf0d3342d7d.yasm;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_5bc3bce02890cd9d8f9c810889.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_9893373746e78c69695b36b138.yasm;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_b19ddbd8182a05ebf0d3342d7d.yasm;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\_5bc3bce02890cd9d8f9c810889.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\parso\py3\join_cfd139150e97effe39bfc99f80.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -218,7 +218,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/parso/py3/join_5edc6d485b3e81bbb2b7c2a86d.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\9893373746e78c69695b36b138.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\b19ddbd8182a05ebf0d3342d7d.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\5bc3bce02890cd9d8f9c810889.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\9893373746e78c69695b36b138.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\b19ddbd8182a05ebf0d3342d7d.cpp;$(SolutionDir)$(Configuration)\contrib\python\parso\py3\5bc3bce02890cd9d8f9c810889.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\parso\py3\join_5edc6d485b3e81bbb2b7c2a86d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\parso\py3\parso\__init__.py">

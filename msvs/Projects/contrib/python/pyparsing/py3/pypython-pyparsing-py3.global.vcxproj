@@ -192,7 +192,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py3/join_5bf4bb0f71f58f82911b001832.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_7d6de29ecd6296ac04bae5552c.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_a827d157510a70957e6c117514.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_7d6de29ecd6296ac04bae5552c.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\_a827d157510a70957e6c117514.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\join_5bf4bb0f71f58f82911b001832.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -219,7 +219,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/py3/join_db1464714fd1bc6f00d9c7e42f.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\7d6de29ecd6296ac04bae5552c.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\a827d157510a70957e6c117514.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\7d6de29ecd6296ac04bae5552c.cpp;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\a827d157510a70957e6c117514.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\join_db1464714fd1bc6f00d9c7e42f.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\pyparsing\py3\pyparsing\__init__.py">

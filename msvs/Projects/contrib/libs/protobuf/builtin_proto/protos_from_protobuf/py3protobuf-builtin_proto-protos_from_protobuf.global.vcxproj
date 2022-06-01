@@ -522,7 +522,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_e0499cf9dafd86378d1e36d056.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\_0142ff8ebb50caa892a639ea8c.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\_5a490ce89b7b866f0893dab865.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\_0142ff8ebb50caa892a639ea8c.yasm;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\_5a490ce89b7b866f0893dab865.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\join_e0499cf9dafd86378d1e36d056.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -549,7 +549,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/protobuf/builtin_proto/protos_from_protobuf/join_2c1dc5189464f3716cd51d8efe.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\0142ff8ebb50caa892a639ea8c.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\5a490ce89b7b866f0893dab865.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\0142ff8ebb50caa892a639ea8c.cpp;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\5a490ce89b7b866f0893dab865.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\builtin_proto\protos_from_protobuf\join_2c1dc5189464f3716cd51d8efe.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\protobuf\src\google\protobuf\any.proto">

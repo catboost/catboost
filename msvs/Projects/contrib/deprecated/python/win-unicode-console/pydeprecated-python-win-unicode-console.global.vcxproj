@@ -183,7 +183,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/deprecated/python/win-unicode-console/join_7b9fae797cdab82f4723a4f4d6.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\_72a4c3d6a869e5b3dbd5c41cd8.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\_a75e252fd0c7b5e377b4ba549b.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\_72a4c3d6a869e5b3dbd5c41cd8.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\_a75e252fd0c7b5e377b4ba549b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\join_7b9fae797cdab82f4723a4f4d6.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -210,7 +210,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/deprecated/python/win-unicode-console/join_ff438537a4ce4808ce3c68b3d6.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\72a4c3d6a869e5b3dbd5c41cd8.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\a75e252fd0c7b5e377b4ba549b.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\72a4c3d6a869e5b3dbd5c41cd8.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\a75e252fd0c7b5e377b4ba549b.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console\join_ff438537a4ce4808ce3c68b3d6.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">

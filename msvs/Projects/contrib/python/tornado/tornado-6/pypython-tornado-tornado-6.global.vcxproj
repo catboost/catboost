@@ -217,7 +217,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/tornado/tornado-6/join_5ca627b580192d7480fca8b6b2.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_ef57d62a586e2f2107bcffa0d2.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d84ac7688b2740d990de48911a.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3476ba246277ed417be05ca43a.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_65e7de6da86ad20a3fd29b51d9.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d2efd1bb95c6c09fbd2fa18cd3.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_ef57d62a586e2f2107bcffa0d2.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d84ac7688b2740d990de48911a.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_3476ba246277ed417be05ca43a.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_65e7de6da86ad20a3fd29b51d9.yasm;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\_d2efd1bb95c6c09fbd2fa18cd3.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\join_5ca627b580192d7480fca8b6b2.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
@@ -244,7 +244,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\ef57d62a586e2f2107bcffa0d2.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d84ac7688b2740d990de48911a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\3476ba246277ed417be05ca43a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\65e7de6da86ad20a3fd29b51d9.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d2efd1bb95c6c09fbd2fa18cd3.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\ef57d62a586e2f2107bcffa0d2.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d84ac7688b2740d990de48911a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\3476ba246277ed417be05ca43a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\65e7de6da86ad20a3fd29b51d9.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d2efd1bb95c6c09fbd2fa18cd3.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\join_183cc8034b744e0c3f4f3e173e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
