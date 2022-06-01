@@ -2055,7 +2055,7 @@ class LD(Linker):
         # Program
         emit(
             "GENERATE_MF_CMD",
-            '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
+            '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}', '${input;hide:"build/scripts/process_command_files.py"}',
             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
             '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
         )
@@ -2269,7 +2269,8 @@ class MSVCToolchainOptions(ToolchainOptions):
                 if not self.under_wine:
                     return _path
                 return '{wine} {type} $WINE_ENV ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(
-                    wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140',
+                    wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 ' +
+                         '${input;hide:\"build/scripts/process_command_files.py\"} ${input;hide:\"build/scripts/process_whole_archive_option.py\"}',
                     type=_type,
                     path=_path
                 )
@@ -2608,8 +2609,8 @@ class MSVCCompiler(MSVC, Compiler):
         emit('WERROR_MODE', self.tc.werror_mode)
 
         if not self.tc.under_wine:
-            emit('CL_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'cl')
-            emit('ML_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'ml')
+            emit('CL_WRAPPER', '${FIX_MSVC_OUTPUT}', 'cl')
+            emit('ML_WRAPPER', '${FIX_MSVC_OUTPUT"}', 'ml')
         else:
             emit('CL_WRAPPER')
             emit('ML_WRAPPER')
@@ -2750,8 +2751,8 @@ class MSVCLinker(MSVC, Linker):
             emit('LINK_EXTRA_OUTPUT')
 
         if not self.tc.under_wine:
-            emit('LIB_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'lib')
-            emit('LINK_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'link')
+            emit('LIB_WRAPPER', '${FIX_MSVC_OUTPUT}', 'lib')
+            emit('LINK_WRAPPER', '${FIX_MSVC_OUTPUT}', 'link')
         else:
             emit('LIB_WRAPPER')
             emit('LINK_WRAPPER')
@@ -2764,7 +2765,7 @@ class MSVCLinker(MSVC, Linker):
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
             }''')
 
-        emit("GENERATE_MF_CMD", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
+        emit("GENERATE_MF_CMD", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}', '${input;hide:"build/scripts/process_command_files.py"}',
              '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
              '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
              )
