@@ -14,3 +14,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    link_test
+)
