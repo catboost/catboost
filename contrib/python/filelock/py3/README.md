@@ -10,4 +10,4 @@ black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://gith
 [![Downloads](https://pepy.tech/badge/filelock/month)](https://pepy.tech/project/filelock/month)
 [![check](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml/badge.svg)](https://github.com/tox-dev/py-filelock/actions/workflows/check.yml)
 
-For more information checkout the [official documentation](https://py-filelock.readthedocs.io/en/latest/api.html).
+For more information checkout the [official documentation](https://py-filelock.readthedocs.io/en/latest/index.html).

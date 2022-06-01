@@ -92,6 +92,9 @@ else:
     )
 
 
+IS_PYTHONW = sys.executable and sys.executable.endswith("pythonw.exe")
+
+
 def catch_config_error(method):
     """Method decorator for catching invalid config (Trait/ArgumentErrors) during init.
 
@@ -252,11 +255,12 @@ class Application(SingletonConfigurable):
             "disable_existing_loggers": False,
         }
 
-        if sys.executable and sys.executable.endswith("pythonw.exe"):
+        if IS_PYTHONW:
             # disable logging
             # (this should really go to a file, but file-logging is only
             # hooked up in parallel applications)
-            del config["handlers"]["loggers"]
+            del config["handlers"]
+            del config["loggers"]
 
         return config
 

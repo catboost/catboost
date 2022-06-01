@@ -805,6 +805,19 @@ def test_logging_config(tmp_path, capsys):
     assert capsys.readouterr().err == "[Application] WARNING | warn\n"
 
 
+def test_get_default_logging_config_pythonw(monkeypatch):
+    """Ensure logging is correctly disabled for pythonw usage."""
+    monkeypatch.setattr("traitlets.config.application.IS_PYTHONW", True)
+    config = Application().get_default_logging_config()
+    assert "handlers" not in config
+    assert "loggers" not in config
+
+    monkeypatch.setattr("traitlets.config.application.IS_PYTHONW", False)
+    config = Application().get_default_logging_config()
+    assert "handlers" in config
+    assert "loggers" in config
+
+
 @pytest.fixture
 def caplogconfig(monkeypatch):
     """Capture logging config events for DictConfigurator objects.
@@ -827,6 +840,7 @@ def caplogconfig(monkeypatch):
     return calls
 
 
+@pytest.mark.skipif(sys.implementation.name == "pypy", reason="Test does not work on pypy")
 def test_logging_teardown_on_error(capsys, caplogconfig):
     """Ensure we don't try to open logs in order to close them (See #722).
 
