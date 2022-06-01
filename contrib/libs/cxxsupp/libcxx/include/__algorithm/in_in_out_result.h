@@ -7,8 +7,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP___ALGORITHM_IN_IN_RESULT_H
-#define _LIBCPP___ALGORITHM_IN_IN_RESULT_H
+#ifndef _LIBCPP___ALGORITHM_IN_IN_OUT_RESULT_H
+#define _LIBCPP___ALGORITHM_IN_IN_OUT_RESULT_H
 
 #include <__concepts/convertible_to.h>
 #include <__config>
@@ -24,22 +24,25 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 
 namespace ranges {
 
-template <class _I1, class _I2>
-struct in_in_result {
+template <class _I1, class _I2, class _O1>
+struct in_in_out_result {
   _LIBCPP_NO_UNIQUE_ADDRESS _I1 in1;
   _LIBCPP_NO_UNIQUE_ADDRESS _I2 in2;
+  _LIBCPP_NO_UNIQUE_ADDRESS _O1 out;
 
-  template <class _II1, class _II2>
-    requires convertible_to<const _I1&, _II1> && convertible_to<const _I2&, _II2>
-   _LIBCPP_HIDE_FROM_ABI constexpr
-   operator in_in_result<_II1, _II2>() const & {
-    return {in1, in2};
+  template <class _II1, class _II2, class _OO1>
+    requires convertible_to<const _I1&, _II1> && convertible_to<const _I2&, _II2> && convertible_to<const _O1&, _OO1>
+  _LIBCPP_HIDE_FROM_ABI constexpr
+  operator in_in_out_result<_II1, _II2, _OO1>() const& {
+    return {in1, in2, out};
   }
 
-  template <class _II1, class _II2>
-    requires convertible_to<_I1, _II1> && convertible_to<_I2, _II2>
+  template <class _II1, class _II2, class _OO1>
+    requires convertible_to<_I1, _II1> && convertible_to<_I2, _II2> && convertible_to<_O1, _OO1>
   _LIBCPP_HIDE_FROM_ABI constexpr
-  operator in_in_result<_II1, _II2>() && { return {_VSTD::move(in1), _VSTD::move(in2)}; }
+  operator in_in_out_result<_II1, _II2, _OO1>() && {
+    return {_VSTD::move(in1), _VSTD::move(in2), _VSTD::move(out)};
+  }
 };
 
 } // namespace ranges
@@ -48,4 +51,4 @@ struct in_in_result {
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP___ALGORITHM_IN_IN_RESULT_H
+#endif // _LIBCPP___ALGORITHM_IN_IN_OUT_RESULT_H

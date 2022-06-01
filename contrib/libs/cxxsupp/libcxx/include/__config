@@ -50,7 +50,7 @@
 
 #ifdef __cplusplus
 
-#define _LIBCPP_VERSION 14000
+#define _LIBCPP_VERSION 15000
 
 #ifndef _LIBCPP_ABI_VERSION
 #  define _LIBCPP_ABI_VERSION 1
@@ -141,7 +141,7 @@
 // about ABI compatibility.
 #  define _LIBCPP_ABI_NO_RANDOM_DEVICE_COMPATIBILITY_LAYOUT
 // Remove basic_string common base
-#  define _LIBCPP_ABI_NO_BASIC_STRING_BASE_CLASS
+#  define _LIBCPP_ABI_DO_NOT_EXPORT_BASIC_STRING_COMMON
 #elif _LIBCPP_ABI_VERSION == 1
 #  if !defined(_LIBCPP_OBJECT_FORMAT_COFF)
 // Enable compiling copies of now inline methods into the dylib to support
@@ -870,10 +870,10 @@ typedef __char32_t char32_t;
 // Inline namespaces are available in Clang/GCC/MSVC regardless of C++ dialect.
 #define _LIBCPP_BEGIN_NAMESPACE_STD namespace std { inline namespace _LIBCPP_ABI_NAMESPACE {
 #define _LIBCPP_END_NAMESPACE_STD  } }
-#define _VSTD std::_LIBCPP_ABI_NAMESPACE
+#define _VSTD std
 _LIBCPP_BEGIN_NAMESPACE_STD _LIBCPP_END_NAMESPACE_STD
 
-#if _LIBCPP_STD_VER >= 17
+#if _LIBCPP_STD_VER > 14
 #define _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM \
   _LIBCPP_BEGIN_NAMESPACE_STD inline namespace __fs { namespace filesystem {
 #else
@@ -924,12 +924,8 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_CONSTEVAL consteval
 #endif
 
-#if !defined(__cpp_concepts) || __cpp_concepts < 201907L
+#if _LIBCPP_STD_VER <= 17 || !defined(__cpp_concepts) || __cpp_concepts < 201907L
 #define _LIBCPP_HAS_NO_CONCEPTS
-#endif
-
-#if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_HAS_NO_CONCEPTS)
-#define _LIBCPP_HAS_NO_RANGES
 #endif
 
 #ifdef __GNUC__
