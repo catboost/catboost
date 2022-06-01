@@ -7,3 +7,8 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    fuzz
+    ut
+)

@@ -66,12 +66,10 @@ RECURSE(
     neh/ut
     netliba
     object_factory
-    object_factory/ut
     on_disk
     online_hnsw
     openssl
     packers
-    packers/ut
     par
     pop_count
     resource
