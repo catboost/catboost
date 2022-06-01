@@ -78,8 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\dispatch_methods.cpp"/>
     <ClCompile Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\enum_runtime.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\ordered_pairs.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\dispatch_methods.h"/>
     <ClInclude Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\enum_runtime.h"/>
+    <ClInclude Include="$(SolutionDir)..\tools\enum_parser\enum_serialization_runtime\ordered_pairs.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
