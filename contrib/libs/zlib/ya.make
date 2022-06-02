@@ -2,6 +2,10 @@
 
 LIBRARY()
 
+LICENSE(Zlib)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 
 
 VERSION(1.2.12)
@@ -16,10 +20,6 @@ OPENSOURCE_EXPORT_REPLACEMENT(
     CONAN
     zlib/1.2.12
 )
-
-LICENSE(Zlib)
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/zlib/include

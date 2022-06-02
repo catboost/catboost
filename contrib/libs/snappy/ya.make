@@ -2,15 +2,15 @@
 
 LIBRARY()
 
+LICENSE(BSD-3-Clause)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 
 
 VERSION(1.1.9)
 
 ORIGINAL_SOURCE(https://github.com/google/snappy/archive/1.1.9.tar.gz)
-
-LICENSE(BSD-3-Clause)
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/libs/snappy/include
