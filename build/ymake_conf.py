@@ -3088,6 +3088,9 @@ class Cuda(object):
             return False
         if self.build.is_sanitized:
             return False
+        if self.build.host_target[1].is_macos_x86_64 or self.build.host_target[1].is_macos_arm64:
+            # DEVTOOLSSUPPORT-19178 CUDA is rarely needed on Mac. Disable it by default but allow explicit builds with CUDA.
+            return False
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
 
     def auto_cuda_version(self):
