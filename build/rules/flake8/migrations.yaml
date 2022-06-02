@@ -381,11 +381,7 @@ migrations:
     - maps/pylibs/monitoring/tests
     - maps/renderer/tilesgen/tools/lib
     - maps/renderer/tools/download_release
-    - maps/routing/router/regression/gen-stopwatch-ammo
-    - maps/routing/router/scripts/gen-ammo
     - maps/routing/versus/lib
-    - maps/tools/matcher_quality/routes_to_geoms
-    - maps/tools/package_releaser/lib
     - maps/tools/tanker-build/translate_messages
     - maps/wikimap/mapspro/libs/python/pymod
     - maps/wikimap/mapspro/libs/python/pymod/yandex/maps/wiki
@@ -924,7 +920,6 @@ migrations:
     - infra/host-cpu-metrics/host_metrics
     - infra/porto/api_py
     - infra/qyp/vmproxy/tests
-    - infra/shawshank/tests
     - infra/skybit
     - infra/skybit/src
     - infra/yp_dns/tools/handle_duplicate_records/lib
@@ -950,7 +945,6 @@ migrations:
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/sedem/cli/tests/release
     - maps/infra/sedem/cli/tests/release/utils
-    - maps/tools/matcher_quality/routes_to_geoms
     - maps_adv/common/shared_mock/tests
     - market/mobile_validator/mt/env
     - market/sre/services/cema-proxy/lib
@@ -991,7 +985,6 @@ migrations:
     - quality/functionality/chats/feedback/src/feedback/api
     - quality/functionality/chats/feedback/src/feedback/api/v1
     - quality/functionality/rtx/server/plugin
-    - quality/functionality/snippets/rkn_filter
     - quality/functionality/turbo/analytics/quality/cms_report
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
     - quality/functionality/turbo/autoparser/flags_postprocess/tests/medium
@@ -1404,7 +1397,6 @@ migrations:
     - yabs/sbyt/ytstatcollector/advmachine/tests
     - yabs/server/cs/test/cs_import/yt_banner_with_history
     - yabs/server/libs/py_db_cluster
-    - yabs/server/test/ft/BSSERVER-13878
     - yabs/server/test/ft/BSSERVER-14107
     - yabs/server/test/ft/BSSERVER-14309
     - yabs/server/test/ft/BSSERVER-2495
@@ -2525,8 +2517,6 @@ migrations:
     - search/resonance/tester/tools/viewer
     - search/sawmill/services
     - search/sawmill/sqla/sawmill
-    - search/stoker/services
-    - search/stoker/sqla/stoker
     - search/tools/devops/apphost/find_bad_backends
     - search/tools/devops/libs
     - search/tools/devops/overcommit
@@ -2724,7 +2714,6 @@ migrations:
     - yql/tools/yqltornado
     - yt/admin/acl_dumper/src
     - yt/admin/brahmagupta/src/brahmagupta_api
-    - yt/admin/core
     - yt/admin/shiva/services
     - yt/admin/ytcfgen/vendor/pyinotify/python2
     - yt/cron/balance_bundles
@@ -2866,8 +2855,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/test_pt/functional_skiff
     - ads/libs/py_matrixnet/ut
     - ads/libs/py_ml_factors/fat/test_mappers
-    - ads/libs/py_ml_factors/fat/test_preprocessors_first_batch
-    - ads/libs/py_ml_factors/fat/test_preprocessors_second_batch
     - ads/libs/py_vw_lib/ut
     - ads/libs/test_yt/example/run
     - ads/libs/yql/ft
@@ -3007,7 +2994,6 @@ migrations:
     - mail/xiva/mobile/tests-system
     - mapreduce/library/native2streaming/tests/tests
     - mapreduce/yt/tests
-    - maps/fastcgi/meta/bin/tests
     - maps/libs/tile/pymod-tests
     - maps/wikimap/mapspro/tools/topology_fixer/tests
     - market/contrib/python/BitTorrent

@@ -135,7 +135,7 @@ function(use_export_script Target ExportFile)
     set(EXPORT_SCRIPT_FLAVOR msvc)
   elseif(APPLE)
     execute_process(
-      COMMAND Python3_EXECUTABLE ${CMAKE_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} --format darwin
+      COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/build/scripts/export_script_gen.py ${ExportFile} - --format darwin
       RESULT_VARIABLE _SCRIPT_RES
       OUTPUT_VARIABLE _SCRIPT_FLAGS
       ERROR_VARIABLE _SCRIPT_STDERR
