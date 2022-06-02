@@ -132,6 +132,7 @@ JOIN_SRCS(
     generic/typetraits.cpp
     generic/utility.cpp
     generic/va_args.cpp
+    generic/variant.cpp
     generic/vector.cpp
     generic/xrange.cpp
     generic/yexception.cpp
