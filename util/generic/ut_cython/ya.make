@@ -12,6 +12,7 @@ PY_SRCS(
     hash_set_ut.pyx
     hash_ut.pyx
     list_ut.pyx
+    map_ut.pyx
     maybe_ut.pyx
     ptr_ut.pyx
     string_ut.pyx
