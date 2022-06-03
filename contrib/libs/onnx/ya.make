@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(2022-02-08)
+VERSION(1.11.0)
 
-ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/5cf5feef5ec3fd5527b2fdb6c29780e3b705059f.tar.gz)
+ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.11.0.tar.gz)
 
 LICENSE(
     Apache-2.0 AND
@@ -82,3 +82,8 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    proto
+    python
+)
