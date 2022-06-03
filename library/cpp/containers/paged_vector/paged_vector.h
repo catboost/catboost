@@ -256,7 +256,7 @@ namespace NPagedVector {
         }
 
         bool empty() const {
-            return TPages::empty() || 1 == NPages() && CurrentPage().empty();
+            return TPages::empty() || (1 == NPages() && CurrentPage().empty());
         }
 
         explicit operator bool() const noexcept {
