@@ -1449,3 +1449,4 @@ data-ui/wf-core
 classifieds/autoru-api
 noc/mondata/temp
 data-ui/yt-cluster-config
+noc/mondata/discovery
