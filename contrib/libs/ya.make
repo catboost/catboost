@@ -30,6 +30,8 @@ RECURSE(
     nayuki_md5
     nvidia
     onnx
+    onnx/proto
+    onnx/python
     openssl
     protobuf
     protobuf/python

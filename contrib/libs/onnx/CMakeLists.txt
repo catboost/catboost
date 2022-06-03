@@ -13,22 +13,16 @@ target_compile_options(contrib-libs-onnx PUBLIC
   -DONNX_NAMESPACE=onnx
 )
 target_include_directories(contrib-libs-onnx PUBLIC
-  ${CMAKE_BINARY_DIR}/contrib/libs/onnx
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
 )
 target_include_directories(contrib-libs-onnx PRIVATE
-  ${CMAKE_BINARY_DIR}/contrib/libs/onnx
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
 )
 target_link_libraries(contrib-libs-onnx PUBLIC
   contrib-libs-cxxsupp
   yutil
+  libs-onnx-proto
   contrib-libs-protobuf
-)
-target_proto_messages(contrib-libs-onnx PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx-data.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx-ml.proto
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnx-operators-ml.proto
 )
 target_sources(contrib-libs-onnx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/checker.cc
@@ -77,18 +71,4 @@ target_sources(contrib-libs-onnx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/shape_inference/implementation.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/convert.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/helper.cc
-)
-target_proto_addincls(contrib-libs-onnx
-  ./contrib/libs/onnx
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_proto_outs(contrib-libs-onnx
-  --cpp_out=${CMAKE_BINARY_DIR}/contrib/libs/onnx
-  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/contrib/libs/onnx
 )

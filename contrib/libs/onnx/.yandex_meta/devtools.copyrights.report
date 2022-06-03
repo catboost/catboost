@@ -41,4 +41,4 @@ BELONGS ya.make
     Files with this license:
         onnx/common/path.cc [5:6]
         onnx/common/path.h [5:6]
-        onnx/onnx-operators-ml.proto [6:7]
+        onnx/onnx_operators_ml.proto [6:7]
