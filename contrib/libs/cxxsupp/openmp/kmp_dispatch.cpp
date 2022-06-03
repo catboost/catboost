@@ -72,8 +72,8 @@ void __kmp_dispatch_dxo_error(int *gtid_ref, int *cid_ref, ident_t *loc_ref) {
 static inline int __kmp_get_monotonicity(ident_t *loc, enum sched_type schedule,
                                          bool use_hier = false) {
   // Pick up the nonmonotonic/monotonic bits from the scheduling type
-  // TODO: make nonmonotonic when static_steal is fixed
-  int monotonicity = SCHEDULE_MONOTONIC;
+  // Nonmonotonic as default for dynamic schedule when no modifier is specified
+  int monotonicity = SCHEDULE_NONMONOTONIC;
 
   // Let default be monotonic for executables
   // compiled with OpenMP* 4.5 or less compilers
@@ -561,6 +561,7 @@ void __kmp_dispatch_init_algorithm(ident_t *loc, int gtid,
         _control87(_PC_64, _MCW_PC); // 0,0x30000
 #endif
         /* value used for comparison in solver for cross-over point */
+        KMP_ASSERT(tc > 0);
         long double target = ((long double)chunk * 2 + 1) * nproc / tc;
 
         /* crossover point--chunk indexes equal to or greater than
@@ -668,6 +669,8 @@ void __kmp_dispatch_init_algorithm(ident_t *loc, int gtid,
   case kmp_sch_static_chunked:
   case kmp_sch_dynamic_chunked:
   dynamic_init:
+    if (tc == 0)
+      break;
     if (pr->u.p.parm1 <= 0)
       pr->u.p.parm1 = KMP_DEFAULT_CHUNK;
     else if (pr->u.p.parm1 > tc)
@@ -1713,7 +1716,7 @@ int __kmp_dispatch_next_algorithm(int gtid,
         status = 0; // nothing to do, don't try atomic op
         break;
       }
-      KMP_DEBUG_ASSERT(init % chunk == 0);
+      KMP_DEBUG_ASSERT(chunk && init % chunk == 0);
       // compare with K*nproc*(chunk+1), K=2 by default
       if ((T)remaining < pr->u.p.parm2) {
         // use dynamic-style schedule
@@ -2652,9 +2655,11 @@ __kmp_wait_4(volatile kmp_uint32 *spinner, kmp_uint32 checker,
   kmp_uint32 spins;
   kmp_uint32 (*f)(kmp_uint32, kmp_uint32) = pred;
   kmp_uint32 r;
+  kmp_uint64 time;
 
   KMP_FSYNC_SPIN_INIT(obj, CCAST(kmp_uint32 *, spin));
   KMP_INIT_YIELD(spins);
+  KMP_INIT_BACKOFF(time);
   // main wait spin loop
   while (!f(r = TCR_4(*spin), check)) {
     KMP_FSYNC_SPIN_PREPARE(obj);
@@ -2662,7 +2667,7 @@ __kmp_wait_4(volatile kmp_uint32 *spinner, kmp_uint32 checker,
        split. It causes problems with infinite recursion because of exit lock */
     /* if ( TCR_4(__kmp_global.g.g_done) && __kmp_global.g.g_abort)
         __kmp_abort_thread(); */
-    KMP_YIELD_OVERSUB_ELSE_SPIN(spins);
+    KMP_YIELD_OVERSUB_ELSE_SPIN(spins, time);
   }
   KMP_FSYNC_SPIN_ACQUIRED(obj);
   return r;
@@ -2677,15 +2682,17 @@ void __kmp_wait_4_ptr(void *spinner, kmp_uint32 checker,
   kmp_uint32 check = checker;
   kmp_uint32 spins;
   kmp_uint32 (*f)(void *, kmp_uint32) = pred;
+  kmp_uint64 time;
 
   KMP_FSYNC_SPIN_INIT(obj, spin);
   KMP_INIT_YIELD(spins);
+  KMP_INIT_BACKOFF(time);
   // main wait spin loop
   while (!f(spin, check)) {
     KMP_FSYNC_SPIN_PREPARE(obj);
     /* if we have waited a bit, or are noversubscribed, yield */
     /* pause is in the following code */
-    KMP_YIELD_OVERSUB_ELSE_SPIN(spins);
+    KMP_YIELD_OVERSUB_ELSE_SPIN(spins, time);
   }
   KMP_FSYNC_SPIN_ACQUIRED(obj);
 }

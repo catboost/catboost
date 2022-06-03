@@ -223,6 +223,7 @@ __kmp_i18n_default_messages[] =
         "%1$s value \"%2$u\" will be used.",
         "%1$s value \"%2$s\" will be used.",
         "%1$s value \"%2$s\" will be used.",
+        "Mixing other barrier patterns with dist is prohibited. Using dist for all barrier patterns.",
         "%1$s maximum value \"%2$d\" will be used.",
         "%1$s minimum value \"%2$d\" will be used.",
         "Memory allocation failed.",
@@ -307,6 +308,8 @@ __kmp_i18n_default_messages[] =
         "Allocator %1$s is not available, will use default allocator.",
         "%1$s: %2$s (%3$d total cores)",
         "%1$s: granularity setting: %2$s does not exist in topology.  Using granularity=%3$s instead.",
+        "%1$s: hybrid core type detected: %2$d %3$s cores.",
+        "%1$s:   %2$d with core efficiency %3$d.",
         "%1$s must be bound to a work-sharing or work-queuing construct with an \"ordered\" clause",
         "Detected end of %1$s without first executing a corresponding beginning.",
         "Iteration range too large in %1$s.",
@@ -402,6 +405,15 @@ __kmp_i18n_default_messages[] =
         "KMP_HW_SUBSET ignored: %1$s, %2$s: layers are equivalent, please only specify one.",
         "KMP_HW_SUBSET ignored: %1$s layer should come after %2$s.",
         "%1$s: topology layer \"%2$s\" is equivalent to \"%3$s\".",
+        "%1$s: granularity=%2$s is too coarse, setting granularity=group.",
+        "%1$s: \"%2$s\" value is deprecated. Please use \"%3$s\" instead.",
+        "num_teams value must be positive, it is %1$d, using %2$d instead.",
+        "KMP_HW_SUBSET ignored: %1$s, %2$s: attributes are ambiguous, please only specify one.",
+        "KMP_HW_SUBSET ignored: %1$s: attribute specified more than once.",
+        "KMP_HW_SUBSET ignored: %1$s: attribute value %2$s is invalid.",
+        "KMP_HW_SUBSET ignored: all hardware resources would be filtered, please reduce the filter.",
+        "KMP_HW_SUBSET ignored: Too many attributes specified. This machine is not a hybrid architecutre.",
+        "KMP_HW_SUBSET: ignoring %1$s attribute. This machine is not a hybrid architecutre.",
         NULL
     };
 
@@ -437,6 +449,7 @@ __kmp_i18n_default_hints[] =
         "System error #193 is \"Bad format of EXE or DLL file\". Usually it means the file is found, but it is corrupted or a file for another architecture. Check whether \"%1$s\" is a file for %2$s architecture.",
         "System-related limit on the number of threads.",
         "Try setting new bounds (preferably less than or equal to %1$d) for num_teams clause.",
+        "Valid values are from %1$d to %2$d.",
         NULL
     };
 
@@ -453,8 +466,8 @@ __kmp_i18n_sections[] =
         { 5, __kmp_i18n_default_meta },
         { 79, __kmp_i18n_default_strings },
         { 6, __kmp_i18n_default_formats },
-        { 286, __kmp_i18n_default_messages },
-        { 28, __kmp_i18n_default_hints },
+        { 298, __kmp_i18n_default_messages },
+        { 29, __kmp_i18n_default_hints },
         { 0, NULL }
     };
 
