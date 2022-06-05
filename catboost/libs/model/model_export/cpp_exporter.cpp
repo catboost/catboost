@@ -116,6 +116,16 @@ namespace NCB {
     /*
      * Full model code with complete support of cat features
      */
+    
+    void TCatboostModelToCppConverter::WriteBinarizer(bool nanModeMax) {
+        if (nanModeMax){
+            Out << NResource::Find("catboost_model_export_cpp_binarize_float_features_nan_mode_max");
+        }
+        else{
+            Out << NResource::Find("catboost_model_export_cpp_binarize_float_features");
+        }
+        Out << '\n';
+    }
 
     void TCatboostModelToCppConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_cpp_ctr_structs");
@@ -336,14 +346,9 @@ namespace NCB {
         Out << '\n';
     }
 
-    void TCatboostModelToCppConverter::WriteApplicatorCatFeatures(bool nanModeMax) {
+    void TCatboostModelToCppConverter::WriteApplicatorCatFeatures() {
         Out << NResource::Find("catboost_model_export_cpp_ctr_calcer");
         Out << '\n';
-        if (nanModeMax){
-            Out << NResource::Find("catboost_model_export_cpp_nan_max_model_applicator");
-        }
-        else{
-            Out << NResource::Find("catboost_model_export_cpp_model_applicator");
-        }
+        Out << NResource::Find("catboost_model_export_cpp_model_applicator");
     }
 }

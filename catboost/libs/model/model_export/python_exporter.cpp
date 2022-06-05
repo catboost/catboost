@@ -143,9 +143,17 @@ namespace NCB {
 
     void TCatboostModelToPythonConverter::WriteHeader(bool nanModeMax) {
         if (nanModeMax) {
-           Out << "import math" << '\n';
+            Out << "import math" << '\n' << '\n';
         }
-        Out << '\n';
+    }
+    
+   void TCatboostModelToPythonConverter::WriteBinarizer(bool nanModeMax) {
+        if (nanModeMax) {
+            Out << NResource::Find("catboost_model_export_python_binarize_float_features_nan_mode_max") << '\n';
+        }
+        else{
+            Out << NResource::Find("catboost_model_export_python_binarize_float_features") << '\n';
+        }
     }
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
@@ -158,7 +166,6 @@ namespace NCB {
 
         TIndent indent(0);
         TSequenceCommaSeparator comma;
-        Out << indent << "import math" << '\n';
         Out << indent << "###  Model data" << '\n';
 
         Out << indent++ << "class catboost_model(object):" << '\n';
@@ -255,13 +262,8 @@ namespace NCB {
         Out << '\n';
     };
 
-    void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures(bool nanModeMax) {
-        if (nanModeMax){
-            Out << NResource::Find("catboost_model_export_python_nan_max_model_applicator") << '\n';
-        }
-        else{
-            Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
-        }
+    void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {
+        Out << NResource::Find("catboost_model_export_python_model_applicator") << '\n';
     };
 
 }

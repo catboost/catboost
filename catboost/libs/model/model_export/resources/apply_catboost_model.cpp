@@ -17,19 +17,10 @@ double ApplyCatboostModel(
     assert(catFeatures.size() == model.CatFeatureCount);
 
     /* Binarize features */
-    std::vector<unsigned char> binaryFeatures(model.BinaryFeatureCount, 0);
-    unsigned int binFeatureIndex = 0;
-    {
-        /* Binarize float features */
-        for (size_t i = 0; i < model.FloatFeatureBorders.size(); ++i) {
-            if (!model.FloatFeatureBorders[i].empty()) {
-                for (const float border : model.FloatFeatureBorders[i]) {
-                    binaryFeatures[binFeatureIndex] += (unsigned char) (floatFeatures[i] > border);
-                }
-                ++binFeatureIndex;
-            }
-        }
-    }
+    std::vector<unsigned char>& binaryFeatures(model.BinaryFeatureCount, 0);
+    unsigned int& binFeatureIndex = 0;
+    
+    BinarizeFloatFeatures(floatFeatures, model, binaryFeatures, binFeatureIndex);
 
     std::vector<int> transposedHash(model.CatFeatureCount);
     for (size_t i = 0; i < model.CatFeatureCount; ++i) {
