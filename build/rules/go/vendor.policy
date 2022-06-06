@@ -652,9 +652,6 @@ ALLOW .* -> vendor/github.com/klauspost/compress/zstd
 # CONTRIB-1865 Decorated Syntax Tree for Go AST
 ALLOW .* -> vendor/github.com/dave/dst
 
-# CONTRIB-1874 Parse and demux MPEG Transport Streams
-ALLOW .* -> vendor/github.com/asticode/go-astits
-
 # CONTRIB-1896 Fast, portable, non-Turing complete expression evaluation with gradual typing
 ALLOW .* -> vendor/github.com/google/cel-go
 

@@ -39,4 +39,10 @@ ALLOW contrib/go/_std_1.18/src/cmd -> contrib/go/_std_1.18/src/cmd
 DENY .* -> contrib/go/_std/src/cmd
 DENY .* -> contrib/go/_std_1.18/src/cmd
 
+# STRM-5602, responsible: diman@
+ALLOW strm/media/gomsr -> contrib/go/patched/go-astits
+ALLOW contrib/go/patched/go-astits -> contrib/go/patched/go-astits
+ALLOW contrib/go/patched/go-astits -> vendor/github.com/asticode/go-astikit
+ALLOW contrib/go/patched/go-astits -> vendor/github.com/pkg/profile
+
 DENY .* -> contrib/go/patched/

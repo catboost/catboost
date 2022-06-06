@@ -38,6 +38,7 @@ ALLOW alice/tools/sessions_tool -> alice/megamind/library/session
 ALLOW alice/tools/print_megamind_session -> alice/megamind/library/session
 ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/context
 ALLOW alice/wonderlogs/daily/lib -> alice/megamind/library/handlers/utils
+ALLOW alice/wonderlogs/sdk/utils -> alice/megamind/library/response
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/frame_builder
 ALLOW dict/mt/alice/scenarios/lib -> alice/megamind/library/util
 ALLOW sandbox/projects/megamind/release_megamind_formulas -> alice/megamind/library/classifiers/formulas/protos
