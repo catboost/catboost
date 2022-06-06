@@ -214,6 +214,13 @@ object Pool {
     pool
   }
 
+  /**
+   * Returns a PoolReader that can be used to read Pool (API similar to Spark's DataFrameReader).
+   */
+  def read(spark: SparkSession) : PoolReader = {
+    new PoolReader(spark)
+  }
+
   private[spark] def setColumnParamsFromLoadedData(pool: Pool) {
     // CatBoost loaders always use standard names, column parameter name is taken by adding "Col" suffix
     for (name <- pool.data.columns) {
@@ -707,6 +714,13 @@ class Pool (
       this.partitionedByGroups
     )
     copyValues(result)
+  }
+
+  /**
+   * Interface for saving the content out into external storage (API similar to Spark's Dataset).
+   */
+  def write() : PoolWriter = {
+    new PoolWriter(this)
   }
 
 
