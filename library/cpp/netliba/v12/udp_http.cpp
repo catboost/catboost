@@ -5,7 +5,7 @@
 #include "udp_http.h"
 #include "udp_socket.h"
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/thread.h>

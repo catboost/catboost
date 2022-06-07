@@ -5,7 +5,7 @@
 #include <util/generic/vector.h>
 #include <util/network/init.h>
 #include <util/network/poller.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/byteorder.h>
 #include <util/system/defaults.h>
 #include <util/system/error.h>

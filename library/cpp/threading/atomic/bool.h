@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 
 namespace NAtomic {
     class TBool {

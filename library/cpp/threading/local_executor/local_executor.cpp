@@ -3,7 +3,7 @@
 #include <library/cpp/threading/future/future.h>
 
 #include <util/generic/utility.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/event.h>
 #include <util/system/thread.h>
 #include <util/system/tls.h>

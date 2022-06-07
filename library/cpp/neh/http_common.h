@@ -6,7 +6,7 @@
 #include <util/generic/vector.h>
 #include <util/stream/mem.h>
 #include <util/stream/output.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 
 #include "location.h"
 #include "neh.h"
