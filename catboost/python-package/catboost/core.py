@@ -221,6 +221,8 @@ class EFstrType(Enum):
     PredictionDiff = 5
     """Calculate SHAP Interaction Values pairwise between every feature for every object."""
     ShapInteractionValues = 6
+    """Calculate SAGE Values for every feature"""
+    SageValues = 7
 
 
 class EShapCalcType(Enum):
@@ -1772,8 +1774,8 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type):
-        return self._object._calc_fstr(type.name, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type)
+    def _calc_fstr(self, type, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence):
+        return self._object._calc_fstr(type.name, pool, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices, shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -2900,7 +2902,11 @@ class CatBoost(_CatBoostBase):
             return np.array(getattr(self, "_prediction_values_change", None))
 
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", model_output="Raw", interaction_indices=None, shap_calc_type="Regular", reference_data=None, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False,
+                               thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto",
+                               model_output="Raw", interaction_indices=None, shap_calc_type="Regular",
+                               reference_data=None, sage_n_samples=128, sage_batch_size=512,
+                               sage_detect_convergence=True, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Parameters
         ----------
@@ -2908,6 +2914,8 @@ class CatBoost(_CatBoostBase):
             Data to get feature importance.
             If type in ('LossFunctionChange', 'ShapValues', 'ShapInteractionValues') data must of Pool type.
                 For every object in this dataset feature importances will be calculated.
+            if type == 'SageValues' data must of Pool type.
+                For every feature in this dataset importance will be calculated.
             If type == 'PredictionValuesChange', data is None or a dataset of Pool type
                 Dataset specification is needed only in case if the model does not contain leaf weight information (trained with CatBoost v < 0.9).
             If type == 'PredictionDiff' data must contain a matrix of feature values of shape (2, n_features).
@@ -2935,9 +2943,10 @@ class CatBoost(_CatBoostBase):
                     Calculate pairwise score between every feature.
                 - PredictionDiff
                     Calculate most important features explaining difference in predictions for a pair of documents.
+                - SageValues
+                    Calculate SAGE value for every feature
 
         prettified : bool, optional (default=False)
-            used only for PredictionValuesChange type
             change returned data format to the list of (feature_id, importance) pairs sorted by importance
 
         thread_count : int, optional (default=-1)
@@ -2983,6 +2992,14 @@ class CatBoost(_CatBoostBase):
         reference_data: catboost.Pool or None
             Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
             if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
+        
+        sage_n_samples: int, optional (default=32)
+            Number of outer samples used in SAGE values approximation algorithm
+        sage_batch_size: int, optional (default=min(512, number of samples in dataset))
+            Number of samples used on each step of SAGE values approximation algorithm
+        sage_detect_convergence: bool, optional (default=False)
+            If set True, sage values calculation will be stopped either when sage values converge
+            or when sage_n_samples iterations of algorithm pass
 
         log_cout: output stream or callback for logging
 
@@ -2993,9 +3010,9 @@ class CatBoost(_CatBoostBase):
         depends on type:
             - FeatureImportance
                 See PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics.
-            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=False (default)
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff, SageValues with prettified=False (default)
                 list of length [n_features] with feature_importance values (float) for feature
-            - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
+            - PredictionValuesChange, LossFunctionChange, PredictionDiff, SageValues with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
                 np.ndarray of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
@@ -3054,8 +3071,9 @@ class CatBoost(_CatBoostBase):
         with log_fixup(log_cout, log_cerr):
             shap_calc_type = enum_from_enum_or_str(EShapCalcType, shap_calc_type).value
             fstr, feature_names = self._calc_fstr(type, data, reference_data, thread_count, verbose, model_output, shap_mode, interaction_indices,
-                                                  shap_calc_type)
-        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.PredictionDiff):
+                                                  shap_calc_type, sage_n_samples, sage_batch_size, sage_detect_convergence)
+        if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange,
+                    EFstrType.PredictionDiff, EFstrType.SageValues):
             feature_importances = [value[0] for value in fstr]
             attribute_name = None
             if type == EFstrType.PredictionValuesChange:

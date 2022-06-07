@@ -262,7 +262,8 @@ enum class EFstrType {
     InternalInteraction,
     ShapValues,
     PredictionDiff,
-    ShapInteractionValues
+    ShapInteractionValues,
+    SageValues
 };
 
 enum class EFstrCalculatedInFitType {

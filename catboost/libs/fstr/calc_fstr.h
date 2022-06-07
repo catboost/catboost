@@ -122,7 +122,10 @@ TVector<TVector<double>> GetFeatureImportances(
     EPreCalcShapValues mode,
     int logPeriod = 0,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
-    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw,
+    size_t sageNSamples = 128,
+    size_t sageBatchSize = 512,
+    bool sageDetectConvergence = true
 );
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(

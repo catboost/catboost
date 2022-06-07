@@ -8479,6 +8479,11 @@
             "uri": "file://test.test_rmse_on_qwise_pool_calc_block=60-Plain-SymmetricTree_/test.eval"
         }
     ],
+    "test.test_sage_basic": [
+        {
+            "uri": "file://test.test_sage_basic/sageval"
+        }
+    ],
     "test.test_sample_id[column_name=doc_id-loss_function=Logloss]": [
         {
             "uri": "file://test.test_sample_id_column_name=doc_id-loss_function=Logloss_/test.eval"
