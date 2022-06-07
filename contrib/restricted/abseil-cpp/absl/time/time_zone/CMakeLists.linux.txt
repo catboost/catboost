@@ -14,9 +14,6 @@ target_compile_options(absl-time-time_zone PRIVATE
 target_include_directories(absl-time-time_zone PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(absl-time-time_zone PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(absl-time-time_zone PUBLIC
   contrib-libs-cxxsupp
 )

@@ -19,9 +19,6 @@ target_compile_options(contrib-libs-tbb PRIVATE
 target_include_directories(contrib-libs-tbb PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/include
 )
-target_include_directories(contrib-libs-tbb PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/include
-)
 target_link_libraries(contrib-libs-tbb PUBLIC
   contrib-libs-cxxsupp
 )

@@ -16,9 +16,6 @@ target_compile_options(contrib-libs-protoc PRIVATE
 target_include_directories(contrib-libs-protoc PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src
 )
-target_include_directories(contrib-libs-protoc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protoc/src
-)
 target_link_libraries(contrib-libs-protoc PUBLIC
   contrib-libs-cxxsupp
   contrib-libs-protobuf

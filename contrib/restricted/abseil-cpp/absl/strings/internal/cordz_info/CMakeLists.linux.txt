@@ -14,9 +14,6 @@ target_compile_options(strings-internal-cordz_info PRIVATE
 target_include_directories(strings-internal-cordz_info PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(strings-internal-cordz_info PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(strings-internal-cordz_info PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base

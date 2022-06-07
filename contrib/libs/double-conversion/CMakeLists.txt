@@ -11,9 +11,6 @@ add_library(contrib-libs-double-conversion)
 target_include_directories(contrib-libs-double-conversion PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion
 )
-target_include_directories(contrib-libs-double-conversion PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion
-)
 target_link_libraries(contrib-libs-double-conversion PUBLIC
   contrib-libs-cxxsupp
 )

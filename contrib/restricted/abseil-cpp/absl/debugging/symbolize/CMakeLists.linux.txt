@@ -14,9 +14,6 @@ target_compile_options(absl-debugging-symbolize PRIVATE
 target_include_directories(absl-debugging-symbolize PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
-target_include_directories(absl-debugging-symbolize PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
-)
 target_link_libraries(absl-debugging-symbolize PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base

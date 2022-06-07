@@ -17,9 +17,6 @@ target_cython_sources(_catboost_no_cuda PRIVATE
 target_include_directories(_catboost_no_cuda PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/python/Include
 )
-target_include_directories(_catboost_no_cuda PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/python/Include
-)
 target_link_libraries(_catboost_no_cuda PUBLIC
   contrib-libs-cxxsupp
   yutil

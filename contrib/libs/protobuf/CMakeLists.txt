@@ -17,9 +17,6 @@ target_compile_options(contrib-libs-protobuf PRIVATE
 target_include_directories(contrib-libs-protobuf PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
 )
-target_include_directories(contrib-libs-protobuf PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
 target_link_libraries(contrib-libs-protobuf PUBLIC
   contrib-libs-cxxsupp
   yutil
@@ -116,9 +113,6 @@ target_compile_options(contrib-libs-protobuf.global PRIVATE
   -DHAVE_ZLIB=1
 )
 target_include_directories(contrib-libs-protobuf.global PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
-)
-target_include_directories(contrib-libs-protobuf.global PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
 )
 target_link_libraries(contrib-libs-protobuf.global PUBLIC
