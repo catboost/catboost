@@ -1,7 +1,0 @@
-ALLOW yt -> yt/yt/server
-
-DENY .* -> yt/yt/server
-
-ALLOW mapreduce/yt/experiments -> mapreduce/yt/experiments
-ALLOW quality/user_sessions/rt -> mapreduce/yt/experiments/roren
-DENY .* -> mapreduce/yt/experiments
