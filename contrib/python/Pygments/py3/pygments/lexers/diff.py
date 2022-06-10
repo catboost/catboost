@@ -4,7 +4,7 @@
 
     Lexers for diff/patch formats.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -109,7 +109,7 @@ class DarcsPatchLexer(RegexLexer):
 
 class WDiffLexer(RegexLexer):
     """
-    A `wdiff <https://www.gnu.org/software/wdiff/>`_ lexer.
+    A wdiff lexer.
 
     Note that:
 
@@ -121,6 +121,7 @@ class WDiffLexer(RegexLexer):
     """
 
     name = 'WDiff'
+    url = 'https://www.gnu.org/software/wdiff/'
     aliases = ['wdiff']
     filenames = ['*.wdiff']
     mimetypes = []

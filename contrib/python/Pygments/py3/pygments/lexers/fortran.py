@@ -4,7 +4,7 @@
 
     Lexers for Fortran languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -24,6 +24,7 @@ class FortranLexer(RegexLexer):
     .. versionadded:: 0.10
     """
     name = 'Fortran'
+    url = 'https://fortran-lang.org/'
     aliases = ['fortran', 'f90']
     filenames = ['*.f03', '*.f90', '*.F03', '*.F90']
     mimetypes = ['text/x-fortran']

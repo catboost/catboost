@@ -4,7 +4,7 @@
 
     Lexers for Matlab and related languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -2815,6 +2815,7 @@ class OctaveLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'Octave'
+    url = 'https://www.gnu.org/software/octave/index'
     aliases = ['octave']
     filenames = ['*.m']
     mimetypes = ['text/octave']
@@ -3232,6 +3233,7 @@ class ScilabLexer(RegexLexer):
     .. versionadded:: 1.5
     """
     name = 'Scilab'
+    url = 'https://www.scilab.org/'
     aliases = ['scilab']
     filenames = ['*.sci', '*.sce', '*.tst']
     mimetypes = ['text/scilab']

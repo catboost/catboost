@@ -927,6 +927,9 @@ ALLOW .* -> vendor/github.com/distribution/distribution/v3/registry/storage/driv
 # CONTRIB-2578 JSONRPC client
 ALLOW .* -> vendor/github.com/ybbus/jsonrpc/v3
 
+# CONTRIB-2591
+ALLOW .* -> vendor/nhooyr.io/websocket
+
 #
 # Tools
 #

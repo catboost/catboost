@@ -4,7 +4,7 @@
 
     Lexer for the `Elpi <http://github.com/LPCIC/elpi>`_ programming language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,12 +16,13 @@ __all__ = ['ElpiLexer']
 
 class ElpiLexer(RegexLexer):
     """
-    Lexer for the `Elpi <http://github.com/LPCIC/elpi>`_ programming language.
+    Lexer for the Elpi programming language.
 
     .. versionadded::2.11
     """
 
     name = 'Elpi'
+    url = 'http://github.com/LPCIC/elpi'
     aliases = ['elpi']
     filenames = ['*.elpi']
     mimetypes = ['text/x-elpi']
@@ -32,9 +33,9 @@ class ElpiLexer(RegexLexer):
     schar2_re = r"([+*^?/<>`'@#~=&!])"
     schar_re = r"({}|-|\$|_)".format(schar2_re)
     idchar_re = r"({}|{}|{}|{})".format(lcase_re,ucase_re,digit_re,schar_re)
-    idcharstarns_re = r"({}+|(?=\.[a-z])\.{}+)".format(idchar_re,idchar_re)
+    idcharstarns_re = r"({}*(\.({}|{}){}*)*)".format(idchar_re, lcase_re, ucase_re, idchar_re)
     symbchar_re = r"({}|{}|{}|{}|:)".format(lcase_re, ucase_re, digit_re, schar_re)
-    constant_re = r"({}{}*|{}{}*|{}{}*|_{}+)".format(ucase_re, idchar_re, lcase_re, idcharstarns_re,schar2_re, symbchar_re,idchar_re)
+    constant_re = r"({}{}*|{}{}|{}{}*|_{}+)".format(ucase_re, idchar_re, lcase_re, idcharstarns_re,schar2_re, symbchar_re,idchar_re)
     symbol_re=r"(,|<=>|->|:-|;|\?-|->|&|=>|\bas\b|\buvar\b|<|=<|=|==|>=|>|\bi<|\bi=<|\bi>=|\bi>|\bis\b|\br<|\br=<|\br>=|\br>|\bs<|\bs=<|\bs>=|\bs>|@|::|\[\]|`->|`:|`:=|\^|-|\+|\bi-|\bi\+|r-|r\+|/|\*|\bdiv\b|\bi\*|\bmod\b|\br\*|~|\bi~|\br~)"
     escape_re=r"\(({}|{})\)".format(constant_re,symbol_re)
     const_sym_re = r"({}|{}|{})".format(constant_re,symbol_re,escape_re)
@@ -111,6 +112,7 @@ class ElpiLexer(RegexLexer):
         ],
         'elpi-ctype': [
             (r"(ctype\s+)(\")",bygroups(Keyword.Type,String.Double),'elpi-string'),
+            (r'->',Keyword.Type),
             (constant_re,Keyword.Type),
             (r"\(|\)",Keyword.Type),
             (r",",Text,'#pop'),

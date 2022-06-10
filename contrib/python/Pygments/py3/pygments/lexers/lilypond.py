@@ -4,13 +4,13 @@
 
     Lexer for LilyPond.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
-from pygments.lexer import default, inherit, words
+from pygments.lexer import bygroups, default, inherit, words
 from pygments.lexers.lisp import SchemeLexer
 from pygments.lexers._lilypond_builtins import (
     keywords, pitch_language_names, clefs, scales, repeat_types, units,
@@ -37,7 +37,7 @@ def builtin_words(names, backslash, suffix=NAME_END_RE):
 
 class LilyPondLexer(SchemeLexer):
     """
-    Lexer for input to `LilyPond <https://lilypond.org>`_, a text-based music typesetter.
+    Lexer for input to LilyPond, a text-based music typesetter.
 
     .. important::
 
@@ -46,6 +46,7 @@ class LilyPondLexer(SchemeLexer):
     .. versionadded:: 2.11
     """
     name = 'LilyPond'
+    url = 'https://lilypond.org'
     aliases = ['lilypond']
     filenames = ['*.ly']
     mimetypes = []
@@ -99,7 +100,7 @@ class LilyPondLexer(SchemeLexer):
             # - chord: < >,
             # - bar check: |,
             # - dot in nested properties: \revert NoteHead.color,
-            # - equals sign in assignemnts and lists for various commands:
+            # - equals sign in assignments and lists for various commands:
             #   \override Stem.color = red,
             # - comma as alternative syntax for lists: \time 3,3,2 4/4,
             # - colon in tremolos: c:32,
@@ -169,7 +170,9 @@ class LilyPondLexer(SchemeLexer):
             (r"([^\W\d]|-)+(?=([^\W\d]|[\-.])*\s*=)", Token.Name.Lvalue),
 
             # Virtually everything can appear in markup mode, so we highlight
-            # as text.
+            # as text.  Try to get a complete word, or we might wrongly lex
+            # a suffix that happens to be a builtin as a builtin (e.g., "myStaff").
+            (r"([^\W\d]|-)+?" + NAME_END_RE, Token.Text),
             (r".", Token.Text),
         ],
         "string": [
@@ -188,9 +191,9 @@ class LilyPondLexer(SchemeLexer):
         # everything that looks like a-known-property.foo.bar-baz as
         # one single property name.
         "maybe-subproperties": [
-            (r"\.", Token.Punctuation),
             (r"\s+", Token.Whitespace),
-            (r"([^\W\d])+" + NAME_END_RE, Token.Name.Builtin.GrobProperty),
+            (r"(\.)((?:[^\W\d]|-)+?)" + NAME_END_RE,
+             bygroups(Token.Punctuation, Token.Name.Builtin.GrobProperty)),
             default("#pop"),
         ]
     }

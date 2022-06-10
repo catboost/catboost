@@ -4,22 +4,24 @@
 
     Lexers for the Kuin language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, include, using, this, bygroups, words
-from pygments.token import Text, Comment, Operator, Keyword, Name, String, Number, Punctuation
+from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
+        Number, Punctuation, Whitespace
 
 __all__ = ['KuinLexer']
 
 class KuinLexer(RegexLexer):
     """
-    For `Kuin <https://github.com/kuina/Kuin>`_ source code
+    For Kuin source code
 
     .. versionadded:: 2.9
     """
     name = 'Kuin'
+    url = 'https://github.com/kuina/Kuin'
     aliases = ['kuin']
     filenames = ['*.kn']
 
@@ -32,7 +34,7 @@ class KuinLexer(RegexLexer):
             include('whitespace'),
 
             # Block-statement
-            (r'(\+?[ \t]*\*?[ \t]*\bfunc)([ \t]+(?:\n\s*\|)*[ \t]*)([a-zA-Z_][0-9a-zA-Z_]*)', bygroups(Keyword, using(this), Name.Function), 'func_'),
+            (r'(\+?)([ \t]*)(\*?)([ \t]*)(\bfunc)([ \t]+(?:\n\s*\|)*[ \t]*)([a-zA-Z_][0-9a-zA-Z_]*)', bygroups(Keyword,Whitespace, Keyword, Whitespace,  Keyword, using(this), Name.Function), 'func_'),
             (r'\b(class)([ \t]+(?:\n\s*\|)*[ \t]*)([a-zA-Z_][0-9a-zA-Z_]*)', bygroups(Keyword, using(this), Name.Class), 'class_'),
             (r'\b(enum)([ \t]+(?:\n\s*\|)*[ \t]*)([a-zA-Z_][0-9a-zA-Z_]*)', bygroups(Keyword, using(this), Name.Constant), 'enum_'),
             (r'\b(block)\b(?:([ \t]+(?:\n\s*\|)*[ \t]*)([a-zA-Z_][0-9a-zA-Z_]*))?', bygroups(Keyword, using(this), Name.Other), 'block_'),
@@ -53,13 +55,13 @@ class KuinLexer(RegexLexer):
             (r'\b(alias)\b', Keyword, 'alias'),
             (r'\b(assert)\b', Keyword, 'assert'),
             (r'\|', Text, 'continued_line'),
-            (r'[ \t]*\n', Text),
+            (r'[ \t]*\n', Whitespace),
         ],
 
         # Whitespace / Comment
         'whitespace': [
-            (r'^[ \t]*;.*', Comment.Single),
-            (r'[ \t]+(?![; \t])', Text),
+            (r'^([ \t]*)(;.*)', bygroups(Comment.Single, Whitespace)),
+            (r'[ \t]+(?![; \t])', Whitespace),
             (r'\{', Comment.Multiline, 'multiline_comment'),
         ],
         'multiline_comment': [
@@ -72,7 +74,7 @@ class KuinLexer(RegexLexer):
         # Block-statement
         'func_': [
             include('expr'),
-            (r'\n', Text, 'func'),
+            (r'\n', Whitespace, 'func'),
         ],
         'func': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(func)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -80,7 +82,7 @@ class KuinLexer(RegexLexer):
         ],
         'class_': [
             include('expr'),
-            (r'\n', Text, 'class'),
+            (r'\n', Whitespace, 'class'),
         ],
         'class': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(class)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -88,16 +90,16 @@ class KuinLexer(RegexLexer):
         ],
         'enum_': [
             include('expr'),
-            (r'\n', Text, 'enum'),
+            (r'\n', Whitespace, 'enum'),
         ],
         'enum': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(enum)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
             include('expr'),
-            (r'\n', Text),
+            (r'\n', Whitespace),
         ],
         'block_': [
             include('expr'),
-            (r'\n', Text, 'block'),
+            (r'\n', Whitespace, 'block'),
         ],
         'block': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(block)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -107,7 +109,7 @@ class KuinLexer(RegexLexer):
         ],
         'ifdef_': [
             include('expr'),
-            (r'\n', Text, 'ifdef'),
+            (r'\n', Whitespace, 'ifdef'),
         ],
         'ifdef': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(ifdef)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -118,11 +120,11 @@ class KuinLexer(RegexLexer):
         ],
         'ifdef_sp': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'if_': [
             include('expr'),
-            (r'\n', Text, 'if'),
+            (r'\n', Whitespace, 'if'),
         ],
         'if': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(if)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -133,11 +135,11 @@ class KuinLexer(RegexLexer):
         ],
         'if_sp': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'switch_': [
             include('expr'),
-            (r'\n', Text, 'switch'),
+            (r'\n', Whitespace, 'switch'),
         ],
         'switch': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(switch)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -148,11 +150,11 @@ class KuinLexer(RegexLexer):
         ],
         'switch_sp': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'while_': [
             include('expr'),
-            (r'\n', Text, 'while'),
+            (r'\n', Whitespace, 'while'),
         ],
         'while': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(while)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -162,7 +164,7 @@ class KuinLexer(RegexLexer):
         ],
         'for_': [
             include('expr'),
-            (r'\n', Text, 'for'),
+            (r'\n', Whitespace, 'for'),
         ],
         'for': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(for)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -172,7 +174,7 @@ class KuinLexer(RegexLexer):
         ],
         'foreach_': [
             include('expr'),
-            (r'\n', Text, 'foreach'),
+            (r'\n', Whitespace, 'foreach'),
         ],
         'foreach': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(foreach)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -182,7 +184,7 @@ class KuinLexer(RegexLexer):
         ],
         'try_': [
             include('expr'),
-            (r'\n', Text, 'try'),
+            (r'\n', Whitespace, 'try'),
         ],
         'try': [
             (r'\b(end)([ \t]+(?:\n\s*\|)*[ \t]*)(try)\b', bygroups(Keyword, using(this), Keyword), '#pop:2'),
@@ -193,7 +195,7 @@ class KuinLexer(RegexLexer):
         ],
         'try_sp': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
 
         # Line-statement
@@ -205,35 +207,35 @@ class KuinLexer(RegexLexer):
         ],
         'alias': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'assert': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'const': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'do': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'ret': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'throw': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'var': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
         'continued_line': [
             include('expr'),
-            (r'\n', Text, '#pop'),
+            (r'\n', Whitespace, '#pop'),
         ],
 
         'expr': [

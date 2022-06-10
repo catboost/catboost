@@ -4,7 +4,7 @@
 
     Lexers for configuration file formats.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,7 +22,7 @@ __all__ = ['IniLexer', 'RegeditLexer', 'PropertiesLexer', 'KconfigLexer',
            'NginxConfLexer', 'LighttpdConfLexer', 'DockerLexer',
            'TerraformLexer', 'TermcapLexer', 'TerminfoLexer',
            'PkgConfigLexer', 'PacmanConfLexer', 'AugeasLexer', 'TOMLLexer',
-           'NestedTextLexer', 'SingularityLexer']
+           'NestedTextLexer', 'SingularityLexer', 'UnixConfigLexer']
 
 
 class IniLexer(RegexLexer):
@@ -62,14 +62,13 @@ class IniLexer(RegexLexer):
 
 class RegeditLexer(RegexLexer):
     """
-    Lexer for `Windows Registry
-    <http://en.wikipedia.org/wiki/Windows_Registry#.REG_files>`_ files produced
-    by regedit.
+    Lexer for Windows Registry files produced by regedit.
 
     .. versionadded:: 1.6
     """
 
     name = 'reg'
+    url = 'http://en.wikipedia.org/wiki/Windows_Registry#.REG_files'
     aliases = ['registry']
     filenames = ['*.reg']
     mimetypes = ['text/x-windows-registry']
@@ -231,12 +230,13 @@ class KconfigLexer(RegexLexer):
 
 class Cfengine3Lexer(RegexLexer):
     """
-    Lexer for `CFEngine3 <http://cfengine.org>`_ policy files.
+    Lexer for CFEngine3 policy files.
 
     .. versionadded:: 1.5
     """
 
     name = 'CFEngine3'
+    url = 'http://cfengine.org'
     aliases = ['cfengine3', 'cf3']
     filenames = ['*.cf']
     mimetypes = []
@@ -335,12 +335,13 @@ class ApacheConfLexer(RegexLexer):
 
 class SquidConfLexer(RegexLexer):
     """
-    Lexer for `squid <http://www.squid-cache.org/>`_ configuration files.
+    Lexer for squid configuration files.
 
     .. versionadded:: 0.9
     """
 
     name = 'SquidConf'
+    url = 'http://www.squid-cache.org/'
     aliases = ['squidconf', 'squid.conf', 'squid']
     filenames = ['squid.conf']
     mimetypes = ['text/x-squidconf']
@@ -465,11 +466,12 @@ class SquidConfLexer(RegexLexer):
 
 class NginxConfLexer(RegexLexer):
     """
-    Lexer for `Nginx <http://nginx.net/>`_ configuration files.
+    Lexer for Nginx configuration files.
 
     .. versionadded:: 0.11
     """
     name = 'Nginx configuration file'
+    url = 'http://nginx.net/'
     aliases = ['nginx']
     filenames = ['nginx.conf']
     mimetypes = ['text/x-nginx-conf']
@@ -511,11 +513,12 @@ class NginxConfLexer(RegexLexer):
 
 class LighttpdConfLexer(RegexLexer):
     """
-    Lexer for `Lighttpd <http://lighttpd.net/>`_ configuration files.
+    Lexer for Lighttpd configuration files.
 
     .. versionadded:: 0.11
     """
     name = 'Lighttpd configuration file'
+    url = 'http://lighttpd.net/'
     aliases = ['lighttpd', 'lighty']
     filenames = ['lighttpd.conf']
     mimetypes = ['text/x-lighttpd-conf']
@@ -539,11 +542,12 @@ class LighttpdConfLexer(RegexLexer):
 
 class DockerLexer(RegexLexer):
     """
-    Lexer for `Docker <http://docker.io>`_ configuration files.
+    Lexer for Docker configuration files.
 
     .. versionadded:: 2.0
     """
     name = 'Docker'
+    url = 'http://docker.io'
     aliases = ['docker', 'dockerfile']
     filenames = ['Dockerfile', '*.docker']
     mimetypes = ['text/x-dockerfile-config']
@@ -574,12 +578,13 @@ class DockerLexer(RegexLexer):
 
 class TerraformLexer(ExtendedRegexLexer):
     """
-    Lexer for `terraformi .tf files <https://www.terraform.io/>`_.
+    Lexer for terraformi ``.tf`` files.
 
     .. versionadded:: 2.1
     """
 
     name = 'Terraform'
+    url = 'https://www.terraform.io/'
     aliases = ['terraform', 'tf']
     filenames = ['*.tf']
     mimetypes = ['application/x-tf', 'application/x-terraform']
@@ -690,7 +695,7 @@ class TerraformLexer(ExtendedRegexLexer):
         ],
         'basic': [
             (r'\s*/\*', Comment.Multiline, 'comment'),
-            (r'\s*#.*\n', Comment.Single),
+            (r'\s*(#|//).*\n', Comment.Single),
             include('whitespace'),
 
             # e.g. terraform {
@@ -715,19 +720,14 @@ class TerraformLexer(ExtendedRegexLexer):
 
             # e.g. resource "aws_security_group" "allow_tls" {
             # e.g. backend "consul" {
-            (classes_re + r'(\s+)', bygroups(Keyword.Reserved, Whitespace), 'blockname'),
+            (classes_re + r'(\s+)("[0-9a-zA-Z-_]+")?(\s*)("[0-9a-zA-Z-_]+")(\s+)(\{)',
+             bygroups(Keyword.Reserved, Whitespace, Name.Class, Whitespace, Name.Variable, Whitespace, Punctuation)),
 
             # here-doc style delimited strings
             (
                 r'(<<-?)\s*([a-zA-Z_]\w*)(.*?\n)',
                 heredoc_callback,
             )
-        ],
-        'blockname': [
-            # e.g. resource "aws_security_group" "allow_tls" {
-            # e.g. backend "consul" {
-            (r'(\s*)("[0-9a-zA-Z-_]+")?(\s*)("[0-9a-zA-Z-_]+")(\s+)(\{)',
-             bygroups(Whitespace, Name.Class, Whitespace, Name.Variable, Whitespace, Punctuation)),
         ],
         'identifier': [
             (r'\b(var\.[0-9a-zA-Z-_\.\[\]]+)\b', bygroups(Name.Variable)),
@@ -846,14 +846,14 @@ class TerminfoLexer(RegexLexer):
 
 class PkgConfigLexer(RegexLexer):
     """
-    Lexer for `pkg-config
-    <http://www.freedesktop.org/wiki/Software/pkg-config/>`_
+    Lexer for pkg-config
     (see also `manual page <http://linux.die.net/man/1/pkg-config>`_).
 
     .. versionadded:: 2.1
     """
 
     name = 'PkgConfig'
+    url = 'http://www.freedesktop.org/wiki/Software/pkg-config/'
     aliases = ['pkgconfig']
     filenames = ['*.pc']
     mimetypes = []
@@ -904,8 +904,7 @@ class PkgConfigLexer(RegexLexer):
 
 class PacmanConfLexer(RegexLexer):
     """
-    Lexer for `pacman.conf
-    <https://www.archlinux.org/pacman/pacman.conf.5.html>`_.
+    Lexer for pacman.conf.
 
     Actually, IniLexer works almost fine for this format,
     but it yield error token. It is because pacman.conf has
@@ -923,6 +922,7 @@ class PacmanConfLexer(RegexLexer):
     """
 
     name = 'PacmanConf'
+    url = 'https://www.archlinux.org/pacman/pacman.conf.5.html'
     aliases = ['pacmanconf']
     filenames = ['pacman.conf']
     mimetypes = []
@@ -954,7 +954,7 @@ class PacmanConfLexer(RegexLexer):
              Name.Variable),
 
             # fallback
-            (r'\s+', Whitespace), 
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
     }
@@ -962,11 +962,12 @@ class PacmanConfLexer(RegexLexer):
 
 class AugeasLexer(RegexLexer):
     """
-    Lexer for `Augeas <http://augeas.net>`_.
+    Lexer for Augeas.
 
     .. versionadded:: 2.4
     """
     name = 'Augeas'
+    url = 'http://augeas.net'
     aliases = ['augeas']
     filenames = ['*.aug']
 
@@ -1006,13 +1007,14 @@ class AugeasLexer(RegexLexer):
 
 class TOMLLexer(RegexLexer):
     """
-    Lexer for `TOML <https://github.com/toml-lang/toml>`_, a simple language
+    Lexer for TOML, a simple language
     for config files.
 
     .. versionadded:: 2.4
     """
 
     name = 'TOML'
+    url = 'https://github.com/toml-lang/toml'
     aliases = ['toml']
     filenames = ['*.toml', 'Pipfile', 'poetry.lock']
 
@@ -1057,13 +1059,14 @@ class TOMLLexer(RegexLexer):
 
 class NestedTextLexer(RegexLexer):
     """
-    Lexer for `NextedText <https://nestedtext.org>`_, a human-friendly data 
+    Lexer for NextedText, a human-friendly data
     format.
-    
+
     .. versionadded:: 2.9
     """
 
     name = 'NestedText'
+    url = 'https://nestedtext.org'
     aliases = ['nestedtext', 'nt']
     filenames = ['*.nt']
 
@@ -1079,17 +1082,17 @@ class NestedTextLexer(RegexLexer):
             (r'^(\s*)(.*?)(:)( ?)(.*?)(\s*)$', bygroups(Whitespace, Name, Punctuation, Whitespace, String, Whitespace)),
         ],
     }
-        
+
 
 class SingularityLexer(RegexLexer):
     """
-    Lexer for `Singularity definition files
-    <https://www.sylabs.io/guides/3.0/user-guide/definition_files.html>`_.
+    Lexer for Singularity definition files.
 
     .. versionadded:: 2.6
     """
 
     name = 'Singularity'
+    url = 'https://www.sylabs.io/guides/3.0/user-guide/definition_files.html'
     aliases = ['singularity']
     filenames = ['*.def', 'Singularity']
     flags = re.IGNORECASE | re.MULTILINE | re.DOTALL
@@ -1124,3 +1127,30 @@ class SingularityLexer(RegexLexer):
             result += 0.49
 
         return result
+
+
+class UnixConfigLexer(RegexLexer):
+    """
+    Lexer for Unix/Linux config files using colon-separated values, e.g.
+
+    * ``/etc/group``
+    * ``/etc/passwd``
+    * ``/etc/shadow``
+    
+    .. versionadded:: 2.12
+    """
+
+    name = 'Unix/Linux config files'
+    aliases = ['unixconfig', 'linuxconfig']
+    filenames = []
+
+    tokens = {
+        'root': [
+            (r'^#.*', Comment),
+            (r'\n', Whitespace),
+            (r':', Punctuation),
+            (r'[0-9]+', Number),
+            (r'((?!\n)[a-zA-Z0-9\_\-\s\(\),]){2,}', Text),
+            (r'[^:\n]+', String),
+        ],
+    }

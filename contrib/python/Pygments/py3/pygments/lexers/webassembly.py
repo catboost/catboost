@@ -8,7 +8,7 @@
     and https://webassembly.github.io/spec/core/text/.
 
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -62,12 +62,13 @@ builtins = (
 
 
 class WatLexer(RegexLexer):
-    """Lexer for the `WebAssembly text format <https://webassembly.org/>`_.
+    """Lexer for the WebAssembly text format.
 
     .. versionadded:: 2.9
     """
 
     name = 'WebAssembly'
+    url = 'https://webassembly.org/'
     aliases = ['wast', 'wat']
     filenames = ['*.wat', '*.wast']
 

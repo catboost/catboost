@@ -7,7 +7,7 @@
     using the luminosity value calculated by
     http://www.workwithcolor.com/color-converter-01.htm
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 

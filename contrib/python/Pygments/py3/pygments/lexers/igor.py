@@ -4,14 +4,14 @@
 
     Lexers for Igor Pro.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
 from pygments.lexer import RegexLexer, words
-from pygments.token import Text, Comment, Keyword, Name, String
+from pygments.token import Text, Comment, Keyword, Name, String, Whitespace
 
 __all__ = ['IgorLexer']
 
@@ -413,6 +413,7 @@ class IgorLexer(RegexLexer):
             # Compiler directives.
             (r'^#(include|pragma|define|undef|ifdef|ifndef|if|elif|else|endif)',
              Name.Decorator),
+            (r'\s+', Whitespace),
             (r'[^a-z"/]+$', Text),
             (r'.', Text),
         ],

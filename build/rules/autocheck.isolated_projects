@@ -1,2 +1,4 @@
 # Autocheck isolated projects
 # The list of top level directories which MUST not be used in other projects
+
+devtools/distbuild/sre

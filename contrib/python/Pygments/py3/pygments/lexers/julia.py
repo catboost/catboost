@@ -4,7 +4,7 @@
 
     Lexers for the Julia language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -13,7 +13,7 @@ import re
 from pygments.lexer import Lexer, RegexLexer, bygroups, do_insertions, \
     words, include
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Generic
+    Number, Punctuation, Generic, Whitespace
 from pygments.util import shebang_matches
 from pygments.lexers._julia_builtins import OPERATORS_LIST, DOTTED_OPERATORS_LIST, \
     KEYWORD_LIST, BUILTIN_LIST, LITERAL_LIST
@@ -28,22 +28,21 @@ operator_suffixes = r'[²³¹ʰʲʳʷʸˡˢˣᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹ�
 
 class JuliaLexer(RegexLexer):
     """
-    For `Julia <http://julialang.org/>`_ source code.
+    For Julia source code.
 
     .. versionadded:: 1.6
     """
 
     name = 'Julia'
+    url = 'https://julialang.org/'
     aliases = ['julia', 'jl']
     filenames = ['*.jl']
     mimetypes = ['text/x-julia', 'application/x-julia']
 
-    flags = re.MULTILINE | re.UNICODE
-
     tokens = {
         'root': [
-            (r'\n', Text),
-            (r'[^\S\n]+', Text),
+            (r'\n', Whitespace),
+            (r'[^\S\n]+', Whitespace),
             (r'#=', Comment.Multiline, "blockcomment"),
             (r'#.*$', Comment),
             (r'[\[\](),;]', Punctuation),
@@ -51,23 +50,23 @@ class JuliaLexer(RegexLexer):
             # symbols
             #   intercept range expressions first
             (r'(' + allowed_variable + r')(\s*)(:)(' + allowed_variable + ')',
-                bygroups(Name, Text, Operator, Name)),
+                bygroups(Name, Whitespace, Operator, Name)),
             #   then match :name which does not follow closing brackets, digits, or the
             #   ::, <:, and :> operators
             (r'(?<![\]):<>\d.])(:' + allowed_variable + ')', String.Symbol),
 
             # type assertions - excludes expressions like ::typeof(sin) and ::avec[1]
-            (r'(?<=::)(\s*)(' + allowed_variable + r')\b(?![(\[])', bygroups(Text, Keyword.Type)),
+            (r'(?<=::)(\s*)(' + allowed_variable + r')\b(?![(\[])', bygroups(Whitespace, Keyword.Type)),
             # type comparisons
             # - MyType <: A or MyType >: A
             ('(' + allowed_variable + r')(\s*)([<>]:)(\s*)(' + allowed_variable + r')\b(?![(\[])',
-                bygroups(Keyword.Type, Text, Operator, Text, Keyword.Type)),
+                bygroups(Keyword.Type, Whitespace, Operator, Whitespace, Keyword.Type)),
             # - <: B or >: B
             (r'([<>]:)(\s*)(' + allowed_variable + r')\b(?![(\[])',
-                bygroups(Operator, Text, Keyword.Type)),
+                bygroups(Operator, Whitespace, Keyword.Type)),
             # - A <: or A >:
             (r'\b(' + allowed_variable + r')(\s*)([<>]:)',
-                bygroups(Keyword.Type, Text, Operator)),
+                bygroups(Keyword.Type, Whitespace, Operator)),
 
             # operators
             # Suffixes aren't actually allowed on all operators, but we'll ignore that
@@ -110,12 +109,16 @@ class JuliaLexer(RegexLexer):
                 bygroups(Keyword.Type, Punctuation), 'curly'),
             # - names as part of bare 'where'
             (r'(where)(\s+)(' + allowed_variable + ')',
-                bygroups(Keyword, Text, Keyword.Type)),
+                bygroups(Keyword, Whitespace, Keyword.Type)),
             # - curly expressions in general
             (r'(\{)', Punctuation, 'curly'),
             # - names as part of type declaration
-            (r'(abstract[ \t]+type|primitive[ \t]+type|mutable[ \t]+struct|struct)([\s()]+)(' +
-                allowed_variable + r')', bygroups(Keyword, Text, Keyword.Type)),
+            (r'(abstract|primitive)([ \t]+)(type\b)([\s()]+)(' +
+                allowed_variable + r')',
+                bygroups(Keyword, Whitespace, Keyword, Text, Keyword.Type)),
+            (r'(mutable(?=[ \t]))?([ \t]+)?(struct\b)([\s()]+)(' +
+                allowed_variable + r')',
+                bygroups(Keyword, Whitespace, Keyword, Text, Keyword.Type)),
 
             # macros
             (r'@' + allowed_variable, Name.Decorator),
@@ -261,7 +264,7 @@ class JuliaConsoleLexer(Lexer):
                 output = False
                 error = False
             elif line.startswith('      ') and not output:
-                insertions.append((len(curcode), [(0, Text, line[:6])]))
+                insertions.append((len(curcode), [(0, Whitespace, line[:6])]))
                 curcode += line[6:]
             else:
                 if curcode:

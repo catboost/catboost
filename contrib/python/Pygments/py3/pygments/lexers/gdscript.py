@@ -7,7 +7,7 @@
     Modified by Daniel J. Ramirez <djrmuv@gmail.com> based on the original
     python.py.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -25,10 +25,11 @@ line_re = re.compile(".*?\n")
 
 class GDScriptLexer(RegexLexer):
     """
-    For `GDScript source code <https://www.godotengine.org>`_.
+    For GDScript source code.
     """
 
     name = "GDScript"
+    url = 'https://www.godotengine.org'
     aliases = ["gdscript", "gd"]
     filenames = ["*.gd"]
     mimetypes = ["text/x-gdscript", "application/x-gdscript"]

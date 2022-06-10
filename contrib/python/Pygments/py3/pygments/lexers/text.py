@@ -4,12 +4,13 @@
 
     Lexers for non-source code file types.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexers.configs import ApacheConfLexer, NginxConfLexer, \
-    SquidConfLexer, LighttpdConfLexer, IniLexer, RegeditLexer, PropertiesLexer
+    SquidConfLexer, LighttpdConfLexer, IniLexer, RegeditLexer, PropertiesLexer, \
+    UnixConfigLexer
 from pygments.lexers.console import PyPyLogLexer
 from pygments.lexers.textedit import VimLexer
 from pygments.lexers.markup import BBCodeLexer, MoinWikiLexer, RstLexer, \

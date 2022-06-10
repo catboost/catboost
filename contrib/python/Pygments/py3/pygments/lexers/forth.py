@@ -4,7 +4,7 @@
 
     Lexer for the Forth language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -25,6 +25,7 @@ class ForthLexer(RegexLexer):
     .. versionadded:: 2.2
     """
     name = 'Forth'
+    url = 'https://www.forth.com/forth/'
     aliases = ['forth']
     filenames = ['*.frt', '*.fs']
     mimetypes = ['application/x-forth']

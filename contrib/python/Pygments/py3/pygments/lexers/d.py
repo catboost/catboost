@@ -4,7 +4,7 @@
 
     Lexers for D languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,6 +22,7 @@ class DLexer(RegexLexer):
     .. versionadded:: 1.2
     """
     name = 'D'
+    url = 'https://dlang.org/'
     filenames = ['*.d', '*.di']
     aliases = ['d']
     mimetypes = ['text/x-dsrc']
@@ -186,9 +187,10 @@ class DLexer(RegexLexer):
 
 class CrocLexer(RegexLexer):
     """
-    For `Croc <http://jfbillingsley.com/croc>`_ source.
+    For Croc source.
     """
     name = 'Croc'
+    url = 'http://jfbillingsley.com/croc'
     filenames = ['*.croc']
     aliases = ['croc']
     mimetypes = ['text/x-crocsrc']

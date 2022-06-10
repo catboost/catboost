@@ -4,7 +4,7 @@
 
     Lexers for various text formats.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -200,12 +200,13 @@ class HttpLexer(RegexLexer):
 
 class TodotxtLexer(RegexLexer):
     """
-    Lexer for `Todo.txt <http://todotxt.com/>`_ todo list format.
+    Lexer for Todo.txt todo list format.
 
     .. versionadded:: 2.0
     """
 
     name = 'Todotxt'
+    url = 'http://todotxt.com/'
     aliases = ['todotxt']
     # *.todotxt is not a standard extension for Todo.txt files; including it
     # makes testing easier, and also makes autodetecting file type easier.
@@ -300,7 +301,7 @@ class TodotxtLexer(RegexLexer):
 
 class NotmuchLexer(RegexLexer):
     """
-    For `Notmuch <https://notmuchmail.org/>`_ email text format.
+    For Notmuch email text format.
 
     .. versionadded:: 2.5
 
@@ -312,6 +313,7 @@ class NotmuchLexer(RegexLexer):
     """
 
     name = 'Notmuch'
+    url = 'https://notmuchmail.org/'
     aliases = ['notmuch']
 
     def _highlight_code(self, match):

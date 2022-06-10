@@ -4,14 +4,14 @@
 
     Lexers for data file format.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import Lexer, ExtendedRegexLexer, LexerContext, \
     include, bygroups
-from pygments.token import Text, Comment, Keyword, Name, String, Number, \
-    Punctuation, Literal, Error, Whitespace
+from pygments.token import Comment, Error, Keyword, Literal, Name, Number, \
+    Punctuation, String, Whitespace
 
 __all__ = ['YamlLexer', 'JsonLexer', 'JsonBareObjectLexer', 'JsonLdLexer']
 
@@ -29,13 +29,14 @@ class YamlLexerContext(LexerContext):
 
 class YamlLexer(ExtendedRegexLexer):
     """
-    Lexer for `YAML <http://yaml.org/>`_, a human-friendly data serialization
+    Lexer for YAML, a human-friendly data serialization
     language.
 
     .. versionadded:: 0.11
     """
 
     name = 'YAML'
+    url = 'http://yaml.org/'
     aliases = ['yaml']
     filenames = ['*.yaml', '*.yml']
     mimetypes = ['text/x-yaml']
@@ -437,10 +438,17 @@ class JsonLexer(Lexer):
     """
     For JSON data structures.
 
+    Javascript-style comments are supported (like ``/* */`` and ``//``),
+    though comments are not part of the JSON specification.
+    This allows users to highlight JSON as it is used in the wild.
+
+    No validation is performed on the input JSON document.
+
     .. versionadded:: 1.5
     """
 
     name = 'JSON'
+    url = 'https://www.json.org'
     aliases = ['json', 'json-object']
     filenames = ['*.json', 'Pipfile.lock']
     mimetypes = ['application/json', 'application/json-object']
@@ -471,6 +479,10 @@ class JsonLexer(Lexer):
         in_number = False
         in_float = False
         in_punctuation = False
+        in_comment_single = False
+        in_comment_multiline = False
+        expecting_second_comment_opener = False  # // or /*
+        expecting_second_comment_closer = False  # */
 
         start = 0
 
@@ -564,6 +576,49 @@ class JsonLexer(Lexer):
                 in_punctuation = False
                 # Fall through so the new character can be evaluated.
 
+            elif in_comment_single:
+                if character != '\n':
+                    continue
+
+                if queue:
+                    queue.append((start, Comment.Single, text[start:stop]))
+                else:
+                    yield start, Comment.Single, text[start:stop]
+
+                in_comment_single = False
+                # Fall through so the new character can be evaluated.
+
+            elif in_comment_multiline:
+                if character == '*':
+                    expecting_second_comment_closer = True
+                elif expecting_second_comment_closer:
+                    expecting_second_comment_closer = False
+                    if character == '/':
+                        if queue:
+                            queue.append((start, Comment.Multiline, text[start:stop + 1]))
+                        else:
+                            yield start, Comment.Multiline, text[start:stop + 1]
+
+                        in_comment_multiline = False
+
+                continue
+
+            elif expecting_second_comment_opener:
+                expecting_second_comment_opener = False
+                if character == '/':
+                    in_comment_single = True
+                    continue
+                elif character == '*':
+                    in_comment_multiline = True
+                    continue
+
+                # Exhaust the queue. Accept the existing token types.
+                yield from queue
+                queue.clear()
+
+                yield start, Error, text[start:stop]
+                # Fall through so the new character can be evaluated.
+
             start = stop
 
             if character == '"':
@@ -589,18 +644,18 @@ class JsonLexer(Lexer):
             elif character == ':':
                 # Yield from the queue. Replace string token types.
                 for _start, _token, _text in queue:
-                    # There can be only two types of tokens before a ':':
-                    # Whitespace, or a quoted string. If it's a quoted string
-                    # we emit Name.Tag, otherwise, we yield the whitespace
-                    # tokens. In all other cases this is invalid JSON. This
-                    # allows for things like '"foo" "bar": "baz"' but we're not
-                    # a validating JSON lexer so it's acceptable
-                    if _token is Whitespace:
-                        yield _start, _token, _text
-                    elif _token is String.Double:
+                    # There can be only three types of tokens before a ':':
+                    # Whitespace, Comment, or a quoted string.
+                    #
+                    # If it's a quoted string we emit Name.Tag.
+                    # Otherwise, we yield the original token.
+                    #
+                    # In all other cases this would be invalid JSON,
+                    # but this is not a validating JSON lexer, so it's OK.
+                    if _token is String.Double:
                         yield _start, Name.Tag, _text
                     else:
-                        yield _start, Error, _text
+                        yield _start, _token, _text
                 queue.clear()
 
                 in_punctuation = True
@@ -611,6 +666,10 @@ class JsonLexer(Lexer):
                 queue.clear()
 
                 in_punctuation = True
+
+            elif character == '/':
+                # This is the beginning of a comment.
+                expecting_second_comment_opener = True
 
             else:
                 # Exhaust the queue. Accept the existing token types.
@@ -633,6 +692,12 @@ class JsonLexer(Lexer):
             yield start, Whitespace, text[start:]
         elif in_punctuation:
             yield start, Punctuation, text[start:]
+        elif in_comment_single:
+            yield start, Comment.Single, text[start:]
+        elif in_comment_multiline:
+            yield start, Error, text[start:]
+        elif expecting_second_comment_opener:
+            yield start, Error, text[start:]
 
 
 class JsonBareObjectLexer(JsonLexer):
@@ -654,12 +719,13 @@ class JsonBareObjectLexer(JsonLexer):
 
 class JsonLdLexer(JsonLexer):
     """
-    For `JSON-LD <https://json-ld.org/>`_ linked data.
+    For JSON-LD linked data.
 
     .. versionadded:: 2.0
     """
 
     name = 'JSON-LD'
+    url = 'https://json-ld.org/'
     aliases = ['jsonld', 'json-ld']
     filenames = ['*.jsonld']
     mimetypes = ['application/ld+json']

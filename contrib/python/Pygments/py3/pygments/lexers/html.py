@@ -4,7 +4,7 @@
 
     Lexers for HTML, XML and related markup.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -32,6 +32,7 @@ class HtmlLexer(RegexLexer):
     """
 
     name = 'HTML'
+    url = 'https://html.spec.whatwg.org/'
     aliases = ['html']
     filenames = ['*.html', '*.htm', '*.xhtml', '*.xslt']
     mimetypes = ['text/html', 'application/xhtml+xml']
@@ -42,7 +43,7 @@ class HtmlLexer(RegexLexer):
             ('[^<&]+', Text),
             (r'&\S*?;', Name.Entity),
             (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),
-            (r'<!--(.|\n)*?-->', Comment.Multiline),
+            (r'<!--.*?-->', Comment.Multiline),
             (r'<\?.*?\?>', Comment.Preproc),
             ('<![^>]*>', Comment.Preproc),
             (r'(<)(\s*)(script)(\s*)',
@@ -195,7 +196,7 @@ class XmlLexer(RegexLexer):
     Generic lexer for XML (eXtensible Markup Language).
     """
 
-    flags = re.MULTILINE | re.DOTALL | re.UNICODE
+    flags = re.MULTILINE | re.DOTALL
 
     name = 'XML'
     aliases = ['xml']
@@ -208,8 +209,8 @@ class XmlLexer(RegexLexer):
         'root': [
             ('[^<&]+', Text),
             (r'&\S*?;', Name.Entity),
-            (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),            
-            (r'<!--(.|\n)*?-->', Comment.Multiline),
+            (r'\<\!\[CDATA\[.*?\]\]\>', Comment.Preproc),
+            (r'<!--.*?-->', Comment.Multiline),
             (r'<\?.*?\?>', Comment.Preproc),
             ('<![^>]*>', Comment.Preproc),
             (r'<\s*[\w:.-]+', Name.Tag, 'tag'),
@@ -285,7 +286,7 @@ class HamlLexer(ExtendedRegexLexer):
     flags = re.IGNORECASE
     # Haml can include " |\n" anywhere,
     # which is ignored and used to wrap long lines.
-    # To accomodate this, use this custom faux dot instead.
+    # To accommodate this, use this custom faux dot instead.
     _dot = r'(?: \|\n(?=.* \|)|.)'
 
     # In certain places, a comma at the end of the line

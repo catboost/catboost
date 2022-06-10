@@ -4,7 +4,7 @@
 
     Lexers for misc. web stuff.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -26,13 +26,12 @@ __all__ = ['DuelLexer', 'SlimLexer', 'XQueryLexer', 'QmlLexer', 'CirruLexer']
 class DuelLexer(RegexLexer):
     """
     Lexer for Duel Views Engine (formerly JBST) markup with JavaScript code blocks.
-    See http://duelengine.org/.
-    See http://jsonml.org/jbst/.
-
+    
     .. versionadded:: 1.4
     """
 
     name = 'Duel'
+    url = 'http://duelengine.org/'
     aliases = ['duel', 'jbst', 'jsonml+bst']
     filenames = ['*.duel', '*.jbst']
     mimetypes = ['text/x-duel', 'text/x-jbst']
@@ -64,6 +63,7 @@ class XQueryLexer(ExtendedRegexLexer):
     .. versionadded:: 1.4
     """
     name = 'XQuery'
+    url = 'https://www.w3.org/XML/Query/'
     aliases = ['xquery', 'xqy', 'xq', 'xql', 'xqm']
     filenames = ['*.xqy', '*.xquery', '*.xq', '*.xql', '*.xqm']
     mimetypes = ['text/xquery', 'application/xquery']
@@ -111,7 +111,7 @@ class XQueryLexer(ExtendedRegexLexer):
     #                 aposattrcontentchar
     # x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
 
-    flags = re.DOTALL | re.MULTILINE | re.UNICODE
+    flags = re.DOTALL | re.MULTILINE
 
     def punctuation_root_callback(lexer, match, ctx):
         yield match.start(), Punctuation, match.group(1)
@@ -792,7 +792,7 @@ class XQueryLexer(ExtendedRegexLexer):
 
 class QmlLexer(RegexLexer):
     """
-    For QML files. See http://doc.qt.digia.com/4.7/qdeclarativeintroduction.html.
+    For QML files.
 
     .. versionadded:: 1.6
     """
@@ -801,6 +801,7 @@ class QmlLexer(RegexLexer):
     # JavascriptLexer above.
 
     name = 'QML'
+    url = 'https://doc.qt.io/qt-6/qmlapplications.html'
     aliases = ['qml', 'qbs']
     filenames = ['*.qml', '*.qbs']
     mimetypes = ['application/x-qml', 'application/x-qt.qbs+qml']
@@ -865,9 +866,6 @@ class QmlLexer(RegexLexer):
 
 class CirruLexer(RegexLexer):
     r"""
-    Syntax rules of Cirru can be found at:
-    http://cirru.org/
-
     * using ``()`` for expressions, but restricted in a same line
     * using ``""`` for strings, with ``\`` for escaping chars
     * using ``$`` as folding operator
@@ -878,6 +876,7 @@ class CirruLexer(RegexLexer):
     """
 
     name = 'Cirru'
+    url = 'http://cirru.org/'
     aliases = ['cirru']
     filenames = ['*.cirru']
     mimetypes = ['text/x-cirru']

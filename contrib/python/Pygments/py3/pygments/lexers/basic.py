@@ -4,7 +4,7 @@
 
     Lexers for BASIC like languages (other than VB.net).
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -22,12 +22,13 @@ __all__ = ['BlitzBasicLexer', 'BlitzMaxLexer', 'MonkeyLexer', 'CbmBasicV2Lexer',
 
 class BlitzMaxLexer(RegexLexer):
     """
-    For `BlitzMax <http://blitzbasic.com>`_ source code.
+    For BlitzMax source code.
 
     .. versionadded:: 1.4
     """
 
     name = 'BlitzMax'
+    url = 'http://blitzbasic.com'
     aliases = ['blitzmax', 'bmax']
     filenames = ['*.bmx']
     mimetypes = ['text/x-bmx']
@@ -113,12 +114,13 @@ class BlitzMaxLexer(RegexLexer):
 
 class BlitzBasicLexer(RegexLexer):
     """
-    For `BlitzBasic <http://blitzbasic.com>`_ source code.
+    For BlitzBasic source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'BlitzBasic'
+    url = 'http://blitzbasic.com'
     aliases = ['blitzbasic', 'b3d', 'bplus']
     filenames = ['*.bb', '*.decls']
     mimetypes = ['text/x-bb']

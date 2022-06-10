@@ -4,7 +4,7 @@
 
     Lexers for assembly languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -350,6 +350,7 @@ class LlvmLexer(RegexLexer):
     For LLVM assembly code.
     """
     name = 'LLVM'
+    url = 'https://llvm.org/docs/LangRef.html'
     aliases = ['llvm']
     filenames = ['*.ll']
     mimetypes = ['text/x-llvm']
@@ -490,11 +491,10 @@ class LlvmMirBodyLexer(RegexLexer):
     """
     For LLVM MIR examples without the YAML wrapper.
 
-    For more information on LLVM MIR see https://llvm.org/docs/MIRLangRef.html.
-
     .. versionadded:: 2.6
     """
     name = 'LLVM-MIR Body'
+    url = 'https://llvm.org/docs/MIRLangRef.html'
     aliases = ['llvm-mir-body']
     filenames = []
     mimetypes = []
@@ -636,11 +636,10 @@ class LlvmMirLexer(RegexLexer):
     see the state of the compilation process at various points, as well as test
     individual pieces of the compiler.
 
-    For more information on LLVM MIR see https://llvm.org/docs/MIRLangRef.html.
-
     .. versionadded:: 2.6
     """
     name = 'LLVM-MIR'
+    url = 'https://llvm.org/docs/MIRLangRef.html'
     aliases = ['llvm-mir']
     filenames = ['*.mir']
 
@@ -861,7 +860,7 @@ class TasmLexer(RegexLexer):
             include('punctuation'),
             (register, Name.Builtin),
             (identifier, Name.Variable),
-            # Do not match newline when it's preceeded by a backslash
+            # Do not match newline when it's preceded by a backslash
             (r'(\\)(\s*)(;.*)([\r\n])', bygroups(Text, Whitespace, Comment.Single, Whitespace)),
             (r'[\r\n]+', Whitespace, '#pop'),
             include('whitespace')
@@ -935,11 +934,10 @@ class Dasm16Lexer(RegexLexer):
     """
     For DCPU-16 Assembly.
 
-    Check http://0x10c.com/doc/dcpu-16.txt
-
     .. versionadded:: 2.4
     """
     name = 'DASM16'
+    url = 'http://0x10c.com/doc/dcpu-16.txt'
     aliases = ['dasm16']
     filenames = ['*.dasm16', '*.dasm']
     mimetypes = ['text/x-dasm16']

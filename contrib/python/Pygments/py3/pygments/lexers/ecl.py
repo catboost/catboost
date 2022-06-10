@@ -4,7 +4,7 @@
 
     Lexers for the ECL language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -19,14 +19,13 @@ __all__ = ['ECLLexer']
 
 class ECLLexer(RegexLexer):
     """
-    Lexer for the declarative big-data `ECL
-    <https://hpccsystems.com/training/documentation/ecl-language-reference/html>`_
-    language.
+    Lexer for the declarative big-data ECL language.
 
     .. versionadded:: 1.5
     """
 
     name = 'ECL'
+    url = 'https://hpccsystems.com/training/documentation/ecl-language-reference/html'
     aliases = ['ecl']
     filenames = ['*.ecl']
     mimetypes = ['application/x-ecl']
@@ -124,7 +123,7 @@ class ECLLexer(RegexLexer):
 
     def analyse_text(text):
         """This is very difficult to guess relative to other business languages.
-        -> in conjuction with BEGIN/END seems relatively rare though."""
+        -> in conjunction with BEGIN/END seems relatively rare though."""
         result = 0
 
         if '->' in text:

@@ -4,7 +4,7 @@
 
     Lexers for Solidity.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -28,8 +28,6 @@ class SolidityLexer(RegexLexer):
     aliases = ['solidity']
     filenames = ['*.sol']
     mimetypes = []
-
-    flags = re.MULTILINE | re.UNICODE
 
     datatype = (
         r'\b(address|bool|(?:(?:bytes|hash|int|string|uint)(?:8|16|24|32|40|48|56|64'

@@ -4,7 +4,7 @@
 
     Lexers for the Cap'n Proto schema language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -18,15 +18,14 @@ __all__ = ['CapnProtoLexer']
 
 class CapnProtoLexer(RegexLexer):
     """
-    For `Cap'n Proto <https://capnproto.org>`_ source.
+    For Cap'n Proto source.
 
     .. versionadded:: 2.2
     """
     name = 'Cap\'n Proto'
+    url = 'https://capnproto.org'
     filenames = ['*.capnp']
     aliases = ['capnp']
-
-    flags = re.MULTILINE | re.UNICODE
 
     tokens = {
         'root': [
