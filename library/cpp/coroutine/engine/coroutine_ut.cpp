@@ -2,6 +2,7 @@
 #include "condvar.h"
 #include "network.h"
 
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/string/cast.h>
