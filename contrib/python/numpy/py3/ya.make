@@ -427,34 +427,39 @@ ELSE()
     SET(F16C_FLAGS)
 ENDIF()
 
+SRCS(
+    numpy/core/src/_simd/_simd.dispatch.c
+    numpy/core/src/umath/_umath_tests.dispatch.c
+    numpy/core/src/umath/loops_arithm_fp.dispatch.c
+    numpy/core/src/umath/loops_arithmetic.dispatch.c
+    numpy/core/src/umath/loops_exponent_log.dispatch.c
+    numpy/core/src/umath/loops_trigonometric.dispatch.c
+    numpy/core/src/umath/loops_umath_fp.dispatch.c
+    numpy/core/src/umath/loops_unary_fp.dispatch.c
+)
+
 IF (ARCH_X86_64)
     SRC(numpy/core/src/_simd/_simd.dispatch.avx512_skx.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
     SRC(numpy/core/src/_simd/_simd.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/_simd/_simd.dispatch.c)
     SRC_C_AVX2(numpy/core/src/_simd/_simd.dispatch.fma3.avx2.c $F16C_FLAGS)
     SRC(numpy/core/src/_simd/_simd.dispatch.sse42.c)
     SRC_C_AVX2(numpy/core/src/umath/_umath_tests.dispatch.avx2.c $F16C_FLAGS)
-    SRC(numpy/core/src/umath/_umath_tests.dispatch.c)
     SRC(numpy/core/src/umath/_umath_tests.dispatch.sse41.c)
     SRC_C_AVX2(numpy/core/src/umath/loops_arithm_fp.dispatch.avx2.c $F16C_FLAGS)
     SRC(numpy/core/src/umath/loops_arithm_fp.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/umath/loops_arithm_fp.dispatch.c)
     SRC_C_AVX2(numpy/core/src/umath/loops_arithmetic.dispatch.avx2.c $F16C_FLAGS)
     SRC(numpy/core/src/umath/loops_arithmetic.dispatch.avx512_skx.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
     SRC(numpy/core/src/umath/loops_arithmetic.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/umath/loops_arithmetic.dispatch.c)
     SRC(numpy/core/src/umath/loops_arithmetic.dispatch.sse41.c)
     SRC(numpy/core/src/umath/loops_exponent_log.dispatch.avx512_skx.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
     SRC(numpy/core/src/umath/loops_exponent_log.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/umath/loops_exponent_log.dispatch.c)
     SRC_C_AVX2(numpy/core/src/umath/loops_exponent_log.dispatch.fma3.avx2.c $F16C_FLAGS)
     SRC(numpy/core/src/umath/loops_trigonometric.dispatch.avx512f.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/umath/loops_trigonometric.dispatch.c)
     SRC_C_AVX2(numpy/core/src/umath/loops_trigonometric.dispatch.fma3.avx2.c $F16C_FLAGS)
     SRC(numpy/core/src/umath/loops_umath_fp.dispatch.avx512_skx.c $AVX_CFLAGS $F16C_FLAGS $AVX2_CFLAGS $AVX512_CFLAGS)
-    SRC(numpy/core/src/umath/loops_umath_fp.dispatch.c)
-    SRC(numpy/core/src/umath/loops_unary_fp.dispatch.c)
     SRC(numpy/core/src/umath/loops_unary_fp.dispatch.sse41.c)
+ELSEIF (ARCH_ARM64)
+    SRC(numpy/core/src/umath/_umath_tests.dispatch.asimdhp.c)
 ENDIF()
 
 PY_REGISTER(

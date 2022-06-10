@@ -10,5 +10,10 @@
 #undef NPY__CPU_DISPATCH_CALL
 #define NPY__CPU_DISPATCH_BASELINE_CALL(CB, ...) \
 	NPY__CPU_DISPATCH_EXPAND_(CB(__VA_ARGS__))
+#if defined(__x86_64__) || defined(_M_X64)
 #define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
 	NPY__CPU_DISPATCH_EXPAND_(CB((CHK(AVX512_SKX)), AVX512_SKX, __VA_ARGS__))
+#elif defined(__aarch64__)
+#define NPY__CPU_DISPATCH_CALL(CHK, CB, ...) \
+
+#endif

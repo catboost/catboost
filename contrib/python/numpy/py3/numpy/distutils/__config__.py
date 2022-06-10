@@ -15,6 +15,7 @@ if sys.platform == 'win32' and os.path.isdir(extra_dll_dir):
         os.environ.setdefault('PATH', '')
         os.environ['PATH'] += os.pathsep + extra_dll_dir
 
+blas_armpl_info={}
 blas_mkl_info={}
 blis_info={}
 openblas_info={}
@@ -25,6 +26,7 @@ atlas_blas_threads_info={}
 atlas_blas_info={}
 blas_info={'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include'], 'language': 'c', 'define_macros': [('HAVE_CBLAS', None)]}
 blas_opt_info={'define_macros': [('NO_ATLAS_INFO', 1), ('HAVE_CBLAS', None)], 'libraries': ['blas', 'blas'], 'library_dirs': ['/usr/lib'], 'include_dirs': ['/usr/local/include'], 'language': 'c'}
+lapack_armpl_info={}
 lapack_mkl_info={}
 openblas_lapack_info={}
 openblas_clapack_info={}
