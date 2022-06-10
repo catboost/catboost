@@ -40,7 +40,7 @@ Functions:
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#   pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
