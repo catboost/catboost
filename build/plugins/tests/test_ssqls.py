@@ -1,3 +1,7 @@
+import sys
+from build.plugins.tests import fake_ymake
+sys.modules['ymake'] = fake_ymake
+
 import xml.etree.cElementTree as ET
 
 from build.plugins import ssqls

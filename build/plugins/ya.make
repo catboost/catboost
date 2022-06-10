@@ -7,8 +7,6 @@ PY_SRCS(
     ssqls.py
 
     _common.py
-    _custom_command.py
-    _import_wrapper.py
     _requirements.py
     _test_const.py
 )

@@ -1,6 +1,6 @@
 from os.path import splitext
 
-import _import_wrapper as iw
+import ymake
 from _common import resolve_includes
 
 
@@ -37,4 +37,4 @@ class SSQLSParser(object):
 
 
 def init():
-    iw.addparser('ssqls', SSQLSParser)
+    ymake.addparser('ssqls', SSQLSParser)
