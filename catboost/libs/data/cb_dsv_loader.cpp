@@ -196,6 +196,23 @@ namespace NCB {
                                 ++featureId;
                                 break;
                             }
+                            case EColumn::HashedCateg: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (!TryFromString<ui32>(
+                                            token,
+                                            catFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
+                                        ))
+                                    {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << "=" << token << " cannot be parsed as hashed categorical value."
+                                            " Try correcting column description file."
+                                        );
+                                    }
+                                }
+                                ++featureId;
+                                break;
+                            }
                             case EColumn::Num: {
                                 if (!FeatureIgnored[featureId]) {
                                     if (!TryParseFloatFeatureValue(

@@ -162,7 +162,7 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
             if (!featureNames) {
                 finalFeatureNames.push_back(column.Id);
             }
-            if (column.Type == EColumn::Categ) {
+            if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
                 catFeatureIndices.push_back(featureIdx);
             } else if (column.Type == EColumn::Text) {
                 textFeatureIndices.push_back(featureIdx);

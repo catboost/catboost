@@ -10140,3 +10140,39 @@ def test_apply_without_loss():
         '--output-path', test_eval_path,
     )
     yatest.common.execute(calc_cmd)
+
+
+def test_hashed_categ():
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path_with_hashed_categ = yatest.common.test_output_path('test_error_with_hashed_categ.tsv')
+    learn_error_path_with_hashed_categ = yatest.common.test_output_path('learn_error_with_hashed_categ.tsv')
+
+    cmd = [
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+    ]
+
+    cmd_with_usual_categ = cmd + [
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    ]
+    cmd_with_hashed_categ = cmd + [
+        '-f', data_file('adult', 'train_small_hashed_categ'),
+        '-t', data_file('adult', 'test_small_hashed_categ'),
+        '--column-description', data_file('adult', 'train_hashed_categ.cd'),
+        '--learn-err-log', learn_error_path_with_hashed_categ,
+        '--test-err-log', test_error_path_with_hashed_categ,
+    ]
+
+    execute_catboost_fit('CPU', cmd_with_usual_categ)
+    execute_catboost_fit('CPU', cmd_with_hashed_categ)
+
+    assert filecmp.cmp(learn_error_path_with_hashed_categ, learn_error_path)
+    assert filecmp.cmp(test_error_path_with_hashed_categ, test_error_path)
