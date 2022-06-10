@@ -176,6 +176,9 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
     ),
+    Registree(MultiQuantile,
+        EMetricAttribute::IsRegression
+    ),
     Registree(Expectile,
         EMetricAttribute::IsRegression
         | EMetricAttribute::HasGpuImplementation
@@ -517,6 +520,7 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::RMSEWithUncertainty,
     ELossFunction::MAE,
     ELossFunction::Quantile,
+    ELossFunction::MultiQuantile,
     ELossFunction::LogLinQuantile,
     ELossFunction::Expectile,
     ELossFunction::MAPE,

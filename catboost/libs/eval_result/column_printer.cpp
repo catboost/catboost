@@ -95,6 +95,7 @@ namespace NCB {
         }
         headers.reserve(ensemblesCount * predictionDim * uncertaintyHeaders.size());
         // TODO(eermishkina): support multiRMSE
+        // TODO(espetrov): support MultiQuantile
         for (ui32 veId = 0; veId < ensemblesCount; ++veId) {
             for (ui32 dimId  = 0; dimId  < predictionDim; ++dimId ) {
                 for (const auto &name: uncertaintyHeaders) {
@@ -157,6 +158,8 @@ namespace NCB {
                     } else {
                         str << (predictionType == EPredictionType::RMSEWithUncertainty ? "Std" : "Log(Std)");
                     }
+                } else if (lossFunction == ELossFunction::MultiQuantile) {
+                    str << ":QuantileId=" << classId;
                 } else {
                     str << (isMultiTarget && !isMultiLabel ? ":Dim=" : ":Class=")
                         << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);

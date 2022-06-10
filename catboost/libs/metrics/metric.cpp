@@ -2211,6 +2211,121 @@ TVector<TParamSet> TMultiClassOneVsAllMetric::ValidParamSets() {
     return {TParamSet{{TParamInfo{"use_weights", false, true}}, ""}};
 };
 
+
+/*MultiQuantile*/
+
+namespace {
+    class TMultiQuantileMetric final: public TAdditiveSingleTargetMetric {
+    public:
+        explicit TMultiQuantileMetric(const TLossParams& params, const TVector<double>& alpha, double delta);
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        static TVector<TParamSet> ValidParamSets();
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TConstArrayRef<double>> approx,
+            TConstArrayRef<TConstArrayRef<double>> approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int begin,
+            int end
+        ) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        const TVector<double> Alpha;
+        double Delta;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TMultiQuantileMetric::Create(const TMetricConfig& config) {
+    const auto& lossParams = config.GetParamsMap();
+    auto alpha = NCatboostOptions::GetAlphaMultiQuantile(lossParams);
+    double delta = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "delta", 1e-6);
+
+    config.ValidParams->insert("alpha");
+    config.ValidParams->insert("delta");
+    return AsVector(MakeHolder<TMultiQuantileMetric>(config.Params, alpha, delta));
+}
+
+TMultiQuantileMetric::TMultiQuantileMetric(const TLossParams& params, const TVector<double>& alpha, double delta)
+        : TAdditiveSingleTargetMetric(ELossFunction::MultiQuantile, params)
+        , Alpha(alpha)
+        , Delta(delta)
+{
+    Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+    CB_ENSURE(AllOf(Alpha, [] (double a) { return a > -1e-6 && a < 1.0 + 1e-6; }), "Parameter alpha for quantile metric should be in interval [0, 1]");
+}
+
+TMetricHolder TMultiQuantileMetric::EvalSingleThread(
+    TConstArrayRef<TConstArrayRef<double>> approx,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end
+) const {
+    CB_ENSURE(approx.size() == Alpha.size(), "Metric MultiQuantile expects same number of predictions and quantiles");
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight) {
+        TMetricHolder error(2);
+        for (auto j : xrange(approx.size())) {
+            const auto alpha = Alpha[j];
+            for (int i : xrange(begin, end)) {
+                double val = target[i] - approx[j][i];
+                if (hasDelta) {
+                    val -= approxDelta[j][i];
+                }
+                const double multiplier = (abs(val) < Delta) ? 0 : ((val > 0) ? alpha : -(1 - alpha));
+                if (val < -Delta) {
+                    val += Delta;
+                } else if (val > Delta) {
+                    val -= Delta;
+                }
+
+                const float w = hasWeight ? weight[i] : 1;
+                error.Stats[0] += (multiplier * val) * w;
+                error.Stats[1] += w;
+            }
+        }
+        return error;
+    };
+    return DispatchGenericLambda(impl, !approxDelta.empty(), !weight.empty());
+}
+
+TString TMultiQuantileMetric::GetDescription() const {
+    const TMetricParam<TVector<double>> alpha("alpha", Alpha, /*userDefined*/true);
+    if (Delta == 1e-6) {
+        return BuildDescription(ELossFunction::MultiQuantile, UseWeights, "%.3g", alpha);
+    }
+    const TMetricParam<double> delta("delta", Delta, /*userDefined*/true);
+    return BuildDescription(ELossFunction::MultiQuantile, UseWeights, "%.3g", alpha, "%g", delta);
+}
+
+void TMultiQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+TVector<TParamSet> TMultiQuantileMetric::ValidParamSets() {
+    return {
+        TParamSet{
+            {
+                TParamInfo{"use_weights", false, true},
+                TParamInfo{"alpha", false, 0.5},
+                TParamInfo{"delta", false, 1e-6}
+            },
+            ""
+        }
+    };
+}
+
+
 /* PairLogit */
 
 namespace {
@@ -5823,6 +5938,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         case ELossFunction::Quantile:
             AppendTemporaryMetricsVector(TQuantileMetric::Create(config), &result);
             break;
+        case ELossFunction::MultiQuantile:
+            AppendTemporaryMetricsVector(TMultiQuantileMetric::Create(config), &result);
+            break;
         case ELossFunction::Expectile:
             AppendTemporaryMetricsVector(TExpectileMetric::Create(config), &result);
             break;
@@ -6070,6 +6188,8 @@ TVector<TParamSet> ValidParamSets(ELossFunction metric) {
         case ELossFunction::MAE:
         case ELossFunction::Quantile:
             return TQuantileMetric::ValidParamSets();
+        case ELossFunction::MultiQuantile:
+            return TMultiQuantileMetric::ValidParamSets();
         case ELossFunction::Expectile:
             return TExpectileMetric::ValidParamSets();
         case ELossFunction::LogLinQuantile:
@@ -6471,7 +6591,7 @@ bool IsMinOptimal(TStringBuf lossFunction) {
 }
 
 bool IsQuantileLoss(const ELossFunction& loss) {
-    return loss == ELossFunction::Quantile || loss == ELossFunction::MAE;
+    return loss == ELossFunction::Quantile || loss == ELossFunction::MultiQuantile || loss == ELossFunction::MAE;
 }
 
 namespace NCB {
