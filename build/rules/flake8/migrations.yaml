@@ -143,7 +143,6 @@ migrations:
     - dict/mt/make/libs/eval
     - dict/mt/make/libs/tfnn
     - dict/mt/make/libs/translate_mtd
-    - dict/mt/make/modules/corpus_generation/common
     - dict/mt/make/tools/lm_diff
     - dict/mt/make/tools/make_cap_model/score_caps
     - dict/mt/make/tools/opus_merge
@@ -787,7 +786,6 @@ migrations:
     - yweb/antispam/seo_masks/py/static_impl/ut
     - yweb/antispam/tools/yql
     - yweb/antispam/webspam/collections/vw_model_applier/bin
-    - yweb/antispam/webspam/export/tries/tools/upper_tries
     - yweb/antispam/ytgr/viewer
     - yweb/blender/newsletter/unused_formulas
     - yweb/blender/scripts/blender_viewer/conveyor_experiments/utils
@@ -1320,9 +1318,6 @@ migrations:
     - sandbox/projects/gencfg/GencfgChartsUploadGroupsInfoToYt
     - sandbox/projects/mail/Load/FuritaAmmoGen
     - sandbox/projects/mail/Load/FuritaShooting
-    - sandbox/projects/mail/Load/LizaShooting
-    - sandbox/projects/mail/Load/MobileApiShooting
-    - sandbox/projects/mail/Load/WebApiShooting
     - sandbox/projects/mail/RotateMailNotifyRules
     - sandbox/projects/marty
     - sandbox/projects/mssngr/runtime/MssngrRouterLoadTest
