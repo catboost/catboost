@@ -654,6 +654,9 @@ typedef __char32_t char32_t;
 #undef __has_builtin
 #define __has_builtin(x) __has_builtin_##x
 #define __has_builtin___builtin_addressof 1
+#if _MSC_VER >= 1925
+#define __has_builtin___builtin_is_constant_evaluated 1
+#endif
 
 #define _LIBCPP_WEAK
 
