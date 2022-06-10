@@ -6573,7 +6573,7 @@
         "clang-format": {
             "formula": {
                 "sandbox_id": [
-                    1042773541
+                    1337227141
                 ],
                 "match": "clang-format"
             },
@@ -8992,7 +8992,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1335876805,
+                "sandbox_id": 1337334612,
                 "match": "lama"
             },
             "executable": {
