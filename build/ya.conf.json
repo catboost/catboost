@@ -315,12 +315,6 @@
         "saas2": {
             "description": "Run saas2 cli"
         },
-        "go_1.17": {
-            "description": "Run go tool (1.17.8)"
-        },
-        "gofmt_1.17": {
-            "description": "Run gofmt tool (1.17.8)"
-        },
         "go": {
             "description": "Run go tool (1.18.2)"
         },
@@ -5536,53 +5530,6 @@
                 }
             ]
         },
-        "golang_1_17_8": {
-            "tools": {
-                "golang_1.17": {
-                    "bottle": "golang_1.17.8",
-                    "executable": "golang_1.17"
-                },
-                "go_1.17": {
-                    "bottle": "golang_1.17.8",
-                    "executable": "go_1.17"
-                },
-                "gofmt_1.17": {
-                    "bottle": "golang_1.17.8",
-                    "executable": "gofmt_1.17"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN",
-                        "arch": "arm64"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.17.8"
-            }
-        },
         "golang_1.18": {
             "tools": {
                 "golang": {
@@ -8279,27 +8226,6 @@
             "executable": {
                 "saas2": [
                     "saas2"
-                ]
-            }
-        },
-        "golang_1.17.8": {
-            "formula": {
-                "sandbox_id": [
-                    1274287574,
-                    1274292721,
-                    1272507071,
-                    1274297831
-                ],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.17": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.17": [
-                    "bin",
-                    "gofmt"
                 ]
             }
         },
