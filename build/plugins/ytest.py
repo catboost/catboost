@@ -551,6 +551,10 @@ def onadd_check(unit, *args):
                                                      "REQUIREMENTS": -1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
                                                      "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
+
+    if check_type in ("check.data", "check.resource") and unit.get('VALIDATE_DATA') == "no":
+        return
+
     test_dir = get_norm_unit_path(unit)
 
     test_timeout = ''
@@ -558,12 +562,12 @@ def onadd_check(unit, *args):
     extra_test_data = ''
     extra_test_dart_data = {}
     ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
+    use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
+    uid_ext = ''
+    script_rel_path = check_type
+    test_files = flat_args[1:]
 
-    if check_type in ["flake8.py2", "flake8.py3"]:
-        script_rel_path = check_type
-        fork_mode = unit.get('TEST_FORK_MODE') or ''
-    elif check_type == "black":
-        script_rel_path = check_type
+    if check_type in ["flake8.py2", "flake8.py3", "black"]:
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
         if ymake_java_test and not unit.get('ALL_SRCDIRS') or '':
@@ -579,9 +583,7 @@ def onadd_check(unit, *args):
         }
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
-        flat_args[1] = allowed_levels[check_level]
-        if check_level == 'none':
-            return
+        test_files[0] = allowed_levels[check_level]  # replace check_level with path to config file
         script_rel_path = "java.style"
         test_timeout = '120'
         fork_mode = unit.get('TEST_FORK_MODE') or ''
@@ -589,19 +591,9 @@ def onadd_check(unit, *args):
             extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
         extra_test_dart_data['JDK_RESOURCE'] = 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT')
     elif check_type == "gofmt":
-        script_rel_path = check_type
-        go_files = flat_args[1:]
-        if go_files:
-            test_dir = os.path.dirname(go_files[0]).lstrip("$S/")
-    else:
-        script_rel_path = check_type
-
-    use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
-    uid_ext = ''
-    if check_type in ("check.data", "check.resource"):
-        if unit.get("VALIDATE_DATA") == "no":
-            return
-    if check_type == "check.data":
+        if test_files:
+            test_dir = os.path.dirname(test_files[0]).lstrip("$S/")
+    elif check_type == "check.data":
         uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
         data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
         data = flat_args[1:]
@@ -611,11 +603,11 @@ def onadd_check(unit, *args):
             if matched:
                 resources.append(matched.group(1))
         if resources:
-            test_files = serialize_list(resources)
+            test_files = resources
         else:
             return
-    else:
-        test_files = serialize_list(flat_args[1:])
+
+    serialized_test_files = serialize_list(test_files)
 
     test_record = {
         'TEST-NAME': check_type.lower(),
@@ -638,8 +630,8 @@ def onadd_check(unit, *args):
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
         # TODO remove FILES, see DEVTOOLS-7052
-        'FILES': test_files,
-        'TEST-FILES': test_files,
+        'FILES': serialized_test_files,
+        'TEST-FILES': serialized_test_files,
         'NO_JBUILD': 'yes' if ymake_java_test else 'no',
     }
     test_record.update(extra_test_dart_data)
