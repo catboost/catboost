@@ -328,15 +328,17 @@ def extract_words(words, keys):
 
 def parse_words(words):
     kv = extract_words(words, {'OUT', 'TEMPLATE'})
+    if not 'TEMPLATE' in kv:
+        kv['TEMPLATE'] = ['template.tmpl']
     ws = []
     for item in ('OUT', 'TEMPLATE'):
         for i, word in list(enumerate(kv[item])):
             if word == 'CUSTOM_PROPERTY':
                 ws += kv[item][i:]
                 kv[item] = kv[item][:i]
-    tepmlates = kv['TEMPLATE']
+    templates = kv['TEMPLATE']
     outputs = kv['OUT']
-    if len(outputs) < len(tepmlates):
+    if len(outputs) < len(templates):
         ymake.report_configure_error('To many arguments for TEMPLATE parameter')
         return
     if ws and ws[0] != 'CUSTOM_PROPERTY':
@@ -358,7 +360,7 @@ def parse_words(words):
         else:
             ymake.report_configure_error('CUSTOM_PROPERTY "{}" value is not specified'.format(p[0]))
     for i, o in enumerate(outputs):
-        yield o, tepmlates[min(i, len(tepmlates) - 1)], props
+        yield o, templates[min(i, len(templates) - 1)], props
 
 
 def on_ymake_generate_script(unit, *args):
