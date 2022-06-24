@@ -26,6 +26,7 @@ target_link_libraries(library-cpp-neh PUBLIC
   cpp-openssl-method
   cpp-threading-atomic
   cpp-threading-thread_local
+  cpp-deprecated-atomic
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(library-cpp-neh PRIVATE

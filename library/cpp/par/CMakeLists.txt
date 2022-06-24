@@ -22,6 +22,7 @@ target_link_libraries(library-cpp-par PUBLIC
   cpp-netliba-v12
   cpp-threading-atomic
   cpp-threading-local_executor
+  cpp-deprecated-atomic
 )
 target_sources(library-cpp-par PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/par/distr_tree.cpp

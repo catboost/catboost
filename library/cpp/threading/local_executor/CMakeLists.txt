@@ -13,6 +13,7 @@ target_link_libraries(cpp-threading-local_executor PUBLIC
   yutil
   contrib-libs-tbb
   cpp-threading-future
+  cpp-deprecated-atomic
 )
 target_sources(cpp-threading-local_executor PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/threading/local_executor/local_executor.cpp

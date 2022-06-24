@@ -27,6 +27,7 @@ target_link_libraries(catboost-libs-helpers PUBLIC
   cpp-malloc-api
   cpp-threading-local_executor
   library-cpp-fast_exp
+  cpp-deprecated-atomic
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(catboost-libs-helpers PRIVATE

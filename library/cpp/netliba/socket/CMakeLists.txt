@@ -13,6 +13,7 @@ target_link_libraries(cpp-netliba-socket PUBLIC
   yutil
   contrib-libs-libc_compat
   cpp-threading-chunk_queue
+  cpp-deprecated-atomic
 )
 target_sources(cpp-netliba-socket PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/netliba/socket/creators.cpp

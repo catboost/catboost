@@ -6,6 +6,7 @@ PEERDIR(
     library/cpp/containers/stack_vector
     library/cpp/json/writer
     library/cpp/yson
+    library/cpp/deprecated/atomic
 )
 
 SRCS(
@@ -35,4 +36,6 @@ RECURSE(
     examples
 )
 
-RECURSE_FOR_TESTS(ut)
+RECURSE_FOR_TESTS(
+    ut
+)
