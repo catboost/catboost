@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_17974769cf43c40e1014dc84c5.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +101,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_17974769cf43c40e1014dc84c5.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_17974769cf43c40e1014dc84c5.obj;</Outputs>
+      <Message>$B/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_ab085bf7a6c8613ae373d29d8b.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.obj" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,9 +128,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_ab085bf7a6c8613ae373d29d8b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_ab085bf7a6c8613ae373d29d8b.obj;</Outputs>
+      <Message>$B/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d53eb223cf2d5742c376c2fd4e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -163,7 +163,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.yasm" "-" "." "_40736123e4c8c76e8e59f7284e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.yasm" "-" "." "_90c25afa63e9dd95aee7919a14.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,7 +174,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.yasm" "-" "." "_40736123e4c8c76e8e59f7284e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.yasm" "-" "." "_90c25afa63e9dd95aee7919a14.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,9 +182,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_ab085bf7a6c8613ae373d29d8b.yasm	</Message>
+      <Message>$B/contrib/python/stack-data/_b7aa071b497d4c72208121b79c.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_ab085bf7a6c8613ae373d29d8b.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7aa071b497d4c72208121b79c.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\stack-data\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -217,7 +217,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.yasm" "-" "contrib/python/stack-data/stack_data/__init__.py" "_c9e0920af5821d9783a6ad6e15.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b3d7f73cc72e645e40ca3b02b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "_2fa5b9c318fc445245cacb8fc6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7cac584b83af5dd41e5cf756c.rodata" "-" "contrib/python/stack-data/stack_data/core.py" "_aed35bff08e72c96c5294bcf02.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/core.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_57d62f073022e33192fe4d992e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "_aeda34fb1e6f48c73463eb6de0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_0f6edf8bd592d151d0f6072a26.rodata" "-" "contrib/python/stack-data/stack_data/formatting.py" "_8b72fafcd0e80f611b85b98d38.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/formatting.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7d11d2b40f587b58f784a0ca9b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "_0a035a084124655f8d54581934.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b0a6aa95f1440d92633f3c6166.rodata" "-" "contrib/python/stack-data/stack_data/utils.py" "_efce3cc0590be519e1b49483a7.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_248430676eb421b6ffdcd08bfa.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "_38fb04e728d1d16cd9100e2de9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d7155827c141aa67dc761a1d76.rodata" "-" "contrib/python/stack-data/stack_data/version.py" "_e3d3fcd23f2c714cf1c31bcc7e.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/version.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_3b470c7715bb1bc5701bb3e0a9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "_f6a1a5ff6dfe1dc095d7730c6c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_25fab2c2682d18b249e73d94c5.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.yasm" "-" "contrib/python/stack-data/stack_data/__init__.py" "_c9e0920af5821d9783a6ad6e15.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b3d7f73cc72e645e40ca3b02b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "_2fa5b9c318fc445245cacb8fc6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7cac584b83af5dd41e5cf756c.rodata" "-" "contrib/python/stack-data/stack_data/core.py" "_aed35bff08e72c96c5294bcf02.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/core.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_57d62f073022e33192fe4d992e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "_aeda34fb1e6f48c73463eb6de0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_0f6edf8bd592d151d0f6072a26.rodata" "-" "contrib/python/stack-data/stack_data/formatting.py" "_8b72fafcd0e80f611b85b98d38.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/formatting.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7d11d2b40f587b58f784a0ca9b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "_0a035a084124655f8d54581934.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b0a6aa95f1440d92633f3c6166.rodata" "-" "contrib/python/stack-data/stack_data/serializing.py" "_ababad2f742a79195f37d090a1.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/serializing.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_81a1e4e6c40fcffd9db978a4e2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3" "_b54ad4386bc4c500c65e7d0234.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_79dec1631602943604443afa5f.rodata" "-" "contrib/python/stack-data/stack_data/utils.py" "_efce3cc0590be519e1b49483a7.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_248430676eb421b6ffdcd08bfa.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "_38fb04e728d1d16cd9100e2de9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d7155827c141aa67dc761a1d76.rodata" "-" "contrib/python/stack-data/stack_data/version.py" "_e3d3fcd23f2c714cf1c31bcc7e.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/version.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_3b470c7715bb1bc5701bb3e0a9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "_f6a1a5ff6dfe1dc095d7730c6c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_25fab2c2682d18b249e73d94c5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
@@ -234,7 +234,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.yasm" "-" "contrib/python/stack-data/stack_data/__init__.py" "_c9e0920af5821d9783a6ad6e15.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b3d7f73cc72e645e40ca3b02b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "_2fa5b9c318fc445245cacb8fc6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7cac584b83af5dd41e5cf756c.rodata" "-" "contrib/python/stack-data/stack_data/core.py" "_aed35bff08e72c96c5294bcf02.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/core.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_57d62f073022e33192fe4d992e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "_aeda34fb1e6f48c73463eb6de0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_0f6edf8bd592d151d0f6072a26.rodata" "-" "contrib/python/stack-data/stack_data/formatting.py" "_8b72fafcd0e80f611b85b98d38.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/formatting.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7d11d2b40f587b58f784a0ca9b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "_0a035a084124655f8d54581934.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b0a6aa95f1440d92633f3c6166.rodata" "-" "contrib/python/stack-data/stack_data/utils.py" "_efce3cc0590be519e1b49483a7.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_248430676eb421b6ffdcd08bfa.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "_38fb04e728d1d16cd9100e2de9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d7155827c141aa67dc761a1d76.rodata" "-" "contrib/python/stack-data/stack_data/version.py" "_e3d3fcd23f2c714cf1c31bcc7e.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/version.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_3b470c7715bb1bc5701bb3e0a9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "_f6a1a5ff6dfe1dc095d7730c6c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_25fab2c2682d18b249e73d94c5.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.yasm" "-" "contrib/python/stack-data/stack_data/__init__.py" "_c9e0920af5821d9783a6ad6e15.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b3d7f73cc72e645e40ca3b02b7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "_2fa5b9c318fc445245cacb8fc6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b7cac584b83af5dd41e5cf756c.rodata" "-" "contrib/python/stack-data/stack_data/core.py" "_aed35bff08e72c96c5294bcf02.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/core.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_57d62f073022e33192fe4d992e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "_aeda34fb1e6f48c73463eb6de0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/core.py.tlph.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_0f6edf8bd592d151d0f6072a26.rodata" "-" "contrib/python/stack-data/stack_data/formatting.py" "_8b72fafcd0e80f611b85b98d38.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/formatting.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_7d11d2b40f587b58f784a0ca9b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "_0a035a084124655f8d54581934.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_b0a6aa95f1440d92633f3c6166.rodata" "-" "contrib/python/stack-data/stack_data/serializing.py" "_ababad2f742a79195f37d090a1.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/serializing.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_81a1e4e6c40fcffd9db978a4e2.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3" "_b54ad4386bc4c500c65e7d0234.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_79dec1631602943604443afa5f.rodata" "-" "contrib/python/stack-data/stack_data/utils.py" "_efce3cc0590be519e1b49483a7.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_248430676eb421b6ffdcd08bfa.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "_38fb04e728d1d16cd9100e2de9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/utils.py.uce4.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_d7155827c141aa67dc761a1d76.rodata" "-" "contrib/python/stack-data/stack_data/version.py" "_e3d3fcd23f2c714cf1c31bcc7e.rodata" "$(SolutionDir)../contrib/python/stack-data/stack_data/version.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_3b470c7715bb1bc5701bb3e0a9.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "_f6a1a5ff6dfe1dc095d7730c6c.rodata" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/version.py.v4gd.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/_25fab2c2682d18b249e73d94c5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
@@ -248,9 +248,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/_17974769cf43c40e1014dc84c5.yasm	$B/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\stack_data\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\__init__.py.nxp3.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\core.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\core.py.tlph.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\formatting.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\formatting.py.e3dm.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\utils.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\utils.py.uce4.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\version.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\version.py.v4gd.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_17974769cf43c40e1014dc84c5.yasm;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b3d7f73cc72e645e40ca3b02b7.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7cac584b83af5dd41e5cf756c.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_57d62f073022e33192fe4d992e.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_0f6edf8bd592d151d0f6072a26.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7d11d2b40f587b58f784a0ca9b.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b0a6aa95f1440d92633f3c6166.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_248430676eb421b6ffdcd08bfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d7155827c141aa67dc761a1d76.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_3b470c7715bb1bc5701bb3e0a9.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_25fab2c2682d18b249e73d94c5.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\__init__.py.nxp3.yapyc3;</Outputs>
+      <Message>$B/contrib/python/stack-data/_5cbf7f602f28ee1e6e6065102b.yasm	$B/contrib/python/stack-data/stack_data/__init__.py.nxp3.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\stack_data\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\__init__.py.nxp3.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\core.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\core.py.tlph.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\formatting.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\formatting.py.e3dm.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\serializing.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\serializing.py.xok4.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\utils.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\utils.py.uce4.yapyc3;$(SolutionDir)..\contrib\python\stack-data\stack_data\version.py;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\version.py.v4gd.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\_5cbf7f602f28ee1e6e6065102b.yasm;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b3d7f73cc72e645e40ca3b02b7.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b7cac584b83af5dd41e5cf756c.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_57d62f073022e33192fe4d992e.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_0f6edf8bd592d151d0f6072a26.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_7d11d2b40f587b58f784a0ca9b.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_b0a6aa95f1440d92633f3c6166.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_81a1e4e6c40fcffd9db978a4e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_79dec1631602943604443afa5f.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_248430676eb421b6ffdcd08bfa.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_d7155827c141aa67dc761a1d76.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_3b470c7715bb1bc5701bb3e0a9.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\_25fab2c2682d18b249e73d94c5.rodata;$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\__init__.py.nxp3.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\stack-data\stack_data\core.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -313,6 +313,37 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/stack-data/stack_data/formatting.py.e3dm.yapyc3	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\stack_data\formatting.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\formatting.py.e3dm.yapyc3;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\stack-data\stack_data\serializing.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/stack-data/stack_data/serializing.py-" "$(SolutionDir)../contrib/python/stack-data/stack_data/serializing.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
+if %errorlevel% neq 0 goto :cmEnd
+set "PYTHONHASHSEED=0"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/stack-data/stack_data/serializing.py-" "$(SolutionDir)../contrib/python/stack-data/stack_data/serializing.py" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/stack-data/stack_data/serializing.py.xok4.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\stack-data\stack_data\serializing.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\stack_data\serializing.py.xok4.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\stack-data\stack_data\utils.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
