@@ -316,7 +316,6 @@ void ImmutableMessageGenerator::Generate(io::Printer* printer) {
   WriteMessageDocComment(printer, descriptor_);
   MaybePrintGeneratedAnnotation(context_, printer, descriptor_,
                                 /* immutable = */ true);
-
   // The builder_type stores the super type name of the nested Builder class.
   TProtoStringType builder_type;
   if (descriptor_->extension_range_count() > 0) {
@@ -1409,7 +1408,7 @@ void ImmutableMessageGenerator::GenerateKotlinDsl(io::Printer* printer) const {
       "@com.google.protobuf.kotlin.ProtoDslMarker\n");
   printer->Print(
       "class Dsl private constructor(\n"
-      "  @kotlin.jvm.JvmField private val _builder: $message$.Builder\n"
+      "  private val _builder: $message$.Builder\n"
       ") {\n"
       "  companion object {\n"
       "    @kotlin.jvm.JvmSynthetic\n"
@@ -1457,7 +1456,7 @@ void ImmutableMessageGenerator::GenerateKotlinMembers(
     io::Printer* printer) const {
   printer->Print(
       "@kotlin.jvm.JvmSynthetic\n"
-      "inline fun $camelcase_name$(block: $message_kt$.Dsl.() -> Unit): "
+      "inline fun $camelcase_name$(block: $message_kt$.Dsl.() -> kotlin.Unit): "
       "$message$ "
       "=\n"
       "  $message_kt$.Dsl._create($message$.newBuilder()).apply { block() "
@@ -1482,7 +1481,7 @@ void ImmutableMessageGenerator::GenerateTopLevelKotlinMembers(
     io::Printer* printer) const {
   printer->Print(
       "@kotlin.jvm.JvmSynthetic\n"
-      "inline fun $message$.copy(block: $message_kt$.Dsl.() -> Unit): "
+      "inline fun $message$.copy(block: $message_kt$.Dsl.() -> kotlin.Unit): "
       "$message$ =\n"
       "  $message_kt$.Dsl._create(this.toBuilder()).apply { block() "
       "}._build()\n",

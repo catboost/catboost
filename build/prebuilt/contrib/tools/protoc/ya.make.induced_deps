@@ -13,6 +13,7 @@ INDUCED_DEPS(h+cpp
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/arenastring.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/extension_set.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/generated_enum_reflection.h
+    ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/generated_message_bases.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/generated_message_table_driven.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/generated_message_util.h
     ${ARCADIA_ROOT}/contrib/libs/protobuf/src/google/protobuf/io/coded_stream.h

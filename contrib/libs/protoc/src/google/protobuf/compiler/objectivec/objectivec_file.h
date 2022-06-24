@@ -58,8 +58,6 @@ class FileGenerator {
   void GenerateSource(io::Printer* printer);
   void GenerateHeader(io::Printer* printer);
 
-  const TProtoStringType& RootClassName() const { return root_class_name_; }
-
  private:
   const FileDescriptor* file_;
   TProtoStringType root_class_name_;

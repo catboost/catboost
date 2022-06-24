@@ -72,14 +72,14 @@ class GeneratorResponseContext : public GeneratorContext {
 
   // implements GeneratorContext --------------------------------------
 
-  virtual io::ZeroCopyOutputStream* Open(const TProtoStringType& filename) {
+  virtual io::ZeroCopyOutputStream* Open(const TProtoStringType& filename) override {
     CodeGeneratorResponse::File* file = response_->add_file();
     file->set_name(filename);
     return new io::StringOutputStream(file->mutable_content());
   }
 
   virtual io::ZeroCopyOutputStream* OpenForInsert(
-      const TProtoStringType& filename, const TProtoStringType& insertion_point) {
+      const TProtoStringType& filename, const TProtoStringType& insertion_point) override {
     CodeGeneratorResponse::File* file = response_->add_file();
     file->set_name(filename);
     file->set_insertion_point(insertion_point);
@@ -88,7 +88,7 @@ class GeneratorResponseContext : public GeneratorContext {
 
   virtual io::ZeroCopyOutputStream* OpenForInsertWithGeneratedCodeInfo(
       const TProtoStringType& filename, const TProtoStringType& insertion_point,
-      const google::protobuf::GeneratedCodeInfo& info) {
+      const google::protobuf::GeneratedCodeInfo& info) override {
     CodeGeneratorResponse::File* file = response_->add_file();
     file->set_name(filename);
     file->set_insertion_point(insertion_point);
@@ -96,11 +96,11 @@ class GeneratorResponseContext : public GeneratorContext {
     return new io::StringOutputStream(file->mutable_content());
   }
 
-  void ListParsedFiles(std::vector<const FileDescriptor*>* output) {
+  void ListParsedFiles(std::vector<const FileDescriptor*>* output) override {
     *output = parsed_files_;
   }
 
-  void GetCompilerVersion(Version* version) const {
+  void GetCompilerVersion(Version* version) const override {
     *version = compiler_version_;
   }
 
@@ -174,6 +174,7 @@ int PluginMain(int argc, char* argv[], const CodeGenerator* generator) {
               << std::endl;
     return 1;
   }
+
 
   TProtoStringType error_msg;
   CodeGeneratorResponse response;

@@ -217,8 +217,12 @@ class PROTOBUF_EXPORT Tokenizer {
   // result.  If the text is not from a Token of type TYPE_INTEGER originally
   // parsed by a Tokenizer, the result is undefined (possibly an assert
   // failure).
-  static bool ParseInteger(const TProtoStringType& text, uint64 max_value,
+  static bool ParseInteger(const TProtoStringType& text, uint64_t max_value,
                            uint64* output);
+#if defined(_64_) && (defined(_darwin_) || defined(_ios_))
+  static bool ParseInteger(const TProtoStringType& text, uint64_t max_value,
+                           uint64_t* output);
+#endif
 
   // Options ---------------------------------------------------------
 

@@ -28,84 +28,55 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef GOOGLE_PROTOBUF_HAS_BITS_H__
-#define GOOGLE_PROTOBUF_HAS_BITS_H__
+// This file contains helpers for generated code.
+//
+//  Nothing in this file should be directly referenced by users of protobufs.
 
-#include <google/protobuf/stubs/common.h>
-#include <google/protobuf/port.h>
+#ifndef GOOGLE_PROTOBUF_GENERATED_MESSAGE_BASES_H__
+#define GOOGLE_PROTOBUF_GENERATED_MESSAGE_BASES_H__
 
+#include <google/protobuf/parse_context.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/arena.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/message.h>
+
+// Must come last:
 #include <google/protobuf/port_def.inc>
-
-#ifdef SWIG
-#error "You cannot SWIG proto headers"
-#endif
 
 namespace google {
 namespace protobuf {
 namespace internal {
 
-template <size_t doublewords>
-class HasBits {
+// To save code size, protos without any fields are derived from ZeroFieldsBase
+// rather than Message.
+class PROTOBUF_EXPORT ZeroFieldsBase : public Message {
  public:
-  PROTOBUF_NDEBUG_INLINE constexpr HasBits() : has_bits_{} {}
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final { return true; }
+  size_t ByteSizeLong() const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+  const char* _InternalParse(const char* ptr,
+                             internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(::uint8_t* target,
+                                io::EpsCopyOutputStream* stream) const final;
 
-  PROTOBUF_NDEBUG_INLINE void Clear() {
-    memset(has_bits_, 0, sizeof(has_bits_));
-  }
+ protected:
+  constexpr ZeroFieldsBase() {}
+  explicit ZeroFieldsBase(Arena* arena, bool is_message_owned)
+      : Message(arena, is_message_owned) {}
+  ZeroFieldsBase(const ZeroFieldsBase&) = delete;
+  ZeroFieldsBase& operator=(const ZeroFieldsBase&) = delete;
+  ~ZeroFieldsBase() override;
 
-  PROTOBUF_NDEBUG_INLINE uint32_t& operator[](int index) {
-    return has_bits_[index];
-  }
+  void SetCachedSize(int size) const final { _cached_size_.Set(size); }
 
-  PROTOBUF_NDEBUG_INLINE const uint32_t& operator[](int index) const {
-    return has_bits_[index];
-  }
+  static void MergeImpl(Message* to, const Message& from);
+  static void CopyImpl(Message* to, const Message& from);
+  void InternalSwap(ZeroFieldsBase* other);
 
-  bool operator==(const HasBits<doublewords>& rhs) const {
-    return memcmp(has_bits_, rhs.has_bits_, sizeof(has_bits_)) == 0;
-  }
-
-  bool operator!=(const HasBits<doublewords>& rhs) const {
-    return !(*this == rhs);
-  }
-
-  void Or(const HasBits<doublewords>& rhs) {
-    for (size_t i = 0; i < doublewords; i++) has_bits_[i] |= rhs[i];
-  }
-
-  bool empty() const;
-
- private:
-  uint32_t has_bits_[doublewords];
+  mutable internal::CachedSize _cached_size_;
 };
-
-template <>
-inline bool HasBits<1>::empty() const {
-  return !has_bits_[0];
-}
-
-template <>
-inline bool HasBits<2>::empty() const {
-  return !(has_bits_[0] | has_bits_[1]);
-}
-
-template <>
-inline bool HasBits<3>::empty() const {
-  return !(has_bits_[0] | has_bits_[1] | has_bits_[2]);
-}
-
-template <>
-inline bool HasBits<4>::empty() const {
-  return !(has_bits_[0] | has_bits_[1] | has_bits_[2] | has_bits_[3]);
-}
-
-template <size_t doublewords>
-inline bool HasBits<doublewords>::empty() const {
-  for (size_t i = 0; i < doublewords; ++i) {
-    if (has_bits_[i]) return false;
-  }
-  return true;
-}
 
 }  // namespace internal
 }  // namespace protobuf
@@ -113,4 +84,4 @@ inline bool HasBits<doublewords>::empty() const {
 
 #include <google/protobuf/port_undef.inc>
 
-#endif  // GOOGLE_PROTOBUF_HAS_BITS_H__
+#endif  // GOOGLE_PROTOBUF_GENERATED_MESSAGE_BASES_H__

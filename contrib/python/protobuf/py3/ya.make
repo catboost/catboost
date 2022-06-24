@@ -8,9 +8,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(3.17.3)
+VERSION(3.18.1)
 
-ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.17.3.tar.gz)
+ORIGINAL_SOURCE(https://github.com/protocolbuffers/protobuf/archive/v3.18.1.tar.gz)
 
 PEERDIR(
     contrib/libs/protobuf
