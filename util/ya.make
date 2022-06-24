@@ -288,7 +288,6 @@ ENDIF()
 JOIN_SRCS(
     all_system_2.cpp
     system/align.cpp
-    system/atomic.cpp
     system/byteorder.cpp
     system/cpu_id.cpp
     system/fhandle.cpp

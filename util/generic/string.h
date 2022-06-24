@@ -8,7 +8,6 @@
 #include <string_view>
 
 #include <util/system/yassert.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 
 #include "ptr.h"
 #include "utility.h"
