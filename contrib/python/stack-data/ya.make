@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(0.2.0)
+VERSION(0.3.0)
 
 LICENSE(MIT)
 
@@ -21,6 +21,7 @@ PY_SRCS(
     stack_data/__init__.py
     stack_data/core.py
     stack_data/formatting.py
+    stack_data/serializing.py
     stack_data/utils.py
     stack_data/version.py
 )
