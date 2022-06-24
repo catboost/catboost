@@ -143,6 +143,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
       <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
     </ProjectReference>

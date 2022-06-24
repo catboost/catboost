@@ -117,6 +117,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
       <Project>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>{431AA21E-81D1-AE9C-9176-FDB24F2BC358}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dns\library-cpp-dns.vcxproj">
       <Project>{91C1EED9-1431-B67A-0849-C29C4CC35B79}</Project>
     </ProjectReference>

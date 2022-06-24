@@ -1761,6 +1761,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dbg_output\library-cpp-dbg_output.vcxproj">
       <Project>FAD72648-D1D4-61AA-86EF-81FACE7EE467</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\atomic\cpp-deprecated-atomic.vcxproj">
+      <Project>431AA21E-81D1-AE9C-9176-FDB24F2BC358</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\kmp\cpp-deprecated-kmp.vcxproj">
       <Project>F6D2279A-FA36-23C0-2354-66F83F7BDB2B</Project>
     </ProjectReference>
