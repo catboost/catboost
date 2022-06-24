@@ -625,6 +625,7 @@ def onadd_check(unit, *args):
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
         'TEST-DATA': extra_test_data,
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         'SBR-UID-EXT': uid_ext,
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',

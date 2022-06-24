@@ -532,6 +532,9 @@
         },
         "marketsre": {
             "description": "Run Market SRE Cli"
+        },
+        "metrika-core": {
+            "description": "Run metrika-core toolkit"
         }
     },
     "toolchain": {
@@ -6474,6 +6477,22 @@
                 "objcopy": "$(RISCV)/bin/riscv32-elf-objcopy",
                 "gcc_version": "7.4.0"
             }
+        },
+        "metrika-core": {
+            "tools": {
+                "metrika-core": {
+                    "bottle": "metrika-core",
+                    "executable": "metrika-core"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -6507,7 +6526,7 @@
         "yexport": {
             "formula": {
                 "sandbox_id": [
-                    1327400889
+                    1342978640
                 ],
                 "match": "yexport"
             },
@@ -7696,7 +7715,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1341851601,
+                "sandbox_id": 1343078483,
                 "match": "infractl"
             },
             "executable": {
@@ -8027,7 +8046,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1341702447,
+                "sandbox_id": 1342915322,
                 "match": "horadric"
             },
             "executable": {
@@ -8170,7 +8189,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1341702965,
+                "sandbox_id": 1342916952,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8806,7 +8825,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1341703271,
+                "sandbox_id": 1342915845,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8817,7 +8836,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1341702425,
+                "sandbox_id": 1342915804,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8839,7 +8858,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1341702394,
+                "sandbox_id": 1342917999,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -8885,7 +8904,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1341702410,
+                "sandbox_id": 1342916282,
                 "match": "yt_sync"
             },
             "executable": {
@@ -8896,7 +8915,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1341702354,
+                "sandbox_id": 1342916277,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -8907,7 +8926,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1341702476,
+                "sandbox_id": 1342918231,
                 "match": "exp_stats"
             },
             "executable": {
@@ -8951,7 +8970,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1341703292,
+                "sandbox_id": 1342915400,
                 "match": "profile_size_analyzer"
             },
             "executable": {
@@ -8973,6 +8992,17 @@
                 "cc": [
                     "bin",
                     "riscv32-elf-gcc"
+                ]
+            }
+        },
+        "metrika-core": {
+            "formula": {
+                "sandbox_id": 1342201764,
+                "match": "metrika-core"
+            },
+            "executable": {
+                "metrika-core": [
+                    "metrika-core"
                 ]
             }
         }
