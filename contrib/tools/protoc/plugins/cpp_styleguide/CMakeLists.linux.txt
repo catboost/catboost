@@ -11,7 +11,8 @@ add_executable(cpp_styleguide)
 target_link_libraries(cpp_styleguide PUBLIC
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   contrib-libs-protoc
 )

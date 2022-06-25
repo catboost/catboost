@@ -11,7 +11,8 @@ add_executable(catboost-libs-metrics-ut)
 target_link_libraries(catboost-libs-metrics-ut PUBLIC
   contrib-libs-cxxsupp
   yutil
-  library-cpp-lfalloc
+  cpp-malloc-tcmalloc
+  libs-tcmalloc-no_percpu_cache
   library-cpp-cpuid_check
   cpp-testing-unittest_main
   catboost-libs-metrics
