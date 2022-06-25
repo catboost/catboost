@@ -124,10 +124,29 @@ def fix_windows_param(ex):
         return ['/DEF:{}'.format(def_file.name)]
 
 
-musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
+MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
+
+CUDA_LIBRARIES = {
+    '-lcublas_static': '-lcublas',
+    '-lcublasLt_static': '-lcublasLt',
+    '-lcudart_static': '-lcudart',
+    '-lcudnn_static': '-lcudnn',
+    '-lcufft_static_nocallback': '-lcufft',
+    '-lcurand_static': '-lcurand',
+    '-lcusolver_static': '-lcusolver',
+    '-lcusparse_static': '-lcusparse',
+    '-lmyelin_compiler_static': '-lmyelin',
+    '-lmyelin_executor_static': '-lnvcaffe_parser',
+    '-lmyelin_pattern_library_static': '',
+    '-lmyelin_pattern_runtime_static': '',
+    '-lnvinfer_static': '-lnvinfer',
+    '-lnvinfer_plugin_static': '-lnvinfer_plugin',
+    '-lnvonnxparser_static': '-lnvonnxparser',
+    '-lnvparsers_static': '-lnvparsers'
+}
 
 
-def fix_cmd(arch, musl, c):
+def fix_cmd(arch, c):
     if arch == 'WINDOWS':
         prefix = '/DEF:'
         f = fix_windows_param
@@ -139,9 +158,6 @@ def fix_cmd(arch, musl, c):
             f = lambda x: fix_gnu_param(arch, x)
 
     def do_fix(p):
-        if musl and p in musl_libs:
-            return []
-
         if p.startswith(prefix) and p.endswith('.exports'):
             fname = p[len(prefix):]
 
@@ -158,6 +174,24 @@ def fix_cmd(arch, musl, c):
     return sum((do_fix(x) for x in c), [])
 
 
+def fix_cmd_for_musl(cmd):
+    flags = []
+    for flag in cmd:
+        if flag not in MUSL_LIBS:
+            flags.append(flag)
+    return flags
+
+
+def fix_cmd_for_dynamic_cuda(cmd):
+    flags = []
+    for flag in cmd:
+        if flag in CUDA_LIBRARIES:
+            flags.append(CUDA_LIBRARIES[flag])
+        else:
+            flags.append(flag)
+    return flags
+
+
 def parse_args():
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
@@ -167,6 +201,7 @@ def parse_args():
     parser.add_option('--fix-elf')
     parser.add_option('--linker-output')
     parser.add_option('--musl', action='store_true')
+    parser.add_option('--dynamic-cuda', action='store_true')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
     return parser.parse_args()
@@ -178,7 +213,13 @@ if __name__ == '__main__':
     assert opts.arch
     assert opts.target
 
-    cmd = fix_cmd(opts.arch, opts.musl, args)
+    cmd = fix_cmd(opts.arch, args)
+
+    if opts.musl:
+        cmd = fix_cmd_for_musl(cmd)
+    if opts.dynamic_cuda:
+        cmd = fix_cmd_for_dynamic_cuda(cmd)
+
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
 
     if opts.linker_output:
@@ -226,7 +267,7 @@ C++ geobase5::hardcoded_service
 """
     filename = write_temp_file(export_file_content)
     args = ['-Wl,--version-script={}'.format(filename)]
-    assert fix_cmd('DARWIN', False, args) == [
+    assert fix_cmd('DARWIN', args) == [
         '-Wl,-exported_symbol,__ZN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTIN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTSN8geobase57details11lookup_impl*',
