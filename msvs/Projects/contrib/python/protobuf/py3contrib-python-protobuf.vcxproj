@@ -141,9 +141,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\protobuf\py3\pypython-protobuf-py3.vcxproj">
       <Project>{BC3B1922-65C9-FCC5-22AF-D5DB13CB02AB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
-      <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
