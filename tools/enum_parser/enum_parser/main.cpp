@@ -130,7 +130,7 @@ static inline void CloseArray(TStringStream& out) {
 }
 
 static TString WrapStringBuf(const TStringBuf str) {
-    return TString::Join("TStringBuf(\"", str, "\")");
+    return TString::Join("\"", str, "\"sv");
 }
 
 void GenerateEnum(
