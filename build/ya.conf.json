@@ -316,10 +316,10 @@
             "description": "Run saas2 cli"
         },
         "go": {
-            "description": "Run go tool (1.18.2)"
+            "description": "Run go tool (1.18.3)"
         },
         "gofmt": {
-            "description": "Run gofmt tool (1.18.2)"
+            "description": "Run gofmt tool (1.18.3)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5577,7 +5577,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.18.2"
+                "version": "1.18.3"
             }
         },
         "godoc": {
@@ -8251,10 +8251,10 @@
         "golang_1.18": {
             "formula": {
                 "sandbox_id": [
-                    1312106822,
-                    1312106821,
-                    1312106819,
-                    1312106817
+                    1345711704,
+                    1345711700,
+                    1345711703,
+                    1345711705
                 ],
                 "match": "GOLANG"
             },
