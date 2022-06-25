@@ -131,7 +131,7 @@ def ram_drive_path(path=None):
     """
     if 'YA_TEST_RAM_DRIVE_PATH' in os.environ:
         return _join_path(os.environ['YA_TEST_RAM_DRIVE_PATH'], path)
-    return get_param("ram_drive_path")
+    return _join_path(get_param("ram_drive_path"), path)
 
 
 def output_ram_drive_path(path=None):
