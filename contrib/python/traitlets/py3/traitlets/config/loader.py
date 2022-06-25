@@ -787,12 +787,13 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
     """A loader that uses the argparse module to load from the command line."""
 
     parser_class = ArgumentParser
+    Flags = t.Union[str, t.Tuple[str, ...]]
 
     def __init__(
         self,
         argv: t.Optional[t.List[str]] = None,
-        aliases: t.Optional[t.Dict[str, str]] = None,
-        flags: t.Optional[t.Dict[str, str]] = None,
+        aliases: t.Optional[t.Dict[Flags, str]] = None,
+        flags: t.Optional[t.Dict[Flags, str]] = None,
         log: t.Any = None,
         classes: t.Optional[t.List[t.Type[t.Any]]] = None,
         *parser_args: t.Any,
@@ -815,9 +816,9 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
             A tuple of keyword arguments that will be passed to the
             constructor of :class:`argparse.ArgumentParser`.
         aliases : dict of str to str
-            Dict of aliases to full traitlests names for CLI parsing
+            Dict of aliases to full traitlets names for CLI parsing
         flags : dict of str to str
-            Dict of flags to full traitlests names for CLI parsing
+            Dict of flags to full traitlets names for CLI parsing
         log
             Passed to `ConfigLoader`
 
@@ -902,12 +903,8 @@ class ArgParseConfigLoader(CommandLineConfigLoader):
                 if alias in self.flags:
                     continue
                 if not isinstance(alias, tuple):
-                    short_alias, alias = alias, None  # type:ignore[assignment]
-                else:
-                    short_alias, alias = alias
-                for al in (short_alias, alias):
-                    if al is None:
-                        continue
+                    alias = (alias,)
+                for al in alias:
                     if len(al) == 1:
                         unpacked_aliases["-" + al] = "--" + alias_target
                     unpacked_aliases["--" + al] = "--" + alias_target

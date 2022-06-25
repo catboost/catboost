@@ -6,7 +6,7 @@ PROVIDES(python_traitlets)
 
 
 
-VERSION(5.2.2.post1)
+VERSION(5.3.0)
 
 LICENSE(BSD-3-Clause)
 

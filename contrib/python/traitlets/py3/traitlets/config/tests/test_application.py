@@ -371,6 +371,24 @@ class TestApplication(TestCase):
         app.init_foo()
         self.assertEqual(app.foo.j, 10)
 
+    def test_aliases_multiple(self):
+        # Test multiple > 2 aliases for the same argument
+        class TestMultiAliasApp(Application):
+            foo = Integer(config=True)
+            aliases = {("f", "bar", "qux"): "TestMultiAliasApp.foo"}
+
+        app = TestMultiAliasApp()
+        app.parse_command_line(["-f", "3"])
+        self.assertEqual(app.foo, 3)
+
+        app = TestMultiAliasApp()
+        app.parse_command_line(["--bar", "4"])
+        self.assertEqual(app.foo, 4)
+
+        app = TestMultiAliasApp()
+        app.parse_command_line(["--qux", "5"])
+        self.assertEqual(app.foo, 5)
+
     def test_aliases_help_msg(self):
         app = MyApp()
         stdout = io.StringIO()
