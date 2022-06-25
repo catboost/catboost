@@ -226,7 +226,7 @@ def is_good_file(p):
     if os.path.getsize(p) < 300:
         return False
 
-    asm_pattern = re.compile('asm(\.\w+)?\.obj$')
+    asm_pattern = re.compile(r'asm(\.\w+)?\.obj$')
     if asm_pattern.search(p):
         pass
     elif p.endswith('.obj'):
@@ -358,7 +358,10 @@ def trim_path(path, winepath):
         check_path = check_path[2:]
 
     if not check_path[1:].startswith((path[1:4], path[1:4].upper())):
-        raise Exception('Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr))
+        raise Exception(
+            'Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(
+            path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr
+        ))
 
     return short_path
 
@@ -381,6 +384,7 @@ def make_full_path_arg(arg, bld_root, short_root):
         return os.path.join(short_root, arg)
     return arg
 
+
 def fix_path(p):
     topdirs = ['/%s/' % d for d in os.listdir('/')]
     def abs_path_start(path, pos):
@@ -398,6 +402,7 @@ def fix_path(p):
     if p.startswith('/Fo'):
         return '/Fo' + p[3:].replace('/', '\\')
     return p
+
 
 def process_free_args(args, wine, bld_root, mode):
     whole_archive_prefix = '/WHOLEARCHIVE:'
@@ -429,6 +434,7 @@ def process_free_args(args, wine, bld_root, mode):
         else:
             result.append(process_arg(arg))
     return pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(result)
+
 
 def run_main():
     parser = argparse.ArgumentParser()
