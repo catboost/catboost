@@ -47,18 +47,18 @@ BELONGS ya.make
 KEEP     COPYRIGHT_SERVICE_LABEL 7ddb2995f48012001146c0eb94d23367
 BELONGS ya.make
     License text:
-        \# Copyright 2008 Google Inc.  All rights reserved.
+        Copyright 2008 Google Inc.  All rights reserved.
     Scancode info:
         Original SPDX id: COPYRIGHT_SERVICE_LABEL
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        LICENSE [1:1]
         google/protobuf/__init__.py [2:2]
         google/protobuf/descriptor.py [2:2]
         google/protobuf/descriptor_database.py [2:2]
         google/protobuf/descriptor_pool.py [2:2]
         google/protobuf/internal/__init__.py [2:2]
-        google/protobuf/internal/_parameterized.py [4:4]
         google/protobuf/internal/api_implementation.cc [2:2]
         google/protobuf/internal/api_implementation.py [2:2]
         google/protobuf/internal/containers.py [2:2]
