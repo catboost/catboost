@@ -131,6 +131,7 @@ def ram_drive_path(path=None):
     """
     if 'YA_TEST_RAM_DRIVE_PATH' in os.environ:
         return _join_path(os.environ['YA_TEST_RAM_DRIVE_PATH'], path)
+    return get_param("ram_drive_path")
 
 
 def output_ram_drive_path(path=None):
@@ -141,6 +142,7 @@ def output_ram_drive_path(path=None):
     """
     if 'YA_TEST_OUTPUT_RAM_DRIVE_PATH' in os.environ:
         return _join_path(os.environ['YA_TEST_OUTPUT_RAM_DRIVE_PATH'], path)
+    return _get_ya_plugin_instance().get_context("test_output_ram_drive_path")
 
 
 def binary_path(path=None):
@@ -314,6 +316,10 @@ class Context(object):
     @property
     def test_name(self):
         return _get_ya_config().current_test_name
+
+    @property
+    def test_tool_path(self):
+        return _get_ya_plugin_instance().get_context("test_tool_path")
 
     @property
     def sanitize(self):
