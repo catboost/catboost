@@ -261,7 +261,10 @@ namespace {
                 auto feature = CreateDistributedObject<TFeatureInBlock>();
 
                 for (ui32 dev = 0; dev < devCount; ++dev) {
-                    Y_VERIFY(origFeature.At(dev).Folds == folds);
+                    CB_ENSURE(
+                        origFeature.At(dev).Folds == folds,
+                        "Unexpected number of folds " << origFeature.At(dev).Folds << " at device " << dev
+                        << " (should be " << folds << ")");
 
                     TFeatureInBlock devFeature;
                     devFeature.CompressedIndexOffset = origFeature.At(dev).Offset;

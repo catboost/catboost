@@ -40,11 +40,11 @@ static NPar::TNetworkAddress CreateAddress(const TString& server) {
     NPar::TNetworkAddress::TPortNum port = 0;
     TString addr;
     if (server.Contains('[')) { // handle ipv6 address
-        Y_ENSURE(server.Contains(']'), "invalid v6 address" << server);
+        CB_ENSURE(server.Contains(']'), "invalid v6 address" << server);
         auto pos = server.rfind(']');
         addr = server.substr(0, pos + 1);
         if (pos != server.size() - 1) { // we have port
-            Y_ENSURE(server[pos + 1] == ':' && server.size() > pos + 2, "invalid v6 address" << server);
+            CB_ENSURE(server[pos + 1] == ':' && server.size() > pos + 2, "invalid v6 address" << server);
             port = FromString<NPar::TNetworkAddress::TPortNum>(server.substr(pos + 2));
         }
     } else {

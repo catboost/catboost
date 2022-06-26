@@ -195,7 +195,7 @@ public:
     }
 
     bool IsContinueTraining(const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) override {
-        Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
+        CB_ENSURE(metricsAndTimeHistory.TimeHistory.size() > 0, "Training time history is empty");
         size_t iteration = (FoldContext->TaskType == ETaskType::CPU) ?
               metricsAndTimeHistory.TimeHistory.size() - 1
             : (metricsAndTimeHistory.TimeHistory.size() - 1);
@@ -630,9 +630,8 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
             return NCB::StratifiedSplitToFolds(*dataProvider.ObjectsGrouping, rawTargetData[0], partCount);
         }
         default:
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "Unexpected raw target type");
     }
-    Y_UNREACHABLE();
 }
 
 TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(

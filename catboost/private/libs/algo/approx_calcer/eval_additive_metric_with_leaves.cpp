@@ -134,9 +134,11 @@ TMetricHolder EvalErrorsWithLeaves(
     int end;
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         end = target.size();
-        Y_VERIFY(end <= approx[0].ysize());
+        CB_ENSURE(end <= approx[0].ysize(), "Prediction and label size do not match");
     } else {
-        Y_VERIFY(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
+        CB_ENSURE(
+            error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError,
+            "Expected querywise or pairwise metric");
         end = queriesInfo.size();
     }
 

@@ -414,7 +414,7 @@ void TFeaturesLayout::AddFeature(TFeatureMetaInfo&& featureMetaInfo) {
             EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalIdx);
             break;
         default:
-            Y_FAIL();
+            CB_ENSURE(false, "Unexpected feature type");
     }
     ExternalIdxToMetaInfo.push_back(std::move(featureMetaInfo));
 }

@@ -136,7 +136,7 @@ static TDataProviders LoadPools(
             /* oldCvStyleSplit */ true,
             cpuRamLimit,
             executor);
-        Y_VERIFY(foldPools.size() == 1);
+        CB_ENSURE(foldPools.size() == 1, "In cross-validation mode, only one fold is supported");
 
         profile->AddOperation("Build cv pools");
 

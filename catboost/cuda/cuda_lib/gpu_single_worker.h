@@ -81,8 +81,8 @@ namespace NCudaLib {
             }
 
             ~TComputationStream() noexcept(false) {
-                Y_VERIFY(RunningTask.IsEmpty());
-                Y_VERIFY(WaitingTasks.size() == 0);
+                CB_ENSURE(RunningTask.IsEmpty(), "Some tasks are not completed");
+                CB_ENSURE(WaitingTasks.size() == 0, "Some tasks are waiting for processing");
             }
 
             void AddTask(THolder<IGpuKernelTask>&& task,
@@ -249,7 +249,7 @@ namespace NCudaLib {
                     return false;
                 }
                 default: {
-                    Y_VERIFY(false);
+                    CB_ENSURE(false, "Unknown pointer type");
                 }
             }
         }
@@ -340,7 +340,7 @@ namespace NCudaLib {
         }
 
         ~TGpuOneDeviceWorker() noexcept(false) {
-            Y_VERIFY(AtomicGet(Stopped));
+            CB_ENSURE(AtomicGet(Stopped), "Worker is not stopped");
         }
 
         TTaskQueue& GetTaskQueue() {

@@ -1047,7 +1047,7 @@ double TStochasticRankError::CalcMetricDiff(
     } else if (TargetMetric == ELossFunction::PFound) {
         return CalcPFoundMetricDiff(oldPos, newPos, queryTopSize, targets, order, posWeights, cumSum);
     }
-    Y_UNREACHABLE();
+    CB_ENSURE(false, "Unexpected target metric type");
 }
 
 void TStochasticRankError::CalcDCGCumulativeStatistics(

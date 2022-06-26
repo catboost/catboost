@@ -870,7 +870,7 @@ namespace NCB {
             } else if (auto* column = dynamic_cast<TSrcColumn<ui32>*>(srcColumn.Get())) {
                 AddToPool(*column, quantizedPool);
             } else {
-                Y_FAIL("Unexpected srcColumn type for feature data");
+                CB_ENSURE(false, "Unexpected srcColumn type for feature data");
             }
         } else {
             AddToPool(TSrcColumn<ui8>(columnType), quantizedPool);

@@ -84,7 +84,7 @@ void NCatboostCuda::ComputeQueryOffsets(const TCudaBuffer<ui32, NCudaLib::TStrip
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& sampledDocs,
                                         TCudaBuffer<ui32, NCudaLib::TStripeMapping>* docQids,
                                         TCudaBuffer<ui32, NCudaLib::TStripeMapping>* queryOffsets) {
-    Y_VERIFY(sampledDocs.GetObjectsSlice().Size());
+    CB_ENSURE(sampledDocs.GetObjectsSlice().Size(), "Object slice is empty");
     auto tempFlags = TCudaBuffer<ui32, NCudaLib::TStripeMapping>::CopyMapping(sampledDocs);
     docQids->Reset(sampledDocs.GetMapping());
     FillQueryEndMasks(origQids, sampledDocs, &tempFlags);

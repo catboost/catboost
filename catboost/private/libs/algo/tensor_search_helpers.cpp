@@ -96,7 +96,7 @@ TSplit TCandidateInfo::GetSplit(
 
                     binFeatureOffset += binFeatureSize;
                 }
-                Y_FAIL("This should be unreachable");
+                CB_ENSURE(false, "This should be unreachable");
                 // keep compiler happy
                 return TSplit();
             }
@@ -118,7 +118,7 @@ TSplit TCandidateInfo::GetSplit(
 
                     splitIdxOffset += part.BucketCount - 1;
                 }
-                Y_FAIL("This should be unreachable");
+                CB_ENSURE(false, "This should be unreachable");
                 // keep compiler happy
                 return TSplit();
             }

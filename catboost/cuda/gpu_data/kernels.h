@@ -274,7 +274,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Seeds, Qids, Keys);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(Qids.Size() == Keys.Size());
+            CB_ENSURE(Qids.Size() == Keys.Size(), "Number of keys and query ids should be same");
             NKernel::CreateSortKeys(Seeds.Get(), Seeds.Size(), Qids.Get(), Qids.Size(), Keys.Get(), stream.GetStream());
         }
     };

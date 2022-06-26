@@ -11,7 +11,7 @@ namespace NCB{
     public:
         TFullModel ReadModel(IInputStream *modelStream) const override {
             Y_UNUSED(modelStream);
-            Y_UNREACHABLE();
+            CB_ENSURE(false, "This Unimplemented");
         }
         TFullModel ReadModel(const TString& snapshotPath) const override {
             CB_ENSURE(NFs::Exists(snapshotPath), "Model file doesn't exist: " << snapshotPath);

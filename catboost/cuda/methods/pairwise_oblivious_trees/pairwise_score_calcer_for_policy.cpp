@@ -164,7 +164,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         const auto& gatheredByLeavesTarget = Subsets.GetPairwiseTarget();
 
         if (NeedPointwiseWeights) {
-            Y_VERIFY(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size(),
+            CB_ENSURE(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size(),
                      "No weights, use hist1 instead");
 
             ComputeBlockHistogram2(Policy,
@@ -183,9 +183,11 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                                    streamId);
 
         } else {
-            Y_VERIFY(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size() == 0,
+            CB_ENSURE(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size() == 0,
                      "There are weights, use hist2 instead");
-            Y_VERIFY(PointwiseHistograms.GetMapping().SingleObjectSize() == 1);
+            CB_ENSURE(
+                PointwiseHistograms.GetMapping().SingleObjectSize() == 1,
+                "Unexcepted object size " << PointwiseHistograms.GetMapping().SingleObjectSize());
 
             ComputeBlockHistogram1(Policy,
                                    blockGrid,

@@ -40,8 +40,8 @@ namespace NCB {
         TVector<T>* data
     ) {
         if (prevTailSize) {
-            Y_VERIFY(prevTailSize <= size);
-            Y_VERIFY(prevTailSize <= data->size());
+            CB_ENSURE(prevTailSize <= size, "Data remainder is too large");
+            CB_ENSURE(prevTailSize <= data->size(), "Data remainder is too large");
             std::move(data->end() - prevTailSize, data->end(), data->begin());
         }
         data->yresize(size);
@@ -58,7 +58,7 @@ namespace NCB {
         auto& dataRef = *data;
         if (defined) {
             if (!dataRef) {
-                Y_VERIFY(prevTailSize == 0);
+                CB_ENSURE(prevTailSize == 0, "Data remainder should be empty");
                 dataRef = TVector<T>();
             }
             PrepareForInitialization(size, prevTailSize, &*dataRef);

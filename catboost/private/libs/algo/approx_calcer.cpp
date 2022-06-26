@@ -553,7 +553,7 @@ static void CalcMonotonicLeafDeltasSimple(
             leafWeights,
             linearOrder,
             &updatedLeafValues);
-        Y_VERIFY_DEBUG(CheckMonotonicity(linearOrder, updatedLeafValues), "Tree monotonization failed");
+        CB_ENSURE(CheckMonotonicity(linearOrder, updatedLeafValues), "Tree monotonization failed");
     }
     for (int leafIndex = 0; leafIndex < leafCount; ++leafIndex) {
         (*leafDeltas)[leafIndex] = updatedLeafValues[leafIndex] - currLeafValues[leafIndex];
@@ -1090,7 +1090,7 @@ void CalcLeafValues(
 
     *indices = BuildIndices(fold, tree, data, EBuildIndicesDataParts::All, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
-    Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
+    CB_ENSURE(fold.GetLearnSampleCount() == data.Learn->GetObjectCount(), "Unexpected number of train samples");
     const int leafCount = GetLeafCount(tree);
 
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(

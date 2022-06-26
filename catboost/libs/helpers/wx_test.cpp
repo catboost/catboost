@@ -1,4 +1,5 @@
 #include "distribution_helpers.h"
+#include "exception.h"
 #include "wx_test.h"
 
 
@@ -12,7 +13,7 @@ static double NormalCDF(double x) {
 //w is Abs(wPlus-wMinus)
 // wMinus/wPlus are sums of rank with appropriate sign
 static double CalcLevelOfSignificanceWXMPSR(double w, int n) {
-    Y_VERIFY(n < 20);
+    CB_ENSURE(n < 20, "Size of sample is too large for CalcLevelOfSignificanceWXMPSR");
     // The total number of possible outcomes is 2**N
     int numberOfPossibilities = 1 << n;
 

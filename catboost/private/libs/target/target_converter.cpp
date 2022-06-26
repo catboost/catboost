@@ -177,7 +177,7 @@ namespace NCB {
     class TUseClassLabelsTargetConverter : public ITargetConverter {
     public:
         TUseClassLabelsTargetConverter(const TVector<NJson::TJsonValue>& inputClassLabels) {
-            Y_VERIFY(!inputClassLabels.empty());
+            CB_ENSURE(!inputClassLabels.empty(), "Class labels are missing");
 
             float classIdx = 0;
 
@@ -278,7 +278,7 @@ namespace NCB {
                         StringLabelToClass.emplace(ToString(static_cast<i64>(floatLabel)), classIdx);
                     }
                 } else {
-                    Y_VERIFY(ClassLabelType == ERawTargetType::Float);
+                    CB_ENSURE(ClassLabelType == ERawTargetType::Float, "Unexpected class label type");
                     for (const auto& [floatLabel, classIdx] : FloatLabelToClass) {
                         StringLabelToClass.emplace(ToString(floatLabel), classIdx);
                     }
@@ -332,7 +332,7 @@ namespace NCB {
                     classCount = SafeIntegerCast<ui32>(StringLabelToClass.size());
                     break;
                 default:
-                    Y_UNREACHABLE();
+                    CB_ENSURE(false, "Uexpected target type");
             }
             Y_ASSERT(classCount > 1);
             return classCount;

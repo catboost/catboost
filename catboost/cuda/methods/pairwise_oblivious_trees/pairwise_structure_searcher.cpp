@@ -47,7 +47,9 @@ namespace NCatboostCuda {
                                                isGradient,
                                                &target);
 
-        Y_VERIFY(target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice());
+        CB_ENSURE(
+            target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice(),
+            "Slices of pairs and pair weight/derivatives should have same size");
         CATBOOST_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
         CATBOOST_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
         return target;
@@ -77,7 +79,7 @@ namespace NCatboostCuda {
                                                     subsets,
                                                     objective.GetRandom());
         }
-        Y_VERIFY(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr);
+        CB_ENSURE(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr, "Need a score calcer");
 
         TObliviousTreeStructure structure;
         TVector<float> leaves;

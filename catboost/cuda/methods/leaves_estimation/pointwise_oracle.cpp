@@ -150,7 +150,9 @@ namespace NCatboostCuda {
                     ComputePartitionStats(der2Row, Offsets, &writeSlice);
                     offset += columnCount * blockCount;
                 }
-                Y_VERIFY(offset == lowTriangleMatrixSize * blockCount);
+                CB_ENSURE(
+                    offset == lowTriangleMatrixSize * blockCount,
+                    "Unexpected offset " << offset << ", should be " << lowTriangleMatrixSize * blockCount);
                 auto hessianCpu = ReadReduce(reducedHessianGpu);
 
                 secondDer->clear();
@@ -228,7 +230,10 @@ namespace NCatboostCuda {
     {
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         for (ui32 dev = 0; dev < devCount; ++dev) {
-            Y_VERIFY(Offsets.GetMapping().DeviceSlice(dev).Size() == binCount + 1);
+            CB_ENSURE(
+                Offsets.GetMapping().DeviceSlice(dev).Size() == binCount + 1,
+                "Unexpected size of slice " << Offsets.GetMapping().DeviceSlice(dev).Size()
+                << " at device " << dev << ", should be " << binCount + 1);
         }
 
         CurrentPoint.resize(BinCount * Cursor.GetColumnCount());
