@@ -269,6 +269,12 @@
         "max_leaves" : 64,
         "rsm" : 1,
         "leaf_estimation_backtracking" : "AnyImprovement",
+        "penalties" : {
+            "per_object_feature_penalties" : { },
+            "first_feature_use_penalties" : { },
+            "feature_weights" : { },
+            "penalties_coefficient" : 1
+        },
         "leaf_estimation_iterations" : 1
     },
     "task_type" : "GPU",

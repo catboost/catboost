@@ -78,6 +78,7 @@ namespace NKernelHost {
     class TComputeOptimalSplitsLeafwiseKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCBinFeature> BinaryFeatures;
+        TCudaBufferPtr<const float> FeatureWeights;
         TCudaBufferPtr<const float> Histograms;
         TCudaBufferPtr<const double> PartStats;
         TCudaBufferPtr<const ui32> PartIds;
@@ -94,6 +95,7 @@ namespace NKernelHost {
         TComputeOptimalSplitsLeafwiseKernel() = default;
 
         TComputeOptimalSplitsLeafwiseKernel(TCudaBufferPtr<const TCBinFeature> binaryFeatures,
+                                            TCudaBufferPtr<const float> featureWeights,
                                             TCudaBufferPtr<const float> histograms,
                                             TCudaBufferPtr<const double> partStats,
                                             TCudaBufferPtr<const ui32> partIds,
@@ -106,6 +108,7 @@ namespace NKernelHost {
                                             double scoreStdDev,
                                             ui64 seed)
             : BinaryFeatures(binaryFeatures)
+            , FeatureWeights(featureWeights)
             , Histograms(histograms)
             , PartStats(partStats)
             , PartIds(partIds)
@@ -120,11 +123,13 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(BinaryFeatures, Histograms, PartStats, PartIds, Result, ArgmaxBlockCount,
+        Y_SAVELOAD_DEFINE(BinaryFeatures, FeatureWeights, Histograms, PartStats, PartIds, Result, ArgmaxBlockCount,
                           ScoreFunction, L2, Normalize, ScoreStdDev, Seed, MultiClassOptimization);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::ComputeOptimalSplitsRegion(BinaryFeatures.Get(), BinaryFeatures.Size(), Histograms.Get(),
+            NKernel::ComputeOptimalSplitsRegion(BinaryFeatures.Get(), BinaryFeatures.Size(),
+                                                FeatureWeights.Get(), FeatureWeights.Size(),
+                                                Histograms.Get(),
                                                 PartStats.Get(), PartStats.ObjectSize(), PartIds.Get(), PartIds.Size(),
                                                 Result.Get(), ArgmaxBlockCount, ScoreFunction, MultiClassOptimization, L2, Normalize,
                                                 ScoreStdDev, Seed, stream.GetStream());
@@ -134,6 +139,7 @@ namespace NKernelHost {
     class TComputeOptimalSplitLeafwiseKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const TCBinFeature> BinaryFeatures;
+        TCudaBufferPtr<const float> FeatureWeights;
         TCudaBufferPtr<const float> Histograms;
         TCudaBufferPtr<const double> PartStats;
         ui32 FirstPartId;
@@ -151,6 +157,7 @@ namespace NKernelHost {
         TComputeOptimalSplitLeafwiseKernel() = default;
 
         TComputeOptimalSplitLeafwiseKernel(TCudaBufferPtr<const TCBinFeature> binaryFeatures,
+                                           TCudaBufferPtr<const float> featureWeights,
                                            TCudaBufferPtr<const float> histograms,
                                            TCudaBufferPtr<const double> partStats,
                                            ui32 firstPartId,
@@ -164,6 +171,7 @@ namespace NKernelHost {
                                            double scoreStdDev,
                                            ui64 seed)
             : BinaryFeatures(binaryFeatures)
+            , FeatureWeights(featureWeights)
             , Histograms(histograms)
             , PartStats(partStats)
             , FirstPartId(firstPartId)
@@ -179,11 +187,13 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(BinaryFeatures, Histograms, PartStats, FirstPartId, MaybeSecondPartId, Result, ArgmaxBlockCount,
+        Y_SAVELOAD_DEFINE(BinaryFeatures, FeatureWeights, Histograms, PartStats, FirstPartId, MaybeSecondPartId, Result, ArgmaxBlockCount,
                           ScoreFunction, L2, Normalize, ScoreStdDev, Seed, MultiClassOptimization);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::ComputeOptimalSplit(BinaryFeatures.Get(), BinaryFeatures.Size(), Histograms.Get(),
+            NKernel::ComputeOptimalSplit(BinaryFeatures.Get(), BinaryFeatures.Size(),
+                                         FeatureWeights.Get(), FeatureWeights.Size(),
+                                         Histograms.Get(),
                                          PartStats.Get(), PartStats.ObjectSize(), FirstPartId, MaybeSecondPartId,
                                          Result.Get(), ArgmaxBlockCount, ScoreFunction, MultiClassOptimization, L2, Normalize,
                                          ScoreStdDev, Seed, stream.GetStream());
@@ -377,7 +387,8 @@ namespace NCatboostCuda {
             ScoreStdDev = 0;
         }
         return SplitPropsHelper.CreateInitialSubsets(std::move(target),
-                                                     Options.MaxLeaves);
+                                                     Options.MaxLeaves,
+                                                     Options.FeatureWeights);
     }
 
     bool TGreedySearchHelper::HaveFixedSplits(ui32 depth) const {
@@ -463,6 +474,7 @@ namespace NCatboostCuda {
             LaunchKernels<TKernel>(bestProps.NonEmptyDevices(),
                                    0,
                                    subsets->BinFeatures,
+                                   subsets->FeatureWeights,
                                    subsets->Histograms,
                                    reducedStats,
                                    leafIds,
@@ -482,6 +494,7 @@ namespace NCatboostCuda {
             LaunchKernels<TKernel>(bestProps.NonEmptyDevices(),
                                    0,
                                    subsets->BinFeatures,
+                                   subsets->FeatureWeights,
                                    subsets->Histograms,
                                    reducedStats,
                                    leavesToVisit[0],

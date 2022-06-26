@@ -96,7 +96,8 @@ namespace NCatboostCuda {
         }
 
         TPointsSubsets CreateInitialSubsets(TOptimizationTarget&& target,
-                                            ui32 maxLeaves);
+                                            ui32 maxLeaves,
+                                            TConstArrayRef<float> featureWeights);
 
         /* Lazy call on demand */
         void BuildNecessaryHistograms(TPointsSubsets* subsets);

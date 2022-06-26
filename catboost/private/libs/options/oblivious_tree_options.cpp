@@ -36,7 +36,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , FixedBinarySplits("fixed_binary_splits", {}, taskType)
       , MonotoneConstraints("monotone_constraints", {}, taskType)
       , DevLeafwiseApproxes("dev_leafwise_approxes", false, taskType)
-      , FeaturePenalties("penalties", TFeaturePenaltiesOptions(), taskType)
+      , FeaturePenalties("penalties", TFeaturePenaltiesOptions())
       , TaskType("task_type", taskType)
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);

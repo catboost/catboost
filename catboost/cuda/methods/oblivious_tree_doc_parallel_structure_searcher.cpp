@@ -52,7 +52,9 @@ namespace NCatboostCuda {
         TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
-        TMirrorBuffer<float> featureWeights;
+        const auto featureCount = FeaturesManager.GetFeatureCount();
+        TMirrorBuffer<float> featureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureCount));
+        featureWeights.Write(ExpandFeatureWeights(TreeConfig.FeaturePenalties.Get(), featureCount));
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             {
