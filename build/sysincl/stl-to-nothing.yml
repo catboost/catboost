@@ -54,6 +54,7 @@
   - complex
   - concepts
   - condition_variable
+  - coroutine
   - csetjmp
   - csignal
   - cstdarg
@@ -139,5 +140,5 @@
   - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
   - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
-  # TODO: there is no <corouine> in system stl. Disable this include upon its appearance
+  # TODO: Forbid including <experimental/coroutine> upon migration to clang14
   - experimental/coroutine

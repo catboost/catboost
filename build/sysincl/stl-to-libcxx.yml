@@ -69,6 +69,7 @@
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
   - concepts:                  contrib/libs/cxxsupp/libcxx/include/concepts
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
+  - coroutine:                 contrib/libs/cxxsupp/libcxx/include/coroutine
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
   - csignal:                   contrib/libs/cxxsupp/libcxx/include/csignal
   - cstdarg:                   contrib/libs/cxxsupp/libcxx/include/cstdarg
@@ -151,7 +152,7 @@
   - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
   - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
-  # TODO: there is no <corouine> in libc++. Disable this include upon its appearance
+  # TODO: Forbid including <experimental/coroutine> upon migration to clang14
   - experimental/coroutine:    contrib/libs/cxxsupp/libcxx/include/experimental/coroutine
 
 - source_filter: "^contrib/restricted/boost"
