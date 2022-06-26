@@ -81,9 +81,10 @@ namespace {
     alignas(TAtExit) static char atExitMem[sizeof(TAtExit)];
 
     static void OnExit() {
-        if (TAtExit* const atExit = atExitPtr.exchange(nullptr)) {
+        if (TAtExit* const atExit = atExitPtr.load()) {
             atExit->Finish();
             atExit->~TAtExit();
+            atExitPtr.store(nullptr);
         }
     }
 
