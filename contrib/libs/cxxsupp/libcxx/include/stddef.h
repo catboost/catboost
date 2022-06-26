@@ -54,12 +54,7 @@ typedef double max_align_t;
 #endif
 
 #ifdef __cplusplus
-
-extern "C++" {
-#include <__nullptr>
-using std::nullptr_t;
-}
-
+    typedef decltype(nullptr) nullptr_t;
 #endif
 
 #endif // _LIBCPP_STDDEF_H

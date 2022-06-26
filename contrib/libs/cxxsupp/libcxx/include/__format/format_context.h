@@ -27,9 +27,6 @@
 #  pragma GCC system_header
 #endif
 
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
-
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 #if _LIBCPP_STD_VER > 17
@@ -101,7 +98,7 @@ public:
   basic_format_context& operator=(const basic_format_context&) = delete;
 
   _LIBCPP_HIDE_FROM_ABI basic_format_arg<basic_format_context>
-  arg(size_t __id) const {
+  arg(size_t __id) const noexcept {
     return __args_.get(__id);
   }
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
@@ -159,7 +156,5 @@ private:
 #endif //_LIBCPP_STD_VER > 17
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___FORMAT_FORMAT_CONTEXT_H
