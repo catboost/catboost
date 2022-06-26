@@ -63,16 +63,4 @@ IF (OS_DARWIN)
     RECURSE(
     appnope
 )
-ENDIF ()
-
-IF (OS_LINUX)
-    RECURSE(
-    
-)
-
-    IF (OS_SDK != "ubuntu-12")
-        RECURSE(
-    
-)
-    ENDIF()
-ENDIF ()
+ENDIF()
