@@ -1,12 +1,12 @@
 import os.path
 
 import ytest
-from _common import to_yesno, rootrel_arc_src
-from lib.nots.package_manager import manager
-from lib.nots.typescript import TsConfig
+from _common import to_yesno, resolve_common_const, rootrel_arc_src
 
 
 def _create_pm(unit):
+    from lib.nots.package_manager import manager
+
     return manager(
         sources_path=unit.resolve(unit.path()),
         build_root="$B",
@@ -35,6 +35,8 @@ def on_ts_configure(unit, tsconfig_path):
     abs_tsconfig_path = unit.resolve(unit.resolve_arc_path(tsconfig_path))
     if not abs_tsconfig_path:
         raise Exception("tsconfig not found: {}".format(tsconfig_path))
+
+    from lib.nots.typescript import TsConfig
 
     tsconfig = TsConfig.load(abs_tsconfig_path)
     tsconfig.validate()
