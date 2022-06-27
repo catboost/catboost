@@ -6,7 +6,8 @@
 #if defined(_64_) && !defined(NO_CITYHASH)
 ui64 CityHash64(const char* buf, size_t len) noexcept;
 #else
-size_t MurmurHashSizeT(const char* buf, size_t len) noexcept;
+template <typename T>
+T MurmurHash(const void* buf, size_t len) noexcept;
 #endif
 
 namespace NHashPrivate {
@@ -15,7 +16,7 @@ namespace NHashPrivate {
 #if defined(_64_) && !defined(NO_CITYHASH)
         return CityHash64((const char*)ptr, size * sizeof(C));
 #else
-        return MurmurHashSizeT((const char*)ptr, size * sizeof(C));
+        return MurmurHash<size_t>(ptr, size * sizeof(C));
 #endif
     }
 }
