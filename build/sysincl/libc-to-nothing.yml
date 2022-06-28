@@ -76,6 +76,7 @@
   - spawn.h
   - stdalign.h
   - stdarg.h
+  - stdatomic.h
   - stdio_ext.h
   - stdnoreturn.h
   - strings.h
