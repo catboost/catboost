@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/allocator_traits.h>
 #include <thrust/detail/type_traits/is_call_possible.h>
@@ -361,7 +363,7 @@ __host__ __device__
   struct workaround_warnings
   {
     __thrust_exec_check_disable__
-    static __host__ __device__ 
+    static __host__ __device__
     typename allocator_traits<Alloc>::pointer
       allocate(Alloc &a, typename allocator_traits<Alloc>::size_type n)
     {

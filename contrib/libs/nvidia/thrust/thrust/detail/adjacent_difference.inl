@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file adjacent_difference.inl
- *  \brief Inline file for adjacent_difference.h
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/select_system.h>
@@ -26,11 +23,11 @@
 
 THRUST_NAMESPACE_BEGIN
 
-__thrust_exec_check_disable__ 
+__thrust_exec_check_disable__
 template <typename DerivedPolicy, typename InputIterator, typename OutputIterator>
 __host__ __device__
 OutputIterator adjacent_difference(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
-                                   InputIterator first, InputIterator last, 
+                                   InputIterator first, InputIterator last,
                                    OutputIterator result)
 {
   using thrust::system::detail::generic::adjacent_difference;
@@ -39,11 +36,11 @@ OutputIterator adjacent_difference(const thrust::detail::execution_policy_base<D
 } // end adjacent_difference()
 
 
-__thrust_exec_check_disable__ 
+__thrust_exec_check_disable__
 template <typename DerivedPolicy, typename InputIterator, typename OutputIterator, typename BinaryFunction>
 __host__ __device__
 OutputIterator adjacent_difference(const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
-                                   InputIterator first, InputIterator last, 
+                                   InputIterator first, InputIterator last,
                                    OutputIterator result,
                                    BinaryFunction binary_op)
 {
@@ -54,7 +51,7 @@ OutputIterator adjacent_difference(const thrust::detail::execution_policy_base<D
 
 
 template <typename InputIterator, typename OutputIterator>
-OutputIterator adjacent_difference(InputIterator first, InputIterator last, 
+OutputIterator adjacent_difference(InputIterator first, InputIterator last,
                                    OutputIterator result)
 {
   using thrust::system::detail::generic::select_system;

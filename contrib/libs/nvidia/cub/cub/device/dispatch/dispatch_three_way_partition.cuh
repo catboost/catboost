@@ -80,7 +80,7 @@ void DeviceThreeWayPartitionKernel(InputIteratorT d_in,
                            SelectSecondPartOp,
                            OffsetT>;
 
-  // Shared memory for AgentSelectIf
+  // Shared memory for AgentThreeWayPartition
   __shared__ typename AgentThreeWayPartitionT::TempStorage temp_storage;
 
   // Process tiles

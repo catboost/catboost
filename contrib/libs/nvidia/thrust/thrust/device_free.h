@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_free.h
- *  \brief Deallocates storage allocated by \p device_malloc
+/*! \file 
+ *  \brief Deallocates storage allocated by \p device_malloc.
  */
 
 #pragma once
@@ -26,8 +25,7 @@
 
 THRUST_NAMESPACE_BEGIN
 
-/*! \addtogroup deallocation_functions Deallocation Functions
- *  \ingroup memory_management_functions
+/*! \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -58,7 +56,7 @@ THRUST_NAMESPACE_BEGIN
  */
 inline void device_free(thrust::device_ptr<void> ptr);
 
-/*! \}
+/*! \} // memory_management
  */
 
 THRUST_NAMESPACE_END

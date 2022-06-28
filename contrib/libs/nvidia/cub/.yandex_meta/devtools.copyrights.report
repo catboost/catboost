@@ -98,7 +98,7 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [1:1]
-        README.md [191:191]
+        README.md [192:192]
 
 KEEP     COPYRIGHT_SERVICE_LABEL 9d1993d8039cb2f20ad55cbac3545f4e
 BELONGS ya.make
@@ -134,7 +134,7 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         LICENSE.TXT [2:2]
-        README.md [192:192]
+        README.md [193:193]
         cub/agent/agent_histogram.cuh [3:3]
         cub/agent/agent_radix_sort_downsweep.cuh [3:3]
         cub/agent/agent_radix_sort_upsweep.cuh [3:3]
@@ -229,6 +229,17 @@ BELONGS ya.make
         cub/util_cpp_dialect.cuh [2:2]
         cub/util_deprecated.cuh [2:2]
         cub/util_math.cuh [2:2]
+
+KEEP     COPYRIGHT_SERVICE_LABEL c1a502ec4a7e49320845ca4441c4818e
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2011-2022, NVIDIA CORPORATION.  All rights reserved.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        cub/detail/choose_offset.cuh [2:2]
 
 KEEP     COPYRIGHT_SERVICE_LABEL dd418bc551488f11c9a71739606200ae
 BELONGS ya.make

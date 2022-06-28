@@ -46,7 +46,7 @@ namespace detail
 //! \endcond
 
 /*! \addtogroup memory_resources Memory Resources
- *  \ingroup memory_management_classes
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -61,7 +61,7 @@ typedef detail::universal_native_resource universal_memory_resource;
 /*! An alias for \p cpp::universal_memory_resource. */
 typedef detail::native_resource universal_host_pinned_memory_resource;
 
-/*! \}
+/*! \} // memory_resources
  */
 
 

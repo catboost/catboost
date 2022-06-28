@@ -289,9 +289,24 @@ struct ReduceBySegmentOp
     {
         KeyValuePairT retval;
         retval.key = first.key + second.key;
+#ifdef _NVHPC_CUDA // WAR bug on nvc++
+        if (second.key)
+        {
+          retval.value = second.value;
+        }
+        else
+        {
+          // If second.value isn't copied into a temporary here, nvc++ will
+          // crash while compiling the TestScanByKeyWithLargeTypes test in
+          // thrust/testing/scan_by_key.cu:
+          auto v2 = second.value;
+          retval.value = op(first.value, v2);
+        }
+#else // not nvc++:
         retval.value = (second.key) ?
                 second.value :                          // The second partial reduction spans a segment reset, so it's value aggregate becomes the running aggregate
                 op(first.value, second.value);          // The second partial reduction does not span a reset, so accumulate both into the running aggregate
+#endif
         return retval;
     }
 };

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *  Copyright 2013 Filipe RNC Maia
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +15,11 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 
 #include <thrust/complex.h>
-
 #include <thrust/type_traits/is_trivially_relocatable.h>
 
 THRUST_NAMESPACE_BEGIN

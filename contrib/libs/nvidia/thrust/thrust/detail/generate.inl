@@ -14,11 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file generate.inl
- *  \author Jared Hoberock
- *  \brief Inline file for generate.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 

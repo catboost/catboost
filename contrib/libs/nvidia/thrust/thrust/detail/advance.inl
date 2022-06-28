@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file advance.inl
- *  \brief Inline file for advance.h
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/advance.h>

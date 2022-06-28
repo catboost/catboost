@@ -14,11 +14,6 @@
  *  limitations under the License.
  */
 
-
-/*! \file unique.inl
- *  \brief Inline file for unique.h.
- */
-
 #pragma once
 
 #include <thrust/detail/config.h>
@@ -29,6 +24,7 @@
 #include <thrust/detail/temporary_array.h>
 #include <thrust/detail/internal_functional.h>
 #include <thrust/detail/copy_if.h>
+#include <thrust/detail/count.h>
 #include <thrust/distance.h>
 #include <thrust/functional.h>
 #include <thrust/detail/range/head_flags.h>
@@ -65,9 +61,9 @@ __host__ __device__
                          BinaryPredicate binary_pred)
 {
   typedef typename thrust::iterator_traits<ForwardIterator>::value_type InputType;
-  
+
   thrust::detail::temporary_array<InputType,DerivedPolicy> input(exec, first, last);
-  
+
   return thrust::unique_copy(exec, input.begin(), input.end(), first, binary_pred);
 } // end unique()
 
@@ -98,10 +94,41 @@ __host__ __device__
                              BinaryPredicate binary_pred)
 {
   thrust::detail::head_flags<InputIterator, BinaryPredicate> stencil(first, last, binary_pred);
+
+  using namespace thrust::placeholders;
+
+  return thrust::copy_if(exec, first, last, stencil.begin(), output, _1);
+} // end unique_copy()
+
+
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(thrust::execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred)
+{
+  thrust::detail::head_flags<ForwardIterator, BinaryPredicate> stencil(first, last, binary_pred);
   
   using namespace thrust::placeholders;
   
-  return thrust::copy_if(exec, first, last, stencil.begin(), output, _1);
+  return thrust::count_if(exec, stencil.begin(), stencil.end(), _1);
+} // end unique_copy()
+
+
+template<typename DerivedPolicy,
+         typename ForwardIterator>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(thrust::execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last)
+{
+  typedef typename thrust::iterator_value<ForwardIterator>::type value_type;
+  return thrust::unique_count(exec, first, last, thrust::equal_to<value_type>());
 } // end unique_copy()
 
 

@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_delete.h
- *  \brief Deletes variables in device memory
+/*! \file
+ *  \brief Deletes variables in device memory.
  */
 
 #pragma once
@@ -26,8 +25,7 @@
 
 THRUST_NAMESPACE_BEGIN
 
-/*! \addtogroup deallocation_functions Deallocation Functions
- *  \ingroup memory_management_functions
+/*! \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -46,7 +44,7 @@ template<typename T>
   inline void device_delete(thrust::device_ptr<T> ptr,
                             const size_t n = 1);
 
-/*! \}
+/*! \} // memory_management
  */
 
 THRUST_NAMESPACE_END

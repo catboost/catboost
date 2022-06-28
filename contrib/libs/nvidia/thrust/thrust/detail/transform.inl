@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file transform.inl
- *  \brief Inline file for transform.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 

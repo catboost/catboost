@@ -24,6 +24,14 @@
 #  define __has_cpp_attribute(X) 0
 #endif
 
+// Trailing return types seem to confuse Doxygen, and cause it to interpret
+// parts of the function's body as new function signatures.
+#if defined(THRUST_DOXYGEN)
+#  define THRUST_TRAILING_RETURN(...)
+#else
+#  define THRUST_TRAILING_RETURN(...) -> __VA_ARGS__
+#endif
+
 #if THRUST_CPP_DIALECT >= 2014 && __has_cpp_attribute(nodiscard)
 #  define THRUST_NODISCARD [[nodiscard]]
 #else

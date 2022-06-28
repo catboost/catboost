@@ -72,6 +72,18 @@ BELONGS ya.make
     Files with this license:
         LICENSE [224:246]
 
+KEEP     Apache-2.0           1bebb655f890a0a5c3f202648f71afc3
+BELONGS ya.make
+    License text:
+          some parts are distributed under the [Apache License v2.0] and the
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 100.00
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.md [203:203]
+
 KEEP     Apache-2.0           1dce8b2c11606ebde6dbdcaa1c52fcb6
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -82,6 +94,30 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         thrust/system/tbb/memory.h [4:14]
+
+KEEP     Apache-2.0           476313e0acbc69976b194409c298f9f6
+BELONGS ya.make
+    License text:
+        [Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 22.00
+        Match type      : REFERENCE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.md [250:250]
+
+KEEP     BSL-1.0              47dba39fcb7f86f078b5ceeb2454e772
+BELONGS ya.make
+    License text:
+        [Boost License v1.0]: https://www.boost.org/LICENSE_1_0.txt
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 100.00
+        Match type      : REFERENCE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        README.md [251:251]
 
 KEEP     Apache-2.0           4b9e0ad0ffe5f6b23db3989dc5d66555
 BELONGS ya.make
@@ -114,7 +150,6 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        thrust/async/transform.h [4:14]
         thrust/system/detail/adl/async/transform.h [4:14]
 
 KEEP     CC0-1.0              7be526e20d843cbd7c57eb5446b6cea4
@@ -158,6 +193,31 @@ BELONGS ya.make
     Files with this license:
         thrust/system/detail/adl/extrema.h [4:14]
 
+KEEP     BSL-1.0              8b185f9934ff0624f3fc2241acab1ded
+BELONGS ya.make
+    License text:
+          [Boost License v1.0].
+    Scancode info:
+        Original SPDX id: BSL-1.0
+        Score           : 99.00
+        Match type      : REFERENCE
+        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
+    Files with this license:
+        README.md [204:204]
+        README.md [251:251]
+
+KEEP     LicenseRef-scancode-unknown-license-reference 902433bff6d812cc6100cf83dbc3c834
+BELONGS ya.make
+    License text:
+        Thrust is distributed under the [Apache License v2.0 with LLVM Exceptions];
+    Scancode info:
+        Original SPDX id: LicenseRef-scancode-unknown-license-reference
+        Score           : 11.00
+        Match type      : INTRO
+        Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
+    Files with this license:
+        README.md [202:202]
+
 KEEP     Apache-2.0           94a56d4b63563bcf099d4003f1e185f0
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -168,6 +228,25 @@ BELONGS ya.make
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
         thrust/system/cuda/detail/binary_search.h [4:14]
+
+KEEP     Apache-2.0 WITH LLVM-exception 959bf3b9e018f4ce735562716afc06a5
+BELONGS ya.make
+    License text:
+        Thrust is distributed under the [Apache License v2.0 with LLVM Exceptions];
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 81.82
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.md [202:202]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 81.82
+        Match type      : NOTICE
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        README.md [202:202]
 
 KEEP     Apache-2.0           95b0648ff3eb8cb85ac1ac4caf93acb0
 BELONGS ya.make
@@ -249,17 +328,6 @@ BELONGS ya.make
     Files with this license:
         LICENSE [184:184]
 
-KEEP     Apache-2.0           ab9ba43cde1b724727adc175bcff0fb1
-BELONGS ya.make
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: Apache-2.0
-        Score           : 98.82
-        Match type      : NOTICE
-        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
-    Files with this license:
-        thrust/async/for_each.h [4:14]
-
 KEEP     Apache-2.0           afa65949cf7418aa22e89056dc38873b
 BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
@@ -332,6 +400,19 @@ BELONGS ya.make
         thrust/detail/complex/ctanh.h [22:41]
         thrust/detail/complex/ctanhf.h [22:41]
 
+KEEP     Apache-2.0           d36e6caab381881c34cf97ec0bb03e24
+BELONGS ya.make
+    License text:
+        [Apache License v2.0 with LLVM Exceptions]: https://llvm.org/LICENSE.txt
+        [Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 56.25
+        Match type      : REFERENCE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.md [249:250]
+
 SKIP     LicenseRef-scancode-unknown-license-reference d61e0c879583a463b26461120372c9e5
 BELONGS ya.make
     # see text below
@@ -344,21 +425,6 @@ BELONGS ya.make
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/unknown-license-reference.LICENSE
     Files with this license:
         LICENSE [183:183]
-
-KEEP     BSL-1.0              d7f87ea2cced5bb8dd0a81e515f54c30
-BELONGS ya.make
-    License text:
-        //  Distributed under the Boost Software License, Version 1.0. (See accompanying
-        //  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-    Scancode info:
-        Original SPDX id: BSL-1.0
-        Score           : 100.00
-        Match type      : NOTICE
-        Links           : http://www.boost.org/LICENSE_1_0.txt, http://www.boost.org/users/license.html, https://spdx.org/licenses/BSL-1.0
-    Files with this license:
-        thrust/type_traits/integer_sequence.h [5:6]
-        thrust/type_traits/is_trivially_relocatable.h [4:5]
-        thrust/type_traits/logical_metafunctions.h [5:6]
 
 KEEP     BSL-1.0              e2cdcbf5c8472620a6c9cd3adff43371
 BELONGS ya.make
@@ -383,9 +449,11 @@ BELONGS ya.make
         thrust/adjacent_difference.h [4:14]
         thrust/advance.h [4:14]
         thrust/async/copy.h [4:14]
+        thrust/async/for_each.h [4:14]
         thrust/async/reduce.h [4:14]
         thrust/async/scan.h [4:14]
         thrust/async/sort.h [4:14]
+        thrust/async/transform.h [4:14]
         thrust/binary_search.h [4:14]
         thrust/complex.h [5:15]
         thrust/copy.h [4:14]
@@ -457,6 +525,7 @@ BELONGS ya.make
         thrust/detail/copy.inl [4:14]
         thrust/detail/copy_if.h [4:14]
         thrust/detail/copy_if.inl [4:14]
+        thrust/detail/count.h [4:14]
         thrust/detail/count.inl [4:14]
         thrust/detail/cpp11_required.h [4:14]
         thrust/detail/cpp14_required.h [4:14]
@@ -670,7 +739,7 @@ BELONGS ya.make
         thrust/random/detail/linear_feedback_shift_engine.inl [4:14]
         thrust/random/detail/linear_feedback_shift_engine_wordmask.h [4:14]
         thrust/random/detail/mod.h [4:14]
-        thrust/random/detail/normal_distribution.inl [5:15]
+        thrust/random/detail/normal_distribution.inl [4:14]
         thrust/random/detail/normal_distribution_base.h [4:14]
         thrust/random/detail/random_core_access.h [4:14]
         thrust/random/detail/subtract_with_carry_engine.inl [4:14]
@@ -764,7 +833,6 @@ BELONGS ya.make
         thrust/system/cuda/detail/sequence.h [4:14]
         thrust/system/cuda/detail/temporary_buffer.h [4:14]
         thrust/system/cuda/error.h [4:14]
-        thrust/system/cuda/experimental/pinned_allocator.h [4:14]
         thrust/system/cuda/memory.h [4:14]
         thrust/system/cuda/memory_resource.h [4:14]
         thrust/system/cuda/pointer.h [4:14]
@@ -1076,10 +1144,13 @@ BELONGS ya.make
         thrust/transform_reduce.h [4:14]
         thrust/transform_scan.h [4:14]
         thrust/tuple.h [4:14]
+        thrust/type_traits/integer_sequence.h [4:14]
         thrust/type_traits/is_contiguous_iterator.h [4:14]
         thrust/type_traits/is_execution_policy.h [4:14]
-        thrust/type_traits/is_operator_less_or_greater_function_object.h [5:15]
+        thrust/type_traits/is_operator_less_or_greater_function_object.h [4:14]
         thrust/type_traits/is_operator_plus_function_object.h [4:14]
+        thrust/type_traits/is_trivially_relocatable.h [4:14]
+        thrust/type_traits/logical_metafunctions.h [4:14]
         thrust/type_traits/remove_cvref.h [4:14]
         thrust/type_traits/void_t.h [4:14]
         thrust/uninitialized_copy.h [4:14]
@@ -1200,6 +1271,26 @@ BELONGS ya.make
         thrust/detail/complex/clogf.h [22:41]
         thrust/detail/complex/csqrt.h [22:41]
         thrust/detail/complex/csqrtf.h [22:41]
+
+KEEP     Apache-2.0 WITH LLVM-exception f718288bb98b7e86965bb012d3f51f2c
+BELONGS ya.make
+    License text:
+        [Apache License v2.0 with LLVM Exceptions]: https://llvm.org/LICENSE.txt
+        [Apache License v2.0]: https://www.apache.org/licenses/LICENSE-2.0.txt
+    Scancode info:
+        Original SPDX id: Apache-2.0
+        Score           : 56.52
+        Match type      : NOTICE
+        Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
+    Files with this license:
+        README.md [249:250]
+    Scancode info:
+        Original SPDX id: LLVM-exception
+        Score           : 56.52
+        Match type      : NOTICE
+        Links           : http://llvm.org/foundation/relicensing/LICENSE.txt, https://spdx.org/licenses/LLVM-exception
+    Files with this license:
+        README.md [249:250]
 
 KEEP     Apache-2.0           fab15d6c164019b11f143115a2d2bbed
 BELONGS ya.make

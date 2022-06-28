@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_ptr.h
- *  \brief A pointer to a variable which resides memory accessible to devices.
+/*! \file
+ *  \brief A pointer to an object which resides in memory associated with the
+ *  \c device system.
  */
 
 #pragma once
@@ -27,161 +27,182 @@
 THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup memory_management Memory Management
- *  \addtogroup memory_management_classes Memory Management Classes
- *  \ingroup memory_management
  *  \{
  */
 
-// forward declarations
-template<typename T> class device_reference;
+template <typename T> class device_reference;
 
-/*! \p device_ptr stores a pointer to an object allocated in device memory. This type
- *  provides type safety when dispatching standard algorithms on ranges resident in
- *  device memory.
+/*! \brief \c device_ptr is a pointer-like object which points to an object that
+ *  resides in memory associated with the \ref device system.
  *
- *  \p device_ptr has pointer semantics: it may be dereferenced safely from the host and
- *  may be manipulated with pointer arithmetic.
+ *  \c device_ptr has pointer semantics: it may be dereferenced safely from
+ *  anywhere, including the \ref host, and may be manipulated with pointer
+ *  arithmetic.
  *
- *  \p device_ptr can be created with the functions device_malloc, device_new, or
- *  device_pointer_cast, or by explicitly calling its constructor with a raw pointer.
+ *  \c device_ptr can be created with \ref device_new, \ref device_malloc,
+ *  \ref device_malloc_allocator, \ref device_allocator, or
+ *  \ref device_pointer_cast, or by explicitly calling its constructor with a
+ *  raw pointer.
  *
- *  The raw pointer encapsulated by a \p device_ptr may be obtained by either its <tt>get</tt>
- *  method or the \p raw_pointer_cast free function.
+ *  The raw pointer contained in a \c device_ptr may be obtained via \c get
+ *  member function or the \ref raw_pointer_cast free function.
  *
- *  \note \p device_ptr is not a smart pointer; it is the programmer's responsibility to
- *  deallocate memory pointed to by \p device_ptr.
+ *  \ref algorithms operating on \c device_ptr types will automatically be
+ *  dispatched to the \ref device system.
  *
- *  \see device_malloc
+ *  \note \c device_ptr is not a smart pointer; it is the programmer's
+ *  responsibility to deallocate memory pointed to by \c device_ptr.
+ *
  *  \see device_new
+ *  \see device_malloc
+ *  \see device_malloc_allocator
+ *  \see device_allocator
  *  \see device_pointer_cast
  *  \see raw_pointer_cast
  */
-template<typename T>
-  class device_ptr
-    : public thrust::pointer<
-               T,
-               thrust::device_system_tag,
-               thrust::device_reference<T>,
-               thrust::device_ptr<T>
-             >
-{
-  private:
-    typedef thrust::pointer<
+template <typename T>
+class device_ptr
+  : public thrust::pointer<
       T,
       thrust::device_system_tag,
       thrust::device_reference<T>,
       thrust::device_ptr<T>
-    > super_t;
+    >
+{
+  private:
+    using super_t = thrust::pointer<
+      T,
+      thrust::device_system_tag,
+      thrust::device_reference<T>,
+      thrust::device_ptr<T>
+    >;
 
   public:
-    /*! \p device_ptr's null constructor initializes its raw pointer to \c 0.
+    /*! \brief Construct a null \c device_ptr.
+     *
+     *  \post <tt>get() == nullptr</tt>.
      */
     __host__ __device__
     device_ptr() : super_t() {}
 
-    #if THRUST_CPP_DIALECT >= 2011
-    // NOTE: This is needed so that Thrust smart pointers can be used in
-    // `std::unique_ptr`.
-    __host__ __device__
-    device_ptr(decltype(nullptr)) : super_t(nullptr) {}
-    #endif
-
-    /*! \p device_ptr's copy constructor is templated to allow copying to a
-     *  <tt>device_ptr<const T></tt> from a <tt>T *</tt>.
+    /*! \brief Construct a null \c device_ptr.
      *
-     *  \param ptr A raw pointer to copy from, presumed to point to a location in
-     *         device memory.
+     *  \param ptr A null pointer.
+     *
+     *  \post <tt>get() == nullptr</tt>.
      */
-    template<typename OtherT>
     __host__ __device__
-    explicit device_ptr(OtherT *ptr) : super_t(ptr) {}
+    device_ptr(std::nullptr_t) : super_t(nullptr) {}
 
-    /*! \p device_ptr's copy constructor allows copying from another device_ptr with related type.
-     *  \param other The \p device_ptr to copy from.
+    /*! \brief Construct a \c device_ptr from a raw pointer which is
+     *  convertible to \c T*.
+     *
+     *  \tparam U   A type whose pointer is convertible to \c T*.
+     *  \param  ptr A raw pointer to a \c U in device memory to construct from.
+     *
+     *  \pre <tt>std::is_convertible_v<U*, T*> == true</tt>.
+     *
+     *  \pre \c ptr points to a location in device memory.
+     *
+     *  \post <tt>get() == nullptr</tt>.
      */
-    template<typename OtherT>
+    template <typename U>
     __host__ __device__
-    device_ptr(const device_ptr<OtherT> &other) : super_t(other) {}
+    explicit device_ptr(U* ptr) : super_t(ptr) {}
 
-    /*! \p device_ptr's assignment operator allows assigning from another \p device_ptr with related type.
-     *  \param other The other \p device_ptr to copy from.
-     *  \return <tt>*this</tt>
+    /*! \brief Copy construct a \c device_ptr from another \c device_ptr whose
+     *  pointer type is convertible to \c T*.
+     *
+     *  \tparam U     A type whose pointer is convertible to \c T*.
+     *  \param  other A \c device_ptr to a \c U to construct from.
+     *
+     *  \pre <tt>std::is_convertible_v<U*, T*> == true</tt>.
+     *
+     *  \post <tt>get() == other.get()</tt>.
      */
-    template<typename OtherT>
+    template <typename U>
     __host__ __device__
-    device_ptr &operator=(const device_ptr<OtherT> &other)
+    device_ptr(device_ptr<U> const& other) : super_t(other) {}
+
+    /*! \brief Set this \c device_ptr to point to the same object as another
+     *  \c device_ptr whose pointer type is convertible to \c T*.
+     *
+     *  \tparam U     A type whose pointer is convertible to \c T*.
+     *  \param  other A \c device_ptr to a \c U to assign from.
+     *
+     *  \pre <tt>std::is_convertible_v<U*, T*> == true</tt>.
+     *
+     *  \post <tt>get() == other.get()</tt>.
+     *
+     *  \return \c *this.
+     */
+    template <typename U>
+    __host__ __device__
+    device_ptr &operator=(device_ptr<U> const& other)
     {
       super_t::operator=(other);
       return *this;
     }
 
-    #if THRUST_CPP_DIALECT >= 2011
-    // NOTE: This is needed so that Thrust smart pointers can be used in
-    // `std::unique_ptr`.
+    /*! \brief Set this \c device_ptr to null.
+     *
+     *  \param ptr A null pointer.
+     *
+     *  \post <tt>get() == nullptr</tt>.
+     *
+     *  \return \c *this.
+     */
     __host__ __device__
-    device_ptr& operator=(decltype(nullptr))
+    device_ptr& operator=(std::nullptr_t)
     {
       super_t::operator=(nullptr);
       return *this;
     }
-    #endif
 
-// declare these members for the purpose of Doxygenating them
-// they actually exist in a derived-from class
-#if 0
-    /*! This method returns this \p device_ptr's raw pointer.
-     *  \return This \p device_ptr's raw pointer.
+#if THRUST_DOXYGEN
+    /*! \brief Return the raw pointer that this \c device_ptr points to.
      */
     __host__ __device__
-    T *get(void) const;
-#endif // end doxygen-only members
-}; // end device_ptr
+    T* get() const;
+#endif
+};
 
-// declare these methods for the purpose of Doxygenating them
-// they actually are defined for a derived-from class
-#if 0
-/*! Writes to an output stream the value of a \p device_ptr's raw pointer.
+#if THRUST_DOXYGEN
+/*! Write the address that a \c device_ptr points to to an output stream.
  *
  *  \param os The output stream.
- *  \param p The \p device_ptr to output.
- *  \return os.
+ *  \param dp The \c device_ptr to output.
+ *
+ *  \return \c os.
  */
-template<typename T, typename charT, typename traits>
-std::basic_ostream<charT, traits> &
-operator<<(std::basic_ostream<charT, traits> &os, const device_ptr<T> &p);
+template <typename T, typename CharT, typename Traits>
+__host__ std::basic_ostream<CharT, Traits>&
+operator<<(std::basic_ostream<CharT, Traits>& os, device_ptr<T> const& dp);
 #endif
 
-/*! \}
- */
-
-
-/*!
- *  \addtogroup memory_management_functions Memory Management Functions
- *  \ingroup memory_management
- *  \{
- */
-
-/*! \p device_pointer_cast creates a device_ptr from a raw pointer which is presumed to point
- *  to a location in device memory.
+/*! \brief Create a \c device_ptr from a raw pointer.
  *
- *  \param ptr A raw pointer, presumed to point to a location in device memory.
- *  \return A device_ptr wrapping ptr.
+ *  \tparam T   Any type.
+ *  \param  ptr A raw pointer to a \c T in device memory.
+ *
+ *  \pre \c ptr points to a location in device memory.
+ *
+ *  \return A \c device_ptr<T> pointing to \c ptr.
+ */
+template <typename T>
+__host__ __device__
+device_ptr<T> device_pointer_cast(T* ptr);
+
+/*! \brief Create a \c device_ptr from another \c device_ptr.
+ *
+ *  \tparam T    Any type.
+ *  \param  dptr A \c device_ptr to a \c T.
  */
 template<typename T>
 __host__ __device__
-inline device_ptr<T> device_pointer_cast(T *ptr);
+device_ptr<T> device_pointer_cast(device_ptr<T> const& dptr);
 
-/*! This version of \p device_pointer_cast creates a copy of a device_ptr from another device_ptr.
- *  This version is included for symmetry with \p raw_pointer_cast.
- *
- *  \param ptr A device_ptr.
- *  \return A copy of \p ptr.
- */
-template<typename T>
-__host__ __device__
-inline device_ptr<T> device_pointer_cast(const device_ptr<T> &ptr);
-
-/*! \}
+/*! \} // memory_management
  */
 
 THRUST_NAMESPACE_END

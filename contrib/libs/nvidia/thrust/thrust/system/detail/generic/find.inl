@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/find.h>
 #include <thrust/reduce.h>
@@ -71,7 +73,7 @@ struct find_if_functor
     }
   }
 };
-    
+
 
 template<typename DerivedPolicy, typename InputIterator, typename Predicate>
 __host__ __device__
@@ -82,30 +84,30 @@ InputIterator find_if(thrust::execution_policy<DerivedPolicy> &exec,
 {
   typedef typename thrust::iterator_traits<InputIterator>::difference_type difference_type;
   typedef typename thrust::tuple<bool,difference_type> result_type;
-  
+
   // empty sequence
   if(first == last) return last;
-  
+
   const difference_type n = thrust::distance(first, last);
-  
+
   // this implementation breaks up the sequence into separate intervals
   // in an attempt to early-out as soon as a value is found
-  
+
   // TODO incorporate sizeof(InputType) into interval_threshold and round to multiple of 32
   const difference_type interval_threshold = 1 << 20;
   const difference_type interval_size = (thrust::min)(interval_threshold, n);
-  
+
   // force transform_iterator output to bool
   typedef thrust::transform_iterator<Predicate, InputIterator, bool> XfrmIterator;
   typedef thrust::tuple<XfrmIterator, thrust::counting_iterator<difference_type> > IteratorTuple;
   typedef thrust::zip_iterator<IteratorTuple> ZipIterator;
-  
+
   IteratorTuple iter_tuple = thrust::make_tuple(XfrmIterator(first, pred),
                                                 thrust::counting_iterator<difference_type>(0));
-  
+
   ZipIterator begin = thrust::make_zip_iterator(iter_tuple);
   ZipIterator end   = begin + n;
-  
+
   for(ZipIterator interval_begin = begin; interval_begin < end; interval_begin += interval_size)
   {
     ZipIterator interval_end = interval_begin + interval_size;
@@ -113,19 +115,19 @@ InputIterator find_if(thrust::execution_policy<DerivedPolicy> &exec,
     {
       interval_end = end;
     } // end if
-    
+
     result_type result = thrust::reduce(exec,
                                         interval_begin, interval_end,
                                         result_type(false,interval_end - begin),
                                         find_if_functor<result_type>());
-    
+
     // see if we found something
     if(thrust::get<0>(result))
     {
       return first + thrust::get<1>(result);
     }
   }
-  
+
   //nothing was found if we reach here...
   return first + n;
 }

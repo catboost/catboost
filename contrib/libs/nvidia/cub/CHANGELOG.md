@@ -1,3 +1,57 @@
+# CUB 1.17.0
+
+## Summary
+
+CUB 1.17.0 is the final minor release of the 1.X series. It provides a variety
+of bug fixes and miscellaneous enhancements, detailed below.
+
+## Known Issues
+
+### "Run-to-run" Determinism Broken
+
+Several CUB device algorithms are documented to provide deterministic results
+(per device) for non-associative reduction operators (e.g. floating-point
+addition). Unfortunately, the implementations of these algorithms contain
+performance optimizations that violate this guarantee.
+The `DeviceReduce::ReduceByKey` and `DeviceScan` algorithms are known to be
+affected. We’re currently evaluating the scope and impact of correcting this in
+a future CUB release. See NVIDIA/cub#471 for details.
+
+## Bug Fixes
+
+- NVIDIA/cub#444: Fixed `DeviceSelect` to work with discard iterators and mixed
+  input/output types.
+- NVIDIA/cub#452: Fixed install issue when `CMAKE_INSTALL_LIBDIR` contained
+  nested directories. Thanks to @robertmaynard for this contribution.
+- NVIDIA/cub#462: Fixed bug that produced incorrect results
+  from `DeviceSegmentedSort` on sm_61 and sm_70.
+- NVIDIA/cub#464: Fixed `DeviceSelect::Flagged` so that flags are normalized to
+  0 or 1.
+- NVIDIA/cub#468: Fixed overflow issues in `DeviceRadixSort` given `num_items`
+  close to 2^32. Thanks to @canonizer for this contribution.
+- NVIDIA/cub#498: Fixed compiler regression in `BlockAdjacentDifference`.
+  Thanks to @MKKnorr for this contribution.
+
+## Other Enhancements
+
+- NVIDIA/cub#445: Remove device-sync in `DeviceSegmentedSort` when launched via
+  CDP.
+- NVIDIA/cub#449: Fixed invalid link in documentation. Thanks to @kshitij12345
+  for this contribution.
+- NVIDIA/cub#450: `BlockDiscontinuity`: Replaced recursive-template loop
+  unrolling with `#pragma unroll`. Thanks to @kshitij12345 for this
+  contribution.
+- NVIDIA/cub#451: Replaced the deprecated `TexRefInputIterator` implementation
+  with an alias to `TexObjInputIterator`. This fully removes all usages of the
+  deprecated CUDA texture reference APIs from CUB.
+- NVIDIA/cub#456: `BlockAdjacentDifference`: Replaced recursive-template loop
+  unrolling with `#pragma unroll`. Thanks to @kshitij12345 for this
+  contribution.
+- NVIDIA/cub#466: `cub::DeviceAdjacentDifference` API has been updated to use
+  the new `OffsetT` deduction approach described in NVIDIA/cub#212.
+- NVIDIA/cub#470: Fix several doxygen-related warnings. Thanks to @karthikeyann
+  for this contribution.
+
 # CUB 1.16.0
 
 ## Summary

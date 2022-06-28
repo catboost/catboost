@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *  Copyright 2013 Filipe RNC Maia
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,7 +60,7 @@ using thrust::complex;
 /* round down to 18 = 54/3 bits */
 __host__ __device__ inline
 double trim(double x){
-  uint32_t hi;    
+  uint32_t hi;
   get_high_word(hi, x);
   insert_words(x, hi &0xfffffff8, 0);
   return x;
@@ -122,7 +122,7 @@ complex<double> clog(const complex<double>& z){
     return (complex<double>(std::log(hypot(x, y)), std::atan2(y, x)));
   }
 
-  /* 
+  /*
    * From this point on, we don't need to worry about underflow or
    * overflow in calculating ax*ax or ay*ay.
    */
@@ -185,7 +185,7 @@ complex<double> clog(const complex<double>& z){
   }
   return (complex<double>(0.5 * log1p(hm1), atan2(y, x)));
 }
-  
+
 } // namespace complex
 
 } // namespace detail
@@ -204,11 +204,11 @@ inline complex<double> log(const complex<double>& z){
 
 template <typename ValueType>
 __host__ __device__
-inline complex<ValueType> log10(const complex<ValueType>& z){ 
+inline complex<ValueType> log10(const complex<ValueType>& z){
   // Using the explicit literal prevents compile time warnings in
-  // devices that don't support doubles 
+  // devices that don't support doubles
   return thrust::log(z)/ValueType(2.30258509299404568402);
 }
 
 THRUST_NAMESPACE_END
-    
+

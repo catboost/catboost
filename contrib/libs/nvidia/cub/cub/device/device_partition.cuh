@@ -548,6 +548,24 @@ struct DevicePartition
      *   `d_num_selected_out[0]` and total number of items selected by
      *   @p select_second_part_op is stored as `d_num_selected_out[1]`,
      *   respectively
+     *
+     * @param[in] num_items
+     *   Total number of items to select from
+     *
+     * @param[in] select_first_part_op
+     *   Unary selection operator to select @p d_first_part_out
+     *
+     * @param[in] select_second_part_op
+     *   Unary selection operator to select @p d_second_part_out
+     *
+     * @param[in] stream
+     *   **[optional]** CUDA stream to launch kernels within.
+     *   Default is stream<sub>0</sub>.
+     *
+     * @param[in] debug_synchronous
+     *   **[optional]** Whether or not to synchronize the stream after every
+     *   kernel launch to check for errors. May cause significant slowdown.
+     *   Default is @p false.
      */
     template <typename InputIteratorT,
               typename FirstOutputIteratorT,

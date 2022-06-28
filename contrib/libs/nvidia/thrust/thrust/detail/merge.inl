@@ -14,9 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file merge.inl
- *  \brief Inline file for merge.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 

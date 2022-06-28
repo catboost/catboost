@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2016 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 
 #include <thrust/iterator/transform_output_iterator.h>
@@ -24,7 +26,7 @@ THRUST_NAMESPACE_BEGIN
 template <typename UnaryFunction, typename OutputIterator>
   class transform_output_iterator;
 
-namespace detail 
+namespace detail
 {
 
 // Proxy reference that uses Unary Function to transform the rhs of assigment

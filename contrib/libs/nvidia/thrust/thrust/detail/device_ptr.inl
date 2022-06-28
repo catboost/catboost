@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_ptr.inl
- *  \brief Inline file for device_ptr.h.
- */
+#pragma once
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_reference.h>

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_new.inl
- *  \brief Inline file for device_new.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/device_new.h>
@@ -45,7 +42,7 @@ template<typename T>
 
   // run copy constructors at p here
   thrust::uninitialized_fill(result, result + n, exemplar);
-  
+
   return result;
 } // end device_new()
 

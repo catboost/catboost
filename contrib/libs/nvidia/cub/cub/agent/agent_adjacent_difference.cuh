@@ -64,7 +64,7 @@ template <typename Policy,
           typename OffsetT,
           typename InputT,
           typename OutputT,
-          bool InPlace,
+          bool MayAlias,
           bool ReadLeft>
 struct AgentDifference
 {
@@ -148,8 +148,8 @@ struct AgentDifference
       }
       else
       {
-        InputT tile_prev_input = InPlace ? first_tile_previous[tile_idx]
-                                         : *(input_it + tile_base - 1);
+        InputT tile_prev_input = MayAlias ? first_tile_previous[tile_idx]
+                                          : *(input_it + tile_base - 1);
 
         BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
           .SubtractLeft(input, output, difference_op, tile_prev_input);
@@ -164,8 +164,9 @@ struct AgentDifference
       }
       else
       {
-        InputT tile_next_input = InPlace ? first_tile_previous[tile_idx]
-                                         : *(input_it + tile_base + ITEMS_PER_TILE);
+        InputT tile_next_input = MayAlias
+                               ? first_tile_previous[tile_idx]
+                               : *(input_it + tile_base + ITEMS_PER_TILE);
 
         BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
           .SubtractRight(input, output, difference_op, tile_next_input);

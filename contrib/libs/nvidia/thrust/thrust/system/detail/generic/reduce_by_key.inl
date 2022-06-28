@@ -14,11 +14,6 @@
  *  limitations under the License.
  */
 
-
-/*! \file reduce_by_key.inl
- *  \brief Inline file for reduce_by_key.h.
- */
-
 #pragma once
 
 #include <thrust/detail/config.h>
@@ -52,12 +47,12 @@ template <typename ValueType, typename TailFlagType, typename AssociativeOperato
 struct reduce_by_key_functor
 {
   AssociativeOperator binary_op;
-  
+
   typedef typename thrust::tuple<ValueType, TailFlagType> result_type;
-  
+
   __host__ __device__
   reduce_by_key_functor(AssociativeOperator _binary_op) : binary_op(_binary_op) {}
-  
+
   __host__ __device__
   result_type operator()(result_type a, result_type b)
   {
@@ -80,7 +75,7 @@ template<typename ExecutionPolicy,
 __host__ __device__
   thrust::pair<OutputIterator1,OutputIterator2>
     reduce_by_key(thrust::execution_policy<ExecutionPolicy> &exec,
-                  InputIterator1 keys_first, 
+                  InputIterator1 keys_first,
                   InputIterator1 keys_last,
                   InputIterator2 values_first,
                   OutputIterator1 keys_output,
@@ -102,7 +97,7 @@ __host__ __device__
     difference_type n = keys_last - keys_first;
 
     InputIterator2 values_last = values_first + n;
-    
+
     // compute head flags
     thrust::detail::temporary_array<FlagType,ExecutionPolicy> head_flags(exec, n);
     thrust::transform(exec, keys_first, keys_last - 1, keys_first + 1, head_flags.begin() + 1, thrust::detail::not2(binary_pred));
@@ -116,7 +111,7 @@ __host__ __device__
     // scan the values by flag
     thrust::detail::temporary_array<ValueType,ExecutionPolicy> scanned_values(exec, n);
     thrust::detail::temporary_array<FlagType,ExecutionPolicy>  scanned_tail_flags(exec, n);
-    
+
     thrust::inclusive_scan
         (exec,
          thrust::make_zip_iterator(thrust::make_tuple(values_first,           head_flags.begin())),
@@ -128,12 +123,12 @@ __host__ __device__
 
     // number of unique keys
     FlagType N = scanned_tail_flags[n - 1] + 1;
-    
-    // scatter the keys and accumulated values    
+
+    // scatter the keys and accumulated values
     thrust::scatter_if(exec, keys_first,            keys_last,             scanned_tail_flags.begin(), head_flags.begin(), keys_output);
     thrust::scatter_if(exec, scanned_values.begin(), scanned_values.end(), scanned_tail_flags.begin(), tail_flags.begin(), values_output);
 
-    return thrust::make_pair(keys_output + N, values_output + N); 
+    return thrust::make_pair(keys_output + N, values_output + N);
 } // end reduce_by_key()
 
 
@@ -145,7 +140,7 @@ template<typename ExecutionPolicy,
 __host__ __device__
   thrust::pair<OutputIterator1,OutputIterator2>
     reduce_by_key(thrust::execution_policy<ExecutionPolicy> &exec,
-                  InputIterator1 keys_first, 
+                  InputIterator1 keys_first,
                   InputIterator1 keys_last,
                   InputIterator2 values_first,
                   OutputIterator1 keys_output,
@@ -167,7 +162,7 @@ template<typename ExecutionPolicy,
 __host__ __device__
   thrust::pair<OutputIterator1,OutputIterator2>
     reduce_by_key(thrust::execution_policy<ExecutionPolicy> &exec,
-                  InputIterator1 keys_first, 
+                  InputIterator1 keys_first,
                   InputIterator1 keys_last,
                   InputIterator2 values_first,
                   OutputIterator1 keys_output,
@@ -182,7 +177,7 @@ __host__ __device__
 
   // use plus<T> as default BinaryFunction
   return thrust::reduce_by_key(exec,
-                               keys_first, keys_last, 
+                               keys_first, keys_last,
                                values_first,
                                keys_output,
                                values_output,

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file logical.inl
- *  \brief Inline file for logical.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>

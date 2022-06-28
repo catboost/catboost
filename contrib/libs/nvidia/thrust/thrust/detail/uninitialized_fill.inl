@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file uninitialized_fill.inl
- *  \brief Inline file for uninitialized_fill.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 

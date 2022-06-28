@@ -228,4 +228,4 @@ template <typename InputIterator, typename Predicate>
 
 THRUST_NAMESPACE_END
 
-#include <thrust/detail/count.inl>
+#include <thrust/detail/count.h>

@@ -56,20 +56,20 @@
 
 THRUST_NAMESPACE_BEGIN
 namespace detail{
-namespace complex{		      	
+namespace complex{
 
 using thrust::complex;
 
 __host__ __device__
 inline void raise_inexact(){
-  const volatile float tiny = 7.888609052210118054117286e-31; /* 0x1p-100; */ 
+  const volatile float tiny = 7.888609052210118054117286e-31; /* 0x1p-100; */
   // needs the volatile to prevent compiler from ignoring it
   volatile float junk = 1 + tiny;
   (void)junk;
 }
 
 __host__ __device__ inline complex<double> clog_for_large_values(complex<double> z);
-  
+
 /*
  * Testing indicates that all these functions are accurate up to 4 ULP.
  * The functions casin(h) and cacos(h) are about 2.5 times slower than asinh.
@@ -147,7 +147,7 @@ f(double a, double b, double hypot_a_b)
     return (a / 2);
   return (a * a / (hypot_a_b + b) / 2);
 }
-  
+
 /*
  * All the hard work is contained in this function.
  * x and y are assumed positive or zero, and less than RECIP_EPSILON.
@@ -168,10 +168,10 @@ do_hard_work(double x, double y, double *rx, int *B_is_usable, double *B,
   const double A_crossover = 10; /* Hull et al suggest 1.5, but 10 works better */
   const double FOUR_SQRT_MIN = 5.966672584960165394632772e-154; /* =0x1p-509; >= 4 * sqrt(DBL_MIN) */
   const double B_crossover = 0.6417; /* suggested by Hull et al */
-  
+
   R = hypot(x, y + 1);		/* |z+I| */
   S = hypot(x, y - 1);		/* |z-I| */
-  
+
   /* A = (|z+I| + |z-I|) / 2 */
   A = (R + S) / 2;
   /*
@@ -181,7 +181,7 @@ do_hard_work(double x, double y, double *rx, int *B_is_usable, double *B,
    */
   if (A < 1)
     A = 1;
-  
+
   if (A < A_crossover) {
     /*
      * Am1 = fp + fm, where fp = f(x, 1+y), and fm = f(x, 1-y).
@@ -215,9 +215,9 @@ do_hard_work(double x, double y, double *rx, int *B_is_usable, double *B,
   } else {
     *rx = log(A + sqrt(A * A - 1));
   }
-  
+
   *new_y = y;
-  
+
   if (y < FOUR_SQRT_MIN) {
     /*
      * Avoid a possible underflow caused by y/A.  For casinh this
@@ -229,11 +229,11 @@ do_hard_work(double x, double y, double *rx, int *B_is_usable, double *B,
     *new_y = y * (2 / DBL_EPSILON);
     return;
   }
-  
+
   /* B = (|z+I| - |z-I|) / 2 = y/A */
   *B = y / A;
   *B_is_usable = 1;
-  
+
   if (*B > B_crossover) {
     *B_is_usable = 0;
     /*
@@ -275,7 +275,7 @@ do_hard_work(double x, double y, double *rx, int *B_is_usable, double *B,
     }
   }
 }
-  
+
 /*
  * casinh(z) = z + O(z^3)   as z -> 0
  *
@@ -296,7 +296,7 @@ complex<double> casinh(complex<double> z)
   y = z.imag();
   ax = fabs(x);
   ay = fabs(y);
-  
+
   if (isnan(x) || isnan(y)) {
     /* casinh(+-Inf + I*NaN) = +-Inf + I*NaN */
     if (isinf(x))
@@ -351,10 +351,10 @@ __host__ __device__ inline
 complex<double> casin(complex<double> z)
 {
   complex<double> w = casinh(complex<double>(z.imag(), z.real()));
-  
+
   return (complex<double>(w.imag(), w.real()));
 }
-  
+
 /*
  * cacos(z) = PI/2 - casin(z)
  * but do the computation carefully so cacos(z) is accurate when z is
@@ -451,7 +451,7 @@ complex<double> cacosh(complex<double> z)
 {
   complex<double> w;
   double rx, ry;
-  
+
   w = cacos(z);
   rx = w.real();
   ry = w.imag();
@@ -477,7 +477,7 @@ complex<double> clog_for_large_values(complex<double> z)
   double x, y;
   double ax, ay, t;
   const double m_e = 2.7182818284590452e0; /*  0x15bf0a8b145769.0p-51 */
-  
+
   x = z.real();
   y = z.imag();
   ax = fabs(x);
@@ -487,7 +487,7 @@ complex<double> clog_for_large_values(complex<double> z)
     ax = ay;
     ay = t;
   }
-  
+
   /*
    * Avoid overflow in hypot() when x and y are both very large.
    * Divide x and y by E, and then add 1 to the logarithm.  This depends
@@ -497,7 +497,7 @@ complex<double> clog_for_large_values(complex<double> z)
    */
   if (ax > DBL_MAX / 2)
     return (complex<double>(log(hypot(x / m_e, y / m_e)) + 1, atan2(y, x)));
-  
+
   /*
    * Avoid overflow when x or y is large.  Avoid underflow when x or
    * y is small.
@@ -506,16 +506,16 @@ complex<double> clog_for_large_values(complex<double> z)
   const double SQRT_MIN =	1.491668146240041348658193e-154; /* = 0x1p-511; >= sqrt(DBL_MIN) */
   if (ax > QUARTER_SQRT_MAX || ay < SQRT_MIN)
     return (complex<double>(log(hypot(x, y)), atan2(y, x)));
-  
+
   return (complex<double>(log(ax * ax + ay * ay) / 2, atan2(y, x)));
 }
-  
+
 /*
  *				=================
  *				| catanh, catan |
  *				=================
  */
-  
+
 /*
    * sum_squares(x,y) = x*x + y*y (or just x*x if y*y would underflow).
    * Assumes x*x and y*y will not overflow.
@@ -530,10 +530,10 @@ inline double sum_squares(double x, double y)
   /* Avoid underflow when y is small. */
   if (y < SQRT_MIN)
     return (x * x);
-  
+
   return (x * x + y * y);
 }
-  
+
 /*
  * real_part_reciprocal(x, y) = Re(1/(x+I*y)) = x/(x*x + y*y).
  * Assumes x and y are not NaN, and one of x and y is larger than
@@ -549,7 +549,7 @@ inline double real_part_reciprocal(double x, double y)
   double scale;
   uint32_t hx, hy;
   int32_t ix, iy;
-  
+
   /*
    * This code is inspired by the C99 document n1124.pdf, Section G.5.1,
    * example 2.
@@ -575,8 +575,8 @@ inline double real_part_reciprocal(double x, double y)
   y *= scale;
   return (x / (x * x + y * y) * scale);
 }
-  
-  
+
+
 /*
  * catanh(z) = log((1+z)/(1-z)) / 2
  *           = log1p(4*x / |z-1|^2) / 4
@@ -596,8 +596,8 @@ complex<double> catanh(complex<double> z)
   double x, y, ax, ay, rx, ry;
   const volatile double pio2_lo = 6.1232339957367659e-17; /*  0x11a62633145c07.0p-106 */
   const double pio2_hi = 1.5707963267948966e0;/*  0x1921fb54442d18.0p-52 */
-  
-  
+
+
   x = z.real();
   y = z.imag();
   ax = fabs(x);
@@ -606,11 +606,11 @@ complex<double> catanh(complex<double> z)
   /* This helps handle many cases. */
   if (y == 0 && ax <= 1)
     return (complex<double>(atanh(x), y));
-  
+
   /* To ensure the same accuracy as atan(), and to filter out z = 0. */
   if (x == 0)
     return (complex<double>(x, atan(y)));
-  
+
   if (isnan(x) || isnan(y)) {
     /* catanh(+-Inf + I*NaN) = +-0 + I*NaN */
     if (isinf(x))
@@ -626,12 +626,12 @@ complex<double> catanh(complex<double> z)
      */
     return (complex<double>(x + 0.0 + (y + 0), x + 0.0 + (y + 0)));
   }
-  
+
   const double RECIP_EPSILON = 1.0 / DBL_EPSILON;
   if (ax > RECIP_EPSILON || ay > RECIP_EPSILON)
     return (complex<double>(real_part_reciprocal(x, y),
 			    copysign(pio2_hi + pio2_lo, y)));
-  
+
   const double SQRT_3_EPSILON = 2.5809568279517849e-8; /*  0x1bb67ae8584caa.0p-78 */
   if (ax < SQRT_3_EPSILON / 2 && ay < SQRT_3_EPSILON / 2) {
     /*
@@ -642,23 +642,23 @@ complex<double> catanh(complex<double> z)
     raise_inexact();
     return (z);
   }
-  
+
   const double m_ln2 = 6.9314718055994531e-1; /*  0x162e42fefa39ef.0p-53 */
   if (ax == 1 && ay < DBL_EPSILON)
     rx = (m_ln2 - log(ay)) / 2;
   else
     rx = log1p(4 * ax / sum_squares(ax - 1, ay)) / 4;
-  
+
   if (ax == 1)
     ry = atan2(2.0, -ay) / 2;
   else if (ay < DBL_EPSILON)
     ry = atan2(2 * ay, (1 - ax) * (1 + ax)) / 2;
   else
     ry = atan2(2 * ay, (1 - ax) * (1 + ax) - ay * ay) / 2;
-  
+
   return (complex<double>(copysign(rx, x), copysign(ry, y)));
 }
-  
+
 /*
  * catan(z) = reverse(catanh(reverse(z)))
  * where reverse(x + I*y) = y + I*x = I*conj(z).
@@ -692,20 +692,20 @@ inline complex<ValueType> asin(const complex<ValueType>& z){
   const complex<ValueType> i(0,1);
   return -i*asinh(i*z);
 }
-  
+
 template <typename ValueType>
 __host__ __device__
 inline complex<ValueType> atan(const complex<ValueType>& z){
   const complex<ValueType> i(0,1);
   return -i*thrust::atanh(i*z);
 }
-  
+
 
 template <typename ValueType>
 __host__ __device__
 inline complex<ValueType> acosh(const complex<ValueType>& z){
   thrust::complex<ValueType> ret((z.real() - z.imag()) * (z.real() + z.imag()) - ValueType(1.0),
-				 ValueType(2.0) * z.real() * z.imag());    
+				 ValueType(2.0) * z.real() * z.imag());
   ret = thrust::sqrt(ret);
   if (z.real() < ValueType(0.0)){
     ret = -ret;
@@ -717,42 +717,42 @@ inline complex<ValueType> acosh(const complex<ValueType>& z){
   }
   return ret;
 }
-  
+
 template <typename ValueType>
 __host__ __device__
 inline complex<ValueType> asinh(const complex<ValueType>& z){
   return thrust::log(thrust::sqrt(z*z+ValueType(1))+z);
 }
-  
+
 template <typename ValueType>
 __host__ __device__
 inline complex<ValueType> atanh(const complex<ValueType>& z){
-  ValueType imag2 = z.imag() *  z.imag();   
+  ValueType imag2 = z.imag() *  z.imag();
   ValueType n = ValueType(1.0) + z.real();
   n = imag2 + n * n;
-  
+
   ValueType d = ValueType(1.0) - z.real();
   d = imag2 + d * d;
   complex<ValueType> ret(ValueType(0.25) * (std::log(n) - std::log(d)),0);
-  
+
   d = ValueType(1.0) -  z.real() * z.real() - imag2;
-  
+
   ret.imag(ValueType(0.5) * std::atan2(ValueType(2.0) * z.imag(), d));
   return ret;
 }
-  
+
 template <>
 __host__ __device__
 inline complex<double> acos(const complex<double>& z){
   return detail::complex::cacos(z);
 }
-  
+
 template <>
 __host__ __device__
 inline complex<double> asin(const complex<double>& z){
   return detail::complex::casin(z);
 }
-  
+
 #if THRUST_CPP_DIALECT >= 2011 || THRUST_HOST_COMPILER != THRUST_HOST_COMPILER_MSVC
 template <>
 __host__ __device__
@@ -773,7 +773,7 @@ __host__ __device__
 inline complex<double> asinh(const complex<double>& z){
   return detail::complex::casinh(z);
 }
-  
+
 #if THRUST_CPP_DIALECT >= 2011 || THRUST_HOST_COMPILER != THRUST_HOST_COMPILER_MSVC
 template <>
 __host__ __device__

@@ -15,7 +15,7 @@
  */
 
 
-/*! \file device_vector.h
+/*! \file
  *  \brief A dynamically-sizable array of elements which resides in memory
  *         accessible to devices.
  */
@@ -31,9 +31,7 @@
 
 THRUST_NAMESPACE_BEGIN
 
-/*! \addtogroup container_classes Container Classes
- *  \addtogroup device_containers Device Containers
- *  \ingroup container_classes
+/*! \addtogroup containers Containers
  *  \{
  */
 
@@ -183,14 +181,16 @@ template<typename T, typename Alloc = thrust::device_allocator<T> >
     device_vector &operator=(const std::vector<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this;}
 
-    /*! Copy construct from a \p vector_base of related type..
+    /*! Copy construct from a \p vector_base whose element type is convertible
+     *  to \c T.
+     *
      *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
     device_vector(const detail::vector_base<OtherT,OtherAlloc> &v)
       :Parent(v) {}
 
-    /*! Assign a \p vector_base of related type.
+    /*! Assign a \p vector_base whose element type is convertible to \c T.
      *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
@@ -485,7 +485,7 @@ template<typename T, typename Alloc>
   a.swap(b);
 }
 
-/*! \}
+/*! \} // containres
  */
 
 THRUST_NAMESPACE_END

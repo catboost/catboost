@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file find.inl
- *  \brief Inline file for find.h
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>

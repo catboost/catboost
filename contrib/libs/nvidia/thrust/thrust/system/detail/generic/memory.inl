@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/system/detail/generic/memory.h>

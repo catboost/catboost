@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+#pragma once
 
 #include <thrust/detail/config.h>
 
@@ -58,7 +60,7 @@ void stable_sort(sequential::execution_policy<DerivedPolicy> &exec,
                  thrust::detail::true_type)
 {
   thrust::system::detail::sequential::stable_primitive_sort(exec, first, last);
-        
+
   // if comp is greater<T> then reverse the keys
   typedef typename thrust::iterator_traits<RandomAccessIterator>::value_type KeyType;
 

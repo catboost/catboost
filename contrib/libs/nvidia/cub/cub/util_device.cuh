@@ -613,7 +613,7 @@ cudaError_t MaxSmOccupancy(
     int&                max_sm_occupancy,          ///< [out] maximum number of thread blocks that can reside on a single SM
     KernelPtr           kernel_ptr,                 ///< [in] Kernel pointer for which to compute SM occupancy
     int                 block_threads,              ///< [in] Number of threads per thread block
-    int                 dynamic_smem_bytes = 0)
+    int                 dynamic_smem_bytes = 0)	    ///< [in] Dynamically allocated shared memory in bytes. Default is 0.
 {
 #ifndef CUB_RUNTIME_ENABLED
 

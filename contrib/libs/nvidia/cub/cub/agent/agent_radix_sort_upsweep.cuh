@@ -312,13 +312,11 @@ struct AgentRadixSortUpsweep
         const OffsetT &block_end)
     {
         // Process partial tile if necessary using single loads
-        block_offset += threadIdx.x;
-        while (block_offset < block_end)
+        for (OffsetT offset = threadIdx.x; offset < block_end - block_offset; offset += BLOCK_THREADS) 
         {
             // Load and bucket key
-            UnsignedBits key = d_keys_in[block_offset];
+            UnsignedBits key = d_keys_in[block_offset + offset];
             Bucket(key);
-            block_offset += BLOCK_THREADS;
         }
     }
 
@@ -354,7 +352,7 @@ struct AgentRadixSortUpsweep
         ResetUnpackedCounters();
 
         // Unroll batches of full tiles
-        while (block_offset + UNROLLED_ELEMENTS <= block_end)
+        while (block_end - block_offset >= UNROLLED_ELEMENTS)
         {
             for (int i = 0; i < UNROLL_COUNT; ++i)
             {
@@ -374,7 +372,7 @@ struct AgentRadixSortUpsweep
         }
 
         // Unroll single full tiles
-        while (block_offset + TILE_ITEMS <= block_end)
+        while (block_end - block_offset >= TILE_ITEMS)
         {
             ProcessFullTile(block_offset);
             block_offset += TILE_ITEMS;

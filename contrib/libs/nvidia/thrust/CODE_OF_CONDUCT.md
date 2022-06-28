@@ -65,7 +65,11 @@ Representation of a project may be further defined and clarified by project
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
+<<<<<<< HEAD
   reported by contacting [cpp-conduct@nvidia.com](mailto:cpp-conduct@nvidia.com).
+=======
+  reported by contacting [cpp-conduct@nvidia.com].
+>>>>>>> 33767b46... Docs: Move `README.md`, `CHANGELOG.md`, and `CODE_OF_CONDUCT.md` back to their
 All complaints will be reviewed and investigated and will result in a response
   that is deemed necessary and appropriate to the circumstances.
 The project team is obligated to maintain confidentiality with regard to the

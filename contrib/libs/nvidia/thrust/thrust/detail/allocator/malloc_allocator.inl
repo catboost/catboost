@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/malloc_allocator.h>
 #include <thrust/system/detail/generic/select_system.h>

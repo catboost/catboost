@@ -1,9 +1,9 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
- *  You may obtain a for_each of the License at
+ *  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-/*! \file async/for_each.h
- *  \brief Functions for asynchronously iterating over the elements of a range.
+/*! \file
+ *  \brief Algorithms for asynchronously iterating over the elements of a range.
  */
 
 #pragma once
@@ -37,6 +37,9 @@ THRUST_NAMESPACE_BEGIN
 namespace async
 {
 
+/*! \cond
+ */
+
 namespace unimplemented
 {
 
@@ -55,13 +58,13 @@ async_for_each(
   , "this algorithm is not implemented for the specified system"
   );
   return {};
-} 
+}
 
 } // namespace unimplemented
 
 namespace for_each_detail
 {
-    
+
 using thrust::async::unimplemented::async_for_each;
 
 struct for_each_fn final
@@ -74,7 +77,7 @@ struct for_each_fn final
   static auto call(
     thrust::detail::execution_policy_base<DerivedPolicy> const& exec
   , ForwardIt&& first, Sentinel&& last
-  , UnaryFunction&& f 
+  , UnaryFunction&& f
   )
   // ADL dispatch.
   THRUST_RETURNS(
@@ -87,7 +90,7 @@ struct for_each_fn final
 
   template <typename ForwardIt, typename Sentinel, typename UnaryFunction>
   __host__
-  static auto call(ForwardIt&& first, Sentinel&& last, UnaryFunction&& f) 
+  static auto call(ForwardIt&& first, Sentinel&& last, UnaryFunction&& f)
   THRUST_RETURNS(
     for_each_fn::call(
       thrust::detail::select_system(
@@ -109,6 +112,9 @@ struct for_each_fn final
 } // namespace for_each_detail
 
 THRUST_INLINE_CONSTANT for_each_detail::for_each_fn for_each{};
+
+/*! \endcond
+ */
 
 } // namespace async
 

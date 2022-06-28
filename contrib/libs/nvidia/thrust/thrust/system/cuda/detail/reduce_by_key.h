@@ -445,8 +445,9 @@ namespace __reduce_by_key {
         {
           if (segment_flags[ITEM])
           {
-            storage.raw_exchange[segment_indices[ITEM] -
-                                 num_tile_segments_prefix] = scatter_items[ITEM];
+            int idx = static_cast<int>(segment_indices[ITEM] -
+                                       num_tile_segments_prefix);
+            storage.raw_exchange[idx] = scatter_items[ITEM];
           }
         }
 
@@ -786,7 +787,7 @@ namespace __reduce_by_key {
         // so just assign one tile per block
         //
         int  tile_idx          = blockIdx.x;
-        Size tile_offset       = tile_idx * ITEMS_PER_TILE;
+        Size tile_offset       = static_cast<Size>(tile_idx) * ITEMS_PER_TILE;
         Size num_remaining     = num_items - tile_offset;
 
         if (num_remaining > ITEMS_PER_TILE)
@@ -962,7 +963,8 @@ namespace __reduce_by_key {
     return status;
   }
 
-  template <typename Derived,
+  template <typename Size,
+            typename Derived,
             typename KeysInputIt,
             typename ValuesInputIt,
             typename KeysOutputIt,
@@ -971,24 +973,23 @@ namespace __reduce_by_key {
             typename ReductionOp>
   THRUST_RUNTIME_FUNCTION
   pair<KeysOutputIt, ValuesOutputIt>
-  reduce_by_key(execution_policy<Derived>& policy,
-                KeysInputIt                keys_first,
-                KeysInputIt                keys_last,
-                ValuesInputIt              values_first,
-                KeysOutputIt               keys_output,
-                ValuesOutputIt             values_output,
-                EqualityOp                 equality_op,
-                ReductionOp                reduction_op)
+  reduce_by_key_dispatch(execution_policy<Derived>& policy,
+                         KeysInputIt                keys_first,
+                         Size                       num_items,
+                         ValuesInputIt              values_first,
+                         KeysOutputIt               keys_output,
+                         ValuesOutputIt             values_output,
+                         EqualityOp                 equality_op,
+                         ReductionOp                reduction_op)
   {
-    typedef int size_type;
-
-    size_type    num_items          = static_cast<size_type>(thrust::distance(keys_first, keys_last));
     size_t       temp_storage_bytes = 0;
     cudaStream_t stream             = cuda_cub::stream(policy);
     bool         debug_sync         = THRUST_DEBUG_SYNC_FLAG;
 
     if (num_items == 0)
+    {
       return thrust::make_pair(keys_output, values_output);
+    }
 
     cudaError_t status;
     status = doit_step(NULL,
@@ -997,7 +998,7 @@ namespace __reduce_by_key {
                        values_first,
                        keys_output,
                        values_output,
-                       reinterpret_cast<size_type*>(NULL),
+                       reinterpret_cast<Size*>(NULL),
                        equality_op,
                        reduction_op,
                        num_items,
@@ -1005,7 +1006,7 @@ namespace __reduce_by_key {
                        debug_sync);
     cuda_cub::throw_on_error(status, "reduce_by_key failed on 1st step");
 
-    size_t allocation_sizes[2] = {sizeof(size_type), temp_storage_bytes};
+    size_t allocation_sizes[2] = {sizeof(Size), temp_storage_bytes};
     void * allocations[2]      = {NULL, NULL};
 
     size_t storage_size = 0;
@@ -1026,8 +1027,8 @@ namespace __reduce_by_key {
                                  allocation_sizes);
     cuda_cub::throw_on_error(status, "reduce failed on 2nd alias_storage");
 
-    size_type* d_num_runs_out
-      = thrust::detail::aligned_reinterpret_cast<size_type*>(allocations[0]);
+    Size* d_num_runs_out
+      = thrust::detail::aligned_reinterpret_cast<Size*>(allocations[0]);
 
     status = doit_step(allocations[1],
                        temp_storage_bytes,
@@ -1052,6 +1053,49 @@ namespace __reduce_by_key {
       keys_output + num_runs_out,
       values_output + num_runs_out
     );
+  }
+
+  template <typename Derived,
+            typename KeysInputIt,
+            typename ValuesInputIt,
+            typename KeysOutputIt,
+            typename ValuesOutputIt,
+            typename EqualityOp,
+            typename ReductionOp>
+  THRUST_RUNTIME_FUNCTION
+  pair<KeysOutputIt, ValuesOutputIt>
+  reduce_by_key(execution_policy<Derived>& policy,
+                KeysInputIt                keys_first,
+                KeysInputIt                keys_last,
+                ValuesInputIt              values_first,
+                KeysOutputIt               keys_output,
+                ValuesOutputIt             values_output,
+                EqualityOp                 equality_op,
+                ReductionOp                reduction_op)
+  {
+    using size_type = typename iterator_traits<KeysInputIt>::difference_type;
+
+    size_type num_items = thrust::distance(keys_first, keys_last);
+
+    if (num_items == 0)
+    {
+      return thrust::make_pair(keys_output, values_output);
+    }
+
+    pair<KeysOutputIt, ValuesOutputIt> result{};
+    THRUST_INDEX_TYPE_DISPATCH(result,
+                               reduce_by_key_dispatch,
+                               num_items,
+                               (policy,
+                                keys_first,
+                                num_items_fixed,
+                                values_first,
+                                keys_output,
+                                values_output,
+                                equality_op,
+                                reduction_op));
+
+    return result;
   }
 
 }    // namespace __reduce_by_key

@@ -81,7 +81,7 @@ THRUST_NAMESPACE_BEGIN
       template<class T, class A>
       struct is_trivially_copy_constructible<std::vector<T,A>>
           : std::is_trivially_copy_constructible<T>{};
-#endif      
+#endif
   }
 THRUST_NAMESPACE_END
 #endif
@@ -214,17 +214,17 @@ struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...)> : std::true_typ
 template <class T, class Ret, class... Args>
 struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...)&> : std::true_type{};
 template <class T, class Ret, class... Args>
-struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...)&&> : std::true_type{};        
+struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...)&&> : std::true_type{};
 template <class T, class Ret, class... Args>
 struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...) volatile> : std::true_type{};
 template <class T, class Ret, class... Args>
 struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...) volatile&> : std::true_type{};
 template <class T, class Ret, class... Args>
-struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...) volatile&&> : std::true_type{};        
+struct is_pointer_to_non_const_member_func<Ret (T::*) (Args...) volatile&&> : std::true_type{};
 
 template <class T> struct is_const_or_const_ref : std::false_type{};
 template <class T> struct is_const_or_const_ref<T const&> : std::true_type{};
-template <class T> struct is_const_or_const_ref<T const> : std::true_type{};    
+template <class T> struct is_const_or_const_ref<T const> : std::true_type{};
 #endif
 
 // std::invoke from C++17
@@ -232,15 +232,16 @@ template <class T> struct is_const_or_const_ref<T const> : std::true_type{};
 __thrust_exec_check_disable__
 template <typename Fn, typename... Args,
 #ifdef THRUST_OPTIONAL_LIBCXX_MEM_FN_WORKAROUND
-          typename = enable_if_t<!(is_pointer_to_non_const_member_func<Fn>::value 
-                                 && is_const_or_const_ref<Args...>::value)>, 
+          typename = enable_if_t<!(is_pointer_to_non_const_member_func<Fn>::value
+                                 && is_const_or_const_ref<Args...>::value)>,
 #endif
           typename = enable_if_t<std::is_member_pointer<decay_t<Fn>>::value>,
           int = 0>
 __host__ __device__
-constexpr auto invoke(Fn &&f, Args &&... args) noexcept(
-    noexcept(std::mem_fn(f)(std::forward<Args>(args)...)))
-    -> decltype(std::mem_fn(f)(std::forward<Args>(args)...)) {
+constexpr auto invoke(Fn &&f, Args &&... args)
+  noexcept(noexcept(std::mem_fn(f)(std::forward<Args>(args)...)))
+  THRUST_TRAILING_RETURN(decltype(std::mem_fn(f)(std::forward<Args>(args)...)))
+{
   return std::mem_fn(f)(std::forward<Args>(args)...);
 }
 
@@ -248,9 +249,10 @@ __thrust_exec_check_disable__
 template <typename Fn, typename... Args,
           typename = enable_if_t<!std::is_member_pointer<decay_t<Fn>>::value>>
 __host__ __device__
-constexpr auto invoke(Fn &&f, Args &&... args) noexcept(
-    noexcept(std::forward<Fn>(f)(std::forward<Args>(args)...)))
-    -> decltype(std::forward<Fn>(f)(std::forward<Args>(args)...)) {
+constexpr auto invoke(Fn &&f, Args &&... args)
+  noexcept(noexcept(std::forward<Fn>(f)(std::forward<Args>(args)...)))
+  THRUST_TRAILING_RETURN(decltype(std::forward<Fn>(f)(std::forward<Args>(args)...)))
+{
   return std::forward<Fn>(f)(std::forward<Args>(args)...);
 }
 
@@ -846,7 +848,7 @@ public:
   /// \group and_then
   /// Carries out some operation which returns an optional on the stored
   /// object if there is one. \requires `std::invoke(std::forward<F>(f),
-  /// value())` returns a `std::optional<U>` for some `U`. \returns Let `U` be
+  /// value())` returns a `std::optional<U>` for some `U`. \return Let `U` be
   /// the result of `std::invoke(std::forward<F>(f), value())`. Returns a
   /// `std::optional<U>`. The return value is empty if `*this` is empty,
   /// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
@@ -913,7 +915,7 @@ public:
   /// Carries out some operation which returns an optional on the stored
   /// object if there is one. \requires `std::invoke(std::forward<F>(f),
   /// value())` returns a `std::optional<U>` for some `U`.
-  /// \returns Let `U` be the result of `std::invoke(std::forward<F>(f),
+  /// \return Let `U` be the result of `std::invoke(std::forward<F>(f),
   /// value())`. Returns a `std::optional<U>`. The return value is empty if
   /// `*this` is empty, otherwise the return value of
   /// `std::invoke(std::forward<F>(f), value())` is returned.
@@ -979,7 +981,7 @@ public:
 #if defined(THRUST_OPTIONAL_CPP14) && !defined(THRUST_OPTIONAL_GCC49) &&               \
     !defined(THRUST_OPTIONAL_GCC54) && !defined(THRUST_OPTIONAL_GCC55)
   /// \brief Carries out some operation on the stored object if there is one.
-  /// \returns Let `U` be the result of `std::invoke(std::forward<F>(f),
+  /// \return Let `U` be the result of `std::invoke(std::forward<F>(f),
   /// value())`. Returns a `std::optional<U>`. The return value is empty if
   /// `*this` is empty, otherwise an `optional<U>` is constructed from the
   /// return value of `std::invoke(std::forward<F>(f), value())` and is
@@ -1022,7 +1024,7 @@ public:
   }
 #else
   /// \brief Carries out some operation on the stored object if there is one.
-  /// \returns Let `U` be the result of `std::invoke(std::forward<F>(f),
+  /// \return Let `U` be the result of `std::invoke(std::forward<F>(f),
   /// value())`. Returns a `std::optional<U>`. The return value is empty if
   /// `*this` is empty, otherwise an `optional<U>` is constructed from the
   /// return value of `std::invoke(std::forward<F>(f), value())` and is
@@ -1263,7 +1265,7 @@ public:
   }
 #endif
 
-  /// \returns `u` if `*this` has a value, otherwise an empty optional.
+  /// \return `u` if `*this` has a value, otherwise an empty optional.
   __thrust_exec_check_disable__
   template <class U>
   __host__ __device__
@@ -1272,7 +1274,7 @@ public:
     return has_value() ? result{u} : result{nullopt};
   }
 
-  /// \returns `rhs` if `*this` is empty, otherwise the current value.
+  /// \return `rhs` if `*this` is empty, otherwise the current value.
   /// \group disjunction
   __thrust_exec_check_disable__
   __host__ __device__
@@ -1607,7 +1609,7 @@ public:
   emplace(std::initializer_list<U> il, Args &&... args) {
     *this = nullopt;
     this->construct(il, std::forward<Args>(args)...);
-    return value();    
+    return value();
   }
 
   /// Swaps this optional with the other.
@@ -1635,7 +1637,7 @@ public:
     }
   }
 
-  /// \returns a pointer to the stored value
+  /// \return a pointer to the stored value
   /// \requires a value is stored
   /// \group pointer
   /// \synopsis constexpr const T *operator->() const;
@@ -1653,7 +1655,7 @@ public:
     return addressof(this->m_value);
   }
 
-  /// \returns the stored value
+  /// \return the stored value
   /// \requires a value is stored
   /// \group deref
   /// \synopsis constexpr T &operator*();
@@ -1681,7 +1683,7 @@ public:
   constexpr const T &&operator*() const && { return std::move(this->m_value); }
 #endif
 
-  /// \returns whether or not the optional has a value
+  /// \return whether or not the optional has a value
   /// \group has_value
   __thrust_exec_check_disable__
   __host__ __device__
@@ -1694,7 +1696,7 @@ public:
     return this->m_has_value;
   }
 
-  /// \returns the contained value if there is one, otherwise throws
+  /// \return the contained value if there is one, otherwise throws
   /// [bad_optional_access]
   /// \group value
   /// \synopsis constexpr T &value();
@@ -1730,7 +1732,7 @@ public:
   }
 #endif
 
-  /// \returns the stored value if there is one, otherwise returns `u`
+  /// \return the stored value if there is one, otherwise returns `u`
   /// \group value_or
   __thrust_exec_check_disable__
   template <class U>
@@ -1851,58 +1853,58 @@ inline constexpr bool operator!=(nullopt_t, const optional<T> &rhs) noexcept {
   return rhs.has_value();
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator<(const optional<T> &, nullopt_t) noexcept {
   return false;
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator<(nullopt_t, const optional<T> &rhs) noexcept {
   return rhs.has_value();
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator<=(const optional<T> &lhs, nullopt_t) noexcept {
   return !lhs.has_value();
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator<=(nullopt_t, const optional<T> &) noexcept {
   return true;
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator>(const optional<T> &lhs, nullopt_t) noexcept {
   return lhs.has_value();
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator>(nullopt_t, const optional<T> &) noexcept {
   return false;
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator>=(const optional<T> &, nullopt_t) noexcept {
   return true;
 }
 /// \group relop_nullopt
-__thrust_exec_check_disable__                                                    
-template <class T>                                                               
-__host__ __device__       
+__thrust_exec_check_disable__
+template <class T>
+__host__ __device__
 inline constexpr bool operator>=(nullopt_t, const optional<T> &rhs) noexcept {
   return !rhs.has_value();
 }
@@ -2039,6 +2041,8 @@ inline constexpr optional<T> make_optional(std::initializer_list<U> il,
 template <class T> optional(T)->optional<T>;
 #endif
 
+// Doxygen chokes on the trailing return types used below.
+#if !defined(THRUST_DOXYGEN)
 /// \exclude
 namespace detail {
 #ifdef THRUST_OPTIONAL_CPP14
@@ -2075,7 +2079,7 @@ template <class Opt, class F,
                                               *std::declval<Opt>())),
           detail::enable_if_t<!std::is_void<Ret>::value> * = nullptr>
 __host__ __device__
-constexpr auto optional_map_impl(Opt &&opt, F &&f) -> optional<Ret> {
+constexpr optional<Ret> optional_map_impl(Opt &&opt, F &&f) {
   return opt.has_value()
              ? detail::invoke(std::forward<F>(f), *std::forward<Opt>(opt))
              : optional<Ret>(nullopt);
@@ -2087,7 +2091,8 @@ template <class Opt, class F,
                                               *std::declval<Opt>())),
           detail::enable_if_t<std::is_void<Ret>::value> * = nullptr>
 __host__ __device__
-auto optional_map_impl(Opt &&opt, F &&f) -> optional<monostate> {
+auto optional_map_impl(Opt &&opt, F &&f) -> optional<monostate>
+{
   if (opt.has_value()) {
     detail::invoke(std::forward<F>(f), *std::forward<Opt>(opt));
     return monostate{};
@@ -2097,6 +2102,7 @@ auto optional_map_impl(Opt &&opt, F &&f) -> optional<monostate> {
 }
 #endif
 } // namespace detail
+#endif // !defined(THRUST_DOXYGEN)
 
 /// Specialization for when `T` is a reference. `optional<T&>` acts similarly
 /// to a `T*`, but provides more operations and shows intent more clearly.
@@ -2131,7 +2137,7 @@ public:
   /// \group and_then
   /// Carries out some operation which returns an optional on the stored
   /// object if there is one. \requires `std::invoke(std::forward<F>(f),
-  /// value())` returns a `std::optional<U>` for some `U`. \returns Let `U` be
+  /// value())` returns a `std::optional<U>` for some `U`. \return Let `U` be
   /// the result of `std::invoke(std::forward<F>(f), value())`. Returns a
   /// `std::optional<U>`. The return value is empty if `*this` is empty,
   /// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
@@ -2197,7 +2203,7 @@ public:
   /// \group and_then
   /// Carries out some operation which returns an optional on the stored
   /// object if there is one. \requires `std::invoke(std::forward<F>(f),
-  /// value())` returns a `std::optional<U>` for some `U`. \returns Let `U` be
+  /// value())` returns a `std::optional<U>` for some `U`. \return Let `U` be
   /// the result of `std::invoke(std::forward<F>(f), value())`. Returns a
   /// `std::optional<U>`. The return value is empty if `*this` is empty,
   /// otherwise the return value of `std::invoke(std::forward<F>(f), value())`
@@ -2264,7 +2270,7 @@ public:
 #if defined(THRUST_OPTIONAL_CPP14) && !defined(THRUST_OPTIONAL_GCC49) &&               \
     !defined(THRUST_OPTIONAL_GCC54) && !defined(THRUST_OPTIONAL_GCC55)
   /// \brief Carries out some operation on the stored object if there is one.
-  /// \returns Let `U` be the result of `std::invoke(std::forward<F>(f),
+  /// \return Let `U` be the result of `std::invoke(std::forward<F>(f),
   /// value())`. Returns a `std::optional<U>`. The return value is empty if
   /// `*this` is empty, otherwise an `optional<U>` is constructed from the
   /// return value of `std::invoke(std::forward<F>(f), value())` and is
@@ -2307,7 +2313,7 @@ public:
   }
 #else
   /// \brief Carries out some operation on the stored object if there is one.
-  /// \returns Let `U` be the result of `std::invoke(std::forward<F>(f),
+  /// \return Let `U` be the result of `std::invoke(std::forward<F>(f),
   /// value())`. Returns a `std::optional<U>`. The return value is empty if
   /// `*this` is empty, otherwise an `optional<U>` is constructed from the
   /// return value of `std::invoke(std::forward<F>(f), value())` and is
@@ -2549,7 +2555,7 @@ public:
   }
 #endif
 
-  /// \returns `u` if `*this` has a value, otherwise an empty optional.
+  /// \return `u` if `*this` has a value, otherwise an empty optional.
   __thrust_exec_check_disable__
   template <class U>
   __host__ __device__
@@ -2558,7 +2564,7 @@ public:
     return has_value() ? result{u} : result{nullopt};
   }
 
-  /// \returns `rhs` if `*this` is empty, otherwise the current value.
+  /// \return `rhs` if `*this` is empty, otherwise the current value.
   /// \group disjunction
   __thrust_exec_check_disable__
   __host__ __device__
@@ -2775,7 +2781,7 @@ public:
   __host__ __device__
   void swap(optional &rhs) noexcept { std::swap(m_value, rhs.m_value); }
 
-  /// \returns a pointer to the stored value
+  /// \return a pointer to the stored value
   /// \requires a value is stored
   /// \group pointer
   /// \synopsis constexpr const T *operator->() const;
@@ -2789,7 +2795,7 @@ public:
   __host__ __device__
   THRUST_OPTIONAL_CPP11_CONSTEXPR T *operator->() { return m_value; }
 
-  /// \returns the stored value
+  /// \return the stored value
   /// \requires a value is stored
   /// \group deref
   /// \synopsis constexpr T &operator*();
@@ -2802,7 +2808,7 @@ public:
   __host__ __device__
   constexpr const T &operator*() const { return *m_value; }
 
-  /// \returns whether or not the optional has a value
+  /// \return whether or not the optional has a value
   /// \group has_value
   __thrust_exec_check_disable__
   __host__ __device__
@@ -2815,7 +2821,7 @@ public:
     return m_value != nullptr;
   }
 
-  /// \returns the contained value if there is one, otherwise throws
+  /// \return the contained value if there is one, otherwise throws
   /// [bad_optional_access]
   /// \group value
   /// synopsis constexpr T &value();
@@ -2834,7 +2840,7 @@ public:
     throw bad_optional_access();
   }
 
-  /// \returns the stored value if there is one, otherwise returns `u`
+  /// \return the stored value if there is one, otherwise returns `u`
   /// \group value_or
   __thrust_exec_check_disable__
   template <class U>

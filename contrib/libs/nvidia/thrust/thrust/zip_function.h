@@ -72,7 +72,7 @@ THRUST_DECLTYPE_RETURNS(
 } // namespace zip_detail
 } // namespace detail
 
-/*! \p zip_function is a function object that allows the easy use of N-ary 
+/*! \p zip_function is a function object that allows the easy use of N-ary
  *  function objects with \p zip_iterators without redefining them to take a
  *  \p tuple instead of N arguments.
  *
@@ -80,17 +80,17 @@ THRUST_DECLTYPE_RETURNS(
  *  the \p transform function and \p device_iterators can be extended to take 3
  *  arguments and \p zip_iterators without rewriting the functor in terms of
  *  \p tuple.
- * 
+ *
  *  The \p make_zip_function convenience function is provided to avoid having
- *  to explicitely define the type of the functor when creating a \p zip_function, 
+ *  to explicitely define the type of the functor when creating a \p zip_function,
  *  whic is especially helpful when using lambdas as the functor.
- *  
+ *
  *  \code
  *  #include <thrust/iterator/zip_iterator.h>
  *  #include <thrust/device_vector.h>
  *  #include <thrust/transform.h>
  *  #include <thrust/zip_function.h>
- * 
+ *
  *  struct SumTuple {
  *    float operator()(Tuple tup) {
  *      return std::get<0>(tup) + std::get<1>(tup) + std::get<2>(tup);
@@ -101,7 +101,7 @@ THRUST_DECLTYPE_RETURNS(
  *      return a + b + c;
  *    }
  *  };
- *  
+ *
  *  int main() {
  *    thrust::device_vector<float> A(3);
  *    thrust::device_vector<float> B(3);
@@ -110,28 +110,28 @@ THRUST_DECLTYPE_RETURNS(
  *    A[0] = 0.f; A[1] = 1.f; A[2] = 2.f;
  *    B[0] = 1.f; B[1] = 2.f; B[2] = 3.f;
  *    C[0] = 2.f; C[1] = 3.f; C[2] = 4.f;
- * 
+ *
  *    // The following four invocations of transform are equivalent
  *    // Transform with 3-tuple
  *    thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(A.begin(), B.begin(), C.begin())),
  *                      thrust::make_zip_iterator(thrust::make_tuple(A.end(), B.end(), C.end())),
  *                      D.begin(),
  *                      SumTuple{});
- * 
+ *
  *    // Transform with 3 parameters
  *    thrust::zip_function<SumArgs> adapted{};
  *    thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(A.begin(), B.begin(), C.begin())),
  *                      thrust::make_zip_iterator(thrust::make_tuple(A.end(), B.end(), C.end())),
  *                      D.begin(),
  *                      adapted);
- * 
+ *
  *    // Transform with 3 parameters with convenience function
  *    thrust::zip_function<SumArgs> adapted{};
  *    thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(A.begin(), B.begin(), C.begin())),
  *                      thrust::make_zip_iterator(thrust::make_tuple(A.end(), B.end(), C.end())),
  *                      D.begin(),
  *                      thrust::make_zip_function(SumArgs{}));
- * 
+ *
  *    // Transform with 3 parameters with convenience function and lambda
  *    thrust::zip_function<SumArgs> adapted{};
  *    thrust::transform(thrust::make_zip_iterator(thrust::make_tuple(A.begin(), B.begin(), C.begin())),
@@ -143,7 +143,7 @@ THRUST_DECLTYPE_RETURNS(
  *    return 0;
  *  }
  *  \endcode
- * 
+ *
  *  \see make_zip_function
  *  \see zip_iterator
  */
@@ -172,8 +172,7 @@ class zip_function
     __host__ __device__
     auto operator()(Tuple&& args) const
     noexcept(noexcept(detail::zip_detail::apply(std::declval<Function>(), THRUST_FWD(args))))
-    -> decltype(detail::zip_detail::apply(std::declval<Function>(), THRUST_FWD(args)))
-
+    THRUST_TRAILING_RETURN(decltype(detail::zip_detail::apply(std::declval<Function>(), THRUST_FWD(args))))
     {
         return detail::zip_detail::apply(func, THRUST_FWD(args));
     }
@@ -182,7 +181,7 @@ class zip_function
 
   private:
     mutable Function func;
-}; 
+};
 
 /*! \p make_zip_function creates a \p zip_function from a function object.
  *
@@ -193,7 +192,8 @@ class zip_function
  */
 template <typename Function>
 __host__ __device__
-auto make_zip_function(Function&& fun) -> zip_function<typename std::decay<Function>::type>
+zip_function<typename std::decay<Function>::type>
+make_zip_function(Function&& fun)
 {
     using func_t = typename std::decay<Function>::type;
     return zip_function<func_t>(THRUST_FWD(fun));

@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file transform_scan.inl
- *  \brief Inline file for transform_scan.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 
