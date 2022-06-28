@@ -494,6 +494,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\locale.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\math.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\setjmp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\stdatomic.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\stdbool.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\stddef.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\cxxsupp\libcxx\include\stdint.h"/>
