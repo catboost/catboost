@@ -6,7 +6,7 @@
 # original buildsystem will not be accepted.
 
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
   set(FAT_OBJECT_SUFFIX .o)
   set(FAT_OBJECT_PREFIX lib)
   set(YASM_FLAGS -f elf64 -D UNIX -D _x86_64_ -D_YASM_ -g dwarf2)

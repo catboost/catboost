@@ -85,17 +85,20 @@ def to_msvc(src, dest):
 
 
 def to_darwin(src, dest):
+    pre = ''
     for item in parse_export_file(src):
         if item.get('linux_version'):
             continue
 
         if item['lang'] == 'C':
-            dest.write('-Wl,-exported_symbol,_' + item['sym'])
+            dest.write(pre + '-Wl,-exported_symbol,_' + item['sym'])
         elif item['lang'] == 'C++':
             for sym in to_c(item['sym']):
-                dest.write('-Wl,-exported_symbol,_' + sym)
+                dest.write(pre + '-Wl,-exported_symbol,_' + sym)
         else:
             raise Exception('unsupported lang: ' + item['lang'])
+        if pre == '':
+            pre = ' '
 
 
 def main():

@@ -6,6 +6,6 @@
 # original buildsystem will not be accepted.
 
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
   include(CMakeLists.linux.txt)
 endif()
