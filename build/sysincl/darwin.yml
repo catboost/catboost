@@ -141,6 +141,7 @@
   - sys/malloc.h
   - sys/mbuf.h
   - sys/msgbuf.h
+  - sys/paths.h
   - sys/posix_shm.h
   - sys/proc.h
   - sys/proc_info.h
