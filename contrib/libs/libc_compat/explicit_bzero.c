@@ -13,6 +13,7 @@
  */
 
 #include <stddef.h>
+#include <string.h>
 
 #if defined(HAVE_MEMSET_S)
 
