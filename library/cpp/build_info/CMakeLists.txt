@@ -9,6 +9,9 @@
 find_package(Python2 REQUIRED)
 
 add_library(library-cpp-build_info)
+target_include_directories(library-cpp-build_info PUBLIC
+  ${CMAKE_BINARY_DIR}/library/cpp/build_info
+)
 target_link_libraries(library-cpp-build_info PUBLIC
   contrib-libs-cxxsupp
   yutil
