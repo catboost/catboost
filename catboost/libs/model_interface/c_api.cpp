@@ -396,7 +396,7 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(ModelC
                 textFeaturesVec[i][textFeatureIdx] = textFeatures[i][textFeatureIdx];
             }
         }
-        FULL_MODEL_PTR(modelHandle)->CalcWithHashedCatAndText(floatFeaturesVec, catFeaturesVec, textFeaturesVec, TArrayRef<double>(result, resultSize));
+        FULL_MODEL_PTR(modelHandle)->CalcWithHashedCatAndTextAndEmbeddings(floatFeaturesVec, catFeaturesVec, textFeaturesVec, {}, TArrayRef<double>(result, resultSize));
     } catch (...) {
         Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
         return false;

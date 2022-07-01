@@ -221,10 +221,11 @@ namespace NCB::NModelEvaluation {
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
-            void CalcWithHashedCatAndText(
+            void CalcWithHashedCatAndTextAndEmbeddings(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<int>> catFeatures,
                 TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,
@@ -238,6 +239,10 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(
                     textFeatures.empty(),
                     "Text features are not supported on GPU, should be empty"
+                );
+                CB_ENSURE(
+                    embeddingFeatures.empty(),
+                    "Embedding features are not supported on GPU, should be empty"
                 );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
@@ -271,6 +276,32 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(
                     textFeatures.empty(),
                     "Text features are not supported in GPU calc, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
+            }
+
+            void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const override {
+                ValidateInputFeatures(floatFeatures, catFeatures);
+                CB_ENSURE(
+                    catFeatures.empty(),
+                    "Cat features are not supported on GPU, should be empty"
+                );
+                CB_ENSURE(
+                    textFeatures.empty(),
+                    "Text features are not supported in GPU calc, should be empty"
+                );
+                CB_ENSURE(
+                    embeddingFeatures.empty(),
+                    "Embedding features are not supported in GPU calc, should be empty"
                 );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
