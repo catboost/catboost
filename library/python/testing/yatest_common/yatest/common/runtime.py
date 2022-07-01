@@ -260,7 +260,10 @@ def cxx_compiler_path():
 
 def global_resources():
     try:
-        return json.loads(os.environ.get("YA_GLOBAL_RESOURCES"))
+        if "YA_GLOBAL_RESOURCES" in os.environ:
+            return json.loads(os.environ.get("YA_GLOBAL_RESOURCES"))
+        else:
+            return _get_ya_plugin_instance().get_context("ya_global_resources")
     except (TypeError, ValueError):
         return {}
 
