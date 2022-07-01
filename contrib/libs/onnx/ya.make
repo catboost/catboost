@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(1.11.0)
+VERSION(1.12.0)
 
-ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.11.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.12.0.tar.gz)
 
 LICENSE(
     Apache-2.0 AND

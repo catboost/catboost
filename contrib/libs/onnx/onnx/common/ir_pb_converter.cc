@@ -11,8 +11,7 @@
 namespace ONNX_NAMESPACE {
 
 // Part 1: convert ONNX Protobuf to IR
-std::unique_ptr<Graph> graphProtoToGraph(const GraphProto& gp, bool nested,
-  const int ir_version=IR_VERSION);
+std::unique_ptr<Graph> graphProtoToGraph(const GraphProto& gp, bool nested, const int ir_version = IR_VERSION);
 
 Tensor tensorProtoToTensor(const ONNX_NAMESPACE::TensorProto& tp) {
   Tensor ret;
@@ -95,8 +94,7 @@ Tensor tensorProtoToTensor(const ONNX_NAMESPACE::TensorProto& tp) {
   return ret;
 }
 
-void convertAttribute(const ONNX_NAMESPACE::AttributeProto& ap, Node* n,
-  const int ir_version=IR_VERSION) {
+void convertAttribute(const ONNX_NAMESPACE::AttributeProto& ap, Node* n, const int ir_version = IR_VERSION) {
   Symbol sym = Symbol(ap.name());
   switch (ap.type()) {
     case ONNX_NAMESPACE::AttributeProto_AttributeType_FLOAT:
@@ -181,7 +179,7 @@ void convertAttribute(const ONNX_NAMESPACE::AttributeProto& ap, Node* n,
   }
 }
 
-void convertAttributes(ONNX_NAMESPACE::NodeProto& np, Node* n, const int ir_version=IR_VERSION) {
+void convertAttributes(ONNX_NAMESPACE::NodeProto& np, Node* n, const int ir_version = IR_VERSION) {
   for (int i = 0; i < np.attribute_size(); i++) {
     convertAttribute(np.attribute(i), n, ir_version);
   }
@@ -204,8 +202,17 @@ std::vector<Dimension> tensorShapeProtoToDimensions(const ONNX_NAMESPACE::Tensor
   return dims;
 }
 
-std::unique_ptr<Graph> graphProtoToGraph(const ONNX_NAMESPACE::GraphProto& gp,
-  bool nested, const int ir_version) {
+void createDummyValue(
+    std::unique_ptr<Graph>& g,
+    const TString& name,
+    std::unordered_map<TString, Value*>& value_by_name_of) {
+  auto* undef = g->create(kCaptured, 1);
+  g->appendNode(undef);
+  undef->outputs()[0]->setUniqueName(name);
+  value_by_name_of[name] = undef->outputs()[0];
+}
+
+std::unique_ptr<Graph> graphProtoToGraph(const ONNX_NAMESPACE::GraphProto& gp, bool nested, const int ir_version) {
   std::unique_ptr<Graph> g(new Graph());
 
   if (gp.has_name()) {
@@ -315,16 +322,13 @@ std::unique_ptr<Graph> graphProtoToGraph(const ONNX_NAMESPACE::GraphProto& gp,
       if (!value_by_name_of.count(input) && nested) {
         // Undefined reference to an input in a nested block. This may be a
         // captured value. Create a dummy node that we ignore later.
-        auto* undef = g->create(kCaptured, 1);
-        g->appendNode(undef);
-        undef->outputs()[0]->setUniqueName(input);
-        value_by_name_of[input] = undef->outputs()[0];
+        createDummyValue(g, input, value_by_name_of);
       }
 
       if (!value_by_name_of.count(input)) {
         std::ostringstream msg;
         msg << "Input " << input << " is undefined!";
-        throw std::out_of_range(msg.str());
+        ONNX_THROW_EX(std::out_of_range(msg.str()));
       }
       n->addInput(value_by_name_of.at(input));
     }
@@ -336,10 +340,7 @@ std::unique_ptr<Graph> graphProtoToGraph(const ONNX_NAMESPACE::GraphProto& gp,
       // graph to be "inputs" of a dummy "output" node. The same lexical
       // scoping rules are valid here, thus we need to add a dummy node
       // in the case of an undefined reference
-      auto* undef = g->create(kCaptured, 1);
-      g->appendNode(undef);
-      undef->outputs()[0]->setUniqueName(gp.output(i).name());
-      value_by_name_of[gp.output(i).name()] = undef->outputs()[0];
+      createDummyValue(g, gp.output(i).name(), value_by_name_of);
     }
     const auto& output_tensor_type = gp.output(i).type().tensor_type();
     if (output_tensor_type.has_elem_type()) {
@@ -353,6 +354,10 @@ std::unique_ptr<Graph> graphProtoToGraph(const ONNX_NAMESPACE::GraphProto& gp,
 
   for (int i = 0; i < gp.value_info_size(); i++) {
     const auto& tensor_type = gp.value_info(i).type().tensor_type();
+    if (!value_by_name_of.count(gp.value_info(i).name())) {
+      // Ideally the model should not have a value_info whose name does not exist in the graph (unused); simply skip it
+      continue;
+    }
     if (tensor_type.has_elem_type()) {
       value_by_name_of[gp.value_info(i).name()]->setElemType(tensor_type.elem_type());
     }

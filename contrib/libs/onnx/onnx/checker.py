@@ -1,14 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
-
 """onnx checker
 
 This implements graphalities that allows us to check whether a serialized
 proto is legal.
 """
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import functools
 
@@ -23,7 +18,7 @@ from onnx import (ValueInfoProto,
 from onnx.onnx_cpp2py_export import checker as C
 import onnx.defs
 from google.protobuf.message import Message
-from typing import TypeVar, Callable, Any, Type, cast, Union, Text
+from typing import TypeVar, Callable, Any, Type, cast, Union
 import onnx.shape_inference
 import sys
 
@@ -90,7 +85,13 @@ def check_sparse_tensor(sparse: SparseTensorProto, ctx: C.CheckerContext = DEFAU
     C.check_sparse_tensor(sparse.SerializeToString(), ctx)
 
 
-def check_model(model: Union[ModelProto, Text, bytes], full_check: bool = False) -> None:
+def check_model(model: Union[ModelProto, str, bytes], full_check: bool = False) -> None:
+    """Check the consistency of a model. An exception is raised if the test fails.
+
+    Arguments:
+        model (ModelProto): model to check
+        full_check (bool): if True, the function checks shapes can be inferred
+    """
     # If model is a path instead of ModelProto
     if isinstance(model, str):
         C.check_model_path(model)
