@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-fastlz)
+target_compile_options(contrib-libs-fastlz PRIVATE
+  -Wno-everything
+)
 target_link_libraries(contrib-libs-fastlz PUBLIC
   contrib-libs-cxxsupp
 )

@@ -10,6 +10,7 @@
 add_library(random-internal-seed_material)
 target_compile_options(random-internal-seed_material PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(random-internal-seed_material PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

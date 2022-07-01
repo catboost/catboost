@@ -10,6 +10,7 @@
 add_library(contrib-libs-crcutil)
 target_compile_options(contrib-libs-crcutil PRIVATE
   -DCRCUTIL_USE_MM_CRC32=1
+  -Wno-everything
 )
 target_link_libraries(contrib-libs-crcutil PUBLIC
   contrib-libs-cxxsupp

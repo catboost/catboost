@@ -10,6 +10,7 @@
 add_library(base-internal-strerror)
 target_compile_options(base-internal-strerror PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(base-internal-strerror PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

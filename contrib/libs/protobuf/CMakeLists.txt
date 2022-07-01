@@ -13,6 +13,7 @@ target_compile_options(contrib-libs-protobuf PRIVATE
   -DHAVE_CONFIG_H
   -DHAVE_PTHREAD=1
   -DHAVE_ZLIB=1
+  -Wno-everything
 )
 target_include_directories(contrib-libs-protobuf PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
@@ -112,6 +113,7 @@ target_compile_options(contrib-libs-protobuf.global PRIVATE
   -DHAVE_CONFIG_H
   -DHAVE_PTHREAD=1
   -DHAVE_ZLIB=1
+  -Wno-everything
 )
 target_include_directories(contrib-libs-protobuf.global PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src

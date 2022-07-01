@@ -10,6 +10,7 @@
 add_library(absl-time-civil_time)
 target_compile_options(absl-time-civil_time PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-time-civil_time PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

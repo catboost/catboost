@@ -10,6 +10,7 @@
 add_library(random-internal-pool_urbg)
 target_compile_options(random-internal-pool_urbg PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(random-internal-pool_urbg PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

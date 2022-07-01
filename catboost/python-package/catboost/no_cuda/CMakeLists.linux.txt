@@ -11,6 +11,9 @@ add_library(_catboost_no_cuda SHARED)
 set_property(TARGET _catboost_no_cuda PROPERTY
   OUTPUT_NAME _catboost
 )
+target_compile_options(_catboost_no_cuda PRIVATE
+  -Wno-everything
+)
 target_cython_sources(_catboost_no_cuda PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )

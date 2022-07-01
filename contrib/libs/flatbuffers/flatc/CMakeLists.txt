@@ -10,6 +10,7 @@
 add_library(libs-flatbuffers-flatc)
 target_compile_options(libs-flatbuffers-flatc PRIVATE
   -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+  -Wno-everything
 )
 target_include_directories(libs-flatbuffers-flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/grpc

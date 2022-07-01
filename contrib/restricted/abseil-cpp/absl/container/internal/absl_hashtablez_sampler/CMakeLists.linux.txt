@@ -10,6 +10,7 @@
 add_library(container-internal-absl_hashtablez_sampler)
 target_compile_options(container-internal-absl_hashtablez_sampler PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(container-internal-absl_hashtablez_sampler PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

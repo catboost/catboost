@@ -10,6 +10,7 @@
 add_library(random-internal-absl_random_internal_distribution_test_util)
 target_compile_options(random-internal-absl_random_internal_distribution_test_util PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(random-internal-absl_random_internal_distribution_test_util PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

@@ -10,6 +10,7 @@
 add_library(absl-types-bad_any_cast)
 target_compile_options(absl-types-bad_any_cast PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-types-bad_any_cast PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

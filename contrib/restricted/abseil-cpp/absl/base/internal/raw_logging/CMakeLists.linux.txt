@@ -10,6 +10,7 @@
 add_library(base-internal-raw_logging)
 target_compile_options(base-internal-raw_logging PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(base-internal-raw_logging PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

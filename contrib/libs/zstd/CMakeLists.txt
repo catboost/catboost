@@ -12,6 +12,7 @@ target_compile_options(contrib-libs-zstd PRIVATE
   -DZSTD_LEGACY_SUPPORT=1
   -DZSTD_MULTITHREAD
   -DDYNAMIC_BMI2
+  -Wno-everything
 )
 target_include_directories(contrib-libs-zstd PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/zstd/lib

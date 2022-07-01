@@ -10,6 +10,7 @@
 add_library(absl-random-seed_gen_exception)
 target_compile_options(absl-random-seed_gen_exception PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-random-seed_gen_exception PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

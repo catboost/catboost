@@ -10,6 +10,7 @@
 add_library(base-internal-spinlock_wait)
 target_compile_options(base-internal-spinlock_wait PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(base-internal-spinlock_wait PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

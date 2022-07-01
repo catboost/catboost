@@ -8,6 +8,9 @@
 
 
 add_library(contrib-libs-double-conversion)
+target_compile_options(contrib-libs-double-conversion PRIVATE
+  -Wno-everything
+)
 target_include_directories(contrib-libs-double-conversion PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/libs/double-conversion
 )

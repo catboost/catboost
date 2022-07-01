@@ -10,6 +10,7 @@
 add_library(absl-time-time_zone)
 target_compile_options(absl-time-time_zone PRIVATE
   -DNOMINMAX
+  -Wno-everything
 )
 target_include_directories(absl-time-time_zone PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp

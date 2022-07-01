@@ -13,6 +13,7 @@ target_compile_options(libs-cxxsupp-libcxxabi-parts PUBLIC
 )
 target_compile_options(libs-cxxsupp-libcxxabi-parts PRIVATE
   -D_LIBCXXABI_BUILDING_LIBRARY
+  -Wno-everything
 )
 target_include_directories(libs-cxxsupp-libcxxabi-parts PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxabi/include

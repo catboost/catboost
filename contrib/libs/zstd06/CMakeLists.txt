@@ -10,6 +10,7 @@
 add_library(contrib-libs-zstd06)
 target_compile_options(contrib-libs-zstd06 PRIVATE
   -DZSTD_LEGACY_SUPPORT=1
+  -Wno-everything
 )
 target_include_directories(contrib-libs-zstd06 PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06
