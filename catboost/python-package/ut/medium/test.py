@@ -10428,3 +10428,49 @@ def test_pandas_integer_array():
     y = list(range(10))
     cb = CatBoostRegressor(iterations=1)
     cb.fit(X, y)
+
+
+@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking'])
+def test_train_with_embedding_features(problem_type):
+    train_pool = Pool(
+        data=[
+            [0.1, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 0.12],
+            [0.2, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 0.0],
+            [0.1, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 0.2],
+            [0.8, 2, [0.3, 0.1], [0.8, 0.2, 0.9], 0.3],
+            [0.4, 1, [0.2, 0.0], [1.0, 0.92, 0.1], 0.4],
+            [0.3, 2, [0.1, 0.22], [0.1, 0.22, 0.2], 0.0],
+            [0.5, 3, [0.21, 0.3], [0.4, 0.6, 0.33], 0.25]
+        ],
+        label=[0, 1, 1, 0, 1, 0, 1] if problem_type == 'classification' else [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13],
+        group_id=[0, 0, 0, 1, 1, 1, 2],
+        embedding_features=[2, 3]
+    )
+    test_pool = Pool(
+        data=[
+            [0.3, 2, [0.0, 0.14], [0.9, 0.0, 0.12], 0.22],
+            [0.4, 1, [0.2, 0.8], [0.0, 0.21, 0.7], 0.04],
+            [0.2, 7, [0.3, 0.11], [0.0, 0.2, 0.4], 0.7],
+            [0.0, 3, [0.5, 0.3], [1.0, 0.93, 0.1], 0.8]
+        ],
+        label=[1, 0, 0, 1] if problem_type == 'classification' else [0.1, 0.0, 0.3, 0.2],
+        group_id=[0, 0, 1, 1],
+        embedding_features=[2, 3]
+    )
+
+    model = CatBoost(
+        {
+            'loss_function' : {
+                'classification': 'Logloss',
+                'regression': 'RMSE',
+                'ranking': 'YetiRank'
+            }[problem_type],
+            'iterations' : 5
+        }
+    )
+    model.fit(train_pool, eval_set=test_pool)
+
+    preds = model.predict(test_pool)
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)

@@ -8,6 +8,7 @@ table TLDA {
     ProjectionDimension: int;
     ComputeProbabilities: bool;
     ProjectionMatrix: [float];
+    IsClassification: bool = true;
 }
 
 table TKNN {
@@ -15,6 +16,7 @@ table TKNN {
     NumClasses: uint;
     KNum: uint;
     Size: uint;
+    IsClassification: bool = true;
 }
 
 union TAnyEmbeddingCalcer {

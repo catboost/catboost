@@ -10,7 +10,8 @@
 namespace NCB {
     TVector<TOnlineFeatureEstimatorPtr> CreateEmbeddingEstimators(
         TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
-        TClassificationTargetPtr target,
+        TConstArrayRef<float> target,
+        TClassificationTargetPtr classificationTarget,  // can be nullptr if regression
         TEmbeddingDataSetPtr learnEmbeddings,
         TArrayRef<TEmbeddingDataSetPtr> testEmbedding
     );
