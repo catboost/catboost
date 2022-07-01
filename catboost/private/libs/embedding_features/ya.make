@@ -8,8 +8,8 @@ SRCS(
     embedding_processing_collection.cpp
     flatbuffers/embedding_feature_calcers.fbs
     flatbuffers/embedding_processing_collection.fbs
-    knn.cpp
-    lda.cpp
+    GLOBAL knn.cpp
+    GLOBAL lda.cpp
 )
 
 PEERDIR(
