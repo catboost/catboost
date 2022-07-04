@@ -49,7 +49,7 @@ TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& tes
         const double i1 = baseline[i];
         const double i2 = test[i];
         const double diff = i1 - i2;
-        if (diff != 0) {
+        if (IsFinite(diff) && diff != 0) {
             diffs.push_back(diff);
         }
     }
