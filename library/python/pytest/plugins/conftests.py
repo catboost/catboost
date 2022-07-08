@@ -3,7 +3,10 @@ import importlib
 import sys
 import inspect
 
+import yatest.common as yc
+
 from pytest import hookimpl
+from yatest_lib.ya import Ya
 
 from .fixtures import metrics, links  # noqa
 
@@ -23,6 +26,7 @@ conftest_modules = []
 
 @hookimpl(trylast=True)
 def pytest_load_initial_conftests(early_config, parser, args):
+    yc.runtime._set_ya_config(ya=Ya())
     conftests = filter(lambda name: name.endswith(".conftest"), sys.extra_modules)
 
     def conftest_key(name):

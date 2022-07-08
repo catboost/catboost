@@ -25,11 +25,12 @@ PY_SRCS(
 )
 
 PEERDIR(
-    contrib/python/six
     contrib/python/packaging
+    contrib/python/six
     library/python/cores
     library/python/filelock
     library/python/fs
+    library/python/testing/yatest_lib
 )
 
 IF (NOT CATBOOST_OPENSOURCE)

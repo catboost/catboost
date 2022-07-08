@@ -30,6 +30,7 @@ import _pytest.skipping
 from _pytest.warning_types import PytestUnhandledCoroutineWarning
 
 from yatest_lib import test_splitter
+import yatest.common as yatest_common
 
 try:
     import resource
@@ -282,6 +283,8 @@ def pytest_configure(config):
     sys.meta_path.append(CustomImporter([config.option.build_root] + [os.path.join(config.option.build_root, dep) for dep in config.option.dep_roots]))
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
+
+    yatest_common.runtime._set_ya_config(config=config)
 
     # Dump python backtrace in case of any errors
     faulthandler.enable()
