@@ -1,0 +1,1 @@
+{% include [python-reference_catboost_get_test_eval](python-reference_catboost_get_test_eval.md) %}
