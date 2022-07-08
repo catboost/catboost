@@ -555,7 +555,7 @@ def ontest_srcs(unit, *args):
 
 def onpy_doctests(unit, *args):
     """
-    @usage PY_DOCTEST(Packages...)
+    @usage PY_DOCTESTS(Packages...)
 
     Add to the test doctests for specified Python packages
     The packages should be part of a test (listed as sources of the test or its PEERDIRs).
