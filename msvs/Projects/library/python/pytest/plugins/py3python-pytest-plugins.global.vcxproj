@@ -185,6 +185,18 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\py3\pypython-packaging-py3.vcxproj">
+      <Project>{C4A50FC4-F0B8-5A5E-4FE8-16445CBCC4CA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\py3contrib-python-packaging.vcxproj">
+      <Project>{9C36DA66-0241-1F5D-C957-5226B8FA24EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3\pypython-pyparsing-py3.vcxproj">
+      <Project>{1C007609-3C2A-B92E-5A3B-C2BB9766A4B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3contrib-python-pyparsing.vcxproj">
+      <Project>{B24E0792-4271-FE10-2755-0DB1369D0EE3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\py3contrib-python-six.vcxproj">
       <Project>{3C1C21ED-038A-3D60-F57B-2F1C7A00A9BE}</Project>
     </ProjectReference>
@@ -221,14 +233,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
       <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\py3library-python-cores.vcxproj">
+      <Project>{EC8BADAE-CE57-9C8C-B9A0-281347A63020}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\filelock\py3library-python-filelock.vcxproj">
       <Project>{A221FDDA-C712-133C-6554-086F086887BD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\find_root\py3library-python-find_root.vcxproj">
       <Project>{E8687BC7-ACDE-C461-B135-5E9287317F98}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\fs\py3library-python-fs.vcxproj">
+      <Project>{EB54582E-E83E-4B3F-3A5E-7A95D6EE9996}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\py3library-python-func.vcxproj">
       <Project>{6F49DB75-CCAC-D2C6-B7BB-7F592D723BA7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\reservoir_sampling\py3library-python-reservoir_sampling.vcxproj">
+      <Project>{44EA9012-74CE-DA41-5F3C-8592F33A8988}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime_py3\pylibrary-python-runtime_py3.vcxproj">
       <Project>{1CDAABEA-CAFE-2098-5B65-A951B25498E4}</Project>
@@ -250,6 +271,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\filter\py3python-testing-filter.vcxproj">
       <Project>{65D2C342-DAB1-146F-E79A-1FD7AAFFF3A7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_common\py3python-testing-yatest_common.vcxproj">
+      <Project>{B6216F1C-D1B0-6F62-1DEF-BD9E06BEBDDC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_lib\py3python-testing-yatest_lib.vcxproj">
+      <Project>{E6C9003E-D9F6-7079-5E65-41CFA0310C70}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\windows\py3library-python-windows.vcxproj">
       <Project>{D61B5AB7-0794-943C-D6E6-EC7ABA106E38}</Project>
