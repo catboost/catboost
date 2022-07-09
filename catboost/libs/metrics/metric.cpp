@@ -2651,6 +2651,9 @@ TMetricHolder TDcgMetric::EvalSingleThread(
 
     TMetricHolder error(2);
     TVector<NMetrics::TSample> samples;
+    TVector<double> decay;
+    decay.yresize(10 * 1000);
+    FillDcgDecay(DenominatorType, Nothing(), decay);
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         const auto queryBegin = queriesInfo[queryIndex].Begin;
         const auto queryEnd = queriesInfo[queryIndex].End;
@@ -2660,10 +2663,14 @@ TMetricHolder TDcgMetric::EvalSingleThread(
             MakeArrayRef(target.data() + queryBegin, querySize),
             MakeArrayRef(approxesRef.data() + queryBegin, querySize),
             &samples);
+        if (decay.size() < querySize) {
+            decay.resize(querySize);
+            FillDcgDecay(DenominatorType, Nothing(), decay);
+        }
         if (Normalized) {
-            error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType, TopSize, DenominatorType);
+            error.Stats[0] += queryWeight * CalcNdcg(samples, decay, MetricType, TopSize);
         } else {
-            error.Stats[0] += queryWeight * CalcDcg(samples, MetricType, Nothing(), TopSize, DenominatorType);
+            error.Stats[0] += queryWeight * CalcDcg(samples, decay, MetricType, TopSize);
         }
         error.Stats[1] += queryWeight;
     }
@@ -4761,6 +4768,9 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
     TVector<double> filteredApprox;
     TVector<double> filteredTarget;
     TVector<NMetrics::TSample> samples;
+    TVector<double> decay;
+    decay.yresize(10 * 1000);
+    FillDcgDecay(DenominatorType, Nothing(), decay);
 
     for(int queryIndex = queryBegin; queryIndex < queryEnd; ++queryIndex) {
         const int begin = queriesInfo[queryIndex].Begin;
@@ -4779,18 +4789,22 @@ TMetricHolder TFilteredDcgMetric::EvalSingleThread(
         if (filteredApprox.empty()) {
             continue;
         }
+        if (begin + decay.size() < (size_t)end) {
+            decay.resize(end - begin);
+            FillDcgDecay(DenominatorType, Nothing(), decay);
+        }
         switch (SortType) {
             case ENdcgSortType::None:
-                metric.Stats[0] += CalcDcgSorted(filteredTarget, MetricType, Nothing(), DenominatorType);
+                metric.Stats[0] += CalcDcgSorted(filteredTarget, decay, MetricType);
                 break;
             case ENdcgSortType::ByPrediction: {
                 NMetrics::TSample::FromVectors(filteredTarget, filteredApprox, &samples);
-                metric.Stats[0] += CalcDcg(samples, MetricType, Nothing(), Max<ui32>(), DenominatorType);
+                metric.Stats[0] += CalcDcg(samples, decay, MetricType, Max<ui32>());
                 break;
             }
             case ENdcgSortType::ByTarget: {
                 NMetrics::TSample::FromVectors(filteredTarget, filteredApprox, &samples);
-                metric.Stats[0] += CalcIDcg(samples, MetricType, Nothing(), Max<ui32>(), DenominatorType);
+                metric.Stats[0] += CalcIDcg(samples, decay, MetricType, Max<ui32>());
                 break;
             }
         }

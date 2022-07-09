@@ -396,7 +396,9 @@ static float CalculateNdcg(
             docs[j].Prediction = approxes[offset + j];
         }
 
-        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, type, topSize);
+        TVector<double> decay(sizes[i]);
+        FillDcgDecay(ENdcgDenominatorType::LogPosition, Nothing(), decay);
+        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, decay, type, topSize);
     }
 
     return FastAccumulate(perQueryMetrics);
