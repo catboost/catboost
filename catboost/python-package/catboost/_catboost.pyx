@@ -2070,17 +2070,17 @@ cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLa
 
 cdef TVector[ui32] _get_main_data_feature_idx_to_dst_feature_idx(const TFeaturesLayout* featuresLayout, bool_t hasSeparateEmbeddingFeaturesData):
     cdef TVector[ui32] result
-    
+
     if hasSeparateEmbeddingFeaturesData:
         result.reserve(featuresLayout.GetExternalFeatureCount() - featuresLayout.GetEmbeddingFeatureCount())
         for idx in range(featuresLayout.GetExternalFeatureCount()):
             if not (featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Embedding):
-                result.push_back(idx)                 
+                result.push_back(idx)
     else:
         result.reserve(featuresLayout.GetExternalFeatureCount())
         for idx in range(featuresLayout.GetExternalFeatureCount()):
-            result.push_back(idx)  
-        
+            result.push_back(idx)
+
     return result
 
 
@@ -2179,7 +2179,7 @@ def _set_features_order_data_ndarray(
     string_factor_data.reserve(doc_count)
 
     for src_flat_feature_idx in range(src_feature_count):
-        flat_feature_idx = src_feature_idx_to_dst_feature_idx[src_flat_feature_idx] 
+        flat_feature_idx = src_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
         if is_cat_feature_mask[flat_feature_idx] or is_text_feature_mask[flat_feature_idx]:
             string_factor_data.clear()
             for doc_idx in range(doc_count):
@@ -2209,11 +2209,11 @@ cdef object _set_features_order_embedding_features_data(
     feature_names,
     const TFeaturesLayout* features_layout,
     IRawFeaturesOrderDataVisitor* builder_visitor
-):    
+):
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef ITypedSequencePtr[TEmbeddingData] embedding_factor_data
-    
+
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
     if src_is_dict and (feature_names is None):
         feature_names = [i for i in range(features_layout[0].GetExternalFeatureCount())]
@@ -2227,8 +2227,8 @@ cdef object _set_features_order_embedding_features_data(
         )
         builder_visitor[0].AddEmbeddingFeature(flat_feature_idx, embedding_factor_data)
         embedding_feature_idx += 1
-        
-    return new_data_holders          
+
+    return new_data_holders
 
 # returns new data holders array
 cdef object _set_objects_order_embedding_features_data(
@@ -2236,20 +2236,20 @@ cdef object _set_objects_order_embedding_features_data(
     feature_names,
     const TFeaturesLayout* features_layout,
     IRawObjectsOrderDataVisitor* builder_visitor
-):  
+):
     cdef ui32 object_count = 0
     cdef ui32 object_idx = 0
     cdef ui32 flat_feature_idx = 0
     cdef ui32 embedding_feature_idx = 0
     cdef TEmbeddingData object_embedding_data
-    
+
     cdef bool_t src_is_dict = isinstance(embedding_features_data, dict)
-    
+
     if src_is_dict and (feature_names is None):
         feature_names = [i for i in range(features_layout[0].GetExternalFeatureCount())]
 
     new_data_holders = []
-    
+
     if len(embedding_features_data) > 0:
         object_count = len(next(iter(embedding_features_data.values())) if src_is_dict else embedding_features_data[0])
         if object_count > 0:
@@ -2266,8 +2266,8 @@ cdef object _set_objects_order_embedding_features_data(
                     )
                     builder_visitor[0].AddEmbeddingFeature(object_idx, flat_feature_idx, object_embedding_data)
                 embedding_feature_idx += 1
-            
-    return new_data_holders 
+
+    return new_data_holders
 
 
 cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
@@ -2966,11 +2966,11 @@ def _set_data_from_scipy_csr_sparse(
         return
 
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(
-        py_builder_visitor.features_layout, 
+        py_builder_visitor.features_layout,
         has_separate_embedding_features_data
-    ) 
+    )
     cdef TConstArrayRef[ui32] main_data_feature_idx_to_dst_feature_idx_ref = <TConstArrayRef[ui32]>main_data_feature_idx_to_dst_feature_idx
-    
+
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(py_builder_visitor.features_layout, EFeatureType_Categorical)
     cdef TConstArrayRef[bool_t] is_cat_feature_ref = <TConstArrayRef[bool_t]>is_cat_feature_mask
 
@@ -3157,7 +3157,7 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
     cdef IRawObjectsOrderDataVisitor * builder_visitor = py_builder_visitor.builder_visitor
     _set_cat_features_default_values_for_scipy_sparse(features_layout, builder_visitor)
 
-    cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)    
+    cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
     cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
@@ -3421,14 +3421,14 @@ cdef _set_data(data, embedding_features_data, feature_names, const TFeaturesLayo
     else:
         new_data_holders = _set_data_from_generic_matrix(
             data,
-            embedding_features_data is not None, 
+            embedding_features_data is not None,
             features_layout,
             py_builder_visitor.builder_visitor
         )
-        
+
     if embedding_features_data is not None:
         new_data_holders += _set_objects_order_embedding_features_data(embedding_features_data, feature_names, features_layout, py_builder_visitor.builder_visitor)
-        
+
     return new_data_holders
 
 
@@ -3826,7 +3826,7 @@ cdef class _PoolBase:
                 features_layout,
                 embedding_features_data is not None
             )
-            
+
             cat_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
             text_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
             embedding_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
@@ -3846,7 +3846,7 @@ cdef class _PoolBase:
             raise CatBoostError(
                 '[Internal error] wrong data type for _init_features_order_layout_pool: ' + type(data)
             )
-        
+
         if embedding_features_data is not None:
             embedding_data_holders = _set_features_order_embedding_features_data(embedding_features_data, feature_names, features_layout, builder_visitor)
             if new_data_holders is None:
@@ -6002,6 +6002,10 @@ cpdef is_maximizable_metric(metric_name):
 
 cpdef is_user_defined_metric(metric_name):
     return IsUserDefined(to_arcadia_string(metric_name))
+
+
+cpdef has_gpu_implementation_metric(metric_name):
+    return HasGpuImplementation(to_arcadia_string(metric_name))
 
 
 cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):

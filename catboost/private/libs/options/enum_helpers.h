@@ -70,6 +70,7 @@ bool IsUserDefined(ELossFunction lossFunction);
 bool IsUserDefined(TStringBuf metricName);
 
 bool HasGpuImplementation(ELossFunction loss);
+bool HasGpuImplementation(TStringBuf metricName);
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
 
