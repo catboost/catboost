@@ -6578,6 +6578,7 @@
                 "sandbox_id": [
                     1369322208
                 ],
+                "platform_replacements": {},
                 "match": "yexport"
             },
             "executable": {
@@ -6698,6 +6699,7 @@
                 "sandbox_id": [
                     1313179369
                 ],
+                "platform_replacements": {},
                 "match": "delve"
             },
             "executable": {
@@ -7617,6 +7619,7 @@
                     1351234419,
                     1351262215
                 ],
+                "platform_replacements": {},
                 "match": "GDB"
             },
             "executable": {
@@ -8804,7 +8807,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 1207601598,
+                "sandbox_id": 1372136456,
                 "match": "wall-e"
             },
             "executable": {
