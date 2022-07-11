@@ -640,11 +640,11 @@ static void LoadOptions(
     catBoostOptions->Load(jsonParams);
     outputFileOptions->Load(outputJsonParams);
 
-    if (outputFileOptions->GetMetricPeriod() > 1) {
+    if (outputFileOptions->IsMetricPeriodSet() && outputFileOptions->GetMetricPeriod() > 1) {
         CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
             "feature evaluation needs metric values on each iteration" << Endl;
-        outputFileOptions->SetMetricPeriod(1);
     }
+    outputFileOptions->SetMetricPeriod(1);
 }
 
 
