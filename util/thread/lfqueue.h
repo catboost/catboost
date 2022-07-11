@@ -22,7 +22,7 @@ struct TDefaultLFCounter {
 // @brief lockfree queue
 // @tparam T - the queue element, should be movable
 // @tparam TCounter, a observer class to count number of items in queue
-//                   be carifull, IncCount and DecCount can be called on a moved object and
+//                   be careful, IncCount and DecCount can be called on a moved object and
 //                   it is TCounter class responsibility to check validity of passed object
 template <class T, class TCounter>
 class TLockFreeQueue: public TNonCopyable {
