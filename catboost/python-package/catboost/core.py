@@ -4829,6 +4829,9 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : dict,
         Text processging description.
+        
+    eval_fraction : float, [default=None]
+        Fraction of the train dataset to be used as the evaluation dataset.
     """
 
     _estimator_type = 'classifier'
@@ -4950,7 +4953,8 @@ class CatBoostClassifier(CatBoost):
         feature_calcers=None,
         text_processing=None,
         embedding_features=None,
-        callback=None
+        callback=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5543,7 +5547,8 @@ class CatBoostRegressor(CatBoost):
         langevin=None,
         diffusion_temperature=None,
         posterior_sampling=None,
-        boost_from_average=None
+        boost_from_average=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5924,7 +5929,8 @@ class CatBoostRanker(CatBoost):
         dictionaries=None,
         feature_calcers=None,
         text_processing=None,
-        embedding_features=None
+        embedding_features=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
