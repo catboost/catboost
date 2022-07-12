@@ -132,6 +132,7 @@
   - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
   - experimental/any:                   DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_ANY
   - experimental/chrono:                DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_CHRONO
+  - experimental/filesystem:            DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_FILESYSTEM
   - experimental/numeric:               DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_NUMERIC
   - experimental/optional:              DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_OPTIONAL
   - experimental/ratio:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_RATIO
