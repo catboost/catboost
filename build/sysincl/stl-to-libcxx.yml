@@ -18,7 +18,6 @@
   - locale.h:     contrib/libs/cxxsupp/libcxx/include/locale.h
   - math.h:       contrib/libs/cxxsupp/libcxx/include/math.h
   - setjmp.h:     contrib/libs/cxxsupp/libcxx/include/setjmp.h
-  - stdatomic.h:  contrib/libs/cxxsupp/libcxx/include/stdatomic.h
   - stdbool.h:    contrib/libs/cxxsupp/libcxx/include/stdbool.h
   - stddef.h:     contrib/libs/cxxsupp/libcxx/include/stddef.h
   - stdint.h:     contrib/libs/cxxsupp/libcxx/include/stdint.h
@@ -28,6 +27,10 @@
   - tgmath.h:     contrib/libs/cxxsupp/libcxx/include/tgmath.h
   - wchar.h:      contrib/libs/cxxsupp/libcxx/include/wchar.h
   - wctype.h:     contrib/libs/cxxsupp/libcxx/include/wctype.h
+
+- source_filter: "^(?!(contrib/libs/libunistring|contrib/libs/musl|contrib/tools/yasm|contrib/libs/zlib|contrib/libs/libev|contrib/restricted/patched/ffmpeg_minimal)).*|^contrib/libs/musl/tests"
+  includes:
+  - stdatomic.h:  contrib/libs/cxxsupp/libcxx/include/stdatomic.h
 
 - includes:
   - cxxabi.h:
