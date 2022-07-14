@@ -83,7 +83,7 @@
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_bool(void *start, npy_intp num, void *NOT_USED)
 {
     npy_bool vp;
@@ -158,7 +158,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_bool(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_bool *v = vv;
@@ -237,7 +237,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_byte(void *start, npy_intp num, void *NOT_USED)
 {
     npy_byte vp;
@@ -312,7 +312,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_byte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_byte *v = vv;
@@ -391,7 +391,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_ubyte(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ubyte vp;
@@ -466,7 +466,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_ubyte(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_ubyte *v = vv;
@@ -545,7 +545,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_short(void *start, npy_intp num, void *NOT_USED)
 {
     npy_short vp;
@@ -620,7 +620,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_short(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_short *v = vv;
@@ -699,7 +699,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_ushort(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ushort vp;
@@ -774,7 +774,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_ushort(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_ushort *v = vv;
@@ -853,7 +853,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_int(void *start, npy_intp num, void *NOT_USED)
 {
     npy_int vp;
@@ -928,7 +928,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_int(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_int *v = vv;
@@ -1007,7 +1007,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_uint(void *start, npy_intp num, void *NOT_USED)
 {
     npy_uint vp;
@@ -1082,7 +1082,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_uint(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_uint *v = vv;
@@ -1161,7 +1161,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_long(void *start, npy_intp num, void *NOT_USED)
 {
     npy_long vp;
@@ -1236,7 +1236,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_long(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_long *v = vv;
@@ -1315,7 +1315,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_ulong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ulong vp;
@@ -1390,7 +1390,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_ulong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_ulong *v = vv;
@@ -1469,7 +1469,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_longlong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_longlong vp;
@@ -1544,7 +1544,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_longlong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_longlong *v = vv;
@@ -1623,7 +1623,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_ulonglong(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ulonglong vp;
@@ -1698,7 +1698,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_ulonglong(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_ulonglong *v = vv;
@@ -1777,7 +1777,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_half(void *start, npy_intp num, void *NOT_USED)
 {
     npy_ushort vp;
@@ -1852,7 +1852,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_half(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_ushort *v = vv;
@@ -1931,7 +1931,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_float(void *start, npy_intp num, void *NOT_USED)
 {
     npy_float vp;
@@ -2006,7 +2006,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_float(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_float *v = vv;
@@ -2085,7 +2085,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_double(void *start, npy_intp num, void *NOT_USED)
 {
     npy_double vp;
@@ -2160,7 +2160,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_double(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_double *v = vv;
@@ -2239,7 +2239,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_longdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_longdouble vp;
@@ -2314,7 +2314,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_longdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_longdouble *v = vv;
@@ -2393,7 +2393,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_cfloat(void *start, npy_intp num, void *NOT_USED)
 {
     npy_cfloat vp;
@@ -2468,7 +2468,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_cfloat(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_cfloat *v = vv;
@@ -2547,7 +2547,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_cdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_cdouble vp;
@@ -2622,7 +2622,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_cdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_cdouble *v = vv;
@@ -2701,7 +2701,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_clongdouble(void *start, npy_intp num, void *NOT_USED)
 {
     npy_clongdouble vp;
@@ -2776,7 +2776,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_clongdouble(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_clongdouble *v = vv;
@@ -2855,7 +2855,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_datetime(void *start, npy_intp num, void *NOT_USED)
 {
     npy_datetime vp;
@@ -2930,7 +2930,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_datetime(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_datetime *v = vv;
@@ -3009,7 +3009,7 @@ stack_pop:
 
 #line 87
 
-int
+NPY_NO_EXPORT int
 quicksort_timedelta(void *start, npy_intp num, void *NOT_USED)
 {
     npy_timedelta vp;
@@ -3084,7 +3084,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_timedelta(void *vv, npy_intp* tosort, npy_intp num, void *NOT_USED)
 {
     npy_timedelta *v = vv;
@@ -3172,7 +3172,7 @@ stack_pop:
 
 #line 255
 
-int
+NPY_NO_EXPORT int
 quicksort_string(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -3260,7 +3260,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_string(void *vv, npy_intp* tosort, npy_intp num, void *varr)
 {
     npy_char *v = vv;
@@ -3346,7 +3346,7 @@ stack_pop:
 
 #line 255
 
-int
+NPY_NO_EXPORT int
 quicksort_unicode(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -3434,7 +3434,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 aquicksort_unicode(void *vv, npy_intp* tosort, npy_intp num, void *varr)
 {
     npy_ucs4 *v = vv;
@@ -3527,7 +3527,7 @@ stack_pop:
  */
 
 
-int
+NPY_NO_EXPORT int
 npy_quicksort(void *start, npy_intp num, void *varr)
 {
     PyArrayObject *arr = varr;
@@ -3632,7 +3632,7 @@ stack_pop:
 }
 
 
-int
+NPY_NO_EXPORT int
 npy_aquicksort(void *vv, npy_intp* tosort, npy_intp num, void *varr)
 {
     char *v = vv;

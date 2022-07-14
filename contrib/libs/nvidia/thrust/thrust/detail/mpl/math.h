@@ -22,8 +22,9 @@
 
 #pragma once
 
-namespace thrust
-{
+#include <thrust/detail/config.h>
+
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -170,5 +171,5 @@ template<typename result_type, result_type x>
 
 } // end namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

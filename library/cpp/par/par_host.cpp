@@ -1,7 +1,6 @@
 #include "par_host.h"
 #include "par_exec.h"
 #include "par_mr.h"
-#include <library/cpp/binsaver/mem_io.h>
 #include <util/string/split.h>
 #include <util/network/init.h>
 #include <util/stream/file.h>

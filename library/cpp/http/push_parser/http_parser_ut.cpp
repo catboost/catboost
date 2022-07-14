@@ -21,6 +21,17 @@ namespace {
             << data;
         return msg.Str();
     }
+
+    TString MakeEncodedResponse(const TString& encoding, const TString& data) {
+        TStringStream msg;
+        msg << "HTTP/1.1 200\r\n"
+               "Content-Encoding: "
+            << encoding << " \r\n"
+                           "Content-Length: "
+            << data.size() << "\r\n\r\n"
+            << data;
+        return msg.Str();
+    }
 }
 
 Y_UNIT_TEST_SUITE(THttpParser) {
@@ -276,6 +287,38 @@ Y_UNIT_TEST_SUITE(THttpParser) {
             UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
             UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testBody);
         }
+
+        {
+            // test gzip response
+            THttpParser p(THttpParser::Response);
+            TString gzipTestLine(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00"sv);
+            TString msg = MakeEncodedResponse("gzip", gzipTestLine);
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
+            // test gzip response with trailing garbage
+            THttpParser p(THttpParser::Response);
+            p.SetGzipAllowMultipleStreams(false);
+            TString gzipTestLine(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00garbage"sv);
+            TString msg = MakeEncodedResponse("gzip", gzipTestLine);
+            UNIT_ASSERT(p.Parse(msg.data(), msg.size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testLine);
+        }
+        {
+            // test gzip response with trailing garbage exception
+            THttpParser p(THttpParser::Response);
+            TString gzipTestLine(
+                "\x1f\x8b\x08\x08\x5e\xdd\xa8\x56\x00\x03\x74\x6c\x00\x2b\x49\x2d"
+                "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09\x00\x00\x00garbage"sv);
+            TString msg = MakeEncodedResponse("gzip", gzipTestLine);
+            UNIT_ASSERT_EXCEPTION(p.Parse(msg.data(), msg.size()), yexception);
+        }
+
     }
 
     Y_UNIT_TEST(TParsingMultilineHeaders) {

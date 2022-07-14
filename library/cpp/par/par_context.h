@@ -10,7 +10,7 @@
 #include <library/cpp/chromium_trace/interface.h>
 #include <library/cpp/binsaver/bin_saver.h>
 
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/thread.h>
 
 namespace NPar {

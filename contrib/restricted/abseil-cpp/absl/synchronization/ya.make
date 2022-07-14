@@ -6,6 +6,8 @@ LIBRARY()
 
 LICENSE(Apache-2.0)
 
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
     contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc
@@ -19,7 +21,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/demangle
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
     contrib/restricted/abseil-cpp/absl/synchronization/internal
     contrib/restricted/abseil-cpp/absl/time
     contrib/restricted/abseil-cpp/absl/time/civil_time

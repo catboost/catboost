@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  *  limitations under the License.
  */
 
-/*! \file async/copy.h
- *  \brief Functions for asynchronously copying a range.
+/*! \file
+ *  \brief Algorithms for asynchronously copying a range.
  */
 
 #pragma once
@@ -32,11 +32,13 @@
 
 #include <thrust/event.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace async
 {
+
+/*! \cond
+ */
 
 namespace unimplemented
 {
@@ -141,9 +143,12 @@ struct copy_fn final
 
 THRUST_INLINE_CONSTANT copy_detail::copy_fn copy{};
 
+/*! \endcond
+ */
+
 } // namespace async
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif
 

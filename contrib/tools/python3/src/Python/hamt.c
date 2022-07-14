@@ -1,5 +1,6 @@
 #include "Python.h"
 
+#include "pycore_bitutils.h"      // _Py_popcount32
 #include "pycore_hamt.h"
 #include "pycore_object.h"        // _PyObject_GC_TRACK()
 #include <stddef.h>               // offsetof()
@@ -407,14 +408,22 @@ hamt_hash(PyObject *o)
         return -1;
     }
 
-    /* While it's suboptimal to reduce Python's 64 bit hash to
+    /* While it's somewhat suboptimal to reduce Python's 64 bit hash to
        32 bits via XOR, it seems that the resulting hash function
        is good enough (this is also how Long type is hashed in Java.)
        Storing 10, 100, 1000 Python strings results in a relatively
        shallow and uniform tree structure.
 
-       Please don't change this hashing algorithm, as there are many
-       tests that test some exact tree shape to cover all code paths.
+       Also it's worth noting that it would be possible to adapt the tree
+       structure to 64 bit hashes, but that would increase memory pressure
+       and provide little to no performance benefits for collections with
+       fewer than billions of key/value pairs.
+
+       Important: do not change this hash reducing function. There are many
+       tests that need an exact tree shape to cover all code paths and
+       we do that by specifying concrete values for test data's `__hash__`.
+       If this function is changed most of the regression tests would
+       become useless.
     */
     int32_t xored = (int32_t)(hash & 0xffffffffl) ^ (int32_t)(hash >> 32);
     return xored == -1 ? -2 : xored;
@@ -434,29 +443,9 @@ hamt_bitpos(int32_t hash, uint32_t shift)
 }
 
 static inline uint32_t
-hamt_bitcount(uint32_t i)
-{
-    /* We could use native popcount instruction but that would
-       require to either add configure flags to enable SSE4.2
-       support or to detect it dynamically.  Otherwise, we have
-       a risk of CPython not working properly on older hardware.
-
-       In practice, there's no observable difference in
-       performance between using a popcount instruction or the
-       following fallback code.
-
-       The algorithm is copied from:
-       https://graphics.stanford.edu/~seander/bithacks.html
-    */
-    i = i - ((i >> 1) & 0x55555555);
-    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
-    return (((i + (i >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-}
-
-static inline uint32_t
 hamt_bitindex(uint32_t bitmap, uint32_t bit)
 {
-    return hamt_bitcount(bitmap & (bit - 1));
+    return (uint32_t)_Py_popcount32(bitmap & (bit - 1));
 }
 
 
@@ -820,7 +809,7 @@ hamt_node_bitmap_assoc(PyHamtNode_Bitmap *self,
     else {
         /* There was no key before with the same (shift,hash). */
 
-        uint32_t n = hamt_bitcount(self->b_bitmap);
+        uint32_t n = (uint32_t)_Py_popcount32(self->b_bitmap);
 
         if (n >= 16) {
             /* When we have a situation where we want to store more

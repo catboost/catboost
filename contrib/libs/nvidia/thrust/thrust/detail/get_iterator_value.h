@@ -21,7 +21,8 @@
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/system/detail/generic/memory.h> // for get_value()
 
-namespace thrust {
+THRUST_NAMESPACE_BEGIN
+
 namespace detail {
 
 // get_iterator_value specialization on iterators
@@ -50,4 +51,5 @@ get_iterator_value(thrust::execution_policy<DerivedPolicy> &exec, Pointer* ptr)
 } // get_iterator_value(exec,Pointer*)
 
 } // namespace detail
-} // namespace thrust
+
+THRUST_NAMESPACE_END

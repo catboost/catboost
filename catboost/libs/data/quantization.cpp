@@ -242,7 +242,7 @@ namespace NCB {
     ) {
         const auto& binarizationOptions = quantizedFeaturesInfo.GetFloatFeatureBinarization(srcFeature.GetId());
 
-        Y_VERIFY(binarizationOptions.BorderCount > 0);
+        CB_ENSURE(binarizationOptions.BorderCount > 0, "Border count should be non-negative");
 
         const ui32 sampleCount = subsetIndexingForBuildBorders.ComposedSubset.Size();
 
@@ -1401,7 +1401,7 @@ namespace NCB {
                         );
                         break;
                     default:
-                        Y_FAIL(); // has already been checked above
+                        CB_ENSURE(false, "Unexpected feature type"); // has already been checked above
                 }
             }
         }
@@ -1519,7 +1519,7 @@ namespace NCB {
                         );
                         break;
                     default:
-                        Y_FAIL(); // has already been checked above
+                        CB_ENSURE(false, "Unexpected feature type"); // has already been checked above
                 }
             }
         }
@@ -1618,7 +1618,7 @@ namespace NCB {
                         );
                         break;
                     default:
-                        Y_FAIL(); // has already been checked above
+                        CB_ENSURE(false, "Unexpected feature type"); // has already been checked above
                 }
             }
         }
@@ -2587,7 +2587,7 @@ namespace NCB {
 
         TRawObjectsDataProviderPtr rawObjectsDataProvider(
             dynamic_cast<TRawObjectsDataProvider*>(srcData->ObjectsData.Get()));
-        Y_VERIFY(rawObjectsDataProvider);
+        CB_ENSURE(rawObjectsDataProvider, "Unexpected type of data provider");
 
         if (srcData->RefCount() <= 1) {
             // can clean up

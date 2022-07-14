@@ -22,8 +22,7 @@
 #include <thrust/find.h>
 #include <thrust/logical.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -59,5 +58,5 @@ bool none_of(thrust::execution_policy<ExecutionPolicy> &exec, InputIterator firs
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

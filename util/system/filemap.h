@@ -64,7 +64,7 @@ struct TMemoryMapCommon {
      * Name that will be printed in exceptions if not specified.
      * Overridden by name obtained from `TFile` if it's not empty.
      */
-    static TString UnknownFileName();
+    static const TString& UnknownFileName();
 };
 Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode)
 
@@ -75,8 +75,8 @@ public:
     TMemoryMap(const TString& name, i64 length, EOpenMode om);
     TMemoryMap(FILE* f, TString dbgName = UnknownFileName());
     TMemoryMap(FILE* f, EOpenMode om, TString dbgName = UnknownFileName());
-    TMemoryMap(const TFile& file, TString dbgName = UnknownFileName());
-    TMemoryMap(const TFile& file, EOpenMode om, TString dbgName = UnknownFileName());
+    TMemoryMap(const TFile& file, const TString& dbgName = UnknownFileName());
+    TMemoryMap(const TFile& file, EOpenMode om, const TString& dbgName = UnknownFileName());
 
     ~TMemoryMap();
 
@@ -113,7 +113,7 @@ public:
     TFileMap(const TString& name, EOpenMode om);
     TFileMap(const TString& name, i64 length, EOpenMode om);
     TFileMap(FILE* f, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName());
-    TFileMap(const TFile& file, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName());
+    TFileMap(const TFile& file, EOpenMode om = oRdOnly, const TString& dbgName = UnknownFileName());
     TFileMap(const TFileMap& fm) noexcept;
 
     ~TFileMap();
@@ -293,10 +293,10 @@ public:
     ~TMappedAllocation() {
         Dealloc();
     }
-    TMappedAllocation(TMappedAllocation&& other) {
+    TMappedAllocation(TMappedAllocation&& other) noexcept {
         this->swap(other);
     }
-    TMappedAllocation& operator=(TMappedAllocation&& other) {
+    TMappedAllocation& operator=(TMappedAllocation&& other) noexcept {
         this->swap(other);
         return *this;
     }
@@ -317,7 +317,7 @@ public:
     size_t MappedSize() const {
         return Size_;
     }
-    void swap(TMappedAllocation& with);
+    void swap(TMappedAllocation& with) noexcept;
 
 private:
     void* Ptr_ = nullptr;

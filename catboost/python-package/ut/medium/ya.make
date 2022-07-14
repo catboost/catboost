@@ -19,9 +19,7 @@ PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
     contrib/python/scikit-learn
-    contrib/python/scipy/scipy/integrate
-    contrib/python/scipy/scipy/sparse
-    contrib/python/scipy/scipy/special
+    contrib/python/scipy
     contrib/python/six
     library/python/pytest
     catboost/python-package/lib
@@ -42,6 +40,7 @@ DATA(
 
 DEPENDS(
     catboost/tools/limited_precision_dsv_diff
+    catboost/tools/limited_precision_json_diff
     catboost/tools/limited_precision_numpy_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost/no_cuda
@@ -49,7 +48,7 @@ DEPENDS(
     library/python/hnsw/hnsw
 )
 
-IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+IF (OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
 ENDIF()
 

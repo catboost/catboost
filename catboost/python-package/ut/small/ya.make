@@ -7,9 +7,7 @@ SIZE(SMALL)
 PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
-    contrib/python/scipy/scipy/integrate
-    contrib/python/scipy/scipy/sparse
-    contrib/python/scipy/scipy/special
+    contrib/python/scipy
     contrib/python/six
     library/python/pytest
     catboost/python-package/lib
@@ -18,6 +16,7 @@ PEERDIR(
 
 TEST_SRCS(
     test_pyx_funcs.py
+    test_utils.py
 )
 
 DATA(
@@ -32,7 +31,7 @@ DEPENDS(
     catboost/python-package/ut/medium/python_binary
 )
 
-IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+IF (OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
 ENDIF()
 

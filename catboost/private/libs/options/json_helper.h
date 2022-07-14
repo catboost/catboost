@@ -284,6 +284,11 @@ namespace NCatboostOptions {
             if (src.IsMap()) {
                 const auto& data = src.GetMapSafe();
                 TJsonFieldHelper<TVector<ui32>>::Read(data.at("features"), &dst->Features);
+                if (data.find("cost") == data.end()) {
+                    dst->Cost = 1.0;
+                } else {
+                    TJsonFieldHelper<float>::Read(data.at("cost"), &dst->Cost);
+                }
             } else {
                 ythrow TCatBoostException() << "Error: wrong json type";
             }

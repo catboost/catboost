@@ -31,7 +31,7 @@
 
 SKIP     CC-BY-4.0            0e41e61e59ce22134d560f0888c92f3a
 BELONGS ya.make
-FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in files: CHANGES.txt at line 517
+FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in files: CHANGES.txt at line 591
     License text:
           * Improves performance of json_stream_parser.cc by factor 1000 (#7230)
     Scancode info:
@@ -40,10 +40,11 @@ FILE_IGNORE src/google/protobuf/util/internal/json_stream_parser.cc found in fil
         Match type      : REFERENCE
         Links           : http://creativecommons.org/licenses/by/4.0/, http://creativecommons.org/licenses/by/4.0/legalcode, https://spdx.org/licenses/CC-BY-4.0
     Files with this license:
-        CHANGES.txt [517:517]
+        CHANGES.txt [591:591]
 
-KEEP     BSD-3-Clause         37699d6edc78bcd9e06fd0dbc68720e1
+SKIP     BSD-3-Clause         37699d6edc78bcd9e06fd0dbc68720e1
 BELONGS ya.make
+    # not a license
     License text:
           * License changed from Apache 2.0 to 3-Clause BSD.
     Scancode info:
@@ -52,7 +53,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        CHANGES.txt [2776:2776]
+        CHANGES.txt [2850:2850]
 
 SKIP     Apache-2.0           3f6cb5f9815c6f54e808b56a203ac513
 BELONGS ya.make
@@ -65,10 +66,10 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://www.apache.org/licenses/, http://www.apache.org/licenses/LICENSE-2.0, https://spdx.org/licenses/Apache-2.0
     Files with this license:
-        CHANGES.txt [2776:2776]
+        CHANGES.txt [2850:2850]
 
 KEEP     BSD-3-Clause         6aa235708ac9f5dd8e5c6ac415fc5837
-BELONGS python/ya.make ya.make
+BELONGS ya.make
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: BSD-3-Clause
@@ -76,35 +77,6 @@ BELONGS python/ya.make ya.make
         Match type      : TEXT
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        python/google/protobuf/internal/api_implementation.cc [5:29]
-        python/google/protobuf/proto_api.h [5:29]
-        python/google/protobuf/pyext/descriptor.cc [5:29]
-        python/google/protobuf/pyext/descriptor.h [5:29]
-        python/google/protobuf/pyext/descriptor_containers.cc [5:29]
-        python/google/protobuf/pyext/descriptor_containers.h [5:29]
-        python/google/protobuf/pyext/descriptor_database.cc [5:29]
-        python/google/protobuf/pyext/descriptor_database.h [5:29]
-        python/google/protobuf/pyext/descriptor_pool.cc [5:29]
-        python/google/protobuf/pyext/descriptor_pool.h [5:29]
-        python/google/protobuf/pyext/extension_dict.cc [5:29]
-        python/google/protobuf/pyext/extension_dict.h [5:29]
-        python/google/protobuf/pyext/field.cc [5:29]
-        python/google/protobuf/pyext/field.h [5:29]
-        python/google/protobuf/pyext/map_container.cc [5:29]
-        python/google/protobuf/pyext/map_container.h [5:29]
-        python/google/protobuf/pyext/message.cc [5:29]
-        python/google/protobuf/pyext/message.h [5:29]
-        python/google/protobuf/pyext/message_factory.cc [5:29]
-        python/google/protobuf/pyext/message_factory.h [5:29]
-        python/google/protobuf/pyext/message_module.cc [5:29]
-        python/google/protobuf/pyext/repeated_composite_container.cc [5:29]
-        python/google/protobuf/pyext/repeated_composite_container.h [5:29]
-        python/google/protobuf/pyext/repeated_scalar_container.cc [5:29]
-        python/google/protobuf/pyext/repeated_scalar_container.h [5:29]
-        python/google/protobuf/pyext/safe_numerics.h [5:29]
-        python/google/protobuf/pyext/scoped_pyobject_ptr.h [5:29]
-        python/google/protobuf/pyext/unknown_fields.cc [5:29]
-        python/google/protobuf/pyext/unknown_fields.h [5:29]
         src/google/protobuf/any.cc [5:29]
         src/google/protobuf/any.h [5:29]
         src/google/protobuf/any.proto [5:29]
@@ -128,12 +100,12 @@ BELONGS python/ya.make ya.make
         src/google/protobuf/extension_set.h [5:29]
         src/google/protobuf/extension_set_heavy.cc [5:29]
         src/google/protobuf/extension_set_inl.h [5:29]
-        src/google/protobuf/field_access_listener.cc [5:29]
-        src/google/protobuf/field_access_listener.h [5:29]
         src/google/protobuf/field_mask.proto [5:29]
         src/google/protobuf/generated_enum_reflection.h [5:29]
         src/google/protobuf/generated_enum_util.cc [5:29]
         src/google/protobuf/generated_enum_util.h [5:29]
+        src/google/protobuf/generated_message_bases.cc [5:29]
+        src/google/protobuf/generated_message_bases.h [5:29]
         src/google/protobuf/generated_message_reflection.cc [5:29]
         src/google/protobuf/generated_message_reflection.h [5:29]
         src/google/protobuf/generated_message_table_driven.cc [5:29]
@@ -148,6 +120,8 @@ BELONGS python/ya.make ya.make
         src/google/protobuf/has_bits.h [5:29]
         src/google/protobuf/implicit_weak_message.cc [5:29]
         src/google/protobuf/implicit_weak_message.h [5:29]
+        src/google/protobuf/inlined_string_field.cc [5:29]
+        src/google/protobuf/inlined_string_field.h [5:29]
         src/google/protobuf/io/coded_stream.cc [5:29]
         src/google/protobuf/io/coded_stream.h [5:29]
         src/google/protobuf/io/gzip_stream.cc [5:29]
@@ -297,44 +271,6 @@ BELONGS ya.make
         Links           : http://protobuf.googlecode.com/svn/trunk/COPYING.txt, https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/protobuf.LICENSE
     Files with this license:
         LICENSE [3:32]
-
-KEEP     BSD-3-Clause         8aaace038fd54f3a52b1f041f9504709
-BELONGS python/ya.make
-    Note: matched license text is too long. Read it in the source files.
-    Scancode info:
-        Original SPDX id: BSD-3-Clause
-        Score           : 100.00
-        Match type      : TEXT
-        Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
-    Files with this license:
-        python/google/protobuf/__init__.py [5:29]
-        python/google/protobuf/descriptor.py [5:29]
-        python/google/protobuf/descriptor_database.py [5:29]
-        python/google/protobuf/descriptor_pool.py [5:29]
-        python/google/protobuf/internal/__init__.py [5:29]
-        python/google/protobuf/internal/_parameterized.py [7:31]
-        python/google/protobuf/internal/api_implementation.py [5:29]
-        python/google/protobuf/internal/containers.py [5:29]
-        python/google/protobuf/internal/decoder.py [5:29]
-        python/google/protobuf/internal/encoder.py [5:29]
-        python/google/protobuf/internal/enum_type_wrapper.py [5:29]
-        python/google/protobuf/internal/extension_dict.py [5:29]
-        python/google/protobuf/internal/message_listener.py [5:29]
-        python/google/protobuf/internal/python_message.py [5:29]
-        python/google/protobuf/internal/type_checkers.py [5:29]
-        python/google/protobuf/internal/well_known_types.py [5:29]
-        python/google/protobuf/internal/wire_format.py [5:29]
-        python/google/protobuf/json_format.py [5:29]
-        python/google/protobuf/message.py [5:29]
-        python/google/protobuf/message_factory.py [5:29]
-        python/google/protobuf/proto_builder.py [5:29]
-        python/google/protobuf/pyext/cpp_message.py [5:29]
-        python/google/protobuf/reflection.py [5:29]
-        python/google/protobuf/service.py [5:29]
-        python/google/protobuf/service_reflection.py [5:29]
-        python/google/protobuf/symbol_database.py [5:29]
-        python/google/protobuf/text_encoding.py [5:29]
-        python/google/protobuf/text_format.py [5:29]
 
 SKIP     LicenseRef-scancode-generic-cla beb3339ebeb4487c0ec15f216cc26cb2
 BELONGS ya.make

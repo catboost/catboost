@@ -29,12 +29,26 @@ from enum import Enum
 from py4j.java_gateway import JavaObject
 
 from pyspark import keyword_only, SparkContext
-from pyspark.ml.classification import JavaClassificationModel
 """
     )
 
-    if (sparkCompatVersion.startsWith("3.")) {
-        out.println("from pyspark.ml.regression import JavaRegressionModel")
+    sparkCompatVersion match {
+      case "3.0" => out.println(s"""
+from pyspark.ml.classification import JavaProbabilisticClassificationModel
+from pyspark.ml.regression import JavaRegressionModel
+"""
+        )
+      case "3.1" | "3.2" => out.println(s"""
+from pyspark.ml.classification import _JavaProbabilisticClassificationModel
+from pyspark.ml.regression import _JavaRegressionModel
+"""
+        )
+      case _ => out.println(s"""
+from pyspark.ml.classification import JavaClassificationModel
+from pyspark.ml.util import JavaPredictionModel
+from pyspark.ml.wrapper import JavaModel
+"""
+      )
     }
 
     out.println(
@@ -45,15 +59,6 @@ from pyspark.ml.param import Param, Params
 from pyspark.ml.util import JavaMLReader, JavaMLWriter, JavaMLWritable, MLReadable
 """
     )
-
-    if (!sparkCompatVersion.startsWith("3.")) {
-      out.println(
-        s"""
-from pyspark.ml.util import JavaPredictionModel
-from pyspark.ml.wrapper import JavaModel
-"""
-      )
-    }
 
     out.println(
       s"""
@@ -127,7 +132,7 @@ def _py2java(sc, obj):
             'swigToEnum'
         )(obj.value)
     if isinstance(obj, datetime.timedelta):
-        return sc._jvm.java.time.Duration.ofMillis(obj.microseconds // 1000)
+        return sc._jvm.java.time.Duration.ofMillis(obj // datetime.timedelta(milliseconds=1))
     if isinstance(obj, JavaParams):
         return obj._to_java()
     if isinstance(obj, collections.OrderedDict):
@@ -208,7 +213,6 @@ class CatBoostMLReader(JavaMLReader):
     val enumParamReg = """.*EnumParam\[([\w\.]+)\]""".r
     
     for (member <- universe.typeOf[Params].members) {
-      //println(s"member.name=${member.name.toString.trim}, member.typeSignature.typeSymbol.name.toString='${member.typeSignature.typeSymbol.name.toString}'");
       val pyType = member.typeSignature.typeSymbol.name.toString match {
         case "BooleanParam" => Some("bool")
         case "IntParam" => Some("int")
@@ -235,7 +239,6 @@ class CatBoostMLReader(JavaMLReader):
       } 
       pyType match {
         case Some(pyType) => { 
-          //println(s"Add: '${member.typeSignature.toString}': ${member.name.toString.trim} ${pyType}");
           result += (member.name.toString.trim -> pyType) 
         }
         case None => ()
@@ -603,8 +606,19 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
 
     def _create_model(self, java_model):
         return $modelClassName(java_model)
-  
-    def fit(self, trainDataset, evalDatasets=None):
+
+    def _fit_with_eval(self, trainDatasetAsJavaObject, evalDatasetsAsJavaObject, params=None):
+        "\""
+        Implementation of fit with eval datasets with no more than one set of optional parameters
+        "\""
+        if params:
+            return self.copy(params)._fit_with_eval(trainDatasetAsJavaObject, evalDatasetsAsJavaObject)
+        else:
+            self._transfer_params_to_java()
+            java_model = self._java_obj.fit(trainDatasetAsJavaObject, evalDatasetsAsJavaObject)
+            return $modelClassName(java_model)
+
+    def fit(self, dataset, params=None, evalDatasets=None):
         "\""
         Extended variant of standard Estimator's fit method
         that accepts CatBoost's Pool s and allows to specify additional
@@ -612,8 +626,12 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
         
         Parameters
         ---------- 
-        trainDataset : Pool or DataFrame
+        dataset : Pool or DataFrame
           The input training dataset.
+        params : dict or list or tuple, optional
+          an optional param map that overrides embedded params. If a list/tuple of
+          param maps is given, this calls fit on each param map and returns a list of
+          models.
         evalDatasets : Pools, optional
           The validation datasets used for the following processes:
            - overfitting detector
@@ -622,23 +640,36 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
         
         Returns
         -------
-        trained model: $modelClassName
+        trained model(s): $modelClassName or a list of trained $modelClassName
         "\""
-        if (isinstance(trainDataset, DataFrame)):
+        if (isinstance(dataset, DataFrame)):
             if evalDatasets is not None:
-                raise RuntimeError("if trainDataset has type DataFrame no evalDatasets are supported")
-            return JavaEstimator.fit(self, trainDataset)
+                raise RuntimeError("if dataset has type DataFrame no evalDatasets are supported")
+            return JavaEstimator.fit(self, dataset, params)
         else:
             sc = SparkContext._active_spark_context
+
+            trainDatasetAsJavaObject = _py2java(sc, dataset)
             evalDatasetCount = 0 if (evalDatasets is None) else len(evalDatasets)
 
             # need to create it because default mapping for python list is ArrayList, not Array
             evalDatasetsAsJavaObject = sc._gateway.new_array(sc._jvm.ai.catboost.spark.Pool, evalDatasetCount)
             for i in range(evalDatasetCount):
                 evalDatasetsAsJavaObject[i] = _py2java(sc, evalDatasets[i])
-            self._transfer_params_to_java()
-            java_model = self._java_obj.fit(_py2java(sc, trainDataset), evalDatasetsAsJavaObject)
-            return $modelClassName(java_model)
+
+            def _fit_with_eval(params):
+                return self._fit_with_eval(trainDatasetAsJavaObject, evalDatasetsAsJavaObject, params)
+
+            if (params is None) or isinstance(params, dict):
+                return _fit_with_eval(params)
+            if isinstance(params, (list, tuple)):
+                models = []
+                for paramsInstance in params:
+                    models.append(_fit_with_eval(paramsInstance))
+                return models
+            else:
+                raise TypeError("Params must be either a param map or a list/tuple of param maps, "
+                                "but got %s." % type(params))
 
 @inherit_doc"""
     )
@@ -654,10 +685,11 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
     "\""
     $modelDoc
     "\""
-    def __init__(self, java_model):
+    def __init__(self, java_model=None):
         super($modelClassName, self).__init__(java_model)
 ${generateParamsInitialization(modelAsParams)}
-        self._transfer_params_from_java()
+        if java_model is not None:
+            self._transfer_params_from_java()
 
 ${generateParamsPart(model, modelParamsKeywordArgs)}
 
@@ -994,7 +1026,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostRegressor, 
           new CatBoostRegressionModel(new native_impl.TFullModel()), 
-          if (sparkCompatVersion.startsWith("3.")) { "JavaRegressionModel" } else { "JavaPredictionModel" },
+          sparkCompatVersion match {
+            case "3.0" => "JavaRegressionModel"
+            case "3.1" | "3.2" => "_JavaRegressionModel"
+            case _ => "JavaPredictionModel"
+          },
           "Class to train CatBoostRegressionModel",
           "Regression model trained by CatBoost. Use CatBoostRegressor to train it",
           sparkCompatVersion,
@@ -1003,7 +1039,11 @@ __all__ = [
         generateEstimatorAndModelWrapper(
           new CatBoostClassifier, 
           new CatBoostClassificationModel(new native_impl.TFullModel()),
-          "JavaClassificationModel", 
+          sparkCompatVersion match {
+            case "3.0" => "JavaProbabilisticClassificationModel"
+            case "3.1" | "3.2" => "_JavaProbabilisticClassificationModel"
+            case _ => "JavaClassificationModel"
+          },
           "Class to train CatBoostClassificationModel",
           "Classification model trained by CatBoost. Use CatBoostClassifier to train it",
           sparkCompatVersion,

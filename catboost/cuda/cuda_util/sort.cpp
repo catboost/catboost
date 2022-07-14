@@ -8,6 +8,7 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/cast.h>
 #include <util/stream/labeled.h>
 
 using NCudaLib::TMirrorMapping;
@@ -114,7 +115,7 @@ namespace {
             if (!NeedOnlyTempStorage) {
                 context.TempKeys = manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
-                    context.TempValues = manager.Allocate<char>(size * context.ValueSize);
+                    context.TempValues = manager.Allocate<char>(size * (ui64)context.ValueSize);
                 }
             }
             context.TempStorage = manager.Allocate<char>(context.TempStorageSize);
@@ -153,7 +154,7 @@ namespace {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
-            const ui32 size = Keys.Size();
+            const ui32 size = SafeIntegerCast<ui32>(Keys.Size());
 
             if (size == 0) {
                 return;

@@ -18,9 +18,7 @@
 
 #include <thrust/detail/config.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 template<typename T, typename BinaryPredicate>
 __host__ __device__
@@ -50,6 +48,4 @@ __host__ __device__
   return lhs < rhs ? rhs : lhs;
 } // end max()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

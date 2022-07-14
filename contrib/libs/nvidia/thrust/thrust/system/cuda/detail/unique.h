@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -40,12 +41,12 @@
 #include <thrust/functional.h>
 #include <thrust/detail/mpl/math.h>
 #include <thrust/detail/minmax.h>
+#include <thrust/advance.h>
 #include <thrust/distance.h>
 
 #include <cub/util_math.cuh>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename DerivedPolicy,
           typename ForwardIterator,
@@ -67,6 +68,16 @@ unique_copy(
     InputIterator                                               first,
     InputIterator                                               last,
     OutputIterator                                              result,
+    BinaryPredicate                                             binary_pred);
+
+template <typename DerivedPolicy,
+          typename ForwardIterator,
+          typename BinaryPredicate>
+__host__ __device__ typename thrust::iterator_traits<ForwardIterator>::difference_type
+unique_count(
+    const thrust::detail::execution_policy_base<DerivedPolicy> &exec,
+    ForwardIterator                                             first,
+    ForwardIterator                                             last,
     BinaryPredicate                                             binary_pred);
 
 namespace cuda_cub {
@@ -99,7 +110,7 @@ namespace __unique {
 
   namespace mpl = thrust::detail::mpl::math;
 
-  template<class T, size_t NOMINAL_4B_ITEMS_PER_THREAD>
+  template<class T, int NOMINAL_4B_ITEMS_PER_THREAD>
   struct items_per_thread
   {
     enum
@@ -109,7 +120,7 @@ namespace __unique {
           NOMINAL_4B_ITEMS_PER_THREAD,
           mpl::max<int,
                    1,
-                   (NOMINAL_4B_ITEMS_PER_THREAD * 4 /
+                   static_cast<int>(NOMINAL_4B_ITEMS_PER_THREAD * 4 /
                     sizeof(T))>::value>::value
     };
   };
@@ -758,15 +769,15 @@ unique_copy(execution_policy<Derived> &policy,
 
 __thrust_exec_check_disable__
 template <class Derived,
-          class InputIt,
+          class ForwardIt,
           class BinaryPred>
-InputIt __host__ __device__
+ForwardIt __host__ __device__
 unique(execution_policy<Derived> &policy,
-       InputIt                    first,
-       InputIt                    last,
+       ForwardIt                  first,
+       ForwardIt                  last,
        BinaryPred                 binary_pred)
 {
-  InputIt ret = first;
+  ForwardIt ret = first;
   if (__THRUST_HAS_CUDART__)
   {
     ret = cuda_cub::unique_copy(policy, first, last, first, binary_pred);
@@ -784,18 +795,49 @@ unique(execution_policy<Derived> &policy,
 }
 
 template <class Derived,
-          class InputIt>
-InputIt __host__ __device__
+          class ForwardIt>
+ForwardIt __host__ __device__
 unique(execution_policy<Derived> &policy,
-       InputIt                    first,
-       InputIt                    last)
+       ForwardIt                  first,
+       ForwardIt                  last)
 {
-  typedef typename iterator_traits<InputIt>::value_type input_type;
+  typedef typename iterator_traits<ForwardIt>::value_type input_type;
   return cuda_cub::unique(policy, first, last, equal_to<input_type>());
 }
 
+
+template <typename BinaryPred>
+struct zip_adj_not_predicate {
+  template <typename TupleType>
+  bool __host__ __device__ operator()(TupleType&& tuple) {
+      return !binary_pred(thrust::get<0>(tuple), thrust::get<1>(tuple));
+  }
+  
+  BinaryPred binary_pred;
+};
+
+
+__thrust_exec_check_disable__
+template <class Derived,
+          class ForwardIt,
+          class BinaryPred>
+typename thrust::iterator_traits<ForwardIt>::difference_type
+__host__ __device__
+unique_count(execution_policy<Derived> &policy,
+       ForwardIt                  first,
+       ForwardIt                  last,
+       BinaryPred                 binary_pred)
+{
+  if (first == last) {
+    return 0;
+  }
+  auto size = thrust::distance(first, last);
+  auto it = thrust::make_zip_iterator(thrust::make_tuple(first, thrust::next(first)));
+  return 1 + thrust::count_if(policy, it, thrust::next(it, size - 1), zip_adj_not_predicate<BinaryPred>{binary_pred});
+}
+
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 //
 #include <thrust/memory.h>

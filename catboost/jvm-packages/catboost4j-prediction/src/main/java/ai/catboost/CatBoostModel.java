@@ -26,6 +26,8 @@ public class CatBoostModel implements AutoCloseable {
     private int treeCount = 0;
     private int usedNumericFeatureCount = 0;
     private int usedCategoricFeatureCount = 0;
+    private int usedTextFeatureCount = 0;
+    private int usedEmbeddingFeatureCount = 0;
     private String[] featureNames;
     private Map<String, String> metadata = new HashMap<String, String>();
     private List<Feature> features = new ArrayList<Feature>();
@@ -97,6 +99,12 @@ public class CatBoostModel implements AutoCloseable {
             super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
+
+    public static final class EmbeddingFeature extends Feature {
+        protected EmbeddingFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+            super(name, featureIndex, flatFeatureIndex, usedInModel);
+        }
+    }
     
     static {
         try {
@@ -114,6 +122,8 @@ public class CatBoostModel implements AutoCloseable {
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
         final int[] usedCatFeatureCount = new int[1];
+        final int[] usedTextFeatureCount = new int[1];
+        final int[] usedEmbeddingFeatureCount = new int[1];
         final int[] featureVectorExpectedSize = new int[1];
         final String[][] modelMetadataKeys = new String[1][];
         final String[][] modelMetadataValues = new String[1][];
@@ -131,6 +141,10 @@ public class CatBoostModel implements AutoCloseable {
         final int[][] textFlatFeatureIndex = new int[1][];
         final int[][] textFeatureIndex = new int[1][];
 
+        final String[][] embeddingFeatureNames = new String[1][];
+        final int[][] embeddingFlatFeatureIndex = new int[1][];
+        final int[][] embeddingFeatureIndex = new int[1][];
+
         final int[][] usedFeatureIndicesArr = new int[1][];
 
         try {
@@ -138,11 +152,14 @@ public class CatBoostModel implements AutoCloseable {
             implLibrary.catBoostModelGetTreeCount(handle, treeCount);
             implLibrary.catBoostModelGetUsedNumericFeatureCount(handle, usedNumericFeatureCount);
             implLibrary.catBoostModelGetUsedCategoricalFeatureCount(handle, usedCatFeatureCount);
+            implLibrary.catBoostModelGetUsedTextFeatureCount(handle, usedTextFeatureCount);
+            implLibrary.catBoostModelGetUsedEmbeddingFeatureCount(handle, usedEmbeddingFeatureCount);
             implLibrary.catBoostModelGetFlatFeatureVectorExpectedSize(handle, featureVectorExpectedSize);
             implLibrary.catBoostModelGetMetadata(handle, modelMetadataKeys, modelMetadataValues);
             implLibrary.catBoostModelGetFloatFeatures(handle, floatFeatureNames, floatFlatFeatureIndex, floatFeatureIndex, floatHasNans, floatNanValueTreatment);
             implLibrary.catBoostModelGetCatFeatures(handle, catFeatureNames, catFlatFeatureIndex, catFeatureIndex);
             implLibrary.catBoostModelGetTextFeatures(handle, textFeatureNames, textFlatFeatureIndex, textFeatureIndex);
+            implLibrary.catBoostModelGetEmbeddingFeatures(handle, embeddingFeatureNames, embeddingFlatFeatureIndex, embeddingFeatureIndex);
             implLibrary.catBoostModelGetUsedFeatureIndices(handle, usedFeatureIndicesArr);
         } catch (CatBoostError e) {
             this.close();
@@ -158,6 +175,8 @@ public class CatBoostModel implements AutoCloseable {
         this.treeCount = treeCount[0];
         this.usedNumericFeatureCount = usedNumericFeatureCount[0];
         this.usedCategoricFeatureCount = usedCatFeatureCount[0];
+        this.usedTextFeatureCount = usedTextFeatureCount[0];
+        this.usedEmbeddingFeatureCount = usedEmbeddingFeatureCount[0];
 
         for (int i = 0; i < modelMetadataKeys[0].length; i++) {
             this.metadata.put(modelMetadataKeys[0][i], modelMetadataValues[0][i]);
@@ -182,6 +201,12 @@ public class CatBoostModel implements AutoCloseable {
                                               textFeatureIndex[0][i],
                                               textFlatFeatureIndex[0][i],
                                               usedFeatureIndices.contains(textFlatFeatureIndex[0][i])));
+        }
+        for (int i = 0; i < embeddingFeatureNames[0].length; i++) {
+            this.features.add(new EmbeddingFeature(embeddingFeatureNames[0][i],
+                                                   embeddingFeatureIndex[0][i],
+                                                   embeddingFlatFeatureIndex[0][i],
+                                                   usedFeatureIndices.contains(embeddingFlatFeatureIndex[0][i])));
         }
         Collections.sort(this.features, new Comparator<Feature>() {
             public int compare(Feature v1, Feature v2) {
@@ -305,7 +330,21 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     /**
-     * @return Name of features used by the model.
+     * @return Number of text features used by the model.
+     */
+    public int getUsedTextFeatureCount() {
+        return usedTextFeatureCount;
+    }
+
+    /**
+     * @return Number of embedding features used by the model.
+     */
+    public int getUsedEmbeddingFeatureCount() {
+        return usedEmbeddingFeatureCount;
+    }
+
+    /**
+     * @return Names of features used by the model.
      */
     public String[] getFeatureNames() { return featureNames; }
 
@@ -339,12 +378,39 @@ public class CatBoostModel implements AutoCloseable {
                 handle,
                 numericFeatures,
                 catFeatures,
+                /*textFeatures*/ null,
+                /*embeddingFeatures*/ null,
+                prediction.getRawData());
+    }
+
+    /**
+     * Apply model to object defined by features.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatures       Categoric features.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @param prediction        Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    public void predict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        implLibrary.catBoostModelPredict(
+                handle,
+                numericFeatures,
+                catFeatures,
+                textFeatures,
+                embeddingFeatures,
                 prediction.getRawData());
     }
 
     /**
      * Same as {@link #predict(float[], String[], CatBoostPredictions)}, but returns prediction instead of taking it
-     * as third parameter.
+     * as the last parameter.
      *
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
@@ -357,6 +423,28 @@ public class CatBoostModel implements AutoCloseable {
             final @Nullable String[] catFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatures, prediction);
+        return prediction;
+    }
+
+    /**
+     * Same as {@link #predict(float[], String[], String[], float[][], CatBoostPredictions)}, but returns prediction instead of taking it
+     * as the last parameter.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatures       Categoric features.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    @NotNull
+    public CatBoostPredictions predict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+        final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
+        predict(numericFeatures, catFeatures, textFeatures, embeddingFeatures, prediction);
         return prediction;
     }
 
@@ -377,6 +465,34 @@ public class CatBoostModel implements AutoCloseable {
                 handle,
                 numericFeatures,
                 catFeatureHashes,
+                /*textFeatures*/ null,
+                /*embeddingFeatures*/ null,
+                prediction.getRawData());
+    }
+
+   /**
+     * Same as {@link #predict(float[], String[], String[], float[][], CatBoostPredictions)}, but accept categoric features as hashes
+     * computed by {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatureHashes  Categoric feature hashes.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @param prediction        Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    public void predict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        implLibrary.catBoostModelPredict(
+                handle,
+                numericFeatures,
+                catFeatureHashes,
+                textFeatures,
+                embeddingFeatures,
                 prediction.getRawData());
     }
 
@@ -398,6 +514,28 @@ public class CatBoostModel implements AutoCloseable {
         return prediction;
     }
 
+   /**
+     * Same as {@link #predict(float[], int[], String[], float[][], CatBoostPredictions)}, but returns prediction instead of taking it as
+     * third parameter.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatureHashes  Categoric feature hashes.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    @NotNull
+    public CatBoostPredictions predict(
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures) throws CatBoostError {
+        final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
+        predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, prediction);
+        return prediction;
+    }
+
     /**
      * Apply model to a batch of objects.
      *
@@ -414,12 +552,39 @@ public class CatBoostModel implements AutoCloseable {
                 handle,
                 numericFeatures,
                 catFeatures,
+                /*textFeatures*/ null,
+                /*embeddingFeatures*/ null,
+                prediction.getRawData());
+    }
+
+    /**
+     * Apply model to a batch of objects.
+     *
+     * @param numericFeatures   Numeric features matrix.
+     * @param catFeatures       Categoric features matrix.
+     * @param textFeatures      Text features matrix.
+     * @param embeddingFeatures Embedding features matrix.
+     * @param prediction        Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    public void predict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        implLibrary.catBoostModelPredict(
+                handle,
+                numericFeatures,
+                catFeatures,
+                textFeatures,
+                embeddingFeatures,
                 prediction.getRawData());
     }
 
     /**
      * Same as {@link #predict(float[][], String[][], CatBoostPredictions)}, but returns prediction instead of taking
-     * it as third parameter.
+     * it as the last parameter.
      *
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
@@ -430,14 +595,41 @@ public class CatBoostModel implements AutoCloseable {
     public CatBoostPredictions predict(
             final @Nullable float[][] numericFeatures,
             final @Nullable String[][] catFeatures) throws CatBoostError {
-        if (numericFeatures == null && catFeatures == null) {
-            throw new CatBoostError("both arguments are null");
+        return predict(numericFeatures, catFeatures, /*textFeatures*/ null, /*embeddingFeatures*/ null);
+    }
+
+    /**
+     * Same as {@link #predict(float[][], String[][], String[][], float[][][], CatBoostPredictions)}, but returns prediction instead of taking
+     * it as the last parameter.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatures       Categoric features.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    @NotNull
+    public CatBoostPredictions predict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
+        int resultSize = 0; 
+        if (numericFeatures != null) {
+            resultSize = numericFeatures.length;
+        } else if (catFeatures != null) {
+            resultSize = catFeatures.length;
+        } else if (textFeatures != null) {
+            resultSize = textFeatures.length;
+        } else if (embeddingFeatures != null) {
+            resultSize = embeddingFeatures.length;
+        } else {
+            throw new CatBoostError("all arguments are null");
         }
 
-        final CatBoostPredictions prediction = new CatBoostPredictions(
-            numericFeatures == null ? catFeatures.length : numericFeatures.length,
-            getPredictionDimension());
-        predict(numericFeatures, catFeatures, prediction);
+        final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
+        predict(numericFeatures, catFeatures, textFeatures, embeddingFeatures, prediction);
         return prediction;
     }
 
@@ -458,12 +650,40 @@ public class CatBoostModel implements AutoCloseable {
             handle,
             numericFeatures,
             catFeatureHashes,
+            /*textFeatures*/ null,
+            /*embeddingFeatures*/ null,
+            prediction.getRawData());
+    }
+
+    /**
+     * Same as {@link #predict(float[][], String[][], String[][], float[][][], CatBoostPredictions)}, but accept categoric features as hashes
+     * computed by {@link #hashCategoricalFeature(String)}.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatureHashes  Categoric feature hashes.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @param prediction        Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    public void predict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
+        implLibrary.catBoostModelPredict(
+            handle,
+            numericFeatures,
+            catFeatureHashes,
+            textFeatures,
+            embeddingFeatures,
             prediction.getRawData());
     }
 
     /**
      * Same as {@link #predict(float[][], String[][], CatBoostPredictions)}, but returns predictions instead of taking
-     * it as third parameter.
+     * it as the last parameter.
      *
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
@@ -482,6 +702,40 @@ public class CatBoostModel implements AutoCloseable {
                 numericFeatures == null ? catFeatureHashes.length : numericFeatures.length,
                 getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, prediction);
+        return prediction;
+    }
+
+    /**
+     * Same as {@link #predict(float[][], String[][], String[][], float[][][], CatBoostPredictions)}, but returns predictions instead of taking
+     * it as the last parameter.
+     *
+     * @param numericFeatures   Numeric features.
+     * @param catFeatureHashes  Categoric feature hashes.
+     * @param textFeatures      Text features.
+     * @param embeddingFeatures Embedding features.
+     * @return                  Model predictions.
+     * @throws CatBoostError In case of error within native library.
+     */
+    @NotNull
+    public CatBoostPredictions predict(
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures) throws CatBoostError {
+        int resultSize = 0; 
+        if (numericFeatures != null) {
+            resultSize = numericFeatures.length;
+        } else if (catFeatureHashes != null) {
+            resultSize = catFeatureHashes.length;
+        } else if (textFeatures != null) {
+            resultSize = textFeatures.length;
+        } else if (embeddingFeatures != null) {
+            resultSize = embeddingFeatures.length;
+        } else {
+            throw new CatBoostError("all arguments are null");
+        }
+        final CatBoostPredictions prediction = new CatBoostPredictions(resultSize, getPredictionDimension());
+        predict(numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, prediction);
         return prediction;
     }
 

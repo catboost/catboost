@@ -4,8 +4,9 @@ LIBRARY()
 
 GENERATE_ENUM_SERIALIZATION(priority.h)
 
-PEERDIR (
+PEERDIR(
     library/cpp/json
+    library/cpp/deprecated/atomic
 )
 
 SRCS(
@@ -35,8 +36,12 @@ SRCS(
     thread.cpp
     thread_creator.cpp
     GLOBAL uninitialized_creator.cpp
+    reopen.h
 )
 
 END()
 
-RECURSE_FOR_TESTS(ut)
+RECURSE(
+    global
+    ut
+)

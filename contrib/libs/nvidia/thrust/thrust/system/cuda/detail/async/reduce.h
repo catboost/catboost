@@ -49,8 +49,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system { namespace cuda { namespace detail
 {
@@ -59,14 +58,13 @@ template <
   typename DerivedPolicy
 , typename ForwardIt, typename Size, typename T, typename BinaryOp
 >
-auto async_reduce_n(
+unique_eager_future<remove_cvref_t<T>> async_reduce_n(
   execution_policy<DerivedPolicy>& policy
 , ForwardIt                        first
 , Size                             n
 , T                                init
 , BinaryOp                         op
-) -> unique_eager_future<remove_cvref_t<T>>
-{
+) {
   using U = remove_cvref_t<T>;
 
   auto const device_alloc = get_async_device_allocator(policy);
@@ -215,15 +213,14 @@ template <
 , typename ForwardIt, typename Size, typename OutputIt
 , typename T, typename BinaryOp
 >
-auto async_reduce_into_n(
+unique_eager_event async_reduce_into_n(
   execution_policy<DerivedPolicy>& policy
 , ForwardIt                        first
 , Size                             n
 , OutputIt                         output
 , T                                init
 , BinaryOp                         op
-) -> unique_eager_event
-{
+) {
   using U = remove_cvref_t<T>;
 
   auto const device_alloc = get_async_device_allocator(policy);
@@ -342,7 +339,7 @@ THRUST_RETURNS(
 
 } // cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

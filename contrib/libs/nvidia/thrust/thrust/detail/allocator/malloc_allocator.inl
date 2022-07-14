@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/malloc_allocator.h>
 #include <thrust/system/detail/generic/select_system.h>
@@ -21,8 +23,7 @@
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -60,5 +61,5 @@ template<typename T, typename System, typename Pointer>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

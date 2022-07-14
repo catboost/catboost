@@ -9,6 +9,8 @@ Module to define and register Terminal IPython shortcuts with
 import warnings
 import signal
 import sys
+import re
+import os
 from typing import Callable
 
 
@@ -18,6 +20,8 @@ from prompt_toolkit.filters import (has_focus, has_selection, Condition,
     vi_insert_mode, emacs_insert_mode, has_completions, vi_mode)
 from prompt_toolkit.key_binding.bindings.completion import display_completions_like_readline
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.bindings import named_commands as nc
+from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 
 from IPython.utils.decorators import undoc
 
@@ -53,7 +57,7 @@ def create_ipython_shortcuts(shell):
                             & insert_mode
                                       ))(reformat_and_execute)
 
-    kb.add('c-\\')(force_exit)
+    kb.add("c-\\")(quit)
 
     kb.add('c-p', filter=(vi_insert_mode & has_focus(DEFAULT_BUFFER))
                 )(previous_history_or_previous_completion)
@@ -82,15 +86,274 @@ def create_ipython_shortcuts(shell):
 
     kb.add('f2', filter=has_focus(DEFAULT_BUFFER))(open_input_in_editor)
 
-    if shell.display_completions == 'readlinelike':
-        kb.add('c-i', filter=(has_focus(DEFAULT_BUFFER)
-                              & ~has_selection
-                              & insert_mode
-                              & ~cursor_in_leading_ws
-                        ))(display_completions_like_readline)
+    @Condition
+    def auto_match():
+        return shell.auto_match
 
-    if sys.platform == 'win32':
-        kb.add('c-v', filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+    focused_insert = (vi_insert_mode | emacs_insert_mode) & has_focus(DEFAULT_BUFFER)
+    _preceding_text_cache = {}
+    _following_text_cache = {}
+
+    def preceding_text(pattern):
+        try:
+            return _preceding_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _preceding_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_before_cursor))
+
+        condition = Condition(_preceding_text)
+        _preceding_text_cache[pattern] = condition
+        return condition
+
+    def following_text(pattern):
+        try:
+            return _following_text_cache[pattern]
+        except KeyError:
+            pass
+        m = re.compile(pattern)
+
+        def _following_text():
+            app = get_app()
+            return bool(m.match(app.current_buffer.document.current_line_after_cursor))
+
+        condition = Condition(_following_text)
+        _following_text_cache[pattern] = condition
+        return condition
+
+    # auto match
+    @kb.add("(", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("()")
+        event.current_buffer.cursor_left()
+
+    @kb.add("[", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("[]")
+        event.current_buffer.cursor_left()
+
+    @kb.add("{", filter=focused_insert & auto_match & following_text(r"[,)}\]]|$"))
+    def _(event):
+        event.current_buffer.insert_text("{}")
+        event.current_buffer.cursor_left()
+
+    @kb.add(
+        '"',
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r'^([^"]+|"[^"]*")*$')
+        & following_text(r"[,)}\]]|$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text('""')
+        event.current_buffer.cursor_left()
+
+    @kb.add(
+        "'",
+        filter=focused_insert
+        & auto_match
+        & preceding_text(r"^([^']+|'[^']*')*$")
+        & following_text(r"[,)}\]]|$"),
+    )
+    def _(event):
+        event.current_buffer.insert_text("''")
+        event.current_buffer.cursor_left()
+
+    # raw string
+    @kb.add(
+        "(", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("()" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add(
+        "[", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("[]" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    @kb.add(
+        "{", filter=focused_insert & auto_match & preceding_text(r".*(r|R)[\"'](-*)$")
+    )
+    def _(event):
+        matches = re.match(
+            r".*(r|R)[\"'](-*)",
+            event.current_buffer.document.current_line_before_cursor,
+        )
+        dashes = matches.group(2) or ""
+        event.current_buffer.insert_text("{}" + dashes)
+        event.current_buffer.cursor_left(len(dashes) + 1)
+
+    # just move cursor
+    @kb.add(")", filter=focused_insert & auto_match & following_text(r"^\)"))
+    @kb.add("]", filter=focused_insert & auto_match & following_text(r"^\]"))
+    @kb.add("}", filter=focused_insert & auto_match & following_text(r"^\}"))
+    @kb.add('"', filter=focused_insert & auto_match & following_text('^"'))
+    @kb.add("'", filter=focused_insert & auto_match & following_text("^'"))
+    def _(event):
+        event.current_buffer.cursor_right()
+
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\($")
+        & auto_match
+        & following_text(r"^\)"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\[$")
+        & auto_match
+        & following_text(r"^\]"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*\{$")
+        & auto_match
+        & following_text(r"^\}"),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text('.*"$')
+        & auto_match
+        & following_text('^"'),
+    )
+    @kb.add(
+        "backspace",
+        filter=focused_insert
+        & preceding_text(r".*'$")
+        & auto_match
+        & following_text(r"^'"),
+    )
+    def _(event):
+        event.current_buffer.delete()
+        event.current_buffer.delete_before_cursor()
+
+    if shell.display_completions == "readlinelike":
+        kb.add(
+            "c-i",
+            filter=(
+                has_focus(DEFAULT_BUFFER)
+                & ~has_selection
+                & insert_mode
+                & ~cursor_in_leading_ws
+            ),
+        )(display_completions_like_readline)
+
+    if sys.platform == "win32":
+        kb.add("c-v", filter=(has_focus(DEFAULT_BUFFER) & ~vi_mode))(win_paste)
+
+    @Condition
+    def ebivim():
+        return shell.emacs_bindings_in_vi_insert_mode
+
+    focused_insert_vi = has_focus(DEFAULT_BUFFER) & vi_insert_mode
+
+    # Needed for to accept autosuggestions in vi insert mode
+    def _apply_autosuggest(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion is not None and suggestion.text:
+            b.insert_text(suggestion.text)
+        else:
+            nc.end_of_line(event)
+
+    @kb.add("end", filter=has_focus(DEFAULT_BUFFER) & (ebivim | ~vi_insert_mode))
+    def _(event):
+        _apply_autosuggest(event)
+
+    @kb.add("c-e", filter=focused_insert_vi & ebivim)
+    def _(event):
+        _apply_autosuggest(event)
+
+    @kb.add("c-f", filter=focused_insert_vi)
+    def _(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion:
+            b.insert_text(suggestion.text)
+        else:
+            nc.forward_char(event)
+
+    @kb.add("escape", "f", filter=focused_insert_vi & ebivim)
+    def _(event):
+        b = event.current_buffer
+        suggestion = b.suggestion
+        if suggestion:
+            t = re.split(r"(\S+\s+)", suggestion.text)
+            b.insert_text(next((x for x in t if x), ""))
+        else:
+            nc.forward_word(event)
+
+    # Simple Control keybindings
+    key_cmd_dict = {
+        "c-a": nc.beginning_of_line,
+        "c-b": nc.backward_char,
+        "c-k": nc.kill_line,
+        "c-w": nc.backward_kill_word,
+        "c-y": nc.yank,
+        "c-_": nc.undo,
+    }
+
+    for key, cmd in key_cmd_dict.items():
+        kb.add(key, filter=focused_insert_vi & ebivim)(cmd)
+
+    # Alt and Combo Control keybindings
+    keys_cmd_dict = {
+        # Control Combos
+        ("c-x", "c-e"): nc.edit_and_execute,
+        ("c-x", "e"): nc.edit_and_execute,
+        # Alt
+        ("escape", "b"): nc.backward_word,
+        ("escape", "c"): nc.capitalize_word,
+        ("escape", "d"): nc.kill_word,
+        ("escape", "h"): nc.backward_kill_word,
+        ("escape", "l"): nc.downcase_word,
+        ("escape", "u"): nc.uppercase_word,
+        ("escape", "y"): nc.yank_pop,
+        ("escape", "."): nc.yank_last_arg,
+    }
+
+    for keys, cmd in keys_cmd_dict.items():
+        kb.add(*keys, filter=focused_insert_vi & ebivim)(cmd)
+
+    def get_input_mode(self):
+        app = get_app()
+        app.ttimeoutlen = shell.ttimeoutlen
+        app.timeoutlen = shell.timeoutlen
+
+        return self._input_mode
+
+    def set_input_mode(self, mode):
+        shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
+        cursor = "\x1b[{} q".format(shape)
+
+        sys.stdout.write(cursor)
+        sys.stdout.flush()
+
+        self._input_mode = mode
+
+    if shell.editing_mode == "vi" and shell.modal_cursor:
+        ViState._input_mode = InputMode.INSERT
+        ViState.input_mode = property(get_input_mode, set_input_mode)
 
     return kb
 
@@ -196,11 +459,16 @@ def reset_search_buffer(event):
 def suspend_to_bg(event):
     event.app.suspend_to_background()
 
-def force_exit(event):
+def quit(event):
     """
-    Force exit (with a non-zero return value)
+    On platforms that support SIGQUIT, send SIGQUIT to the current process.
+    On other platforms, just exit the process with a message.
     """
-    sys.exit("Quit")
+    sigquit = getattr(signal, "SIGQUIT", None)
+    if sigquit is not None:
+        os.kill(0, signal.SIGQUIT)
+    else:
+        sys.exit("Quit")
 
 def indent_buffer(event):
     event.current_buffer.insert_text(' ' * 4)
@@ -273,4 +541,4 @@ if sys.platform == 'win32':
                 return
         except ClipboardEmpty:
             return
-        event.current_buffer.insert_text(text.replace('\t', ' ' * 4))
+        event.current_buffer.insert_text(text.replace("\t", " " * 4))

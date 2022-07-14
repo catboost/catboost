@@ -8,6 +8,8 @@
 #include <catboost/cuda/targets/kernel/query_cross_entropy.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
+#include <util/generic/cast.h>
+
 namespace NKernelHost {
     class TQueryCrossEntropyKernel: public TKernelBase<NKernel::TQueryLogitContext, false> {
     private:
@@ -79,7 +81,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::QueryCrossEntropy(context.QidCursor,
@@ -126,7 +128,8 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, IsSingleQueryFlags, MatrixSize);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() == MatrixSize.Size());
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::ComputeQueryLogitMatrixSizes(QueryOffsets.Get(), IsSingleQueryFlags.Get(), queryCount, MatrixSize.Get(), stream.GetStream());
@@ -136,7 +139,7 @@ namespace NKernelHost {
     class TMakeQueryLogitPairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const ui32> MatrixOffset;
+        TCudaBufferPtr<const ui64> MatrixOffset;
         TCudaBufferPtr<const bool> IsSingleQueryFlags;
         double MeanQuerySize;
         TCudaBufferPtr<uint2> Pairs;
@@ -145,7 +148,7 @@ namespace NKernelHost {
         TMakeQueryLogitPairsKernel() = default;
 
         TMakeQueryLogitPairsKernel(TCudaBufferPtr<const ui32> qOffsets,
-                                   TCudaBufferPtr<const ui32> matrixOffset,
+                                   TCudaBufferPtr<const ui64> matrixOffset,
                                    TCudaBufferPtr<const bool> isSingleQueryFlags,
                                    double meanQuerySize,
                                    TCudaBufferPtr<uint2> pairs)
@@ -160,7 +163,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, MatrixOffset, IsSingleQueryFlags, MeanQuerySize, Pairs);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::MakeQueryLogitPairs(QueryOffsets.Get(),
@@ -203,9 +206,9 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Targets, QueryOffsets, MeanQuerySize, LoadIndices, IsSingleClassQuery, TrueClassCount);
 
         void Run(const TCudaStream& stream) const {
-            Y_VERIFY(QueryOffsets.Size() > 0);
-            Y_VERIFY(LoadIndices.Size() == IsSingleClassQuery.Size());
-            Y_VERIFY(LoadIndices.Size() == TrueClassCount.Size());
+            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
+            CB_ENSURE(LoadIndices.Size() == IsSingleClassQuery.Size(), "Unexcepted size of buffer");
+            CB_ENSURE(LoadIndices.Size() == TrueClassCount.Size(), "Unexcepted size of buffer");
 
             const ui32 queryCount = QueryOffsets.Size() - 1;
             NKernel::MakeIsSingleClassFlags(Targets.Get(), LoadIndices.Get(),
@@ -326,7 +329,7 @@ inline void FillPairDer2AndRemapPairDocuments(const TCudaBuffer<float, TMapping>
 
 template <class TMapping>
 inline void MakePairsQueryLogit(const TCudaBuffer<ui32, TMapping>& sampledQidOffsets,
-                                const TCudaBuffer<ui32, TMapping>& matrixOffsets,
+                                const TCudaBuffer<ui64, TMapping>& matrixOffsets,
                                 const TCudaBuffer<bool, TMapping>& sampledFlags,
                                 double meanQuerySize,
                                 TCudaBuffer<uint2, TMapping>* pairs,

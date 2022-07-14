@@ -14,12 +14,15 @@
  *  limitations under the License.
  */
 
-/*! \file pool.h
- *  \brief A caching and pooling memory resource adaptor which uses a single upstream resource for memory allocation,
- *      and embeds bookkeeping information in allocated blocks.
+/*! \file 
+ *  \brief A caching and pooling memory resource adaptor which uses a single
+ *  upstream resource for memory allocation, and embeds bookkeeping information
+ *  in allocated blocks.
  */
 
 #pragma once
+
+#include <thrust/detail/config.h>
 
 #include <thrust/detail/algorithm_wrapper.h>
 
@@ -31,13 +34,12 @@
 
 #include <cassert>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
 /** \addtogroup memory_resources Memory Resources
- *  \ingroup memory_management_classes
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -497,9 +499,9 @@ public:
     }
 };
 
-/*! \}
+/*! \} // memory_resources
  */
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 

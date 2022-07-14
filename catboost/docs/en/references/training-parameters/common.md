@@ -552,7 +552,7 @@ The range of supported values depends on the processing unit type and the type o
 
 - CPU — Any integer up to  {{ fit--maxtree }}.
 
-- GPU — Any integer up to {{ fit__maxtree__pairwise }}pairwise modes ({{ error-function__YetiRank }}, {{ error-function__PairLogitPairwise }} and {{ error-function__QueryCrossEntropy }}) and up to   {{ fit--maxtree }} for all other loss functions.
+- GPU — Any integer up to {{ fit__maxtree__pairwise }} for pairwise modes ({{ error-function__YetiRank }}, {{ error-function__PairLogitPairwise }}, and {{ error-function__QueryCrossEntropy }}), and up to {{ fit--maxtree }} for all other loss functions.
 
 **Type**
 
@@ -924,8 +924,7 @@ Depends on the mode and the selected loss function:
 
 **Supported processing units**
 
-- The {{ fit__leaf_estimation_method__Exact }} method is available only on {{ calcer_type__cpu }}
-- All other methods are available on both {{ calcer_type__cpu }} and {{ calcer_type__gpu }}
+ {{ cpu-gpu }}
 
 
 ## leaf_estimation_iterations {#leaf_estimation_iterations}

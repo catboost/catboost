@@ -85,4 +85,15 @@ namespace NCatboostOptions {
             ValidateFeatureSinglePenaltiesOption(firstFeatureUsePenalties, "first_feature_use_penalties");
         }
     }
+
+    TVector<float> ExpandFeatureWeights(const TFeaturePenaltiesOptions& options, size_t featureCount) {
+        TVector<float> featureWeights(featureCount, 1.0f);
+        for (const auto& [feature, weight] : options.FeatureWeights.Get()) {
+            CB_ENSURE(
+                feature < featureCount,
+                "Feature index " << feature << " exceeds feature count " << featureCount);
+            featureWeights[feature] = weight;
+        }
+        return featureWeights;
+    }
 }

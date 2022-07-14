@@ -2,13 +2,18 @@
 
 LIBRARY()
 
+LICENSE(
+    CC-PDDC AND
+    MIT
+)
+
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+
 
 
 VERSION(3.3)
 
 ORIGINAL_SOURCE(https://sourceware.org/pub/libffi/libffi-3.3.tar.gz)
-
-LICENSE(MIT)
 
 ADDINCL(
     contrib/restricted/libffi
@@ -39,7 +44,6 @@ IF (ARCH_ARM64 AND OS_ANDROID)
         contrib/restricted/libffi/configs/aarch64-unknown-linux-android21
         GLOBAL contrib/restricted/libffi/configs/aarch64-unknown-linux-android21/include
     )
-
     SRCS(
         src/aarch64/ffi.c
         src/aarch64/sysv.S
@@ -49,7 +53,6 @@ ELSEIF (ARCH_ARM64 AND OS_DARWIN)
         contrib/restricted/libffi/configs/aarch64-apple-macos
         GLOBAL contrib/restricted/libffi/configs/aarch64-apple-macos/include
     )
-
     SRCS(
         src/aarch64/ffi.c
         src/aarch64/sysv.S
@@ -59,7 +62,6 @@ ELSEIF (ARCH_ARM64 AND OS_IOS)
         contrib/restricted/libffi/configs/aarch64-apple-iphoneos
         GLOBAL contrib/restricted/libffi/configs/aarch64-apple-iphoneos/include
     )
-
     SRCS(
         src/aarch64/ffi.c
         src/aarch64/sysv.S
@@ -69,7 +71,6 @@ ELSEIF (ARCH_ARM64 AND OS_LINUX)
         contrib/restricted/libffi/configs/aarch64-unknown-linux-gnu
         GLOBAL contrib/restricted/libffi/configs/aarch64-unknown-linux-gnu/include
     )
-
     SRCS(
         src/aarch64/ffi.c
         src/aarch64/sysv.S
@@ -79,7 +80,6 @@ ELSEIF (ARCH_ARM7 AND OS_ANDROID)
         contrib/restricted/libffi/configs/armv7a-unknown-linux-androideabi16
         GLOBAL contrib/restricted/libffi/configs/armv7a-unknown-linux-androideabi16/include
     )
-
     SRCS(
         src/arm/ffi.c
         src/arm/sysv.S
@@ -89,7 +89,6 @@ ELSEIF (ARCH_ARM7 AND OS_IOS)
         contrib/restricted/libffi/configs/armv7-apple-iphoneos
         GLOBAL contrib/restricted/libffi/configs/armv7-apple-iphoneos/include
     )
-
     SRCS(
         src/arm/ffi.c
         src/arm/sysv.S
@@ -99,7 +98,6 @@ ELSEIF (ARCH_ARM7 AND OS_LINUX)
         contrib/restricted/libffi/configs/armv7a-unknown-linux-gnueabihf
         GLOBAL contrib/restricted/libffi/configs/armv7a-unknown-linux-gnueabihf/include
     )
-
     SRCS(
         src/arm/ffi.c
         src/arm/sysv.S
@@ -109,7 +107,6 @@ ELSEIF (ARCH_I386 AND OS_ANDROID)
         contrib/restricted/libffi/configs/i686-pc-linux-android16
         GLOBAL contrib/restricted/libffi/configs/i686-pc-linux-android16/include
     )
-
     SRCS(
         src/x86/ffi.c
         src/x86/sysv.S
@@ -119,7 +116,6 @@ ELSEIF (ARCH_I386 AND OS_IOS)
         contrib/restricted/libffi/configs/i386-apple-iphonesimulator
         GLOBAL contrib/restricted/libffi/configs/i386-apple-iphonesimulator/include
     )
-
     SRCS(
         src/x86/ffi.c
         src/x86/sysv.S
@@ -129,7 +125,6 @@ ELSEIF (ARCH_I386 AND OS_WINDOWS)
         contrib/restricted/libffi/configs/i386-microsoft-windows
         GLOBAL contrib/restricted/libffi/configs/i386-microsoft-windows/include
     )
-
     SRCS(
         configs/i386-microsoft-windows/sysv_intel.masm
         src/x86/ffi.c
@@ -139,7 +134,6 @@ ELSEIF (ARCH_PPC64LE AND OS_LINUX)
         contrib/restricted/libffi/configs/powerpc64le-unknown-linux-gnu
         GLOBAL contrib/restricted/libffi/configs/powerpc64le-unknown-linux-gnu/include
     )
-
     SRCS(
         src/powerpc/ffi.c
         src/powerpc/ffi_linux64.c
@@ -154,7 +148,6 @@ ELSEIF (ARCH_X86_64 AND OS_ANDROID)
         contrib/restricted/libffi/configs/x86_64-pc-linux-android21
         GLOBAL contrib/restricted/libffi/configs/x86_64-pc-linux-android21/include
     )
-
     SRCS(
         src/x86/ffi64.c
         src/x86/ffiw64.c
@@ -166,7 +159,6 @@ ELSEIF (ARCH_X86_64 AND OS_DARWIN)
         contrib/restricted/libffi/configs/x86_64-apple-macosx
         GLOBAL contrib/restricted/libffi/configs/x86_64-apple-macosx/include
     )
-
     SRCS(
         src/x86/ffi64.c
         src/x86/ffiw64.c
@@ -178,7 +170,6 @@ ELSEIF (ARCH_X86_64 AND OS_IOS)
         contrib/restricted/libffi/configs/x86_64-apple-iphonesimulator
         GLOBAL contrib/restricted/libffi/configs/x86_64-apple-iphonesimulator/include
     )
-
     SRCS(
         src/x86/ffi64.c
         src/x86/ffiw64.c
@@ -190,7 +181,6 @@ ELSEIF (ARCH_X86_64 AND OS_LINUX)
         contrib/restricted/libffi/configs/x86_64-pc-linux-gnu
         GLOBAL contrib/restricted/libffi/configs/x86_64-pc-linux-gnu/include
     )
-
     SRCS(
         src/x86/ffi64.c
         src/x86/ffiw64.c
@@ -202,7 +192,6 @@ ELSEIF (ARCH_X86_64 AND OS_WINDOWS)
         contrib/restricted/libffi/configs/x86_64-microsoft-windows
         GLOBAL contrib/restricted/libffi/configs/x86_64-microsoft-windows/include
     )
-
     SRCS(
         configs/x86_64-microsoft-windows/win64_intel.masm
         src/x86/ffiw64.c

@@ -2,6 +2,7 @@
 #include "condvar.h"
 #include "network.h"
 
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/string/cast.h>
@@ -943,7 +944,7 @@ void TCoroTest::TestPollEngines() {
 }
 
 void TCoroTest::TestPause() {
-    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, nullptr, NCoro::NStack::EGuard::Canary, Nothing()};
 
     int i = 0;
     executor.CreateOwned([&](TCont*) {
@@ -993,7 +994,7 @@ void TCoroTest::TestOverrideTime() {
     };
 
     TTime time;
-    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
+    TContExecutor executor{1024*1024, IPollerFace::Default(), nullptr, nullptr, NCoro::NStack::EGuard::Canary, Nothing(), &time};
 
     executor.CreateOwned([&](TCont* cont) {
         UNIT_ASSERT_EQUAL(cont->Executor()->Now(), TInstant::Zero());

@@ -17,6 +17,8 @@ namespace NCatboostCuda {
         double L2Reg = 3.0;
         double ModelSizeReg = 0.5;
         EGrowPolicy Policy = EGrowPolicy::SymmetricTree;
+        TVector<ui32> FixedBinarySplits;
+        TVector<float> FeatureWeights;
 
         double MinLeafSize = 1;
         double RandomStrength = 0;

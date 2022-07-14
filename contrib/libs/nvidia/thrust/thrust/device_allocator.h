@@ -15,9 +15,9 @@
  */
 
 
-/*! \file device_allocator.h
+/*! \file
  *  \brief An allocator which creates new elements in memory accessible by
- *         devices.
+ *  devices.
  */
 
 #pragma once
@@ -30,11 +30,10 @@
 #include <limits>
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-/** \addtogroup memory_resources Memory Resources
- *  \ingroup memory_management_classes
+/** \addtogroup allocators Allocators
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -120,7 +119,7 @@ public:
     device_allocator() {}
 
     /*! Copy constructor has no effect. */
-    __host__
+    __host__ __device__
     device_allocator(const device_allocator& other) : base(other) {}
 
     /*! Constructor from other \p device_allocator has no effect. */
@@ -137,8 +136,7 @@ public:
     ~device_allocator() {}
 };
 
-/*! \}
+/*! \} // allocators
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

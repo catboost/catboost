@@ -72,6 +72,102 @@ using ::open;
 #endif
 }  // namespace port
 
+namespace {
+
+class SimpleLineCollector : public LineConsumer {
+ public:
+  SimpleLineCollector(std::unordered_set<TProtoStringType>* inout_set)
+      : set_(inout_set) {}
+
+  virtual bool ConsumeLine(const StringPiece& line, TProtoStringType* out_error) override {
+    set_->insert(TProtoStringType(line));
+    return true;
+  }
+
+ private:
+  std::unordered_set<TProtoStringType>* set_;
+};
+
+class PrefixModeStorage {
+ public:
+  PrefixModeStorage();
+
+  bool use_package_name() const { return use_package_name_; }
+  void set_use_package_name(bool on_or_off) { use_package_name_ = on_or_off; }
+
+  const TProtoStringType exception_path() const { return exception_path_; }
+  void set_exception_path(const TProtoStringType& path) {
+    exception_path_ = path;
+    exceptions_.clear();
+  }
+
+  bool is_package_exempted(const TProtoStringType& package);
+
+ private:
+  bool use_package_name_;
+  TProtoStringType exception_path_;
+  std::unordered_set<TProtoStringType> exceptions_;
+};
+
+PrefixModeStorage::PrefixModeStorage() {
+  // Even thought there are generation options, have an env back door since some
+  // of these helpers could be used in other plugins.
+
+  const char* use_package_cstr = getenv("GPB_OBJC_USE_PACKAGE_AS_PREFIX");
+  use_package_name_ =
+    (use_package_cstr && (TProtoStringType("YES") == ToUpper(use_package_cstr)));
+
+  const char* exception_path = getenv("GPB_OBJC_PACKAGE_PREFIX_EXCEPTIONS_PATH");
+  if (exception_path) {
+    exception_path_ = exception_path;
+  }
+}
+
+bool PrefixModeStorage::is_package_exempted(const TProtoStringType& package) {
+  if (exceptions_.empty() && !exception_path_.empty()) {
+    TProtoStringType error_str;
+    SimpleLineCollector collector(&exceptions_);
+    if (!ParseSimpleFile(exception_path_, &collector, &error_str)) {
+      if (error_str.empty()) {
+        error_str = TProtoStringType("protoc:0: warning: Failed to parse")
+           + TProtoStringType(" package prefix exceptions file: ")
+           + exception_path_;
+      }
+      std::cerr << error_str << std::endl;
+      std::cerr.flush();
+      exceptions_.clear();
+    }
+
+    // If the file was empty put something in it so it doesn't get reloaded over
+    // and over.
+    if (exceptions_.empty()) {
+      exceptions_.insert("<not a real package>");
+    }
+  }
+
+  return exceptions_.count(package) != 0;
+}
+
+PrefixModeStorage g_prefix_mode;
+
+}  // namespace
+
+bool UseProtoPackageAsDefaultPrefix() {
+  return g_prefix_mode.use_package_name();
+}
+
+void SetUseProtoPackageAsDefaultPrefix(bool on_or_off) {
+  g_prefix_mode.set_use_package_name(on_or_off);
+}
+
+TProtoStringType GetProtoPackagePrefixExceptionList() {
+  return g_prefix_mode.exception_path();
+}
+
+void SetProtoPackagePrefixExceptionList(const TProtoStringType& file_path) {
+  g_prefix_mode.set_exception_path(file_path);
+}
+
 Options::Options() {
   // Default is the value of the env for the package prefixes.
   const char* file_path = getenv("GPB_OBJC_EXPECTED_PACKAGE_PREFIXES");
@@ -361,6 +457,15 @@ TProtoStringType GetEnumNameForFlagType(const FlagType flag_type) {
   }
 }
 
+void MaybeUnQuote(StringPiece* input) {
+  if ((input->length() >= 2) &&
+      ((*input->data() == '\'' || *input->data() == '"')) &&
+      ((*input)[input->length() - 1] == *input->data())) {
+    input->remove_prefix(1);
+    input->remove_suffix(1);
+  }
+}
+
 }  // namespace
 
 // Escape C++ trigraphs by escaping question marks to \?
@@ -399,8 +504,39 @@ TProtoStringType BaseFileName(const FileDescriptor* file) {
 }
 
 TProtoStringType FileClassPrefix(const FileDescriptor* file) {
-  // Default is empty string, no need to check has_objc_class_prefix.
-  TProtoStringType result = file->options().objc_class_prefix();
+  // Always honor the file option.
+  if (file->options().has_objc_class_prefix()) {
+    return file->options().objc_class_prefix();
+  }
+
+  // If package prefix isn't enabled or no package, done.
+  if (!g_prefix_mode.use_package_name() || file->package().empty()) {
+    return "";
+  }
+
+  // If the package is in the exceptions list, done.
+  if (g_prefix_mode.is_package_exempted(file->package())) {
+    return "";
+  }
+
+  // Transform the package into a prefix: use the dot segments as part,
+  // camelcase each one and then join them with underscores, and add an
+  // underscore at the end.
+  TProtoStringType result;
+  const std::vector<TProtoStringType> segments = Split(file->package(), ".", true);
+  for (const auto& segment : segments) {
+    const TProtoStringType part = UnderscoresToCamelCase(segment, true);
+    if (part.empty()) {
+      continue;
+    }
+    if (!result.empty()) {
+      result.append("_");
+    }
+    result.append(part);
+  }
+  if (!result.empty()) {
+    result.append("_");
+  }
   return result;
 }
 
@@ -1052,7 +1188,7 @@ class ExpectedPrefixesCollector : public LineConsumer {
   ExpectedPrefixesCollector(std::map<TProtoStringType, TProtoStringType>* inout_package_to_prefix_map)
       : prefix_map_(inout_package_to_prefix_map) {}
 
-  virtual bool ConsumeLine(const StringPiece& line, TProtoStringType* out_error);
+  virtual bool ConsumeLine(const StringPiece& line, TProtoStringType* out_error) override;
 
  private:
   std::map<TProtoStringType, TProtoStringType>* prefix_map_;
@@ -1070,6 +1206,7 @@ bool ExpectedPrefixesCollector::ConsumeLine(
   StringPiece prefix = line.substr(offset + 1);
   TrimWhitespace(&package);
   TrimWhitespace(&prefix);
+  MaybeUnQuote(&prefix);
   // Don't really worry about error checking the package/prefix for
   // being valid.  Assume the file is validated when it is created/edited.
   (*prefix_map_)[TProtoStringType(package)] = TProtoStringType(prefix);
@@ -1092,6 +1229,13 @@ bool ValidateObjCClassPrefix(
     const FileDescriptor* file, const TProtoStringType& expected_prefixes_path,
     const std::map<TProtoStringType, TProtoStringType>& expected_package_prefixes,
     TProtoStringType* out_error) {
+  // Reminder: An explicit prefix option of "" is valid in case the default
+  // prefixing is set to use the proto package and a file needs to be generated
+  // without any prefix at all (for legacy reasons).
+
+  bool has_prefix = file->options().has_objc_class_prefix();
+  bool have_expected_prefix_file = !expected_prefixes_path.empty();
+
   const TProtoStringType prefix = file->options().objc_class_prefix();
   const TProtoStringType package = file->package();
 
@@ -1104,7 +1248,7 @@ bool ValidateObjCClassPrefix(
       expected_package_prefixes.find(package);
   if (package_match != expected_package_prefixes.end()) {
     // There was an entry, and...
-    if (package_match->second == prefix) {
+    if (has_prefix && package_match->second == prefix) {
       // ...it matches.  All good, out of here!
       return true;
     } else {
@@ -1112,7 +1256,7 @@ bool ValidateObjCClassPrefix(
       *out_error = "error: Expected 'option objc_class_prefix = \"" +
                    package_match->second + "\";' for package '" + package +
                    "' in '" + file->name() + "'";
-      if (prefix.length()) {
+      if (has_prefix) {
         *out_error += "; but found '" + prefix + "' instead";
       }
       *out_error += ".";
@@ -1121,22 +1265,76 @@ bool ValidateObjCClassPrefix(
   }
 
   // If there was no prefix option, we're done at this point.
-  if (prefix.empty()) {
-    // No prefix, nothing left to check.
+  if (!has_prefix) {
     return true;
   }
+
+  // When the prefix is non empty, check it against the expected entries.
+  if (!prefix.empty() && have_expected_prefix_file) {
+    // For a non empty prefix, look for any other package that uses the prefix.
+    TProtoStringType other_package_for_prefix;
+    for (std::map<TProtoStringType, TProtoStringType>::const_iterator i =
+             expected_package_prefixes.begin();
+         i != expected_package_prefixes.end(); ++i) {
+      if (i->second == prefix) {
+        other_package_for_prefix = i->first;
+        break;
+      }
+    }
+
+    // Check: Warning - If the file does not have a package, check whether the
+    // prefix was declared is being used by another package or not. This is
+    // a special case for empty packages.
+    if (package.empty()) {
+      // The file does not have a package and ...
+      if (other_package_for_prefix.empty()) {
+        // ... no other package has declared that prefix.
+        std::cerr
+             << "protoc:0: warning: File '" << file->name() << "' has no "
+             << "package. Consider adding a new package to the proto and adding '"
+             << "new.package = " << prefix << "' to the expected prefixes file ("
+             << expected_prefixes_path << ")." << std::endl;
+        std::cerr.flush();
+      } else {
+        // ... another package has declared the same prefix.
+        std::cerr
+             << "protoc:0: warning: File '" << file->name() << "' has no package "
+             << "and package '" << other_package_for_prefix << "' already uses '"
+             << prefix << "' as its prefix. Consider either adding a new package "
+             << "to the proto, or reusing one of the packages already using this "
+             << "prefix in the expected prefixes file ("
+             << expected_prefixes_path << ")." << std::endl;
+        std::cerr.flush();
+      }
+      return true;
+    }
+
+    // Check: Error - Make sure the prefix wasn't expected for a different
+    // package (overlap is allowed, but it has to be listed as an expected
+    // overlap).
+    if (!other_package_for_prefix.empty()) {
+      *out_error =
+          "error: Found 'option objc_class_prefix = \"" + prefix +
+          "\";' in '" + file->name() +
+          "'; that prefix is already used for 'package " +
+          other_package_for_prefix + ";'. It can only be reused by listing " +
+          "it in the expected file (" +
+          expected_prefixes_path + ").";
+      return false;  // Only report first usage of the prefix.
+    }
+  } // !prefix.empty()
 
   // Check: Warning - Make sure the prefix is is a reasonable value according
   // to Apple's rules (the checks above implicitly whitelist anything that
   // doesn't meet these rules).
-  if (!ascii_isupper(prefix[0])) {
+  if (!prefix.empty() && !ascii_isupper(prefix[0])) {
     std::cerr
          << "protoc:0: warning: Invalid 'option objc_class_prefix = \""
          << prefix << "\";' in '" << file->name() << "';"
          << " it should start with a capital letter." << std::endl;
     std::cerr.flush();
   }
-  if (prefix.length() < 3) {
+  if (!prefix.empty() && prefix.length() < 3) {
     // Apple reserves 2 character prefixes for themselves. They do use some
     // 3 character prefixes, but they haven't updated the rules/docs.
     std::cerr
@@ -1147,60 +1345,9 @@ bool ValidateObjCClassPrefix(
     std::cerr.flush();
   }
 
-  // Look for any other package that uses the same prefix.
-  TProtoStringType other_package_for_prefix;
-  for (std::map<TProtoStringType, TProtoStringType>::const_iterator i =
-           expected_package_prefixes.begin();
-       i != expected_package_prefixes.end(); ++i) {
-    if (i->second == prefix) {
-      other_package_for_prefix = i->first;
-      break;
-    }
-  }
-
-  // Check: Warning - If the file does not have a package, check whether
-  // the prefix declared is being used by another package or not.
-  if (package.empty()) {
-    // The file does not have a package and ...
-    if (other_package_for_prefix.empty()) {
-      // ... no other package has declared that prefix.
-      std::cerr
-           << "protoc:0: warning: File '" << file->name() << "' has no "
-           << "package. Consider adding a new package to the proto and adding '"
-           << "new.package = " << prefix << "' to the expected prefixes file ("
-           << expected_prefixes_path << ")." << std::endl;
-      std::cerr.flush();
-    } else {
-      // ... another package has declared the same prefix.
-      std::cerr
-           << "protoc:0: warning: File '" << file->name() << "' has no package "
-           << "and package '" << other_package_for_prefix << "' already uses '"
-           << prefix << "' as its prefix. Consider either adding a new package "
-           << "to the proto, or reusing one of the packages already using this "
-           << "prefix in the expected prefixes file ("
-           << expected_prefixes_path << ")." << std::endl;
-      std::cerr.flush();
-    }
-    return true;
-  }
-
-  // Check: Error - Make sure the prefix wasn't expected for a different
-  // package (overlap is allowed, but it has to be listed as an expected
-  // overlap).
-  if (!other_package_for_prefix.empty()) {
-    *out_error =
-        "error: Found 'option objc_class_prefix = \"" + prefix +
-        "\";' in '" + file->name() +
-        "'; that prefix is already used for 'package " +
-        other_package_for_prefix + ";'. It can only be reused by listing " +
-        "it in the expected file (" +
-        expected_prefixes_path + ").";
-    return false;  // Only report first usage of the prefix.
-  }
-
   // Check: Warning - If the given package/prefix pair wasn't expected, issue a
-  // warning issue a warning suggesting it gets added to the file.
-  if (!expected_package_prefixes.empty()) {
+  // warning suggesting it gets added to the file.
+  if (have_expected_prefix_file) {
     std::cerr
          << "protoc:0: warning: Found unexpected 'option objc_class_prefix = \""
          << prefix << "\";' in '" << file->name() << "';"
@@ -1217,6 +1364,12 @@ bool ValidateObjCClassPrefix(
 bool ValidateObjCClassPrefixes(const std::vector<const FileDescriptor*>& files,
                                const Options& generation_options,
                                TProtoStringType* out_error) {
+  // Allow a '-' as the path for the expected prefixes to completely disable
+  // even the most basic of checks.
+  if (generation_options.expected_prefixes_path == "-") {
+    return true;
+  }
+
   // Load the expected package prefixes, if available, to validate against.
   std::map<TProtoStringType, TProtoStringType> expected_package_prefixes;
   if (!LoadExpectedPackagePrefixes(generation_options,

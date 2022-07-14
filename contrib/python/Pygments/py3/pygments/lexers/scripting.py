@@ -4,7 +4,7 @@
 
     Lexer for scripting and embedded languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -23,7 +23,7 @@ __all__ = ['LuaLexer', 'MoonScriptLexer', 'ChaiscriptLexer', 'LSLLexer',
 
 class LuaLexer(RegexLexer):
     """
-    For `Lua <http://www.lua.org>`_ source code.
+    For Lua source code.
 
     Additional options accepted:
 
@@ -45,6 +45,7 @@ class LuaLexer(RegexLexer):
     """
 
     name = 'Lua'
+    url = 'https://www.lua.org/'
     aliases = ['lua']
     filenames = ['*.lua', '*.wlua']
     mimetypes = ['text/x-lua', 'application/x-lua']
@@ -163,12 +164,13 @@ class LuaLexer(RegexLexer):
 
 class MoonScriptLexer(LuaLexer):
     """
-    For `MoonScript <http://moonscript.org>`_ source code.
+    For MoonScript source code.
 
     .. versionadded:: 1.5
     """
 
     name = 'MoonScript'
+    url = 'http://moonscript.org'
     aliases = ['moonscript', 'moon']
     filenames = ['*.moon']
     mimetypes = ['text/x-moonscript', 'application/x-moonscript']
@@ -184,7 +186,7 @@ class MoonScriptLexer(LuaLexer):
             (r'(?i)\d+e[+-]?\d+', Number.Float),
             (r'(?i)0x[0-9a-f]*', Number.Hex),
             (r'\d+', Number.Integer),
-            (r'\n', Text),
+            (r'\n', Whitespace),
             (r'[^\S\n]+', Text),
             (r'(?s)\[(=*)\[.*?\]\1\]', String),
             (r'(->|=>)', Name.Function),
@@ -213,11 +215,11 @@ class MoonScriptLexer(LuaLexer):
         ],
         'sqs': [
             ("'", String.Single, '#pop'),
-            (".", String)
+            ("[^']+", String)
         ],
         'dqs': [
             ('"', String.Double, '#pop'),
-            (".", String)
+            ('[^"]+', String)
         ]
     }
 
@@ -231,12 +233,13 @@ class MoonScriptLexer(LuaLexer):
 
 class ChaiscriptLexer(RegexLexer):
     """
-    For `ChaiScript <http://chaiscript.com/>`_ source code.
+    For ChaiScript source code.
 
     .. versionadded:: 2.0
     """
 
     name = 'ChaiScript'
+    url = 'http://chaiscript.com/'
     aliases = ['chaiscript', 'chai']
     filenames = ['*.chai']
     mimetypes = ['text/x-chaiscript', 'application/x-chaiscript']
@@ -381,9 +384,7 @@ class LSLLexer(RegexLexer):
 
 class AppleScriptLexer(RegexLexer):
     """
-    For `AppleScript source code
-    <http://developer.apple.com/documentation/AppleScript/
-    Conceptual/AppleScriptLangGuide>`_,
+    For AppleScript source code,
     including `AppleScript Studio
     <http://developer.apple.com/documentation/AppleScript/
     Reference/StudioReference>`_.
@@ -393,6 +394,7 @@ class AppleScriptLexer(RegexLexer):
     """
 
     name = 'AppleScript'
+    url = 'https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html'
     aliases = ['applescript']
     filenames = ['*.applescript']
 
@@ -704,7 +706,7 @@ class AppleScriptLexer(RegexLexer):
 
 class RexxLexer(RegexLexer):
     """
-    `Rexx <http://www.rexxinfo.org/>`_ is a scripting language available for
+    Rexx is a scripting language available for
     a wide range of different platforms with its roots found on mainframe
     systems. It is popular for I/O- and data based tasks and can act as glue
     language to bind different applications together.
@@ -712,6 +714,7 @@ class RexxLexer(RegexLexer):
     .. versionadded:: 2.0
     """
     name = 'Rexx'
+    url = 'http://www.rexxinfo.org/'
     aliases = ['rexx', 'arexx']
     filenames = ['*.rexx', '*.rex', '*.rx', '*.arexx']
     mimetypes = ['text/x-rexx']
@@ -719,7 +722,7 @@ class RexxLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s', Whitespace),
+            (r'\s+', Whitespace),
             (r'/\*', Comment.Multiline, 'comment'),
             (r'"', String, 'string_double'),
             (r"'", String, 'string_single'),
@@ -766,7 +769,7 @@ class RexxLexer(RegexLexer):
             (r'\n', Text, '#pop'),  # Stray linefeed also terminates strings.
         ],
         'string_single': [
-            (r'[^\'\n]', String),
+            (r'[^\'\n]+', String),
             (r'\'\'', String),
             (r'\'', String, '#pop'),
             (r'\n', Text, '#pop'),  # Stray linefeed also terminates strings.
@@ -798,7 +801,7 @@ class RexxLexer(RegexLexer):
 
     def analyse_text(text):
         """
-        Check for inital comment and patterns that distinguish Rexx from other
+        Check for initial comment and patterns that distinguish Rexx from other
         C-like languages.
         """
         if re.search(r'/\*\**\s*rexx', text, re.IGNORECASE):
@@ -817,12 +820,12 @@ class RexxLexer(RegexLexer):
 
 class MOOCodeLexer(RegexLexer):
     """
-    For `MOOCode <http://www.moo.mud.org/>`_ (the MOO scripting
-    language).
+    For MOOCode (the MOO scripting language).
 
     .. versionadded:: 0.9
     """
     name = 'MOOCode'
+    url = 'http://www.moo.mud.org/'
     filenames = ['*.moo']
     aliases = ['moocode', 'moo']
     mimetypes = ['text/x-moocode']
@@ -860,7 +863,7 @@ class MOOCodeLexer(RegexLexer):
 
 class HybrisLexer(RegexLexer):
     """
-    For `Hybris <http://www.hybris-lang.org>`_ source code.
+    For Hybris source code.
 
     .. versionadded:: 1.4
     """
@@ -975,7 +978,7 @@ class EasytrieveLexer(RegexLexer):
     #   * apostrophe (')
     #   * period (.)
     #   * comma (,)
-    #   * paranthesis ( and )
+    #   * parenthesis ( and )
     #   * colon (:)
     #
     # Additionally words end once a '*' appears, indicatins a comment.
@@ -1147,8 +1150,7 @@ class EasytrieveLexer(RegexLexer):
 
 class JclLexer(RegexLexer):
     """
-    `Job Control Language (JCL)
-    <http://publibz.boulder.ibm.com/cgi-bin/bookmgr_OS390/BOOKS/IEA2B570/CCONTENTS>`_
+    Job Control Language (JCL)
     is a scripting language used on mainframe platforms to instruct the system
     on how to run a batch job or start a subsystem. It is somewhat
     comparable to MS DOS batch and Unix shell scripts.
@@ -1231,12 +1233,13 @@ class JclLexer(RegexLexer):
 
 class MiniScriptLexer(RegexLexer):
     """
-    For `MiniScript <https://miniscript.org>`_ source code.
+    For MiniScript source code.
 
     .. versionadded:: 2.6
     """
 
     name = 'MiniScript'
+    url = 'https://miniscript.org'
     aliases = ['miniscript', 'ms']
     filenames = ['*.ms']
     mimetypes = ['text/x-minicript', 'application/x-miniscript']

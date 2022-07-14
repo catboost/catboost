@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/mr/memory_resource.h>
 #include <thrust/system/cuda/detail/guarded_cuda_runtime_api.h>
 #include <thrust/system/cuda/pointer.h>
@@ -29,8 +31,7 @@
 
 #include <thrust/mr/host_memory_resource.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -41,8 +42,8 @@ namespace cuda
 namespace detail
 {
 
-    typedef cudaError_t (*allocation_fn)(void **, std::size_t);
-    typedef cudaError_t (*deallocation_fn)(void *);
+    typedef cudaError_t (CUDARTAPI *allocation_fn)(void **, std::size_t);
+    typedef cudaError_t (CUDARTAPI *deallocation_fn)(void *);
 
     template<allocation_fn Alloc, deallocation_fn Dealloc, typename Pointer>
     class cuda_memory_resource final : public mr::memory_resource<Pointer>
@@ -78,7 +79,7 @@ namespace detail
         }
     };
 
-    inline cudaError_t cudaMallocManaged(void ** ptr, std::size_t bytes)
+    inline cudaError_t CUDARTAPI cudaMallocManaged(void ** ptr, std::size_t bytes)
     {
         return ::cudaMallocManaged(ptr, bytes, cudaMemAttachGlobal);
     }
@@ -121,5 +122,5 @@ using thrust::system::cuda::universal_memory_resource;
 using thrust::system::cuda::universal_host_pinned_memory_resource;
 }
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

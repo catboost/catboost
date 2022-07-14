@@ -53,6 +53,7 @@ import copy
 from subprocess import Popen, PIPE, check_output
 import re
 
+import distutils.version
 from distutils.unixccompiler import UnixCCompiler
 from distutils.file_util import write_file
 from distutils.errors import (DistutilsExecError, CCompilerError,
@@ -82,6 +83,15 @@ def get_msvcr():
         elif msc_ver == '1600':
             # VS2010 / MSVC 10.0
             return ['msvcr100']
+        elif msc_ver == '1700':
+            # VS2012 / MSVC 11.0
+            return ['msvcr110']
+        elif msc_ver == '1800':
+            # VS2013 / MSVC 12.0
+            return ['msvcr120']
+        elif 1900 <= int(msc_ver) < 2000:
+            # VS2015 / MSVC 14.0
+           return ['ucrt', 'vcruntime140'] 
         else:
             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
@@ -396,9 +406,10 @@ def _find_exe_version(cmd):
     result = RE_VERSION.search(out_string)
     if result is None:
         return None
-    # LooseVersion works with strings
-    # so we need to decode our bytes
-    return LooseVersion(result.group(1).decode())
+    # LooseVersion works with strings; decode
+    ver_str = result.group(1).decode()
+    with distutils.version.suppress_known_deprecation():
+        return LooseVersion(ver_str)
 
 def get_versions():
     """ Try to find out the versions of gcc, ld and dllwrap.

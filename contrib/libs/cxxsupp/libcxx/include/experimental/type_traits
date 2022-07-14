@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===-------------------------- type_traits -------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -76,7 +76,7 @@ inline namespace fundamentals_v1 {
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_LFTS
@@ -105,7 +105,7 @@ using raw_invocation_type_t = typename raw_invocation_type<_Tp>::type;
 // 3.3.4, Detection idiom
 template <class...> using void_t = void;
 
-struct nonesuch : private _VSTD::__nat { // make nonesuch "not an aggregate"
+struct nonesuch : private __nat { // make nonesuch "not an aggregate"
   ~nonesuch() = delete;
   nonesuch      (nonesuch const&) = delete;
   void operator=(nonesuch const&) = delete;

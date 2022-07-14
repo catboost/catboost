@@ -298,36 +298,36 @@ class CommandLineInterface::ErrorPrinter
 
   // implements MultiFileErrorCollector ------------------------------
   void AddError(const TProtoStringType& filename, int line, int column,
-                const TProtoStringType& message) {
+                const TProtoStringType& message) override {
     found_errors_ = true;
     AddErrorOrWarning(filename, line, column, message, "error", std::cerr);
   }
 
   void AddWarning(const TProtoStringType& filename, int line, int column,
-                  const TProtoStringType& message) {
+                  const TProtoStringType& message) override {
     found_warnings_ = true;
     AddErrorOrWarning(filename, line, column, message, "warning", std::clog);
   }
 
   // implements io::ErrorCollector -----------------------------------
-  void AddError(int line, int column, const TProtoStringType& message) {
+  void AddError(int line, int column, const TProtoStringType& message) override {
     AddError("input", line, column, message);
   }
 
-  void AddWarning(int line, int column, const TProtoStringType& message) {
+  void AddWarning(int line, int column, const TProtoStringType& message) override {
     AddErrorOrWarning("input", line, column, message, "warning", std::clog);
   }
 
   // implements DescriptorPool::ErrorCollector-------------------------
   void AddError(const TProtoStringType& filename, const TProtoStringType& element_name,
                 const Message* descriptor, ErrorLocation location,
-                const TProtoStringType& message) {
+                const TProtoStringType& message) override {
     AddErrorOrWarning(filename, -1, -1, message, "error", std::cerr);
   }
 
   void AddWarning(const TProtoStringType& filename, const TProtoStringType& element_name,
                   const Message* descriptor, ErrorLocation location,
-                  const TProtoStringType& message) {
+                  const TProtoStringType& message) override {
     AddErrorOrWarning(filename, -1, -1, message, "warning", std::clog);
   }
 
@@ -400,14 +400,14 @@ class CommandLineInterface::GeneratorContextImpl : public GeneratorContext {
   void GetOutputFilenames(std::vector<TProtoStringType>* output_filenames);
 
   // implements GeneratorContext --------------------------------------
-  io::ZeroCopyOutputStream* Open(const TProtoStringType& filename);
-  io::ZeroCopyOutputStream* OpenForAppend(const TProtoStringType& filename);
+  io::ZeroCopyOutputStream* Open(const TProtoStringType& filename) override;
+  io::ZeroCopyOutputStream* OpenForAppend(const TProtoStringType& filename) override;
   io::ZeroCopyOutputStream* OpenForInsert(const TProtoStringType& filename,
-                                          const TProtoStringType& insertion_point);
+                                          const TProtoStringType& insertion_point) override;
   io::ZeroCopyOutputStream* OpenForInsertWithGeneratedCodeInfo(
       const TProtoStringType& filename, const TProtoStringType& insertion_point,
-      const google::protobuf::GeneratedCodeInfo& info);
-  void ListParsedFiles(std::vector<const FileDescriptor*>* output) {
+      const google::protobuf::GeneratedCodeInfo& info) override;
+  void ListParsedFiles(std::vector<const FileDescriptor*>* output) override {
     *output = parsed_files_;
   }
 

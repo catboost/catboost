@@ -26,7 +26,8 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/reference.h>
 
-namespace thrust { namespace cuda_cub
+THRUST_NAMESPACE_BEGIN
+namespace cuda_cub
 {
 
 /*! \p cuda::pointer stores a pointer to an object allocated in memory
@@ -109,7 +110,7 @@ using reference = thrust::tagged_reference<T, thrust::cuda_cub::tag>;
  *  \brief \p thrust::system::cuda is the namespace containing functionality
  *  for allocating, manipulating, and deallocating memory available to Thrust's
  *  CUDA backend system. The identifiers are provided in a separate namespace
- *  underneath <tt>thrust::system</tt> for import convenience but are also
+ *  underneath \p thrust::system for import convenience but are also
  *  aliased in the top-level <tt>thrust::cuda</tt> namespace for easy access.
  *
  */
@@ -132,5 +133,5 @@ using thrust::cuda_cub::universal_pointer;
 using thrust::cuda_cub::reference;
 } // namespace cuda
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

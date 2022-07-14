@@ -42,38 +42,6 @@
  * SUCH DAMAGE.
 
 
-====================BSD-3-Clause====================
-# define CHECK_BSD_STYLE_MACROS
-
-
-====================BSD-3-Clause====================
-# if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_RIPEMD160)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_CTR)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_AES_ECB)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_224)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_256)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_384)
-
-
-====================BSD-3-Clause====================
-#if !defined(CHECK_BSD_STYLE_MACROS) || defined(CRYPTO_SHA2_512)
-
-
 ====================BSD-Source-Code====================
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -273,6 +241,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2001-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2002-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -289,15 +261,19 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2002-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2003-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
- * Copyright 2003-2018 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2003-2020 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
- * Copyright 2003-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2003-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -370,11 +346,19 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2006-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2007-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
  * Copyright 2007-2018 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2007-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -391,6 +375,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2008-2020 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2008-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -411,6 +399,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2010-2020 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2010-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -547,6 +539,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2017-2020 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2017-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================

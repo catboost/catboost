@@ -1,5 +1,5 @@
---- a/py/_vendored_packages/iniconfig/__init__.py	(working tree)
-+++ b/py/_vendored_packages/iniconfig/__init__.py	(index)
+--- contrib/python/py/py/_vendored_packages/iniconfig/__init__.py	(working tree)
++++ contrib/python/py/py/_vendored_packages/iniconfig/__init__.py	(index)
 @@ -1,6 +1,8 @@
  """ brain-dead simple parser for ini-style files.
  (C) Ronny Pfannschmidt, Holger Krekel -- MIT licensed

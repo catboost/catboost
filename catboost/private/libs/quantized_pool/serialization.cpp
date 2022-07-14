@@ -211,6 +211,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Timestamp:
                 pbColumnType = NCB::NIdl::CT_TIMESTAMP;
                 break;
+            case EColumn::HashedCateg:
             case EColumn::Prediction:
             case EColumn::Auxiliary:
             case EColumn::Text:
@@ -354,7 +355,7 @@ void NCB::AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* co
         LabeledOutput(metainfo.GetColumnIndexToType().size(), pool->ColumnIndexToLocalIndex.size()));
 
     if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
-        for (const auto [columnIndex, columnType] : metainfo.GetColumnIndexToType()) {
+        for (const auto& [columnIndex, columnType] : metainfo.GetColumnIndexToType()) {
             const auto inserted  = pool->ColumnIndexToLocalIndex.emplace(
                 columnIndex,
                 pool->ColumnIndexToLocalIndex.size()).second;
@@ -869,7 +870,7 @@ namespace NCB {
             } else if (auto* column = dynamic_cast<TSrcColumn<ui32>*>(srcColumn.Get())) {
                 AddToPool(*column, quantizedPool);
             } else {
-                Y_FAIL("Unexpected srcColumn type for feature data");
+                CB_ENSURE(false, "Unexpected srcColumn type for feature data");
             }
         } else {
             AddToPool(TSrcColumn<ui8>(columnType), quantizedPool);

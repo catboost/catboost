@@ -836,7 +836,7 @@ tracemalloc_clear_filename(void *value)
 static void
 tracemalloc_clear_traces(void)
 {
-    /* The GIL protects variables againt concurrent access */
+    /* The GIL protects variables against concurrent access */
     assert(PyGILState_Check());
 
     TABLES_LOCK();
@@ -1241,6 +1241,9 @@ tracemalloc_copy_domain(_Py_hashtable_t *domains,
     _Py_hashtable_t *traces = (_Py_hashtable_t *)value;
 
     _Py_hashtable_t *traces2 = tracemalloc_copy_traces(traces);
+    if (traces2 == NULL) {
+        return -1;
+    }
     if (_Py_hashtable_set(domains2, TO_PTR(domain), traces2) < 0) {
         _Py_hashtable_destroy(traces2);
         return -1;

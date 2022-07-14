@@ -123,6 +123,14 @@
         "dev_group_features": false,
         "dev_leafwise_scoring": false,
         "dev_sparse_array_indexing": "Indices",
+        "embedding_processing_options": {
+            "embedding_processing": {
+                "default": [
+                    "LDA",
+                    "KNN"
+                ]
+            }
+        },
         "float_features_binarization": {
             "border_count": 254,
             "border_type": "GreedyLogSum",

@@ -10,6 +10,7 @@ Authors
 # Distributed under the terms of the Modified BSD License.
 
 import os
+from pathlib import Path
 import re
 import sys
 import tempfile
@@ -19,15 +20,6 @@ from contextlib import contextmanager
 from io import StringIO
 from subprocess import Popen, PIPE
 from unittest.mock import patch
-
-try:
-    # These tools are used by parts of the runtime, so we make the nose
-    # dependency optional at this point.  Nose is a hard dependency to run the
-    # test suite, but NOT to use ipython itself.
-    import nose.tools as nt
-    has_nose = True
-except ImportError:
-    has_nose = False
 
 from traitlets.config.loader import Config
 from IPython.utils.process import get_output_error_code
@@ -142,7 +134,7 @@ def default_config():
     config.TerminalTerminalInteractiveShell.term_title = False,
     config.TerminalInteractiveShell.autocall = 0
     f = tempfile.NamedTemporaryFile(suffix=u'test_hist.sqlite', delete=False)
-    config.HistoryManager.hist_file = f.name
+    config.HistoryManager.hist_file = Path(f.name)
     f.close()
     config.HistoryManager.db_cache_size = 10000
     return config
@@ -176,7 +168,7 @@ def ipexec(fname, options=None, commands=()):
 
     Parameters
     ----------
-    fname : str
+    fname : str, Path
       Name of file to be executed (should have .py or .ipy extension).
 
     options : optional, list
@@ -189,7 +181,10 @@ def ipexec(fname, options=None, commands=()):
     -------
     ``(stdout, stderr)`` of ipython subprocess.
     """
-    if options is None: options = []
+    __tracebackhide__ = True
+
+    if options is None:
+        options = []
 
     cmdargs = default_argv() + options
 
@@ -204,6 +199,8 @@ def ipexec(fname, options=None, commands=()):
     # should we keep suppressing warnings here, even after removing shims?
     env['PYTHONWARNINGS'] = 'ignore'
     # env.pop('PYTHONWARNINGS', None)  # Avoid extraneous warnings appearing on stderr
+    # Prevent coloring under PyCharm ("\x1b[0m" at the end of the stdout)
+    env.pop("PYCHARM_HOSTED", None)
     for k, v in env.items():
         # Debug a bizarre failure we've seen on Windows:
         # TypeError: environment can only contain strings
@@ -229,7 +226,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
 
     Parameters
     ----------
-    fname : str
+    fname : str, Path
       Name of the file to be executed (should have .py or .ipy extension).
 
     expected_out : str
@@ -245,8 +242,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     -------
     None
     """
-
-    import nose.tools as nt
+    __tracebackhide__ = True
 
     out, err = ipexec(fname, options, commands)
     #print 'OUT', out  # dbg
@@ -255,12 +251,16 @@ def ipexec_validate(fname, expected_out, expected_err='',
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
-            nt.assert_equal("\n".join(err.strip().splitlines()), "\n".join(expected_err.strip().splitlines()))
+            assert "\n".join(err.strip().splitlines()) == "\n".join(
+                expected_err.strip().splitlines()
+            )
         else:
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
     # If no errors or output on stderr was expected, match stdout
-    nt.assert_equal("\n".join(out.strip().splitlines()), "\n".join(expected_out.strip().splitlines()))
+    assert "\n".join(out.strip().splitlines()) == "\n".join(
+        expected_out.strip().splitlines()
+    )
 
 
 class TempFileMixin(unittest.TestCase):
@@ -320,6 +320,8 @@ def check_pairs(func, pairs):
     None. Raises an AssertionError if any output does not match the expected
     value.
     """
+    __tracebackhide__ = True
+
     name = getattr(func, "func_name", getattr(func, "__name__", "<unknown>"))
     for inp, expected in pairs:
         out = func(inp)
@@ -362,6 +364,8 @@ class AssertPrints(object):
         setattr(sys, self.channel, self.buffer if self.suppress else self.tee)
 
     def __exit__(self, etype, value, traceback):
+        __tracebackhide__ = True
+
         try:
             if value is not None:
                 # If an error was raised, don't check anything else
@@ -389,6 +393,8 @@ class AssertNotPrints(AssertPrints):
 
     Counterpart of AssertPrints"""
     def __exit__(self, etype, value, traceback):
+        __tracebackhide__ = True
+
         try:
             if value is not None:
                 # If an error was raised, don't check anything else
@@ -420,9 +426,8 @@ def mute_warn():
 
 @contextmanager
 def make_tempfile(name):
-    """ Create an empty, named, temporary file for the duration of the context.
-    """
-    open(name, 'w').close()
+    """Create an empty, named, temporary file for the duration of the context."""
+    open(name, "w", encoding="utf-8").close()
     try:
         yield
     finally:
@@ -443,8 +448,8 @@ def fake_input(inputs):
     def mock_input(prompt=''):
         try:
             return next(it)
-        except StopIteration:
-            raise EOFError('No more inputs given')
+        except StopIteration as e:
+            raise EOFError('No more inputs given') from e
 
     return patch('builtins.input', mock_input)
 
@@ -452,10 +457,10 @@ def help_output_test(subcommand=''):
     """test that `ipython [subcommand] -h` works"""
     cmd = get_ipython_cmd() + [subcommand, '-h']
     out, err, rc = get_output_error_code(cmd)
-    nt.assert_equal(rc, 0, err)
-    nt.assert_not_in("Traceback", err)
-    nt.assert_in("Options", out)
-    nt.assert_in("--help-all", out)
+    assert rc == 0, err
+    assert "Traceback" not in err
+    assert "Options" in out
+    assert "--help-all" in out
     return out, err
 
 
@@ -463,9 +468,9 @@ def help_all_output_test(subcommand=''):
     """test that `ipython [subcommand] --help-all` works"""
     cmd = get_ipython_cmd() + [subcommand, '--help-all']
     out, err, rc = get_output_error_code(cmd)
-    nt.assert_equal(rc, 0, err)
-    nt.assert_not_in("Traceback", err)
-    nt.assert_in("Options", out)
-    nt.assert_in("Class", out)
+    assert rc == 0, err
+    assert "Traceback" not in err
+    assert "Options" in out
+    assert "Class" in out
     return out, err
 

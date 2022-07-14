@@ -1,7 +1,6 @@
 PY23_LIBRARY()
 
-# Proxy library
-LICENSE(Not-Applicable)
+LICENSE(Service-Py23-Proxy)
 
 
 

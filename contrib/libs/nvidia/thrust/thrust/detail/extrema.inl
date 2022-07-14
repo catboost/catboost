@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/extrema.h>
@@ -22,9 +23,7 @@
 #include <thrust/system/detail/generic/extrema.h>
 #include <thrust/system/detail/adl/extrema.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator>
@@ -141,7 +140,7 @@ ForwardIterator max_element(ForwardIterator first, ForwardIterator last,
 
 
 template <typename ForwardIterator>
-thrust::pair<ForwardIterator,ForwardIterator> 
+thrust::pair<ForwardIterator,ForwardIterator>
 minmax_element(ForwardIterator first, ForwardIterator last)
 {
   using thrust::system::detail::generic::select_system;
@@ -155,7 +154,7 @@ minmax_element(ForwardIterator first, ForwardIterator last)
 
 
 template <typename ForwardIterator, typename BinaryPredicate>
-thrust::pair<ForwardIterator,ForwardIterator> 
+thrust::pair<ForwardIterator,ForwardIterator>
 minmax_element(ForwardIterator first, ForwardIterator last, BinaryPredicate comp)
 {
   using thrust::system::detail::generic::select_system;
@@ -167,6 +166,4 @@ minmax_element(ForwardIterator first, ForwardIterator last, BinaryPredicate comp
   return thrust::minmax_element(select_system(system), first, last, comp);
 } // end minmax_element()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

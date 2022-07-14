@@ -14,12 +14,13 @@
  *  limitations under the License.
  */
 
-/*! \file sync_pool.h
+/*! \file 
  *  \brief A mutex-synchronized version of \p unsynchronized_pool_resource.
  */
 
 #pragma once
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/cpp11_required.h>
 
 #if THRUST_CPP_DIALECT >= 2011
@@ -28,15 +29,12 @@
 
 #include <thrust/mr/pool.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
-/*! \addtogroup memory_management Memory Management
- *  \addtogroup memory_management_classes Memory Management Classes
- *  \addtogroup memory_resources Memory Resources
- *  \ingroup memory_resources
+/*! \addtogroup memory_resources Memory Resources
+ *  \ingroup memory_management
  *  \{
  */
 
@@ -106,11 +104,11 @@ private:
     unsync_pool upstream_pool;
 };
 
-/*! \}
+/*! \} // memory_resources
  */
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

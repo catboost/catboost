@@ -291,7 +291,7 @@ BELONGS ya.make
     Files with this license:
         Sha256.c [2:2]
 
-KEEP     Public-Domain        b3e18b49d837655739c8df698ec4e6c3
+SKIP     Public-Domain        b3e18b49d837655739c8df698ec4e6c3
 BELONGS ya.make
     License text:
         \#define MY_COPYRIGHT_PD "Igor Pavlov : Public domain"

@@ -1,4 +1,5 @@
 #include "endpoint.h"
+#include "sock.h"
 
 TEndpoint::TEndpoint(const TEndpoint::TAddrRef& addr)
     : Addr_(addr)

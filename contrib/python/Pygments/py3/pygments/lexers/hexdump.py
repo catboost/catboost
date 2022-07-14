@@ -4,12 +4,12 @@
 
     Lexers for hexadecimal dumps.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 from pygments.lexer import RegexLexer, bygroups, include
-from pygments.token import Text, Name, Number, String, Punctuation
+from pygments.token import Text, Name, Number, String, Punctuation, Whitespace
 
 __all__ = ['HexdumpLexer']
 
@@ -43,22 +43,22 @@ class HexdumpLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('offset'),
             (r'('+hd+r'{2})(\-)('+hd+r'{2})',
              bygroups(Number.Hex, Punctuation, Number.Hex)),
             (hd+r'{2}', Number.Hex),
             (r'(\s{2,3})(\>)(.{16})(\<)$',
-             bygroups(Text, Punctuation, String, Punctuation), 'bracket-strings'),
+             bygroups(Whitespace, Punctuation, String, Punctuation), 'bracket-strings'),
             (r'(\s{2,3})(\|)(.{16})(\|)$',
-             bygroups(Text, Punctuation, String, Punctuation), 'piped-strings'),
+             bygroups(Whitespace, Punctuation, String, Punctuation), 'piped-strings'),
             (r'(\s{2,3})(\>)(.{1,15})(\<)$',
-             bygroups(Text, Punctuation, String, Punctuation)),
+             bygroups(Whitespace, Punctuation, String, Punctuation)),
             (r'(\s{2,3})(\|)(.{1,15})(\|)$',
-             bygroups(Text, Punctuation, String, Punctuation)),
-            (r'(\s{2,3})(.{1,15})$', bygroups(Text, String)),
-            (r'(\s{2,3})(.{16}|.{20})$', bygroups(Text, String), 'nonpiped-strings'),
-            (r'\s', Text),
+             bygroups(Whitespace, Punctuation, String, Punctuation)),
+            (r'(\s{2,3})(.{1,15})$', bygroups(Whitespace, String)),
+            (r'(\s{2,3})(.{16}|.{20})$', bygroups(Whitespace, String), 'nonpiped-strings'),
+            (r'\s', Whitespace),
             (r'^\*', Punctuation),
         ],
         'offset': [
@@ -66,37 +66,37 @@ class HexdumpLexer(RegexLexer):
             (r'^'+hd+'+', Name.Label),
         ],
         'offset-mode': [
-            (r'\s', Text, '#pop'),
+            (r'\s', Whitespace, '#pop'),
             (hd+'+', Name.Label),
             (r':', Punctuation)
         ],
         'piped-strings': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('offset'),
             (hd+r'{2}', Number.Hex),
             (r'(\s{2,3})(\|)(.{1,16})(\|)$',
-             bygroups(Text, Punctuation, String, Punctuation)),
-            (r'\s', Text),
+             bygroups(Whitespace, Punctuation, String, Punctuation)),
+            (r'\s', Whitespace),
             (r'^\*', Punctuation),
         ],
         'bracket-strings': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('offset'),
             (hd+r'{2}', Number.Hex),
             (r'(\s{2,3})(\>)(.{1,16})(\<)$',
-             bygroups(Text, Punctuation, String, Punctuation)),
-            (r'\s', Text),
+             bygroups(Whitespace, Punctuation, String, Punctuation)),
+            (r'\s', Whitespace),
             (r'^\*', Punctuation),
         ],
         'nonpiped-strings': [
-            (r'\n', Text),
+            (r'\n', Whitespace),
             include('offset'),
             (r'('+hd+r'{2})(\-)('+hd+r'{2})',
              bygroups(Number.Hex, Punctuation, Number.Hex)),
             (hd+r'{2}', Number.Hex),
-            (r'(\s{19,})(.{1,20}?)$', bygroups(Text, String)),
-            (r'(\s{2,3})(.{1,20})$', bygroups(Text, String)),
-            (r'\s', Text),
+            (r'(\s{19,})(.{1,20}?)$', bygroups(Whitespace, String)),
+            (r'(\s{2,3})(.{1,20})$', bygroups(Whitespace, String)),
+            (r'\s', Whitespace),
             (r'^\*', Punctuation),
         ],
     }

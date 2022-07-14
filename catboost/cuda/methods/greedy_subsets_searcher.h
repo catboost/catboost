@@ -19,7 +19,10 @@
 #include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
-    inline TTreeStructureSearcherOptions MakeStructureSearcherOptions(const NCatboostOptions::TObliviousTreeLearnerOptions& config) {
+    inline TTreeStructureSearcherOptions MakeStructureSearcherOptions(
+        const NCatboostOptions::TObliviousTreeLearnerOptions& config,
+        ui32 featureCount
+    ) {
         TTreeStructureSearcherOptions options;
         options.ScoreFunction = config.ScoreFunction;
         options.BootstrapOptions = config.BootstrapConfig;
@@ -27,6 +30,8 @@ namespace NCatboostCuda {
         options.MinLeafSize = config.MinDataInLeaf;
         options.L2Reg = config.L2Reg;
         options.Policy = config.GrowPolicy;
+        options.FixedBinarySplits = config.FixedBinarySplits;
+        options.FeatureWeights = NCatboostOptions::ExpandFeatureWeights(config.FeaturePenalties.Get(), featureCount);
         if (config.GrowPolicy == EGrowPolicy::Region) {
             options.MaxLeaves = config.MaxDepth + 1;
         } else {
@@ -52,7 +57,7 @@ namespace NCatboostCuda {
             , BoostingOptions(boostingOptions)
             , TreeConfig(config.ObliviousTreeOptions)
             , LossDescription(config.LossFunctionDescription.Get())
-            , StructureSearcherOptions(MakeStructureSearcherOptions(config.ObliviousTreeOptions))
+            , StructureSearcherOptions(MakeStructureSearcherOptions(config.ObliviousTreeOptions, featuresManager.GetFeatureCount()))
             , MakeZeroAverage(makeZeroAverage)
             , ZeroLastBinInMulticlassHack(config.LossFunctionDescription->GetLossFunction() == ELossFunction::MultiClass)
             , Random(random)

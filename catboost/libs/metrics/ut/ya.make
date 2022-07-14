@@ -16,6 +16,7 @@ SRCS(
     balanced_accuracy_ut.cpp
     dcg_ut.cpp
     err_ut.cpp
+    f_ut.cpp
     fair_loss_ut.cpp
     hamming_loss_ut.cpp
     hinge_loss_ut.cpp
@@ -25,6 +26,7 @@ SRCS(
     median_absolute_error_ut.cpp
     mrr_ut.cpp
     msle_ut.cpp
+    multiquantile_ut.cpp
     normalized_gini_ut.cpp
     precision_recall_at_k_ut.cpp
     quantile_ut.cpp

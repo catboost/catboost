@@ -22,8 +22,8 @@ SRCS(
     quantization.cpp
     GLOBAL spark_quantized.cpp
     string.cpp
+    target.cpp
     native_impl.swg
-    quantized_pool_serialization.cpp
     vector_output.cpp
     worker.cpp
 )
@@ -34,6 +34,8 @@ PEERDIR(
     library/cpp/dbg_output
     library/cpp/grid_creator
     library/cpp/json
+    library/cpp/par
+    library/cpp/threading/atomic
     library/cpp/threading/local_executor
     catboost/libs/cat_feature
     catboost/libs/column_description
@@ -48,14 +50,15 @@ PEERDIR(
     catboost/private/libs/data_util
     catboost/private/libs/data_types
     catboost/private/libs/distributed
+    catboost/private/libs/labels
     catboost/private/libs/options
     catboost/private/libs/quantized_pool
 )
 
-IF (OS_LINUX AND NOT ARCH_AARCH64)
-    ALLOCATOR(TCMALLOC_256K)
-ELSE()
+IF (OS_WINDOWS)
     ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(MIM)
 ENDIF()
 
 STRIP()
@@ -71,7 +74,7 @@ IF (USE_SYSTEM_JDK)
         CFLAGS(-I${JAVA_HOME}/include/win32)
     ENDIF()
 ELSE()
-    IF (NOT CATBOOST_OPENSOURCE OR AUTOCHECK)
+    IF (NOT OPENSOURCE OR AUTOCHECK)
         PEERDIR(contrib/libs/jdk)
     ELSE()
         # warning instead of an error to enable configure w/o specifying JAVA_HOME

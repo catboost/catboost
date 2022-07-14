@@ -18,7 +18,9 @@ void NCatboostCuda::TDocParallelLeavesEstimator::Estimate(ui32 taskId, NPar::ILo
     }
 
     derCalcer->WriteWeights(&weights);
-    Y_VERIFY(task.Model->BinCount() == weights.size());
+    CB_ENSURE(
+        task.Model->BinCount() == weights.size(),
+        "Unexpected number of weights " << weights.size() << ", should be " << task.Model->BinCount());
 
     if (LeavesEstimationConfig.MakeZeroAverage) {
         double sum = 0;
@@ -47,9 +49,10 @@ THolder<NCatboostCuda::ILeavesEstimationOracle> NCatboostCuda::TDocParallelLeave
                                 &bins);
     }
 
-    return task.DerCalcerFactory->Create(LeavesEstimationConfig,
+    auto calcer = task.DerCalcerFactory->Create(LeavesEstimationConfig,
                                          task.Cursor.ConstCopyView(),
                                          std::move(bins),
                                          binCount,
                                          Random);
+    return std::move(calcer);
 }

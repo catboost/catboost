@@ -14,14 +14,15 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/omp/detail/reduce.h>
 #include <thrust/system/omp/detail/default_decomposition.h>
 #include <thrust/system/omp/detail/reduce_intervals.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -31,7 +32,7 @@ namespace detail
 
 
 template<typename DerivedPolicy,
-         typename InputIterator, 
+         typename InputIterator,
          typename OutputType,
          typename BinaryFunction>
   OutputType reduce(execution_policy<DerivedPolicy> &exec,
@@ -51,10 +52,10 @@ template<typename DerivedPolicy,
   // allocate storage for the initializer and partial sums
   // XXX use select_system for Tag
   thrust::detail::temporary_array<OutputType,DerivedPolicy> partial_sums(exec, decomp1.size() + 1);
-  
+
   // set first element of temp array to init
   partial_sums[0] = init;
-  
+
   // accumulate partial sums (first level reduction)
   thrust::system::omp::detail::reduce_intervals(exec, first, partial_sums.begin() + 1, binary_op, decomp1);
 
@@ -68,5 +69,5 @@ template<typename DerivedPolicy,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

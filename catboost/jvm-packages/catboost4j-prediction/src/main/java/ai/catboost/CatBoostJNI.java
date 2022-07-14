@@ -49,6 +49,18 @@ class CatBoostJNI {
             final @NotNull int[] catFeatureCount) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedCategoricalFeatureCount(handle, catFeatureCount));
     }
+
+    final void catBoostModelGetUsedTextFeatureCount(
+            final long handle,
+            final @NotNull int[] textFeatureCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedTextFeatureCount(handle, textFeatureCount));
+    }
+
+    final void catBoostModelGetUsedEmbeddingFeatureCount(
+            final long handle,
+            final @NotNull int[] embeddingFeatureCount) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedEmbeddingFeatureCount(handle, embeddingFeatureCount));
+    }
     
     final void catBoostModelGetFlatFeatureVectorExpectedSize(
             final long handle,
@@ -89,6 +101,14 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTextFeatures(handle, names, flat_feature_index, feature_index));
     }
 
+    final void catBoostModelGetEmbeddingFeatures(
+            final long handle,
+            final @NotNull String[][] names,
+            final @NotNull int[][] flat_feature_index,
+            final @NotNull int[][] feature_index) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetEmbeddingFeatures(handle, names, flat_feature_index, feature_index));
+    }
+
     final void catBoostModelGetUsedFeatureIndices(
             final long handle,
             final @NotNull int[][] featureIndices) throws CatBoostError {
@@ -105,31 +125,39 @@ class CatBoostJNI {
             final long handle,
             final @Nullable float[] numericFeatures,
             final @Nullable String[] catFeatures,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, predictions));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, textFeatures, embeddingFeatures, predictions));
     }
 
     final void catBoostModelPredict(
             final long handle,
             final @Nullable float[] numericFeatures,
             final @Nullable int[] catFeatureHashes,
+            final @Nullable String[] textFeatures,
+            final @Nullable float[][] embeddingFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, predictions));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, predictions));
     }
 
     final void catBoostModelPredict(
             final long handle,
             final @Nullable float[][] numericFeatures,
             final @Nullable String[][] catFeatures,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, predictions));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatures, textFeatures, embeddingFeatures, predictions));
     }
 
     final void catBoostModelPredict(
             final long handle,
             final @Nullable float[][] numericFeatures,
             final @Nullable int[][] catFeatureHashes,
+            final @Nullable String[][] textFeatures,
+            final @Nullable float[][][] embeddingFeatures,
             final @NotNull double[] predictions) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, predictions));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(handle, numericFeatures, catFeatureHashes, textFeatures, embeddingFeatures, predictions));
     }
 }

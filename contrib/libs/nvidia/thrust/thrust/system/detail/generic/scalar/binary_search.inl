@@ -21,8 +21,7 @@
 #include <thrust/detail/function.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system
 {
@@ -153,6 +152,6 @@ bool binary_search(RandomAccessIterator first, RandomAccessIterator last, const 
 
 } // end system
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/scalar/binary_search.inl>

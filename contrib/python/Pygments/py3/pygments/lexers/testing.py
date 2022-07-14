@@ -4,7 +4,7 @@
 
     Lexers for testing languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,7 +16,7 @@ __all__ = ['GherkinLexer', 'TAPLexer']
 
 class GherkinLexer(RegexLexer):
     """
-    For `Gherkin <https://github.com/aslakhellesoy/gherkin/>` syntax.
+    For Gherkin syntax.
 
     .. versionadded:: 1.2
     """
@@ -129,6 +129,9 @@ class GherkinLexer(RegexLexer):
         ]
     }
 
+    def analyse_text(self, text):
+        return
+
 
 class TAPLexer(RegexLexer):
     """
@@ -137,6 +140,7 @@ class TAPLexer(RegexLexer):
     .. versionadded:: 2.1
     """
     name = 'TAP'
+    url = 'https://testanything.org/'
     aliases = ['tap']
     filenames = ['*.tap']
 

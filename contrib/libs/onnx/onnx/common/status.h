@@ -1,12 +1,12 @@
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
 
-#include <util/generic/string.h>
-
 #include <memory>
-#include <string>
+#include <ostream>
+#include <util/generic/string.h>
 
 namespace ONNX_NAMESPACE {
 namespace Common {
@@ -72,8 +72,7 @@ class Status {
 
  private:
   struct State {
-    State(StatusCategory cat_, int code_, const TString& msg_)
-        : category(cat_), code(code_), msg(msg_) {}
+    State(StatusCategory cat_, int code_, TString msg_) : category(cat_), code(code_), msg(std::move(msg_)) {}
 
     StatusCategory category = StatusCategory::NONE;
     int code = 0;

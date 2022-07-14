@@ -26,7 +26,8 @@
 #include <thrust/detail/pointer.h>
 #include <thrust/detail/reference.h>
 
-namespace thrust { namespace system { namespace cpp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace cpp
 {
 
 /*! \p cpp::pointer stores a pointer to an object allocated in memory accessible
@@ -112,5 +113,5 @@ using thrust::system::cpp::universal_pointer;
 using thrust::system::cpp::reference;
 } // namespace cpp
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 

@@ -146,7 +146,9 @@ namespace NCatboostCuda {
             TConstArrayRef<float> target = *dataProvider.TargetData->GetOneDimensionalTarget();
             TVector<float> tmp(target.begin(), target.end());
             SortUnique(tmp);
-            Y_VERIFY(NumClasses >= tmp.size());
+            CB_ENSURE(
+                NumClasses >= tmp.size(),
+                "Number of classes (" << NumClasses << ") should be >= number of unique labels ("  << tmp.size() << ")");
             CATBOOST_DEBUG_LOG << "Num classes " << NumClasses << Endl;
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);

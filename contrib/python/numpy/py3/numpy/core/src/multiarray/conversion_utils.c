@@ -1,12 +1,12 @@
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include "structmember.h"
-
 #define NPY_NO_DEPRECATED_API NPY_API_VERSION
 #define _MULTIARRAYMODULE
+
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <structmember.h>
+
 #include "numpy/arrayobject.h"
 #include "numpy/arrayscalars.h"
-#include "numpy/arrayobject.h"
 
 #include "npy_config.h"
 #include "npy_pycompat.h"
@@ -95,9 +95,21 @@ PyArray_IntpConverter(PyObject *obj, PyArray_Dims *seq)
 
     seq->ptr = NULL;
     seq->len = 0;
+
+    /*
+     * When the deprecation below expires, remove the `if` statement, and
+     * update the comment for PyArray_OptionalIntpConverter.
+     */
     if (obj == Py_None) {
+        /* Numpy 1.20, 2020-05-31 */
+        if (DEPRECATE(
+                "Passing None into shape arguments as an alias for () is "
+                "deprecated.") < 0){
+            return NPY_FAIL;
+        }
         return NPY_SUCCEED;
     }
+
     len = PySequence_Size(obj);
     if (len == -1) {
         /* Check to see if it is an integer number */
@@ -151,6 +163,42 @@ PyArray_OptionalIntpConverter(PyObject *obj, PyArray_Dims *seq)
     return PyArray_IntpConverter(obj, seq);
 }
 
+NPY_NO_EXPORT int
+PyArray_CopyConverter(PyObject *obj, _PyArray_CopyMode *copymode) {
+    if (obj == Py_None) {
+        PyErr_SetString(PyExc_ValueError,
+                        "NoneType copy mode not allowed.");
+        return NPY_FAIL;
+    }
+
+    int int_copymode;
+    static PyObject* numpy_CopyMode = NULL;
+    npy_cache_import("numpy", "_CopyMode", &numpy_CopyMode);
+
+    if (numpy_CopyMode != NULL && (PyObject *)Py_TYPE(obj) == numpy_CopyMode) {
+        PyObject* mode_value = PyObject_GetAttrString(obj, "value");
+        if (mode_value == NULL) {
+            return NPY_FAIL;
+        }
+
+        int_copymode = (int)PyLong_AsLong(mode_value);
+        Py_DECREF(mode_value);
+        if (error_converting(int_copymode)) {
+            return NPY_FAIL;
+        }
+    }
+    else {
+        npy_bool bool_copymode;
+        if (!PyArray_BoolConverter(obj, &bool_copymode)) {
+            return NPY_FAIL;
+        }
+        int_copymode = (int)bool_copymode;
+    }
+
+    *copymode = (_PyArray_CopyMode)int_copymode;
+    return NPY_SUCCEED;
+}
+
 /*NUMPY_API
  * Get buffer chunk from object
  *
@@ -195,7 +243,6 @@ PyArray_BufferConverter(PyObject *obj, PyArray_Chunk *buf)
      * sticks around after the release.
      */
     PyBuffer_Release(&view);
-    _dealloc_cached_buffer_info(obj);
 
     /* Point to the base of the buffer object if present */
     if (PyMemoryView_Check(obj)) {
@@ -360,8 +407,11 @@ string_converter_helper(
     int ret = str_func(str, length, out);
     Py_DECREF(str_object);
     if (ret < 0) {
+        /* str_func returns -1 without an exception if the value is wrong */
+        if (!PyErr_Occurred()) {
             PyErr_Format(PyExc_ValueError,
                 "%s %s (got %R)", name, message, object);
+        }
         return NPY_FAIL;
     }
     return NPY_SUCCEED;
@@ -374,8 +424,8 @@ static int byteorder_parser(char const *str, Py_ssize_t length, void *data)
     if (length < 1) {
         return -1;
     }
-    else if (str[0] == NPY_BIG || str[0] == NPY_LITTLE
-        || str[0] == NPY_NATIVE || str[0] == NPY_IGNORE) {
+    else if (str[0] == NPY_BIG || str[0] == NPY_LITTLE ||
+             str[0] == NPY_NATIVE || str[0] == NPY_IGNORE) {
         *endian = str[0];
         return 0;
     }
@@ -497,21 +547,36 @@ PyArray_SelectkindConverter(PyObject *obj, NPY_SELECTKIND *selectkind)
 static int searchside_parser(char const *str, Py_ssize_t length, void *data)
 {
     NPY_SEARCHSIDE *side = (NPY_SEARCHSIDE *)data;
+    int is_exact = 0;
 
     if (length < 1) {
         return -1;
     }
     else if (str[0] == 'l' || str[0] == 'L') {
         *side = NPY_SEARCHLEFT;
-        return 0;
+        is_exact = (length == 4 && strcmp(str, "left") == 0);
     }
     else if (str[0] == 'r' || str[0] == 'R') {
         *side = NPY_SEARCHRIGHT;
-        return 0;
+        is_exact = (length == 5 && strcmp(str, "right") == 0);
     }
     else {
         return -1;
     }
+
+    /* Filters out the case sensitive/non-exact
+     * match inputs and other inputs and outputs DeprecationWarning
+     */
+    if (!is_exact) {
+        /* NumPy 1.20, 2020-05-19 */
+        if (DEPRECATE("inexact matches and case insensitive matches "
+                      "for search side are deprecated, please use "
+                      "one of 'left' or 'right' instead.") < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 /*NUMPY_API
@@ -570,24 +635,40 @@ PyArray_OrderConverter(PyObject *object, NPY_ORDER *val)
 static int clipmode_parser(char const *str, Py_ssize_t length, void *data)
 {
     NPY_CLIPMODE *val = (NPY_CLIPMODE *)data;
+    int is_exact = 0;
+
     if (length < 1) {
         return -1;
     }
     if (str[0] == 'C' || str[0] == 'c') {
         *val = NPY_CLIP;
-        return 0;
+        is_exact = (length == 4 && strcmp(str, "clip") == 0);
     }
     else if (str[0] == 'W' || str[0] == 'w') {
         *val = NPY_WRAP;
-        return 0;
+        is_exact = (length == 4 && strcmp(str, "wrap") == 0);
     }
     else if (str[0] == 'R' || str[0] == 'r') {
         *val = NPY_RAISE;
-        return 0;
+        is_exact = (length == 5 && strcmp(str, "raise") == 0);
     }
     else {
         return -1;
     }
+
+    /* Filters out the case sensitive/non-exact
+     * match inputs and other inputs and outputs DeprecationWarning
+     */
+    if (!is_exact) {
+        /* Numpy 1.20, 2020-05-19 */
+        if (DEPRECATE("inexact matches and case insensitive matches "
+                      "for clip mode are deprecated, please use "
+                      "one of 'clip', 'raise', or 'wrap' instead.") < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 /*NUMPY_API
@@ -669,6 +750,78 @@ PyArray_ConvertClipmodeSequence(PyObject *object, NPY_CLIPMODE *modes, int n)
         return NPY_FAIL;
     }
     return NPY_SUCCEED;
+}
+
+static int correlatemode_parser(char const *str, Py_ssize_t length, void *data)
+{
+    NPY_CORRELATEMODE *val = (NPY_CORRELATEMODE *)data;
+    int is_exact = 0;
+
+    if (length < 1) {
+        return -1;
+    }
+    if (str[0] == 'V' || str[0] == 'v') {
+        *val = NPY_VALID;
+        is_exact = (length == 5 && strcmp(str, "valid") == 0);
+    }
+    else if (str[0] == 'S' || str[0] == 's') {
+        *val = NPY_SAME;
+        is_exact = (length == 4 && strcmp(str, "same") == 0);
+    }
+    else if (str[0] == 'F' || str[0] == 'f') {
+        *val = NPY_FULL;
+        is_exact = (length == 4 && strcmp(str, "full") == 0);
+    }
+    else {
+        return -1;
+    }
+
+    /* Filters out the case sensitive/non-exact
+     * match inputs and other inputs and outputs DeprecationWarning
+     */
+    if (!is_exact) {
+        /* Numpy 1.21, 2021-01-19 */
+        if (DEPRECATE("inexact matches and case insensitive matches for "
+                      "convolve/correlate mode are deprecated, please "
+                      "use one of 'valid', 'same', or 'full' instead.") < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+/*
+ * Convert an object to NPY_VALID / NPY_SAME / NPY_FULL
+ */
+NPY_NO_EXPORT int
+PyArray_CorrelatemodeConverter(PyObject *object, NPY_CORRELATEMODE *val)
+{
+    if (PyUnicode_Check(object)) {
+        return string_converter_helper(
+            object, (void *)val, correlatemode_parser, "mode",
+            "must be one of 'valid', 'same', or 'full'");
+    }
+
+    else {
+        /* For users passing integers */
+        int number = PyArray_PyIntAsInt(object);
+        if (error_converting(number)) {
+            PyErr_SetString(PyExc_TypeError,
+                        "convolve/correlate mode not understood");
+            return NPY_FAIL;
+        }
+        if (number <= (int) NPY_FULL
+                && number >= (int) NPY_VALID) {
+            *val = (NPY_CORRELATEMODE) number;
+            return NPY_SUCCEED;
+        }
+        else {
+            PyErr_Format(PyExc_ValueError,
+                    "integer convolve/correlate mode must be 0, 1, or 2");
+            return NPY_FAIL;
+        }
+    }
 }
 
 static int casting_parser(char const *str, Py_ssize_t length, void *data)
@@ -1106,11 +1259,7 @@ PyArray_IntTupleFromIntp(int len, npy_intp const *vals)
         goto fail;
     }
     for (i = 0; i < len; i++) {
-#if NPY_SIZEOF_INTP <= NPY_SIZEOF_LONG
-        PyObject *o = PyInt_FromLong((long) vals[i]);
-#else
-        PyObject *o = PyLong_FromLongLong((npy_longlong) vals[i]);
-#endif
+        PyObject *o = PyArray_PyIntFromIntp(vals[i]);
         if (!o) {
             Py_DECREF(intTuple);
             intTuple = NULL;

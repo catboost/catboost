@@ -27,6 +27,20 @@ Every version number class implements the following interface:
 """
 
 import re
+import warnings
+import contextlib
+
+
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    with warnings.catch_warnings(record=True) as ctx:
+        warnings.filterwarnings(
+            action='default',
+            category=DeprecationWarning,
+            message="distutils Version classes are deprecated.",
+        )
+        yield ctx
+
 
 class Version:
     """Abstract base class for version numbering classes.  Just provides
@@ -36,6 +50,12 @@ class Version:
     """
 
     def __init__ (self, vstring=None):
+        warnings.warn(
+            "distutils Version classes are deprecated. "
+            "Use packaging.version instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if vstring:
             self.parse(vstring)
 
@@ -165,7 +185,8 @@ class StrictVersion (Version):
 
     def _cmp (self, other):
         if isinstance(other, str):
-            other = StrictVersion(other)
+            with suppress_known_deprecation():
+                other = StrictVersion(other)
         elif not isinstance(other, StrictVersion):
             return NotImplemented
 
@@ -300,11 +321,6 @@ class LooseVersion (Version):
     """
 
     component_re = re.compile(r'(\d+ | [a-z]+ | \.)', re.VERBOSE)
-
-    def __init__ (self, vstring=None):
-        if vstring:
-            self.parse(vstring)
-
 
     def parse (self, vstring):
         # I've given up on thinking I can reconstruct the version string

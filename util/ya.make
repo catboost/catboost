@@ -65,6 +65,7 @@ JOIN_SRCS(
     folder/dirut.cpp
     folder/filelist.cpp
     folder/fts.cpp
+    folder/fwd.cpp
     folder/iterator.cpp
     folder/path.cpp
     folder/pathsplit.cpp
@@ -131,6 +132,7 @@ JOIN_SRCS(
     generic/typetraits.cpp
     generic/utility.cpp
     generic/va_args.cpp
+    generic/variant.cpp
     generic/vector.cpp
     generic/xrange.cpp
     generic/yexception.cpp
@@ -237,6 +239,10 @@ JOIN_SRCS(
     string/vector.cpp
 )
 
+IF (GCC OR CLANG OR CLANG_CL)
+    CFLAGS(-Wnarrowing)
+ENDIF()
+
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
 ENDIF()
@@ -282,7 +288,6 @@ ENDIF()
 JOIN_SRCS(
     all_system_2.cpp
     system/align.cpp
-    system/atomic.cpp
     system/byteorder.cpp
     system/cpu_id.cpp
     system/fhandle.cpp
@@ -324,7 +329,7 @@ JOIN_SRCS(
     system/yield.cpp
 )
 
-SRC(system/compiler.cpp -fno-lto)
+SRC_C_NO_LTO(system/compiler.cpp)
 
 IF (OS_WINDOWS)
     SRCS(
@@ -381,6 +386,19 @@ JOIN_SRCS(
 
 END()
 
-RECURSE_FOR_TESTS(
-    tests/ut
+RECURSE(
+    charset
+    datetime
+    digest
+    draft
+    folder
+    generic
+    memory
+    network
+    random
+    stream
+    string
+    system
+    thread
+    ut
 )

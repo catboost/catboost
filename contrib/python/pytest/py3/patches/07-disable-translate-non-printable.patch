@@ -1,0 +1,11 @@
+--- contrib/python/pytest/py3/_pytest/compat.py	(index)
++++ contrib/python/pytest/py3/_pytest/compat.py	(working tree)
+@@ -237,7 +237,7 @@ if _PY3:
+         ret = _bytes_to_ascii(val)
+     else:
+         ret = val
+-    return _translate_non_printable(ret)
++    return ret
+ 
+ 
+ @attr.s

@@ -480,6 +480,21 @@ namespace {
             UNIT_CHECK_GENERATED_EXCEPTION(promise.ExtractValue(), TFutureException);
         }
 
+        Y_UNIT_TEST(ShouldNotExtractFromSharedDefault) {
+            UNIT_CHECK_GENERATED_EXCEPTION(MakeFuture<int>().ExtractValue(), TFutureException);
+
+            struct TStorage {
+                TString String = TString(100, 'a');
+            };
+            try {
+                TString s = MakeFuture<TStorage>().ExtractValue().String;
+                Y_UNUSED(s);
+            } catch (TFutureException) {
+                // pass
+            }
+            UNIT_ASSERT_VALUES_EQUAL(MakeFuture<TStorage>().GetValue().String, TString(100, 'a'));
+        }
+
         Y_UNIT_TEST(HandlingRepetitiveSet) {
             TPromise<int> promise = NewPromise<int>();
             promise.SetValue(42);

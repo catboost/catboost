@@ -49,7 +49,9 @@ namespace NCB {
         if (counts.OnAll) {
             // already have some data
             // we must update with data that has not less elements than current
-            Y_VERIFY((size_t)counts.OnAll <= perfectHash.GetSize());
+            CB_ENSURE(
+                (size_t)counts.OnAll <= perfectHash.GetSize(),
+                "Cat feature " << *catFeatureIdx << " has too many unique values ");
         } else {
             // first initialization
             counts.OnLearnOnly = (ui32)perfectHash.GetSize();

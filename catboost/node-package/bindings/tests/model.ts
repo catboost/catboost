@@ -1,5 +1,6 @@
 import {Model} from '../index';
 import * as assert from 'assert';
+import * as fs from 'fs';
 
 function testInitEmptyModel() {
     const modelA = new Model();
@@ -88,6 +89,11 @@ function testDimensionsCount() {
     model.loadModel('./test_data/adult.cbm');
 
     const count = model.getDimensionsCount();
+    const predictionDimCount = model.getPredictionDimensionsCount();
+    assert.strictEqual(
+        count, predictionDimCount,
+        `Expected count == predictionDimCount, got ${count} != ${predictionDimCount}`
+    );
     assert.strictEqual(count, 1, `Expected [1], got ${count}`);
 }
 assert.doesNotThrow(testDimensionsCount);
@@ -111,5 +117,44 @@ function testPredictOnEmptyModel() {
     model.predict([[10.0]], [["a"]]);
 }
 assert.throws(testPredictOnEmptyModel);
+
+
+function testMulticlassCloudnessSmall() {
+    const model = new Model('./test_data/cloudness_small.cbm');
+    const test_small = fs.readFileSync(
+        '../pytest/data/cloudness_small/test_small','utf8')
+        .split('\n')
+        .filter(x => x.length > 0);
+    const floatFeatures = test_small.map(x => x.split('\t').slice(1, 103).map(x => +x));
+
+
+    const catFeatures = test_small.map(x => x.split('\t').slice(103, 145));
+    model.setPredictionType('RawFormulaVal');
+    var predictionDimensionsCount = model.getPredictionDimensionsCount();
+    assert.strictEqual(predictionDimensionsCount, 3, `Expected 3, got ${predictionDimensionsCount}`);
+    var predictions = model.predict(
+        floatFeatures,
+        catFeatures
+    );
+    assert.strictEqual(
+        predictions.length,
+        predictionDimensionsCount * floatFeatures.length,
+        `Expected ${predictionDimensionsCount * floatFeatures.length}, got ${predictions.length}`
+    );
+    model.setPredictionType('Class');
+    predictionDimensionsCount = model.getPredictionDimensionsCount();
+    assert.strictEqual(predictionDimensionsCount, 1, `Expected 1, got ${predictionDimensionsCount}`);
+    assert.strictEqual(model.getDimensionsCount(), 3, `Expected 3, got ${model.getDimensionsCount()}`);
+    predictions = model.predict(
+        floatFeatures,
+        catFeatures
+    );
+    assert.strictEqual(
+        predictions.length,
+        predictionDimensionsCount * floatFeatures.length,
+        `Expected ${predictionDimensionsCount * floatFeatures.length}, got ${predictions.length}`
+    );
+}
+assert.doesNotThrow(testMulticlassCloudnessSmall);
 
 console.log("Model tests passed")

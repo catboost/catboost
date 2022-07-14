@@ -1991,10 +1991,18 @@ static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, 
 #define Py_MEMBER_SIZE(type, member) sizeof(((type *)0)->member)
 #endif
 
+#if CYTHON_FAST_PYCALL
   // Initialised by module init code.
   static size_t __pyx_pyframe_localsplus_offset = 0;
 
   #include "frameobject.h"
+#if PY_VERSION_HEX >= 0x030b00a6
+  #ifndef Py_BUILD_CORE
+    #define Py_BUILD_CORE 1
+  #endif
+  #error #include "internal/pycore_frame.h"
+#endif
+
   // This is the long runtime version of
   //     #define __Pyx_PyFrame_GetLocalsplus(frame)  ((frame)->f_localsplus)
   // offsetof(PyFrameObject, f_localsplus) differs between regular C-Python and Stackless Python.
@@ -2005,6 +2013,7 @@ static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, 
      (void)(__pyx_pyframe_localsplus_offset = ((size_t)PyFrame_Type.tp_basicsize) - Py_MEMBER_SIZE(PyFrameObject, f_localsplus)))
   #define __Pyx_PyFrame_GetLocalsplus(frame)  \
     (assert(__pyx_pyframe_localsplus_offset), (PyObject **)(((char *)(frame)) + __pyx_pyframe_localsplus_offset))
+#endif // CYTHON_FAST_PYCALL
 #endif
 
 

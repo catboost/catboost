@@ -1,2 +1,2 @@
 
-Create a script file with the following code:
+Run the following commands:

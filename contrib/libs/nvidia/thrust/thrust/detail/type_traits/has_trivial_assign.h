@@ -25,8 +25,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -50,5 +49,5 @@ template<typename T> struct has_trivial_assign
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

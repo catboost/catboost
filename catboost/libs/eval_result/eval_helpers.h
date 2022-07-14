@@ -62,10 +62,6 @@ TVector<TVector<double>> PrepareEval(
     double binClassLogitThreshold = DEFAULT_BINCLASS_LOGIT_THRESHOLD);
 using TColumnPrinterOuputType = std::variant<i64, ui64, double, float, TString>;
 
-template<typename T>
-size_t GetOutputTypeIndex() {
-    return TVariantIndexV<T, TColumnPrinterOuputType>;
-}
 }
 
 TVector<TVector<double>> CalcSoftmax(

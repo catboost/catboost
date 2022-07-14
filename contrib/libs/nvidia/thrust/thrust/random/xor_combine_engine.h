@@ -29,8 +29,7 @@
 #include <iostream>
 #include <cstddef> // for size_t
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -265,7 +264,7 @@ operator>>(std::basic_istream<CharT,Traits> &is,
 // import names into thrust::
 using random::xor_combine_engine;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/xor_combine_engine.inl>
 

@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file uninitialized_copy.inl
- *  \brief Inline file for uninitialized_copy.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/uninitialized_copy.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,8 +24,7 @@
 #include <thrust/system/detail/generic/uninitialized_copy.h>
 #include <thrust/system/detail/adl/uninitialized_copy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -92,6 +90,6 @@ template<typename InputIterator,
 } // end uninitialized_copy_n()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 

@@ -31,7 +31,7 @@ def extract_macro_calls2(unit, macro_value_name):
     return calls
 
 
-def onrun_java_program(unit, *args):
+def on_run_jbuild_program(unit, *args):
     args = list(args)
     """
     Custom code generation
@@ -47,7 +47,7 @@ def onrun_java_program(unit, *args):
         unit.on_run_java(['TOOL'] + depends + ["OUT", fake_out])
 
     if not kv.get('CP_USE_COMMAND_FILE'):
-       args += ['CP_USE_COMMAND_FILE', unit.get(['JAVA_PROGRAM_CP_USE_COMMAND_FILE']) or 'yes']
+        args += ['CP_USE_COMMAND_FILE', unit.get(['JAVA_PROGRAM_CP_USE_COMMAND_FILE']) or 'yes']
 
     if fake_out is not None:
         args += ['FAKE_OUT', fake_out]
@@ -76,10 +76,18 @@ def ongenerate_script(unit, *args):
 
 def onjava_module(unit, *args):
     args_delim = unit.get('ARGS_DELIM')
+    idea_only = True if 'IDEA_ONLY' in args else False
+
+    if idea_only:
+        if unit.get('YA_IDE_IDEA') != 'yes':
+            return
+        if unit.get('YMAKE_JAVA_MODULES') != 'yes':
+            return
 
     data = {
         'BUNDLE_NAME': unit.name(),
         'PATH': unit.path(),
+        'IDEA_ONLY': 'yes' if idea_only else 'no',
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
@@ -93,8 +101,6 @@ def onjava_module(unit, *args):
         'EXTERNAL_JAR': extract_macro_calls(unit, 'EXTERNAL_JAR_VALUE', args_delim),
         'RUN_JAVA_PROGRAM': extract_macro_calls2(unit, 'RUN_JAVA_PROGRAM_VALUE'),
         'RUN_JAVA_PROGRAM_MANAGED': '${RUN_JAVA_PROGRAM_MANAGED}',
-        'ADD_WAR': extract_macro_calls(unit, 'ADD_WAR_VALUE', args_delim),
-        'DEPENDENCY_MANAGEMENT': extract_macro_calls(unit, 'DEPENDENCY_MANAGEMENT_VALUE', args_delim),
         'MAVEN_GROUP_ID': extract_macro_calls(unit, 'MAVEN_GROUP_ID_VALUE', args_delim),
         'JAR_INCLUDE_FILTER': extract_macro_calls(unit, 'JAR_INCLUDE_FILTER_VALUE', args_delim),
         'JAR_EXCLUDE_FILTER': extract_macro_calls(unit, 'JAR_EXCLUDE_FILTER_VALUE', args_delim),
@@ -104,7 +110,6 @@ def onjava_module(unit, *args):
         'SYSTEM_PROPERTIES': extract_macro_calls(unit, 'SYSTEM_PROPERTIES_VALUE', args_delim),
         'JVM_ARGS': extract_macro_calls(unit, 'JVM_ARGS_VALUE', args_delim),
         'TEST_CWD': extract_macro_calls(unit, 'TEST_CWD_VALUE', args_delim),
-        'TEST_DATA': extract_macro_calls(unit, '__test_data', args_delim),
         'TEST_FORK_MODE': extract_macro_calls(unit, 'TEST_FORK_MODE', args_delim),
         'SPLIT_FACTOR': extract_macro_calls(unit, 'TEST_SPLIT_FACTOR', args_delim),
         'TIMEOUT': extract_macro_calls(unit, 'TEST_TIMEOUT', args_delim),
@@ -118,9 +123,9 @@ def onjava_module(unit, *args):
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
-        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION')  or unit.get('JDK_REAL_VERSION') or '_DEFAULT')
     }
-    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and unit.get('JDK_VERSION') in ('15', '16', '17'):
+    if unit.get('ENABLE_PREVIEW_VALUE') == 'yes' and (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION')) in ('15', '16', '17'):
         data['ENABLE_PREVIEW'] = extract_macro_calls(unit, 'ENABLE_PREVIEW_VALUE', args_delim)
 
     if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
@@ -141,11 +146,6 @@ def onjava_module(unit, *args):
             data['KOTLINC_FLAGS'] = extract_macro_calls(unit, 'KOTLINC_FLAGS_VALUE', args_delim)
         if unit.get('KOTLINC_OPTS_VALUE'):
             data['KOTLINC_OPTS'] = extract_macro_calls(unit, 'KOTLINC_OPTS_VALUE', args_delim)
-
-    if unit.get('WITH_GROOVY_VALUE') == 'yes':
-        if not common.strip_roots(unit.path()).startswith(('devtools/dummy_arcadia', 'junk')):
-            ymake.report_configure_error('Groovy is not allowed here')
-        data['WITH_GROOVY'] = extract_macro_calls(unit, 'WITH_GROOVY_VALUE', args_delim)
 
     if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
         data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
@@ -211,28 +211,6 @@ def onjava_module(unit, *args):
         if external:
             unit.onpeerdir(external)
 
-    dep_veto = extract_macro_calls(unit, 'JAVA_DEPENDENCIES_CONFIGURATION_VALUE', args_delim)
-    if dep_veto:
-        dep_veto = set(dep_veto[0])
-        if (unit.get('IGNORE_JAVA_DEPENDENCIES_CONFIGURATION') or '').lower() != 'yes':
-            for veto in map(str.upper, dep_veto):
-                if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
-                    data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
-                elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
-                    data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT':
-                    data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM':
-                    data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
-                elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
-                    data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
-                elif veto.upper() == 'REQUIRE_DM':
-                    data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
-                else:
-                    ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
-                        ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
-                    )))
-
     for k, v in data.items():
         if not v:
             data.pop(k)
@@ -240,7 +218,7 @@ def onjava_module(unit, *args):
     dart = 'JAVA_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 
     unit.set_property(['JAVA_DART_DATA', dart])
-    if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
+    if not idea_only and unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         unit.on_add_classpath_clash_check()
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
@@ -307,6 +285,7 @@ def on_fill_jar_copy_resources_cmd(unit, *args):
     var += ' && $FS_TOOLS copy_files {} {} {}'.format(srcdir if srcdir.startswith('"$') else '${CURDIR}/' + srcdir, dest_dir, reslist)
     unit.set([varname, var])
 
+
 def on_fill_jar_gen_srcs(unit, *args):
     varname, jar_type, srcdir, base_classes_dir, java_list, kt_list, groovy_list, res_list = tuple(args[0:8])
     resolved_srcdir = unit.resolve_arc_path(srcdir)
@@ -324,8 +303,6 @@ def on_fill_jar_gen_srcs(unit, *args):
         var += ' --exclude-patterns {}'.format(' '.join(excludes))
     if unit.get('WITH_KOTLIN_VALUE') == 'yes':
         var += ' --resolve-kotlin'
-    if unit.get('WITH_GROOVY_VALUE') == 'yes':
-        var += ' --resolve-groovy'
     unit.set([varname, var])
 
 
@@ -351,15 +328,17 @@ def extract_words(words, keys):
 
 def parse_words(words):
     kv = extract_words(words, {'OUT', 'TEMPLATE'})
+    if not 'TEMPLATE' in kv:
+        kv['TEMPLATE'] = ['template.tmpl']
     ws = []
     for item in ('OUT', 'TEMPLATE'):
         for i, word in list(enumerate(kv[item])):
             if word == 'CUSTOM_PROPERTY':
                 ws += kv[item][i:]
                 kv[item] = kv[item][:i]
-    tepmlates = kv['TEMPLATE']
+    templates = kv['TEMPLATE']
     outputs = kv['OUT']
-    if len(outputs) < len(tepmlates):
+    if len(outputs) < len(templates):
         ymake.report_configure_error('To many arguments for TEMPLATE parameter')
         return
     if ws and ws[0] != 'CUSTOM_PROPERTY':
@@ -381,17 +360,18 @@ def parse_words(words):
         else:
             ymake.report_configure_error('CUSTOM_PROPERTY "{}" value is not specified'.format(p[0]))
     for i, o in enumerate(outputs):
-        yield o, tepmlates[min(i, len(tepmlates) - 1)], props
+        yield o, templates[min(i, len(templates) - 1)], props
 
 
 def on_ymake_generate_script(unit, *args):
     for out, tmpl, props in parse_words(list(args)):
         unit.on_add_gen_java_script([out, tmpl] + list(props))
 
+
 def on_jdk_version_macro_check(unit, *args):
     if len(args) != 1:
         unit.message(["error", "Invalid syntax. Single argument required."])
     jdk_version = args[0]
-    availible_versions = ('10', '11', '12', '13', '14', '15', '16', '17',)
-    if jdk_version not in availible_versions:
-        unit.message(["error", "Invalid jdk version: {}. {} are availible".format(jdk_version, availible_versions)])
+    available_versions = ('10', '11', '12', '13', '14', '15', '16', '17', '18',)
+    if jdk_version not in available_versions:
+        unit.message(["error", "Invalid jdk version: {}. {} are available".format(jdk_version, available_versions)])

@@ -1,23 +1,22 @@
 
 
 RECURSE(
+    asttokens
     atomicwrites
     attrs
     backcall
-    backports.functools-lru-cache
-    backports.shutil-get-terminal-size
-    certifi
     colorama
     configparser
     contextlib2
     dateutil
     decorator
     enum34
-    faulthandler
+    executing
     filelock
     funcsigs
     graphviz
     importlib-metadata
+    iniconfig
     ipdb
     ipython
     ipython-genutils
@@ -29,17 +28,20 @@ RECURSE(
     more-itertools
     mypy-protobuf
     numpy
+    packaging
     pandas
     parso
-    path.py
     pathlib2
     pexpect
     pickleshare
     pluggy
     prompt-toolkit
+    protobuf
     ptyprocess
+    pure-eval
     py
     Pygments
+    pyparsing
     pytest
     pytz
     scandir
@@ -48,33 +50,17 @@ RECURSE(
     setuptools
     simplegeneric
     six
-    subprocess32
+    stack-data
     testpath
+    tomli
     tornado
     traitlets
+    typing
     wcwidth
 )
-
-IF (OS_WINDOWS)
-    RECURSE(
-    win_unicode_console
-)
-ENDIF()
 
 IF (OS_DARWIN)
     RECURSE(
     appnope
 )
-ENDIF ()
-
-IF (OS_LINUX)
-    RECURSE(
-    
-)
-
-    IF (OS_SDK != "ubuntu-12")
-        RECURSE(
-    
-)
-    ENDIF()
-ENDIF ()
+ENDIF()

@@ -13,6 +13,7 @@ fit(X,
     y=None,
     cat_features=None,
     text_features=None,
+    embedding_features=None,
     sample_weight=None,
     baseline=None,
     use_best_model=None,
@@ -58,6 +59,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 {% endcut %}
 
 {% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+
 The input training dataset in the form of a two-dimensional feature matrix.
 
 {% endcut %}
@@ -142,6 +144,28 @@ The `cat_features` parameter can also be specified in the constructor of the cl
 #### Description
 
 A one-dimensional array of text columns indices (specified as integers) or names (specified as strings).
+
+{% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+
+**Supported processing units**
+
+{{ cpu-gpu }}
+
+
+### embedding_features
+
+#### Description
+
+A one-dimensional array of embedding columns indices (specified as integers) or names (specified as strings).
 
 {% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
 

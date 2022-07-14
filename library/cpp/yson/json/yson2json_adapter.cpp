@@ -1,7 +1,7 @@
 #include "yson2json_adapter.h"
 
 namespace NYT {
-    TYson2JsonCallbacksAdapter::TYson2JsonCallbacksAdapter(NYson::TYsonConsumerBase* impl, bool throwException)
+    TYson2JsonCallbacksAdapter::TYson2JsonCallbacksAdapter(::NYson::TYsonConsumerBase* impl, bool throwException)
         : NJson::TJsonCallbacks(throwException)
         , Impl_(impl)
     {

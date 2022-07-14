@@ -1,10 +1,13 @@
 import os
 import sys
 from abc import abstractmethod
-from asyncio import get_event_loop
 from contextlib import contextmanager
 
+from prompt_toolkit.eventloop import get_event_loop
+
 from ..utils import SPHINX_AUTODOC_RUNNING
+
+assert sys.platform == "win32"
 
 # Do not import win32-specific stuff when generating documentation.
 # Otherwise RTD would be unable to generate docs for this module.
@@ -29,7 +32,7 @@ from prompt_toolkit.eventloop import run_in_executor_with_context
 from prompt_toolkit.eventloop.win32 import create_win32_event, wait_for_handles
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.mouse_events import MouseEventType
+from prompt_toolkit.mouse_events import MouseButton, MouseEventType
 from prompt_toolkit.win32_types import (
     INPUT_RECORD,
     KEY_EVENT_RECORD,
@@ -49,6 +52,13 @@ __all__ = [
     "attach_win32_input",
     "detach_win32_input",
 ]
+
+# Win32 Constants for MOUSE_EVENT_RECORD.
+# See: https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str
+FROM_LEFT_1ST_BUTTON_PRESSED = 0x1
+RIGHTMOST_BUTTON_PRESSED = 0x2
+MOUSE_MOVED = 0x0001
+MOUSE_WHEELED = 0x0004
 
 
 class _Win32InputBase(Input):
@@ -263,7 +273,10 @@ class ConsoleInputReader:
                 # Pasting: if the current key consists of text or \n, turn it
                 # into a BracketedPaste.
                 data = []
-                while k and (not isinstance(k.key, Keys) or k.key == Keys.ControlJ):
+                while k and (
+                    not isinstance(k.key, Keys)
+                    or k.key in {Keys.ControlJ, Keys.ControlM}
+                ):
                     data.append(k.data)
                     try:
                         k = next(gen)
@@ -275,8 +288,7 @@ class ConsoleInputReader:
                 if k is not None:
                     yield k
         else:
-            for k2 in all_keys:
-                yield k2
+            yield from all_keys
 
     def _insert_key_data(self, key_press: KeyPress) -> KeyPress:
         """
@@ -311,12 +323,10 @@ class ConsoleInputReader:
                 # Process if this is a key event. (We also have mouse, menu and
                 # focus events.)
                 if type(ev) == KEY_EVENT_RECORD and ev.KeyDown:
-                    for key_press in self._event_to_key_presses(ev):
-                        yield key_press
+                    yield from self._event_to_key_presses(ev)
 
                 elif type(ev) == MOUSE_EVENT_RECORD:
-                    for key_press in self._handle_mouse(ev):
-                        yield key_press
+                    yield from self._handle_mouse(ev)
 
     @staticmethod
     def _merge_paired_surrogates(key_presses: List[KeyPress]) -> Iterator[KeyPress]:
@@ -371,7 +381,7 @@ class ConsoleInputReader:
             if k.key == Keys.ControlM:
                 newline_count += 1
 
-        return newline_count >= 1 and text_count > 1
+        return newline_count >= 1 and text_count >= 1
 
     def _event_to_key_presses(self, ev: KEY_EVENT_RECORD) -> List[KeyPress]:
         """
@@ -509,42 +519,48 @@ class ConsoleInputReader:
         """
         Handle mouse events. Return a list of KeyPress instances.
         """
-        FROM_LEFT_1ST_BUTTON_PRESSED = 0x1
-        MOUSE_MOVED = 0x0001
-        MOUSE_WHEELED = 0x0004
-
         event_flags = ev.EventFlags
         button_state = ev.ButtonState
 
-        result = []
         event_type: Optional[MouseEventType] = None
-
-        # Move events.
-        if event_flags & MOUSE_MOVED:
-            if button_state == FROM_LEFT_1ST_BUTTON_PRESSED:
-                event_type = MouseEventType.MOUSE_DOWN_MOVE
+        button: MouseButton = MouseButton.NONE
 
         # Scroll events.
-        elif event_flags & MOUSE_WHEELED:
+        if event_flags & MOUSE_WHEELED:
             if button_state > 0:
                 event_type = MouseEventType.SCROLL_UP
             else:
                 event_type = MouseEventType.SCROLL_DOWN
+        else:
+            # Handle button state for non-scroll events.
+            if button_state == FROM_LEFT_1ST_BUTTON_PRESSED:
+                button = MouseButton.LEFT
 
-        # Mouse down (left button).
-        elif button_state == FROM_LEFT_1ST_BUTTON_PRESSED:
-            event_type = MouseEventType.MOUSE_DOWN
+            elif button_state == RIGHTMOST_BUTTON_PRESSED:
+                button = MouseButton.RIGHT
+
+        # Move events.
+        if event_flags & MOUSE_MOVED:
+            event_type = MouseEventType.MOUSE_MOVE
 
         # No key pressed anymore: mouse up.
-        else:
-            event_type = MouseEventType.MOUSE_UP
+        if event_type is None:
+            if button_state > 0:
+                # Some button pressed.
+                event_type = MouseEventType.MOUSE_DOWN
+            else:
+                # No button pressed.
+                event_type = MouseEventType.MOUSE_UP
 
-        if event_type is not None:
-            data = ";".join(
-                [event_type.value, str(ev.MousePosition.X), str(ev.MousePosition.Y)]
-            )
-            result.append(KeyPress(Keys.WindowsMouseEvent, data))
-        return result
+        data = ";".join(
+            [
+                button.value,
+                event_type.value,
+                str(ev.MousePosition.X),
+                str(ev.MousePosition.Y),
+            ]
+        )
+        return [KeyPress(Keys.WindowsMouseEvent, data)]
 
 
 class _Win32Handles:

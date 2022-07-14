@@ -14,6 +14,7 @@
   - cuda_bf16.h
   - cuda_fp16.h
   - cuda_gl_interop.h
+  - cuda_occupancy.h
   - cuda_runtime.h
   - cuda_runtime_api.h
   - cufft.h
@@ -28,6 +29,7 @@
   - host_defines.h
   - library_types.h
   - math_constants.h
+  - nvrtc.h
   - npp.h
   - nppi.h
   - nvToolsExt.h
@@ -46,3 +48,9 @@
   includes:
   - NvInfer.h
   - NvInferPlugin.h
+# Add support nvrtc
+- source_filter: "^contrib/libs/nvidia/cutlass/.*"
+  includes:
+  - cuda/std/cassert
+  - cuda/std/cmath
+  - cuda/std/cstdint

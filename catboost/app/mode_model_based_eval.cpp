@@ -43,6 +43,11 @@ int mode_model_based_eval(int argc, const char* argv[]) {
     for (ui32 feature : featuresToEvaluate) {
         CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Error: feature " + ToString(feature) + " is ignored");
     }
+    if (outputOptions.IsMetricPeriodSet() && outputOptions.GetMetricPeriod() > 1) {
+        CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
+            "model-based feature evaluation needs metric values on each iteration" << Endl;
+    }
+    outputOptions.SetMetricPeriod(1);
 
     ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions);
 

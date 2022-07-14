@@ -8,31 +8,33 @@
 # We want musl to resolve itself without these sysincls, but its test must have them
 - source_filter: "^(?!(contrib/libs/libunistring|contrib/libs/musl|contrib/tools/yasm)).*|^contrib/libs/musl/tests"
   includes:
-  - complex.h:  contrib/libs/cxxsupp/libcxx/include/complex.h
-  - ctype.h:    contrib/libs/cxxsupp/libcxx/include/ctype.h
-  - errno.h:    contrib/libs/cxxsupp/libcxx/include/errno.h
-  - float.h:    contrib/libs/cxxsupp/libcxx/include/float.h
-  - inttypes.h: contrib/libs/cxxsupp/libcxx/include/inttypes.h
-  - limits.h:   contrib/libs/cxxsupp/libcxx/include/limits.h
-  - locale.h:   contrib/libs/cxxsupp/libcxx/include/locale.h
-  - math.h:     contrib/libs/cxxsupp/libcxx/include/math.h
-  - setjmp.h:   contrib/libs/cxxsupp/libcxx/include/setjmp.h
-  - stdbool.h:  contrib/libs/cxxsupp/libcxx/include/stdbool.h
-  - stddef.h:   contrib/libs/cxxsupp/libcxx/include/stddef.h
-  - stdint.h:   contrib/libs/cxxsupp/libcxx/include/stdint.h
-  - stdio.h:    contrib/libs/cxxsupp/libcxx/include/stdio.h
-  - stdlib.h:   contrib/libs/cxxsupp/libcxx/include/stdlib.h
-  - string.h:   contrib/libs/cxxsupp/libcxx/include/string.h
-  - tgmath.h:   contrib/libs/cxxsupp/libcxx/include/tgmath.h
-  - wchar.h:    contrib/libs/cxxsupp/libcxx/include/wchar.h
-  - wctype.h:   contrib/libs/cxxsupp/libcxx/include/wctype.h
+  - complex.h:    contrib/libs/cxxsupp/libcxx/include/complex.h
+  - ctype.h:      contrib/libs/cxxsupp/libcxx/include/ctype.h
+  - errno.h:      contrib/libs/cxxsupp/libcxx/include/errno.h
+  - fenv.h:       contrib/libs/cxxsupp/libcxx/include/fenv.h
+  - float.h:      contrib/libs/cxxsupp/libcxx/include/float.h
+  - inttypes.h:   contrib/libs/cxxsupp/libcxx/include/inttypes.h
+  - limits.h:     contrib/libs/cxxsupp/libcxx/include/limits.h
+  - locale.h:     contrib/libs/cxxsupp/libcxx/include/locale.h
+  - math.h:       contrib/libs/cxxsupp/libcxx/include/math.h
+  - setjmp.h:     contrib/libs/cxxsupp/libcxx/include/setjmp.h
+  - stdbool.h:    contrib/libs/cxxsupp/libcxx/include/stdbool.h
+  - stddef.h:     contrib/libs/cxxsupp/libcxx/include/stddef.h
+  - stdint.h:     contrib/libs/cxxsupp/libcxx/include/stdint.h
+  - stdio.h:      contrib/libs/cxxsupp/libcxx/include/stdio.h
+  - stdlib.h:     contrib/libs/cxxsupp/libcxx/include/stdlib.h
+  - string.h:     contrib/libs/cxxsupp/libcxx/include/string.h
+  - tgmath.h:     contrib/libs/cxxsupp/libcxx/include/tgmath.h
+  - wchar.h:      contrib/libs/cxxsupp/libcxx/include/wchar.h
+  - wctype.h:     contrib/libs/cxxsupp/libcxx/include/wctype.h
+
+- source_filter: "^(?!(contrib/libs/libunistring|contrib/libs/musl|contrib/tools/yasm|contrib/libs/zlib|contrib/libs/libev|contrib/restricted/patched/ffmpeg_minimal)).*|^contrib/libs/musl/tests"
+  includes:
+  - stdatomic.h:  contrib/libs/cxxsupp/libcxx/include/stdatomic.h
 
 - includes:
-  - atomic.h:
-    - contrib/libs/cxxsupp/libcxxrt/atomic.h
   - cxxabi.h:
-    - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
-    - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
+    - contrib/libs/cxxsupp/libcxxrt/include/cxxabi.h
   - omp.h:
     - contrib/libs/cxxsupp/openmp/omp.h
   - unwind.h:
@@ -46,6 +48,7 @@
 
 - includes:
   - __config:                  contrib/libs/cxxsupp/libcxx/include/__config
+  - __undef_macros:            contrib/libs/cxxsupp/libcxx/include/__undef_macros
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
   - any:                       contrib/libs/cxxsupp/libcxx/include/any
   - array:                     contrib/libs/cxxsupp/libcxx/include/array
@@ -70,6 +73,7 @@
   - complex:                   contrib/libs/cxxsupp/libcxx/include/complex
   - concepts:                  contrib/libs/cxxsupp/libcxx/include/concepts
   - condition_variable:        contrib/libs/cxxsupp/libcxx/include/condition_variable
+  - coroutine:                 contrib/libs/cxxsupp/libcxx/include/coroutine
   - csetjmp:                   contrib/libs/cxxsupp/libcxx/include/csetjmp
   - csignal:                   contrib/libs/cxxsupp/libcxx/include/csignal
   - cstdarg:                   contrib/libs/cxxsupp/libcxx/include/cstdarg
@@ -144,6 +148,7 @@
   - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
   - experimental/any:                   DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_ANY
   - experimental/chrono:                DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_CHRONO
+  - experimental/filesystem:            DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_FILESYSTEM
   - experimental/numeric:               DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_NUMERIC
   - experimental/optional:              DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_OPTIONAL
   - experimental/ratio:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_RATIO
@@ -152,5 +157,9 @@
   - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
   - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
-  # TODO: there is no <corouine> in libc++. Disable this include upon its appearance
+  # TODO: Forbid including <experimental/coroutine> upon migration to clang14
   - experimental/coroutine:    contrib/libs/cxxsupp/libcxx/include/experimental/coroutine
+
+- source_filter: "^contrib/restricted/boost"
+  includes:
+    - ../include/fenv.h: contrib/libs/cxxsupp/libcxx/include/fenv.h

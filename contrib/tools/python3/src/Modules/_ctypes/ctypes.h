@@ -208,7 +208,7 @@ typedef struct {
     PyObject *checker;
     int flags;                  /* calling convention and such */
 
-    /* pep3118 fields, pointers neeed PyMem_Free */
+    /* pep3118 fields, pointers need PyMem_Free */
     char *format;
     int ndim;
     Py_ssize_t *shape;
@@ -342,10 +342,6 @@ extern PyObject *PyExc_ArgError;
 
 extern char *_ctypes_conversion_encoding;
 extern char *_ctypes_conversion_errors;
-
-#if defined(HAVE_WCHAR_H)
-#  define CTYPES_UNICODE
-#endif
 
 
 extern void _ctypes_free_closure(void *);

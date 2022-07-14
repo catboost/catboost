@@ -20,7 +20,7 @@ def prepare_all(py_ver):
     return python_binary, python_env
 
 
-@pytest.mark.parametrize("py_ver", ["3.5", "3.6"])
+@pytest.mark.parametrize("py_ver", ["3.6"])
 def test_wheel(py_ver):
     python_binary, python_env = prepare_all(py_ver)
 

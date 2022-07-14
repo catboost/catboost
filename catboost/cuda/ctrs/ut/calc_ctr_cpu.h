@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/hash.h>
@@ -20,7 +22,7 @@ namespace NCatboostCuda {
                 FirstClass.resize(other.FirstClass.size());
             }
             if (!other.FirstClass.empty()) {
-                Y_VERIFY(other.FirstClass.size() == FirstClass.size());
+                CB_ENSURE(other.FirstClass.size() == FirstClass.size());
                 for (ui64 i = 0; i < FirstClass.size(); ++i) {
                     FirstClass[i] += other.FirstClass[i];
                 }

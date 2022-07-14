@@ -1,0 +1,3 @@
+exclude:
+- backports/__init__.py # Для избежания коллизий с другими backports пакетами
+- shutil_backports/* # В Аркадии нет потребителей для этого пакета

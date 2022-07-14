@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup algorithms
  */
@@ -378,8 +376,6 @@ InputIterator find_if_not(InputIterator first,
 /*! \} // end searching
  */
 
-
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/find.inl>
-

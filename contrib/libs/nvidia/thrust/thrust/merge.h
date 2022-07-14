@@ -24,9 +24,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup merging Merging
  *  \ingroup algorithms
@@ -674,7 +672,6 @@ template<typename InputIterator1, typename InputIterator2, typename InputIterato
 /*! \} // merging
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/merge.inl>
-

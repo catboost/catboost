@@ -7,6 +7,7 @@
 
 void Py_InitArgcArgv(int argc, wchar_t **argv);
 char* GetPyMain();
+int IsYaIdeVenv();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
 static const char* env_bytes_warning = "Y_PYTHON_BYTES_WARNING";
@@ -16,8 +17,8 @@ extern char** environ;
 
 void unsetenv(const char* name) {
     const int n = strlen(name);
-    const char** dst = environ;
-    for (const char** src = environ; *src; src++)
+    char** dst = environ;
+    for (char** src = environ; *src; src++)
         if (strncmp(*src, name, n) || (*src)[n] != '=')
             *dst++ = *src;
     *dst = NULL;
@@ -74,6 +75,9 @@ static int RunModule(const char *modname)
 }
 
 static int pymain(int argc, char** argv) {
+    if (IsYaIdeVenv()) {
+        return Py_BytesMain(argc, argv);
+    }
     PyStatus status = _PyRuntime_Initialize();
     if (PyStatus_Exception(status)) {
         Py_ExitStatusException(status);

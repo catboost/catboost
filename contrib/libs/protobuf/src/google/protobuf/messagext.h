@@ -108,6 +108,7 @@ class TProtoSerializer {
 public:
     static void Save(IOutputStream* output, const Message& msg);
     static void Load(IInputStream* input, Message& msg);
+    static void MergeFrom(IInputStream* input, Message& msg);
 
     // similar interface for protobuf coded streams
     static inline bool Save(CodedOutputStream* output, const Message& msg) {

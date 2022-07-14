@@ -14,9 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file set_operations.inl
- *  \brief Inline file for set_operations.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -24,8 +22,7 @@
 #include <thrust/system/detail/generic/set_operations.h>
 #include <thrust/system/detail/adl/set_operations.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -864,5 +861,5 @@ template<typename InputIterator1,
 } // end set_union_by_key()
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -1,0 +1,2 @@
+Line 18, column 1: numeric threshold exceeded: 0.3150961232 vs 0.3150923451, err=3.7781e-06, threshold=0
+Line 28, column 1: numeric threshold exceeded: 0.2512038283 vs 0.251209843, err=6.0147e-06, threshold=0

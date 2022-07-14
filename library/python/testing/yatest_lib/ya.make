@@ -8,6 +8,7 @@ PY_SRCS(
     external.py
     test_splitter.py
     tools.py
+    ya.py
 )
 
 PEERDIR(

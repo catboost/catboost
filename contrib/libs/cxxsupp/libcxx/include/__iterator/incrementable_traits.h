@@ -15,15 +15,12 @@
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#if !defined(_LIBCPP_HAS_NO_RANGES)
+#if !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 // [incrementable.traits]
 template<class> struct incrementable_traits {};
@@ -60,18 +57,16 @@ struct incrementable_traits<_Tp> {
 template <class>
 struct iterator_traits;
 
-// Let `RI` be `remove_­cvref_­t<I>`. The type `iter_­difference_­t<I>` denotes
-// `incrementable_­traits<RI>::difference_­type` if `iterator_­traits<RI>` names a specialization
-// generated from the primary template, and `iterator_­traits<RI>::difference_­type` otherwise.
+// Let `RI` be `remove_cvref_t<I>`. The type `iter_difference_t<I>` denotes
+// `incrementable_traits<RI>::difference_type` if `iterator_traits<RI>` names a specialization
+// generated from the primary template, and `iterator_traits<RI>::difference_type` otherwise.
 template <class _Ip>
 using iter_difference_t = typename conditional_t<__is_primary_template<iterator_traits<remove_cvref_t<_Ip> > >::value,
                                                  incrementable_traits<remove_cvref_t<_Ip> >,
                                                  iterator_traits<remove_cvref_t<_Ip> > >::difference_type;
 
-#endif // !defined(_LIBCPP_HAS_NO_RANGES)
+#endif // !defined(_LIBCPP_HAS_NO_CONCEPTS)
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___ITERATOR_INCREMENTABLE_TRAITS_H

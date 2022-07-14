@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/swap_ranges.h>
 #include <thrust/tuple.h>
@@ -21,8 +23,7 @@
 #include <thrust/detail/internal_functional.h>
 #include <thrust/for_each.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -74,5 +75,5 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

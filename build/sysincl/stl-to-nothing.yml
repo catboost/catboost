@@ -29,6 +29,7 @@
 
 - includes:
   - __config
+  - __undef_macros
   - algorithm
   - any
   - array
@@ -53,6 +54,7 @@
   - complex
   - concepts
   - condition_variable
+  - coroutine
   - csetjmp
   - csignal
   - cstdarg
@@ -130,6 +132,7 @@
   - ext/hash_set:                       DO_NOT_INCLUDE_NON_STANDARD_EXT_HASH_SET
   - experimental/any:                   DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_ANY
   - experimental/chrono:                DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_CHRONO
+  - experimental/filesystem:            DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_FILESYSTEM
   - experimental/numeric:               DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_NUMERIC
   - experimental/optional:              DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_OPTIONAL
   - experimental/ratio:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_RATIO
@@ -138,5 +141,5 @@
   - experimental/system_error:          DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_SYSTEM_ERROR
   - experimental/tuple:                 DO_NOT_INCLUDE_NON_STANDARD_EXPERIMENTAL_TUPLE
 
-  # TODO: there is no <corouine> in system stl. Disable this include upon its appearance
+  # TODO: Forbid including <experimental/coroutine> upon migration to clang14
   - experimental/coroutine

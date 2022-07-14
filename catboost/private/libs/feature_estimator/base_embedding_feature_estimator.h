@@ -12,10 +12,12 @@ namespace NCB {
     class TEmbeddingBaseEstimator : public IOnlineFeatureEstimator {
     public:
         TEmbeddingBaseEstimator(
-            TClassificationTargetPtr target,
+            TConstArrayRef<float> target,
+            TClassificationTargetPtr classificationTarget, // can be nullptr
             TEmbeddingDataSetPtr learnArrays,
             TArrayRef<TEmbeddingDataSetPtr> testArrays)
             : Target(target)
+            , ClassificationTarget(classificationTarget)
             , LearnArrays(learnArrays)
             , TestArrays(testArrays.begin(), testArrays.end())
             , Guid(CreateGuid()) {
@@ -60,7 +62,7 @@ namespace NCB {
                     const TEmbeddingsArray& vector = learnDataset.GetVector(line);
 
                     Compute(featureCalcer, vector, line, samplesCount, learnFeatures);
-                    calcerVisitor.Update(target.Classes[line], vector, &featureCalcer);
+                    calcerVisitor.Update(target[line], vector, &featureCalcer);
                 }
                 for (ui32 f = 0; f < featuresCount; ++f) {
                     learnVisitor(
@@ -142,7 +144,7 @@ namespace NCB {
             const ui64 samplesCount = learnDataset.SamplesCount();
             for (ui64 line = 0; line < samplesCount; ++line) {
                 const TEmbeddingsArray& vector = learnDataset.GetVector(line);
-                calcerVisitor.Update(target.Classes[line], vector, featureCalcer.Get());
+                calcerVisitor.Update(target[line], vector, featureCalcer.Get());
             }
 
             return featureCalcer;
@@ -164,8 +166,12 @@ namespace NCB {
             featureCalcer.Compute(vector, outputFeaturesIterator);
         }
 
-        const TClassificationTarget& GetTarget() const {
-            return *Target;
+        const TConstArrayRef<float> GetTarget() const {
+            return Target;
+        }
+
+        const TClassificationTargetPtr GetClassificationTarget() const {
+            return ClassificationTarget;
         }
 
         const TEmbeddingDataSet& GetLearnDataset() const {
@@ -193,7 +199,8 @@ namespace NCB {
 
 
     private:
-        TClassificationTargetPtr Target;
+        TConstArrayRef<float> Target;
+        TClassificationTargetPtr ClassificationTarget; // can be nullptr
         TEmbeddingDataSetPtr LearnArrays;
         TVector<TEmbeddingDataSetPtr> TestArrays;
         const TGuid Guid;

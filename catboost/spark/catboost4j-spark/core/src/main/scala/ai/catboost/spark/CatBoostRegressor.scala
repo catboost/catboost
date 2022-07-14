@@ -79,10 +79,12 @@ class CatBoostRegressionModel (
   )
 
   override def copy(extra: ParamMap): CatBoostRegressionModel = {
-    val newModel = defaultCopy[CatBoostRegressionModel](extra)
-    newModel.nativeModel = this.nativeModel
-    newModel.nativeDimension = this.nativeDimension
-    newModel
+    val that = new CatBoostRegressionModel(this.uid, this.nativeModel, this.nativeDimension)
+    this.copyValues(that, extra).asInstanceOf[CatBoostRegressionModel]
+  }
+
+  override def transformImpl(dataset: Dataset[_]): DataFrame = {
+    transformCatBoostImpl(dataset)
   }
 
   /**
@@ -140,8 +142,16 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
     fileName: String, 
     format: EModelType = native_impl.EModelType.CatboostBinary
   ): CatBoostRegressionModel = {
-    new CatBoostRegressionModel(native_impl.native_impl.ReadModelWrapper(fileName, format))
+    new CatBoostRegressionModel(native_impl.native_impl.ReadModel(fileName, format))
   }
+
+  def sum(
+    models: Array[CatBoostRegressionModel],
+    weights: Array[Double] = null,
+    ctrMergePolicy: ECtrTableMergePolicy = native_impl.ECtrTableMergePolicy.IntersectingCountersAverage
+  ): CatBoostRegressionModel = {
+    new CatBoostRegressionModel(CatBoostModel.sum(models.toArray[CatBoostModelTrait[CatBoostRegressionModel]], weights, ctrMergePolicy))
+  } 
 }
 
 

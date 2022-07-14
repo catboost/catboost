@@ -14,7 +14,23 @@
 #include "mutex.h"
 #include <sys/types.h>
 
+#include <atomic>
+
 class TShellCommandOptions {
+    class TCopyableAtomicBool: public std::atomic<bool> {
+    public:
+        using std::atomic<bool>::atomic;
+        TCopyableAtomicBool(const TCopyableAtomicBool& other)
+            : std::atomic<bool>(other.load(std::memory_order_acquire))
+        {
+        }
+
+        TCopyableAtomicBool& operator=(const TCopyableAtomicBool& other) {
+            this->store(other.load(std::memory_order_acquire), std::memory_order_release);
+            return *this;
+        }
+    };
+
 public:
     struct TUserOptions {
         TString Name;
@@ -42,7 +58,7 @@ public:
         : ClearSignalMask(false)
         , CloseAllFdsOnExec(false)
         , AsyncMode(false)
-        , PollDelayMs(DefaultSyncPollDelay)
+        , PollDelayMs(DefaultSyncPollDelayMs)
         , UseShell(true)
         , QuoteArguments(true)
         , DetachSession(true)
@@ -55,6 +71,7 @@ public:
         , OutputStream(nullptr)
         , ErrorStream(nullptr)
         , Nice(0)
+        , FuncAfterFork(std::function<void()>())
     {
     }
 
@@ -184,7 +201,7 @@ public:
     * @return self
     */
     inline TShellCommandOptions& SetCloseInput(bool val) {
-        ShouldCloseInput = val;
+        ShouldCloseInput.store(val);
         return *this;
     }
 
@@ -232,6 +249,17 @@ public:
     */
     inline TShellCommandOptions& SetDetachSession(bool detach) {
         DetachSession = detach;
+        return *this;
+    }
+
+    /**
+     * @brief specifies pure function to be called in the child process after fork, before calling execve
+     * @note currently ignored on windows
+     * @param function function to be called after fork
+     * @return self
+    */
+    inline TShellCommandOptions& SetFuncAfterFork(const std::function<void()>& function) {
+        FuncAfterFork = function;
         return *this;
     }
 
@@ -284,6 +312,9 @@ public:
     }
 
 public:
+    static constexpr size_t DefaultSyncPollDelayMs = 1000;
+
+public:
     bool ClearSignalMask = false;
     bool CloseAllFdsOnExec = false;
     bool AsyncMode = false;
@@ -292,7 +323,7 @@ public:
     bool QuoteArguments = false;
     bool DetachSession = false;
     bool CloseStreams = false;
-    bool ShouldCloseInput = false;
+    TCopyableAtomicBool ShouldCloseInput = false;
     EHandleMode InputMode = HANDLE_STREAM;
     EHandleMode OutputMode = HANDLE_STREAM;
     EHandleMode ErrorMode = HANDLE_STREAM;
@@ -309,7 +340,7 @@ public:
     THashMap<TString, TString> Environment;
     int Nice = 0;
 
-    static const size_t DefaultSyncPollDelay = 1000; // ms
+    std::function<void()> FuncAfterFork = {};
 };
 
 /**

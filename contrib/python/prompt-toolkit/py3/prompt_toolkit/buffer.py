@@ -17,6 +17,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    Coroutine,
     Deque,
     Iterable,
     List,
@@ -81,7 +82,7 @@ class CompletionState:
         original_document: "Document",
         completions: Optional[List["Completion"]] = None,
         complete_index: Optional[int] = None,
-    ):
+    ) -> None:
 
         #: Document as it was when the completion started.
         self.original_document = original_document
@@ -95,7 +96,7 @@ class CompletionState:
         self.complete_index = complete_index  # Position in the `_completions` array.
 
     def __repr__(self) -> str:
-        return "%s(%r, <%r> completions, index=%r)" % (
+        return "{}({!r}, <{!r}> completions, index={!r})".format(
             self.__class__.__name__,
             self.original_document,
             len(self.completions),
@@ -153,14 +154,14 @@ class YankNthArgState:
 
     def __init__(
         self, history_position: int = 0, n: int = -1, previous_inserted_word: str = ""
-    ):
+    ) -> None:
 
         self.history_position = history_position
         self.previous_inserted_word = previous_inserted_word
         self.n = n
 
     def __repr__(self) -> str:
-        return "%s(history_position=%r, n=%r, previous_inserted_word=%r)" % (
+        return "{}(history_position={!r}, n={!r}, previous_inserted_word={!r})".format(
             self.__class__.__name__,
             self.history_position,
             self.n,
@@ -317,7 +318,7 @@ class Buffer:
         else:
             text = self.text[:12] + "..."
 
-        return "<Buffer(name=%r, text=%r) at %r>" % (self.name, text, id(self))
+        return f"<Buffer(name={self.name!r}, text={text!r}) at {id(self)!r}>"
 
     def reset(
         self, document: Optional[Document] = None, append_to_history: bool = False
@@ -967,11 +968,11 @@ class Buffer:
                         if i == self.working_index:
                             display_meta = "Current, line %s" % (j + 1)
                         else:
-                            display_meta = "History %s, line %s" % (i + 1, j + 1)
+                            display_meta = f"History {i + 1}, line {j + 1}"
 
                         completions.append(
                             Completion(
-                                l,
+                                text=l,
                                 start_position=-len(current_line),
                                 display_meta=display_meta,
                             )
@@ -1692,7 +1693,7 @@ class Buffer:
             )
         )
 
-    def _create_completer_coroutine(self) -> Callable[..., Awaitable[None]]:
+    def _create_completer_coroutine(self) -> Callable[..., Coroutine[Any, Any, None]]:
         """
         Create function for asynchronous autocompletion.
 
@@ -1822,7 +1823,7 @@ class Buffer:
 
         return async_completer
 
-    def _create_auto_suggest_coroutine(self) -> Callable[[], Awaitable[None]]:
+    def _create_auto_suggest_coroutine(self) -> Callable[[], Coroutine[Any, Any, None]]:
         """
         Create function for asynchronous auto suggestion.
         (This can be in another thread.)
@@ -1849,7 +1850,9 @@ class Buffer:
 
         return async_suggestor
 
-    def _create_auto_validate_coroutine(self) -> Callable[[], Awaitable[None]]:
+    def _create_auto_validate_coroutine(
+        self,
+    ) -> Callable[[], Coroutine[Any, Any, None]]:
         """
         Create a function for asynchronous validation while typing.
         (This can be in another thread.)

@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <cctype>
 #include <iostream>
 #include <iterator>
@@ -80,8 +84,7 @@ class StringRange final {
   const char* end_;
 };
 
-std::unordered_map<TString, TypeProto>&
-DataTypeUtils::GetTypeStrToProtoMap() {
+std::unordered_map<TString, TypeProto>& DataTypeUtils::GetTypeStrToProtoMap() {
   static std::unordered_map<TString, TypeProto> map;
   return map;
 }
@@ -111,33 +114,30 @@ DataType DataTypeUtils::ToType(const TString& type_str) {
 const TypeProto& DataTypeUtils::ToTypeProto(const DataType& data_type) {
   std::lock_guard<std::mutex> lock(GetTypeStrLock());
   auto it = GetTypeStrToProtoMap().find(*data_type);
-  assert(it != GetTypeStrToProtoMap().end());
+  if (GetTypeStrToProtoMap().end() == it) {
+    ONNX_THROW_EX(std::invalid_argument("Invalid data type " + *data_type));
+  }
   return it->second;
 }
 
-TString DataTypeUtils::ToString(
-    const TypeProto& type_proto,
-    const TString& left,
-    const TString& right) {
+TString DataTypeUtils::ToString(const TypeProto& type_proto, const TString& left, const TString& right) {
   switch (type_proto.value_case()) {
     case TypeProto::ValueCase::kTensorType: {
       // Note: We do not distinguish tensors with zero rank (a shape consisting
       // of an empty sequence of dimensions) here.
-      return left + "tensor(" +
-          ToDataTypeString(type_proto.tensor_type().elem_type()) + ")" + right;
+      return left + "tensor(" + ToDataTypeString(type_proto.tensor_type().elem_type()) + ")" + right;
+    }
+    case TypeProto::ValueCase::kSequenceType: {
+      return ToString(type_proto.sequence_type().elem_type(), left + "seq(", ")" + right);
+    }
+    case TypeProto::ValueCase::kOptionalType: {
+      return ToString(type_proto.optional_type().elem_type(), left + "optional(", ")" + right);
+    }
+    case TypeProto::ValueCase::kMapType: {
+      TString map_str = "map(" + ToDataTypeString(type_proto.map_type().key_type()) + ",";
+      return ToString(type_proto.map_type().value_type(), left + map_str, ")" + right);
     }
 #ifdef ONNX_ML
-    case TypeProto::ValueCase::kSequenceType: {
-      return ToString(
-          type_proto.sequence_type().elem_type(), left + "seq(", ")" + right);
-    }
-
-    case TypeProto::ValueCase::kMapType: {
-      TString map_str =
-          "map(" + ToDataTypeString(type_proto.map_type().key_type()) + ",";
-      return ToString(
-          type_proto.map_type().value_type(), left + map_str, ")" + right);
-    }
     case TypeProto::ValueCase::kOpaqueType: {
       static const TString empty;
       TString result;
@@ -152,39 +152,35 @@ TString DataTypeUtils::ToString(
       result.append(")").append(right);
       return result;
     }
+#endif
     case TypeProto::ValueCase::kSparseTensorType: {
       // Note: We do not distinguish tensors with zero rank (a shape consisting
       // of an empty sequence of dimensions) here.
-      return left + "sparse_tensor(" +
-          ToDataTypeString(type_proto.sparse_tensor_type().elem_type()) + ")" +
-          right;
+      return left + "sparse_tensor(" + ToDataTypeString(type_proto.sparse_tensor_type().elem_type()) + ")" + right;
     }
-#endif
     default:
-      assert(false);
-      return TString();
+      ONNX_THROW_EX(std::invalid_argument("Unsuported type proto value case."));
   }
 }
 
-TString DataTypeUtils::ToDataTypeString(
-    int32_t tensor_data_type) {
+TString DataTypeUtils::ToDataTypeString(int32_t tensor_data_type) {
   TypesWrapper& t = TypesWrapper::GetTypesWrapper();
   auto iter = t.TensorDataTypeToTypeStr().find(tensor_data_type);
-  assert(t.TensorDataTypeToTypeStr().end() != iter);
+  if (t.TensorDataTypeToTypeStr().end() == iter) {
+    ONNX_THROW_EX(std::invalid_argument("Invalid tensor data type " + std::to_string(tensor_data_type) + "."));
+  }
   return iter->second;
 }
 
-void DataTypeUtils::FromString(
-    const TString& type_str,
-    TypeProto& type_proto) {
+void DataTypeUtils::FromString(const TString& type_str, TypeProto& type_proto) {
   StringRange s(type_str);
   type_proto.Clear();
-#ifdef ONNX_ML
   if (s.LStrip("seq")) {
     s.ParensWhitespaceStrip();
-    return FromString(
-        TString(s.Data(), s.Size()),
-        *type_proto.mutable_sequence_type()->mutable_elem_type());
+    return FromString(TString(s.Data(), s.Size()), *type_proto.mutable_sequence_type()->mutable_elem_type());
+  } else if (s.LStrip("optional")) {
+    s.ParensWhitespaceStrip();
+    return FromString(TString(s.Data(), s.Size()), *type_proto.mutable_optional_type()->mutable_elem_type());
   } else if (s.LStrip("map")) {
     s.ParensWhitespaceStrip();
     size_t key_size = s.Find(',');
@@ -196,10 +192,10 @@ void DataTypeUtils::FromString(
     int32_t key_type;
     FromDataTypeString(key, key_type);
     type_proto.mutable_map_type()->set_key_type(key_type);
-    return FromString(
-        TString(v.Data(), v.Size()),
-        *type_proto.mutable_map_type()->mutable_value_type());
-  } else if (s.LStrip("opaque")) {
+    return FromString(TString(v.Data(), v.Size()), *type_proto.mutable_map_type()->mutable_value_type());
+  } else
+#ifdef ONNX_ML
+      if (s.LStrip("opaque")) {
     auto* opaque_type = type_proto.mutable_opaque_type();
     s.ParensWhitespaceStrip();
     if (!s.Empty()) {
@@ -214,14 +210,14 @@ void DataTypeUtils::FromString(
         opaque_type->mutable_name()->assign(s.Data(), s.Size());
       }
     }
-  } else if (s.LStrip("sparse_tensor")) {
+  } else
+#endif
+      if (s.LStrip("sparse_tensor")) {
     s.ParensWhitespaceStrip();
     int32_t e;
     FromDataTypeString(TString(s.Data(), s.Size()), e);
     type_proto.mutable_sparse_tensor_type()->set_elem_type(e);
-  } else
-#endif
-      if (s.LStrip("tensor")) {
+  } else if (s.LStrip("tensor")) {
     s.ParensWhitespaceStrip();
     int32_t e;
     FromDataTypeString(TString(s.Data(), s.Size()), e);
@@ -243,10 +239,11 @@ bool DataTypeUtils::IsValidDataTypeString(const TString& type_str) {
   return (allowedSet.find(type_str) != allowedSet.end());
 }
 
-void DataTypeUtils::FromDataTypeString(
-    const TString& type_str,
-    int32_t& tensor_data_type) {
-  assert(IsValidDataTypeString(type_str));
+void DataTypeUtils::FromDataTypeString(const TString& type_str, int32_t& tensor_data_type) {
+  if (!IsValidDataTypeString(type_str)) {
+    ONNX_THROW_EX(
+        std::invalid_argument("DataTypeUtils::FromDataTypeString - Received invalid data type string " + type_str));
+  }
 
   TypesWrapper& t = TypesWrapper::GetTypesWrapper();
   tensor_data_type = t.TypeStrToTensorDataType()[type_str];
@@ -254,8 +251,7 @@ void DataTypeUtils::FromDataTypeString(
 
 StringRange::StringRange() : data_(""), size_(0), start_(data_), end_(data_) {}
 
-StringRange::StringRange(const char* p_data, size_t p_size)
-    : data_(p_data), size_(p_size), start_(data_), end_(data_) {
+StringRange::StringRange(const char* p_data, size_t p_size) : data_(p_data), size_(p_size), start_(data_), end_(data_) {
   assert(p_data != nullptr);
   LAndRStrip();
 }
@@ -265,8 +261,7 @@ StringRange::StringRange(const TString& p_str)
   LAndRStrip();
 }
 
-StringRange::StringRange(const char* p_data)
-    : data_(p_data), size_(strlen(p_data)), start_(data_), end_(data_) {
+StringRange::StringRange(const char* p_data) : data_(p_data), size_(strlen(p_data)), start_(data_), end_(data_) {
   LAndRStrip();
 }
 
@@ -309,9 +304,7 @@ bool StringRange::StartsWith(const StringRange& str) const {
 }
 
 bool StringRange::EndsWith(const StringRange& str) const {
-  return (
-      (size_ >= str.size_) &&
-      (memcmp(data_ + (size_ - str.size_), str.data_, str.size_) == 0));
+  return ((size_ >= str.size_) && (memcmp(data_ + (size_ - str.size_), str.data_, str.size_) == 0));
 }
 
 bool StringRange::LStrip() {
@@ -429,6 +422,7 @@ TypesWrapper::TypesWrapper() {
   // DataType strings. These should match the DataTypes defined in onnx.proto
   type_str_to_tensor_data_type_["float"] = TensorProto_DataType_FLOAT;
   type_str_to_tensor_data_type_["float16"] = TensorProto_DataType_FLOAT16;
+  type_str_to_tensor_data_type_["bfloat16"] = TensorProto_DataType_BFLOAT16;
   type_str_to_tensor_data_type_["double"] = TensorProto_DataType_DOUBLE;
   type_str_to_tensor_data_type_["int8"] = TensorProto_DataType_INT8;
   type_str_to_tensor_data_type_["int16"] = TensorProto_DataType_INT16;

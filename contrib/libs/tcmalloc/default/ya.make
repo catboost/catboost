@@ -10,9 +10,9 @@ SRCDIR(contrib/libs/tcmalloc)
 
 INCLUDE(../common.inc)
 
-SRCS(
+GLOBAL_SRCS(
     # Options
-    tcmalloc/want_hpaa.cc
+    tcmalloc/want_hpaa_subrelease.cc
 )
 
 END()

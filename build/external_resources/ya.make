@@ -3,6 +3,7 @@
 RECURSE(
     antlr3
     antlr4
+    eslint
     gradle
     maven
     swift-demangle
@@ -36,6 +37,7 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     goyndexer
     pnpm
     typescript
+    webpack
     ymake
     yolint
 )

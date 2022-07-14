@@ -12,17 +12,15 @@
 
 #include <__config>
 #include <__memory/allocator_traits.h>
+#include <__utility/forward.h>
 #include <cstddef>
 #include <new>
 #include <stdexcept>
 #include <type_traits>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#pragma GCC system_header
+#  pragma GCC system_header
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -30,33 +28,59 @@ template <class _Tp> class allocator;
 
 #if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_ALLOCATOR_MEMBERS)
 template <>
-class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 allocator<void>
+class _LIBCPP_TEMPLATE_VIS allocator<void>
 {
 public:
-    typedef void*             pointer;
-    typedef const void*       const_pointer;
-    typedef void              value_type;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef void*             pointer;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef const void*       const_pointer;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef void              value_type;
 
-    template <class _Up> struct rebind {typedef allocator<_Up> other;};
+    template <class _Up> struct _LIBCPP_DEPRECATED_IN_CXX17 rebind {typedef allocator<_Up> other;};
 };
 
 template <>
-class _LIBCPP_TEMPLATE_VIS _LIBCPP_DEPRECATED_IN_CXX17 allocator<const void>
+class _LIBCPP_TEMPLATE_VIS allocator<const void>
 {
 public:
-    typedef const void*       pointer;
-    typedef const void*       const_pointer;
-    typedef const void        value_type;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef const void*       pointer;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef const void*       const_pointer;
+    _LIBCPP_DEPRECATED_IN_CXX17 typedef const void        value_type;
 
-    template <class _Up> struct rebind {typedef allocator<_Up> other;};
+    template <class _Up> struct _LIBCPP_DEPRECATED_IN_CXX17 rebind {typedef allocator<_Up> other;};
 };
 #endif
 
+// This class provides a non-trivial default constructor to the class that derives from it
+// if the condition is satisfied.
+//
+// The second template parameter exists to allow giving a unique type to __non_trivial_if,
+// which makes it possible to avoid breaking the ABI when making this a base class of an
+// existing class. Without that, imagine we have classes D1 and D2, both of which used to
+// have no base classes, but which now derive from __non_trivial_if. The layout of a class
+// that inherits from both D1 and D2 will change because the two __non_trivial_if base
+// classes are not allowed to share the same address.
+//
+// By making those __non_trivial_if base classes unique, we work around this problem and
+// it is safe to start deriving from __non_trivial_if in existing classes.
+template <bool _Cond, class _Unique>
+struct __non_trivial_if { };
+
+template <class _Unique>
+struct __non_trivial_if<true, _Unique> {
+    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_CONSTEXPR __non_trivial_if() _NOEXCEPT { }
+};
+
 // allocator
+//
+// Note: For ABI compatibility between C++20 and previous standards, we make
+//       allocator<void> trivial in C++20.
 
 template <class _Tp>
 class _LIBCPP_TEMPLATE_VIS allocator
+    : private __non_trivial_if<!is_void<_Tp>::value, allocator<_Tp> >
 {
+    static_assert(!is_volatile<_Tp>::value, "std::allocator does not support volatile types");
 public:
     typedef size_t      size_type;
     typedef ptrdiff_t   difference_type;
@@ -65,7 +89,7 @@ public:
     typedef true_type   is_always_equal;
 
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    allocator() _NOEXCEPT { }
+    allocator() _NOEXCEPT = default;
 
     template <class _Up>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
@@ -74,8 +98,7 @@ public:
     _LIBCPP_NODISCARD_AFTER_CXX17 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     _Tp* allocate(size_t __n) {
         if (__n > allocator_traits<allocator>::max_size(*this))
-            __throw_length_error("allocator<T>::allocate(size_t n)"
-                                 " 'n' exceeds maximum supported size");
+            __throw_bad_array_new_length();
         if (__libcpp_is_constant_evaluated()) {
             return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
         } else {
@@ -137,7 +160,9 @@ public:
 
 template <class _Tp>
 class _LIBCPP_TEMPLATE_VIS allocator<const _Tp>
+    : private __non_trivial_if<!is_void<_Tp>::value, allocator<const _Tp> >
 {
+    static_assert(!is_volatile<_Tp>::value, "std::allocator does not support volatile types");
 public:
     typedef size_t      size_type;
     typedef ptrdiff_t   difference_type;
@@ -146,7 +171,7 @@ public:
     typedef true_type   is_always_equal;
 
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-    allocator() _NOEXCEPT { }
+    allocator() _NOEXCEPT = default;
 
     template <class _Up>
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
@@ -155,8 +180,7 @@ public:
     _LIBCPP_NODISCARD_AFTER_CXX17 _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
     const _Tp* allocate(size_t __n) {
         if (__n > allocator_traits<allocator>::max_size(*this))
-            __throw_length_error("allocator<const T>::allocate(size_t n)"
-                                 " 'n' exceeds maximum supported size");
+            __throw_bad_array_new_length();
         if (__libcpp_is_constant_evaluated()) {
             return static_cast<const _Tp*>(::operator new(__n * sizeof(_Tp)));
         } else {
@@ -221,7 +245,5 @@ inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 bool operator!=(const allocator<_Tp>&, const allocator<_Up>&) _NOEXCEPT {return false;}
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // _LIBCPP___MEMORY_ALLOCATOR_H

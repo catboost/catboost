@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file replace.inl
- *  \brief Inline file for replace.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/replace.h>
@@ -26,8 +23,7 @@
 #include <thrust/system/detail/generic/replace.h>
 #include <thrust/system/detail/adl/replace.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -218,5 +214,5 @@ template<typename ForwardIterator, typename T>
 } // end replace()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

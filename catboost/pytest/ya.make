@@ -22,7 +22,7 @@ IF(AUTOCHECK)
     SPLIT_FACTOR(240)
     REQUIREMENTS(cpu:4 network:full)
 ELSE()
-    REQUIREMENTS(cpu:2 network:full)
+    REQUIREMENTS(cpu:2 network:full ram:19)
 ENDIF()
 
 PEERDIR(
@@ -40,7 +40,7 @@ DATA(
     arcadia/catboost/pytest/data
 )
 
-IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+IF (OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
 ENDIF()
 

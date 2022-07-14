@@ -68,6 +68,12 @@ void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
 #   include <sys/auxv.h>
 #   define OSSL_IMPLEMENT_GETAUXVAL
 #  endif
+# elif defined(__ANDROID_API__)
+/* see https://developer.android.google.cn/ndk/guides/cpu-features */
+#  if __ANDROID_API__ >= 18
+#   include <sys/auxv.h>
+#   define OSSL_IMPLEMENT_GETAUXVAL
+#  endif
 # endif
 # if defined(__FreeBSD__)
 #  include <sys/param.h>
@@ -87,10 +93,14 @@ static unsigned long getauxval(unsigned long key)
 #  endif
 # endif
 
-# if defined(__ANDROID__) && defined(__aarch64__) && !defined(OSSL_IMPLEMENT_GETAUXVAL)
-#  include <sys/auxv.h>
-#  define OSSL_IMPLEMENT_GETAUXVAL
-# endif
+/*
+ * Android: according to https://developer.android.com/ndk/guides/cpu-features,
+ * getauxval is supported starting with API level 18
+ */
+#  if defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__ >= 18
+#   include <sys/auxv.h>
+#   define OSSL_IMPLEMENT_GETAUXVAL
+#  endif
 
 /*
  * ARM puts the feature bits for Crypto Extensions in AT_HWCAP2, whereas
@@ -224,11 +234,13 @@ void OPENSSL_cpuid_setup(void)
     }
 # endif
 
+    #ifndef ARCADIA_OPENSSL_DISABLE_ARMV7_TICK
     /* Things that getauxval didn't tell us */
     if (sigsetjmp(ill_jmp, 1) == 0) {
         _armv7_tick();
         OPENSSL_armcap_P |= ARMV7_TICK;
     }
+    #endif
 
     sigaction(SIGILL, &ill_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);

@@ -7,12 +7,13 @@ NOTE: There is no `DynamicHistory`:
       loading can be done asynchronously and making the history swappable would
       probably break this.
 """
-import asyncio
 import datetime
 import os
 import threading
 from abc import ABCMeta, abstractmethod
 from typing import AsyncGenerator, Iterable, List, Optional, Sequence, Tuple
+
+from prompt_toolkit.eventloop import get_event_loop
 
 __all__ = [
     "History",
@@ -134,7 +135,7 @@ class ThreadedHistory(History):
             self._load_thread.start()
 
         # Consume the `_loaded_strings` list, using asyncio.
-        loop = asyncio.get_event_loop()
+        loop = get_event_loop()
 
         # Create threading Event so that we can wait for new items.
         event = threading.Event()
@@ -210,7 +211,7 @@ class ThreadedHistory(History):
         self.history.store_string(string)
 
     def __repr__(self) -> str:
-        return "ThreadedHistory(%r)" % (self.history,)
+        return f"ThreadedHistory({self.history!r})"
 
 
 class InMemoryHistory(History):
@@ -230,8 +231,7 @@ class InMemoryHistory(History):
             self._storage = list(history_strings)
 
     def load_history_strings(self) -> Iterable[str]:
-        for item in self._storage[::-1]:
-            yield item
+        yield from self._storage[::-1]
 
     def store_string(self, string: str) -> None:
         self._storage.append(string)
@@ -260,7 +260,7 @@ class FileHistory(History):
 
     def __init__(self, filename: str) -> None:
         self.filename = filename
-        super(FileHistory, self).__init__()
+        super().__init__()
 
     def load_history_strings(self) -> Iterable[str]:
         strings: List[str] = []

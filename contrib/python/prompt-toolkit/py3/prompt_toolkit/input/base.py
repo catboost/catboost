@@ -9,6 +9,7 @@ from prompt_toolkit.key_binding import KeyPress
 
 __all__ = [
     "Input",
+    "PipeInput",
     "DummyInput",
 ]
 
@@ -104,6 +105,9 @@ class PipeInput(Input):
 class DummyInput(Input):
     """
     Input for use in a `DummyApplication`
+
+    If used in an actual application, it will make the application render
+    itself once and exit immediately, due to an `EOFError`.
     """
 
     def fileno(self) -> int:
@@ -117,6 +121,8 @@ class DummyInput(Input):
 
     @property
     def closed(self) -> bool:
+        # This needs to be true, so that the dummy input will trigger an
+        # `EOFError` immediately in the application.
         return True
 
     def raw_mode(self) -> ContextManager[None]:
@@ -126,6 +132,13 @@ class DummyInput(Input):
         return _dummy_context_manager()
 
     def attach(self, input_ready_callback: Callable[[], None]) -> ContextManager[None]:
+        # Call the callback immediately once after attaching.
+        # This tells the callback to call `read_keys` and check the
+        # `input.closed` flag, after which it won't receive any keys, but knows
+        # that `EOFError` should be raised. This unblocks `read_from_input` in
+        # `application.py`.
+        input_ready_callback()
+
         return _dummy_context_manager()
 
     def detach(self) -> ContextManager[None]:

@@ -36,4 +36,5 @@
 #include <thrust/detail/config/forceinline.h>
 #include <thrust/detail/config/exec_check_disable.h>
 #include <thrust/detail/config/global_workarounds.h>
+#include <thrust/detail/config/namespace.h>
 

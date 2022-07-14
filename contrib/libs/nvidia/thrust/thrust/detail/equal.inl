@@ -14,20 +14,16 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file equal.inl
- *  \brief Inline file for equal.h.
- */
-
+#include <thrust/detail/config.h>
 #include <thrust/equal.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/generic/equal.h>
 #include <thrust/system/detail/adl/equal.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename System, typename InputIterator1, typename InputIterator2>
@@ -65,7 +61,7 @@ bool equal(InputIterator1 first1, InputIterator1 last1,
 }
 
 
-template <typename InputIterator1, typename InputIterator2, 
+template <typename InputIterator1, typename InputIterator2,
           typename BinaryPredicate>
 bool equal(InputIterator1 first1, InputIterator1 last1,
            InputIterator2 first2, BinaryPredicate binary_pred)
@@ -81,6 +77,4 @@ bool equal(InputIterator1 first1, InputIterator1 last1,
   return thrust::equal(select_system(system1,system2), first1, last1, first2, binary_pred);
 }
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

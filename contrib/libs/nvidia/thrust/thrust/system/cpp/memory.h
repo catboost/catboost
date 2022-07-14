@@ -27,7 +27,8 @@
 #include <thrust/mr/allocator.h>
 #include <ostream>
 
-namespace thrust { namespace system { namespace cpp
+THRUST_NAMESPACE_BEGIN
+namespace system { namespace cpp
 {
 
 /*! Allocates an area of memory available to Thrust's <tt>cpp</tt> system.
@@ -93,7 +94,7 @@ using thrust::system::cpp::free;
 using thrust::system::cpp::allocator;
 } // namespace cpp
 
-} // namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/cpp/detail/memory.inl>
 

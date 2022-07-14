@@ -1,4 +1,3 @@
 RECURSE(
     chunks
-    chunks/ut
 )

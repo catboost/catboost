@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template<typename Pointer>
 __host__ __device__
@@ -48,5 +47,4 @@ static_pointer_cast(FromPointer ptr)
   return ToPointer(static_cast<to_element*>(thrust::raw_pointer_cast(ptr)));
 }
 
-} // end thrust
-
+THRUST_NAMESPACE_END

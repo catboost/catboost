@@ -255,8 +255,6 @@ set_last_error(PyObject *self, PyObject *args)
     return set_error_internal(self, args, 1);
 }
 
-PyObject *ComError;
-
 static WCHAR *FormatError(DWORD code)
 {
     WCHAR *lpMsgBuf;
@@ -478,7 +476,7 @@ static void
 PyCArg_dealloc(PyCArgObject *self)
 {
     Py_XDECREF(self->obj);
-    PyObject_Del(self);
+    PyObject_Free(self);
 }
 
 static int
@@ -703,7 +701,6 @@ static int ConvParam(PyObject *obj, Py_ssize_t index, struct argument *pa)
         return 0;
     }
 
-#ifdef CTYPES_UNICODE
     if (PyUnicode_Check(obj)) {
         pa->ffi_type = &ffi_type_pointer;
         pa->value.p = PyUnicode_AsWideCharString(obj, NULL);
@@ -716,7 +713,6 @@ static int ConvParam(PyObject *obj, Py_ssize_t index, struct argument *pa)
         }
         return 0;
     }
-#endif
 
     {
         _Py_IDENTIFIER(_as_parameter_);
@@ -839,7 +835,7 @@ static int _call_function_pointer(int flags,
 #      define HAVE_FFI_PREP_CIF_VAR_RUNTIME false
 #   endif
 
-    /* Even on Apple-arm64 the calling convention for variadic functions conincides
+    /* Even on Apple-arm64 the calling convention for variadic functions coincides
      * with the standard calling convention in the case that the function called
      * only with its fixed arguments.   Thus, we do not need a special flag to be
      * set on variadic functions.   We treat a function as variadic if it is called
@@ -1317,11 +1313,11 @@ _parse_voidp(PyObject *obj, void **address)
 
 #ifdef MS_WIN32
 
-static const char format_error_doc[] =
+PyDoc_STRVAR(format_error_doc,
 "FormatError([integer]) -> string\n\
 \n\
 Convert a win32 error code into a string. If the error code is not\n\
-given, the return value of a call to GetLastError() is used.\n";
+given, the return value of a call to GetLastError() is used.\n");
 static PyObject *format_error(PyObject *self, PyObject *args)
 {
     PyObject *result;
@@ -1341,16 +1337,15 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     return result;
 }
 
-static const char load_library_doc[] =
+PyDoc_STRVAR(load_library_doc,
 "LoadLibrary(name, load_flags) -> handle\n\
 \n\
 Load an executable (usually a DLL), and return a handle to it.\n\
 The handle may be used to locate exported functions in this\n\
 module. load_flags are as defined for LoadLibraryEx in the\n\
-Windows API.\n";
+Windows API.\n");
 static PyObject *load_library(PyObject *self, PyObject *args)
 {
-    const WCHAR *name;
     PyObject *nameobj;
     int load_flags = 0;
     HMODULE hMod;
@@ -1359,16 +1354,13 @@ static PyObject *load_library(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "U|i:LoadLibrary", &nameobj, &load_flags))
         return NULL;
 
-_Py_COMP_DIAG_PUSH
-_Py_COMP_DIAG_IGNORE_DEPR_DECLS
-    name = _PyUnicode_AsUnicode(nameobj);
-_Py_COMP_DIAG_POP
-    if (!name)
-        return NULL;
-
     if (PySys_Audit("ctypes.dlopen", "O", nameobj) < 0) {
         return NULL;
     }
+
+    WCHAR *name = PyUnicode_AsWideCharString(nameobj, NULL);
+    if (!name)
+        return NULL;
 
     Py_BEGIN_ALLOW_THREADS
     /* bpo-36085: Limit DLL search directories to avoid pre-loading
@@ -1378,6 +1370,7 @@ _Py_COMP_DIAG_POP
     err = hMod ? 0 : GetLastError();
     Py_END_ALLOW_THREADS
 
+    PyMem_Free(name);
     if (err == ERROR_MOD_NOT_FOUND) {
         PyErr_Format(PyExc_FileNotFoundError,
                      ("Could not find module '%.500S' (or one of its "
@@ -1395,10 +1388,10 @@ _Py_COMP_DIAG_POP
 #endif
 }
 
-static const char free_library_doc[] =
+PyDoc_STRVAR(free_library_doc,
 "FreeLibrary(handle) -> void\n\
 \n\
-Free the handle of an executable previously loaded by LoadLibrary.\n";
+Free the handle of an executable previously loaded by LoadLibrary.\n");
 static PyObject *free_library(PyObject *self, PyObject *args)
 {
     void *hMod;
@@ -1418,8 +1411,8 @@ static PyObject *free_library(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-static const char copy_com_pointer_doc[] =
-"CopyComPointer(src, dst) -> HRESULT value\n";
+PyDoc_STRVAR(copy_com_pointer_doc,
+"CopyComPointer(src, dst) -> HRESULT value\n");
 
 static PyObject *
 copy_com_pointer(PyObject *self, PyObject *args)
@@ -1485,14 +1478,14 @@ static PyObject *py_dyld_shared_cache_contains_path(PyObject *self, PyObject *ar
 
          if (!PyArg_ParseTuple(args, "O", &name))
              return NULL;
-    
+
          if (name == Py_None)
              Py_RETURN_FALSE;
-    
+
          if (PyUnicode_FSConverter(name, &name2) == 0)
              return NULL;
          name_str = PyBytes_AS_STRING(name2);
-    
+
          r = _dyld_shared_cache_contains_path(name_str);
          Py_DECREF(name2);
 
@@ -1657,10 +1650,10 @@ call_cdeclfunction(PyObject *self, PyObject *args)
 /*****************************************************************
  * functions
  */
-static const char sizeof_doc[] =
+PyDoc_STRVAR(sizeof_doc,
 "sizeof(C type) -> integer\n"
 "sizeof(C instance) -> integer\n"
-"Return the size in bytes of a C instance";
+"Return the size in bytes of a C instance");
 
 static PyObject *
 sizeof_func(PyObject *self, PyObject *obj)
@@ -1678,10 +1671,10 @@ sizeof_func(PyObject *self, PyObject *obj)
     return NULL;
 }
 
-static const char alignment_doc[] =
+PyDoc_STRVAR(alignment_doc,
 "alignment(C type) -> integer\n"
 "alignment(C instance) -> integer\n"
-"Return the alignment requirements of a C instance";
+"Return the alignment requirements of a C instance");
 
 static PyObject *
 align_func(PyObject *self, PyObject *obj)
@@ -1701,10 +1694,10 @@ align_func(PyObject *self, PyObject *obj)
     return NULL;
 }
 
-static const char byref_doc[] =
+PyDoc_STRVAR(byref_doc,
 "byref(C instance[, offset=0]) -> byref-object\n"
 "Return a pointer lookalike to a C instance, only usable\n"
-"as function argument";
+"as function argument");
 
 /*
  * We must return something which can be converted to a parameter,
@@ -1745,9 +1738,9 @@ byref(PyObject *self, PyObject *args)
     return (PyObject *)parg;
 }
 
-static const char addressof_doc[] =
+PyDoc_STRVAR(addressof_doc,
 "addressof(C instance) -> integer\n"
-"Return the address of the C instance internal buffer";
+"Return the address of the C instance internal buffer");
 
 static PyObject *
 addressof(PyObject *self, PyObject *obj)

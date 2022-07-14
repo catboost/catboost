@@ -26,11 +26,12 @@ public class NativeLib {
     }
 
     @NotNull
-    private static String getCurrentMachineResourcesDir() {
+    private static String[] getCurrentMachineResourcesDirs() {
         // NOTE: This is an incomplete list of all possible combinations! But CatBoost officially only supports x86_64
-        // platform (on Mac, Linux and Windows). If you wont support for other platforms you'll have to build JNI from
-        // sources by yourself for your target platform and probably write your own shared library loader for shared
-        // library.
+        // and arm64 platfroms on Mac, and only x86_64 on Linux and Windows. If you wont support for other platforms 
+        // you'll have to build JNI from sources by yourself for your target platform and probably write your own shared
+        // library loader for shared library.
+        // On macOS this function returns paths for both arch-specific and universal binaries paths.
 
         String osArch = System.getProperty("os.arch").toLowerCase();
         // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
@@ -45,18 +46,31 @@ public class NativeLib {
         // hand.
         if (osName.contains("mac")) {
             osName = "darwin";
-        } else if (osName.contains("win")) {
-            osName = "win32";
-        }
 
-        // Will result in something like "linux-x86_64"
-        return osName + "-" + osArch;
+            // For macOS they are the same
+            if (osArch.equals("aarch64")) {
+                osArch = "arm64";
+            }
+            return new String[] {osName + "-" + osArch, osName + "-universal2"};
+        } else {
+            if (osName.contains("win")) {
+                osName = "win32";
+            }
+            // Will result in something like "linux-x86_64"
+            return new String[] {osName + "-" + osArch};
+        }
     }
 
     private static void loadNativeLibraryFromJar(final @NotNull String libName) throws IOException {
-        final String pathWithinJar = "/" + getCurrentMachineResourcesDir() + "/lib/" + System.mapLibraryName(libName);
-        final String tempLibPath = createTemporaryFileFromJar(pathWithinJar);
-        System.load(tempLibPath);
+        for (String machineResourcesDir : getCurrentMachineResourcesDirs()) {
+            final String pathWithinJar = "/" + machineResourcesDir + "/lib/" + System.mapLibraryName(libName);
+            if (NativeLib.class.getResource(pathWithinJar) != null) {
+                final String tempLibPath = createTemporaryFileFromJar(pathWithinJar);
+                System.load(tempLibPath);
+                return;
+            }
+        }
+        throw new IOException("Native library '" + libName + "' not found");
     }
 
     private static void copyFileFromJar(final @NotNull String pathWithinJar, final @NotNull String pathOnDisk) throws IOException {

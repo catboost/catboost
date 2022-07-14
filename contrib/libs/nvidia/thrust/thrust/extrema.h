@@ -24,9 +24,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! This version of \p min returns the smaller of two values, given a comparison operation.
  *  \param lhs The first value to compare.
@@ -797,8 +795,7 @@ thrust::pair<ForwardIterator,ForwardIterator> minmax_element(ForwardIterator fir
  *  \} // end reductions
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/extrema.inl>
 #include <thrust/detail/minmax.h>
-

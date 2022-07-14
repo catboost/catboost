@@ -22,8 +22,7 @@
 #include <thrust/detail/use_default.h>
 #include <thrust/type_traits/is_contiguous_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -59,6 +58,21 @@ template<typename Iterator, typename Tag>
       : super_t(x) {}
 }; // end tagged_iterator
 
+/*! \p make_tagged_iterator creates a \p tagged_iterator
+ *  from a \c Iterator with system tag \c Tag.
+ *
+ *  \tparam Tag Any system tag.
+ *  \tparam Iterator Any iterator type.
+ *  \param iter The iterator of interest.
+ *  \return An iterator whose system tag is \p Tag and whose behavior is otherwise
+ *          equivalent to \p iter.
+ */
+template <typename Tag, typename Iterator>
+inline auto make_tagged_iterator(Iterator iter) -> tagged_iterator<Iterator, Tag>
+{
+  return tagged_iterator<Iterator, Tag>(iter);
+}
+
 } // end detail
 
 // tagged_iterator is trivial if its base iterator is.
@@ -67,5 +81,5 @@ struct proclaim_contiguous_iterator<
   detail::tagged_iterator<BaseIterator, Tag>
 > : is_contiguous_iterator<BaseIterator> {};
 
-} // end thrust
+THRUST_NAMESPACE_END
 

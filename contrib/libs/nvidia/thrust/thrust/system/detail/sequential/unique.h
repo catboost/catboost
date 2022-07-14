@@ -26,8 +26,7 @@
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -90,8 +89,42 @@ __host__ __device__
 } // end unique()
 
 
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+__host__ __device__
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(sequential::execution_policy<DerivedPolicy> &,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred)
+{
+  typedef typename thrust::iterator_traits<ForwardIterator>::value_type T;
+  typename thrust::iterator_traits<ForwardIterator>::difference_type count{};
+
+  if(first != last)
+  {
+    count++;
+    T prev = *first;
+
+    for(++first; first != last; ++first)
+    {
+      T temp = *first;
+
+      if (!binary_pred(prev, temp))
+      {
+        count++;
+        prev = temp;
+      }
+    }
+  }
+
+  return count;
+} // end unique()
+
+
 } // end namespace sequential
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

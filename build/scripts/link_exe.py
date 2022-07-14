@@ -15,11 +15,53 @@ def get_leaks_suppressions(cmd):
     return supp, newcmd
 
 
-musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
+MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
 
 
-def fix_cmd(musl, c):
-    return [i for i in c if (not musl or i not in musl_libs) and not i.endswith('.ios.interface')]
+CUDA_LIBRARIES = {
+    '-lcublas_static': '-lcublas',
+    '-lcublasLt_static': '-lcublasLt',
+    '-lcudart_static': '-lcudart',
+    '-lcudnn_static': '-lcudnn',
+    '-lcufft_static_nocallback': '-lcufft',
+    '-lcurand_static': '-lcurand',
+    '-lcusolver_static': '-lcusolver',
+    '-lcusparse_static': '-lcusparse',
+    '-lmyelin_compiler_static': '-lmyelin',
+    '-lmyelin_executor_static': '-lnvcaffe_parser',
+    '-lmyelin_pattern_library_static': '',
+    '-lmyelin_pattern_runtime_static': '',
+    '-lnvinfer_static': '-lnvinfer',
+    '-lnvinfer_plugin_static': '-lnvinfer_plugin',
+    '-lnvonnxparser_static': '-lnvonnxparser',
+    '-lnvparsers_static': '-lnvparsers'
+}
+
+
+def remove_excessive_flags(cmd):
+    flags = []
+    for flag in cmd:
+        if not flag.endswith('.ios.interface') and not flag.endswith('.pkg.fake'):
+            flags.append(flag)
+    return flags
+
+
+def fix_cmd_for_musl(cmd):
+    flags = []
+    for flag in cmd:
+        if flag not in MUSL_LIBS:
+            flags.append(flag)
+    return flags
+
+
+def fix_cmd_for_dynamic_cuda(cmd):
+    flags = []
+    for flag in cmd:
+        if flag in CUDA_LIBRARIES:
+            flags.append(CUDA_LIBRARIES[flag])
+        else:
+            flags.append(flag)
+    return flags
 
 
 def gen_default_suppressions(inputs, output, source_root):
@@ -50,7 +92,9 @@ def parse_args():
     parser.add_option('--custom-step')
     parser.add_option('--python')
     parser.add_option('--source-root')
+    parser.add_option('--dynamic-cuda', action='store_true')
     parser.add_option('--arch')
+    parser.add_option('--linker-output')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
     return parser.parse_args()
@@ -58,16 +102,29 @@ def parse_args():
 
 if __name__ == '__main__':
     opts, args = parse_args()
-    cmd = fix_cmd(opts.musl, args)
+
+    cmd = remove_excessive_flags(args)
+    if opts.musl:
+        cmd = fix_cmd_for_musl(cmd)
+
+    if opts.dynamic_cuda:
+        cmd = fix_cmd_for_dynamic_cuda(cmd)
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
-    supp, cmd = get_leaks_suppressions(cmd)
+
     if opts.custom_step:
         assert opts.python
         subprocess.check_call([opts.python] + [opts.custom_step] + args)
-    if not supp:
-        rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
-    else:
+
+    supp, cmd = get_leaks_suppressions(cmd)
+    if supp:
         src_file = "default_suppressions.cpp"
         gen_default_suppressions(supp, src_file, opts.source_root)
-        rc = subprocess.call(cmd + [src_file], shell=False, stderr=sys.stderr, stdout=sys.stdout)
+        cmd += [src_file]
+
+    if opts.linker_output:
+        stdout = open(opts.linker_output, 'w')
+    else:
+        stdout = sys.stdout
+
+    rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
     sys.exit(rc)

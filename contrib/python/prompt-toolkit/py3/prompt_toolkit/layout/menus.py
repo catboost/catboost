@@ -7,6 +7,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Sequence,
     Tuple,
     TypeVar,
     Union,
@@ -40,9 +41,11 @@ from .dimension import Dimension
 from .margins import ScrollbarMargin
 
 if TYPE_CHECKING:
-    from prompt_toolkit.key_binding.key_bindings import KeyBindings
+    from prompt_toolkit.key_binding.key_bindings import (
+        KeyBindings,
+        NotImplementedOrNone,
+    )
 
-    NotImplementedOrNone = object
 
 __all__ = [
     "CompletionsMenu",
@@ -216,7 +219,7 @@ def _get_menu_item_fragments(
     width.
     """
     if is_current_completion:
-        style_str = "class:completion-menu.completion.current %s %s" % (
+        style_str = "class:completion-menu.completion.current {} {}".format(
             completion.style,
             completion.selected_style,
         )
@@ -275,7 +278,7 @@ class CompletionsMenu(ConditionalContainer):
         scroll_offset: Union[int, Callable[[], int]] = 0,
         extra_filter: FilterOrBool = True,
         display_arrows: FilterOrBool = False,
-        z_index: int = 10 ** 8,
+        z_index: int = 10**8,
     ) -> None:
 
         extra_filter = to_filter(extra_filter)
@@ -404,7 +407,7 @@ class MultiColumnCompletionMenuControl(UIControl):
 
         def grouper(
             n: int, iterable: Iterable[_T], fillvalue: Optional[_T] = None
-        ) -> Iterable[List[_T]]:
+        ) -> Iterable[Sequence[Optional[_T]]]:
             "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
             args = [iter(iterable)] * n
             return zip_longest(fillvalue=fillvalue, *args)
@@ -620,7 +623,7 @@ class MultiColumnCompletionsMenu(HSplit):
         suggested_max_column_width: int = 30,
         show_meta: FilterOrBool = True,
         extra_filter: FilterOrBool = True,
-        z_index: int = 10 ** 8,
+        z_index: int = 10**8,
     ) -> None:
 
         show_meta = to_filter(show_meta)

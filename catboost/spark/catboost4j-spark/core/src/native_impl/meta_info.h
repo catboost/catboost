@@ -19,7 +19,7 @@
             , HasUnknownNumberOfSparseFeatures(hasUnknownNumberOfSparseFeatures)
         {}
 
-        bool HasSparseFeatures() const throw (yexception);
+        bool HasSparseFeatures() const;
 
         bool operator==(const TIntermediateDataMetaInfo& rhs) const {
             return NCB::TDataMetaInfo::EqualTo(rhs) &&
@@ -38,4 +38,4 @@ TIntermediateDataMetaInfo GetIntermediateDataMetaInfo(
     const TString& plainJsonParamsAsString,
     const TMaybe<TString>& dsvHeader,
     const TString& firstDataLine
-) throw (yexception);
+);

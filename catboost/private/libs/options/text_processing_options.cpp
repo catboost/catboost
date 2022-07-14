@@ -120,29 +120,32 @@ namespace NCatboostOptions {
         if (!options.IsDefined()) {
             return;
         }
+        TString calcerName;
 
-        const TString& calcerDescription = options.GetString();
-        TStringBuf calcerDescriptionStrBuf = calcerDescription;
-
-        TStringBuf calcerTypeString;
-        TStringBuf calcerOptionsString;
-        calcerDescriptionStrBuf.Split(':', calcerTypeString, calcerOptionsString);
-
-        if (EFeatureCalcerType calcerType; TryFromString<EFeatureCalcerType>(calcerTypeString, calcerType)) {
-            CalcerType.Set(calcerType);
-        } else {
-            CB_ENSURE(false, "Unknown feature estimator type " << calcerTypeString);
-        }
-
-        CalcerOptions->SetType(NJson::EJsonValueType::JSON_MAP);
-        if (!calcerOptionsString.empty()) {
-            for (TStringBuf optionString: StringSplitter(calcerOptionsString).Split(',')) {
-                TStringBuf name;
-                TStringBuf value;
-                optionString.Split('=', name, value);
-                CalcerOptions->InsertValue(name, value);
+        if (options.IsString()) {
+            TStringBuf name, calcersOptions;
+            TStringBuf(options.GetString()).Split(':', name, calcersOptions);
+            calcerName = name;
+            CalcerOptions->InsertValue("calcer_type", calcerName);
+            for (TStringBuf stringParam : StringSplitter(calcersOptions).Split(':')) {
+                TStringBuf key, value;
+                stringParam.Split('=', key, value);
+                CalcerOptions->InsertValue(key, value);
             }
+        } else {
+            CB_ENSURE(options.IsMap(),
+                      "We only support string and dictionaries as featurization options for value "
+                      << options.GetStringRobust() << " with type " << options.GetType());
+            calcerName = options["calcer_type"].GetString();
+            CalcerOptions.Set(options);
         }
+
+        EFeatureCalcerType calcerType;
+
+        CB_ENSURE(TryFromString<EFeatureCalcerType>(calcerName, calcerType),
+                  "Unknown feature estimator type " << calcerName);
+
+        CalcerType.Set(calcerType);
     }
 
     bool TFeatureCalcerDescription::operator==(const TFeatureCalcerDescription& rhs) const {
@@ -286,7 +289,9 @@ namespace NCatboostOptions {
         TVector<TTextColumnDictionaryOptions>&& dictionaries,
         TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
     )
-        : TTextProcessingOptions()
+        : Tokenizers("tokenizers", {})
+        , Dictionaries("dictionaries", {})
+        , TextFeatureProcessing("feature_processing", {})
     {
         Tokenizers.Set(tokenizers);
         Dictionaries.Set(dictionaries);

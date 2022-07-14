@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_free.h
- *  \brief Deallocates storage allocated by \p device_malloc
+/*! \file 
+ *  \brief Deallocates storage allocated by \p device_malloc.
  */
 
 #pragma once
@@ -24,11 +23,9 @@
 #include <thrust/detail/config.h>
 #include <thrust/device_ptr.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-/*! \addtogroup deallocation_functions Deallocation Functions
- *  \ingroup memory_management_functions
+/*! \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -59,10 +56,10 @@ namespace thrust
  */
 inline void device_free(thrust::device_ptr<void> ptr);
 
-/*! \}
+/*! \} // memory_management
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_free.inl>
 

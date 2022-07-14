@@ -199,7 +199,7 @@ def size_printer(display_name, size):
         now = dt.datetime.now()
         if last_stamp[0] + dt.timedelta(seconds=10) < now:
             if size:
-                print >>sys.stderr, "##status##{} - [[imp]]{:.1f}%[[rst]]".format(display_name, 100.0 * sz[0] / size)
+                print >>sys.stderr, "##status##{} - [[imp]]{:.1f}%[[rst]]".format(display_name, 100.0 * sz[0] / size if size else 0)
             last_stamp[0] = now
 
     return printer
@@ -212,7 +212,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     request = urllib2.Request(url, headers={'User-Agent': make_user_agent()})
     req = retry.retry_func(lambda: urllib2.urlopen(request, timeout=30), tries=tries, delay=5, backoff=1.57079)
     logging.debug('Headers: %s', req.headers.headers)
-    expected_file_size = int(req.headers['Content-Length'])
+    expected_file_size = int(req.headers.get('Content-Length', 0))
     real_md5 = hashlib.md5()
     real_sha1 = hashlib.sha1()
 
@@ -240,7 +240,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
         tmp_file_name = os.path.join(tmp_dir, resource_file_name)
         real_md5 = md5file(tmp_file_name)
 
-    logging.info('File size %s (expected %s)', real_file_size, expected_file_size)
+    logging.info('File size %s (expected %s)', real_file_size, expected_file_size or "UNKNOWN")
     logging.info('File md5 %s (expected %s)', real_md5, expected_md5)
     logging.info('File sha1 %s (expected %s)', real_sha1, expected_sha1)
 
@@ -278,7 +278,7 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
             )
         )
 
-    if expected_file_size != real_file_size:
+    if expected_file_size and expected_file_size != real_file_size:
         report_to_snowden({'headers': req.headers.headers, 'file_size': real_file_size})
 
         raise IncompleteFetchError(

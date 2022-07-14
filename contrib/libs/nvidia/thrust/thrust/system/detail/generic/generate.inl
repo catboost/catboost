@@ -14,14 +14,15 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/generate.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/internal_functional.h>
 #include <thrust/for_each.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -95,5 +96,5 @@ __host__ __device__
 } // end namespace generic
 } // end namespace detail
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -63,6 +63,7 @@ public:
     TCudaGraphInstance() = default;
 
     TCudaGraphInstance(const TCudaGraphInstance& other) = default;
+    TCudaGraphInstance& operator=(const TCudaGraphInstance& other) = default;
 
     operator bool() const {
         return Graph_;

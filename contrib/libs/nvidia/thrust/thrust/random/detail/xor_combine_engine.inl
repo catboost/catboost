@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/random/xor_combine_engine.h>
 #include <thrust/random/detail/random_core_access.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -211,5 +214,5 @@ bool operator!=(const xor_combine_engine<Engine1,s1,Engine2,s2> &lhs,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

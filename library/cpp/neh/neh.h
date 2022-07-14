@@ -260,7 +260,7 @@ namespace NNeh {
 
     using THandleRef = TIntrusivePtr<THandle>;
 
-    THandleRef Request(const TMessage& msg, IOnRecv* fallback);
+    THandleRef Request(const TMessage& msg, IOnRecv* fallback, bool useAsyncSendRequest = false);
 
     inline THandleRef Request(const TMessage& msg) {
         return Request(msg, nullptr);
@@ -279,6 +279,7 @@ namespace NNeh {
         virtual void Add(const THandleRef& req) = 0;
         virtual void Del(const THandleRef& req) = 0;
         virtual bool Wait(THandleRef& req, TInstant deadLine) = 0;
+        virtual bool IsEmpty() const = 0;
 
         inline void Schedule(const TString& req) {
             Add(Request(req));

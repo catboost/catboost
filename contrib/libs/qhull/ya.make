@@ -1,7 +1,7 @@
 LIBRARY()
 
 LICENSE(
-    LicenseRef-scancode-other-permissive
+    LicenseRef-scancode-other-permissive AND
     Qhull
 )
 

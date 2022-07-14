@@ -21,8 +21,7 @@
 #include <thrust/system/detail/generic/unique.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -59,8 +58,22 @@ template<typename DerivedPolicy,
 } // end unique_copy()
 
 
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred)
+{
+  // omp prefers generic::unique_count to cpp::unique_count
+  return thrust::system::detail::generic::unique_count(exec,first,last,binary_pred);
+} // end unique_count()
+
+
 } // end namespace detail
 } // end namespace omp 
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

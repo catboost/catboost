@@ -93,7 +93,7 @@ class FuzzyCompleter(Completer):
         fuzzy_matches: List[_FuzzyMatch] = []
 
         pat = ".*?".join(map(re.escape, word_before_cursor))
-        pat = "(?=({0}))".format(pat)  # lookahead regex to manage overlapping matches
+        pat = f"(?=({pat}))"  # lookahead regex to manage overlapping matches
         regex = re.compile(pat, re.IGNORECASE)
         for compl in completions:
             matches = list(regex.finditer(compl.text))
@@ -114,7 +114,7 @@ class FuzzyCompleter(Completer):
             # Include these completions, but set the correct `display`
             # attribute and `start_position`.
             yield Completion(
-                match.completion.text,
+                text=match.completion.text,
                 start_position=match.completion.start_position
                 - len(word_before_cursor),
                 display_meta=match.completion.display_meta,
@@ -195,7 +195,7 @@ class FuzzyWordCompleter(Completer):
         return self.fuzzy_completer.get_completions(document, complete_event)
 
 
-_FuzzyMatch = NamedTuple(
-    "_FuzzyMatch",
-    [("match_length", int), ("start_pos", int), ("completion", Completion)],
-)
+class _FuzzyMatch(NamedTuple):
+    match_length: int
+    start_pos: int
+    completion: Completion

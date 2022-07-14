@@ -8,6 +8,7 @@
 #include <catboost/private/libs/algo/yetirank_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+#include <util/string/split.h>
 
 using namespace NCB;
 
@@ -176,7 +177,9 @@ TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
         model,
         GetMonopolisticFreeCpuRam(),
         &rand,
-        localExecutor
+        localExecutor,
+        /* metricsThatRequireTargetCanBeSkipped */ false,
+        /* skipMinMaxPairsCheck */ true
     ).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 

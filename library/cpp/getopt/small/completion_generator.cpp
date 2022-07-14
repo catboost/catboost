@@ -555,12 +555,6 @@ namespace NLastGetopt {
                     }
                 }
 
-                L << "-*)";
-                {
-                    I;
-                    L << ";;";
-                }
-
                 L << "*)";
                 {
                     I;

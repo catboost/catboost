@@ -49,7 +49,7 @@ ext.compileOnlyAndroidArs = [
     {compile_only_aars}
 ]
 
-def minVersion = 18
+def minVersion = 21
 def compileVersion = 30
 def targetVersion = 30
 def buildVersion = '30.0.3'
@@ -80,7 +80,7 @@ buildscript {{
     }}
 
     dependencies {{
-        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.android.tools.build:gradle:4.0.2'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }}
 }}
@@ -223,6 +223,10 @@ android {{
                 def aar_set = dependencyTree.matching{{include "**/*.aar"}}.getFiles()
                 def jar_tree = dependencyTree.matching{{include "**/*.jar"}}
 
+                classpath += files(android.libraryVariants.collect {{ libraryVariant ->
+                    libraryVariant.javaCompileProvider.get().classpath.files
+                }})
+
                 aar_set.each{{ aar ->
                     def outputPath = "$buildDir/tmp/aarJar/${{aar.name.replace('.aar', '.jar')}}"
                     classpath += files(outputPath)
@@ -360,10 +364,14 @@ if __name__ == '__main__':
 
     args.build_gradle = os.path.join(args.output_dir, 'build.gradle')
     args.settings_gradle = os.path.join(args.output_dir, 'settings.gradle')
+    args.gradle_properties = os.path.join(args.output_dir, 'gradle.properties')
 
     content = gen_build_script(args)
     with open(args.build_gradle, 'w') as f:
         f.write(content)
+
+    with open(args.gradle_properties, 'w') as f:
+        f.write('android.useAndroidX=true')
 
     if args.bundle_name:
         with open(args.settings_gradle, 'w') as f:

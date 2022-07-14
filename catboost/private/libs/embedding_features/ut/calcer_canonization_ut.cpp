@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TestCalcerCanonization) {
         TVector<TVector<float>> means{{13, 15, 2}, {-28, -13, 15}, {15, -5, -20}};
         TVector<ui32> target;
         for (ui32 id = 0; id < numSamples; ++id) {
-            target.push_back(RandomNumber<ui32>(means.size()));
+            target.push_back(RandomNumber<ui32>(means.size() - 1));
         }
 
         auto dataSet = DataSetGenerator(means, target);

@@ -20,8 +20,7 @@
 #include <thrust/system/tbb/detail/execution_policy.h>
 #include <thrust/system/detail/generic/adjacent_difference.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -46,5 +45,5 @@ template<typename DerivedPolicy,
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

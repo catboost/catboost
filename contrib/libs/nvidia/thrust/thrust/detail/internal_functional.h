@@ -23,14 +23,15 @@
 
 #include <thrust/tuple.h>
 #include <thrust/iterator/iterator_traits.h>
+#include <thrust/detail/config.h>
 #include <thrust/detail/static_assert.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/iterator/detail/tuple_of_iterator_references.h>
 #include <thrust/detail/raw_reference_cast.h>
 #include <thrust/detail/memory_wrapper.h> // for ::new
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
+
 namespace detail
 {
 
@@ -39,12 +40,12 @@ template<typename Predicate>
 struct unary_negate
 {
   typedef bool result_type;
-  
+
   Predicate pred;
-  
+
   __host__ __device__
   explicit unary_negate(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T>
   __host__ __device__
   bool operator()(const T& x)
@@ -58,12 +59,12 @@ template<typename Predicate>
 struct binary_negate
 {
   typedef bool result_type;
-  
+
   Predicate pred;
-  
+
   __host__ __device__
   explicit binary_negate(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T1, typename T2>
   __host__ __device__
   bool operator()(const T1& x, const T2& y)
@@ -92,10 +93,10 @@ template<typename Predicate, typename IntegralType>
 struct predicate_to_integral
 {
   Predicate pred;
-  
+
   __host__ __device__
   explicit predicate_to_integral(const Predicate& pred) : pred(pred) {}
-  
+
   template <typename T>
   __host__ __device__
   IntegralType operator()(const T& x)
@@ -110,7 +111,7 @@ template<typename T1>
 struct equal_to
 {
   typedef bool result_type;
-  
+
   template <typename T2>
   __host__ __device__
   bool operator()(const T1& lhs, const T2& rhs) const
@@ -124,10 +125,10 @@ template<typename T2>
 struct equal_to_value
 {
   T2 rhs;
-  
+
   __host__ __device__
   equal_to_value(const T2& rhs) : rhs(rhs) {}
-  
+
   template <typename T1>
   __host__ __device__
   bool operator()(const T1& lhs) const
@@ -140,17 +141,17 @@ template<typename Predicate>
 struct tuple_binary_predicate
 {
   typedef bool result_type;
-  
+
   __host__ __device__
   tuple_binary_predicate(const Predicate& p) : pred(p) {}
-  
+
   template<typename Tuple>
   __host__ __device__
   bool operator()(const Tuple& t) const
-  { 
+  {
     return pred(thrust::get<0>(t), thrust::get<1>(t));
   }
-  
+
   mutable Predicate pred;
 };
 
@@ -158,17 +159,17 @@ template<typename Predicate>
 struct tuple_not_binary_predicate
 {
   typedef bool result_type;
-  
+
   __host__ __device__
   tuple_not_binary_predicate(const Predicate& p) : pred(p) {}
-  
+
   template<typename Tuple>
   __host__ __device__
   bool operator()(const Tuple& t) const
-  { 
+  {
     return !pred(thrust::get<0>(t), thrust::get<1>(t));
   }
-  
+
   mutable Predicate pred;
 };
 
@@ -408,7 +409,7 @@ struct binary_transform_if_functor
 
   __host__ __device__
   binary_transform_if_functor(BinaryFunction binary_op, Predicate pred)
-    : binary_op(binary_op), pred(pred) {} 
+    : binary_op(binary_op), pred(pred) {}
 
   __thrust_exec_check_disable__
   template<typename Tuple>
@@ -464,7 +465,7 @@ struct fill_functor
 
   __thrust_exec_check_disable__
   __host__ __device__
-  fill_functor(const T& _exemplar) 
+  fill_functor(const T& _exemplar)
     : exemplar(_exemplar) {}
 
   __thrust_exec_check_disable__
@@ -553,5 +554,5 @@ template<typename Compare>
 
 
 } // end namespace detail
-} // end namespace thrust
 
+THRUST_NAMESPACE_END

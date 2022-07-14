@@ -1151,6 +1151,13 @@ void TCMallocPostFork() {
   }
 }
 
+extern "C" void MallocExtension_SetSampleUserDataCallbacks(
+    MallocExtension::CreateSampleUserDataCallback create,
+    MallocExtension::CopySampleUserDataCallback copy,
+    MallocExtension::DestroySampleUserDataCallback destroy) {
+  Static::SetSampleUserDataCallbacks(create, copy, destroy);
+}
+
 // nallocx slow path.
 // Moved to a separate function because size_class_with_alignment is not inlined
 // which would cause nallocx to become non-leaf function with stack frame and
@@ -1500,6 +1507,7 @@ static void* SampleifyAllocation(size_t requested_size, size_t weight,
   tmp.requested_alignment = requested_alignment;
   tmp.allocated_size = allocated_size;
   tmp.weight = weight;
+  tmp.user_data = Static::CreateSampleUserData();
 
   {
     absl::base_internal::SpinLockHolder h(&pageheap_lock);
@@ -1629,6 +1637,7 @@ static void do_free_pages(void* ptr, const PageId p) {
                          1);
       }
       notify_sampled_alloc = true;
+      Static::DestroySampleUserData(st->user_data);
       Static::stacktrace_allocator().Delete(st);
     }
     if (IsSampledMemory(ptr)) {

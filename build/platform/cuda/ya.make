@@ -1,6 +1,6 @@
 RESOURCES_LIBRARY()
 
-# https://wiki.yandex-team.ru/devtools/cuda/
+# https://docs.yandex-team.ru/ya-make/manual/project_specific/cuda#cuda_host_compiler
 
 
 
@@ -15,8 +15,6 @@ IF (USE_ARCADIA_CUDA)
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2410761119) # CUDA Toolkit 11.4.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "11.3")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2213063565) # CUDA Toolkit 11.3.1 for Linux x86-64
-            ELSEIF (CUDA_VERSION == "11.2")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2073566375) # CUDA Toolkit 11.2.2 for Linux x86-64
             ELSEIF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1882836946) # CUDA Toolkit 11.1.1 for Linux x86-64
             ELSEIF (CUDA_VERSION == "11.0")
@@ -189,7 +187,12 @@ ENDIF()
 IF (HOST_OS_WINDOWS)
     LDFLAGS(cudadevrt.lib cudart_static.lib)
 ELSE()
-    EXTRALIBS(-lcudadevrt -lcudart_static -lculibos)
+    EXTRALIBS(-lcudadevrt -lculibos)
+    IF (USE_DYNAMIC_CUDA)
+        EXTRALIBS(-lcudart)
+    ELSE()
+        EXTRALIBS(-lcudart_static)
+    ENDIF()
 ENDIF()
 
 END()

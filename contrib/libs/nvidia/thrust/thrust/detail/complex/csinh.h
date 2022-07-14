@@ -48,10 +48,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 #include <thrust/detail/complex/math_private.h>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{		      	
 
@@ -202,4 +204,4 @@ inline complex<double> sinh(const complex<double>& z){
   return detail::complex::csinh(z);
 }
 
-} // namespace thrust
+THRUST_NAMESPACE_END

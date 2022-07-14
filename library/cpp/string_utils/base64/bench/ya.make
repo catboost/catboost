@@ -11,3 +11,7 @@ PEERDIR(
 )
 
 END()
+
+RECURSE(
+    metrics
+)

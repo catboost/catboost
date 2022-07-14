@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: parso
-Version: 0.8.2
+Version: 0.8.3
 Summary: A Python Parser
 Home-page: https://github.com/davidhalter/parso
 Author: David Halter
@@ -37,9 +37,9 @@ parso - A Python Parser
 ###################################################################
 
 
-.. image:: https://travis-ci.org/davidhalter/parso.svg?branch=master
-    :target: https://travis-ci.org/davidhalter/parso
-    :alt: Travis CI build status
+.. image:: https://github.com/davidhalter/parso/workflows/Build/badge.svg?branch=master
+    :target: https://github.com/davidhalter/parso/actions
+    :alt: GitHub Actions build status
 
 .. image:: https://coveralls.io/repos/github/davidhalter/parso/badge.svg?branch=master
     :target: https://coveralls.io/github/davidhalter/parso?branch=master
@@ -136,6 +136,11 @@ Changelog
 
 Unreleased
 ++++++++++
+
+0.8.3 (2021-11-30)
+++++++++++++++++++
+
+- Add basic support for Python 3.11 and 3.12
 
 0.8.2 (2021-03-30)
 ++++++++++++++++++

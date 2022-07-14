@@ -17,7 +17,7 @@ changes. CUB's tests and examples can be built by configuring Thrust with the
 CMake option `THRUST_INCLUDE_CUB_CMAKE=ON`.
 
 This process is described in more detail in Thrust's
-[CONTRIBUTING.md](https://github.com/NVIDIA/thrust/blob/main/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://nvidia.github.io/thrust/contributing.html).
 
 The CMake options in the following section may be used to customize CUB's build
 process. Note that some of these are controlled by Thrust for compatibility and
@@ -43,12 +43,6 @@ The configuration options for CUB are:
   - Whether to test compile public headers. Default is `ON`.
 - `CUB_ENABLE_TESTING={ON, OFF}`
   - Whether to build unit tests. Default is `ON`.
-- `CUB_ENABLE_THOROUGH_TESTS={ON, OFF}`
-  - Whether to build the thorough test variants.
-- `CUB_ENABLE_BENCHMARK_TESTS={ON, OFF}`
-  - Whether to build the benchmark test variants.
-- `CUB_ENABLE_MINIMAL_TESTS={ON, OFF}`
-  - Whether to build the minimal test variants.
 - `CUB_ENABLE_EXAMPLES={ON, OFF}`
   - Whether to build examples. Default is `ON`.
 - `CUB_ENABLE_DIALECT_CPPXX={ON, OFF}`
@@ -95,4 +89,4 @@ The configuration options for CUB are:
 # Development Model
 
 CUB follows the same development model as Thrust, described
-[here](https://github.com/NVIDIA/thrust/blob/main/CONTRIBUTING.md#development-model).
+[here](https://nvidia.github.io/thrust/releases/versioning.html).

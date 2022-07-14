@@ -4,8 +4,6 @@
 #include <util/string/ascii.h>
 #include <util/string/cstriter.h>
 
-#include <cctype>
-
 /* note: (x & 0xdf) makes x upper case */
 #define GETXC                                                           \
     do {                                                                \
@@ -48,7 +46,7 @@ namespace {
 
     class TFromHexLenLimited {
     public:
-        TFromHexLenLimited(const char* end)
+        explicit TFromHexLenLimited(const char* end)
             : End(end)
         {
         }
@@ -189,11 +187,11 @@ static inline It1 Quote(It1 to, It2 from, It3 end, const char* safe) {
     // lists following reserved characters:
     const char* reserved = ":/?#[]@!$&\'()*+,;=";
     for (const char* p = reserved; *p; ++p) {
-        escape_map[(unsigned char)*p] = 1;
+        escape_map[(unsigned char)*p] = true;
     }
     // characters we think are safe at the moment
     for (const char* p = safe; *p; ++p) {
-        escape_map[(unsigned char)*p] = 0;
+        escape_map[(unsigned char)*p] = false;
     }
 
     return Escape(to, from, end, escape_map);

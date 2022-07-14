@@ -3,15 +3,11 @@
 #include "parser.h"
 
 namespace NYson {
+
     ////////////////////////////////////////////////////////////////////////////////
 
-
-    void IYsonConsumer::OnRaw(const TYsonStringBuf& yson) {
-        OnRaw(yson.AsStringBuf(), yson.GetType());
-    }
-
-    void TYsonConsumerBase::OnRaw(const TStringBuf& yson, EYsonType type) {
-        ParseYsonStringBuffer(yson, this, type);
+    void TYsonConsumerBase::OnRaw(TStringBuf str, NYT::NYson::EYsonType type) {
+        ParseYsonStringBuffer(str, this, type);
     }
 
     ////////////////////////////////////////////////////////////////////////////////

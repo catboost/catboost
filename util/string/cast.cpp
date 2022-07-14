@@ -4,15 +4,16 @@
     #define __LONG_LONG_SUPPORTED
 #endif
 
-#include <cstdio>
-#include <string>
 #include <cmath>
+#include <cstdio>
+#include <filesystem>
+#include <string>
 
 #include <util/string/type.h>
 #include <util/string/cast.h>
 #include <util/string/escape.h>
 
-#include <contrib/libs/double-conversion/double-conversion.h>
+#include <contrib/libs/double-conversion/double-conversion/double-conversion.h>
 
 #include <util/generic/string.h>
 #include <util/system/yassert.h>
@@ -530,6 +531,14 @@ template <>
 std::string FromStringImpl<std::string>(const char* data, size_t len) {
     return std::string(data, len);
 }
+
+#ifndef USE_STL_SYSTEM
+// FIXME thegeorg@: remove #ifndef upon raising minimal macOS version to 10.15 in https://st.yandex-team.ru/DTCC-836
+template <>
+std::filesystem::path FromStringImpl<std::filesystem::path>(const char* data, size_t len) {
+    return std::filesystem::path(std::string(data, len));
+}
+#endif
 
 template <>
 TUtf16String FromStringImpl<TUtf16String>(const wchar16* data, size_t len) {

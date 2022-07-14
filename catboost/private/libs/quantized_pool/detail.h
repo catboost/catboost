@@ -19,7 +19,8 @@ namespace NCB {
 
         constexpr bool IsUi32Column(const EColumn type) {
             return type == EColumn::SubgroupId ||
-                type == EColumn::Categ;
+                type == EColumn::Categ ||
+                type == EColumn::HashedCateg;
         }
 
         constexpr bool IsUi64Column(const EColumn type) {

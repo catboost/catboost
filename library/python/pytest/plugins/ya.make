@@ -13,6 +13,7 @@ PEERDIR(
     library/python/filelock
     library/python/find_root
     library/python/testing/filter
+    library/python/testing/yatest_common
 )
 
 IF (PYTHON2)
@@ -21,7 +22,7 @@ IF (PYTHON2)
     )
 
     PEERDIR(
-        contrib/python/faulthandler
+        contrib/deprecated/python/faulthandler
     )
 ELSE()
     PY_SRCS(

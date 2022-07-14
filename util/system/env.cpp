@@ -18,7 +18,7 @@
  *
  * Relevant links:
  *  - http://bugs.python.org/issue16633
- *  - https://rb.yandex-team.ru/arc/r/108892/
+ *  - https://a.yandex-team.ru/review/108892/details
  */
 
 TString GetEnv(const TString& key, const TString& def) {

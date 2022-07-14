@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <thrust/detail/cstdint.h>
 #include <thrust/detail/preprocessor.h>
 #include <thrust/detail/integer_traits.h>
 

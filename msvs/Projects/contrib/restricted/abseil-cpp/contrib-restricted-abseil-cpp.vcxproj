@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8732495 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=8732495 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9630116 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9630116 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -78,25 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\algorithm\algorithm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\algorithm\container.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\fixed_array.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\flat_hash_map.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\inlined_vector.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\common.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\compressed_tuple.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\container_memory.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hash_function_defaults.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hash_policy_traits.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hashtable_debug_hooks.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hashtablez_sampler.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\have_sse.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\inlined_vector.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\layout.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\raw_hash_map.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\raw_hash_set.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\functional\function_ref.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\functional\internal\function_ref.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\exponential_biased.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\periodic_sampler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\profiling\internal\sample_recorder.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\bernoulli_distribution.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\discrete_distribution.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\gaussian_distribution.h"/>
@@ -120,16 +104,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\seed_gen_exception.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\seed_sequences.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\random\uniform_int_distribution.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_any_cast.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_optional_access.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\bad_variant_access.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\optional.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\span.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\internal\variant.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\optional.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\span.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\types\variant.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\utility\utility.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -140,26 +114,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
-      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
-      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
-      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\algorithm\abseil-cpp-absl-algorithm.vcxproj">
+      <Project>{8B676919-4151-DE9D-5086-E1C01B68FA2B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\exponential_biased\base-internal-exponential_biased.vcxproj">
-      <Project>{5DFFA426-B4E5-8008-AEC9-35631C7AC4C4}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\low_level_alloc\base-internal-low_level_alloc.vcxproj">
       <Project>{6A85D2D1-BEDF-D8FE-7AE1-3582230CA750}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\periodic_sampler\base-internal-periodic_sampler.vcxproj">
-      <Project>{7BEBFDB2-F942-79D2-0597-0A8AFA7783D9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
       <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
@@ -181,6 +143,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\city\abseil-cpp-absl-city.vcxproj">
       <Project>{4B9028E4-4039-F789-E741-D88BFFC9DFFD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\container\abseil-cpp-absl-container.vcxproj">
+      <Project>{132C6772-47DC-500A-B256-2F3E6648C800}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\container\internal\absl_hashtablez_sampler\container-internal-absl_hashtablez_sampler.vcxproj">
       <Project>{41A0353C-A387-A664-BF4D-85278490F32B}</Project>
@@ -248,6 +213,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\flags\usage_config\absl-flags-usage_config.vcxproj">
       <Project>{6E6440DE-FDBF-AD2F-625C-86DC7DF6C2C0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\functional\abseil-cpp-absl-functional.vcxproj">
+      <Project>{043652F6-9AAD-B16F-6894-D1A784DE2122}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\hash\abseil-cpp-absl-hash.vcxproj">
       <Project>{B0CBA6EC-6361-E4BF-DB08-3A7C6493FAA4}</Project>
     </ProjectReference>
@@ -262,6 +230,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\numeric\abseil-cpp-absl-numeric.vcxproj">
       <Project>{712179CD-DCD3-3049-EA4D-D416593142EB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\profiling\internal\exponential_biased\profiling-internal-exponential_biased.vcxproj">
+      <Project>{066F2EC2-62CD-748B-4A64-723A9D5A38AC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\profiling\internal\periodic_sampler\profiling-internal-periodic_sampler.vcxproj">
+      <Project>{4969D165-F18B-C9BB-1F94-1F54161F5479}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\random\absl_random_distributions\absl-random-absl_random_distributions.vcxproj">
       <Project>{0A5E1E0D-F416-384D-5303-2E3E83FB2B55}</Project>
@@ -305,11 +279,26 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\absl_cord\absl-strings-absl_cord.vcxproj">
-      <Project>{2C77AAA8-7230-F3E6-19CC-48053B79DE55}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\cord\absl-strings-cord.vcxproj">
+      <Project>{C90ADDFF-B541-65DF-B484-A2BB21EFD418}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl-strings-internal.vcxproj">
-      <Project>{EC596CF4-D927-3A82-31A7-3C88B519515A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_cord_internal\strings-internal-absl_cord_internal.vcxproj">
+      <Project>{E9340DF5-F61F-83E9-226D-5C96A9C07B5C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
+      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_functions\strings-internal-cordz_functions.vcxproj">
+      <Project>{E6E912A0-D726-BC08-06EA-9090AAF42B1A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_handle\strings-internal-cordz_handle.vcxproj">
+      <Project>{DD2ED761-B837-5F67-FB40-DA76B229DB3D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_info\strings-internal-cordz_info.vcxproj">
+      <Project>{030C3DA8-C186-9E71-144D-36D7EEFC3151}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_sample_token\strings-internal-cordz_sample_token.vcxproj">
+      <Project>{1000AE37-3250-C1D3-92FB-87470FEB5D24}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\str_format\strings-internal-str_format.vcxproj">
       <Project>{2E18B11E-ACFF-6D83-BF6B-AF719B38A32D}</Project>
@@ -329,6 +318,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\time_zone\absl-time-time_zone.vcxproj">
       <Project>{C90415E2-11A6-7C43-3BAE-276EBF6D81E3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\abseil-cpp-absl-types.vcxproj">
+      <Project>{C9B8177C-77AC-C52C-D246-D21AEEF2C8DA}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\bad_any_cast\absl-types-bad_any_cast.vcxproj">
       <Project>{13EAA9C5-BC09-9D17-9084-801180AD417E}</Project>
     </ProjectReference>
@@ -338,11 +330,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\bad_variant_access\absl-types-bad_variant_access.vcxproj">
       <Project>{28ADA7AD-918A-CFA6-21EF-D9B491057E66}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
-      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\types\internal\absl-types-internal.vcxproj">
+      <Project>{F2B89E10-EDD1-C856-6BA4-EAEBC7B5D899}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
-      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\utility\abseil-cpp-absl-utility.vcxproj">
+      <Project>{8E4C07DF-5503-9B55-81B6-3168543E79CA}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

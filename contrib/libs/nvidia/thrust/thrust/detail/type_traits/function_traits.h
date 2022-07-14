@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/type_traits/has_nested_type.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // forward definitions for is_commutative
 template <typename T> struct plus;
@@ -92,5 +93,5 @@ template<typename T> struct is_commutative< typename thrust::bit_and<T>     > : 
 template<typename T> struct is_commutative< typename thrust::bit_xor<T>     > : public thrust::detail::is_arithmetic<T> {};
 
 } // end namespace detail
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

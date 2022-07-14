@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import sys
-from abc import ABC
 from errno import ENOENT
 from typing import cast
 
@@ -45,11 +46,16 @@ if sys.platform == "win32":  # pragma: win32 cover
             except OSError:
                 pass
 
-
 else:  # pragma: win32 no cover
 
-    class WindowsFileLock(BaseFileLock, ABC):
+    class WindowsFileLock(BaseFileLock):
         """Uses the :func:`msvcrt.locking` function to hard lock the lock file on windows systems."""
+
+        def _acquire(self) -> None:
+            raise NotImplementedError
+
+        def _release(self) -> None:
+            raise NotImplementedError
 
 
 __all__ = [

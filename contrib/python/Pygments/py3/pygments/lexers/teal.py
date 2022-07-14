@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers.teal
     ~~~~~~~~~~~~~~~~~~~~
 
     Lexer for TEAL.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,8 +15,7 @@ __all__ = ['TealLexer']
 
 class TealLexer(RegexLexer):
     """
-    For the `Transaction Execution Approval Language (TEAL)
-    <https://developer.algorand.org/docs/reference/teal/specification/>`
+    For the Transaction Execution Approval Language (TEAL)
 
     For more information about the grammar, see:
     https://github.com/algorand/go-algorand/blob/master/data/transactions/logic/assembler.go
@@ -25,6 +23,7 @@ class TealLexer(RegexLexer):
     .. versionadded:: 2.9
     """
     name = 'teal'
+    url = 'https://developer.algorand.org/docs/reference/teal/specification/'
     aliases = ['teal']
     filenames = ['*.teal']
 

@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/allocator/allocator_traits.h>
@@ -22,8 +24,7 @@
 #include <thrust/uninitialized_fill.h>
 #include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace allocator_traits_detail
@@ -109,5 +110,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

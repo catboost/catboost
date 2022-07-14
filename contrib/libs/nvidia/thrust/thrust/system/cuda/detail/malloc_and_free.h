@@ -30,8 +30,7 @@
 #include <thrust/system/detail/bad_alloc.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 #ifdef THRUST_CACHING_DEVICE_MALLOC
@@ -101,4 +100,4 @@ void free(execution_policy<DerivedPolicy> &, Pointer ptr)
 } // end free()
 
 }    // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END

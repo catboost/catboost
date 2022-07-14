@@ -274,12 +274,9 @@ private:
     }
 
     inline bool IsRequest() const {
-        return strnicmp(FirstLine().data(), "get", 3) == 0 ||
-               strnicmp(FirstLine().data(), "post", 4) == 0 ||
-               strnicmp(FirstLine().data(), "put", 3) == 0 ||
-               strnicmp(FirstLine().data(), "patch", 5) == 0 ||
-               strnicmp(FirstLine().data(), "head", 4) == 0 ||
-               strnicmp(FirstLine().data(), "delete", 6) == 0;
+        // https://datatracker.ietf.org/doc/html/rfc7231#section-4
+        // more rare methods: https://www.iana.org/assignments/http-methods/http-methods.xhtml
+        return EqualToOneOf(to_lower(FirstLine().substr(0, FirstLine().find(" "))), "get", "post", "put", "head", "delete", "connect", "options", "trace", "patch");
     }
 
     inline void BuildInputChain() {

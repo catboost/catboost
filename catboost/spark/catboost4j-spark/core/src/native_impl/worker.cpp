@@ -2,7 +2,6 @@
 
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/distributed/data_types.h>
-#include <catboost/private/libs/distributed/worker.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <catboost/libs/data/feature_names_converter.h>
@@ -10,6 +9,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/cpp/binsaver/util_stream_io.h>
 #include <library/cpp/json/json_reader.h>
 
 #include <util/generic/cast.h>
@@ -19,7 +19,7 @@
 using namespace NCB;
 
 
-i64 GetPartitionTotalObjectCount(const TVector<TDataProviderPtr>& trainDataProviders) throw (yexception) {
+i64 GetPartitionTotalObjectCount(const TVector<TDataProviderPtr>& trainDataProviders) {
     i64 result = 0;
     for (const auto& trainDataProvider : trainDataProviders) {
         result += SafeIntegerCast<i64>(trainDataProvider->GetObjectCount());
@@ -32,11 +32,12 @@ void CreateTrainingDataForWorker(
     i32 hostId,
     i32 numThreads,
     const TString& plainJsonParamsAsString,
+    const TVector<i8>& serializedLabelConverter,
     const TVector<TDataProviderPtr>& trainDataProviders,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TVector<TDataProviderPtr>& trainEstimatedDataProviders, // can be empty
     const TString& precomputedOnlineCtrMetaDataAsJsonString
-) throw (yexception) {
+) {
     CB_ENSURE(numThreads >= 1, "Non-positive number of threads specified");
     CB_ENSURE_INTERNAL(
         trainDataProviders.size() >= 1,
@@ -63,7 +64,12 @@ void CreateTrainingDataForWorker(
     catBoostOptions.Load(catBoostJsonOptions);
     catBoostOptions.SystemOptions->FileWithHosts->clear();
     catBoostOptions.DataProcessingOptions->AllowConstLabel = true;
+
     TLabelConverter labelConverter;
+    if (!serializedLabelConverter.empty()) {
+        TMemoryInput in(serializedLabelConverter.data(), serializedLabelConverter.size());
+        SerializeFromStream(in, labelConverter);
+    }
 
     NPar::TLocalExecutor* localExecutor = &NPar::LocalExecutor();
     if ((localExecutor->GetThreadCount() + 1) < numThreads) {
@@ -117,10 +123,5 @@ void CreateTrainingDataForWorker(
             );
         }
     }
-}
-
-
-void RunWorkerWrapper(i32 numThreads, i32 nodePort) throw (yexception) {
-    RunWorker(SafeIntegerCast<ui32>(numThreads), SafeIntegerCast<ui32>(nodePort));
 }
 

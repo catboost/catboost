@@ -1,7 +1,7 @@
 #define SIZEOF_PY_INTPTR_T 8
 #define SIZEOF_OFF_T 4
 #define SIZEOF_PY_LONG_LONG 8
-#define MATHLIB
+#define MATHLIB 
 #define HAVE_SIN 1
 #define HAVE_COS 1
 #define HAVE_TAN 1
@@ -39,6 +39,7 @@
 #define HAVE_CBRT 1
 #define HAVE_XMMINTRIN_H 1
 #define HAVE_EMMINTRIN_H 1
+#define HAVE_IMMINTRIN_H 1
 #define HAVE__MM_LOAD_PS 1
 #define HAVE__MM_PREFETCH 1
 #define HAVE__MM_LOAD_PD 1
@@ -158,13 +159,14 @@
 #define __NPY_PRIVATE_NO_SIGNAL
 #define DISTUTILS_USE_SDK
 #define FORCE_NO_LONG_DOUBLE_FORMATTING
-#define NPY_RESTRICT __restrict
+#define NPY_RESTRICT restrict
 #define NPY_RELAXED_STRIDES_CHECKING 1
+#define NPY_RELAXED_STRIDES_DEBUG 0
 #define HAVE_LDOUBLE_IEEE_DOUBLE_LE 1
 #ifndef __cplusplus
 /* #undef inline */
 #endif
 
-#ifndef _NPY_NPY_CONFIG_H_
+#ifndef NUMPY_CORE_SRC_COMMON_NPY_CONFIG_H_
 #error config.h should never be included directly, include npy_config.h instead
 #endif

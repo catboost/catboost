@@ -40,11 +40,7 @@
 #include "../config.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -107,12 +103,38 @@ struct InequalityWrapper
  */
 struct Sum
 {
-    /// Boolean sum operator, returns <tt>a + b</tt>
+    /// Binary sum operator, returns <tt>a + b</tt>
     template <typename T>
     __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
     {
         return a + b;
     }
+};
+
+/**
+ * \brief Default difference functor
+ */
+struct Difference
+{
+  /// Binary difference operator, returns <tt>a - b</tt>
+  template <typename T>
+  __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
+  {
+    return a - b;
+  }
+};
+
+/**
+ * \brief Default division functor
+ */
+struct Division
+{
+  /// Binary difference operator, returns <tt>a - b</tt>
+  template <typename T>
+  __host__ __device__ __forceinline__ T operator()(const T &a, const T &b) const
+  {
+    return a / b;
+  }
 };
 
 
@@ -267,13 +289,27 @@ struct ReduceBySegmentOp
     {
         KeyValuePairT retval;
         retval.key = first.key + second.key;
+#ifdef _NVHPC_CUDA // WAR bug on nvc++
+        if (second.key)
+        {
+          retval.value = second.value;
+        }
+        else
+        {
+          // If second.value isn't copied into a temporary here, nvc++ will
+          // crash while compiling the TestScanByKeyWithLargeTypes test in
+          // thrust/testing/scan_by_key.cu:
+          auto v2 = second.value;
+          retval.value = op(first.value, v2);
+        }
+#else // not nvc++:
         retval.value = (second.key) ?
                 second.value :                          // The second partial reduction spans a segment reset, so it's value aggregate becomes the running aggregate
                 op(first.value, second.value);          // The second partial reduction does not span a reset, so accumulate both into the running aggregate
+#endif
         return retval;
     }
 };
-
 
 
 template <typename ReductionOpT>    ///< Binary reduction operator to apply to values
@@ -304,13 +340,31 @@ struct ReduceByKeyOp
 };
 
 
+template <typename BinaryOpT>
+struct BinaryFlip
+{
+  BinaryOpT binary_op;
 
+  __device__ __host__ explicit BinaryFlip(BinaryOpT binary_op)
+      : binary_op(binary_op)
+  {}
 
+  template <typename T, typename U>
+  __device__ auto
+  operator()(T &&t, U &&u) -> decltype(binary_op(std::forward<U>(u),
+                                                 std::forward<T>(t)))
+  {
+    return binary_op(std::forward<U>(u), std::forward<T>(t));
+  }
+};
 
-
+template <typename BinaryOpT>
+__device__ __host__ BinaryFlip<BinaryOpT> MakeBinaryFlip(BinaryOpT binary_op)
+{
+  return BinaryFlip<BinaryOpT>(binary_op);
+}
 
 /** @} */       // end group UtilModule
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

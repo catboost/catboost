@@ -19,7 +19,8 @@ extern NPY_NO_EXPORT PyTypeObject PyBigArray_Type;
 
 extern NPY_NO_EXPORT PyTypeObject PyArray_Type;
 
-extern NPY_NO_EXPORT PyTypeObject PyArrayDescr_Type;
+extern NPY_NO_EXPORT PyArray_DTypeMeta PyArrayDescr_TypeFull;
+#define PyArrayDescr_Type (*(PyTypeObject *)(&PyArrayDescr_TypeFull))
 
 extern NPY_NO_EXPORT PyTypeObject PyArrayFlags_Type;
 
@@ -560,7 +561,7 @@ NPY_NO_EXPORT  PyArray_Descr * PyArray_PromoteTypes \
 NPY_NO_EXPORT  PyArray_Descr * PyArray_MinScalarType \
        (PyArrayObject *);
 NPY_NO_EXPORT  PyArray_Descr * PyArray_ResultType \
-       (npy_intp, PyArrayObject **, npy_intp, PyArray_Descr **);
+       (npy_intp, PyArrayObject *arrs[], npy_intp, PyArray_Descr *descrs[]);
 NPY_NO_EXPORT  npy_bool PyArray_CanCastArrayTo \
        (PyArrayObject *, PyArray_Descr *, NPY_CASTING);
 NPY_NO_EXPORT  npy_bool PyArray_CanCastTypeTo \
@@ -570,7 +571,7 @@ NPY_NO_EXPORT  PyArrayObject * PyArray_EinsteinSum \
 NPY_NO_EXPORT NPY_STEALS_REF_TO_ARG(3) NPY_GCC_NONNULL(1) PyObject * PyArray_NewLikeArray \
        (PyArrayObject *, NPY_ORDER, PyArray_Descr *, int);
 NPY_NO_EXPORT  int PyArray_GetArrayParamsFromObject \
-       (PyObject *, PyArray_Descr *, npy_bool, PyArray_Descr **, int *, npy_intp *, PyArrayObject **, PyObject *);
+       (PyObject *NPY_UNUSED(op), PyArray_Descr *NPY_UNUSED(requested_dtype), npy_bool NPY_UNUSED(writeable), PyArray_Descr **NPY_UNUSED(out_dtype), int *NPY_UNUSED(out_ndim), npy_intp *NPY_UNUSED(out_dims), PyArrayObject **NPY_UNUSED(out_arr), PyObject *NPY_UNUSED(context));
 NPY_NO_EXPORT  int PyArray_ConvertClipmodeSequence \
        (PyObject *, NPY_CLIPMODE *, int);
 NPY_NO_EXPORT  PyObject * PyArray_MatrixProduct2 \
@@ -621,6 +622,12 @@ NPY_NO_EXPORT  int PyArray_ResolveWritebackIfCopy \
        (PyArrayObject *);
 NPY_NO_EXPORT  int PyArray_SetWritebackIfCopyBase \
        (PyArrayObject *, PyArrayObject *);
+NPY_NO_EXPORT  PyObject * PyDataMem_SetHandler \
+       (PyObject *);
+NPY_NO_EXPORT  PyObject * PyDataMem_GetHandler \
+       (void);
+extern NPY_NO_EXPORT PyObject* PyDataMem_DefaultHandler;
+
 
 #else
 
@@ -1370,7 +1377,7 @@ static void **PyArray_API=NULL;
         (*(PyArray_Descr * (*)(PyArrayObject *)) \
          PyArray_API[272])
 #define PyArray_ResultType \
-        (*(PyArray_Descr * (*)(npy_intp, PyArrayObject **, npy_intp, PyArray_Descr **)) \
+        (*(PyArray_Descr * (*)(npy_intp, PyArrayObject *arrs[], npy_intp, PyArray_Descr *descrs[])) \
          PyArray_API[273])
 #define PyArray_CanCastArrayTo \
         (*(npy_bool (*)(PyArrayObject *, PyArray_Descr *, NPY_CASTING)) \
@@ -1385,7 +1392,7 @@ static void **PyArray_API=NULL;
         (*(PyObject * (*)(PyArrayObject *, NPY_ORDER, PyArray_Descr *, int)) \
          PyArray_API[277])
 #define PyArray_GetArrayParamsFromObject \
-        (*(int (*)(PyObject *, PyArray_Descr *, npy_bool, PyArray_Descr **, int *, npy_intp *, PyArrayObject **, PyObject *)) \
+        (*(int (*)(PyObject *NPY_UNUSED(op), PyArray_Descr *NPY_UNUSED(requested_dtype), npy_bool NPY_UNUSED(writeable), PyArray_Descr **NPY_UNUSED(out_dtype), int *NPY_UNUSED(out_ndim), npy_intp *NPY_UNUSED(out_dims), PyArrayObject **NPY_UNUSED(out_arr), PyObject *NPY_UNUSED(context))) \
          PyArray_API[278])
 #define PyArray_ConvertClipmodeSequence \
         (*(int (*)(PyObject *, NPY_CLIPMODE *, int)) \
@@ -1460,6 +1467,13 @@ static void **PyArray_API=NULL;
 #define PyArray_SetWritebackIfCopyBase \
         (*(int (*)(PyArrayObject *, PyArrayObject *)) \
          PyArray_API[303])
+#define PyDataMem_SetHandler \
+        (*(PyObject * (*)(PyObject *)) \
+         PyArray_API[304])
+#define PyDataMem_GetHandler \
+        (*(PyObject * (*)(void)) \
+         PyArray_API[305])
+#define PyDataMem_DefaultHandler (*(PyObject* *)PyArray_API[306])
 
 #if !defined(NO_IMPORT_ARRAY) && !defined(NO_IMPORT)
 static int

@@ -145,9 +145,12 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     TStringBuilder result;
     if (feature.Type == ESplitType::OnlineCtr) {
         result << BuildDescription(layout, feature.OnlineCtr.Ctr.Base.Projection);
-        result << " pr_num" << (int)feature.OnlineCtr.Ctr.PriorNum;
-        result << " tb" << (int)feature.OnlineCtr.Ctr.TargetBorderIdx;
-        result << " type" << (int)feature.OnlineCtr.Ctr.Base.CtrType;
+        const auto ctrType = feature.OnlineCtr.Ctr.Base.CtrType;
+        result << " counter_type=" << ctrType;
+        result << " prior_numerator=" << feature.OnlineCtr.Ctr.PriorNum;
+        if (ctrType == ECtrType::Buckets) {
+            result << " target_bucket=" << feature.OnlineCtr.Ctr.TargetBorderIdx;
+        }
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FloatFeature.FloatFeature, EFeatureType::Float);
     } else if (feature.Type == ESplitType::EstimatedFeature) {

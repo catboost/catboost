@@ -17,3 +17,8 @@ PEERDIR(
 )
 
 END()
+
+RECURSE(
+    examples
+    main
+)

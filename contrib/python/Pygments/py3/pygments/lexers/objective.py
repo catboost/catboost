@@ -4,7 +4,7 @@
 
     Lexers for Objective-C family languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -197,6 +197,7 @@ class ObjectiveCLexer(objective(CLexer)):
     """
 
     name = 'Objective-C'
+    url = 'https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/ProgrammingWithObjectiveC/Introduction/Introduction.html'
     aliases = ['objective-c', 'objectivec', 'obj-c', 'objc']
     filenames = ['*.m', '*.h']
     mimetypes = ['text/x-objective-c']
@@ -281,11 +282,12 @@ class LogosLexer(ObjectiveCppLexer):
 
 class SwiftLexer(RegexLexer):
     """
-    For `Swift <https://developer.apple.com/swift/>`_ source.
+    For Swift source.
 
     .. versionadded:: 2.0
     """
     name = 'Swift'
+    url = 'https://www.swift.org/'
     filenames = ['*.swift']
     aliases = ['swift']
     mimetypes = ['text/x-swift']

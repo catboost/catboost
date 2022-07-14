@@ -2,6 +2,151 @@
 Cython Changelog
 ================
 
+0.29.30 (2022-05-16)
+====================
+
+Bugs fixed
+----------
+
+* The GIL handling changes in 0.29.29 introduced a regression where
+  objects could be deallocated without holding the GIL.
+  (Github issue #4796)
+
+
+0.29.29 (2022-05-16)
+====================
+
+Features added
+--------------
+
+* Avoid acquiring the GIL at the end of nogil functions.
+  This change was backported in order to avoid generating wrong C code
+  that would trigger C compiler warnings with tracing support enabled.
+  Backport by Oleksandr Pavlyk.  (Github issue #4637)
+
+Bugs fixed
+----------
+
+* Function definitions in ``finally:`` clauses were not correctly generated.
+  Patch by David Woods.  (Github issue #4651)
+
+* A case where C-API functions could be called with a live exception set was fixed.
+  Patch by Jakub Kulík.  (Github issue #4722)
+
+* Pickles can now be exchanged again with those generated from Cython 3.0 modules.
+  (Github issue #4680)
+
+* Cython now correctly generates Python methods for both the provided regular and
+  reversed special numeric methods of extension types.
+  Patch by David Woods.  (Github issue #4750)
+
+* Calling unbound extension type methods without arguments could raise an
+  ``IndexError`` instead of a ``TypeError``.
+  Patch by David Woods.  (Github issue #4779)
+
+* Calling unbound ``.__contains__()`` super class methods on some builtin base
+  types could trigger an infinite recursion.
+  Patch by David Woods.  (Github issue #4785)
+
+* The C union type in pure Python mode mishandled some field names.
+  Patch by Jordan Brière.  (Github issue #4727)
+
+* Allow users to overwrite the C macro ``_USE_MATH_DEFINES``.
+  Patch by Yuriy Chernyshov. (Github issue #4690)
+
+* Improved compatibility with CPython 3.10/11.
+  Patches by Thomas Caswell, David Woods.  (Github issues #4609, #4667, #4721, #4730, #4777)
+
+* Docstrings of descriptors are now provided in PyPy 7.3.9.
+  Patch by Matti Picus.  (Github issue #4701)
+
+
+0.29.28 (2022-02-17)
+====================
+
+Bugs fixed
+----------
+
+* Due to backwards incompatible changes in CPython 3.11a4, the feature flags
+  ``CYTHON_FAST_THREAD_STATE`` and ``CYTHON_USE_EXC_INFO_STACK`` are now disabled
+  in Python 3.11 and later.  They are enabled again in Cython 3.0.
+  Patch by David Woods.  (Github issue #4610)
+
+* A C compiler warning in older PyPy versions was resolved.
+  Patch by Matti Picus.  (Github issue #4236)
+
+
+0.29.27 (2022-01-28)
+====================
+
+Features added
+--------------
+
+* The ``cythonize`` command has a new option ``-M`` to generate ``.dep`` dependency
+  files for the compilation unit.  This can be used by external build tools to track
+  these dependencies.
+  Patch by Evgeni Burovski.  (Github issue #1214)
+
+Bugs fixed
+----------
+
+* Compilation failures on PyPy were resolved.
+  Patches by Matti Picus.  (Github issues #4509, #4517)
+
+* Calls to ``range()`` with more than three arguments did not fail.
+  Original patch by Max Bachmann.  (Github issue #4550)
+
+* Some C compiler warnings about missing type struct initialisers in Py3.10 were resolved.
+
+* Cython no longer warns about using OpenMP 3.0 features since they are now
+  considered generally available.
+
+
+0.29.26 (2021-12-16)
+====================
+
+Bugs fixed
+----------
+
+* An incompatibility with CPython 3.11.0a3 was resolved.
+  (Github issue #4499)
+
+* The ``in`` operator failed on literal lists with starred expressions.
+  Patch by Arvind Natarajan.  (Github issue #3938)
+
+* A C compiler warning in PyPy about a missing struct field initialisation was resolved.
+
+
+0.29.25 (2021-12-06)
+====================
+
+Bugs fixed
+----------
+
+* Several incompatibilities with CPython 3.11 were resolved.
+  Patches by David Woods, Victor Stinner, Thomas Caswell.
+  (Github issues #4411, #4414, #4415, #4416, #4420, #4428, #4473, #4479, #4480)
+
+* Some C compiler warnings were resolved.
+  Patches by Lisandro Dalcin and others.  (Github issue #4439)
+
+* C++ ``std::move()`` should only be used automatically in MSVC versions that support it.
+  Patch by Max Bachmann.  (Github issue #4191)
+
+ * The ``Py_hash_t`` type failed to accept arbitrary "index" values.
+   (Github issue #2752)
+
+* Avoid copying unaligned 16-bit values since some platforms require them to be aligned.
+  Use memcpy() instead to let the C compiler decide how to do it.
+  (Github issue #4343)
+
+* Cython crashed on invalid truthiness tests on C++ types without ``operator bool``.
+  Patch by David Woods.  (Github issue #4348)
+
+* The declaration of ``PyUnicode_CompareWithASCIIString()`` in ``cpython.unicode`` was incorrect.
+  Patch by Max Bachmann.  (Github issue #4344)
+
+
 0.29.24 (2021-07-14)
 ====================
 

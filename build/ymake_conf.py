@@ -54,13 +54,15 @@ class Platform(object):
         self.is_x86_64 = self.arch in ('x86_64', 'amd64')
         self.is_intel = self.is_x86 or self.is_x86_64
 
-        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7ahf', 'armv7a_neon', 'arm', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
         self.is_armv8m = self.arch in ('armv8m_cortex_m33',)
         self.is_arm64 = self.arch in ('arm64',)
         self.is_arm = self.is_armv7 or self.is_armv8 or self.is_armv8m
-        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
-        self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf', 'armv7a_cortex_a9', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv7hf = self.arch in ('armv7ahf', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+
+        self.is_nds32 = self.arch in ('nds32le_elf_mculib_v5f',)
 
         self.armv7_float_abi = None
         if self.is_armv7:
@@ -78,7 +80,7 @@ class Platform(object):
         self.is_power9le = self.arch == 'power9le'
         self.is_powerpc = self.is_power8le or self.is_power9le
 
-        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m
+        self.is_32_bit = self.is_x86 or self.is_armv7 or self.is_armv8m or self.is_nds32
         self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
@@ -141,6 +143,7 @@ class Platform(object):
         if self.is_iossim:
             yield 'IOS'
             yield 'OS_IOS'
+            yield 'OS_IOSSIM'
 
     @property
     def arch_variables(self):
@@ -157,6 +160,7 @@ class Platform(object):
             (self.is_powerpc, 'ARCH_PPC64LE'),
             (self.is_power8le, 'ARCH_POWER8LE'),
             (self.is_power9le, 'ARCH_POWER9LE'),
+            (self.is_nds32, 'ARCH_NDS32'),
             (self.is_32_bit, 'ARCH_TYPE_32'),
             (self.is_64_bit, 'ARCH_TYPE_64'),
         ))
@@ -578,10 +582,27 @@ class Build(object):
     def is_ide_build_type(build_type):
         return build_type == 'nobuild'
 
+    def _configure_runtime_versions(self):
+        res = subprocess.check_output(['xcrun', 'simctl', 'list', '--json', 'runtimes'])
+        raw_object = json.loads(res)
+        raw_object = raw_object['runtimes']
+        for runtime in raw_object:
+            if runtime['isAvailable']:
+                if "iOS" in runtime['identifier']:
+                    emit('DEFAULT_IOS_RUNTIME', '{}'.format(runtime['identifier']))
+
     def _get_toolchain_options(self):
         type_ = self.params['params']['type']
 
-        if type_ == 'system_cxx':
+        if self.params['params'].get('local') and type_ == 'xcode':
+            detector = CompilerDetector()
+            detector.detect(self.params['params']['c_compiler'], self.params['params']['cxx_compiler'])
+            emit('LOCAL_XCODE_TOOLS', 'yes')
+            emit('XCODE', 'yes')
+            emit('ACTOOL_PATH', self.params['params']['actool'])
+            emit('IBTOOL_PATH', self.params['params']['ibtool'])
+            self._configure_runtime_versions()
+        elif type_ == 'system_cxx':
             detector = CompilerDetector()
             detector.detect(self.params['params'].get('c_compiler'), self.params['params'].get('cxx_compiler'))
             type_ = detector.type
@@ -971,11 +992,19 @@ class ToolchainOptions(object):
 
     @property
     def is_clang(self):
-        return self.type == 'clang'
+        return self.type in ('clang', 'xcode')
+
+    @property
+    def is_xcode(self):
+        return self.type == 'xcode'
 
     @property
     def is_from_arcadia(self):
         return self.from_arcadia
+
+    @property
+    def is_system_cxx(self):
+        return self._name == "system_cxx"
 
     def get_env(self, convert_list=None):
         convert_list = convert_list or (lambda x: x)
@@ -1054,6 +1083,8 @@ class Compiler(object):
         # CLANG and CLANG_VER variables
         emit(self.compiler_variable, 'yes')
         emit('{}_VER'.format(self.compiler_variable), self.tc.compiler_version)
+        if self.tc.is_xcode:
+            emit('XCODE', 'yes')
 
 
 class GnuToolchain(Toolchain):
@@ -1083,6 +1114,21 @@ class GnuToolchain(Toolchain):
 
         self.env = self.tc.get_env()
 
+        self.env_go = {}
+        if self.tc.is_clang and not self.tc.is_system_cxx:
+            self.env_go = {'PATH': ['{}/bin'.format(self.tc.name_marker)]}
+        if self.tc.is_gcc:
+            self.env_go = {'PATH': ['{}/gcc/bin'.format(self.tc.name_marker)]}
+        if 'PATH' in self.env_go:
+            if target.is_linux:
+                self.env_go['PATH'].append('$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/bin')
+            elif target.is_macos:
+                self.env_go['PATH'].extend([
+                    '$MACOS_SDK_RESOURCE_GLOBAL/usr/bin',
+                    '$CCTOOLS_ROOT_RESOURCE_GLOBAL/bin',
+                    '$GO_FAKE_XCRUN_RESOURCE_GLOBAL',
+                ])
+
         self.swift_flags_platform = []
         self.swift_lib_path = None
 
@@ -1090,10 +1136,24 @@ class GnuToolchain(Toolchain):
             for lib_path in build.host.library_path_variables:
                 self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
+        macos_version_min = '10.12'
+        macos_arm64_version_min = '11.0'
+        ios_version_min = '11.0'
+        # min ios simulator version for Metal App is 13.0
+        # https://developer.apple.com/documentation/metal/supporting_simulator_in_a_metal_app
+        # Mapkit (MAPSMOBI_BUILD_TARGET) uses Metal Framework
+        if preset('MAPSMOBI_BUILD_TARGET') and target.is_iossim and target.is_armv8:
+            macos_version_min = '10.14'
+            ios_version_min = '13.0'
+        # Mapkit uses SecTrustEvaluateWithError function and these are min versions for it
+        elif preset('MAPSMOBI_BUILD_TARGET'):
+            macos_version_min = '10.14'
+            ios_version_min = '12.0'
+
         swift_target = select(default=None, selectors=[
-            (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios10-simulator'),
-            (target.is_iossim and target.is_x86, 'i386-apple-ios10-simulator'),
-            (target.is_iossim and target.is_armv8, 'arm64-apple-ios10-simulator'),
+            (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios{}-simulator'.format(ios_version_min)),
+            (target.is_iossim and target.is_x86, 'i386-apple-ios{}-simulator'.format(ios_version_min)),
+            (target.is_iossim and target.is_armv8, 'arm64-apple-ios{}-simulator'.format(ios_version_min)),
             (not target.is_iossim and target.is_ios and target.is_armv8, 'arm64-apple-ios9'),
             (not target.is_iossim and target.is_ios and target.is_armv7, 'armv7-apple-ios9'),
         ])
@@ -1112,10 +1172,10 @@ class GnuToolchain(Toolchain):
                 target_triple = select(default=None, selectors=[
                     (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
-                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'arm-linux-gnueabihf'),
-                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'arm-linux-gnueabi'),
+                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'hard', 'armv7-linux-gnueabihf'),
+                    (target.is_linux and target.is_armv7 and target.armv7_float_abi == 'softfp', 'armv7-linux-gnueabi'),
                     (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
-                    (target.is_iossim and target.is_arm64, 'arm64-apple-ios10.0-simulator'),
+                    (target.is_iossim and target.is_arm64, 'arm64-apple-ios{}-simulator'.format(ios_version_min)),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_macos_arm64, 'arm64-apple-macos11'),
@@ -1173,10 +1233,10 @@ class GnuToolchain(Toolchain):
                 (target.is_linux and target.is_power8le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
                 (target.is_linux and target.is_power9le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
-                (target.is_macos_arm64, ['-mmacosx-version-min=11.0']),
-                (target.is_macos, ['-mmacosx-version-min=10.11']),
-                (target.is_ios and not target.is_iossim, ['-mios-version-min=9.0']),
-                (target.is_iossim, ['-mios-simulator-version-min=10.0']),
+                (target.is_macos_arm64, ['-mmacosx-version-min={}'.format(macos_arm64_version_min)]),
+                (target.is_macos, ['-mmacosx-version-min={}'.format(macos_version_min)]),
+                (target.is_ios and not target.is_iossim, ['-mios-version-min={}'.format(ios_version_min)]),
+                (target.is_iossim, ['-mios-simulator-version-min={}'.format(ios_version_min)]),
                 (target.is_android and target.is_armv7, ['-march=armv7-a', '-mfloat-abi=softfp']),
                 (target.is_android and target.is_armv8, ['-march=armv8-a']),
                 (target.is_yocto and target.is_armv7, ['-march=armv7-a', '-mfpu=neon', '-mfloat-abi=hard', '-mcpu=cortex-a9', '-O1'])
@@ -1188,12 +1248,14 @@ class GnuToolchain(Toolchain):
             if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
 
-            if self.tc.is_from_arcadia:
+            if self.tc.is_from_arcadia or self.tc.is_system_cxx:
                 if target.is_apple:
                     if target.is_ios:
                         self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                        self.platform_projects.append('build/platform/macos_system_stl')
 
                     if not self.tc.inplace_tools:
                         self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
@@ -1214,6 +1276,22 @@ class GnuToolchain(Toolchain):
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+            elif self.tc.params.get('local'):
+                if target.is_apple:
+                    if not tc.os_sdk_local:
+                        if target.is_ios:
+                            self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                            self.platform_projects.append('build/platform/macos_system_stl')
+                        if target.is_macos:
+                            self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+                            self.platform_projects.append('build/platform/macos_system_stl')
+                    else:
+                        if target.is_iossim:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'iphonesimulator', '--show-sdk-path']).strip())
+                        elif target.is_ios:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'iphoneos', '--show-sdk-path']).strip())
+                        elif target.is_macos:
+                            self.env.setdefault('SDKROOT', subprocess.check_output(['xcrun', '-sdk', 'macosx', '--show-sdk-path']).strip())
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1232,6 +1310,7 @@ class GnuToolchain(Toolchain):
         super(GnuToolchain, self).print_toolchain()
 
         emit('TOOLCHAIN_ENV', format_env(self.env, list_separator=':'))
+        emit('_GO_TOOLCHAIN_ENV_PATH', format_env(self.env_go, list_separator=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
         emit('SWIFT_FLAGS_PLATFORM', self.swift_flags_platform)
         emit('SWIFT_LD_FLAGS', '-L{}'.format(self.swift_lib_path) if self.swift_lib_path else '')
@@ -1258,25 +1337,47 @@ class GnuCompiler(Compiler):
         self.target = self.build.target
         self.tc = tc
 
-        self.c_foptions = ['-fexceptions']
-
-        # Set up output colorization
-        if self.tc.is_clang:
-            self.c_foptions.append('-fcolor-diagnostics')
-        elif self.tc.is_gcc:
-            self.c_foptions.append('-fdiagnostics-color=always')
-        else:
-            pass
-
-        self.c_warnings = ['-W', '-Wall', '-Wno-parentheses']
-        self.cxx_warnings = [
-            '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
+        self.c_foptions = [
+            # Enable C++ exceptions (and allow them to be throw through pure C code)
+            '-fexceptions',
+            # Enable standard-conforming behavior and generate duplicate symbol error in case of duplicated global constants.
+            # See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85678#c0
+            '-fno-common',
         ]
-        if not (self.tc.is_gcc and not self.tc.version_at_least(7)):
-            self.cxx_warnings.extend([
-                '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
-                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
-            ])
+
+        if self.tc.is_clang and self.target.is_linux:
+            # Use .init_array instead of .ctors (default for old clang versions)
+            # See: https://maskray.me/blog/2021-11-07-init-ctors-init-array
+            self.c_foptions.append('-fuse-init-array')
+
+        if self.tc.is_clang:
+            self.c_foptions += [
+                # Set up output colorization
+                '-fcolor-diagnostics',
+                # Enable aligned allocation
+                '-faligned-allocation',
+            ]
+        elif self.tc.is_gcc:
+            self.c_foptions += [
+                # Set up output colorization
+                '-fdiagnostics-color=always',
+                # It looks like there is no way to enable aligned allocation in gcc
+            ]
+
+        self.c_warnings = [
+            # Enable default warnings subset
+            '-Wall',
+            '-Wextra',
+        ]
+        self.cxx_warnings = [
+            # Issue a warning if certain overload is hidden due to inheritance
+            '-Woverloaded-virtual',
+        ]
+
+        # Disable some warnings which will fail compilation at the time
+        self.c_warnings += [
+            '-Wno-parentheses'
+        ]
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
         if self.target.is_android:
@@ -1306,10 +1407,6 @@ class GnuCompiler(Compiler):
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
-            if self.tc.version_at_least(7):
-                self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
-            else:
-                self.c_warnings.append('-Wno-aligned-allocation-unavailable')
             if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
                 self.c_foptions.append('-fembed-bitcode')
 
@@ -1338,61 +1435,26 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             self.sfdl_flags.append('-Qunused-arguments')
 
+            self.c_warnings += [
+                '-Wno-implicit-const-int-float-conversion',
+                # For nvcc to accept the above.
+                '-Wno-unknown-warning-option',
+            ]
+
             self.cxx_warnings += [
                 '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-exceptions',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
+                '-Wno-pessimizing-move',
+                '-Wno-return-std-move',
                 '-Wno-undefined-var-template',
             ]
 
-            if self.target.is_linux and not self.tc.version_at_least(10):
-                self.c_foptions.append('-fuse-init-array')
-
-            if self.tc.version_at_least(7):
-                self.cxx_warnings.append('-Wno-return-std-move')
-                if not self.target.is_ios:
-                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
-
-            if self.tc.version_at_least(8):
-                self.cxx_warnings.extend((
-                    '-Wno-address-of-packed-member',
-                    '-Wno-defaulted-function-deleted',
-                    '-Wno-enum-compare-switch',
-                ))
-
-            if self.tc.version_at_least(10):
-                # See https://releases.llvm.org/10.0.0/tools/clang/docs/ReleaseNotes.html#major-new-features
-                # Useful warnings that should be enabled ASAP:
-                self.c_warnings.extend((
-                    '-Wno-unknown-warning-option',  # For nvcc to accept the above.
-                ))
-                self.cxx_warnings.extend((
-                    '-Wno-c99-designator',
-                    '-Wno-deprecated-copy',
-                    '-Wno-final-dtor-non-final-class',
-                    '-Wno-initializer-overrides',
-                    '-Wno-pessimizing-move',
-                    '-Wno-range-loop-construct',
-                    '-Wno-reorder-init-list',
-                    '-Wno-unused-lambda-capture',
-                ))
-
-            if self.tc.version_at_least(11):
-                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
-                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
-                # Disable useful -f and -W that should be restored ASAP:
-                self.c_foptions += ['-fcommon']
-                self.c_warnings += [
-                    '-Wno-implicit-const-int-float-conversion',
-                ]
-                self.cxx_warnings += [
-                    '-Wno-deprecated-anon-enum-enum-conversion',
-                    '-Wno-deprecated-enum-enum-conversion',
-                    '-Wno-deprecated-enum-float-conversion',
-                    '-Wno-ambiguous-reversed-operator',
-                    '-Wno-deprecated-volatile',
-                ]
-
-        if self.tc.is_gcc and self.tc.version_at_least(4, 9):
+        elif self.tc.is_gcc:
             self.c_foptions.append('-fno-delete-null-pointer-checks')
             self.c_foptions.append('-fabi-version=8')
 
@@ -1433,8 +1495,6 @@ class GnuCompiler(Compiler):
         else:
             self.c_defines.append('-UNDEBUG')
 
-        if self.build.is_coverage:
-            self.c_foptions.extend(['-fprofile-arcs', '-ftest-coverage'])
         if self.build.profiler_type in (Profiler.Generic, Profiler.GProf):
             self.c_foptions.append('-fno-omit-frame-pointer')
 
@@ -1482,11 +1542,19 @@ class GnuCompiler(Compiler):
         emit_big('''
             when ($NO_WSHADOW == "yes") {
                 C_WARNING_OPTS += -Wno-shadow
-            }
+            }''')
+
+        # Though -w is intended to switch off all the warnings,
+        # it does not switch at least -Wregister and -Wreserved-user-defined-literal under clang.
+        #
+        # Use -Wno-everything to force warning suppression.
+        emit_big('''
             when ($NO_COMPILER_WARNINGS == "yes") {
                 C_WARNING_OPTS = -w
-                CXX_WARNING_OPTS = -Wno-register
-            }
+                CXX_WARNING_OPTS = -Wno-everything
+            }''')
+
+        emit_big('''
             when ($NO_OPTIMIZE == "yes") {
                 OPTIMIZE = -O0
             }
@@ -1602,10 +1670,15 @@ class GnuCompiler(Compiler):
         elif is_positive('DUMP_COMPILER_DEPS_FAST'):
             emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto;suf=${OBJ_SUF}.o.d:SRC}')
 
-        if not self.build.is_coverage:
-            emit('EXTRA_OUTPUT')
+        compiler_time_trace_requested = is_positive('TIME_TRACE') or is_positive('COMPILER_TIME_TRACE')
+        compiler_supports_time_trace = self.tc.is_clang and self.tc.version_at_least(9)
+        if compiler_time_trace_requested and compiler_supports_time_trace:
+            compiler_time_trace_granularity = preset('TIME_TRACE_GRANULARITY', '500')
+            emit('COMPILER_TIME_TRACE_FLAGS', '-ftime-trace -ftime-trace-granularity=' + compiler_time_trace_granularity)
+            emit('COMPILER_TIME_TRACE_POSTPROCESS', '${YMAKE_PYTHON}', '${input:"build/scripts/find_time_trace.py"}', '$_COMPILE_OUTPUTS', '$_COMPILE_TIME_TRACE_OUTPUTS')
         else:
-            emit('EXTRA_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
+            emit('COMPILER_TIME_TRACE_FLAGS')
+            emit('COMPILER_TIME_TRACE_POSTPROCESS')
 
         append('EXTRA_OUTPUT')
 
@@ -1619,11 +1692,14 @@ class GnuCompiler(Compiler):
             '$CXXFLAGS',
             '$CL_MACRO_INFO',
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
+            '$_LANG_CFLAGS_VALUE',
             '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ] + style
 
         c_args = [
@@ -1636,11 +1712,13 @@ class GnuCompiler(Compiler):
             '$CL_MACRO_INFO',
             '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
             '$CONLYFLAGS',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$SRCFLAGS',
             '${input:SRC}',
             '$TOOLCHAIN_ENV',
             '$YNDEXER_OUTPUT',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ] + style
 
         ignore_c_args_no_deps = [
@@ -1649,9 +1727,11 @@ class GnuCompiler(Compiler):
             '$CLANG_TIDY_ARGS',
             '$YNDEXER_ARGS',
             '$YNDEXER_OUTPUT',
+            '$COMPILER_TIME_TRACE_FLAGS',
             '$EXTRA_OUTPUT',
             '$CL_MACRO_INFO',
-            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__',
+            '&& $COMPILER_TIME_TRACE_POSTPROCESS',
         ]
         c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c not in ignore_c_args_no_deps]
 
@@ -1665,8 +1745,6 @@ class GnuCompiler(Compiler):
         if self.tc.is_clang:
             if self.tc.version_at_least(12):
                 emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer12')
-            elif self.tc.version_at_least(11):
-                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer11')
 
 
 class SwiftCompiler(object):
@@ -1697,7 +1775,7 @@ class Linker(object):
         self.type = self._get_default_linker_type()
 
     def _get_default_linker_type(self):
-        if not self.tc.is_from_arcadia:
+        if not self.tc.is_from_arcadia or is_positive('EXPORT_CMAKE'):
             # External (e.g. system) toolchain: disable linker selection logic
             return None
 
@@ -1706,18 +1784,7 @@ class Linker(object):
             return Linker.LLD
 
         elif self.build.target.is_linux:
-            # DEVTOOLS-6782: LLD8 fails to link LTO builds with in-memory ELF objects larger than 4 GiB
-            blacklist_lld = is_positive('CLANG7') and is_positive('USE_LTO') and not is_positive('MUSL')
-            if self.tc.is_clang and not blacklist_lld:
-                return Linker.LLD
-            else:
-                # GCC et al.
-
-                if self.tc.is_gcc and is_positive('MUSL'):
-                    # See MUSL_BFD comment below
-                    return Linker.BFD
-
-                return Linker.GOLD
+            return Linker.LLD
 
         # There is no linker choice on Darwin (ld64) or Windows (link.exe)
         return None
@@ -1778,6 +1845,10 @@ class LD(Linker):
 
         self.ld_flags = []
 
+        # Save linker's stdout to an additional .txt output file
+        # e.g. LLD writes `--print-gc-sections` or `--print-icf-sections` to stdout
+        self.save_linker_output = False
+
         # Enable section-level DCE (dead code elimination):
         # remove whole unused code and data sections
         # (needs `-ffunction-sections` and `-fdata-sections` to be useful)
@@ -1787,31 +1858,30 @@ class LD(Linker):
             self.ld_dce_flag = '-Wl,-dead_strip'
         elif target.is_linux or target.is_android:
             self.ld_dce_flag = '-Wl,--gc-sections'
+            if preset('LINKER_DCE_PRINT_SECTIONS'):
+                self.save_linker_output = True
+                self.ld_dce_flag += ' -Wl,--print-gc-sections'
         else:
             self.ld_dce_flag = ''
 
-        if self.build.is_size_optimized:
+        if self.type == Linker.LLD:
             # Enable ICF (identical code folding pass) in safe mode
             # https://research.google/pubs/pub36912/
-            if self.type == Linker.LLD:
-                self.ld_flags.append('-Wl,-icf=safe')
+            self.ld_icf_flag = '-Wl,-icf=safe'
+            if preset('LINKER_ICF_PRINT_SECTIONS'):
+                self.save_linker_output = True
+                self.ld_icf_flag += ' -Wl,--print-icf-sections'
+        else:
+            self.ld_icf_flag = ''
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
-            if self.tc.is_gcc:
-                # MUSL_BFD: musl build uses --no-dynamic-linker linker flag
-                # which gold doesn't know about. And we can only specify linker
-                # type, not it's path as we do for Clang through linker selector.
-                self.ld_flags.append('-fuse-ld=bfd')
         elif target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
             if self.tc.is_gcc:
                 self.ld_flags.extend(('-Wl,-Bstatic', '-latomic', '-Wl,-Bdynamic'))
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
-            if self.type == Linker.LLD and target.android_api < 29:
-                # https://github.com/android/ndk/issues/1196
-                self.ld_flags.append('-Wl,--no-rosegment')
         elif target.is_macos:
             self.ld_flags.append('-Wl,-no_deduplicate')
             if not self.tc.is_clang:
@@ -1855,9 +1925,6 @@ class LD(Linker):
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
-
-        if self.build.is_coverage:
-            self.ld_flags.extend(('-fprofile-arcs', '-ftest-coverage'))
 
         # TODO(somov): Единое условие на coverage.
         if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or self.build.is_sanitized:
@@ -1916,6 +1983,9 @@ class LD(Linker):
         emit('LD_DCE_FLAG', self.ld_dce_flag)
         emit('DCE_FLAG')
 
+        emit('LD_ICF_FLAG', self.ld_icf_flag)
+        emit('ICF_FLAG')
+
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
         if self.musl.value:
@@ -1953,13 +2023,25 @@ class LD(Linker):
 
         emit('LINKER_SCRIPT_VALUE', '${ext=.ld;pre=-T:SRCS_GLOBAL}')
 
+        linker_time_trace_requested = is_positive('TIME_TRACE') or is_positive('LINKER_TIME_TRACE')
+        linker_supports_time_trace = self.type == Linker.LLD  # XXX: Should really check the linker version if we had one
+        if linker_time_trace_requested and linker_supports_time_trace:
+            linker_time_trace_granularity = preset('TIME_TRACE_GRANULARITY', '500')
+            emit('LINKER_TIME_TRACE_FLAG', ' '.join([
+                '-Wl,--time-trace',
+                '-Wl,--time-trace-granularity=' + linker_time_trace_granularity,
+                '-Wl,--time-trace-file=${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.time_trace.json:REALPRJNAME}',
+            ]))
+        else:
+            emit('LINKER_TIME_TRACE_FLAG')
+
         exe_flags = [
             '$C_FLAGS_PLATFORM', '$BEFORE_PEERS', self.start_group, '${rootrel:PEERS}', self.end_group, '$AFTER_PEERS',
             '$EXPORTS_VALUE $LINKER_SCRIPT_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
-            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG']
+            '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG $DCE_FLAG $ICF_FLAG $LINKER_TIME_TRACE_FLAG']
 
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
-        soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
+        soname_flag = '-Wl,{option},${{_SONAME}}'.format(option=self.soname_option)
         shared_flag = '-shared'
         exec_shared_flag = '-pie -fPIE -Wl,--unresolved-symbols=ignore-all -rdynamic' if self.target.is_linux else ''
         if self.whole_archive:
@@ -1972,10 +2054,10 @@ class LD(Linker):
 
         # Program
         emit(
-            "GENERATE_MF",
-            '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}',
-            '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-            '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
+            "GENERATE_MF_CMD",
+            '$YMAKE_PYTHON', '${input:"build/scripts/generate_mf.py"}', '${input;hide:"build/scripts/process_command_files.py"}',
+            '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
+            '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
         )
         if is_positive("TIDY"):
             emit(
@@ -1993,6 +2075,7 @@ class LD(Linker):
             emit('REAL_LINK_EXE_CMDLINE',
                  '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
                  '--source-root $ARCADIA_ROOT',
+                 '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
                  '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
                  '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
                  arch_flag,
@@ -2010,6 +2093,7 @@ class LD(Linker):
         emit('REAL_LINK_EXEC_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
              '--target $TARGET',
+             '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
              '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
              '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              arch_flag,
@@ -2030,6 +2114,7 @@ class LD(Linker):
         emit('REAL_LINK_DYN_LIB_CMDLINE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"}',
              '--target $TARGET',
+             '--linker-output ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX$MODULE_VERSION.linker.txt:REALPRJNAME}' if self.save_linker_output else '',
              '${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS}',
              '${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
              arch_flag,
@@ -2184,7 +2269,8 @@ class MSVCToolchainOptions(ToolchainOptions):
                 if not self.under_wine:
                     return _path
                 return '{wine} {type} $WINE_ENV ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(
-                    wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140',
+                    wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 ' +
+                         '${input;hide:\"build/scripts/process_command_files.py\"} ${input;hide:\"build/scripts/process_whole_archive_option.py\"}',
                     type=_type,
                     path=_path
                 )
@@ -2196,8 +2282,14 @@ class MSVCToolchainOptions(ToolchainOptions):
 
 class MSVC(object):
     # noinspection PyPep8Naming
-    class WIN32_WINNT(object):
-        Macro = '_WIN32_WINNT'
+    class WindowsVersion(object):
+        """
+        Predefined values for _WIN32_WINNT macro.
+        This macro specifies minimal Windows version required by the binary being build.
+
+        A complete list of the values supported by the Windows SDK can be found at
+        https://docs.microsoft.com/en-us/cpp/porting/modifying-winver-and-win32-winnt
+        """
         Windows7 = '0x0601'
         Windows8 = '0x0602'
 
@@ -2253,8 +2345,6 @@ class MSVCCompiler(MSVC, Compiler):
 
         target = self.build.target
 
-        win32_winnt = self.WIN32_WINNT.Windows7
-
         warns_enabled = [
             4018,  # 'expression' : signed/unsigned mismatch
             4265,  # 'class' : class has virtual functions, but destructor is not virtual
@@ -2287,19 +2377,34 @@ class MSVCCompiler(MSVC, Compiler):
         ]
 
         defines = [
+            '/DARCADIA_ROOT=${ARCADIA_ROOT}',
+            '/DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '/DFAKEID=$CPP_FAKEID',
             '/DWIN32',
             '/D_WIN32',
             '/D_WINDOWS',
+            # Define _CRT_*_NO_WARNINGS macros to prevent ucrt from issuing a warning whenever
+            # a POSIX-style function is used instead of the alternative Microsoft suggests as a secure / standard replacement
+            # (e. g. `strncpy()` instead of `strncpy_s()`, `access()` instead of `_access()`)
+            # For details see:
+            # https://docs.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
             '/D_CRT_SECURE_NO_WARNINGS',
             '/D_CRT_NONSTDC_NO_WARNINGS',
+            # Math constants (such as M_PI, M_E, M_SQRT2) are not defined in standard C / C++
+            # In order to get them defined by Windows ucrt library,
+            # you must first define _USE_MATH_DEFINES before #including <cmath> or math.h>.
+            # (NB: glibc defines these macros whenever _XOPEN_SOURCE is defined)
             '/D_USE_MATH_DEFINES',
             '/D__STDC_CONSTANT_MACROS',
             '/D__STDC_FORMAT_MACROS',
             '/D_USING_V110_SDK71_',
             '/D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
-            '/DNOMINMAX',
+            # Below defines are covered at
+            # https://docs.microsoft.com/en-us/windows/win32/winprog/using-the-windows-headers#faster-builds-with-smaller-header-files
+            # Exclude APIs such as Cryptography, DDE, RPC, Shell, and Windows Sockets (while including <windows.h>)
             '/DWIN32_LEAN_AND_MEAN',
+            # Define NOMINMAX to avoid min() and max() macros definition (while including <windows.h>)
+            '/DNOMINMAX',
         ]
 
         cxx_defines = [
@@ -2349,79 +2454,41 @@ class MSVCCompiler(MSVC, Compiler):
         ]
 
         if self.tc.use_clang:
-            flags.append('-fcase-insensitive-paths')
+            flags += [
+                # Allow <windows.h> to be included via <Windows.h> in case-sensitive file-systems.
+                '-fcase-insensitive-paths',
+
+                # At the time clang-cl identifies itself as MSVC 19.11:
+                # (actual value can be found in clang/lib/Driver/ToolChains/MSVC.cpp, the syntax would be like
+                # ```
+                # MSVT = VersionTuple(19, 11);
+                # ```
+                #
+                # We override this value to match current value of the actual MSVC being used.
+                '-fms-compatibility-version=19.21',
+            ]
             if target.is_x86:
                 flags.append('-m32')
-            if target.is_x86_64:
+            elif target.is_x86_64:
                 flags.append('-m64')
 
-            # Some warnings are getting triggered even when NO_COMPILER_WARNINGS is enabled
-            flags.extend((
-                '-Wno-c++11-narrowing',
-                '-Wno-register',
-            ))
-
             c_warnings.extend((
-                '-Wno-absolute-value',
-                '-Wno-assume',
-                '-Wno-bitwise-op-parentheses',
-                '-Wno-dll-attribute-on-redeclaration',
-                '-Wno-extern-initializer',
                 '-Wno-format',
-                '-Wno-ignored-pragma-optimize',
-                '-Wno-incompatible-pointer-types-discards-qualifiers',
-                '-Wno-inconsistent-dllimport',
-                '-Wno-int-conversion',
-                '-Wno-int-to-void-pointer-cast',
-                '-Wno-invalid-noreturn',
-                '-Wno-logical-op-parentheses',
-                '-Wno-macro-redefined',
-                '-Wno-microsoft-extra-qualification',
-                '-Wno-microsoft-include',
                 '-Wno-parentheses',
-                '-Wno-pragma-pack',
-                '-Wno-return-type',
-                '-Wno-tautological-constant-out-of-range-compare',
-                '-Wno-unknown-argument',
                 '-Wno-unknown-warning-option',
             ))
 
             cxx_warnings += [
-                '-Woverloaded-virtual', '-Wno-invalid-offsetof', '-Wno-attributes',
-                '-Wno-dynamic-exception-spec',  # IGNIETFERRO-282 some problems with lucid
-                '-Wno-register',  # IGNIETFERRO-722 needed for contrib
                 '-Wimport-preprocessor-directive-pedantic',
-                '-Wno-c++17-extensions',
-                '-Wno-exceptions',
-                '-Wno-inconsistent-missing-override',
+                '-Woverloaded-virtual',
+                '-Wno-ambiguous-reversed-operator',
+                '-Wno-defaulted-function-deleted',
+                '-Wno-deprecated-anon-enum-enum-conversion',
+                '-Wno-deprecated-enum-enum-conversion',
+                '-Wno-deprecated-enum-float-conversion',
+                '-Wno-deprecated-volatile',
                 '-Wno-undefined-var-template',
-                '-Wno-ambiguous-delete',
-                '-Wno-microsoft-unqualified-friend',
             ]
-            if self.tc.version_at_least(2019):
-                flags += ['-fcommon']  # heretic: fix LNK2005 errors in scipy
-                cxx_warnings += [
-                    '-Wno-deprecated-volatile',
-                    '-Wno-deprecated-anon-enum-enum-conversion',
-                    '-Wno-defaulted-function-deleted',
-                    '-Wno-deprecated-enum-enum-conversion',
-                    '-Wno-ambiguous-reversed-operator',
-                    '-Wno-deprecated-enum-float-conversion',
-                    '-Wno-reorder-init-list',
-                    '-Wno-implicit-const-int-float-conversion',
-                    '-Wno-final-dtor-non-final-class',
-                    '-Wno-pointer-to-int-cast',  # didn't fail on linux
-                ]
-
-                # heretic: на момент коммита в нашей конфигурации указано, что тулчейн clang11-windows - аналог msvc 2019
-                # https://a.yandex-team.ru/arc/trunk/arcadia/build/ya.conf.json?rev=r7910792#L2185
-                # сам clang11 по дефолту представляется msvc2017 (#define _MSC_VER 1911)
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/clang11/lib/Driver/ToolChains/MSVC.cpp?rev=r7913127#L1352
-                # вручную заставляем его представляться msvc2019 (#define _MSC_VER 1921)
-                # значение версии взято вот отсюда:
-                # https://a.yandex-team.ru/arc/trunk/arcadia/contrib/libs/llvm11/include/llvm/Support/Compiler.h?blame=true&rev=r7913127#L89
-                if self.tc.version_exactly(2019):
-                    flags.append('-fms-compatibility-version=19.21')
 
             if self.tc.ide_msvs:
                 cxx_warnings += [
@@ -2435,8 +2502,9 @@ class MSVCCompiler(MSVC, Compiler):
 
         emit('OBJ_CROSS_SUF', '$OBJ_SUF')
         emit('OBJECT_SUF', '$OBJ_SUF.obj')
-        emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
-        defines.append('/D{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
+
+        win_version_min = self.WindowsVersion.Windows7
+        defines.append('/D_WIN32_WINNT={0}'.format(win_version_min))
 
         if winapi_unicode:
             defines += ['/DUNICODE', '/D_UNICODE']
@@ -2512,11 +2580,26 @@ class MSVCCompiler(MSVC, Compiler):
         emit_big('''
             when ($NO_WSHADOW == "yes") {
                 C_WARNING_OPTS += /wd4456 /wd4457
-            }
-            when ($NO_COMPILER_WARNINGS == "yes") {
-                C_WARNING_OPTS = /w
-                CXX_WARNING_OPTS =
-            }
+            }''')
+
+        if self.tc.use_clang:
+            # Though /w is intended to switch off all the warnings,
+            # it does not switch at least -Wregister and -Wreserved-user-defined-literal under clang-cl.
+            #
+            # Use -Wno-everything to force warning suppression.
+            emit_big('''
+                when ($NO_COMPILER_WARNINGS == "yes") {
+                    C_WARNING_OPTS = /w
+                    CXX_WARNING_OPTS = -Wno-everything
+                }''')
+        else:
+            emit_big('''
+                when ($NO_COMPILER_WARNINGS == "yes") {
+                    C_WARNING_OPTS = /w
+                    CXX_WARNING_OPTS =
+                }''')
+
+        emit_big('''
             when ($NO_OPTIMIZE == "yes") {
                 OPTIMIZE = /Od
             }''')
@@ -2526,8 +2609,8 @@ class MSVCCompiler(MSVC, Compiler):
         emit('WERROR_MODE', self.tc.werror_mode)
 
         if not self.tc.under_wine:
-            emit('CL_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'cl')
-            emit('ML_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'ml')
+            emit('CL_WRAPPER', '${FIX_MSVC_OUTPUT}', 'cl')
+            emit('ML_WRAPPER', '${FIX_MSVC_OUTPUT}', 'ml')
         else:
             emit('CL_WRAPPER')
             emit('ML_WRAPPER')
@@ -2538,18 +2621,18 @@ class MSVCCompiler(MSVC, Compiler):
              )
         emit('_SRC_CPP_CMD',
              '${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} '
-             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} '
-             '${hide;kv:"pc yellow"}'
+             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${_LANG_CFLAGS_VALUE} '
+             '${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}'
              )
         emit('_SRC_C_CMD',
              '${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} '
-             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} '
-             '${hide;kv:"p CC"} ${hide;kv:"pc yellow"}'
+             '${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} '
+             '${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}'
              )
         emit('_SRC_M_CMD', '$_EMPTY_CMD')
         emit('_SRC_MASM_CMD',
              '${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${ML_WRAPPER} ${MASM_COMPILER} ${MASMFLAGS} ${SRCFLAGS} ' +
-             masm_io + ' ${kv;hide:"p AS"} ${kv;hide:"pc yellow"}'
+             masm_io + '${kv;hide:"p AS"} ${kv;hide:"pc yellow"}'
              )
 
 
@@ -2601,8 +2684,7 @@ class MSVCLinker(MSVC, Linker):
         if self.tc.use_clang:
             flags_debug_only.append('/STACK:4194304')
 
-        # TODO(nslus): DEVTOOLS-1868 remove restriction.
-        if not self.tc.under_wine:
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
             if self.tc.ide_msvs:
                 flags_debug_only.append('/DEBUG:FASTLINK' if not self.tc.use_clang else '/DEBUG')
                 flags_release_only.append('/DEBUG')
@@ -2663,16 +2745,14 @@ class MSVCLinker(MSVC, Linker):
 
         emit('LINK_IMPLIB_VALUE')
         emit('LINK_IMPLIB', '/IMPLIB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.lib}')
-
-        # TODO(nslus): DEVTOOLS-1868 remove restriction.
-        if self.tc.under_wine:
-            emit('LINK_EXTRA_OUTPUT')
-        else:
+        if is_negative_str(preset('NO_DEBUGINFO', 'no')):
             emit('LINK_EXTRA_OUTPUT', '/PDB:${output;noext;rootrel;pre=$MODULE_PREFIX:REALPRJNAME.pdb}')
+        else:
+            emit('LINK_EXTRA_OUTPUT')
 
         if not self.tc.under_wine:
-            emit('LIB_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'lib')
-            emit('LINK_WRAPPER', '${YMAKE_PYTHON}', '${input:"build/scripts/fix_msvc_output.py"}', 'link')
+            emit('LIB_WRAPPER', '${FIX_MSVC_OUTPUT}', 'lib')
+            emit('LINK_WRAPPER', '${FIX_MSVC_OUTPUT}', 'link')
         else:
             emit('LIB_WRAPPER')
             emit('LINK_WRAPPER')
@@ -2685,9 +2765,9 @@ class MSVCLinker(MSVC, Linker):
                 EXPORTS_VALUE=/DEF:${input:EXPORTS_FILE}
             }''')
 
-        emit("GENERATE_MF", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}',
-             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;rootrel;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
-             '-t $MODULE_TYPE $NO_GPL_FLAG --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
+        emit("GENERATE_MF_CMD", '$YMAKE_PYTHON ${input:"build/scripts/generate_mf.py"}', '${input;hide:"build/scripts/process_command_files.py"}',
+             '--build-root $ARCADIA_BUILD_ROOT --module-name $REALPRJNAME -o ${output;pre=$MODULE_PREFIX;suf=$MODULE_SUFFIX.mf:REALPRJNAME}',
+             '-t $MODULE_TYPE --ya-start-command-file -Ya,lics $LICENSE_NAMES -Ya,peers ${rootrel:PEERS} -Ya,credits ${input:CREDITS_TEXTS_FILE} $CREDITS_FLAGS --ya-end-command-file',
              )
 
         # we split srcs_global into two groups: libs and objs
@@ -2700,14 +2780,15 @@ class MSVCLinker(MSVC, Linker):
              ${LINK_IMPLIB_VALUE} /DLL /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
              ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}',
-             srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
+             srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT}  ${qe;rootrel;ext=.lib:PEERS} ${qe;rootrel;ext=.dll;noext;suf=.lib:PEERS} \
              $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file')
         emit('REAL_LINK_DYN_LIB', '$REAL_LINK_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD')
 
         head_link_lib = '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD}'
-        tail_link_lib = '--ya-start-command-file ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
+        tail_link_lib = '--ya-start-command-file ${qe;rootrel:AUTO_INPUT} $LINK_LIB_FLAGS --ya-end-command-file \
+                        ${hide;kv:"soe"} ${hide;kv:"p AR"} ${hide;kv:"pc light-red"}'
         emit('LINK_LIB', '${GENERATE_MF} &&', head_link_lib, '/OUT:${qe;rootrel:TARGET}', tail_link_lib)
         emit('GLOBAL_LINK_LIB', head_link_lib, '/OUT:${qe;rootrel:GLOBAL_TARGET}', tail_link_lib)
 
@@ -2716,7 +2797,8 @@ class MSVCLinker(MSVC, Linker):
              ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL} ',
              '${LINK_EXTRA_OUTPUT}', srcs_globals, '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE \
-             ${qe;rootrel:PEERS} --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
+             ${qe;rootrel;ext=.lib:PEERS} ${qe;rootrel;ext=.dll;noext;suf=.lib:PEERS} --ya-end-command-file \
+             ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
         emit('LINK_EXE', '$LINK_EXE_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_DYN_LIB', '${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
@@ -2725,8 +2807,9 @@ class MSVCLinker(MSVC, Linker):
              /OUT:${qe;rootrel:TARGET} ${LINK_EXTRA_OUTPUT} ${EXPORTS_VALUE} \
              ${pre=--whole-archive-peers :WHOLE_ARCHIVE_PEERS} \
              ${pre=--whole-archive-libs :_WHOLE_ARCHIVE_LIBS_VALUE_GLOBAL}', srcs_globals,
-             '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
-             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
+             '--ya-start-command-file ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel;ext=.lib:PEERS} ${qe;rootrel;ext=.dll;noext;suf=.lib:PEERS} \
+             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE --ya-end-command-file \
+             ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}')
         emit('LINK_EXEC_DYN_LIB', '$LINK_EXEC_DYN_LIB_IMPL($_WHOLE_ARCHIVE_PEERS_VALUE)')
 
         emit('LINK_GLOBAL_FAT_OBJECT', '${TOOLCHAIN_ENV} ${cwd:ARCADIA_BUILD_ROOT} ${LIB_WRAPPER} ${LINK_LIB_CMD} /OUT:${qe;rootrel:TARGET} \
@@ -2740,6 +2823,7 @@ class MSVCLinker(MSVC, Linker):
 Compilers = {
     'gnu': (GnuToolchain, GnuCompiler, LD),
     'clang': (GnuToolchain, GnuCompiler, LD),
+    'xcode': (GnuToolchain, GnuCompiler, LD),
     'msvc': (MSVCToolchain, MSVCCompiler, MSVCLinker),
 }
 
@@ -2924,10 +3008,6 @@ class Cuda(object):
 
         self.peerdirs = ['build/platform/cuda']
 
-        self.nvcc_std = '-std=c++14'
-        if self.build.tc.type == 'msvc':
-            self.nvcc_std = self.nvcc_std.replace('-std=', '/std:')
-
         self.nvcc_flags = []
 
         if not self.have_cuda.value:
@@ -2969,7 +3049,6 @@ class Cuda(object):
 
         emit('NVCC_UNQUOTED', self.build.host.exe('$CUDA_ROOT', 'bin', 'nvcc'))
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
-        emit('NVCC_STD', self.nvcc_std)
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
         emit('NVCC_OBJ_EXT', '.o' if not self.build.target.is_windows else '.obj')
 
@@ -2999,7 +3078,7 @@ class Cuda(object):
         if self.cuda_version.value in ('8.0', '9.0', '9.1', '9.2', '10.0'):
             raise ConfigureError('CUDA versions 8.x, 9.x and 10.0 are no longer supported.\nSee DEVTOOLS-7108.')
 
-        if self.cuda_version.value in ('10.1', '11.0', '11.1', '11.2', '11.3', '11.4'):
+        if self.cuda_version.value in ('10.1', '11.0', '11.1', '11.3', '11.4'):
             return True
 
         return False
@@ -3008,6 +3087,9 @@ class Cuda(object):
         if is_positive('MUSL'):
             return False
         if self.build.is_sanitized:
+            return False
+        if self.build.host_target[1].is_macos_x86_64 or self.build.host_target[1].is_macos_arm64:
+            # DEVTOOLSSUPPORT-19178 CUDA is rarely needed on Mac. Disable it by default but allow explicit builds with CUDA.
             return False
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
 

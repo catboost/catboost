@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/transform.h>
 #include <thrust/for_each.h>
@@ -23,8 +25,7 @@
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/detail/internal_functional.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -186,5 +187,5 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

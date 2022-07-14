@@ -1,4 +1,4 @@
-//===--------------------- filesystem/ops.cpp -----------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,6 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <__utility/unreachable.h>
 #include "filesystem"
 #include "array"
 #include "iterator"
@@ -24,9 +25,10 @@
 # define NOMINMAX
 # include <windows.h>
 #else
-# include <unistd.h>
+# include <dirent.h>
 # include <sys/stat.h>
 # include <sys/statvfs.h>
+# include <unistd.h>
 #endif
 #include <time.h>
 #include <fcntl.h> /* values for fchmodat */
@@ -153,7 +155,7 @@ public:
       return makeState(PS_AtEnd);
 
     case PS_AtEnd:
-      _LIBCPP_UNREACHABLE();
+      __libcpp_unreachable();
     }
   }
 
@@ -201,7 +203,7 @@ public:
       return makeState(PS_InRootName, Path.data(), RStart + 1);
     case PS_InRootName:
     case PS_BeforeBegin:
-      _LIBCPP_UNREACHABLE();
+      __libcpp_unreachable();
     }
   }
 
@@ -223,7 +225,7 @@ public:
     case PS_InFilenames:
       return RawEntry;
     }
-    _LIBCPP_UNREACHABLE();
+    __libcpp_unreachable();
   }
 
   explicit operator bool() const noexcept {
@@ -284,7 +286,7 @@ private:
     case PS_AtEnd:
       return getAfterBack();
     }
-    _LIBCPP_UNREACHABLE();
+    __libcpp_unreachable();
   }
 
   /// \brief Return a pointer to the first character in the currently lexed
@@ -301,7 +303,7 @@ private:
     case PS_AtEnd:
       return &Path.back() + 1;
     }
-    _LIBCPP_UNREACHABLE();
+    __libcpp_unreachable();
   }
 
   // Consume all consecutive separators.
@@ -684,7 +686,7 @@ void filesystem_error::__create_what(int __num_paths) {
       return detail::format_string("filesystem error: %s [" PATH_CSTR_FMT "] [" PATH_CSTR_FMT "]",
                                    derived_what, path1().c_str(), path2().c_str());
     }
-    _LIBCPP_UNREACHABLE();
+    __libcpp_unreachable();
   }();
 }
 
@@ -1026,7 +1028,10 @@ bool __create_directories(const path& p, error_code* ec) {
     } else if (not is_directory(parent_st))
       return err.report(errc::not_a_directory);
   }
-  return __create_directory(p, ec);
+  bool ret = __create_directory(p, &m_ec);
+  if (m_ec)
+    return err.report(m_ec);
+  return ret;
 }
 
 bool __create_directory(const path& p, error_code* ec) {
@@ -1035,16 +1040,13 @@ bool __create_directory(const path& p, error_code* ec) {
   if (detail::mkdir(p.c_str(), static_cast<int>(perms::all)) == 0)
     return true;
 
-  if (errno == EEXIST) {
-    error_code mec = capture_errno();
-    error_code ignored_ec;
-    const file_status st = status(p, ignored_ec);
-    if (!is_directory(st)) {
-      err.report(mec);
-    }
-  } else {
-    err.report(capture_errno());
-  }
+  if (errno != EEXIST)
+    return err.report(capture_errno());
+  error_code mec = capture_errno();
+  error_code ignored_ec;
+  const file_status st = status(p, ignored_ec);
+  if (!is_directory(st))
+    return err.report(mec);
   return false;
 }
 
@@ -1191,7 +1193,7 @@ bool __fs_is_empty(const path& p, error_code* ec) {
   } else if (is_regular_file(st))
     return static_cast<uintmax_t>(pst.st_size) == 0;
 
-  _LIBCPP_UNREACHABLE();
+  __libcpp_unreachable();
 }
 
 static file_time_type __extract_last_write_time(const path& p, const StatT& st,
@@ -1342,6 +1344,19 @@ bool __remove(const path& p, error_code* ec) {
   return true;
 }
 
+// We currently have two implementations of `__remove_all`. The first one is general and
+// used on platforms where we don't have access to the `openat()` family of POSIX functions.
+// That implementation uses `directory_iterator`, however it is vulnerable to some race
+// conditions, see https://reviews.llvm.org/D118134 for details.
+//
+// The second implementation is used on platforms where `openat()` & friends are available,
+// and it threads file descriptors through recursive calls to avoid such race conditions.
+#if defined(_LIBCPP_WIN32API)
+# define REMOVE_ALL_USE_DIRECTORY_ITERATOR
+#endif
+
+#if defined(REMOVE_ALL_USE_DIRECTORY_ITERATOR)
+
 namespace {
 
 uintmax_t remove_all_impl(path const& p, error_code& ec) {
@@ -1380,6 +1395,97 @@ uintmax_t __remove_all(const path& p, error_code* ec) {
   }
   return count;
 }
+
+#else // !REMOVE_ALL_USE_DIRECTORY_ITERATOR
+
+namespace {
+
+template <class Cleanup>
+struct scope_exit {
+  explicit scope_exit(Cleanup const& cleanup)
+    : cleanup_(cleanup)
+  { }
+
+  ~scope_exit() { cleanup_(); }
+
+private:
+  Cleanup cleanup_;
+};
+
+uintmax_t remove_all_impl(int parent_directory, const path& p, error_code& ec) {
+  // First, try to open the path as a directory.
+  const int options = O_CLOEXEC | O_RDONLY | O_DIRECTORY | O_NOFOLLOW;
+  int fd = ::openat(parent_directory, p.c_str(), options);
+  if (fd != -1) {
+    // If that worked, iterate over the contents of the directory and
+    // remove everything in it, recursively.
+    scope_exit close_fd([=] { ::close(fd); });
+    DIR* stream = ::fdopendir(fd);
+    if (stream == nullptr) {
+      ec = detail::capture_errno();
+      return 0;
+    }
+    scope_exit close_stream([=] { ::closedir(stream); });
+
+    uintmax_t count = 0;
+    while (true) {
+      auto [str, type] = detail::posix_readdir(stream, ec);
+      static_assert(std::is_same_v<decltype(str), std::string_view>);
+      if (str == "." || str == "..") {
+        continue;
+      } else if (ec || str.empty()) {
+        break; // we're done iterating through the directory
+      } else {
+        count += remove_all_impl(fd, str, ec);
+      }
+    }
+
+    // Then, remove the now-empty directory itself.
+    if (::unlinkat(parent_directory, p.c_str(), AT_REMOVEDIR) == -1) {
+      ec = detail::capture_errno();
+      return count;
+    }
+
+    return count + 1; // the contents of the directory + the directory itself
+  }
+
+  ec = detail::capture_errno();
+
+  // If we failed to open `p` because it didn't exist, it's not an
+  // error -- it might have moved or have been deleted already.
+  if (ec == errc::no_such_file_or_directory) {
+    ec.clear();
+    return 0;
+  }
+
+  // If opening `p` failed because it wasn't a directory, remove it as
+  // a normal file instead. Note that `openat()` can return either ENOTDIR
+  // or ELOOP depending on the exact reason of the failure.
+  if (ec == errc::not_a_directory || ec == errc::too_many_symbolic_link_levels) {
+    ec.clear();
+    if (::unlinkat(parent_directory, p.c_str(), /* flags = */0) == -1) {
+      ec = detail::capture_errno();
+      return 0;
+    }
+    return 1;
+  }
+
+  // Otherwise, it's a real error -- we don't remove anything.
+  return 0;
+}
+
+} // end namespace
+
+uintmax_t __remove_all(const path& p, error_code* ec) {
+  ErrorHandler<uintmax_t> err("remove_all", ec, &p);
+  error_code mec;
+  uintmax_t count = remove_all_impl(AT_FDCWD, p, mec);
+  if (mec)
+    return err.report(mec);
+  return count;
+}
+
+#endif // REMOVE_ALL_USE_DIRECTORY_ITERATOR
 
 void __rename(const path& from, const path& to, error_code* ec) {
   ErrorHandler<void> err("rename", ec, &from, &to);
@@ -1700,7 +1806,7 @@ path path::lexically_normal() const {
       break;
     }
     case PK_None:
-      _LIBCPP_UNREACHABLE();
+      __libcpp_unreachable();
     }
   }
   // [fs.path.generic]p6.8: If the path is empty, add a dot.

@@ -39,11 +39,7 @@
 #include "../thread/thread_operators.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \addtogroup WarpModule
@@ -162,10 +158,12 @@ private:
         IS_INTEGER = ((Traits<T>::CATEGORY == SIGNED_INTEGER) || (Traits<T>::CATEGORY == UNSIGNED_INTEGER))
     };
 
-    /// Internal specialization.  Use SHFL-based scan if (architecture is >= SM30) and (LOGICAL_WARP_THREADS is a power-of-two)
-    typedef typename If<(PTX_ARCH >= 300) && (IS_POW_OF_TWO),
-        WarpScanShfl<T, LOGICAL_WARP_THREADS, PTX_ARCH>,
-        WarpScanSmem<T, LOGICAL_WARP_THREADS, PTX_ARCH> >::Type InternalWarpScan;
+    /// Internal specialization.
+    /// Use SHFL-based scan if LOGICAL_WARP_THREADS is a power-of-two
+    using InternalWarpScan = cub::detail::conditional_t<
+      IS_POW_OF_TWO,
+      WarpScanShfl<T, LOGICAL_WARP_THREADS, PTX_ARCH>,
+      WarpScanSmem<T, LOGICAL_WARP_THREADS, PTX_ARCH>>;
 
     /// Shared memory storage layout type for WarpScan
     typedef typename InternalWarpScan::TempStorage _TempStorage;
@@ -931,5 +929,4 @@ public:
 
 /** @} */       // end group WarpModule
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

@@ -2,38 +2,52 @@
 
 #include "quantized_features_info.h"
 
+#include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/index_hash_calcer.h>
 #include <catboost/private/libs/algo_helpers/scratch_cache.h>
+#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/defaults_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/system_options.h>
 
+#include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
+#include <library/cpp/binsaver/util_stream_io.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
 #include <util/stream/input.h>
+#include <util/system/compiler.h>
 #include <util/system/tempfile.h>
 
 
 using namespace NCB;
 
+
 TCtrHelper GetCtrHelper(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     const NCB::TFeaturesLayout& layout,
-    TConstArrayRef<float> learnTarget
-) throw (yexception) {
+    const TVector<float>& preprocessedLearnTarget,
+    const TVector<i8>& serializedLabelConverter
+) {
     auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
     NCatboostOptions::TCatFeatureParams updatedCatFeatureParams = catBoostOptions.CatFeatureParams.Get();
 
+    TLabelConverter labelConverter;
+    if (!serializedLabelConverter.empty()) {
+        TMemoryInput in(serializedLabelConverter.data(), serializedLabelConverter.size());
+        SerializeFromStream(in, labelConverter);
+    }
+
+    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter, /*targetDimension*/ 1);
+
+    TConstArrayRef<float> singleTarget = preprocessedLearnTarget;
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> targetsParam;
-    if (!learnTarget.empty()) {
-        UpdateCtrsTargetBordersOption(
-            lossFunction,
-            /*approxDimension*/ 1,
-            &updatedCatFeatureParams
-        );
-        targetsParam = TConstArrayRef<TConstArrayRef<float>>(&learnTarget, 1);
+    if (!preprocessedLearnTarget.empty()) {
+        UpdateCtrsTargetBordersOption(lossFunction, approxDimension, &updatedCatFeatureParams);
+        targetsParam = TConstArrayRef<TConstArrayRef<float>>(&singleTarget, 1);
     }
 
     TCtrHelper ctrHelper;
@@ -51,14 +65,14 @@ TCtrHelper GetCtrHelper(
 
 TTargetStatsForCtrs ComputeTargetStatsForCtrs(
     const TCtrHelper& ctrHelper,
-    TConstArrayRef<float> learnTarget,
+    const TVector<float>& preprocessedLearnTarget,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception) {
+) {
     TTargetStatsForCtrs targetStatsForCtrs;
 
     const auto& targetClassifiers = ctrHelper.GetTargetClassifiers();
     int ctrCount = targetClassifiers.ysize();
-    AllocateRank2(ctrCount, learnTarget.size(), targetStatsForCtrs.LearnTargetClass);
+    AllocateRank2(ctrCount, preprocessedLearnTarget.size(), targetStatsForCtrs.LearnTargetClass);
     targetStatsForCtrs.TargetClassesCount.resize(ctrCount);
     for (int ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
         // Spark supports only 1-dimensional targets for now
@@ -66,10 +80,10 @@ TTargetStatsForCtrs ComputeTargetStatsForCtrs(
         NPar::ParallelFor(
             *localExecutor,
             0,
-            SafeIntegerCast<ui32>(learnTarget.size()),
+            SafeIntegerCast<ui32>(preprocessedLearnTarget.size()),
             [&] (ui32 z) {
                 targetStatsForCtrs.LearnTargetClass[ctrIdx][z]
-                    = targetClassifiers[ctrIdx].GetTargetClass(learnTarget[z]);
+                    = targetClassifiers[ctrIdx].GetTargetClass(preprocessedLearnTarget[z]);
             }
         );
         targetStatsForCtrs.TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
@@ -201,7 +215,7 @@ void ComputeEstimatedCtrFeatures(
     NPar::TLocalExecutor* localExecutor,
     TEstimatedForCPUObjectsDataProviders* outputData,
     TPrecomputedOnlineCtrMetaData* outputMeta
-) throw (yexception) {
+) {
     TTrainingDataProviders trainingDataProviders;
     TVector<size_t> dataSizes;
     trainingDataProviders.Learn = MakeTrainingDataProvider(learnData);
@@ -301,37 +315,54 @@ TFinalCtrsCalcer::TFinalCtrsCalcer(
     TFullModel* modelWithoutCtrData, // moved into
     const NCatboostOptions::TCatBoostOptions* catBoostOptions,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
-    TConstArrayRef<float> learnTarget,
+    TVector<float>* preprocessedLearnTarget,
     TTargetStatsForCtrs* targetStatsForCtrs, // moved into
     const TCtrHelper& ctrHelper,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception)
+)
     : Model(std::move(*modelWithoutCtrData))
     , FeaturesLayout(quantizedFeaturesInfo.GetFeaturesLayout())
+    , PreprocessedLearnTarget(std::move(*preprocessedLearnTarget))
     , TargetStatsForCtrs(std::move(*targetStatsForCtrs))
     , LocalExecutor(localExecutor)
     , CtrDataFile(MakeTempName(nullptr, "ctr_data_file"))
     , CtrDataFileStream(new TOFStream(CtrDataFile.Name()))
+    , PerfectHashedToHashedCatValuesMap(FeaturesLayout->GetCatFeatureCount())
     , CatBoostOptions(catBoostOptions)
     , CpuRamLimit(ParseMemorySizeDescription(catBoostOptions->SystemOptions->CpuUsedRamLimit.Get()))
 {
     TVector<TModelCtrBase> modelCtrBases = Model.ModelTrees->GetApplyData()->GetUsedModelCtrBases();
     StreamWriter.Reset(new TCtrDataStreamWriter(CtrDataFileStream.Get(), modelCtrBases.size()));
+
+    ui32 maxUniqCatValuesPerFeature = 0;
     for (const auto& modelCtrBase : modelCtrBases) {
+        TCatFeatureIdx catFeatureIdx(SafeIntegerCast<ui32>(modelCtrBase.Projection.CatFeatures[0]));
         auto flatCatFeatureIdx = FeaturesLayout->GetExternalFeatureIdx(
-            SafeIntegerCast<ui32>(modelCtrBase.Projection.CatFeatures[0]),
+            *catFeatureIdx,
             EFeatureType::Categorical
         );
         CatFeatureFlatIndexToModelCtrsBases[SafeIntegerCast<i32>(flatCatFeatureIdx)].push_back(modelCtrBase);
+        auto uniqCatValuesCountsPerFeature = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);
+        maxUniqCatValuesPerFeature = Max(maxUniqCatValuesPerFeature, uniqCatValuesCountsPerFeature.OnAll);
     }
 
-    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, learnTarget);
+    DatasetDataForFinalCtrs.Targets = TVector<TConstArrayRef<float>>(1, PreprocessedLearnTarget);
     DatasetDataForFinalCtrs.LearnTargetClass = &TargetStatsForCtrs.LearnTargetClass;
     DatasetDataForFinalCtrs.TargetClassesCount = &TargetStatsForCtrs.TargetClassesCount;
     DatasetDataForFinalCtrs.TargetClassifiers = &ctrHelper.GetTargetClassifiers();
+
+    UniversalPerfectHashedToHashedCatValuesMap.yresize(maxUniqCatValuesPerFeature);
+    NPar::ParallelFor(
+        *LocalExecutor,
+        0,
+        SafeIntegerCast<int>(maxUniqCatValuesPerFeature),
+        [&] (int i) {
+            UniversalPerfectHashedToHashedCatValuesMap[i] = CalcCatFeatureHash(ToString(i));
+        }
+    );
 }
 
-TVector<i32> TFinalCtrsCalcer::GetCatFeatureFlatIndicesUsedForCtrs() const throw(yexception) {
+TVector<i32> TFinalCtrsCalcer::GetCatFeatureFlatIndicesUsedForCtrs() const {
     TVector<i32> result;
     for (const auto& [key, value] : CatFeatureFlatIndexToModelCtrsBases) {
         result.push_back(key);
@@ -343,7 +374,7 @@ void TFinalCtrsCalcer::ProcessForFeature(
    i32 catFeatureFlatIdx,
    const NCB::TQuantizedObjectsDataProviderPtr& learnData,
    const TVector<NCB::TQuantizedObjectsDataProviderPtr>& testData
-) throw(yexception) {
+) {
     DatasetDataForFinalCtrs.Data.Learn = MakeTrainingDataProvider(learnData);
     for (const auto& testDataPart : testData) {
         DatasetDataForFinalCtrs.Data.Test.push_back(MakeTrainingDataProvider(testDataPart));
@@ -358,6 +389,9 @@ void TFinalCtrsCalcer::ProcessForFeature(
 
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     featureCombinationToProjectionMap.emplace(featureCombination, projection);
+
+    // avoid expensive copying, let perfectHashedToHashedCatValuesMap 'borrow' it
+    PerfectHashedToHashedCatValuesMap[catFeatureIdx] = std::move(UniversalPerfectHashedToHashedCatValuesMap);
 
     CalcFinalCtrsAndSaveToModel(
         CpuRamLimit,
@@ -374,6 +408,8 @@ void TFinalCtrsCalcer::ProcessForFeature(
         },
         LocalExecutor
     );
+
+    UniversalPerfectHashedToHashedCatValuesMap = std::move(PerfectHashedToHashedCatValuesMap[catFeatureIdx]);
 
     DatasetDataForFinalCtrs.Data.Learn = nullptr;
     DatasetDataForFinalCtrs.Data.Test.clear();
@@ -440,7 +476,7 @@ private:
 };
 
 
-TFullModel TFinalCtrsCalcer::GetModelWithCtrData() throw(yexception) {
+TFullModel TFinalCtrsCalcer::GetModelWithCtrData() {
     StreamWriter.Destroy();
     CtrDataFileStream.Destroy();
     Model.CtrProvider = new TFromFileCtrProvider(CtrDataFile.Name());

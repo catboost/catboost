@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import sys
-from abc import ABC
 from typing import cast
 
 from ._api import BaseFileLock
@@ -9,9 +10,14 @@ from ._api import BaseFileLock
 has_fcntl = False
 if sys.platform == "win32":  # pragma: win32 cover
 
-    class UnixFileLock(BaseFileLock, ABC):
+    class UnixFileLock(BaseFileLock):
         """Uses the :func:`fcntl.flock` to hard lock the lock file on unix systems."""
 
+        def _acquire(self) -> None:
+            raise NotImplementedError
+
+        def _release(self) -> None:
+            raise NotImplementedError
 
 else:  # pragma: win32 no cover
     try:

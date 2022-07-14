@@ -5,6 +5,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 from io import BytesIO
+from binascii import b2a_base64
+from functools import partial
 import warnings
 
 from IPython.core.display import _pngxy
@@ -39,8 +41,6 @@ backends = {
 # most part it's just a reverse of the above dict, but we also need to add a
 # few others that map to the same GUI manually:
 backend2gui = dict(zip(backends.values(), backends.keys()))
-# Our tests expect backend2gui to just return 'qt'
-backend2gui['Qt4Agg'] = 'qt'
 # In the reverse mapping, there are a few extra valid matplotlib backends that
 # map to the same GUI support
 backend2gui["GTK"] = backend2gui["GTKCairo"] = "gtk"
@@ -48,6 +48,13 @@ backend2gui["GTK3Cairo"] = "gtk3"
 backend2gui["GTK4Cairo"] = "gtk4"
 backend2gui["WX"] = "wx"
 backend2gui["CocoaAgg"] = "osx"
+# There needs to be a hysteresis here as the new QtAgg Matplotlib backend
+# supports either Qt5 or Qt6 and the IPython qt event loop support Qt4, Qt5,
+# and Qt6.
+backend2gui["QtAgg"] = "qt"
+backend2gui["Qt4Agg"] = "qt"
+backend2gui["Qt5Agg"] = "qt"
+
 # And some backends that don't need GUI integration
 del backend2gui["nbAgg"]
 del backend2gui["agg"]
@@ -55,6 +62,7 @@ del backend2gui["svg"]
 del backend2gui["pdf"]
 del backend2gui["ps"]
 del backend2gui["module://matplotlib_inline.backend_inline"]
+del backend2gui["module://ipympl.backend_nbagg"]
 
 #-----------------------------------------------------------------------------
 # Matplotlib utilities
@@ -99,7 +107,7 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
+def print_figure(fig, fmt="png", bbox_inches="tight", base64=False, **kwargs):
     """Print a figure to an image, and return the resulting file data
 
     Returned data will be bytes unless ``fmt='svg'``,
@@ -107,6 +115,12 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
 
     Any keyword args are passed to fig.canvas.print_figure,
     such as ``quality`` or ``bbox_inches``.
+
+    If `base64` is True, return base64-encoded str instead of raw bytes
+    for binary-encoded image formats
+
+    .. versionadded:: 7.29
+        base64 argument
     """
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
@@ -138,18 +152,30 @@ def print_figure(fig, fmt='png', bbox_inches='tight', **kwargs):
     data = bytes_io.getvalue()
     if fmt == 'svg':
         data = data.decode('utf-8')
+    elif base64:
+        data = b2a_base64(data).decode("ascii")
     return data
 
-def retina_figure(fig, **kwargs):
-    """format a figure as a pixel-doubled (retina) PNG"""
-    pngdata = print_figure(fig, fmt='retina', **kwargs)
+def retina_figure(fig, base64=False, **kwargs):
+    """format a figure as a pixel-doubled (retina) PNG
+
+    If `base64` is True, return base64-encoded str instead of raw bytes
+    for binary-encoded image formats
+
+    .. versionadded:: 7.29
+        base64 argument
+    """
+    pngdata = print_figure(fig, fmt="retina", base64=False, **kwargs)
     # Make sure that retina_figure acts just like print_figure and returns
     # None when the figure is empty.
     if pngdata is None:
         return
     w, h = _pngxy(pngdata)
     metadata = {"width": w//2, "height":h//2}
+    if base64:
+        pngdata = b2a_base64(pngdata).decode("ascii")
     return pngdata, metadata
+
 
 # We need a little factory function here to create the closure where
 # safe_execfile can live.
@@ -159,8 +185,8 @@ def mpl_runner(safe_execfile):
     Parameters
     ----------
     safe_execfile : function
-      This must be a function with the same interface as the
-      :meth:`safe_execfile` method of IPython.
+        This must be a function with the same interface as the
+        :meth:`safe_execfile` method of IPython.
 
     Returns
     -------
@@ -205,8 +231,8 @@ def _reshow_nbagg_figure(fig):
     """reshow an nbagg figure"""
     try:
         reshow = fig.canvas.manager.reshow
-    except AttributeError:
-        raise NotImplementedError()
+    except AttributeError as e:
+        raise NotImplementedError() from e
     else:
         reshow()
 
@@ -215,7 +241,7 @@ def select_figure_formats(shell, formats, **kwargs):
     """Select figure formats for the inline backend.
 
     Parameters
-    ==========
+    ----------
     shell : InteractiveShell
         The main IPython instance.
     formats : str or set
@@ -249,16 +275,22 @@ def select_figure_formats(shell, formats, **kwargs):
         gs = "%s" % ','.join([repr(f) for f in supported])
         raise ValueError("supported formats are: %s not %s" % (gs, bs))
 
-    if 'png' in formats:
-        png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png', **kwargs))
-    if 'retina' in formats or 'png2x' in formats:
-        png_formatter.for_type(Figure, lambda fig: retina_figure(fig, **kwargs))
-    if 'jpg' in formats or 'jpeg' in formats:
-        jpg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'jpg', **kwargs))
-    if 'svg' in formats:
-        svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg', **kwargs))
-    if 'pdf' in formats:
-        pdf_formatter.for_type(Figure, lambda fig: print_figure(fig, 'pdf', **kwargs))
+    if "png" in formats:
+        png_formatter.for_type(
+            Figure, partial(print_figure, fmt="png", base64=True, **kwargs)
+        )
+    if "retina" in formats or "png2x" in formats:
+        png_formatter.for_type(Figure, partial(retina_figure, base64=True, **kwargs))
+    if "jpg" in formats or "jpeg" in formats:
+        jpg_formatter.for_type(
+            Figure, partial(print_figure, fmt="jpg", base64=True, **kwargs)
+        )
+    if "svg" in formats:
+        svg_formatter.for_type(Figure, partial(print_figure, fmt="svg", **kwargs))
+    if "pdf" in formats:
+        pdf_formatter.for_type(
+            Figure, partial(print_figure, fmt="pdf", base64=True, **kwargs)
+        )
 
 #-----------------------------------------------------------------------------
 # Code for initializing matplotlib and importing pylab
@@ -359,7 +391,7 @@ def import_pylab(user_ns, import_all=True):
 
     # IPython symbols to add
     user_ns['figsize'] = figsize
-    from IPython.core.display import display
+    from IPython.display import display
     # Add display and getfigs to the user's namespace
     user_ns['display'] = display
     user_ns['getfigs'] = getfigs
@@ -367,7 +399,7 @@ def import_pylab(user_ns, import_all=True):
 
 def configure_inline_support(shell, backend):
     """
-    .. deprecated: 7.23
+    .. deprecated:: 7.23
 
         use `matplotlib_inline.backend_inline.configure_inline_support()`
 
@@ -376,7 +408,6 @@ def configure_inline_support(shell, backend):
     Parameters
     ----------
     shell : InteractiveShell instance
-
     backend : matplotlib backend
     """
     warnings.warn(
@@ -386,6 +417,8 @@ def configure_inline_support(shell, backend):
         stacklevel=2,
     )
 
-    from matplotlib_inline.backend_inline import configure_inline_support as configure_inline_support_orig
+    from matplotlib_inline.backend_inline import (
+        configure_inline_support as configure_inline_support_orig,
+    )
 
     configure_inline_support_orig(shell, backend)

@@ -66,6 +66,7 @@ void SetTrainDataFromQuantizedPools(
     NCB::TObjectsGrouping&& learnObjectsGrouping,
     TVector<NCB::TObjectsGrouping>&& testObjectsGroupings,
     const NCB::TFeaturesLayout& featuresLayout,
+    const TLabelConverter& labelConverter,
     TRestorableFastRng64* rand
 ) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
@@ -87,6 +88,7 @@ void SetTrainDataFromQuantizedPools(
                 std::move(learnObjectsGrouping),
                 std::move(testObjectsGroupings),
                 featuresLayout,
+                labelConverter,
                 rand->GenRand()
             }
         );
@@ -344,7 +346,7 @@ void MapGenericRemoteCalcScore(
         ctx->LocalExecutor->ExecRange(
             [&] (int candidateIdx) {
                 auto& candidates = candidateList[candidateIdx].Candidates;
-                Y_VERIFY(candidates.size() > 0);
+                CB_ENSURE(candidates.size() > 0, "Some score calcer did not produce ay scores");
 
                 SetBestScore(
                     randSeed + candidateIdx,

@@ -14,9 +14,7 @@
  *  limitations under the License.
  */
 
-/*! \file shuffle.inl
- *  \brief Inline file for shuffle.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/detail/cpp11_required.h>
@@ -28,7 +26,7 @@
 #include <thrust/system/detail/generic/select_system.h>
 #include <thrust/system/detail/generic/shuffle.h>
 
-namespace thrust {
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template <typename DerivedPolicy, typename RandomIterator, typename URBG>
@@ -80,6 +78,6 @@ __host__ __device__ void shuffle_copy(RandomIterator first, RandomIterator last,
                               result, g);
 }
 
-}  // namespace thrust
+THRUST_NAMESPACE_END
 
 #endif

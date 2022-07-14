@@ -1,0 +1,374 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module _arpack ! in 
+    
+    
+    interface  ! in :_arpack
+        subroutine ssaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/ssaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            real, intent(in,out) :: tol
+            real dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            real dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(11),intent(in,out) :: ipntr
+            real dimension(3 * n),depend(n),intent(inout) :: workd
+            real dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine ssaupd
+
+        subroutine dsaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/ssaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            double precision, intent(in,out) :: tol
+            double precision dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            double precision dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(11),intent(in,out) :: ipntr
+            double precision dimension(3 * n),depend(n),intent(inout) :: workd
+            double precision dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine dsaupd
+
+
+
+        subroutine sseupd(rvec,howmny,select,d,z,ldz,sigma,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/sseupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            real dimension(nev),intent(out),depend(nev) :: d
+            real dimension(n,nev),intent(out),depend(n,nev) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            real :: sigma
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev 
+            real :: tol
+            real dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            real dimension(ldv,ncv),depend(ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(7) :: iparam
+            integer dimension(11) :: ipntr
+            real dimension(2 * n),depend(n) :: workd
+            real dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine sseupd
+
+
+        subroutine dseupd(rvec,howmny,select,d,z,ldz,sigma,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/sseupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            double precision dimension(nev),intent(out),depend(nev) :: d
+            double precision dimension(n,nev),intent(out),depend(n,nev) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            double precision :: sigma
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev 
+            double precision :: tol
+            double precision dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            double precision dimension(ldv,ncv),depend(ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(7) :: iparam
+            integer dimension(11) :: ipntr
+            double precision dimension(2 * n),depend(n) :: workd
+            double precision dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine dseupd
+
+
+
+        subroutine snaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/snaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            real, intent(in,out) :: tol
+            real dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            real dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(14),intent(in,out) :: ipntr
+            real dimension(3 * n),depend(n),intent(inout) :: workd
+            real dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine snaupd
+
+
+        subroutine dnaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in :_arpack:src/snaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            double precision, intent(in,out) :: tol
+            double precision dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            double precision dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(14),intent(in,out) :: ipntr
+            double precision dimension(3 * n),depend(n),intent(inout) :: workd
+            double precision dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine dnaupd
+
+
+
+        subroutine sneupd(rvec,howmny,select,dr,di,z,ldz,sigmar,sigmai,workev,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in ARPACK/SRC/sneupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            real dimension(nev + 1),depend(nev),intent(out) :: dr
+            real dimension(nev + 1),depend(nev),intent(out) :: di
+            real dimension(n,nev+1),depend(n,nev),intent(out) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            real :: sigmar
+            real :: sigmai
+            real dimension(3 * ncv),depend(ncv) :: workev
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            real :: tol
+            real dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            real dimension(n,ncv),depend(n,ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11) :: iparam
+            integer dimension(14) :: ipntr
+            real dimension(3 * n),depend(n):: workd
+            real dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine sneupd
+
+
+        subroutine dneupd(rvec,howmny,select,dr,di,z,ldz,sigmar,sigmai,workev,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,info) ! in ARPACK/SRC/sneupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            double precision dimension(nev + 1),depend(nev),intent(out) :: dr
+            double precision dimension(nev + 1),depend(nev),intent(out) :: di
+            double precision dimension(n,nev+1),depend(n,nev),intent(out) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            double precision :: sigmar
+            double precision :: sigmai
+            double precision dimension(3 * ncv),depend(ncv) :: workev
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            double precision :: tol
+            double precision dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            double precision dimension(n,ncv),depend(n,ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11) :: iparam
+            integer dimension(14) :: ipntr
+            double precision dimension(3 * n),depend(n):: workd
+            double precision dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            integer intent(in,out):: info
+        end subroutine dneupd
+
+
+
+        subroutine cnaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,rwork,info) ! in :_arpack:src/snaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            real, intent(in,out) :: tol
+            complex dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            complex dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(14),intent(in,out) :: ipntr
+            complex dimension(3 * n),depend(n),intent(inout) :: workd
+            complex dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            real dimension(ncv),depend(ncv),intent(inout) :: rwork
+            integer intent(in,out):: info
+        end subroutine cnaupd
+
+
+        subroutine znaupd(ido,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,rwork,info) ! in :_arpack:src/snaupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            integer intent(in,out):: ido
+            character*1 :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev
+            double precision, intent(in,out) :: tol
+            double complex dimension(n),intent(in,out) :: resid
+            integer optional,check(shape(v,1)==ncv),depend(v) :: ncv=shape(v,1)
+            double complex dimension(ldv,ncv),intent(in,out) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11),intent(in,out) :: iparam
+            integer dimension(14),intent(in,out) :: ipntr
+            double complex dimension(3 * n),depend(n),intent(inout) :: workd
+            double complex dimension(lworkl),intent(inout) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            double precision dimension(ncv),depend(ncv),intent(inout) :: rwork
+            integer intent(in,out):: info
+        end subroutine znaupd
+
+
+
+        subroutine cneupd(rvec,howmny,select,d,z,ldz,sigma,workev,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,rwork,info) ! in :_arpack:src/sneupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            complex dimension(nev),depend(nev),intent(out) :: d
+            complex dimension(n,nev), depend(n,nev),intent(out) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            complex :: sigma
+            complex dimension(3 * ncv),depend(ncv) :: workev
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev 
+            real :: tol
+            complex dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            complex dimension(ldv,ncv),depend(ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11) :: iparam
+            integer dimension(14) :: ipntr
+            complex dimension(3 * n),depend(n) :: workd
+            complex dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            real dimension(ncv),depend(ncv) :: rwork
+            integer intent(in,out):: info
+        end subroutine cneupd
+
+
+        subroutine zneupd(rvec,howmny,select,d,z,ldz,sigma,workev,bmat,n,which,nev,tol,resid,ncv,v,ldv,iparam,ipntr,workd,workl,lworkl,rwork,info) ! in :_arpack:src/sneupd.f
+            threadsafe   ! it's not really threadsafe, but we use a lock on the Python side, so keeping GIL is not needed
+            logical :: rvec
+            character :: howmny
+            logical dimension(ncv) :: select
+            double complex dimension(nev),depend(nev),intent(out) :: d
+            double complex dimension(n,nev), depend(n,nev),intent(out) :: z
+            integer optional,check(shape(z,0)==ldz),depend(z) :: ldz=shape(z,0)
+            double complex :: sigma
+            double complex dimension(3 * ncv),depend(ncv) :: workev
+            character :: bmat
+            integer optional,check(len(resid)>=n),depend(resid) :: n=len(resid)
+            character*2 :: which
+            integer :: nev 
+            double precision :: tol
+            double complex dimension(n) :: resid
+            integer optional,check(len(select)>=ncv),depend(select) :: ncv=len(select)
+            double complex dimension(ldv,ncv),depend(ncv) :: v
+            integer optional,check(shape(v,0)==ldv),depend(v) :: ldv=shape(v,0)
+            integer dimension(11) :: iparam
+            integer dimension(14) :: ipntr
+            double complex dimension(3 * n),depend(n) :: workd
+            double complex dimension(lworkl) :: workl
+            integer optional,check(len(workl)>=lworkl),depend(workl) :: lworkl=len(workl)
+            double precision dimension(ncv),depend(ncv) :: rwork
+            integer intent(in,out):: info
+        end subroutine zneupd
+
+
+            integer :: logfil
+            integer :: ndigit
+            integer :: mgetv0
+            integer :: msaupd
+            integer :: msaup2
+            integer :: msaitr
+            integer :: mseigt
+            integer :: msapps
+            integer :: msgets
+            integer :: mseupd
+            integer :: mnaupd
+            integer :: mnaup2
+            integer :: mnaitr
+            integer :: mneigh
+            integer :: mnapps
+            integer :: mngets
+            integer :: mneupd
+            integer :: mcaupd
+            integer :: mcaup2
+            integer :: mcaitr
+            integer :: mceigh
+            integer :: mcapps
+            integer :: mcgets
+            integer :: mceupd
+            integer :: nopx
+            integer :: nbx
+            integer :: nrorth
+            integer :: nitref
+            integer :: nrstrt
+            real :: tsaupd
+            real :: tsaup2
+            real :: tsaitr
+            real :: tseigt
+            real :: tsgets
+            real :: tsapps
+            real :: tsconv
+            real :: tnaupd
+            real :: tnaup2
+            real :: tnaitr
+            real :: tneigh
+            real :: tngets
+            real :: tnapps
+            real :: tnconv
+            real :: tcaupd
+            real :: tcaup2
+            real :: tcaitr
+            real :: tceigh
+            real :: tcgets
+            real :: tcapps
+            real :: tcconv
+            real :: tmvopx
+            real :: tmvbx
+            real :: tgetv0
+            real :: titref
+            real :: trvec
+            common /debug/ logfil,ndigit,mgetv0,msaupd,msaup2,msaitr,mseigt,msapps,msgets,mseupd,mnaupd,mnaup2,mnaitr,mneigh,mnapps,mngets,mneupd,mcaupd,mcaup2,mcaitr,mceigh,mcapps,mcgets,mceupd
+            common /timing/ nopx,nbx,nrorth,nitref,nrstrt,tsaupd,tsaup2,tsaitr,tseigt,tsgets,tsapps,tsconv,tnaupd,tnaup2,tnaitr,tneigh,tngets,tnapps,tnconv,tcaupd,tcaup2,tcaitr,tceigh,tcgets,tcapps,tcconv,tmvopx,tmvbx,tgetv0,titref,trvec
+
+    end interface 
+end python module _arpack
+
+! This file was auto-generated with f2py (version:2_3198).
+! See http://cens.ioc.ee/projects/f2py2e/

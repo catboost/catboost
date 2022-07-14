@@ -38,6 +38,7 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        tcmalloc/BUILD [1:1]
         tcmalloc/arena.cc [1:1]
         tcmalloc/arena.h [1:1]
         tcmalloc/background.cc [1:1]
@@ -55,6 +56,8 @@ BELONGS ya.make
         tcmalloc/experiment_config_test.cc [1:1]
         tcmalloc/experiment_fuzz.cc [1:1]
         tcmalloc/experimental_56_size_class.cc [1:1]
+        tcmalloc/experimental_pow2_below64_size_class.cc [1:1]
+        tcmalloc/experimental_pow2_size_class.cc [1:1]
         tcmalloc/guarded_page_allocator.cc [1:1]
         tcmalloc/guarded_page_allocator.h [1:1]
         tcmalloc/guarded_page_allocator_benchmark.cc [1:1]
@@ -86,6 +89,8 @@ BELONGS ya.make
         tcmalloc/internal/environment.cc [1:1]
         tcmalloc/internal/environment.h [1:1]
         tcmalloc/internal/environment_test.cc [1:1]
+        tcmalloc/internal/lifetime_predictions_test.cc [1:1]
+        tcmalloc/internal/lifetime_tracker_test.cc [1:1]
         tcmalloc/internal/linked_list.h [1:1]
         tcmalloc/internal/linked_list_benchmark.cc [1:1]
         tcmalloc/internal/linked_list_test.cc [1:1]
@@ -191,6 +196,27 @@ BELONGS ya.make
         tcmalloc/want_hpaa_subrelease.cc [1:1]
         tcmalloc/want_no_hpaa.cc [1:1]
 
+KEEP     COPYRIGHT_SERVICE_LABEL 2f85f99f6e6cdec04f6948d273430658
+BELONGS ya.make
+    License text:
+        // Copyright 2021 The TCMalloc Authors
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        tcmalloc/arena_test.cc [1:1]
+        tcmalloc/central_freelist_benchmark.cc [1:1]
+        tcmalloc/internal/cache_topology.cc [1:1]
+        tcmalloc/internal/cache_topology.h [1:1]
+        tcmalloc/internal/cache_topology_test.cc [1:1]
+        tcmalloc/internal/clock.h [1:1]
+        tcmalloc/internal/logging_test_helper.cc [1:1]
+        tcmalloc/internal/numa.cc [1:1]
+        tcmalloc/internal/numa.h [1:1]
+        tcmalloc/internal/numa_test.cc [1:1]
+        tcmalloc/want_numa_aware.cc [1:1]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 62f2df7d02ddf07de59d1a4e25e663aa
 BELONGS ya.make
     License text:
@@ -200,6 +226,8 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
+        tcmalloc/internal/lifetime_predictions.h [1:1]
+        tcmalloc/internal/lifetime_tracker.h [1:1]
         tcmalloc/internal/optimization.h [1:1]
         tcmalloc/internal/percpu_rseq_aarch64.S [2:2]
         tcmalloc/mock_central_freelist.cc [1:1]
@@ -213,7 +241,7 @@ BELONGS ya.make
         tcmalloc/transfer_cache_test.cc [1:1]
         tcmalloc/want_legacy_spans.cc [1:1]
 
-KEEP     COPYRIGHT_SERVICE_LABEL b7c6499c855f04bbe7161fc4de3a41d6
+SKIP     COPYRIGHT_SERVICE_LABEL b7c6499c855f04bbe7161fc4de3a41d6
 BELONGS ya.make
     License text:
           Delete(c);
@@ -224,4 +252,4 @@ BELONGS ya.make
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
-        tcmalloc/huge_region_test.cc [432:434]
+        tcmalloc/huge_region_test.cc [433:435]

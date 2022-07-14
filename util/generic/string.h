@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <stlfwd>
@@ -8,7 +9,6 @@
 #include <string_view>
 
 #include <util/system/yassert.h>
-#include <util/system/atomic.h>
 
 #include "ptr.h"
 #include "utility.h"
@@ -137,6 +137,17 @@ public:
     TBasicCharRef& operator=(const TBasicCharRef& other) {
         return this->operator=(static_cast<TChar>(other));
     }
+
+    /*
+     * WARN:
+     * Though references are copyable types according to the standard,
+     * the behavior of this explicit default specification is different from the one
+     * implemented by the assignment operator above.
+     *
+     * An attempt to explicitly delete it will break valid invocations like
+     * auto c = flag ? s[i] : s[j];
+     */
+    TBasicCharRef(const TBasicCharRef&) = default;
 
 private:
     TStringType& S_;

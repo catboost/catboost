@@ -94,6 +94,8 @@ class Profile final {
 
     int depth;
     void* stack[kMaxStackDepth];
+
+    void* user_data;
   };
 
   void Iterate(absl::FunctionRef<void(const Sample&)> f) const;
@@ -472,6 +474,16 @@ class MallocExtension final {
   // Enables fork support.
   // Allocator will continue to function correctly in the child, after calling fork().
   static void EnableForkSupport();
+
+  using CreateSampleUserDataCallback = void*();
+  using CopySampleUserDataCallback = void*(void*);
+  using DestroySampleUserDataCallback = void(void*);
+
+  // Sets callbacks for lifetime control of custom user data attached to allocation samples
+  static void SetSampleUserDataCallbacks(
+    CreateSampleUserDataCallback create,
+    CopySampleUserDataCallback copy,
+    DestroySampleUserDataCallback destroy);
 };
 
 }  // namespace tcmalloc

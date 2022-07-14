@@ -7,6 +7,13 @@
   # DB2_ODBC_CLI
   - sqlcli1.h
 
+
+- includes:
+  - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
+  - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
+  - libelf/libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
+  - libelf/sys_elf.h: contrib/restricted/libelf/include/libelf/sys_elf.h
+
 # We have lots of ADDINCLs to contrib/libs/libiconv all around the repo
 # so we need to add it to sysincl for consistent resolving.
 # We can go the other way here and remove iconv.h from all sysincl configs
@@ -40,28 +47,27 @@
     - contrib/libs/jdk/include/linux/jni_md.h
     - contrib/libs/jdk/include/win32/jni_md.h
 
-# libunistring has its own libc header wrappers that are added to ADDINCL and
-# need to be added here for consistensy between ADDINCL and sysincl resolving.
+# libunistring, libidn and libidn2
+# have its own libc header wrappers that are added to ADDINCL
+# and need to be added here for consistensy between ADDINCL and sysincl resolving.
 # Btw: we don't parse include_next, so we might lose real dependency to musl,
 # but sysincl resolving will save us here, as it will resolve to both of them.
 - source_filter: "^contrib/libs/libunistring"
   includes:
     - alloca.h:      contrib/libs/libunistring/alloca.h
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
-    - limits.h:      contrib/libs/libunistring/limits.h
-    - math.h:        contrib/libs/libunistring/math.h
     - minmax.h:      contrib/libs/libunistring/minmax.h
-    - stdlib.h:      contrib/libs/libunistring/stdlib.h
-    - string.h:      contrib/libs/libunistring/string.h
-    - sys/types.h:   contrib/libs/libunistring/sys/types.h
-    - unistd.h:      contrib/libs/libunistring/unistd.h
-    - wchar.h:       contrib/libs/libunistring/wchar.h
-    - wctype.h:      contrib/libs/libunistring/wctype.h
+
+- source_filter: "^contrib/libs/libidn/"
+  includes:
+    - alloca.h:     contrib/libs/libidn/gl/alloca.h
+    - error.h:      contrib/libs/libidn/gl/error.h
+    - iconv.h:      contrib/libs/libidn/lib/gl/iconv.h
 
 - source_filter: "^contrib/libs/libidn2/"
   includes:
-    - error.h:  contrib/libs/libidn2/gl/error.h
-    - unistd.h: contrib/libs/libunistring/include/unistd.h
+    - alloca.h:     contrib/libs/libidn2/gl/alloca.h
+    - error.h:      contrib/libs/libidn2/gl/error.h
 
 # Same as libunistring - lftp has own libc header wrappers/replacements.
 # However here we have GLOBAL ADDINCL to contrib/libs/lftp{,/trio,/lib}
@@ -108,13 +114,13 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
-- source_filter: "^contrib/libs/clang11-rt"
-  includes:
-    - xray/xray_interface.h: contrib/libs/clang11-rt/include/xray/xray_interface.h
-
 - source_filter: "^contrib/libs/clang12-rt"
   includes:
     - xray/xray_interface.h: contrib/libs/clang12-rt/include/xray/xray_interface.h
+
+- source_filter: "^contrib/libs/clang14-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang14-rt/include/xray/xray_interface.h
 
 - source_filter: "^contrib/libs/llvm"
   includes:
@@ -140,17 +146,34 @@
     - atomic.h:      contrib/libs/zeromq/missing_includes/atomic.h
     - Mstcpip.h:     contrib/libs/zeromq/missing_includes/Mstcpip.h
 
-- source_filter: "^contrib/libs/ffmpeg-3"
+- source_filter: "^contrib/restricted/openal-soft"
+  includes:
+    - atomic.h: contrib/restricted/openal-soft/common/atomic.h
+
+- source_filter: "^contrib/libs/ffmpeg-3/"
   includes:
     - fontconfig/fontconfig.h
     - fribidi.h
-    - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+    - stdatomic.h:    contrib/libs/ffmpeg-3/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/libs/ffmpeg-3/libavutil/atomic.h
+
+- source_filter: "^contrib/libs/ffmpeg-3.4.1/"
+  includes:
+    - fontconfig/fontconfig.h
+    - fribidi.h
+    - stdatomic.h:    contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
+    - atomic.h:       contrib/libs/ffmpeg-3.4.1/libavutil/atomic.h
 
 - source_filter: "^contrib/libs/glog"
   includes:
     - port.h:        contrib/libs/glog/missing_includes/port.h
 
-- source_filter: "^contrib/libs/intel/onednn"
+- source_filter: "^contrib/libs/postgresql"
+  includes:
+    - port.h:        contrib/libs/postgresql/src/include/port.h
+
+- source_filter: "^contrib/(deprecated/onednn|libs/intel/onednn)"
+
   includes:
     - mkl_cblas.h: contrib/libs/intel/mkl/include/mkl_cblas.h
     - mkl_version.h: contrib/libs/intel/mkl/include/mkl_version.h
@@ -220,11 +243,10 @@
 # unused legacy include in boost
 - source_filter: "^contrib/restricted/boost"
   includes:
-    - atomic.h
     - fstream.h
     - ../include/fenv.h
 
-- source_filter: "^contrib/restricted/boost/boost/stacktrace/detail"
+- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
   includes:
     - backtrace.h: contrib/libs/backtrace/backtrace.h
 
@@ -244,11 +266,7 @@
     - sasl/sasl.h
     - sasl/saslutil.h
 
-- source_filter: "^contrib/libs/apr"
-  includes:
-    - atomic.h
-
-- source_filter: "^contrib/libs/(apr|httpd|llvm)"
+- source_filter: "^contrib/libs/(apache/apr|httpd|llvm)"
   includes:
     - uuid.h
     - uuid/uuid.h
@@ -267,10 +285,6 @@
 - source_filter: "^contrib/deprecated/glib"
   includes:
     - configmake.h
-
-- source_filter: "^contrib/libs/ImageMagick"
-  includes:
-    - ltdl.h
 
 - source_filter: "^contrib/libs/authparser"
   includes:
@@ -317,7 +331,7 @@
   includes:
     - config.h
 
-- source_filter: "^contrib/libs/(apr|httpd|openssl)"
+- source_filter: "^contrib/libs/(apache/apr|httpd|openssl)"
   includes:
     - netinet/sctp.h
 
@@ -366,8 +380,14 @@
   includes:
     - mem.h
 
-- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|uatraits)"
+- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl)"
   includes:
+    - patchlevel.h
+
+- source_filter: "^metrika/uatraits"
+  includes:
+    - note.h
+    - could_not_find_Perl_patchlevel.h
     - patchlevel.h
 
 - source_filter: "^contrib/tools/watchman"
@@ -398,25 +418,13 @@
   includes:
     - backtrace.h: contrib/libs/backtrace/backtrace.h
 
-- source_filter: "^contrib/restricted/glib"
-  includes:
-    - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
-    - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
-
 - source_filter: "^contrib/restricted/libelf"
   includes:
     - byteswap.h: contrib/restricted/libelf/lib/byteswap.h
     - gelf.h: contrib/restricted/libelf/lib/gelf.h
     - libelf.h: contrib/restricted/libelf/lib/libelf.h
-    - libelf/libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
-    - libelf/sys_elf.h: contrib/restricted/libelf/include/libelf/sys_elf.h
     - nlist.h: contrib/restricted/libelf/lib/nlist.h
     - sys_elf.h: contrib/restricted/libelf/lib/sys_elf.h
-
-- source_filter: "^contrib/libs/libbpf"
-  includes:
-    - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
-    - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
 - source_filter: "^contrib/libs/dpdk/"
   includes:
@@ -451,3 +459,26 @@
 - source_filter: "^contrib/libs/h3"
   includes:
     - alloc.h: contrib/libs/h3/h3lib/include/alloc.h
+- source_filter: "^cloud/iam/token_agent/daemon"
+  includes:
+    - contrib/libs/grpc/include/grpcpp/impl/codegen/server_context_impl.h
+
+- source_filter: "^contrib/libs/libyang"
+  includes:
+    - in.h: contrib/libs/libyang/libyang/in.h
+
+- source_filter: "^contrib/restricted/noc/frr"
+  includes:
+    - bfd.h: contrib/restricted/noc/frr/lib/bfd.h
+    - getopt.h: contrib/restricted/noc/frr/lib/getopt.h
+    - filter.h: contrib/restricted/noc/frr/lib/filter.h
+    - memory.h: contrib/restricted/noc/frr/lib/memory.h
+    - thread.h: contrib/restricted/noc/frr/lib/thread.h
+
+- source_filter: "^contrib/libs/cxxsupp/libcxxrt"
+  includes:
+    - atomic.h: contrib/libs/cxxsupp/libcxxrt/atomic.h
+
+- source_filter: "^contrib/libs/util-linux"
+  includes:
+    - procfs.h: contrib/libs/util-linux/include/procfs.h

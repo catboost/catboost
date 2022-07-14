@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2018 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/swap.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // define null_type
 struct null_type {};
@@ -50,37 +53,78 @@ template <
   class T9 = null_type>
 class tuple;
 
-// forward declaration of tuple_element
-template<size_t N, class T> struct tuple_element;
 
-// specializations for tuple_element
-template<class T>
-  struct tuple_element<0,T>
-{
-  typedef typename T::head_type type;
-}; // end tuple_element<0,T>
+template <size_t N, class T> struct tuple_element;
 
 template<size_t N, class T>
-  struct tuple_element<N, const T>
+  struct tuple_element_impl
 {
   private:
     typedef typename T::tail_type Next;
-    typedef typename tuple_element<N-1, Next>::type unqualified_type;
 
   public:
-    typedef typename thrust::detail::add_const<unqualified_type>::type type;
-}; // end tuple_element<N, const T>
+    /*! The result of this metafunction is returned in \c type.
+     */
+    typedef typename tuple_element_impl<N-1, Next>::type type;
+}; // end tuple_element
 
 template<class T>
-  struct tuple_element<0,const T>
+  struct tuple_element_impl<0,T>
 {
-  typedef typename thrust::detail::add_const<typename T::head_type>::type type;
-}; // end tuple_element<0,const T>
+  typedef typename T::head_type type;
+};
 
+template <size_t N, class T>
+  struct tuple_element<N, T const>
+{
+    using type = typename std::add_const<typename tuple_element<N, T>::type>::type;
+};
 
+template <size_t N, class T>
+struct tuple_element<N, T volatile>
+{
+    using type = typename std::add_volatile<typename tuple_element<N, T>::type>::type;
+};
+
+template <size_t N, class T>
+  struct tuple_element<N, T const volatile>
+{
+    using type = typename std::add_cv<typename tuple_element<N, T>::type>::type;
+};
+
+template <size_t N, class T>
+struct tuple_element{
+    using type = typename tuple_element_impl<N,T>::type;
+};
 
 // forward declaration of tuple_size
 template<class T> struct tuple_size;
+
+template<class T>
+  struct tuple_size<T const> : public tuple_size<T> {};
+
+template<class T>
+  struct tuple_size<T volatile> : public tuple_size<T> {};
+
+template<class T>
+  struct tuple_size<T const volatile> : public tuple_size<T> {};
+
+/*! This metafunction returns the number of elements
+ *  of a \p tuple type of interest.
+ *
+ *  \tparam T A \c tuple type of interest.
+ *
+ *  \see pair
+ *  \see tuple
+ */
+template<class T>
+  struct tuple_size
+{
+  /*! The result of this metafunction is returned in \c value.
+   */
+  static const int value = 1 + tuple_size<typename T::tail_type>::value;
+}; // end tuple_size
+
 
 // specializations for tuple_size
 template<>
@@ -169,7 +213,7 @@ struct get_class
     // XXX we may not need to deal with this for any compiler we care about -jph
     //return get_class<N-1>::BOOST_NESTED_TEMPLATE get<RET>(t.tail);
     return get_class<N-1>::template get<RET>(t.tail);
-    
+
     // gcc 4.3 couldn't compile this:
     //return get_class<N-1>::get<RET>(t.tail);
   }
@@ -598,7 +642,7 @@ inline typename access_traits<
 get(detail::cons<HT, TT>& c)
 {
   //return detail::get_class<N>::BOOST_NESTED_TEMPLATE
-  
+
   // gcc 4.3 couldn't compile this:
   //return detail::get_class<N>::
 
@@ -956,5 +1000,5 @@ inline bool operator>=(const detail::cons<T1, T2>& lhs, const detail::cons<S1, S
   return detail::gte(lhs, rhs);
 } // end operator>=()
 
-} // end thrust
+THRUST_NAMESPACE_END
 

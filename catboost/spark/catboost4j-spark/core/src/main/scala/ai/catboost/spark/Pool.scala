@@ -9,7 +9,7 @@ import concurrent.duration.Duration
 import concurrent.{Await,Future}
 import concurrent.ExecutionContext.Implicits.global
 
-import scala.collection.JavaConversions._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer,ArrayBuilder}
 
@@ -40,7 +40,7 @@ private[spark] class QuantizedRowsOutputIterator(
     val quantizedRowAssembler : TQuantizedRowAssembler,
     val objectBlobSize : Int
 ) extends Iterator[Row] {
-  def next : Row = {
+  def next() : Row = {
     val quantizedFeaturesBlob = new Array[Byte](objectBlobSize)
     quantizedRowAssembler.AssembleObjectBlob(objectIdx, quantizedFeaturesBlob)
     val dstRow = dstRows(objectIdx)
@@ -212,6 +212,13 @@ object Pool {
     setColumnParamsFromLoadedData(pool)
 
     pool
+  }
+
+  /**
+   * Returns a PoolReader that can be used to read Pool (API similar to Spark's DataFrameReader).
+   */
+  def read(spark: SparkSession) : PoolReader = {
+    new PoolReader(spark)
   }
 
   private[spark] def setColumnParamsFromLoadedData(pool: Pool) {
@@ -709,6 +716,13 @@ class Pool (
     copyValues(result)
   }
 
+  /**
+   * Interface for saving the content out into external storage (API similar to Spark's Dataset).
+   */
+  def write() : PoolWriter = {
+    new PoolWriter(this)
+  }
+
 
   private[spark] def createDataMetaInfo(selectedColumnTypes: Seq[String] = null) : TIntermediateDataMetaInfo = {
     val result = new TIntermediateDataMetaInfo
@@ -791,7 +805,7 @@ class Pool (
     nanModeAndBordersBuilder.SetSampleSize(dataForBuildBorders.count.toInt)
     
     log.info("calcNanModesAndBorders: reading data: start")
-    for (row <- dataForBuildBorders.toLocalIterator) {
+    for (row <- dataForBuildBorders.toLocalIterator.asScala) {
        nanModeAndBordersBuilder.AddSample(row.getAs[Vector](0).toArray)
     }
     log.info("calcNanModesAndBorders: reading data: end")
@@ -811,9 +825,16 @@ class Pool (
     log.info("calcNanModesAndBorders: finish")
   }
 
-  protected def updateCatFeaturesInfo(quantizedFeaturesInfo: QuantizedFeaturesInfoPtr) = {
+  protected def updateCatFeaturesInfo(
+    isInitialization: Boolean, 
+    quantizedFeaturesInfo: QuantizedFeaturesInfoPtr
+  ) = {
     val catFeaturesUniqValueCounts = Pool.getCatFeaturesUniqValueCounts(data, $(featuresCol))
-    native_impl.UpdateCatFeaturesInfo(catFeaturesUniqValueCounts, quantizedFeaturesInfo.Get)
+    native_impl.UpdateCatFeaturesInfo(
+      catFeaturesUniqValueCounts, 
+      isInitialization, 
+      quantizedFeaturesInfo.Get
+    )
   }
 
   protected def createQuantizationSchema(quantizationParams: QuantizationParamsTrait)
@@ -831,7 +852,7 @@ class Pool (
       calcNanModesAndBorders(nanModeAndBordersBuilder, quantizationParams)
     }
 
-    updateCatFeaturesInfo(quantizedFeaturesInfo)
+    updateCatFeaturesInfo(isInitialization=true, quantizedFeaturesInfo=quantizedFeaturesInfo)
 
     quantizedFeaturesInfo
   }
@@ -940,7 +961,10 @@ class Pool (
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
-    updateCatFeaturesInfo(quantizedFeaturesInfo) // because there can be new values
+
+    // because there can be new values
+    updateCatFeaturesInfo(isInitialization=false, quantizedFeaturesInfo=quantizedFeaturesInfo)
+
     createQuantized(quantizedFeaturesInfo)
   }
   
@@ -1056,6 +1080,15 @@ class Pool (
   }
   
   /**
+   * used to add additional columns to data (for example estimated features)
+   * It is impossible to just write an external function for this because copyValues is protected
+   */
+  def copyWithModifiedData(modifiedData: DataFrame, partitionedByGroups: Boolean=false) : Pool = {
+    val result = new Pool(modifiedData, this.pairsData, this.quantizedFeaturesInfo, partitionedByGroups)
+    copyValues(result)
+  }
+  
+  /**
    * Map over partitions for quantized Pool
    */
   def mapQuantizedPartitions[R : Encoder : ClassTag](
@@ -1124,8 +1157,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )
@@ -1155,8 +1188,8 @@ class Pool (
               dstRowLength
             )
             f(
-              dataProviders(0),
-              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders(0) } else { null },
+              dataProviders.get(0),
+              if (estimatedFeatureCount.isDefined) { estimatedFeaturesDataProviders.get(0) } else { null },
               dstRows(0),
               localExecutor
             )

@@ -29,6 +29,7 @@
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
+  - CommonCrypto/CommonRandom.h
   - ConditionalMacros.h
   - DiskArbitration/DiskArbitration.h
   - Endian.h
@@ -55,6 +56,7 @@
   - libkern/OSCacheControl.h
   - libproc.h
   - mach-o/dyld.h
+  - mach-o/fixup-chains.h
   - mach-o/getsect.h
   - mach-o/loader.h
   - mach/clock.h
@@ -112,6 +114,7 @@
   - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
+  - os/proc.h
   - os/trace.h
   - panel.h
   - pthread_spis.h
@@ -138,6 +141,7 @@
   - sys/malloc.h
   - sys/mbuf.h
   - sys/msgbuf.h
+  - sys/paths.h
   - sys/posix_shm.h
   - sys/proc.h
   - sys/proc_info.h
@@ -169,6 +173,7 @@
   - AVFoundation/AVFoundation.h
   - CFNetwork/CFNetwork.h
   - Cocoa/Cocoa.h
+  - CoreFoundation/CFArray.h
   - CoreFoundation/CFBase.h
   - CoreFoundation/CFBundle.h
   - CoreFoundation/CFData.h
@@ -223,8 +228,10 @@
   - Security/SecureTransport.h
   - Security/Security.h
   - SystemConfiguration/SystemConfiguration.h
+  - SystemConfiguration/SCDynamicStoreCopySpecific.h
   - UIKit/UIImage.h
   - UIKit/UIKit.h
+  - UIKit/UIScreen.h
   - UIKit/UIWebView.h
   - UIKit/UIView.h
   - VideoDecodeAcceleration/VDADecoder.h

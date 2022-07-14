@@ -18,3 +18,10 @@ PEERDIR(
 )
 
 END()
+
+RECURSE(
+    fuzzy_test
+    ut
+    writer
+    yson
+)

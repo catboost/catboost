@@ -98,6 +98,71 @@ preds_class = model.predict(train_data)
 
 ```
 
+#### [CatBoostClassifier](../concepts/python-reference_catboostclassifier.md) class with array-like data with numerical, categorical and embedding features
+
+```python
+from catboost import CatBoostClassifier
+# Initialize data
+cat_features = [2]
+embedding_features=[0, 1]
+train_data = [
+    [[0.1, 0.12, 0.33], [1.0, 0.7], 2, "male"],
+    [[0.0, 0.8, 0.2], [1.1, 0.2], 1, "female"],
+    [[0.2, 0.31, 0.1], [0.3, 0.11], 2, "female"],
+    [[0.01, 0.2, 0.9], [0.62, 0.12], 1, "male"]
+]
+train_labels = [1, 0, 0, 1]
+eval_data = [
+    [[0.2, 0.1, 0.3], [1.2, 0.3], 1, "female"],
+    [[0.33, 0.22, 0.4], [0.98, 0.5], 2, "female"],
+    [[0.78, 0.29, 0.67], [0.76, 0.34], 2, "male"],
+]
+
+# Initialize CatBoostClassifier
+model = CatBoostClassifier(iterations=2,
+                           learning_rate=1,
+                           depth=2)
+# Fit model
+model.fit(train_data, train_labels, cat_features=cat_features, embedding_features=embedding_features)
+# Get predicted classes
+preds_class = model.predict(eval_data)
+```
+
+#### Use [Pools](../concepts/python-reference_pool.md) with numerical, categorical and embedding features
+
+```python
+from catboost import CatBoostClassifier, Pool
+
+train_data = Pool(
+    [
+        [[0.1, 0.12, 0.33], [1.0, 0.7], 2, "male"],
+        [[0.0, 0.8, 0.2], [1.1, 0.2], 1, "female"],
+        [[0.2, 0.31, 0.1], [0.3, 0.11], 2, "female"],
+        [[0.01, 0.2, 0.9], [0.62, 0.12], 1, "male"]
+    ],
+    label = [1, 0, 0, 1],
+    cat_features=[3],
+    embedding_features=[0, 1]    
+)
+
+eval_data = Pool(
+    [
+        [[0.2, 0.1, 0.3], [1.2, 0.3], 1, "female"],
+        [[0.33, 0.22, 0.4], [0.98, 0.5], 2, "female"],
+        [[0.78, 0.29, 0.67], [0.76, 0.34], 2, "male"],
+    ],
+    label = [0, 1, 1],
+    cat_features=[3],
+    embedding_features=[0, 1]    
+)
+
+model = CatBoostClassifier(iterations=10)
+
+model.fit(train_data, eval_set=eval_data)
+preds_class = model.predict(eval_data)
+
+```
+
 
 ## Multiclassification {#multiclassification}
 
@@ -802,6 +867,50 @@ model2 = CatBoostRegressor(iterations=4,
 
 model2.fit(train_data, train_labels, init_model=model1)
 
+```
+
+
+## Batch training {#batch-training}
+
+```python
+from catboost import (CatBoostRegressor, Pool, sum_models,)
+
+# Initialize data
+
+train_data1 = [[1, 4, 5, 6],
+                [4, 5, 6, 7],
+                [30, 40, 50, 60]]
+train_labels1 = [10, 20, 30]
+
+train_data2 = [[2, 4, 6, 8],
+                [41, 14, 56, 65],
+                [1, 4, 50, 60]]
+train_labels2 = [17, 23, 73]
+
+
+# training parameters
+
+params = {
+    'task_type': 'GPU',
+    'iterations': 2,
+    'learning_rate': 0.2,
+    'depth': 2
+}
+
+model1 = CatBoostRegressor(**params)
+batch1 = Pool(train_data1, label=train_labels1)
+model1.fit(X=batch1)
+
+# continue training with different portion of data
+
+model2 = CatBoostRegressor(**params)
+batch2 = Pool(train_data2, label=train_labels2)
+batch2.set_baseline(model1.predict(batch1))
+model2.fit(X=batch2)
+
+# build resulting model
+
+model = sum_models([model1, model2])
 ```
 
 

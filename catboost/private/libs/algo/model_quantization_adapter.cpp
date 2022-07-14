@@ -78,7 +78,9 @@ namespace {
                 for (size_t i = 0; i < docCount; ++i) {
                     for (size_t j = 0; j < featureCount; ++j) {
                         auto featurePosition = Model.ModelTrees->GetFloatFeatures()[j].Position;
-                        featuresVec[i][featurePosition.Index] = rawFeatureAccessor.GetFloatAccessor()(featurePosition, i);
+                        if (rawFeaturesBlockIterator.GetFloatValues()[featurePosition.FlatIndex]) {
+                            featuresVec[i][featurePosition.Index] = rawFeatureAccessor.GetFloatAccessor()(featurePosition, i);
+                        }
                     }
                     featuresVecSecond[i] = MakeArrayRef(featuresVec[i].begin(), featuresVec[i].end());
                 }

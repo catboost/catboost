@@ -40,11 +40,7 @@
 #include "../util_ptx.cuh"
 #include "../util_type.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /** \brief cub::RadixSortStoreAlgorithm enumerates different algorithms to write
  * partitioned elements (keys, values) stored in shared memory into global
@@ -96,14 +92,15 @@ template <
     bool IS_DESCENDING,
     typename KeyT,
     typename ValueT,
-    typename OffsetT>
+    typename OffsetT,
+    typename PortionOffsetT>
 struct AgentRadixSortOnesweep
 {
     // constants
     enum
     {
         ITEMS_PER_THREAD = AgentRadixSortOnesweepPolicy::ITEMS_PER_THREAD,
-        KEYS_ONLY = Equals<ValueT, NullType>::VALUE,
+        KEYS_ONLY = std::is_same<ValueT, NullType>::value,
         BLOCK_THREADS = AgentRadixSortOnesweepPolicy::BLOCK_THREADS,
         RANK_NUM_PARTS = AgentRadixSortOnesweepPolicy::RANK_NUM_PARTS,
         TILE_ITEMS = BLOCK_THREADS * ITEMS_PER_THREAD,
@@ -114,14 +111,14 @@ struct AgentRadixSortOnesweep
         WARP_THREADS = CUB_PTX_WARP_THREADS,
         BLOCK_WARPS = BLOCK_THREADS / WARP_THREADS,
         WARP_MASK = ~0,
-        LOOKBACK_PARTIAL_MASK = 1 << (OffsetT(sizeof(OffsetT)) * 8 - 2),
-        LOOKBACK_GLOBAL_MASK = 1 << (OffsetT(sizeof(OffsetT)) * 8 - 1),
+        LOOKBACK_PARTIAL_MASK = 1 << (PortionOffsetT(sizeof(PortionOffsetT)) * 8 - 2),
+        LOOKBACK_GLOBAL_MASK = 1 << (PortionOffsetT(sizeof(PortionOffsetT)) * 8 - 1),
         LOOKBACK_KIND_MASK = LOOKBACK_PARTIAL_MASK | LOOKBACK_GLOBAL_MASK,
         LOOKBACK_VALUE_MASK = ~LOOKBACK_KIND_MASK,
     };
 
     typedef typename Traits<KeyT>::UnsignedBits UnsignedBits;
-    typedef OffsetT AtomicOffsetT;
+    typedef PortionOffsetT AtomicOffsetT;
   
     static const RadixRankAlgorithm RANK_ALGORITHM =
                                     AgentRadixSortOnesweepPolicy::RANK_ALGORITHM;
@@ -139,15 +136,23 @@ struct AgentRadixSortOnesweep
                   || RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ATOMIC_OR,
         "for onesweep agent, the ranking algorithm must warp-strided key arrangement");
 
-    typedef typename If<RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ATOMIC_OR,
-        BlockRadixRankMatchEarlyCounts<BLOCK_THREADS, RADIX_BITS, false, SCAN_ALGORITHM,
-                                       WARP_MATCH_ATOMIC_OR, RANK_NUM_PARTS>,
-        typename If<RANK_ALGORITHM == RADIX_RANK_MATCH,
-            BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, false, SCAN_ALGORITHM>,
-            BlockRadixRankMatchEarlyCounts<BLOCK_THREADS, RADIX_BITS, false, SCAN_ALGORITHM,
-                                           WARP_MATCH_ANY, RANK_NUM_PARTS>
-        >::Type
-    >::Type BlockRadixRankT;
+    using BlockRadixRankT = cub::detail::conditional_t<
+      RANK_ALGORITHM == RADIX_RANK_MATCH_EARLY_COUNTS_ATOMIC_OR,
+      BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
+                                     RADIX_BITS,
+                                     false,
+                                     SCAN_ALGORITHM,
+                                     WARP_MATCH_ATOMIC_OR,
+                                     RANK_NUM_PARTS>,
+      cub::detail::conditional_t<
+        RANK_ALGORITHM == RADIX_RANK_MATCH,
+        BlockRadixRankMatch<BLOCK_THREADS, RADIX_BITS, false, SCAN_ALGORITHM>,
+        BlockRadixRankMatchEarlyCounts<BLOCK_THREADS,
+                                       RADIX_BITS,
+                                       false,
+                                       SCAN_ALGORITHM,
+                                       WARP_MATCH_ANY,
+                                       RANK_NUM_PARTS>>>;
 
     // temporary storage
     struct TempStorage_
@@ -161,7 +166,7 @@ struct AgentRadixSortOnesweep
         union
         {
             OffsetT global_offsets[RADIX_DIGITS];
-            OffsetT block_idx;
+            PortionOffsetT block_idx;
         };
     };
 
@@ -179,13 +184,13 @@ struct AgentRadixSortOnesweep
     const UnsignedBits* d_keys_in;
     ValueT* d_values_out;
     const ValueT* d_values_in;
-    OffsetT num_items;
+    PortionOffsetT num_items;
     ShiftDigitExtractor<KeyT> digit_extractor;
 
     // other thread variables
     int warp;
     int lane;
-    OffsetT block_idx;
+    PortionOffsetT block_idx;
     bool full_block;
 
     // helper methods
@@ -209,7 +214,7 @@ struct AgentRadixSortOnesweep
             {
                 // write the local sum into the bin
                 AtomicOffsetT& loc = d_lookback[block_idx * RADIX_DIGITS + bin];
-                OffsetT value = bins[u] | LOOKBACK_PARTIAL_MASK;
+                PortionOffsetT value = bins[u] | LOOKBACK_PARTIAL_MASK;
                 ThreadStore<STORE_VOLATILE>(&loc, value);
             }
         }
@@ -218,7 +223,7 @@ struct AgentRadixSortOnesweep
     struct CountsCallback
     {
         typedef AgentRadixSortOnesweep<AgentRadixSortOnesweepPolicy, IS_DESCENDING, KeyT,
-                                       ValueT, OffsetT> AgentT;
+                                       ValueT, OffsetT, PortionOffsetT> AgentT;
         AgentT& agent;
         int (&bins)[BINS_PER_THREAD];
         UnsignedBits (&keys)[ITEMS_PER_THREAD];
@@ -247,13 +252,13 @@ struct AgentRadixSortOnesweep
             int bin = ThreadBin(u);
             if (FULL_BINS || bin < RADIX_DIGITS)
             {
-                OffsetT inc_sum = bins[u];
+                PortionOffsetT inc_sum = bins[u];
                 int want_mask = ~0;
                 // backtrack as long as necessary
-                for (OffsetT block_jdx = block_idx - 1; block_jdx >= 0; --block_jdx)
+                for (PortionOffsetT block_jdx = block_idx - 1; block_jdx >= 0; --block_jdx)
                 {
                     // wait for some value to appear
-                    OffsetT value_j = 0;
+                    PortionOffsetT value_j = 0;
                     AtomicOffsetT& loc_j = d_lookback[block_jdx * RADIX_DIGITS + bin];
                     do {
                         __threadfence_block(); // prevent hoisting loads from loop
@@ -265,7 +270,7 @@ struct AgentRadixSortOnesweep
                     if (value_j & LOOKBACK_GLOBAL_MASK) break;
                 }
                 AtomicOffsetT& loc_i = d_lookback[block_idx * RADIX_DIGITS + bin];
-                OffsetT value_i = inc_sum | LOOKBACK_GLOBAL_MASK;
+                PortionOffsetT value_i = inc_sum | LOOKBACK_GLOBAL_MASK;
                 ThreadStore<STORE_VOLATILE>(&loc_i, value_i);
                 s.global_offsets[bin] += inc_sum - bins[u];
             }
@@ -634,7 +639,7 @@ struct AgentRadixSortOnesweep
                            const KeyT *d_keys_in,
                            ValueT *d_values_out,
                            const ValueT *d_values_in,
-                           OffsetT num_items,
+                           PortionOffsetT num_items,
                            int current_bit,
                            int num_bits)
         : s(temp_storage.Alias())
@@ -662,5 +667,4 @@ struct AgentRadixSortOnesweep
     }
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

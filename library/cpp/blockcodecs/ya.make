@@ -22,6 +22,7 @@ SRCS(
 
 END()
 
-RECURSE(
+RECURSE_FOR_TESTS(
+    fuzz
     ut
 )

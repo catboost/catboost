@@ -26,6 +26,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <thrust/detail/config.h>
 
 #if THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 #include <thrust/system/cuda/config.h>
@@ -36,8 +37,7 @@
 #include <thrust/system/cuda/detail/core/agent_launcher.h>
 #include <thrust/system/cuda/detail/par_to_seq.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace cuda_cub {
 
@@ -174,5 +174,5 @@ parallel_for(execution_policy<Derived> &policy,
 
 }    // namespace cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 #endif

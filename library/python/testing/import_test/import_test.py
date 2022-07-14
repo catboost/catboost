@@ -4,10 +4,20 @@ import os
 import re
 import sys
 import time
+import signal
 import traceback
 
 import __res
 from __res import importer
+
+
+def setup_test_environment():
+    try:
+        from yatest_lib.ya import Ya
+        import yatest.common as yc
+        yc.runtime._set_ya_config(ya=Ya())
+    except ImportError:
+        pass
 
 
 def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
@@ -17,6 +27,7 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
     "PEERDIR(library/python/import_test)" to your CMakeLists.txt and
     "from import_test import test_imports" to your python test source file.
     """
+
     str_ = lambda s: s
     if not isinstance(b'', str):
         str_ = lambda s: s.decode('UTF-8')
@@ -98,7 +109,21 @@ test_imports = check_imports
 
 
 def main():
+    setup_test_environment()
+
     skip_names = sys.argv[1:]
+
+    try:
+        import faulthandler
+    except ImportError:
+        faulthandler = None
+
+    if faulthandler:
+        # Dump python backtrace in case of any errors
+        faulthandler.enable()
+        if hasattr(signal, "SIGUSR2"):
+            # SIGUSR2 is used by test_tool to teardown tests
+            faulthandler.register(signal.SIGUSR2, chain=True)
 
     os.environ['Y_PYTHON_IMPORT_TEST'] = ''
 

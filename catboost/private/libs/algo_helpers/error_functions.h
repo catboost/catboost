@@ -305,9 +305,44 @@ public:
                      der2->ApproxDimension == dim);
 
             der2->Data[0] = -weight;
-            der2->Data[1] = -weight;
+            der2->Data[1] = -2 * weight * Sqr(diff) * prec;
         }
     }
+};
+
+class TMultiQuantileError final : public IDerCalcer {
+public:
+    static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
+
+public:
+    const TVector<double> Alpha;
+    const double Delta;
+
+public:
+    explicit TMultiQuantileError(bool isExpApprox)
+        : IDerCalcer(isExpApprox)
+        , Alpha({0.5})
+        , Delta(1e-6)
+    {
+    }
+
+    TMultiQuantileError(const TVector<double>& alpha, double delta, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, /*errorType*/ PerObjectError, EHessianType::Diagonal)
+        , Alpha(alpha)
+        , Delta(delta)
+    {
+        Y_ASSERT(AllOf(Alpha, [] (double a) { return a > -1e-6 && a < 1.0 + 1e-6; }));
+        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
+    }
+
+    void CalcDersMulti(
+        const TVector<double>& approx,
+        float target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override;
+
 };
 
 class TCrossEntropyError final : public IDerCalcer {
@@ -1278,6 +1313,7 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1300,6 +1336,7 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1309,6 +1346,7 @@ private:
         TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
+        const TVector<double>& scores,
         TArrayRef<double> cumSumRef,
         TArrayRef<double> cumSumUpRef,
         TArrayRef<double> cumSumLowRef

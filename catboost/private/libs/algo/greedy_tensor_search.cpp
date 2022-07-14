@@ -111,6 +111,8 @@ static double CalcDerivativesStDevFromZero(
             return CalcDerivativesStDevFromZeroOrderedBoosting(fold, localExecutor);
         case EBoostingType::Plain:
             return CalcDerivativesStDevFromZeroPlainBoosting(fold, localExecutor);
+        default:
+            CB_ENSURE(false, "Unexpected boosting type");
     }
     Y_UNREACHABLE();
 }
@@ -709,7 +711,7 @@ static void CalcBestScore(
                 candidatesContext,
                 &candidate.Candidates);
 
-            AddFeaturePenaltiesToBestSplits(
+            PenalizeBestSplits(
                 xrange(ctx->SampledDocs.LeavesCount),
                 *ctx,
                 data,
@@ -813,7 +815,7 @@ static void CalcBestScoreLeafwise(
                 candidatesContext,
                 &candidate.Candidates);
 
-            AddFeaturePenaltiesToBestSplits(
+            PenalizeBestSplits(
                 leafs,
                 *ctx,
                 data,
@@ -884,40 +886,64 @@ static void CalcScores(
     }
 }
 
+static double GetCatFeatureWeight(
+    const TCandidateInfo& candidate,
+    const TLearnContext& ctx,
+    const TFold& fold,
+    size_t maxFeatureValueCount
+) {
+    const auto& splitEnsemble = candidate.SplitEnsemble;
+    if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
+        TProjection projection = splitEnsemble.SplitCandidate.Ctr.Projection;
+        ECtrType ctrType =
+            ctx.CtrsHelper.GetCtrInfo(projection)[splitEnsemble.SplitCandidate.Ctr.CtrIdx].Type;
+
+        if (!ctx.LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection))) {
+
+            const auto& uniqValuesCounts =
+                fold.GetCtrs(projection).GetUniqValuesCounts(projection);
+
+            return pow(
+                1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
+                        static_cast<double>(maxFeatureValueCount)),
+                -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
+        }
+    }
+    return 1.0;
+}
+
 static void SelectBestCandidate(
+    const TTrainingDataProviders& trainingData,
     const TLearnContext& ctx,
     TConstArrayRef<TCandidatesContext> candidatesContexts,
     size_t maxFeatureValueCount,
     const TFold& fold,
+    double scoreBeforeSplit,
     double* bestScore,
-    const TCandidateInfo** bestSplitCandidate) {
-
+    const TCandidateInfo** bestSplitCandidate
+) {
+    const TFeaturesLayout& layout = *ctx.Layout;
+    const auto oneHotMaxSize = ctx.Params.CatFeatureParams->OneHotMaxSize;
+    const auto& featurePenaltiesOptions = ctx.Params.ObliviousTreeOptions->FeaturePenalties.Get();
+    const NCatboostOptions::TPerFeaturePenalty& featureWeights = featurePenaltiesOptions.FeatureWeights;
+    double bestGain = -std::numeric_limits<double>::infinity();
     for (const auto& candidatesContext : candidatesContexts) {
         for (const auto& subList : candidatesContext.CandidateList) {
             for (const auto& candidate : subList.Candidates) {
                 double score = candidate.BestScore.GetInstance(ctx.LearnProgress->Rand);
+                score *= GetCatFeatureWeight(candidate, ctx, fold, maxFeatureValueCount);
 
-                const auto& splitEnsemble = candidate.SplitEnsemble;
-                if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
-                    TProjection projection = splitEnsemble.SplitCandidate.Ctr.Projection;
-                    ECtrType ctrType =
-                        ctx.CtrsHelper.GetCtrInfo(projection)[splitEnsemble.SplitCandidate.Ctr.CtrIdx].Type;
-
-                    if (!ctx.LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
-                        score != MINIMAL_SCORE) {
-
-                        const auto& uniqValuesCounts =
-                            fold.GetCtrs(projection).GetUniqValuesCounts(projection);
-
-                        score *= pow(
-                            1 + (uniqValuesCounts.GetUniqueValueCountForType(ctrType) /
-                                 static_cast<double>(maxFeatureValueCount)),
-                            -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
-                    }
-                }
-                if (score > *bestScore) {
+                double gain = score - scoreBeforeSplit;
+                const auto bestSplit = candidate.GetBestSplit(trainingData, fold, oneHotMaxSize);
+                gain *= GetSplitFeatureWeight(
+                    bestSplit,
+                    ctx.LearnProgress->EstimatedFeaturesContext,
+                    layout,
+                    featureWeights);
+                if (gain > bestGain) {
                     *bestScore = score;
                     *bestSplitCandidate = &candidate;
+                    bestGain = gain;
                 }
             }
         }
@@ -1139,6 +1165,7 @@ static TSplitTree GreedyTensorSearchOblivious(
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
     const ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
     const double scoreStDev = CalcScoreStDev(learnSampleCount, modelLength, *fold, ctx);
+    double scoreBeforeSplit = 0.0;
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TVector<TCandidatesContext> candidatesContexts
@@ -1159,12 +1186,13 @@ static TSplitTree GreedyTensorSearchOblivious(
 
         double bestScore = MINIMAL_SCORE;
         const TCandidateInfo* bestSplitCandidate = nullptr;
-        SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
+        SelectBestCandidate(data, *ctx, candidatesContexts, maxFeatureValueCount, *fold, scoreBeforeSplit, &bestScore, &bestSplitCandidate);
         fold->DropEmptyCTRs();
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
         Y_ASSERT(bestSplitCandidate != nullptr);
+        scoreBeforeSplit = bestScore;
 
         const TSplit bestSplit = bestSplitCandidate->GetBestSplit(
             data,
@@ -1274,18 +1302,26 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
             return;
         }
         auto candidatesContexts = SelectFeaturesForScoring(data, {}, fold, ctx);
-        CalcBestScoreLeafwise(data, {leaf}, /*statsForSubtractionTrick*/ TStatsForSubtractionTrick{}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContexts, fold, ctx);
+        CalcBestScoreLeafwise(
+            data,
+            {leaf},
+            TStatsForSubtractionTrick{},
+            ctx->LearnProgress->Rand.GenRand(),
+            scoreStDev,
+            &candidatesContexts,
+            fold,
+            ctx);
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContexts);
         CheckInterrupted(); // check after long-lasting operation
 
         double bestScore = MINIMAL_SCORE;
         const TCandidateInfo* bestSplitCandidate = nullptr;
-        SelectBestCandidate(*ctx, candidatesContexts, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
+        const double scoreBeforeSplit = CalcScoreWithoutSplit(leaf, *fold, *ctx);
+        SelectBestCandidate(data, *ctx, candidatesContexts, maxFeatureValueCount, *fold, scoreBeforeSplit, &bestScore, &bestSplitCandidate);
         fold->DropEmptyCTRs();
         if (bestSplitCandidate == nullptr) {
             return;
         }
-        const double scoreBeforeSplit = CalcScoreWithoutSplit(leaf, *fold, *ctx);
         const double gain = bestScore - scoreBeforeSplit;
         CATBOOST_DEBUG_LOG << "Best gain for leaf #" << leaf << " = " << gain << Endl;
         if (gain < 1e-9) {
@@ -1439,7 +1475,7 @@ inline static void CalcBestScoreAndCandidate (
     const TIndexType id,
     const TStatsForSubtractionTrick& statsForSubtractionTrick,
     double* gainLocal,
-    TArrayRef<const TCandidateInfo*> bestSplitCandidateLocal,
+    const TCandidateInfo** bestSplitCandidateLocal,
     TSplit* bestSplitLocal) {
 
     CalcBestScoreLeafwise(
@@ -1452,16 +1488,18 @@ inline static void CalcBestScoreAndCandidate (
         subTrickInfo.Fold,
         subTrickInfo.Ctx);
     double bestScoreLocal = MINIMAL_SCORE;
+    double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
     SelectBestCandidate(
+        *subTrickInfo.Data,
         *subTrickInfo.Ctx,
         *subTrickInfo.CandidatesContexts,
         subTrickInfo.MaxFeatureValueCount,
         *subTrickInfo.Fold,
+        scoreBeforeSplitLocal,
         &bestScoreLocal,
-        bestSplitCandidateLocal.data());
-    double scoreBeforeSplitLocal = CalcScoreWithoutSplit(id, *subTrickInfo.Fold, *subTrickInfo.Ctx);
-    if (bestSplitCandidateLocal.data() != nullptr) {
-        *bestSplitLocal = (*bestSplitCandidateLocal.data())->GetBestSplit(
+        bestSplitCandidateLocal);
+    if (*bestSplitCandidateLocal) {
+        *bestSplitLocal = (*bestSplitCandidateLocal)->GetBestSplit(
             *subTrickInfo.Data,
             *subTrickInfo.Fold,
             subTrickInfo.Ctx->Params.CatFeatureParams->OneHotMaxSize);
@@ -1488,7 +1526,7 @@ static TVector<TBucketStats> CalculateStats(
         emptyStats,
         subTrickInfo.MaxBucketCount,
         subTrickInfo.MaxSplitEnsembles);
-    CalcBestScoreAndCandidate(subTrickInfo, smallId, statsForSubtractionTrickSmall, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
+    CalcBestScoreAndCandidate(subTrickInfo, smallId, statsForSubtractionTrickSmall, gain, bestSplitCandidate, bestSplit);
 
     return smallStats;
 }
@@ -1511,7 +1549,7 @@ static TVector<TBucketStats> CalculateWithSubtractTrick(
         smallStats,
         subTrickInfo.MaxBucketCount,
         subTrickInfo.MaxSplitEnsembles);
-    CalcBestScoreAndCandidate(subTrickInfo, largeId, statsForSubtractionTrickLarge, gain, {bestSplitCandidate, (size_t)1}, bestSplit);
+    CalcBestScoreAndCandidate(subTrickInfo, largeId, statsForSubtractionTrickLarge, gain, bestSplitCandidate, bestSplit);
 
     return largeStats;
 }

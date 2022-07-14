@@ -7,6 +7,7 @@ SRCS(
     dir_helper.cpp
     eval_feature.cpp
     options_helper.cpp
+    trainer_env.cpp
     GLOBAL train_model.cpp
     GLOBAL model_import_snapshot.cpp
 )

@@ -38,11 +38,7 @@
 #include "../../util_type.cuh"
 #include "../../util_ptx.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief WarpScanShfl provides SHFL-based variants of parallel prefix scan of items partitioned across a CUDA thread warp.
@@ -102,18 +98,15 @@ struct WarpScanShfl
     //---------------------------------------------------------------------
 
     /// Constructor
-    __device__ __forceinline__ WarpScanShfl(
-        TempStorage &/*temp_storage*/)
+    explicit __device__ __forceinline__
+    WarpScanShfl(TempStorage & /*temp_storage*/)
+        : lane_id(LaneId())
+        , warp_id(IS_ARCH_WARP ? 0 : (lane_id / LOGICAL_WARP_THREADS))
+        , member_mask(WarpMask<LOGICAL_WARP_THREADS, PTX_ARCH>(warp_id))
     {
-        lane_id = LaneId();
-        warp_id = 0;
-        member_mask = 0xffffffffu >> (CUB_WARP_THREADS(PTX_ARCH) - LOGICAL_WARP_THREADS);
-
         if (!IS_ARCH_WARP)
         {
-            warp_id = lane_id / LOGICAL_WARP_THREADS;
             lane_id = lane_id % LOGICAL_WARP_THREADS;
-            member_mask = member_mask << (warp_id * LOGICAL_WARP_THREADS);
         }
     }
 
@@ -628,5 +621,4 @@ struct WarpScanShfl
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

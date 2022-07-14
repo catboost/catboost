@@ -38,14 +38,11 @@
 #include "../block/radix_rank_sort_operations.cuh"
 #include "../config.cuh"
 #include "../thread/thread_reduce.cuh"
+#include "../util_math.cuh"
 #include "../util_type.cuh"
 
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 template <
   int _BLOCK_THREADS,
@@ -101,12 +98,13 @@ struct AgentRadixSortHistogram
     };
 
     typedef RadixSortTwiddle<IS_DESCENDING, KeyT> Twiddle;
-    typedef OffsetT ShmemAtomicOffsetT;
+    typedef std::uint32_t ShmemCounterT;
+    typedef ShmemCounterT ShmemAtomicCounterT;
     typedef typename Traits<KeyT>::UnsignedBits UnsignedBits;
 
     struct _TempStorage
     {
-        ShmemAtomicOffsetT bins[MAX_NUM_PASSES][RADIX_DIGITS][NUM_PARTS];
+        ShmemAtomicCounterT bins[MAX_NUM_PASSES][RADIX_DIGITS][NUM_PARTS];
     };
 
     struct TempStorage : Uninitialized<_TempStorage> {};
@@ -137,8 +135,11 @@ struct AgentRadixSortHistogram
           d_keys_in(reinterpret_cast<const UnsignedBits*>(d_keys_in)),
           num_items(num_items), begin_bit(begin_bit), end_bit(end_bit),
           num_passes((end_bit - begin_bit + RADIX_BITS - 1) / RADIX_BITS)
+    {}
+
+    __device__ __forceinline__ void Init()
     {
-        // init bins
+        // Initialize bins to 0.
         #pragma unroll
         for (int bin = threadIdx.x; bin < RADIX_DIGITS; bin += BLOCK_THREADS)
         {
@@ -158,7 +159,8 @@ struct AgentRadixSortHistogram
     __device__ __forceinline__
     void LoadTileKeys(OffsetT tile_offset, UnsignedBits (&keys)[ITEMS_PER_THREAD])    
     {
-        bool full_tile = tile_offset + TILE_ITEMS <= num_items;
+        // tile_offset < num_items always, hence the line below works
+        bool full_tile = num_items - tile_offset >= TILE_ITEMS;
         if (full_tile)
         {
             LoadDirectStriped<BLOCK_THREADS>(
@@ -223,19 +225,34 @@ struct AgentRadixSortHistogram
 
     __device__ __forceinline__ void Process()
     {
-        for (OffsetT tile_offset = blockIdx.x * TILE_ITEMS; tile_offset < num_items;
-             tile_offset += TILE_ITEMS * gridDim.x)
+        // Within a portion, avoid overflowing (u)int32 counters.
+        // Between portions, accumulate results in global memory.
+        const OffsetT MAX_PORTION_SIZE = 1 << 30;
+        OffsetT num_portions = cub::DivideAndRoundUp(num_items, MAX_PORTION_SIZE);
+        for (OffsetT portion = 0; portion < num_portions; ++portion)
         {
-            UnsignedBits keys[ITEMS_PER_THREAD];
-            LoadTileKeys(tile_offset, keys);
-            AccumulateSharedHistograms(tile_offset, keys);
-        }
-        CTA_SYNC();
+            // Reset the counters.
+            Init();
+            CTA_SYNC();
 
-        // accumulate in global memory
-        AccumulateGlobalHistograms();
+            // Process the tiles.
+            OffsetT portion_offset = portion * MAX_PORTION_SIZE;
+            OffsetT portion_size = CUB_MIN(MAX_PORTION_SIZE, num_items - portion_offset);
+            for (OffsetT offset = blockIdx.x * TILE_ITEMS; offset < portion_size;
+                 offset += TILE_ITEMS * gridDim.x)
+            {
+                OffsetT tile_offset = portion_offset + offset;
+                UnsignedBits keys[ITEMS_PER_THREAD];
+                LoadTileKeys(tile_offset, keys);
+                AccumulateSharedHistograms(tile_offset, keys);
+            }
+            CTA_SYNC();
+            
+            // Accumulate the result in global memory.
+            AccumulateGlobalHistograms();
+            CTA_SYNC();
+        }
     }
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

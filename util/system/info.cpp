@@ -55,7 +55,7 @@ static inline size_t CgroupCpus() {
             return 0;
         }
 
-        return (q + p / 2) / p;
+        return Max<ssize_t>(1, (q + p / 2) / p);
     } catch (...) {
         return 0;
     }

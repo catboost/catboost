@@ -31,19 +31,24 @@
 #define HAVE_POW 1
 #define HAVE_NEXTAFTER 1
 #define HAVE_STRTOLL 1
-#define HAVE_STRTOULL 1
-#define HAVE_CBRT 1
 #if !defined(__CYGWIN__)
-#define HAVE_STRTOLD_L 1
+#define HAVE_STRTOULL 1
 #endif
+#define HAVE_CBRT 1
+#define HAVE_STRTOLD_L 1
 #define HAVE_FALLOCATE 1
+/* breake test_extension_incref_elide and test_extension_incref_elide_stack
+#define HAVE_BACKTRACE 1
+*/
+#define HAVE_MADVISE 1
 #if !defined(__aarch64__) && !defined(__powerpc__)
 #define HAVE_XMMINTRIN_H 1
 #define HAVE_EMMINTRIN_H 1
 #define HAVE_IMMINTRIN_H 1
 #endif
 #define HAVE_FEATURES_H 1
-/* #undef HAVE_XLOCALE_H */
+#define HAVE_DLFCN_H 1
+#define HAVE_SYS_MMAN_H 1
 #define HAVE___BUILTIN_ISNAN 1
 #define HAVE___BUILTIN_ISINF 1
 #define HAVE___BUILTIN_ISFINITE 1
@@ -51,16 +56,32 @@
 #define HAVE___BUILTIN_BSWAP64 1
 #define HAVE___BUILTIN_EXPECT 1
 #define HAVE___BUILTIN_MUL_OVERFLOW 1
+#if defined(_x86_64_)
 #define HAVE__M_FROM_INT64 1
 #define HAVE__MM_LOAD_PS 1
 #define HAVE__MM_PREFETCH 1
 #define HAVE__MM_LOAD_PD 1
+#endif
 #define HAVE___BUILTIN_PREFETCH 1
+#if defined(_x86_64_)
 #define HAVE_LINK_AVX 1
+#define HAVE_LINK_AVX2 1
+#define HAVE_LINK_AVX512F 1
+#define HAVE_LINK_AVX512_SKX 1
+#define HAVE_XGETBV 1
+#endif
 #define HAVE_ATTRIBUTE_OPTIMIZE_UNROLL_LOOPS 1
 #define HAVE_ATTRIBUTE_OPTIMIZE_OPT_3 1
 #define HAVE_ATTRIBUTE_NONNULL 1
+#if defined(_x86_64_)
 #define HAVE_ATTRIBUTE_TARGET_AVX 1
+#define HAVE_ATTRIBUTE_TARGET_AVX2 1
+#define HAVE_ATTRIBUTE_TARGET_AVX512F 1
+#define HAVE_ATTRIBUTE_TARGET_AVX512_SKX 1
+#define HAVE_ATTRIBUTE_TARGET_AVX2_WITH_INTRINSICS 1
+#define HAVE_ATTRIBUTE_TARGET_AVX512F_WITH_INTRINSICS 1
+#define HAVE_ATTRIBUTE_TARGET_AVX512_SKX_WITH_INTRINSICS 1
+#endif
 #define HAVE___THREAD 1
 #define HAVE_SINF 1
 #define HAVE_COSF 1
@@ -202,11 +223,16 @@
 #define HAVE_CTANHL 1
 #define NPY_RESTRICT restrict
 #define NPY_RELAXED_STRIDES_CHECKING 1
+#define NPY_RELAXED_STRIDES_DEBUG 0
+#if defined(_x86_64_)
 #define HAVE_LDOUBLE_INTEL_EXTENDED_16_BYTES_LE 1
+#elif defined(_arm64_)
+#define HAVE_LDOUBLE_IEEE_QUAD_LE 1
+#endif
 #ifndef __cplusplus
 /* #undef inline */
 #endif
 
-#ifndef _NPY_NPY_CONFIG_H_
+#ifndef NUMPY_CORE_SRC_COMMON_NPY_CONFIG_H_
 #error config.h should never be included directly, include npy_config.h instead
 #endif

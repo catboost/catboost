@@ -1,5 +1,6 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 import argparse
+import codecs
 import copy
 import json
 import os
@@ -17,7 +18,7 @@ import process_command_files as pcf
 import process_whole_archive_option as pwa
 
 arc_project_prefix = 'a.yandex-team.ru/'
-std_lib_prefix = 'contrib/go/_std/src/'
+std_lib_prefix = 'contrib/go/_std_1.18/src/'
 vendor_prefix = 'vendor/'
 vet_info_ext = '.vet.out'
 vet_report_ext = '.vet.txt'
@@ -211,7 +212,7 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
         content = '\n'.join(lines)
         # sys.stderr.writelines('{}\n'.format(l) for l in lines)
         with tempfile.NamedTemporaryFile(delete=False) as f:
-            f.write(content)
+            f.write(content.encode('UTF-8'))
             return f.name
     return None
 
@@ -230,7 +231,7 @@ def create_embed_config(args):
         data['Files'].update(files)
     # sys.stderr.write('{}\n'.format(json.dumps(data, indent=4)))
     with tempfile.NamedTemporaryFile(delete=False, suffix='.embedcfg') as f:
-        f.write(json.dumps(data))
+        f.write(json.dumps(data).encode('UTF-8'))
         return f.name
 
 
@@ -280,7 +281,7 @@ def gen_vet_info(args):
 
 def create_vet_config(args, info):
     with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
-        f.write(json.dumps(info))
+        f.write(json.dumps(info).encode('UTF-8'))
         return f.name
 
 
@@ -288,7 +289,7 @@ def decode_vet_report(json_report):
     report = ''
     if json_report:
         try:
-            full_diags = json.JSONDecoder(encoding='UTF-8').decode(json_report)
+            full_diags = json.JSONDecoder().decode(json_report.decode('UTF-8'))
         except ValueError:
             report = json_report
         else:
@@ -296,8 +297,8 @@ def decode_vet_report(json_report):
             for _, module_diags in six.iteritems(full_diags):
                 for _, type_diags in six.iteritems(module_diags):
                     for diag in type_diags:
-                        messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
-            report = '\n'.join(messages).encode('UTF-8')
+                        messages.append('{}: {}'.format(diag['posn'], json.dumps(diag['message'])))
+            report = '\n'.join(messages)
 
     return report
 
@@ -353,6 +354,8 @@ def _do_compile_go(args):
         '-goversion',
         'go{}'.format(args.goversion)
     ]
+    if args.lang:
+        cmd.append('-lang=go{}'.format(args.lang))
     cmd.extend(get_trimpath_args(args))
     compiling_runtime = False
     if is_std_module:
@@ -612,7 +615,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
-        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
+        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             tests = filter_out_skip_tests(tests, args.skip_tests)
     test_main_found = '#TestMain' in tests
@@ -623,7 +626,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
-        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
+        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             xtests = filter_out_skip_tests(xtests, args.skip_tests)
     xtest_main_found = '#TestMain' in xtests
@@ -657,8 +660,16 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
 
-    for kind in ['Test', 'Benchmark', 'Example']:
-        lines.append('var {}s = []testing.Internal{}{{'.format(kind.lower(), kind))
+    if compare_versions('1.18', args.goversion) < 0:
+        kinds = ['Test', 'Benchmark', 'Example']
+    else:
+        kinds = ['Test', 'Benchmark', 'FuzzTarget', 'Example']
+
+    var_names = []
+    for kind in kinds:
+        var_name = '{}s'.format(kind.lower())
+        var_names.append(var_name)
+        lines.append('var {} = []testing.Internal{}{{'.format(var_name, kind))
         for test in [x for x in tests if x.startswith(kind)]:
             lines.append('    {{"{test}", _test.{test}}},'.format(test=test))
         for test in [x for x in xtests if x.startswith(kind)]:
@@ -679,7 +690,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
             '    })',
         ])
     lines.extend([
-        '    m := testing.MainStart(testdeps.TestDeps{}, tests, benchmarks, examples)'
+        '    m := testing.MainStart(testdeps.TestDeps{{}}, {})'.format(', '.join(var_names)),
         '',
     ])
 
@@ -772,6 +783,11 @@ def do_link_test(args):
 
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    sys.stderr = codecs.getwriter('utf8')(sys.stderr)
+
     args = pcf.get_args(sys.argv[1:])
 
     parser = argparse.ArgumentParser(prefix_chars='+')
@@ -803,6 +819,7 @@ if __name__ == '__main__':
     parser.add_argument('++extld', nargs='?', default=None)
     parser.add_argument('++extldflags', nargs='+', default=None)
     parser.add_argument('++goversion', required=True)
+    parser.add_argument('++lang', nargs='?', default=None)
     parser.add_argument('++asm-flags', nargs='*')
     parser.add_argument('++compile-flags', nargs='*')
     parser.add_argument('++link-flags', nargs='*')

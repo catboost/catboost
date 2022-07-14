@@ -29,6 +29,17 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
+KEEP     COPYRIGHT_SERVICE_LABEL 08bbe4fd1b231eb966c974f99c49d52f
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2000, 2002 Todd C. Miller <millert@openbsd.org>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        include/readpassphrase/readpassphrase.h [4:4]
+
 KEEP     COPYRIGHT_SERVICE_LABEL 16ed76d63a9c46131af23245e9ca696b
 BELONGS ya.make
     License text:
@@ -136,6 +147,18 @@ BELONGS ya.make
         Match type      : COPYRIGHT
     Files with this license:
         memrchr.c [4:4]
+
+KEEP     COPYRIGHT_SERVICE_LABEL df3d3ca746fea6578433a08d4abde6f4
+BELONGS ya.make
+    License text:
+         * Copyright (c) 2000-2002, 2007, 2010
+         *    Todd C. Miller <millert@openbsd.org>
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        readpassphrase.c [4:5]
 
 KEEP     COPYRIGHT_SERVICE_LABEL f528f9ebef217bea871ce3500196c784
 BELONGS ya.make

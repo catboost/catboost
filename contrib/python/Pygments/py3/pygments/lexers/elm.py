@@ -4,24 +4,26 @@
 
     Lexer for the Elm programming language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
-from pygments.lexer import RegexLexer, words, include
-from pygments.token import Comment, Keyword, Name, Number, Punctuation, String, Text
+from pygments.lexer import RegexLexer, words, include, bygroups
+from pygments.token import Comment, Keyword, Name, Number, Punctuation, String, \
+    Text, Whitespace
 
 __all__ = ['ElmLexer']
 
 
 class ElmLexer(RegexLexer):
     """
-    For `Elm <http://elm-lang.org/>`_ source code.
+    For Elm source code.
 
     .. versionadded:: 2.1
     """
 
     name = 'Elm'
+    url = 'http://elm-lang.org/'
     aliases = ['elm']
     filenames = ['*.elm']
     mimetypes = ['text/x-elm']
@@ -49,16 +51,18 @@ class ElmLexer(RegexLexer):
             (r'--.*', Comment.Single),
 
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # Strings
             (r'"', String, 'doublequote'),
 
             # Modules
-            (r'^\s*module\s*', Keyword.Namespace, 'imports'),
+            (r'^(\s*)(module)(\s*)', bygroups(Whitespace, Keyword.Namespace,
+                Whitespace), 'imports'),
 
             # Imports
-            (r'^\s*import\s*', Keyword.Namespace, 'imports'),
+            (r'^(\s*)(import)(\s*)', bygroups(Whitespace, Keyword.Namespace,
+                Whitespace), 'imports'),
 
             # Shaders
             (r'\[glsl\|.*', Name.Entity, 'shader'),
@@ -115,6 +119,6 @@ class ElmLexer(RegexLexer):
         'shader': [
             (r'\|(?!\])', Name.Entity),
             (r'\|\]', Name.Entity, '#pop'),
-            (r'.*\n', Name.Entity),
+            (r'(.*)(\n)', bygroups(Name.Entity, Whitespace)),
         ],
     }

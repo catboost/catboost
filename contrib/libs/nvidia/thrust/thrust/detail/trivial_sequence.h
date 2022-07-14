@@ -23,14 +23,15 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/detail/execution_policy.h>
 #include <thrust/detail/temporary_array.h>
 #include <thrust/type_traits/is_contiguous_iterator.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -91,5 +92,5 @@ struct trivial_sequence
 
 } // end namespace detail
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -16,8 +16,9 @@
 
 #pragma once
 
-namespace thrust
-{
+#include <thrust/detail/config.h>
+
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -43,5 +44,5 @@ template<typename T, int w>
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

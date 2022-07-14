@@ -157,7 +157,7 @@ namespace NCB {
 
         auto& columnsDescription = DataMetaInfo.ColumnsInfo->Columns;
 
-        auto parseBlock = [&](TString& line, int lineIdx) {
+        auto parseLine = [&](TString& line, int lineIdx) {
             const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
 
             ui32 featureId = 0;
@@ -192,6 +192,23 @@ namespace NCB {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
                                     catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(lineIdx, featureId, token);
+                                }
+                                ++featureId;
+                                break;
+                            }
+                            case EColumn::HashedCateg: {
+                                if (!FeatureIgnored[featureId]) {
+                                    if (!TryFromString<ui32>(
+                                            token,
+                                            catFeatures[featuresLayout.GetInternalFeatureIdx(featureId)]
+                                        ))
+                                    {
+                                        CB_ENSURE(
+                                            false,
+                                            "Factor " << featureId << "=" << token << " cannot be parsed as hashed categorical value."
+                                            " Try correcting column description file."
+                                        );
+                                    }
                                 }
                                 ++featureId;
                                 break;
@@ -318,7 +335,7 @@ namespace NCB {
             }
         };
 
-        AsyncRowProcessor.ProcessBlock(parseBlock);
+        AsyncRowProcessor.ProcessBlock(parseLine);
 
         if (BaselineReader.Inited()) {
             auto parseBaselineBlock = [&](TString &line, int inBlockIdx) {

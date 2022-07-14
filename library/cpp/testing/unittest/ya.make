@@ -26,5 +26,6 @@ END()
 
 RECURSE_FOR_TESTS(
     fat
+    pytests
     ut
 )

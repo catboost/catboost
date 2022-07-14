@@ -14,18 +14,15 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_ptr.inl
- *  \brief Inline file for device_ptr.h.
- */
+#pragma once
 
 #include <thrust/device_ptr.h>
 #include <thrust/device_reference.h>
+#include <thrust/detail/config.h>
 #include <thrust/detail/type_traits.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template<typename T>
   __host__ __device__
@@ -63,5 +60,5 @@ template<typename T>
 
 
 } // end namespace detail
-} // end namespace thrust
 
+THRUST_NAMESPACE_END

@@ -65,6 +65,7 @@ inline void YaDebugBreak() {
                         __debugbreak();                         \
                     else {                                      \
                         PrintBackTrace();                       \
+                        /* NOLINTNEXTLINE */                    \
                         assert(false && (a));                   \
                     }                                           \
                 }                                               \
@@ -73,6 +74,7 @@ inline void YaDebugBreak() {
                     __debugbreak();                             \
                 else {                                          \
                     PrintBackTrace();                           \
+                    /* NOLINTNEXTLINE */                        \
                     assert(false && "Exception during assert"); \
                 }                                               \
             }                                                   \

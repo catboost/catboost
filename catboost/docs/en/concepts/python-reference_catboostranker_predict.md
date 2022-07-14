@@ -1,0 +1,1 @@
+{% include [python-reference_catboost_predict](python-reference_catboost_predict.md) %}

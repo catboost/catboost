@@ -36,7 +36,7 @@
 #undef SIZEOF_SIZE_T
 #endif
 
-#include <Rinternals.h>
+#include "catboostr.h"
 
 
 using namespace NCB;
@@ -57,12 +57,6 @@ using namespace NCB;
         error(e.what());                                            \
     }                                                               \
     RestoreOriginalLogger();                                        \
-
-#if defined(_WIN32)
-#define EXPORT_FUNCTION __declspec(dllexport) SEXP
-#else
-#define EXPORT_FUNCTION SEXP
-#endif
 
 typedef TDataProvider* TPoolHandle;
 typedef TDataProviderPtr TPoolPtr;
@@ -101,7 +95,7 @@ static TVector<T> GetVectorFromSEXP(SEXP arg) {
                 result[i] = static_cast<T>(LOGICAL(arg)[i]);
                 break;
             default:
-                Y_ENSURE(false, "unsupported vector type: int, real or logical is required");
+                CB_ENSURE(false, "unsupported vector type: int, real or logical is required");
         }
     }
     return result;

@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: setuptools
-Version: 58.2.0
+Version: 59.7.0
 Summary: Easily download, build, install, upgrade, and uninstall Python packages
 Home-page: https://github.com/pypa/setuptools
 Author: Python Packaging Authority
 Author-email: distutils-sig@python.org
 License: UNKNOWN
-Project-URL: Documentation, https://setuptools.readthedocs.io/
+Project-URL: Documentation, https://setuptools.pypa.io/
 Keywords: CPAN PyPI distutils eggs package management
 Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
@@ -18,7 +18,7 @@ Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Classifier: Topic :: System :: Archiving :: Packaging
 Classifier: Topic :: System :: Systems Administration
 Classifier: Topic :: Utilities
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 License-File: LICENSE
 Provides-Extra: certs
 Provides-Extra: docs
@@ -32,7 +32,7 @@ Requires-Dist: sphinxcontrib-towncrier ; extra == 'docs'
 Requires-Dist: furo ; extra == 'docs'
 Provides-Extra: ssl
 Provides-Extra: testing
-Requires-Dist: pytest (>=4.6) ; extra == 'testing'
+Requires-Dist: pytest (>=6) ; extra == 'testing'
 Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
 Requires-Dist: pytest-flake8 ; extra == 'testing'
 Requires-Dist: pytest-cov ; extra == 'testing'
@@ -44,12 +44,17 @@ Requires-Dist: pytest-virtualenv (>=1.2.7) ; extra == 'testing'
 Requires-Dist: wheel ; extra == 'testing'
 Requires-Dist: paver ; extra == 'testing'
 Requires-Dist: pip (>=19.1) ; extra == 'testing'
-Requires-Dist: jaraco.envs ; extra == 'testing'
+Requires-Dist: jaraco.envs (>=2.2) ; extra == 'testing'
 Requires-Dist: pytest-xdist ; extra == 'testing'
 Requires-Dist: sphinx ; extra == 'testing'
 Requires-Dist: jaraco.path (>=3.2.0) ; extra == 'testing'
 Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
 Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy") and extra == 'testing'
+
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
+   :align: center
+
+|
 
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
@@ -68,7 +73,7 @@ Requires-Dist: pytest-mypy ; (platform_python_implementation != "PyPy") and extr
    :alt: Code style: Black
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.readthedocs.io
+    :target: https://setuptools.pypa.io
 
 .. image:: https://img.shields.io/badge/skeleton-2021-informational
    :target: https://blog.jaraco.com/skeleton

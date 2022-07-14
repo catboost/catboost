@@ -150,7 +150,6 @@ class YaCtx(object):
 ya_ctx = YaCtx()
 
 TRACE_FILE_NAME = "ytest.report.trace"
-TESTING_OUT_DIR_NAME = "testing_out_stuff"
 
 
 def lazy(func):

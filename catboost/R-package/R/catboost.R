@@ -3,7 +3,7 @@
 #' @importFrom utils tail
 #' @importFrom utils write.table
 #' @importFrom utils download.file
-#' @useDynLib libcatboostr
+#' @useDynLib libcatboostr, .registration = TRUE
 NULL
 
 
@@ -584,6 +584,7 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
+#'         \item 'F'
 #'         \item 'BalancedAccuracy'
 #'         \item 'BalancedErrorRate'
 #'         \item 'MCC'
@@ -655,6 +656,7 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
+#'         \item 'F'
 #'         \item 'BalancedAccuracy'
 #'         \item 'BalancedErrorRate'
 #'         \item 'MCC'

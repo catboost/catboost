@@ -4,6 +4,8 @@ PY23_LIBRARY()
 
 
 
+NO_EXTENDED_SOURCE_SEARCH()
+
 PY_SRCS(
     TOP_LEVEL
     yatest/__init__.py
@@ -23,10 +25,12 @@ PY_SRCS(
 )
 
 PEERDIR(
+    contrib/python/packaging
     contrib/python/six
     library/python/cores
     library/python/filelock
     library/python/fs
+    library/python/testing/yatest_lib
 )
 
 IF (NOT CATBOOST_OPENSOURCE)

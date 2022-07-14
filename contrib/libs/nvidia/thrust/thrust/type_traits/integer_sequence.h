@@ -1,14 +1,23 @@
-///////////////////////////////////////////////////////////////////////////////
-//  Copyright (c)      2018 NVIDIA Corporation
-//  Copyright (c) 2015-2018 Bryce Adelstein Lelbach aka wash
-//
-//  Distributed under the Boost Software License, Version 1.0. (See accompanying
-//  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-///////////////////////////////////////////////////////////////////////////////
+/*
+ *  Copyright 2008-2021 NVIDIA Corporation
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
-/*! \file integer_sequence.h
- *  \brief C++14's \c integer_sequence and associated helper aliases plus some
- *         extensions.
+/*! \file
+ *  \brief C++14's
+ *  <a href="https://en.cppreference.com/w/cpp/utility/integer_sequence"><tt>std::index_sequence</tt></a>,
+ *  associated helper aliases, and some related extensions.
  */
 
 #pragma once
@@ -23,76 +32,34 @@
 #include <cstdint>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
+/*! \addtogroup utility
+ *  \{
+ */
+
+/*! \addtogroup type_traits Type Traits
+ *  \{
+ */
+
+/*! \brief A compile-time sequence of
+ *  <a href="https://en.cppreference.com/w/cpp/language/constant_expression#Integral_constant_expression"><i>integral constants</i></a>
+ *  of type \c T with values <tt>Is...</tt>.
+ *
+ *  \see <a href="https://en.cppreference.com/w/cpp/language/constant_expression#Integral_constant_expression"><i>integral constants</i></a>
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ *  \see integer_sequence_push_front
+ *  \see integer_sequence_push_back
+ *  \see <a href="https://en.cppreference.com/w/cpp/utility/integer_sequence"><tt>std::integer_sequence</tt></a>
+ */
 #if THRUST_CPP_DIALECT >= 2014
-
-// A compile-time sequence of integral constants of type T.
 template <typename T, T... Is>
 using integer_sequence = std::integer_sequence<T, Is...>;
-
-// A compile-time sequence of std::size_t constants.
-template <std::size_t... Is>
-using index_sequence = std::index_sequence<Is...>;
-
-// Create a new integer_sequence with elements 0, 1, 2, ..., N - 1.
-template <typename T, std::size_t N>
-using make_integer_sequence = std::make_integer_sequence<T, N>;
-
-// Create a new index_sequence with elements 0, 1, 2, ..., N - 1.
-template <std::size_t N>
-using make_index_sequence = std::make_index_sequence<N>;
-
-///////////////////////////////////////////////////////////////////////////////
-
-#else // Older than C++14.
-
-// A compile-time sequence of integral constants of type T.
-template <typename T, T... Is>
-struct integer_sequence;
-
-// A compile-time sequence of std::size_t constants.
-template <std::size_t... Is>
-using index_sequence = integer_sequence<std::size_t, Is...>;
-
-///////////////////////////////////////////////////////////////////////////////
-
-namespace detail
-{
-
-// Create a new integer_sequence containing the elements of Sequence0 followed
-// by the elements of Sequence1. Sequence0::size() is added to each element from
-// Sequence1 in the new sequence.
-template <typename Sequence0, typename Sequence1>
-  struct merge_and_renumber_integer_sequences_impl;
-template <typename Sequence0, typename Sequence1>
-  using merge_and_renumber_integer_sequences =
-      typename merge_and_renumber_integer_sequences_impl<
-          Sequence0, Sequence1
-      >::type;
-
-// Create a new integer_sequence with elements 0, 1, 2, ..., N - 1.
-template <typename T, std::size_t N>
-  struct make_integer_sequence_impl;
-
-
-} // namespace detail
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Create a new integer_sequence with elements 0, 1, 2, ..., N - 1.
-template <typename T, std::size_t N>
-using make_integer_sequence =
-  typename detail::make_integer_sequence_impl<T, N>::type;
-
-// Create a new index_sequence with elements 0, 1, 2, ..., N - 1.
-template <std::size_t N>
-using make_index_sequence =
-  make_integer_sequence<std::size_t, N>;
-
-///////////////////////////////////////////////////////////////////////////////
-
+#else
 template <typename T, T... Is>
 struct integer_sequence
 {
@@ -106,7 +73,86 @@ struct integer_sequence
     return sizeof...(Is);
   }
 };
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
+
+/*! \brief A compile-time sequence of type
+ *  <a href="https://en.cppreference.com/w/cpp/types/size_t">std::size_t</a>
+ *  with values <tt>Is...</tt>.
+ *
+ *  \see integer_sequence
+ *  \see make_integer_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ *  \see integer_sequence_push_front
+ *  \see integer_sequence_push_back
+ *  \see <a href="https://en.cppreference.com/w/cpp/utility/integer_sequence"><tt>std::index_sequence</tt></a>
+ */
+#if THRUST_CPP_DIALECT >= 2014
+template <std::size_t... Is>
+using index_sequence = std::index_sequence<Is...>;
+#else
+template <std::size_t... Is>
+using index_sequence = integer_sequence<std::size_t, Is...>;
+#endif
+
+#if THRUST_CPP_DIALECT < 2014
+/*! \cond
+ */
+
+namespace detail
+{
+
+/*! \brief Create a new \c integer_sequence containing the elements of \c
+ * Sequence0 followed by the elements of \c Sequence1. \c Sequence0::size() is
+ * added to each element from \c Sequence1 in the new sequence.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ *  \see merge_and_renumber_reversed_integer_sequences_impl
+ */
+template <typename Sequence0, typename Sequence1>
+  struct merge_and_renumber_integer_sequences_impl;
+template <typename Sequence0, typename Sequence1>
+  using merge_and_renumber_integer_sequences =
+      typename merge_and_renumber_integer_sequences_impl<
+          Sequence0, Sequence1
+      >::type;
+
+template <typename T, std::size_t N>
+  struct make_integer_sequence_impl;
+
+} // namespace detail
+
+/*! \endcond
+ */
+#endif
+
+/*! \brief Create a new \c integer_sequence with elements
+ *  <tt>0, 1, 2, ..., N - 1</tt> of type \c T.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ *  \see <a href="https://en.cppreference.com/w/cpp/utility/integer_sequence"><tt>std::make_integer_sequence</tt></a>
+ */
+#if THRUST_CPP_DIALECT >= 2014
+template <typename T, std::size_t N>
+using make_integer_sequence = std::make_integer_sequence<T, N>;
+#else
+template <typename T, std::size_t N>
+using make_integer_sequence =
+  typename detail::make_integer_sequence_impl<T, N>::type;
+
+/*! \cond
+ */
 
 namespace detail
 {
@@ -118,8 +164,6 @@ struct merge_and_renumber_integer_sequences_impl<
 {
   using type = integer_sequence<T, Is0..., (sizeof...(Is0) + Is1)...>;
 };
-
-///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, std::size_t N>
 struct make_integer_sequence_impl
@@ -144,16 +188,53 @@ struct make_integer_sequence_impl<T, 1>
 
 } // namespace detail
 
-#endif // THRUST_CPP_DIALECT >= 2014
+/*! \endcond
+ */
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
+
+/*! \brief Create a new \c integer_sequence with elements
+ *  <tt>0, 1, 2, ..., N - 1</tt> of type
+ *  <a href="https://en.cppreference.com/w/cpp/types/size_t">std::size_t</a>.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_reversed_index_sequence
+ *  \see <a href="https://en.cppreference.com/w/cpp/utility/integer_sequence"><tt>std::make_index_sequence</tt></a>
+ */
+#if THRUST_CPP_DIALECT >= 2014
+template <std::size_t N>
+using make_index_sequence = std::make_index_sequence<N>;
+#else
+template <std::size_t N>
+using make_index_sequence =
+  make_integer_sequence<std::size_t, N>;
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*! \cond
+ */
 
 namespace detail
 {
 
-// Create a new integer_sequence containing the elements of Sequence0 followed
-// by the elements of Sequence1. Sequence1::size() is added to each element from
-// Sequence0 in the new sequence.
+/*! \brief Create a new \c integer_sequence containing the elements of \c
+ *  Sequence0 followed by the elements of \c Sequence1. \c Sequence1::size() is
+ *  added to each element from \c Sequence0 in the new sequence.
+ *
+ *  \see make_reversed_integer_sequence
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ *  \see merge_and_renumber_integer_sequences_impl
+ */
 template <typename Sequence0, typename Sequence1>
   struct merge_and_renumber_reversed_integer_sequences_impl;
 template <typename Sequence0, typename Sequence1>
@@ -162,46 +243,14 @@ template <typename Sequence0, typename Sequence1>
           Sequence0, Sequence1
       >::type;
 
-// Create a new integer_sequence with elements N - 1, N - 2, N - 3, ..., 0.
 template <typename T, std::size_t N>
 struct make_reversed_integer_sequence_impl;
 
-// Add a new element to the front of an integer_sequence<>.
 template <typename T, T Value, typename Sequence>
 struct integer_sequence_push_front_impl;
 
-// Add a new element to the back of an integer_sequence<>.
 template <typename T, T Value, typename Sequence>
 struct integer_sequence_push_back_impl;
-
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Create a new integer_sequence with elements N - 1, N - 2, N - 3, ..., 0.
-template <typename T, std::size_t N>
-using make_reversed_integer_sequence =
-  typename detail::make_reversed_integer_sequence_impl<T, N>::type;
-
-// Create a new index_sequence with elements N - 1, N - 2, N - 3, ..., 0.
-template <std::size_t N>
-using make_reversed_index_sequence =
-  make_reversed_integer_sequence<std::size_t, N>;
-
-// Add a new element to the front of an integer_sequence<>.
-template <typename T, T Value, typename Sequence>
-using integer_sequence_push_front =
-  typename detail::integer_sequence_push_front_impl<T, Value, Sequence>::type;
-
-// Add a new element to the back of an integer_sequence<>.
-template <typename T, T Value, typename Sequence>
-using integer_sequence_push_back =
-  typename detail::integer_sequence_push_back_impl<T, Value, Sequence>::type;
-
-///////////////////////////////////////////////////////////////////////////////
-
-namespace detail
-{
 
 template <typename T, T... Is0, T... Is1>
 struct merge_and_renumber_reversed_integer_sequences_impl<
@@ -211,7 +260,68 @@ struct merge_and_renumber_reversed_integer_sequences_impl<
   using type = integer_sequence<T, (sizeof...(Is1) + Is0)..., Is1...>;
 };
 
+} // namespace detail
+
+/*! \endcond
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
+
+/*! \brief Create a new \c integer_sequence with elements
+ *  <tt>N - 1, N - 2, N - 3, ..., 0</tt>.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_index_sequence
+ *  \see make_reversed_index_sequence
+ */
+template <typename T, std::size_t N>
+using make_reversed_integer_sequence =
+  typename detail::make_reversed_integer_sequence_impl<T, N>::type;
+
+/*! \brief Create a new \c index_sequence with elements
+ *  <tt>N - 1, N - 2, N - 3, ..., 0</tt>.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_reversed_integer_sequence
+ *  \see make_reversed_index_sequence
+ */
+template <std::size_t N>
+using make_reversed_index_sequence =
+  make_reversed_integer_sequence<std::size_t, N>;
+
+/*! \brief Add a new element to the front of an \c integer_sequence.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_index_sequence
+ */
+template <typename T, T Value, typename Sequence>
+using integer_sequence_push_front =
+  typename detail::integer_sequence_push_front_impl<T, Value, Sequence>::type;
+
+/*! \brief Add a new element to the back of an \c integer_sequence.
+ *
+ *  \see integer_sequence
+ *  \see index_sequence
+ *  \see make_integer_sequence
+ *  \see make_index_sequence
+ */
+template <typename T, T Value, typename Sequence>
+using integer_sequence_push_back =
+  typename detail::integer_sequence_push_back_impl<T, Value, Sequence>::type;
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*! \cond
+ */
+
+namespace detail
+{
 
 template <typename T, std::size_t N>
 struct make_reversed_integer_sequence_impl
@@ -238,7 +348,7 @@ struct make_reversed_integer_sequence_impl<T, 1>
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, T I0, T... Is> 
+template <typename T, T I0, T... Is>
 struct integer_sequence_push_front_impl<T, I0, integer_sequence<T, Is...> >
 {
   using type = integer_sequence<T, I0, Is...>;
@@ -246,7 +356,7 @@ struct integer_sequence_push_front_impl<T, I0, integer_sequence<T, Is...> >
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, T I0, T... Is> 
+template <typename T, T I0, T... Is>
 struct integer_sequence_push_back_impl<T, I0, integer_sequence<T, Is...> >
 {
   using type = integer_sequence<T, Is..., I0>;
@@ -256,7 +366,16 @@ struct integer_sequence_push_back_impl<T, I0, integer_sequence<T, Is...> >
 
 } // namespace detail
 
-} // end namespace thrust
+/*! \endcond
+ */
+
+/*! \} // type traits
+ */
+
+/*! \} // utility
+ */
+
+THRUST_NAMESPACE_END
 
 #endif // THRUST_CPP_DIALECT >= 2011
 

@@ -26,7 +26,6 @@ PEERDIR(
 SRCS(
     system/align_ut.cpp
     system/atexit_ut.cpp
-    system/atomic_ut.cpp
     system/backtrace_ut.cpp
     system/byteorder_ut.cpp
     system/compat_ut.cpp
@@ -78,9 +77,14 @@ SRCS(
 )
 
 IF (OS_WINDOWS)
+    SRCS(
+        system/fs_win_ut.cpp
+    )
     DEPENDS(
         util/system/ut/stdin_osfhandle
     )
 ENDIF()
+
+REQUIREMENTS(ram:12)
 
 END()

@@ -52,13 +52,19 @@ namespace NCudaLib {
             TabSize = *nestedness;
         }
 
-        ~TLabeledInterval() {
-            Y_VERIFY(!Active, "Exit application before stopping LabelInterval");
+        ~TLabeledInterval() noexcept(false) {
+            if (Active) {
+                CATBOOST_WARNING_LOG << "Profiled code terminates before profiling has been finished. "
+                    << "Profile data may be inconsistent" << Endl;
+                if (!std::uncaught_exceptions()) {
+                    CB_ENSURE(!Active);
+                }
+            }
         }
 
         void Add(const TLabeledInterval& other) {
             CB_ENSURE(other.Label == Label);
-            CB_ENSURE(!other.Active, "Can't add running label interval. Inconsistent cuda-mangers state");
+            CB_ENSURE(!other.Active, "Can't add running label interval. Inconsistent cuda-manager's state");
             Max = std::max(Max, other.Max);
             Sum += other.Sum;
             Sum2 += other.Sum2;

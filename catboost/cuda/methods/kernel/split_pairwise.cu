@@ -267,8 +267,8 @@ namespace NKernel {
                          ui32 depth,
                          ui32* bins,
                          TCudaStream stream) {
-        const int blockSize = 256;
-        const int numBlocks = min((pairCount + blockSize - 1) / blockSize,
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = min((pairCount + blockSize - 1) / blockSize,
                                   TArchProps::MaxBlockCount());
         UpdateBinsPairs<<<numBlocks, blockSize, 0, stream>>>(feature, bin, compressedIndex, pairs, pairCount, depth, bins);
     }
@@ -362,7 +362,7 @@ namespace NKernel {
     ) {
 
         if (pairCount > 0) {
-            const int blockSize = 256;
+            const ui32 blockSize = 256;
             const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
             ZeroSameLeafBinWeightsImpl<<<numBlocks, blockSize, 0, stream>>>(pairs, bins, pairCount, pairWeights);
         }
@@ -410,15 +410,15 @@ namespace NKernel {
                                          ui32 pairCount,
                                          float* pairDer2) {
 
-        const int tid = threadIdx.x;
-        const int i = blockIdx.x * blockDim.x + tid;
+        const ui32 tid = threadIdx.x;
+        const ui32 i = blockIdx.x * blockDim.x + tid;
 
         if (i < pairCount) {
             uint2 pair = Ldg(pairs + i);
 
             const float der2x = Ldg(ders2 + pair.x);
             const float der2y = Ldg(ders2 + pair.y);
-            const int qid = Ldg(qids + pair.x);
+            const ui32 qid = Ldg(qids + pair.x);
             const float groupDer2 = Ldg(groupDers2 + qid);
 
             pairDer2[i] = groupDer2 > 1e-20f ? der2x * der2y / (groupDer2 + 1e-20f) : 0;
@@ -437,8 +437,8 @@ namespace NKernel {
                           float* pairDer2,
                           TCudaStream stream
     ) {
-        const int blockSize = 256;
-        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             FillPairDer2OnlyImpl<<< numBlocks, blockSize, 0, stream >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
         }

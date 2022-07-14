@@ -3,10 +3,10 @@ from __future__ import print_function
 import os
 import time
 
-from catboost import CatBoostError
-from catboost.eval.log_config import get_eval_logger
-from catboost.eval.utils import make_dirs_if_not_exists
-from catboost.eval.evaluation_result import CaseEvaluationResult
+from .. import CatBoostError
+from ..eval.log_config import get_eval_logger
+from ..eval.utils import make_dirs_if_not_exists
+from ..eval.evaluation_result import CaseEvaluationResult
 from ._fold_model import FoldModel
 
 
@@ -91,7 +91,7 @@ class FoldModelsHandler(object):
 
     @staticmethod
     def _fit_model(pool, case, fold_id, model_path):
-        from catboost import CatBoost
+        from .. import CatBoost
         # Learn model
         make_dirs_if_not_exists(FoldModelsHandler.__MODEL_DIR)
 
@@ -210,7 +210,7 @@ class FoldModelsHandler(object):
 
     @staticmethod
     def _create_pool(fold_file, thread_count=-1):
-        from catboost import Pool
+        from .. import Pool
         data_pool = Pool(fold_file.path(),
                          column_description=fold_file.column_description(),
                          delimiter=fold_file.get_separator(),

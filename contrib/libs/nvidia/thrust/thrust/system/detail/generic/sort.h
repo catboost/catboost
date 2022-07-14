@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/system/detail/generic/tag.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -148,7 +147,7 @@ __host__ __device__
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/sort.inl>
 

@@ -34,9 +34,7 @@ PEERDIR(
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
-    contrib/python/scipy/scipy/integrate
-    contrib/python/scipy/scipy/sparse
-    contrib/python/scipy/scipy/special
+    contrib/python/scipy
 )
 
 IF(PYTHON2)
@@ -45,7 +43,7 @@ IF(PYTHON2)
     )
 ENDIF()
 
-IF(NOT CATBOOST_OPENSOURCE)
+IF(NOT OPENSOURCE)
     PEERDIR(
         catboost//private/libs/for_python_package
         contrib/python/matplotlib
@@ -103,6 +101,13 @@ IF(NOT OS_ANDROID OR PYTHON2)
         eval/log_config.py
         eval/utils.py
     )
+    IF(NOT PYTHON2)
+        PY_SRCS(
+            NAMESPACE catboost
+            widget/metrics_plotter.py
+            widget/callbacks.py
+        )
+    ENDIF()
 ENDIF()
 
 END()

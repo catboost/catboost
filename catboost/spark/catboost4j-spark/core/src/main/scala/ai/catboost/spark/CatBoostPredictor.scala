@@ -4,6 +4,7 @@ package ai.catboost.spark
 
 import collection.mutable
 import collection.mutable.HashMap
+import util.control.Breaks._
 
 import java.net._
 import java.nio.file._
@@ -23,6 +24,14 @@ import org.apache.spark.storage.StorageLevel
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
 import ai.catboost.spark.impl.{CtrsContext,CtrFeatures}
+import ai.catboost.CatBoostError
+
+
+class CatBoostTrainingContext (
+  val ctrsContext: CtrsContext,
+  val catBoostJsonParams: JObject,
+  val serializedLabelConverter: TVector_i8
+)
 
 
 /**
@@ -43,7 +52,9 @@ trait CatBoostPredictorTrait[
   protected def addEstimatedCtrFeatures(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool],
-    catBoostJsonParams: JObject
+    updatedCatBoostJsonParams: JObject,  // with set loss_function and class labels can be inferred
+    classTargetPreprocessor: Option[TClassTargetPreprocessor] = None,
+    serializedLabelConverter: TVector_i8 = new TVector_i8
   ) : (Pool, Array[Pool], CtrsContext) = {
     val catFeaturesMaxUniqValueCount = native_impl.CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
       quantizedTrainPool.quantizedFeaturesInfo.__deref__()
@@ -52,14 +63,16 @@ trait CatBoostPredictorTrait[
     val oneHotMaxSize = native_impl.GetOneHotMaxSize(
       catFeaturesMaxUniqValueCount, 
       quantizedTrainPool.isDefined(quantizedTrainPool.labelCol),
-      compact(catBoostJsonParams)
+      compact(updatedCatBoostJsonParams)
     )
     if (catFeaturesMaxUniqValueCount > oneHotMaxSize) {
       CtrFeatures.addCtrsAsEstimated(
         quantizedTrainPool,
         quantizedEvalPools,
-        this,
-        oneHotMaxSize
+        updatedCatBoostJsonParams,
+        oneHotMaxSize,
+        classTargetPreprocessor,
+        serializedLabelConverter
       )
     } else {
       (quantizedTrainPool, quantizedEvalPools, null)
@@ -70,20 +83,23 @@ trait CatBoostPredictorTrait[
   /**
    *  override in descendants if necessary
    *
-   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext)
+   *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostTrainingContext)
    */
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool], JObject, CtrsContext) = {
+  ) : (Pool, Array[Pool], CatBoostTrainingContext) = {
     val catBoostJsonParams = ai.catboost.spark.params.Helpers.sparkMlParamsToCatBoostJsonParams(this)
     val (preprocessedTrainPool, preprocessedEvalPools, ctrsContext) 
         = addEstimatedCtrFeatures(quantizedTrainPool, quantizedEvalPools, catBoostJsonParams)
     (
       preprocessedTrainPool, 
       preprocessedEvalPools, 
-      catBoostJsonParams, 
-      ctrsContext
+      new CatBoostTrainingContext(
+        ctrsContext,
+        catBoostJsonParams,
+        new TVector_i8
+      )
     )
   }
 
@@ -145,7 +161,7 @@ trait CatBoostPredictorTrait[
         }
       }
     }
-    val (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams, ctrsContext) 
+    val (preprocessedTrainPool, preprocessedEvalPools, catBoostTrainingContext)
       = preprocessBeforeTraining(
         quantizedTrainPool,
         quantizedEvalPools
@@ -175,8 +191,8 @@ trait CatBoostPredictorTrait[
       }
     }
 
-    val precomputedOnlineCtrMetaDataAsJsonString = if (ctrsContext != null) {
-      ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
+    val precomputedOnlineCtrMetaDataAsJsonString = if (catBoostTrainingContext.ctrsContext != null) {
+      catBoostTrainingContext.ctrsContext.precomputedOnlineCtrMetaDataAsJsonString
     } else {
       null
     }
@@ -184,57 +200,94 @@ trait CatBoostPredictorTrait[
     val master = impl.CatBoostMasterWrapper(
       preparedTrainDataset,
       preparedEvalDatasets,
-      compact(catBoostJsonParams),
+      compact(catBoostTrainingContext.catBoostJsonParams),
       precomputedOnlineCtrMetaDataAsJsonString
     )
 
-    val trainingDriver : TrainingDriver = new TrainingDriver(
-      listeningPort = 0,
-      workerCount = partitionCount,
-      startMasterCallback = master.trainCallback,
-      workerInitializationTimeout = getOrDefault(workerInitializationTimeout)
-    )
+    val connectTimeoutValue = getOrDefault(connectTimeout)
+    val workerInitializationTimeoutValue = getOrDefault(workerInitializationTimeout)
+    val workerMaxFailuresValue = getOrDefault(workerMaxFailures)
 
-    val listeningPort = trainingDriver.getListeningPort
-    this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
-
-    this.logInfo(s"fit. Training started")
-    
-    val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
-
-    val trainingDriverFuture = ecs.submit(trainingDriver, ())
-
-    val workers = new impl.CatBoostWorkers(
+    val workers = impl.CatBoostWorkers(
       spark,
       partitionCount,
-      listeningPort,
+      connectTimeoutValue,
+      workerInitializationTimeoutValue,
       preparedTrainDataset,
       preparedEvalDatasets,
-      catBoostJsonParams,
+      catBoostTrainingContext.catBoostJsonParams,
+      catBoostTrainingContext.serializedLabelConverter,
       precomputedOnlineCtrMetaDataAsJsonString,
       master.savedPoolsFuture
     )
 
-    val workersFuture = ecs.submit(workers, ())
+    breakable {
+      // retry training if network connection issues were the reason of failure
+      while (true) {
+        val trainingDriver : TrainingDriver = new TrainingDriver(
+          listeningPort = 0,
+          workerCount = partitionCount,
+          startMasterCallback = master.trainCallback,
+          connectTimeout = connectTimeoutValue,
+          workerInitializationTimeout = workerInitializationTimeoutValue
+        )
 
-    val firstCompletedFuture = ecs.take()
+        try {
+          val listeningPort = trainingDriver.getListeningPort
+          this.logInfo(s"fit. TrainingDriver listening port = ${listeningPort}")
 
-    if (firstCompletedFuture == workersFuture) {
-      impl.Helpers.checkOneFutureAndWaitForOther(workersFuture, trainingDriverFuture, "workers")
-    } else { // firstCompletedFuture == trainingDriverFuture
-      impl.Helpers.checkOneFutureAndWaitForOther(trainingDriverFuture, workersFuture, "master")
+          this.logInfo(s"fit. Training started")
+
+          val ecs = new ExecutorCompletionService[Unit](Executors.newFixedThreadPool(2))
+
+          val trainingDriverFuture = ecs.submit(trainingDriver, ())
+
+          val workersFuture = ecs.submit(
+            new Runnable {
+              def run = {
+                workers.run(listeningPort)
+              }
+            },
+            ()
+          )
+
+          var catboostWorkersConnectionLost = false
+          try {
+            impl.Helpers.waitForTwoFutures(ecs, trainingDriverFuture, "master", workersFuture, "workers")
+            break
+          } catch {
+            case e : java.util.concurrent.ExecutionException => {
+              e.getCause match {
+                case connectionLostException : CatBoostWorkersConnectionLostException => {
+                  catboostWorkersConnectionLost = true
+                }
+                case _ => throw e
+              }
+            }
+          }
+          if (workers.workerFailureCount >= workerMaxFailuresValue) {
+            throw new CatBoostError(s"CatBoost workers failed at least $workerMaxFailuresValue times")
+          }
+          if (catboostWorkersConnectionLost) {
+            log.info(s"CatBoost master: communication with some of the workers has been lost. Retry training")
+          } else {
+            break
+          }
+        } finally {
+          trainingDriver.close(tryToShutdownWorkers=true, waitToShutdownWorkers=false)
+        }
+      }
     }
-    
     this.logInfo(s"fit. Training finished")
 
     val resultModel = createModel(
-      if (ctrsContext != null) {
+      if (catBoostTrainingContext.ctrsContext != null) {
         this.logInfo(s"fit. Add CtrProvider to model")
         CtrFeatures.addCtrProviderToModel(
           master.nativeModelResult,
-          ctrsContext,
-          preprocessedTrainPool,
-          preprocessedEvalPools
+          catBoostTrainingContext.ctrsContext,
+          quantizedTrainPool,
+          quantizedEvalPools
         ) 
       } else {
         master.nativeModelResult 

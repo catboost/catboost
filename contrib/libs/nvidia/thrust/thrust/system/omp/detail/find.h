@@ -25,8 +25,7 @@
 #include <thrust/system/detail/generic/find.h>
 #include <thrust/system/omp/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -47,5 +46,5 @@ InputIterator find_if(execution_policy<DerivedPolicy> &exec,
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

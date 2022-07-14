@@ -34,18 +34,11 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <iterator>
+#include <cub/config.cuh>
+#include <cub/detail/choose_offset.cuh>
+#include <cub/device/dispatch/dispatch_radix_sort.cuh>
 
-#include "dispatch/dispatch_radix_sort.cuh"
-#include "../config.cuh"
-
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
-
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief DeviceRadixSort provides device-wide, parallel operations for computing a radix sort across a sequence of data items residing within device-accessible memory. ![](sorting_logo.png)
@@ -185,27 +178,29 @@ struct DeviceRadixSort
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
      * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairs(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
         const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
         ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
-
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
+        
         // We cast away const-ness, but will *not* write to these arrays.
         // `DispatchRadixSort::Dispatch` will allocate temporary storage and
         // create a new double-buffer internally when the `is_overwrite_ok` flag
@@ -219,7 +214,7 @@ struct DeviceRadixSort
             temp_storage_bytes,
             d_keys,
             d_values,
-            num_items,
+            static_cast<OffsetT>(num_items),
             begin_bit,
             end_bit,
             is_overwrite_okay,
@@ -297,24 +292,26 @@ struct DeviceRadixSort
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
      * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairs(
-        void                    *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                    *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                  &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>      &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
         DoubleBuffer<ValueT>    &d_values,                              ///< [in,out] Double-buffer of values whose "current" device-accessible buffer contains the unsorted input values and, upon return, is updated to point to the sorted output values
-        int                     num_items,                              ///< [in] Number of items to sort
+        NumItemsT               num_items,                              ///< [in] Number of items to sort
         int                     begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                     end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t            stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                    debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         constexpr bool is_overwrite_okay = true;
 
@@ -387,26 +384,28 @@ struct DeviceRadixSort
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
      * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairsDescending(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
         const ValueT        *d_values_in,                           ///< [in] Pointer to the corresponding input sequence of associated value items
         ValueT              *d_values_out,                          ///< [out] Pointer to the correspondingly-reordered output sequence of associated value items
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         // We cast away const-ness, but will *not* write to these arrays.
         // `DispatchRadixSort::Dispatch` will allocate temporary storage and
@@ -494,24 +493,26 @@ struct DeviceRadixSort
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
      * \tparam ValueT    <b>[inferred]</b> ValueT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
     template <
         typename            KeyT,
-        typename            ValueT>
+        typename            ValueT,
+        typename            NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortPairsDescending(
-        void                    *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                    *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t                  &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>      &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
         DoubleBuffer<ValueT>    &d_values,                              ///< [in,out] Double-buffer of values whose "current" device-accessible buffer contains the unsorted input values and, upon return, is updated to point to the sorted output values
-        int                     num_items,                              ///< [in] Number of items to sort
+        NumItemsT               num_items,                              ///< [in] Number of items to sort
         int                     begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                     end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t            stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                    debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         constexpr bool is_overwrite_okay = true;
 
@@ -586,22 +587,25 @@ struct DeviceRadixSort
      * \endcode
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
-    template <typename KeyT>
+    template <typename KeyT,
+              typename NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeys(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         // We cast away const-ness, but will *not* write to these arrays.
         // `DispatchRadixSort::Dispatch` will allocate temporary storage and
@@ -617,7 +621,7 @@ struct DeviceRadixSort
             temp_storage_bytes,
             d_keys,
             d_values,
-            num_items,
+            static_cast<OffsetT>(num_items),
             begin_bit,
             end_bit,
             is_overwrite_okay,
@@ -684,21 +688,23 @@ struct DeviceRadixSort
      * \endcode
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
-    template <typename KeyT>
+    template <typename KeyT,
+              typename NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeys(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>  &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         constexpr bool is_overwrite_okay = true;
 
@@ -767,22 +773,24 @@ struct DeviceRadixSort
      * \endcode
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
-    template <typename KeyT>
+    template <typename KeyT,
+              typename NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeysDescending(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         const KeyT          *d_keys_in,                             ///< [in] Pointer to the input data of key data to sort
         KeyT                *d_keys_out,                            ///< [out] Pointer to the sorted output sequence of key data
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         // We cast away const-ness, but will *not* write to these arrays.
         // `DispatchRadixSort::Dispatch` will allocate temporary storage and
@@ -860,21 +868,23 @@ struct DeviceRadixSort
      * \endcode
      *
      * \tparam KeyT      <b>[inferred]</b> KeyT type
+     * \tparam NumItemsT <b>[inferred]</b> Type of num_items
      */
-    template <typename KeyT>
+    template <typename KeyT,
+              typename NumItemsT>
     CUB_RUNTIME_FUNCTION
     static cudaError_t SortKeysDescending(
-        void                *d_temp_storage,                        ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void                *d_temp_storage,                        ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t              &temp_storage_bytes,                    ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         DoubleBuffer<KeyT>  &d_keys,                                ///< [in,out] Reference to the double-buffer of keys whose "current" device-accessible buffer contains the unsorted input keys and, upon return, is updated to point to the sorted output keys
-        int                 num_items,                              ///< [in] Number of items to sort
+        NumItemsT           num_items,                              ///< [in] Number of items to sort
         int                 begin_bit           = 0,                ///< [in] <b>[optional]</b> The least-significant bit index (inclusive)  needed for key comparison
         int                 end_bit             = sizeof(KeyT) * 8, ///< [in] <b>[optional]</b> The most-significant bit index (exclusive) needed for key comparison (e.g., sizeof(unsigned int) * 8)
         cudaStream_t        stream              = 0,                ///< [in] <b>[optional]</b> CUDA stream to launch kernels within.  Default is stream<sub>0</sub>.
         bool                debug_synchronous   = false)            ///< [in] <b>[optional]</b> Whether or not to synchronize the stream after every kernel launch to check for errors.  Also causes launch configurations to be printed to the console.  Default is \p false.
     {
-        // Signed integer type for global offsets
-        typedef int OffsetT;
+        // Unsigned integer type for global offsets.
+        using OffsetT = typename detail::ChooseOffsetT<NumItemsT>::Type;
 
         constexpr bool is_overwrite_okay = true;
 
@@ -904,7 +914,6 @@ struct DeviceRadixSort
  * \example example_device_radix_sort.cu
  */
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

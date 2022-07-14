@@ -1,5 +1,5 @@
 /*
- *  Copyright 2020 NVIDIA Corporation
+ *  Copyright 2020-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/iterator/iterator_adaptor.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename InputFunction, typename OutputFunction, typename Iterator>
   class transform_input_output_iterator;
 
-namespace detail 
+namespace detail
 {
 
 // Proxy reference that invokes InputFunction when reading from and
@@ -110,5 +113,5 @@ struct is_proxy_reference<
     : public thrust::detail::true_type {};
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

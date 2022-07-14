@@ -1,3 +1,134 @@
+# Release 1.0.6
+## New features
+
+* Fixed splits for binary features on gpu for non-symmetric trees -- specify the set of splits to start each tree in the model with `--fixed-binary-splits` or `fixed_binary_splits` in Python package (by default, there are no fixed splits)
+
+
+## Documentation
+
+* New sections on [MultiRMSEWithMissingValues](https://catboost.ai/en/docs/concepts/loss-functions-multiregression#MultiRMSEWithMissingValues)
+and [LogCosh](https://catboost.ai/en/docs/concepts/loss-functions-regression#LogCosh)
+* New section on [get_embedding_feature_indices](https://catboost.ai/en/docs/concepts/python-reference_pool_get_embedding_feature_indices)
+* Add info on gpu support for metrics
+
+
+## Bug-fixes
+
+* Fix warning about resetting logger when logging to sys.stdout & sys.stderr from different threads #1855
+* Fix model summation in CatBoost for Apache Spark
+* Fix performance and scalability of query auc for ranking (1m samples, query size 2, 8 cpu cores 0.55s -> 0.04s)
+* Fix support for text features and embeddings in Java applier #2043
+* Fix nan/inf split scores with yeti rank pairwise loss
+* Fix nan/inf feature strengths in pair logit on cpu
+
+
+# Release 1.0.5
+## New features
+
+* Support Apple Darwin arm64 architecture. #1526.
+* Support feature tags in feature selection.
+* Support for Apache Spark 3.2.
+* Model sum in Apache Spark.
+
+## Python package
+
+* Accommodate multiple target-platform arguments used to build universal binaries.
+* Add grid creation function to utils.py
+* Custom multilabel eval metrics by @ELitvinova
+* Metrics plotter by @evgenabramov
+* Fbeta score by @ELitvinova
+
+## Bugfixes
+
+* Fix group weights in metrics calculation.
+* Fix `fit` for PySpark estimators. #1976.
+* Fix predict on GPU. #1901, #1923.
+* Disable exact leafs calculation for `MAE`, `MAPE`, `Quantile` on GPU.
+* Fix counter description for plotting. #1973.
+* Allow weights in `BrierScore`. #1967.
+* Disable AUC calculation for learn by default on GPU as well.
+* Fix `plot_tree` example in documentation.
+* Fix plots in `cv`.
+* Fix ui32 overflows in pairwise losses on GPU.
+* Fix for multiclass in nodejs evaluator. #1903.
+* Fix CatBoost R package installation on Monterey. #1912.
+* Fix CUDA error 700 caused by data race in mimalloc and CUDA driver.
+* Fix slow compilation with CUDA 11.2+.
+* Fix 2nd derivative in RMSEWithUncertainty.
+
+
+# Release 1.0.4
+
+## New features
+* Add `sort` param to `FilteredDCG` metric.
+* Add `StochasticRank` for `FilteredDCG`.
+
+## Python package
+* add is_max/minimizable methods. #1915
+* Support custom metric in select_features #1920
+
+## R package
+* Register functions from libcatboostr natively in R, removing one of CRAN notes.
+
+## Bugfixes
+* Fix apply for models without main `loss_function`.
+* Fix text calcer options specification. #1916
+* Fix `calc_feature_statistics`
+* Fix Multi-approx support in CLI `calc_metrics` mode.
+* Fix processing for text options. #1930
+* Fix snapshot saving in feature selection.
+* Fix CatBoost models serialization inside pipeline models in PySpark. #1936
+
+
+# Release 1.0.3
+
+## CatBoost for Apache Spark
+* Fix Linux `so` in deployed Maven artifacts (no code changes)
+
+
+# Release 1.0.2
+
+## CatBoost for Apache Spark
+* PySpark: Fix python -> JVM `datetime.timedelta` conversion.
+* Fix: proper handling of constant categorical features. #1867
+* Fix SIGSEGV for for Multiclassification with Ctrs. #1886
+
+## New features.
+* Add `is_min_optimal`, `is_max_optimal` for `BuiltinMetrics`. #1890
+
+## R package
+* Use `libcatboostr-darwin.dylib` instead of `libcatboostr-darwin.so` on macOS. #1834
+
+## Bugfixes
+* Fix `CatBoostError: (No such file or directory) bad new file name` when using `grid_search`. #1893
+
+
+# Release 1.0.1
+
+> :warning: **PySpark support is broken in this release.**: Please use release 1.0.3 instead.
+
+## CatBoost for Apache Spark
+* More robust handling of CatBoost Master and Workers failures, avoid freezes.
+* Fix for empty partitions. #1687
+* Fix use-after-free. #1759 and other random errors.
+* Support Spark 3.1.
+
+## Python package
+* Support python 3.10. #1575
+
+## Breaking changes
+* Use group weight for generated pairs in pairwise losses
+
+## Bugfixes
+* Switch to mimalloc allocator on Linux and macOS to avoid problems with static TLS.
+* Fix SEGFAULTs on macOS. #1877
+* Fix: Distributed training: do not fail if worker contains only learn or test data
+* Fix SEGFAULT on CPU with Depthwise training and `rsm` < 1.
+* Fix `calc_feature_statistics` for cat features. #1882
+* Fix result of cv for metric_period case
+* fix `eval_metric` for Multitarget training
+
+
 # Release 1.0.0
 
 In this release we decided to increment major version as we think that CatBoost is ready for production usage. We know, that CatBoost is used a lot in many different companies and individual projects, and not it's not only a "psychological" maturity - we think, that all the features we added in the last year and in current release is worth to update major version. And of course, as many programmers we love magic of binary numbers and we want to celebrate 100₂ anniversary since CatBoost first release on github :)

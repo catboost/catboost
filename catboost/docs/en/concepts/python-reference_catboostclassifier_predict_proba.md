@@ -6,7 +6,7 @@
 ## {{ dl--invoke-format }} {#call-format}
 
 ```python
-predict_proba(data, 
+predict_proba(X, 
               ntree_start={{ fit--ntree_start }}, 
               ntree_end=0, 
               thread_count=-1, 
@@ -15,7 +15,7 @@ predict_proba(data,
 
 ## {{ dl--parameters }} {#parameters}
 
-### data
+### X
 
 #### Description
 
@@ -87,6 +87,7 @@ To reduce the number of trees to use when the model is applied or the metrics ar
 #### Description
 
 The number of threads to use.
+
 {% include [reusage-thread_count__cpu_cores__optimizes-the-speed-of-execution](../_includes/work_src/reusage/thread_count__cpu_cores__optimizes-the-speed-of-execution.md) %}
 
 **Possible types** 

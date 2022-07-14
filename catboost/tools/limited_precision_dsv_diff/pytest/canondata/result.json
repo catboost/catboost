@@ -1,0 +1,57 @@
+{
+    "test.test_cut": [
+        {
+            "uri": "file://test.test_cut/stdout"
+        }
+    ],
+    "test.test_finite_vs_finite": [
+        {
+            "uri": "file://test.test_finite_vs_finite/stdout"
+        }
+    ],
+    "test.test_finite_vs_inf": [
+        {
+            "uri": "file://test.test_finite_vs_inf/stdout"
+        }
+    ],
+    "test.test_inf_vs_inf": [
+        {
+            "uri": "file://test.test_inf_vs_inf/stdout"
+        }
+    ],
+    "test.test_no_diff_limit_1": [
+        {
+            "uri": "file://test.test_no_diff_limit_1/stdout"
+        }
+    ],
+    "test.test_no_diff_limit_2": [
+        {
+            "uri": "file://test.test_no_diff_limit_2/stdout"
+        }
+    ],
+    "test.test_tiny_vs_tiny": [
+        {
+            "uri": "file://test.test_tiny_vs_tiny/stdout"
+        }
+    ],
+    "test.test_totally_different": [
+        {
+            "uri": "file://test.test_totally_different/stdout"
+        }
+    ],
+    "test.test_with_small_noise": [
+        {
+            "uri": "file://test.test_with_small_noise/stdout"
+        }
+    ],
+    "test.test_with_small_noise_outside_precision": [
+        {
+            "uri": "file://test.test_with_small_noise_outside_precision/stdout"
+        }
+    ],
+    "test.test_with_vs_without_header": [
+        {
+            "uri": "file://test.test_with_vs_without_header/stdout"
+        }
+    ]
+}

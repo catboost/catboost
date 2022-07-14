@@ -18,6 +18,8 @@ from catboost import (
     CatBoostRegressor,
     CatBoostRanker,
     CatBoostError,
+    EFeaturesSelectionAlgorithm,
+    EFeaturesSelectionGrouping,
     EFstrType,
     FeaturesData,
     Pool,
@@ -31,22 +33,24 @@ from catboost import (
     to_ranker,
     MultiTargetCustomMetric,
     MultiTargetCustomObjective,)
+from catboost.core import is_maximizable_metric, is_minimizable_metric
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
 import os.path
 import os
+import pandas as pd
 from pandas import read_csv, DataFrame, Series, Categorical
 from pandas.arrays import SparseArray
 import scipy.sparse
 import scipy.special
-
 
 from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
     data_file,
     get_limited_precision_dsv_diff_tool,
+    get_limited_precision_json_diff_tool,
     get_limited_precision_numpy_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
@@ -1180,6 +1184,17 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
+def test_predict_on_gpu(task_type):
+    if task_type == 'CPU':
+        return
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(iterations=10, task_type='GPU', devices='0')
+    model.fit(pool)
+    cpu_prediction = np.array(model.predict(pool, task_type='CPU'))
+    gpu_prediction = np.array(model.predict(pool, task_type='GPU'))
+    assert np.abs(cpu_prediction - gpu_prediction).max() < 1e-9
+
+
 def test_model_pickling(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -1219,7 +1234,7 @@ def test_save_load_equality(task_type):
             {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
             {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'feature_calcers': ['NaiveBayes', 'BoW'],
+        'feature_calcers': ['NaiveBayes', 'BoW:top_tokens_count=10'],
         'iterations': 10,
         'loss_function': 'MultiClass',
         'task_type': task_type,
@@ -1307,7 +1322,7 @@ def test_fit_with_texts(task_type):
             {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
             {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'feature_calcers': ['NaiveBayes', 'BoW'],
+        'feature_calcers': ['NaiveBayes', 'BoW:top_tokens_count=10'],
         'iterations': 100,
         'loss_function': 'MultiClass',
         'task_type': task_type,
@@ -1972,6 +1987,25 @@ def test_inconsistent_class_labels_count():
         classifier.fit([[0], [1], [2]], [0, 1, 2])
 
 
+def test_unknown_class_labels_in_eval_dataset():
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='Logloss',
+        class_names=[0, 1, 2],
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+    classifier = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass',
+        class_names=[0, 1],
+        classes_count=3
+    )
+    with pytest.raises(CatBoostError):
+        classifier.fit([[0], [1], [2]], [0, 1, 2])
+
+
 @pytest.mark.parametrize(
     'features_dtype',
     ['str', 'np.float32'],
@@ -2401,6 +2435,16 @@ def _test_generated_metrics(loss_function, train_pool, test_pool, metrics, task)
             assert np.abs(td_results[metric][-1] - score) < 1e-6, "Eval metric results differ for {}".format(metric)
 
 
+def test_f1_vs_fbeta():
+    model = CatBoost({'loss_function': metrics.CrossEntropy(), 'iterations': 50})
+    train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
+    model.fit(train_pool, eval_set=test_pool)
+
+    results = model.eval_metrics(test_pool, ['F1', 'F:beta=1'])
+    assert np.allclose(results['F1'], results['F:beta=1']), "Different results for F1 and F:beta=1"
+
+
 def test_generated_classification_metrics():
     _test_generated_metrics(
         'Logloss',
@@ -2414,7 +2458,7 @@ def test_generated_classification_metrics():
             'NormalizedGini': metrics.NormalizedGini(), 'BrierScore': metrics.BrierScore(),
             'HingeLoss': metrics.HingeLoss(), 'HammingLoss': metrics.HammingLoss(),
             'ZeroOneLoss': metrics.ZeroOneLoss(), 'Kappa': metrics.Kappa(), 'WKappa': metrics.WKappa(),
-            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction()
+            'LogLikelihoodOfPrediction': metrics.LogLikelihoodOfPrediction(), 'F:beta=2': metrics.F(beta=2)
         },
         "classification"
     )
@@ -2701,6 +2745,15 @@ def test_generated_metrics():
     )
     for non_existing_field in ('train-Logloss-mean', 'train-Logloss-std', 'train-AUC-mean', 'train-AUC-std'):
         assert non_existing_field not in results
+
+
+def test_metrics_is_min_max_optimal():
+    logloss = metrics.Logloss()
+    assert logloss.is_min_optimal() and not logloss.is_max_optimal()
+    assert is_minimizable_metric('Logloss') and not is_maximizable_metric('Logloss')
+    auc = metrics.AUC()
+    assert auc.is_max_optimal() and not auc.is_min_optimal()
+    assert is_maximizable_metric('AUC') and not is_minimizable_metric('AUC')
 
 
 def test_custom_eval():
@@ -3163,6 +3216,7 @@ def test_copy_model():
 
 def test_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3171,6 +3225,7 @@ def test_cv(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-Logloss-mean" in results
@@ -3179,14 +3234,16 @@ def test_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_query(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
-        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type},
+        {"iterations": 20, "learning_rate": 0.03, "loss_function": "QueryRMSE", "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
     assert "train-QueryRMSE-mean" in results
 
@@ -3194,11 +3251,12 @@ def test_cv_query(task_type):
     for value in results["train-QueryRMSE-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_pairs(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3206,7 +3264,8 @@ def test_cv_pairs(task_type):
             "learning_rate": 0.03,
             "random_seed": 8,
             "loss_function": "PairLogit",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-PairLogit-mean" in results
@@ -3215,11 +3274,12 @@ def test_cv_pairs(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_pairs_generated(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3227,7 +3287,8 @@ def test_cv_pairs_generated(task_type):
             "learning_rate": 0.03,
             "random_seed": 8,
             "loss_function": "PairLogit",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-PairLogit-mean" in results
@@ -3236,11 +3297,12 @@ def test_cv_pairs_generated(task_type):
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_custom_loss(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3249,14 +3311,16 @@ def test_cv_custom_loss(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         }
     )
     assert "test-AUC-mean" in results
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_skip_train(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3265,6 +3329,7 @@ def test_cv_skip_train(task_type):
             "loss_function": "Logloss:hints=skip_train~true",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-Logloss-mean" not in results
@@ -3272,11 +3337,12 @@ def test_cv_skip_train(task_type):
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_skip_train_default(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3285,16 +3351,18 @@ def test_cv_skip_train_default(task_type):
             "loss_function": "Logloss",
             "custom_loss": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
     )
     assert "train-AUC-mean" not in results
     assert "train-AUC-std" not in results
 
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_metric_period(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3303,6 +3371,7 @@ def test_cv_metric_period(task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5,
     )
@@ -3312,7 +3381,7 @@ def test_cv_metric_period(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize(
@@ -3322,6 +3391,7 @@ def test_cv_metric_period(task_type):
 )
 def test_cv_overfitting_detector(with_metric_period, task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -3330,6 +3400,7 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
         },
         metric_period=5 if with_metric_period else None,
         early_stopping_rounds=7,
@@ -3340,7 +3411,7 @@ def test_cv_overfitting_detector(with_metric_period, task_type):
     for value in results["train-Logloss-mean"][1:-1]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize('param_type', ['indices', 'strings'])
@@ -3357,9 +3428,11 @@ def test_cv_with_cat_features_param(param_type):
     label = _generate_nontrivial_binary_target(20, prng=prng)
     pool = Pool(data, label, cat_features=cat_features_param, feature_names=feature_names_param)
 
+    train_dir_prefix = test_output_path('')
     params = {
         'loss_function': 'Logloss',
-        'iterations': 10
+        'iterations': 10,
+        'train_dir': os.path.join(train_dir_prefix, 'catboost_info')
     }
 
     results1 = cv(pool, params, as_pandas=False)
@@ -3382,11 +3455,13 @@ def test_cv_with_text():
     labels = np.random.choice(2, 1000)
     texts = [[' '.join(np.random.choice(words[label], 3, replace=False))] for label in labels]
     data_pool = Pool(data=texts, label=labels, text_features=[0])
+    train_dir_prefix = test_output_path('')
     params = {
         'loss_function': 'Logloss',
         'iterations': 10,
         'random_seed': 42,
-        'learning_rate': 0.5
+        'learning_rate': 0.5,
+        'train_dir': os.path.join(train_dir_prefix, 'catboost_info')
     }
     result = cv(iterations=10, pool=data_pool, params=params, fold_count=3).round(decimals=3)
 
@@ -3397,6 +3472,7 @@ def test_cv_with_text():
 
 def test_cv_with_save_snapshot(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     with pytest.raises(CatBoostError):
         cv(
             pool,
@@ -3406,7 +3482,8 @@ def test_cv_with_save_snapshot(task_type):
                 "loss_function": "Logloss",
                 "eval_metric": "AUC",
                 "task_type": task_type,
-                "save_snapshot": True
+                "save_snapshot": True,
+                "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
             },
         )
 
@@ -3416,7 +3493,9 @@ def test_cv_with_save_snapshot(task_type):
     {"loss_function": "RMSE", "eval_metric": "R2"},
 ])
 def test_cv_return_models(params):
-    params.update({"iterations": 20, "learning_rate": 0.03})
+    train_dir_prefix = test_output_path('')
+    params.update({"iterations": 20, "learning_rate": 0.03,
+                    "train_dir": os.path.join(train_dir_prefix, 'catboost_info')})
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     fold_count = 5
@@ -3471,19 +3550,22 @@ def test_cv_small_data():
     pool = Pool(data=cv_data,
                 label=labels,
                 cat_features=[0])
+    train_dir_prefix = test_output_path('')
     params = {
         "iterations": 100,
         "depth": 2,
         "loss_function": "Logloss",
-        "verbose": False
+        "verbose": False,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
     }
     cv(pool, params, fold_count=2)
 
 
 def test_cv_without_loss_function():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    with pytest.raises(CatBoostError, message="Parameter loss_function should be specified for cross-validation"):
+    with pytest.raises(CatBoostError):
         cv(pool, {})
+        pytest.fail("Parameter loss_function should be specified for cross-validation")
 
 
 def test_tune_hyperparams_small_data():
@@ -3540,7 +3622,7 @@ def test_grid_search_and_get_best_result(task_type):
                     "loss_function": "Logloss",
                     "eval_metric": "AUC",
                     "task_type": task_type,
-                    "custom_metric": ["CrossEntropy", "F1"]
+                    "custom_metric": ["CrossEntropy", "F1", "F:beta=2"]
                 }
             )
             feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
@@ -3569,10 +3651,10 @@ def test_grid_search_and_get_best_result(task_type):
                 assert 'validation' not in best_scores, 'validation results found for refit=False, search_by_train_test_split=False'
                 assert 'learn' not in best_scores, 'train results found for refit=False, search_by_train_test_split=False'
             if 'validation' in best_scores:
-                for metric in ["AUC", "Logloss", "CrossEntropy", "F1"]:
+                for metric in ["AUC", "Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
             if 'learn' in best_scores:
-                for metric in ["Logloss", "CrossEntropy", "F1"]:
+                for metric in ["Logloss", "CrossEntropy", "F1", "F:beta=2"]:
                     assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
                 assert "AUC" not in best_scores['learn'], 'train AUC results found'
 
@@ -4409,22 +4491,25 @@ def test_full_history(task_type):
 
 def test_cv_logging(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     cv(
         pool,
         {
             "iterations": 14,
             "learning_rate": 0.03,
             "loss_function": "Logloss",
-            "task_type": task_type
+            "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_cv_with_not_binarized_target(task_type):
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
+    train_dir_prefix = test_output_path('')
     cv(
         pool,
         {
@@ -4432,10 +4517,11 @@ def test_cv_with_not_binarized_target(task_type):
             "learning_rate": 0.03,
             "loss_function": "Logloss",
             "task_type": task_type,
-            "target_border": 0.5
+            "target_border": 0.5,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
@@ -4781,20 +4867,24 @@ def test_multiple_eval_sets_no_empty():
     x1, y1 = random_xy(3, 4, prng=prng)
     test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
 
-    with pytest.raises(CatBoostError, message="Do not create Pool for empty data"):
+    with pytest.raises(CatBoostError):
         Pool(x0, y0, cat_features=cat_features)
+        pytest.fail("Do not create Pool for empty data")
 
     model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2,
                       'allow_const_label': True})
 
-    with pytest.raises(CatBoostError, message="Do not fit with empty tuple in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
+        pytest.fail("Do not fit with empty tuple in multiple eval sets")
 
-    with pytest.raises(CatBoostError, message="Do not fit with empty file in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), test0_file], column_description=cd_file)
+        pytest.fail("Do not fit with empty file in multiple eval sets")
 
-    with pytest.raises(CatBoostError, message="Do not fit with None in multiple eval sets"):
+    with pytest.raises(CatBoostError):
         model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
+        pytest.fail("Do not fit with None in multiple eval sets")
 
     model.fit(train_pool, eval_set=[None], column_description=cd_file)
 
@@ -4849,10 +4939,12 @@ def test_multiple_eval_sets():
 
 def test_get_metadata_notrain():
     model = CatBoost()
-    with pytest.raises(CatBoostError, message='Only string keys should be allowed'):
+    with pytest.raises(CatBoostError):
         model.get_metadata()[1] = '1'
-    with pytest.raises(CatBoostError, message='Only string values should be allowed'):
+        pytest.fail('Only string keys should be allowed')
+    with pytest.raises(CatBoostError):
         model.get_metadata()['1'] = 1
+        pytest.fail('Only string values should be allowed')
     model.get_metadata()['1'] = '1'
     assert model.get_metadata().get('1', 'EMPTY') == '1'
     assert model.get_metadata().get('2', 'EMPTY') == 'EMPTY'
@@ -5235,6 +5327,29 @@ def test_feature_names_from_model():
     return local_canonical_file(output_file)
 
 
+@pytest.mark.parametrize('format', ['cbm', 'json'])
+def test_feature_names_from_loaded_model(format):
+    df = DataFrame({
+        'a': np.random.choice(['X', 'Y', 'Z'], 100),
+        'b': np.random.randint(0, 10, 100),
+        'c': np.random.randint(0, 10, 100),
+        'target': np.random.randint(0, 10, 100),
+    })
+
+    feature_names = ['a', 'b', 'c']
+    cat_features = ['a']
+    pool = Pool(data=df[feature_names], label=df['target'], cat_features=cat_features, feature_names=feature_names)
+
+    model = CatBoostRegressor(iterations=10)
+    model.fit(pool)
+    assert model.feature_names_ == feature_names
+
+    model_file = test_output_path('model')
+    model.save_model(model_file, format=format, pool=pool)
+    loaded_model = CatBoostRegressor().load_model(model_file, format=format)
+    assert loaded_model.feature_names_ == feature_names
+
+
 Value_AcceptableAsEmpty = [
     ('', True),
     ('nan', True),
@@ -5398,9 +5513,11 @@ def test_learning_rate_auto_set(task_type):
 
 def test_learning_rate_auto_set_in_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
-        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type},
+        {"iterations": 14, "loss_function": "Logloss", "task_type": task_type,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')},
     )
     assert "train-Logloss-mean" in results
 
@@ -5408,7 +5525,7 @@ def test_learning_rate_auto_set_in_cv(task_type):
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
-    return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+    return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_shap_multiclass(task_type):
@@ -5654,12 +5771,14 @@ def test_compare():
 
 def test_cv_fold_count_alias(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    train_dir_prefix = test_output_path('')
     results_fold_count = cv(pool=pool, params={
         "iterations": 5,
         "learning_rate": 0.03,
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, fold_count=4)
     results_nfold = cv(pool=pool, params={
         "iterations": 5,
@@ -5667,6 +5786,7 @@ def test_cv_fold_count_alias(task_type):
         "loss_function": "Logloss",
         "eval_metric": "AUC",
         "task_type": task_type,
+        "train_dir": os.path.join(train_dir_prefix, 'catboost_info'),
     }, nfold=4)
     assert results_fold_count.equals(results_nfold)
 
@@ -6015,6 +6135,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
     else:
         raise Exception('bad params: data_type=%s, has_missing=%s' % (data_type, has_missing))
 
+    train_dir_prefix = test_output_path('')
     results = cv(
         pool,
         {
@@ -6023,7 +6144,8 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
             "loss_function": "Logloss",
             "eval_metric": "AUC",
             "task_type": task_type,
-            "ignored_features": ignored_features
+            "ignored_features": ignored_features,
+            "train_dir": os.path.join(train_dir_prefix, 'catboost_info')
         },
     )
     assert "train-Logloss-mean" in results
@@ -6035,7 +6157,7 @@ def test_cv_with_ignored_features(task_type, data_type, has_missing):
 
     # Unfortunately, for GPU results differ too much between different GPU models.
     if task_type != 'GPU':
-        return local_canonical_file(remove_time_from_json(JSON_LOG_CV_PATH(0)))
+        return local_canonical_file(remove_time_from_json(os.path.join(train_dir_prefix, JSON_LOG_CV_PATH(0))))
 
 
 def test_use_last_testset_for_best_iteration():
@@ -6117,6 +6239,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'BalancedAccuracy',
             'BalancedErrorRate',
             'MCC',
@@ -6142,6 +6265,7 @@ class Metrics(object):
             'Precision',
             'Recall',
             'F1',
+            'F:beta=2',
             'TotalF1',
             'MCC',
             'Accuracy',
@@ -6194,6 +6318,7 @@ class Metrics(object):
             'CrossEntropy',
             'CtrFactor',
             'PythonUserDefinedPerObject',
+            'F:beta=2',
             'F1',
             'HammingLoss',
             'HingeLoss',
@@ -9373,6 +9498,39 @@ def test_different_formats_of_feature_weights():
             cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
 
 
+def test_feature_tags_interface():
+    data = np.arange(80).reshape((10, 8))
+    label = np.arange(10) % 2
+    pool = Pool(
+        data,
+        label=label,
+        feature_names=["c_0", "c_1", "c_2", "num_3", "c_4", "c_5", "c_6", "num_7"],
+        feature_tags={
+            "tag1" : {
+                "features": np.arange(4),
+                "cost": 5
+            },
+            "tag2": {"features": ["num_3", "num_7"]},
+            "tag3" : {"features": [4, 5]}
+        }
+    )
+    cat = CatBoostClassifier(ignored_features=["#tag1", "#tag2"])
+    cat.fit(pool)
+    assert np.array_equal(np.where(cat.feature_importances_ == 0)[0], [0, 1, 2, 3, 7])
+    cat = CatBoostClassifier()
+    result = cat.select_features(
+        pool,
+        features_for_select=["#tag1", "#tag2"],
+        num_features_to_select=3
+    )
+    assert all(x in [0, 1, 2, 3, 7] for x in result["selected_features"])
+    assert all(x in [0, 1, 2, 3, 7] for x in result["eliminated_features"])
+    with pytest.raises(CatBoostError):
+        Pool(data, feature_tags={"features": [4, 5]})
+    with pytest.raises(CatBoostError):
+        Pool(data, feature_tags={"tag2": {"features": ["num_3", "num_4"]}})
+
+
 def test_first_feature_use_penalties_work():
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     most_important_feature_index = 3
@@ -9964,3 +10122,355 @@ def test_select_features(task_type, train_final_model):
         assert not model.is_fitted()
         assert model.best_score_ == {}
         assert model.evals_result_ == {}
+
+
+def test_select_features_with_custom_eval_metric():
+    class CustomMetric(object):
+        def get_final_error(self, error, weight):
+            return 0.35
+
+        def is_max_optimal(self):
+            return True
+
+        def evaluate(self, approxes, target, weight):
+            return (0.0, 0.0)
+
+    learn = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=10,
+        learning_rate=0.03,
+        use_best_model=False,
+        eval_metric=CustomMetric()
+    )
+    model.select_features(
+        learn,
+        eval_set=test,
+        steps=1,
+        train_final_model=True,
+        features_for_select='0-16',
+        num_features_to_select=10
+    )
+    assert model.best_score_['validation']['CustomMetric'] == 0.35
+
+
+@pytest.mark.parametrize(
+    'train_final_model',
+    [True, False],
+    ids=['train_final_model=True', 'train_final_model=False']
+)
+@pytest.mark.parametrize(
+    'algorithm',
+     [
+         EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange,
+         EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange,
+         EFeaturesSelectionAlgorithm.RecursiveByShapValues,
+    ],
+    ids=[
+        'algorithm=%s' % algorithm for algorithm in [
+            'RecursiveByPredictionValuesChange',
+            'RecursiveByLossFunctionChange',
+            'RecursiveByShapValues'
+        ]
+    ]
+)
+def test_select_features_by_single_feature_tags(task_type, train_final_model, algorithm):
+    # use querywise dataset because it contains more features to select from
+    columns_metadata = read_cd(
+        QUERYWISE_CD_FILE,
+        data_file=QUERYWISE_TRAIN_FILE,
+        canonize_column_types=True
+    )
+
+    learn_data = load_dataset_as_dataframe(QUERYWISE_TRAIN_FILE, columns_metadata)
+    test_data = load_dataset_as_dataframe(QUERYWISE_TEST_FILE, columns_metadata)
+
+    n_features = learn_data['features'].columns.size
+    feature_names = [str(feature_idx) for feature_idx in range(n_features)]
+    feature_tags={}
+    for feature_idx in range(n_features):
+        feature_tags[str(feature_idx)] = {"features": [feature_idx], "cost": 1}
+
+    learn = Pool(
+        learn_data['features'],
+        learn_data['target'],
+        cat_features=columns_metadata['cat_feature_indices'],
+        feature_names=feature_names,
+        feature_tags=feature_tags
+    )
+    test = Pool(
+        test_data['features'],
+        test_data['target'],
+        cat_features=columns_metadata['cat_feature_indices'],
+        feature_names=feature_names,
+        feature_tags=feature_tags
+    )
+    model_for_features = CatBoostRegressor(
+        iterations=100,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary_for_features = model_for_features.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        features_for_select=list(range(20)),
+        num_features_to_select=10
+    )
+    model_for_features_tags = CatBoostRegressor(
+        iterations=100,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary_for_features_tags = model_for_features_tags.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        grouping=EFeaturesSelectionGrouping.ByTags,
+        features_tags_for_select=[str(i) for i in range(20)],
+        num_features_tags_to_select=10
+    )
+    assert set(summary_for_features['selected_features_names']) == set(summary_for_features_tags['selected_features_names'])
+    assert set(summary_for_features['selected_features_names']) == set(summary_for_features_tags['selected_features_tags'])
+    assert summary_for_features['eliminated_features_names'] == summary_for_features_tags['eliminated_features_names']
+    assert summary_for_features['eliminated_features_names'] == summary_for_features_tags['eliminated_features_tags']
+
+
+@pytest.mark.parametrize(
+    'train_final_model',
+    [True, False],
+    ids=['train_final_model=True', 'train_final_model=False']
+)
+@pytest.mark.parametrize(
+    'algorithm',
+     [
+         EFeaturesSelectionAlgorithm.RecursiveByPredictionValuesChange,
+         EFeaturesSelectionAlgorithm.RecursiveByLossFunctionChange,
+         EFeaturesSelectionAlgorithm.RecursiveByShapValues,
+    ],
+    ids=[
+        'algorithm=%s' % algorithm for algorithm in [
+            'RecursiveByPredictionValuesChange',
+            'RecursiveByLossFunctionChange',
+            'RecursiveByShapValues'
+        ]
+    ]
+)
+def test_select_features_by_multi_feature_tags(task_type, train_final_model, algorithm):
+    n_features=30
+    learn_features, learn_labels = generate_random_labeled_dataset(
+        n_samples=4000,
+        n_features=n_features,
+        labels=[0, 1],
+        seed=1
+    )
+    test_features, test_labels = generate_random_labeled_dataset(
+        n_samples=1500,
+        n_features=n_features,
+        labels=[0, 1],
+        seed=2
+    )
+
+    feature_names = [str(feature_idx) for feature_idx in range(n_features)]
+    feature_tags = {
+        "tag0": {"features": [0, 1, 2, 10, 12, 15], "cost": 1},
+        "tag1": {"features": [3, 7, 11, 13, 26, 27, 28], "cost": 2},
+        "tag2": {"features": [4, 5], "cost": 1},
+        "tag3": {"features": [6, 8, 9, 14], "cost": 3},
+        "tag4": {"features": [16], "cost": 1},
+        "tag5": {"features": [17, 18, 19, 22, 23, 25, 29], "cost": 4},
+        "tag6": {"features": [20, 21, 24], "cost": 1}
+    }
+
+    learn = Pool(learn_features, learn_labels, feature_names=feature_names, feature_tags=feature_tags)
+    test = Pool(test_features, test_labels, feature_names=feature_names, feature_tags=feature_tags)
+    model = CatBoostClassifier(
+        iterations=20,
+        learning_rate=0.03,
+        task_type=task_type,
+        devices='0',
+        logging_level='Debug'
+    )
+    summary = model.select_features(
+        learn,
+        eval_set=test,
+        steps=2,
+        train_final_model=train_final_model,
+        algorithm=algorithm,
+        grouping=EFeaturesSelectionGrouping.ByTags,
+        features_tags_for_select=["tag0", "tag1", "tag2", "tag4", "tag6"],
+        num_features_tags_to_select=3
+    )
+
+    summary_file_name = test_output_path('summary.json')
+    with open(summary_file_name, 'w') as f:
+        json.dump(summary, f, indent=4, sort_keys=True)
+
+    return local_canonical_file(summary_file_name, diff_tool=get_limited_precision_json_diff_tool(1.e-6))
+
+
+def test_embedding_features_data_list_with_data_with_features_order():
+    pool1 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5],
+                '_embedding_feature_2': [[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]],
+                '_embedding_feature_3': [[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]]
+            }
+        ),
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5]
+            }
+        ),
+        embedding_features_data=[
+            np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        ],
+        embedding_features=[2, 3]
+    )
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_dict_with_data_with_features_order():
+    pool1 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5],
+                'f2': [[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]],
+                'f3': [[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]]
+            }
+        ),
+        embedding_features=['f2', 'f3']
+    )
+    pool2 = Pool(
+        data=DataFrame(
+            {
+                'f0': [0, 1, 2],
+                'f1': [3, 4, 5]
+            }
+        ),
+        embedding_features_data={
+            'f2': np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            'f3': np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        },
+        embedding_features=['f2', 'f3']
+    )
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_list_with_data_with_objects_order():
+    pool1 = Pool(
+        data=[
+            [0, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 6],
+            [1, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 7],
+            [2, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 8]
+        ],
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=[
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8]
+        ],
+        embedding_features_data=[
+            np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        ],
+        embedding_features=[2, 3]
+    )
+
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_embedding_features_data_dict_with_data_with_objects_order():
+    pool1 = Pool(
+        data=[
+            [0, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 6],
+            [1, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 7],
+            [2, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 8]
+        ],
+        embedding_features=[2, 3]
+    )
+    pool2 = Pool(
+        data=[
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8]
+        ],
+        embedding_features_data={
+            2 : np.array([[0.1, 0.2], [0.12, 0.3], [1.0, 0.0]]),
+            3 : np.array([[0.8, 0.3, 0.1], [0.0, 0.2, 0.8], [1.0, 0.0, 0.5]])
+        },
+        embedding_features=[2, 3]
+    )
+
+    assert _have_equal_features(pool1, pool2)
+
+
+def test_pandas_integer_array():
+    X = DataFrame({'feature': list(range(10))}, dtype=pd.Int64Dtype())
+    y = list(range(10))
+    cb = CatBoostRegressor(iterations=1)
+    cb.fit(X, y)
+
+
+@pytest.mark.parametrize('problem_type', ['classification', 'regression', 'ranking'])
+def test_train_with_embedding_features(problem_type):
+    train_pool = Pool(
+        data=[
+            [0.1, 3, [0.1, 0.2], [0.8, 0.3, 0.1], 0.12],
+            [0.2, 4, [0.12, 0.3], [0.0, 0.2, 0.8], 0.0],
+            [0.1, 5, [1.0, 0.0], [1.0, 0.0, 0.5], 0.2],
+            [0.8, 2, [0.3, 0.1], [0.8, 0.2, 0.9], 0.3],
+            [0.4, 1, [0.2, 0.0], [1.0, 0.92, 0.1], 0.4],
+            [0.3, 2, [0.1, 0.22], [0.1, 0.22, 0.2], 0.0],
+            [0.5, 3, [0.21, 0.3], [0.4, 0.6, 0.33], 0.25]
+        ],
+        label=[0, 1, 1, 0, 1, 0, 1] if problem_type == 'classification' else [0.0, 0.1, 0.2, 0.12, 0.3, 0.1, 0.13],
+        group_id=[0, 0, 0, 1, 1, 1, 2],
+        embedding_features=[2, 3]
+    )
+    test_pool = Pool(
+        data=[
+            [0.3, 2, [0.0, 0.14], [0.9, 0.0, 0.12], 0.22],
+            [0.4, 1, [0.2, 0.8], [0.0, 0.21, 0.7], 0.04],
+            [0.2, 7, [0.3, 0.11], [0.0, 0.2, 0.4], 0.7],
+            [0.0, 3, [0.5, 0.3], [1.0, 0.93, 0.1], 0.8]
+        ],
+        label=[1, 0, 0, 1] if problem_type == 'classification' else [0.1, 0.0, 0.3, 0.2],
+        group_id=[0, 0, 1, 1],
+        embedding_features=[2, 3]
+    )
+
+    model = CatBoost(
+        {
+            'loss_function' : {
+                'classification': 'Logloss',
+                'regression': 'RMSE',
+                'ranking': 'YetiRank'
+            }[problem_type],
+            'iterations' : 5
+        }
+    )
+    model.fit(train_pool, eval_set=test_pool)
+
+    preds = model.predict(test_pool)
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)

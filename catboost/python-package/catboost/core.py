@@ -1,6 +1,7 @@
-import sys
+from contextlib import contextmanager  # noqa E402
 from copy import deepcopy
-from six import iteritems, string_types, integer_types
+import logging
+import sys
 import os
 
 if sys.version_info >= (3, 3):
@@ -9,6 +10,8 @@ else:
     from collections import Iterable, Sequence, Mapping, MutableMapping
 
 from collections import OrderedDict, defaultdict
+
+from six import iteritems, string_types, integer_types
 
 import warnings
 import numpy as np
@@ -61,6 +64,8 @@ is_multitarget_objective = _catboost.is_multitarget_objective
 is_survivalregression_objective = _catboost.is_survivalregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
+is_maximizable_metric = _catboost.is_maximizable_metric
+is_minimizable_metric = _catboost.is_minimizable_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -76,8 +81,7 @@ fspath = _catboost.fspath
 _eval_metric_util = _catboost._eval_metric_util
 
 
-from contextlib import contextmanager  # noqa E402
-
+logger = logging.getLogger(__name__)
 
 _configure_malloc()
 _catboost._library_init()
@@ -113,12 +117,26 @@ def _get_stream_like_object(obj):
         'Expected callable object or stream-like object'
     )
 
+catboost_logger_lock = Lock()
 
 @contextmanager
 def log_fixup(log_cout=sys.stdout, log_cerr=sys.stderr):
-    _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
-    yield
-    _reset_logger()
+    if catboost_logger_lock.acquire(False):
+        try:
+            _set_logger(_get_stream_like_object(log_cout), _get_stream_like_object(log_cerr))
+            yield
+        finally:
+            _reset_logger()
+            catboost_logger_lock.release()
+    else:
+        if log_cout is not sys.stdout or log_cerr is not sys.stderr:
+            logger.warning(
+                'CatBoost custom logger function is already set in another thread, ' +
+                'will use it from this thread. If you are training CatBoost models from different threads, ' +
+                'consider using sys.stdout and sys.stderr default loggers'
+            )
+        yield
+
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
@@ -223,6 +241,13 @@ class EFeaturesSelectionAlgorithm(Enum):
     RecursiveByShapValues = "RecursiveByShapValues"
 
 
+class EFeaturesSelectionGrouping(Enum):
+    """Select individual features"""
+    Individual = "Individual"
+    """Select feature groups (marked by tags)"""
+    ByTags = "ByTags"
+
+
 def _get_features_indices(features, feature_names):
     """
         Parameters
@@ -318,7 +343,15 @@ def _update_params_quantize_part(params, ignored_features, per_float_feature_qua
     return params
 
 
-def plot_features_selection_loss_graph(summary):
+def plot_features_selection_loss_graph(
+    title,
+    entities_name,
+    entities_name_in_fields,
+    eliminated_entities_indices,
+    eliminated_entities_names,
+    loss_graph,
+    cost_graph=None
+):
     warn_msg = "To draw plots you should install plotly."
     try:
         import plotly.graph_objs as go
@@ -326,80 +359,143 @@ def plot_features_selection_loss_graph(summary):
         warnings.warn(warn_msg)
         raise ImportError(str(e))
 
-    eliminated_features = summary['eliminated_features']
-    eliminated_features_names = summary['eliminated_features_names']
-    names_present = any(eliminated_features_names)
-    names_or_indices = eliminated_features_names if names_present else list(map(str, eliminated_features))
-    loss_values = summary['loss_graph']['loss_values']
-    removed_features_cnt = summary['loss_graph']['removed_features_count']
-    main_indices = summary['loss_graph']['main_indices']
+    indices_present = any(eliminated_entities_indices)
+    names_present = any(eliminated_entities_names)
+    names_or_indices = eliminated_entities_names if names_present else list(map(str, eliminated_entities_indices))
+    loss_values = loss_graph['loss_values']
+    removed_entities_cnt = loss_graph['removed_' + entities_name_in_fields + '_count']
+    main_indices = loss_graph['main_indices']
 
     fig = go.Figure()
-    color = 'rgb(51,160,44)'
+    fig['layout']['title'] = go.layout.Title(text=title)
+    loss_graph_color = 'rgb(51,160,44)'
     # line with all points
     fig.add_trace(go.Scatter(
-        x=removed_features_cnt,
+        x=removed_entities_cnt,
         y=loss_values,
-        line=go.scatter.Line(color=color),
+        line=go.scatter.Line(color=loss_graph_color),
         mode='lines+markers',
         text=[''] + names_or_indices,
         name=''
     ))
-    # red markers for main points
-    fig.add_trace(go.Scatter(
-        x=[removed_features_cnt[idx] for idx in main_indices],
-        y=[loss_values[idx] for idx in main_indices],
-        mode='markers',
-        marker=go.scatter.Marker(size=10, symbol='square'),
-        text=[names_or_indices[idx - 1] if idx > 0 else '' for idx in main_indices],
-        name=''
-    ))
-    # labels with features indices
-    fig.add_trace(go.Scatter(
-        x=removed_features_cnt,
-        y=loss_values,
-        mode='text',
-        text=[''] + list(map(str, eliminated_features)),
-        textposition='bottom center',
-        textfont=dict(family='sans serif', size=18, color=color),
-        name='',
-        visible=False
-    ))
-    if names_present:
-        # labels with features names
+
+    if len(main_indices) > 0:
+        # red markers for main points
         fig.add_trace(go.Scatter(
-            x=removed_features_cnt,
+            x=[removed_entities_cnt[idx] for idx in main_indices],
+            y=[loss_values[idx] for idx in main_indices],
+            mode='markers',
+            marker=go.scatter.Marker(size=10, symbol='square'),
+            text=[names_or_indices[idx - 1] if idx > 0 else '' for idx in main_indices],
+            name=''
+        ))
+    if indices_present:
+        # labels with entities indices
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
             y=loss_values,
             mode='text',
-            text=[''] + eliminated_features_names,
-            textfont=dict(family='sans serif', size=18, color=color),
+            text=[''] + list(map(str, eliminated_entities_indices)),
+            textposition='bottom center',
+            textfont=dict(family='sans serif', size=18, color=loss_graph_color),
+            name='',
+            visible=False
+        ))
+    if names_present:
+        # labels with entities names
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=loss_values,
+            mode='text',
+            text=[''] + eliminated_entities_names,
+            textfont=dict(family='sans serif', size=18, color=loss_graph_color),
             textposition='bottom center',
             name='',
+            visible=False
+        ))
+
+    cost_graph_color = 'rgb(160,44,44)'
+    if cost_graph is not None:
+        # line with all points
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=cost_graph['loss_values'],
+            line=go.scatter.Line(color=cost_graph_color),
+            mode='lines+markers',
+            text=[''] + eliminated_entities_names,
+            name='',
+            yaxis="y2"
+        ))
+
+        # labels with entities names
+        fig.add_trace(go.Scatter(
+            x=removed_entities_cnt,
+            y=cost_graph['loss_values'],
+            mode='text',
+            text=[''] + eliminated_entities_names,
+            textfont=dict(family='sans serif', size=18, color=cost_graph_color),
+            textposition='bottom center',
+            name='',
+            yaxis="y2",
             visible=False
         ))
     axis_options = dict(
         gridcolor='rgb(255,255,255)', showgrid=True, showline=False,
         showticklabels=True, tickcolor='rgb(127,127,127)', ticks='outside', zeroline=False
     )
-    fig['layout']['xaxis1'].update(title='number of removed features', **axis_options)
-    fig['layout']['yaxis1'].update(title='loss value', **axis_options)
+    fig.update_layout(
+        xaxis=dict(title='number of removed ' + entities_name, **axis_options),
+        yaxis=dict(
+            title='loss value',
+            titlefont=dict(color=loss_graph_color),
+            tickfont=dict(color=loss_graph_color),
+            **axis_options
+        )
+    )
+    if cost_graph is not None:
+        fig.update_layout(
+            yaxis2=dict(
+                title='cost value',
+                side="right",
+                anchor="x",
+                overlaying="y",
+                titlefont=dict(color=cost_graph_color),
+                tickfont=dict(color=cost_graph_color),
+                **axis_options
+            )
+        )
 
     buttons = []
+
+    def get_visible_arg(show_indices, show_names):
+        visible_arg = [True]
+        if len(main_indices) > 0:
+            visible_arg.append(True)
+        if indices_present:
+            visible_arg.append(show_indices)
+        if names_present:
+            visible_arg.append(show_names)
+        if cost_graph is not None:
+            visible_arg.append(True)
+            visible_arg.append(show_names)
+        return visible_arg
+
     buttons.append(dict(
-        label='Hide features',
+        label='Hide ' + entities_name,
         method='update',
-        args=[{"visible": [True, True, False, False]}]
+        args=[{"visible": get_visible_arg(show_indices=False, show_names=False)}]
     ))
-    buttons.append(dict(
-        label='Show indices',
-        method='update',
-        args=[{"visible": [True, True, True, False]}]
-    ))
+    if indices_present:
+        buttons.append(dict(
+            label='Show indices',
+            method='update',
+            args=[{"visible": get_visible_arg(show_indices=True, show_names=False)}]
+        ))
     if names_present:
         buttons.append(dict(
             label='Show names',
             method='update',
-            args=[{"visible": [True, True, False, True]}]
+            args=[{"visible": get_visible_arg(show_indices=False, show_names=True)}]
         ))
 
     fig.update_layout(
@@ -421,6 +517,29 @@ def plot_features_selection_loss_graph(summary):
 
     return fig
 
+def plot_features_selection_loss_graphs(summary):
+    result = {}
+    result['features'] = plot_features_selection_loss_graph(
+        'Loss by eliminated features',
+        'features',
+        'features',
+        summary['eliminated_features'],
+        summary['eliminated_features_names'],
+        summary['loss_graph']
+    )
+    if 'eliminated_features_tags' in summary:
+        result['features_tags'] = plot_features_selection_loss_graph(
+            'Loss by eliminated features tags',
+            'features tags',
+            'features_tags',
+            [],
+            summary['eliminated_features_tags'],
+            summary['features_tags_loss_graph'],
+            cost_graph=summary['features_tags_cost_graph']
+        )
+
+    return result
+
 
 class Pool(_PoolBase):
     """
@@ -434,6 +553,7 @@ class Pool(_PoolBase):
         cat_features=None,
         text_features=None,
         embedding_features=None,
+        embedding_features_data=None,
         column_description=None,
         pairs=None,
         delimiter='\t',
@@ -447,6 +567,7 @@ class Pool(_PoolBase):
         baseline=None,
         timestamp=None,
         feature_names=None,
+        feature_tags=None,
         thread_count=-1,
         log_cout=sys.stdout,
         log_cerr=sys.stderr
@@ -487,6 +608,12 @@ class Pool(_PoolBase):
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
+
+        embedding_features_data : list or dict, optional (default=None)
+            If not None, giving the data of Embedding features (instead of data in main 'data' parameter).
+            If list - list containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+            If dict - dict containing 2d arrays (lists or numpy.ndarrays or scipy.sparse.spmatrix) with [n_data_size x embedding_size] elements
+                Dict keys must be the same as specified in 'embedding_features' parameter
 
         column_description : string or pathlib.Path, optional (default=None)
             ColumnsDescription parameter.
@@ -550,6 +677,20 @@ class Pool(_PoolBase):
               from DataFrame's column names.
             Must be None if 'data' parameter has FeaturesData type
 
+        feature_tags : json, optional (default=None)
+            Format:
+            {'tag1':
+                {
+                    'features': [<ids or names of features>],
+                    'cost': <positive integer>
+                }
+             'tag2':
+                {
+                 ...
+                }
+            ...
+            }
+
         thread_count : int, optional (default=-1)
             Thread count for data processing.
             If -1, then the number of threads is set to the number of CPU cores.
@@ -567,10 +708,10 @@ class Pool(_PoolBase):
             if column_description is not None and not isinstance(data, PATH_TYPES):
                 raise CatBoostError("data should be the string or pathlib.Path type if column_description parameter is specified.")
             if isinstance(data, PATH_TYPES):
-                if any(v is not None for v in [cat_features, text_features, embedding_features, weight, group_id, group_weight,
+                if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight,
                                                subgroup_id, pairs_weight, baseline, label]):
                     raise CatBoostError(
-                        "cat_features, text_features, embedding_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
+                        "cat_features, text_features, embedding_features, embedding_features_data, weight, group_id, group_weight, subgroup_id, pairs_weight, "
                         "baseline, label should have the None type when the pool is read from the file."
                     )
                 if (feature_names is not None) and (not isinstance(feature_names, PATH_TYPES)):
@@ -581,9 +722,9 @@ class Pool(_PoolBase):
                            log_cout=log_cout, log_cerr=log_cerr)
             else:
                 if isinstance(data, FeaturesData):
-                    if any(v is not None for v in [cat_features, text_features, embedding_features, feature_names]):
+                    if any(v is not None for v in [cat_features, text_features, embedding_features, embedding_features_data, feature_names]):
                         raise CatBoostError(
-                            "cat_features, text_features, embedding_features, feature_names should have the None type"
+                            "cat_features, text_features, embedding_features, embedding_features_data, feature_names should have the None type"
                             " when 'data' parameter has FeaturesData type"
                         )
                 elif isinstance(data, np.ndarray):
@@ -598,10 +739,11 @@ class Pool(_PoolBase):
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
                     if (data.dtype.kind != 'O') and (embedding_features is not None) and (len(embedding_features) > 0):
-                        raise CatBoostError(
-                            "'data' is numpy array of non-object type, it means no embedding features,"
-                            " but 'embedding_features' parameter specifies nonzero number of embedding features"
-                        )
+                        if embedding_features_data is None:
+                            raise CatBoostError(
+                                "'data' is numpy array of non-object type, it means no embedding features,"
+                                " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                            )
                 elif isinstance(data, scipy.sparse.spmatrix):
                     if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
                         raise CatBoostError(
@@ -613,10 +755,30 @@ class Pool(_PoolBase):
                             "'data' is scipy.sparse.spmatrix, it means no text features,"
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
-                    if (embedding_features is not None) and (len(embedding_features) > 0):
+                    if (embedding_features is not None) and (len(embedding_features) > 0) and (embedding_features_data is None):
                         raise CatBoostError(
-                            "'data' is scipy.sparse.spmatrix, it means no embedding features,"
+                            "'data' is scipy.sparse.spmatrix and 'embedding_features_data' is None, it means no embedding features,"
                             " but 'embedding_features' parameter specifies nonzero number of embedding features"
+                        )
+
+                if embedding_features_data is not None:
+                    if embedding_features is None:
+                        raise CatBoostError(
+                            "'embedding_features_data' is not None, but 'embedding_features' parameter is not specified"
+                        )
+                    if isinstance(embedding_features_data, list):
+                        if len(embedding_features) != len(embedding_features_data):
+                            raise CatBoostError(
+                                "'embedding_features_data' and 'embedding_features' contain different numbers of features"
+                            )
+                    elif isinstance(embedding_features_data, dict):
+                        if set(embedding_features) != set(embedding_features_data.keys()):
+                            raise CatBoostError(
+                                "keys of 'embedding_features_data' dict do not correspond to 'embedding_features'"
+                            )
+                    else:
+                        raise CatBoostError(
+                            "'embedding_features_data' must have either 'list' or 'dict' type"
                         )
 
                 if isinstance(feature_names, PATH_TYPES):
@@ -625,7 +787,8 @@ class Pool(_PoolBase):
                         "python objects."
                     )
 
-                self._init(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, thread_count)
+                self._init(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
+                           group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -829,6 +992,36 @@ class Pool(_PoolBase):
         """
         if not isinstance(timestamp, ARRAY_TYPES):
             raise CatBoostError("Invalid timestamp type={}: must be array like.".format(type(timestamp)))
+
+    def _check_transform_tags(self, tags, feature_names):
+        if not isinstance(tags, dict):
+            raise CatBoostError("Invalid feature_tags type={}: must be dict like.".format(type(tags)))
+        for tag_name, tag_features in tags.items():
+            if not isinstance(tag_features, dict):
+                raise CatBoostError("Invalid type of value in feature_tags by key {}, value type is {}: must be dict like.".format(tag_name, type(tag_features)))
+            if 'features' not in tag_features:
+                raise CatBoostError("Invalid value in feature_tags by key {}, key 'features' is needed.".format(tag_name))
+            if not isinstance(tag_features['features'], ARRAY_TYPES):
+                raise CatBoostError("Invalid type of value in feature_tags by key {}, value type of features is {}: must be array like.".format(tag_name, type(tag_features['features'])))
+            if 'cost' not in tag_features:
+                tag_features['cost'] = 1.0
+            else:
+                if not isinstance(tag_features['cost'], (INTEGER_TYPES, str)):
+                    raise CatBoostError("Invalid type of value in feature_tags by key {}, value type of cost is {}: must be integer.".format(tag_name, type(tag_features['cost'])))
+                tag_features['cost'] = int(tag_features['cost'])
+
+            for idx in range(len(tag_features['features'])):
+                if isinstance(tag_features['features'][idx], INTEGER_TYPES):
+                    pass
+                elif isinstance(tag_features['features'][idx], str) and feature_names is not None:
+                    try:
+                        feature_id = feature_names.index(tag_features['features'][idx])
+                    except ValueError:
+                        raise CatBoostError("Unknown feature in tag {}: {}".format(tag_name, tag_features['features'][idx]))
+                    tag_features['features'][idx] = feature_id
+                else:
+                    raise CatBoostError("Invalid type of feature in tag {}, value type is {}: must be int or feature name.".format(tag_name, type(tag_features['features'][idx])))
+        return tags
 
     def _check_timestamp_shape(self, timestamp, samples_count):
         """
@@ -1078,6 +1271,38 @@ class Pool(_PoolBase):
                 thread_count,
                 quantization_params
             )
+            
+    def _infer_feature_names(self, data_as_data_frame, embedding_features_data=None, embedding_features=None):
+        non_embedding_data_feature_names = list(data_as_data_frame.columns)
+        
+        if embedding_features_data is not None:
+            if isinstance(embedding_features_data, dict):
+                embedding_feature_names = list(embedding_features_data.keys())
+                if embedding_features is not None:
+                    if set(embedding_features) != set(embedding_feature_names):
+                        raise CatBoostError('keys of embedding_features_data and embedding_features are different')
+                return non_embedding_data_feature_names + embedding_feature_names
+            else:
+                if embedding_features is None:
+                    raise CatBoostError('embedding_features is not specified but embedding_features_data without feature names is present')
+                if not all([isinstance(embedding_feature_id, INTEGER_TYPES) for embedding_feature_id in embedding_features]):
+                    raise CatBoostError('embedding_features contain feature names but embedding_features_data without feature names is present')
+                
+                embedding_features_set = set(embedding_features)
+
+                feature_names = []
+                non_embedding_feature_idx = 0
+                for feature_idx in range(len(non_embedding_data_feature_names) + len(embedding_features)):
+                    if feature_idx in embedding_features_set:
+                        feature_names.append('_embedding_feature_%i' % feature_idx)
+                    else:
+                        feature_names.append(non_embedding_data_feature_names[non_embedding_feature_idx])
+                        non_embedding_feature_idx += 1
+                        
+                return feature_names
+        else:
+            return non_embedding_data_feature_names
+
 
     def _init(
         self,
@@ -1086,6 +1311,7 @@ class Pool(_PoolBase):
         cat_features,
         text_features,
         embedding_features,
+        embedding_features_data,
         pairs, weight,
         group_id,
         group_weight,
@@ -1094,6 +1320,7 @@ class Pool(_PoolBase):
         baseline,
         timestamp,
         feature_names,
+        feature_tags,
         thread_count
     ):
         """
@@ -1101,16 +1328,27 @@ class Pool(_PoolBase):
         """
         if isinstance(data, DataFrame):
             if feature_names is None:
-                feature_names = list(data.columns)
+                feature_names = self._infer_feature_names(data, embedding_features_data, embedding_features)
         if isinstance(data, Series):
             data = data.values.tolist()
         if isinstance(data, FeaturesData):
             samples_count = data.get_object_count()
             features_count = data.get_feature_count()
-        else:
+        elif data is not None:
             if len(np.shape(data)) == 1:
                 data = np.expand_dims(data, 1)
             samples_count, features_count = np.shape(data)
+        if embedding_features_data is not None:
+            features_count += len(embedding_features_data)
+            if isinstance(embedding_features_data, dict):
+                embedding_features_data_values = list(embedding_features_data.values())
+            else:
+                embedding_features_data_values = embedding_features_data
+            for embedding_feature_data in embedding_features_data_values:
+                if len(embedding_feature_data) != samples_count:
+                    raise CatBoostError(
+                        "samples count in 'embeddings_features_data' does not correspond to samples count in main data"
+                    )
         pairs_len = 0
         if label is not None:
             self._check_label_type(label)
@@ -1168,7 +1406,10 @@ class Pool(_PoolBase):
             self._check_timestamp_type(timestamp)
             timestamp = self._if_pandas_to_numpy(timestamp)
             self._check_timestamp_shape(timestamp, samples_count)
-        self._init_pool(data, label, cat_features, text_features, embedding_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, thread_count)
+        if feature_tags is not None:
+            feature_tags = self._check_transform_tags(feature_tags, feature_names)
+        self._init_pool(data, label, cat_features, text_features, embedding_features, embedding_features_data, pairs, weight,
+                        group_id, group_weight, subgroup_id, pairs_weight, baseline, timestamp, feature_names, feature_tags, thread_count)
 
 
 def _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
@@ -1213,8 +1454,57 @@ def _get_catboost_widget(train_dirs):
         raise ImportError(str(e))
 
 
+def _get_plotly_figs(data):
+    try:
+        import plotly.graph_objs as go
+    except ImportError as e:
+        warnings.warn("To save plots to files you should install plotly.")
+        raise ImportError(str(e))
+
+    figs = []
+    for path, dir_data in data.items():
+        fig = go.Figure()
+        fig['layout']['title'] = go.layout.Title(text=dir_data['name'])
+        
+        iterations = dir_data['content']['iterations']
+        
+        learn_graph_color = 'rgb(160,0,0)'
+        
+        fig.add_trace(go.Scatter(
+            x=[e['iteration'] for e in iterations],
+            y=[e['learn'][0] for e in iterations],
+            line=go.scatter.Line(color=learn_graph_color),
+            mode='lines+markers',
+            name='learn'
+        ))
+        
+        test_graph_color = 'rgb(0,160,0)'
+        
+        fig.add_trace(go.Scatter(
+            x=[e['iteration'] for e in iterations],
+            y=[e['test'][0] for e in iterations],
+            line=go.scatter.Line(color=test_graph_color),
+            mode='lines+markers',
+            name='test'
+        ))
+        
+        fig.update_layout(
+            xaxis=dict(title='iterations'),
+            yaxis=dict(title='loss value')
+        )
+        
+        figs.append(fig)
+    
+    return figs
+    
+
+def _save_train_plot(widget, plot_file):
+    figs = _get_plotly_figs(widget.data)
+    save_plot_file(plot_file, 'Train errors', figs[0])
+
+
 @contextmanager
-def plot_wrapper(plot, train_dirs):
+def plot_wrapper(plot, plot_file, train_dirs):
     if plot:
         widget = _get_catboost_widget(train_dirs)
         widget._run_update()
@@ -1223,6 +1513,8 @@ def plot_wrapper(plot, train_dirs):
     finally:
         if plot:
             widget._stop_update()
+            if plot_file:
+                _save_train_plot(widget, plot_file)
 
 
 # the first element of the synonyms list is the canonical name
@@ -1260,7 +1552,7 @@ def _process_synonyms(params):
 
     if 'scale_pos_weight' in params:
         if 'loss_function' in params and params['loss_function'] != 'Logloss':
-                raise CatBoostError('scale_pos_weight is supported only for binary classification Logloss loss')
+            raise CatBoostError('scale_pos_weight is supported only for binary classification Logloss loss')
         if 'class_weights' in params or 'auto_class_weights' in params:
             raise CatBoostError('only one of the parameters scale_pos_weight, class_weights, auto_class_weights should be initialized.')
         params['class_weights'] = [1.0, params['scale_pos_weight']]
@@ -1886,7 +2178,7 @@ class CatBoost(_CatBoostBase):
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
-                              logging_level=None, plot=None, column_description=None, verbose_eval=None,
+                              logging_level=None, plot=None, plot_file=None, column_description=None, verbose_eval=None,
                               metric_period=None, silent=None, early_stopping_rounds=None, save_snapshot=None,
                               snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None):
         params = deepcopy(self._init_params)
@@ -2008,7 +2300,7 @@ class CatBoost(_CatBoostBase):
         }
 
     def _fit(self, X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
-             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout=sys.stdout, log_cerr=sys.stderr):
 
@@ -2022,7 +2314,7 @@ class CatBoost(_CatBoostBase):
             X=X, y=y, cat_features=cat_features, text_features=text_features, embedding_features=embedding_features,
             pairs=pairs, sample_weight=sample_weight, group_id=group_id, group_weight=group_weight,
             subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline, use_best_model=use_best_model,
-            eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot,
+            eval_set=eval_set, verbose=verbose, logging_level=logging_level, plot=plot, plot_file=plot_file,
             column_description=column_description, verbose_eval=verbose_eval, metric_period=metric_period,
             silent=silent, early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
             snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model,
@@ -2033,7 +2325,7 @@ class CatBoost(_CatBoostBase):
         allow_clear_pool = train_params["allow_clear_pool"]
 
         with log_fixup(log_cout, log_cerr), \
-            plot_wrapper(plot, [_get_train_dir(self.get_params())]):
+            plot_wrapper(plot, plot_file, [_get_train_dir(self.get_params())]):
             self._train(
                 train_pool,
                 train_params["eval_sets"],
@@ -2060,7 +2352,7 @@ class CatBoost(_CatBoostBase):
 
     def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, pairs=None, sample_weight=None, group_id=None,
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -2156,6 +2448,9 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
+
         early_stopping_rounds : int
             Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
 
@@ -2184,7 +2479,7 @@ class CatBoost(_CatBoostBase):
         model : CatBoost
         """
         return self._fit(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
-                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, plot_file,
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
@@ -2494,7 +2789,7 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("Model is not fitted")
         return self._get_embedding_feature_indices()
 
-    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir, plot, plot_file, log_cout=sys.stdout, log_cerr=sys.stderr):
         if not self.is_fitted():
             raise CatBoostError("There is no trained model to evaluate metrics on. Use fit() to train model. Then call this method.")
         if not isinstance(data, Pool):
@@ -2511,12 +2806,12 @@ class CatBoost(_CatBoostBase):
         if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [res_dir]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
         return dict(zip(metric_names, metrics_score))
 
-    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False, plot_file=None, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Calculate metrics.
 
@@ -2549,6 +2844,9 @@ class CatBoost(_CatBoostBase):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+            
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
 
         log_cout: output stream or callback for logging
 
@@ -2558,7 +2856,7 @@ class CatBoost(_CatBoostBase):
         -------
         prediction : dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period]
         """
-        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, log_cout, log_cerr)
+        return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, plot_file, log_cout, log_cerr)
 
     def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
@@ -2618,11 +2916,11 @@ class CatBoost(_CatBoostBase):
         create_if_not_exist(first_dir)
         create_if_not_exist(second_dir)
 
-        with plot_wrapper(True, [first_dir, second_dir]):
+        with plot_wrapper(True, plot_file=None, train_dirs=[first_dir, second_dir]):
             self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir,
-                               plot=False, log_cout=log_cout, log_cerr=log_cerr)
+                               plot=False, plot_file=None, log_cout=log_cout, log_cerr=log_cerr)
             model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir,
-                                plot=False, log_cout=log_cout, log_cerr=log_cerr)
+                                plot=False, plot_file=None, log_cout=log_cout, log_cerr=log_cerr)
 
         if need_to_remove:
             shutil.rmtree(tmp_dir)
@@ -3412,10 +3710,10 @@ class CatBoost(_CatBoostBase):
             cat_feature_values = {}
         else:
             if not isinstance(cat_feature_values, dict):
-                if isinstance(features, list):
+                if isinstance(feature, list):
                     raise CatBoostError('cat_feature_values should be dict when features is a list')
                 else:
-                    cat_feature_values = {features: cat_feature_values}
+                    cat_feature_values = {feature: cat_feature_values}
 
         if isinstance(feature, str) or isinstance(feature, int):
             features = [feature]
@@ -3607,7 +3905,7 @@ class CatBoost(_CatBoostBase):
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
-                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False,
+                          refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=1, plot=False, plot_file=None,
                           log_cout=sys.stdout, log_cerr=sys.stderr):
 
         if refit and self.is_fitted():
@@ -3666,7 +3964,7 @@ class CatBoost(_CatBoostBase):
             loss_function = params.get('loss_function', None)
             stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, [_get_train_dir(params)]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [_get_train_dir(params)]):
             cv_result = self._object._tune_hyperparams(
                 param_grid, train_params["train_pool"], params, n_iter,
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
@@ -3885,7 +4183,8 @@ class CatBoost(_CatBoostBase):
 
     def select_features(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None,
                         algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None,
-                        logging_level=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr):
+                        logging_level=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr,
+                        grouping=None, features_tags_for_select=None, num_features_tags_to_select=None):
         """
         Select best features from pool according to loss value.
 
@@ -3902,6 +4201,7 @@ class CatBoost(_CatBoostBase):
             Dataset for evaluation.
 
         features_for_select : str or list of feature indices, names or ranges
+            (for grouping = Individual)
             Which features should participate in the selection.
             Format examples:
                 - [0, 2, 3, 4, 17]
@@ -3910,6 +4210,7 @@ class CatBoost(_CatBoostBase):
                 - ["Name0", "Name2", "Name3", "Name4", "Name20"]
 
         num_features_to_select : positive int
+            (for grouping = Individual)
             How many features to select from features_for_select.
 
         algorithm : EFeaturesSelectionAlgorithm or string, optional (default=RecursiveByShapValues)
@@ -3959,11 +4260,29 @@ class CatBoost(_CatBoostBase):
 
         log_cerr: error stream or callback for logging
 
+        grouping : EFeaturesSelectionGrouping or string, optional (default=Individual)
+            Which grouping to use for features selection.
+            Possible values:
+                - Individual
+                    Select individual features
+                - ByTags
+                    Select feature groups (marked by tags)
+
+        features_tags_for_select : list of strings
+            (for grouping = ByTags)
+            Which features tags should participate in the selection.
+
+        num_features_tags_to_select : positive int
+            (for grouping = ByTags)
+            How many features tags to select from features_tags_for_select.
+
         Returns
         -------
         dict with fields:
             'selected_features': list of selected features indices
             'eliminated_features': list of eliminated features indices
+            'selected_features_tags': list of selected features tags (optional, present if grouping == ByTags)
+            'eliminated_features_tags': list of selected features tags (optional, present if grouping == ByTags)
         """
         if train_final_model and self.is_fitted():
             raise CatBoostError("Model was already fitted. Set train_final_model to False or use not fitted model.")
@@ -3971,21 +4290,48 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError("X must not be None")
         if y is None and not isinstance(X, PATH_TYPES + (Pool,)):
             raise CatBoostError("y may be None only when X is an instance of catboost.Pool, str or pathlib.Path.")
-        if isinstance(features_for_select, Iterable) and not isinstance(features_for_select, STRING_TYPES):
-            features_for_select = ",".join(map(str, features_for_select))
-        if features_for_select is None:
-            raise CatBoostError("You should specify features_for_select")
-        if num_features_to_select is None:
-            raise CatBoostError("You should specify num_features_to_select")
 
         train_params = self._prepare_train_params(X=X, y=y, eval_set=eval_set, verbose=verbose, logging_level=logging_level)
         params = train_params["params"]
+
+        if grouping is None:
+            grouping = EFeaturesSelectionGrouping.Individual
+        else:
+            grouping = enum_from_enum_or_str(EFeaturesSelectionGrouping, grouping).value
+            params["features_selection_grouping"] = grouping
+
+        if grouping == EFeaturesSelectionGrouping.Individual:
+            if isinstance(features_for_select, Iterable) and not isinstance(features_for_select, STRING_TYPES):
+                features_for_select = ",".join(map(str, features_for_select))
+            if features_for_select is None:
+                raise CatBoostError("You should specify features_for_select")
+            if features_tags_for_select is not None:
+                raise CatBoostError("You should not specify features_tags_for_select when grouping is Individual")
+            if num_features_to_select is None:
+                raise CatBoostError("You should specify num_features_to_select")
+            if num_features_tags_to_select is not None:
+                raise CatBoostError("You should not specify num_features_tags_to_select when grouping is Individual")
+            params["features_for_select"] = features_for_select
+            params["num_features_to_select"] = num_features_to_select
+        else:  # ByTag
+            if features_tags_for_select is None:
+                raise CatBoostError("You should specify features_tags_for_select")
+            if not isinstance(features_tags_for_select, Sequence):
+                raise CatBoostError("features_tags_for_select must be a list of strings")
+            if features_for_select is not None:
+                raise CatBoostError("You should not specify features_for_select when grouping is ByTags")
+            if num_features_tags_to_select is None:
+                raise CatBoostError("You should specify num_features_tags_to_select")
+            if num_features_to_select is not None:
+                raise CatBoostError("You should not specify num_features_to_select when grouping is ByTags")
+            params["features_tags_for_select"] = features_tags_for_select
+            params["num_features_tags_to_select"] = num_features_tags_to_select
+
         objective = params.get("loss_function")
         is_custom_objective = objective is not None and not isinstance(objective, string_types)
         if is_custom_objective:
             raise CatBoostError("Custom objective is not supported for features selection")
-        params["features_for_select"] = features_for_select
-        params["num_features_to_select"] = num_features_to_select
+
         if algorithm is not None:
             params["features_selection_algorithm"] = enum_from_enum_or_str(EFeaturesSelectionAlgorithm, algorithm).value
         if steps is not None:
@@ -4013,15 +4359,17 @@ class CatBoost(_CatBoostBase):
         for plot_dir in plot_dirs:
             create_if_not_exist(plot_dir)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_dirs):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
             summary = self._object._select_features(train_pool, test_pool, params)
 
         if train_final_model:
             self._set_trained_model_attributes()
 
         if plot:
-            fig = plot_features_selection_loss_graph(summary)
-            fig.show()
+            figures = plot_features_selection_loss_graphs(summary)
+            figures['features'].show()
+            if 'features_tags' in figures:
+                figures['features_tags'].show()
 
         return summary
 
@@ -4481,6 +4829,9 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : dict,
         Text processging description.
+        
+    eval_fraction : float, [default=None]
+        Fraction of the train dataset to be used as the evaluation dataset.
     """
 
     _estimator_type = 'classifier'
@@ -4602,7 +4953,8 @@ class CatBoostClassifier(CatBoost):
         feature_calcers=None,
         text_processing=None,
         embedding_features=None,
-        callback=None
+        callback=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -4613,7 +4965,7 @@ class CatBoostClassifier(CatBoost):
         super(CatBoostClassifier, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, text_features=None, embedding_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -4677,6 +5029,9 @@ class CatBoostClassifier(CatBoost):
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
+
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
 
@@ -4714,7 +5069,7 @@ class CatBoostClassifier(CatBoost):
             CatBoostClassifier._check_is_compatible_loss(params['loss_function'])
 
         self._fit(X, y, cat_features, text_features, embedding_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
@@ -5192,7 +5547,8 @@ class CatBoostRegressor(CatBoost):
         langevin=None,
         diffusion_temperature=None,
         posterior_sampling=None,
-        boost_from_average=None
+        boost_from_average=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5203,7 +5559,7 @@ class CatBoostRegressor(CatBoost):
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -5259,6 +5615,9 @@ class CatBoostRegressor(CatBoost):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+            
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file (requires installed plotly)
 
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
@@ -5297,7 +5656,7 @@ class CatBoostRegressor(CatBoost):
             CatBoostRegressor._check_is_compatible_loss(params['loss_function'])
 
         return self._fit(X, y, cat_features, None, None, None, sample_weight, None, None, None, None, baseline,
-                         use_best_model, eval_set, verbose, logging_level, plot, column_description,
+                         use_best_model, eval_set, verbose, logging_level, plot, plot_file, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
 
@@ -5570,7 +5929,8 @@ class CatBoostRanker(CatBoost):
         dictionaries=None,
         feature_calcers=None,
         text_processing=None,
-        embedding_features=None
+        embedding_features=None,
+        eval_fraction=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5583,7 +5943,7 @@ class CatBoostRanker(CatBoost):
     def fit(self, X, y=None, group_id=None, cat_features=None, text_features=None,
             embedding_features=None, pairs=None, sample_weight=None, group_weight=None,
             subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, plot_file=None, column_description=None,
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None, init_model=None, callbacks=None,
             log_cout=sys.stdout, log_cerr=sys.stderr):
@@ -5648,6 +6008,8 @@ class CatBoostRanker(CatBoost):
                 - 'Debug'
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
         metric_period : int
@@ -5685,7 +6047,7 @@ class CatBoostRanker(CatBoost):
 
         self._fit(X, y, cat_features, text_features, embedding_features, pairs,
                   sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  eval_set, verbose, logging_level, plot, plot_file, column_description, verbose_eval, metric_period,
                   silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, init_model, callbacks, log_cout, log_cerr)
         return self
 
@@ -5812,7 +6174,7 @@ class CatBoostRanker(CatBoost):
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
-          num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
+          num_boost_round=None, evals=None, eval_set=None, plot=None, plot_file=None, verbose_eval=None, metric_period=None,
           early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None,
           init_model=None, log_cout=sys.stdout, log_cerr=sys.stderr):
     """
@@ -5867,6 +6229,9 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
 
     plot : bool, optional (default=False)
         If True, draw train and eval error in Jupyter notebook
+`
+    plot_file : file-like or str, optional (default=None)
+        If not None, save train and eval error graphs to file
 
     early_stopping_rounds : int
         Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
@@ -5929,7 +6294,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         eval_set = evals
 
     model = CatBoost(params)
-    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
+    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, plot_file=plot_file, verbose=verbose,
               verbose_eval=verbose_eval, metric_period=metric_period,
               early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
               snapshot_file=snapshot_file, snapshot_interval=snapshot_interval, init_model=init_model,
@@ -6150,7 +6515,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         params['snapshot_interval'] = snapshot_interval
 
     if nfold is None and fold_count is None:
-        fold_count = 3
+        if folds is None:
+            fold_count = 3
+        else:
+            if hasattr(folds, 'get_n_splits'):  # sklearn splitter
+                fold_count = folds.get_n_splits()
+            elif hasattr(folds, '__len__'):
+                fold_count = len(folds)
+            else:
+                folds = list(folds)
+                fold_count = len(folds)
     elif fold_count is None:
         fold_count = nfold
     else:
@@ -6196,7 +6570,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     for plot_dir in plot_dirs:
         create_if_not_exist(plot_dir)
 
-    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_dirs):
+    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
         if not return_models:
             return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                     metric_update_interval, as_pandas, folds, type, return_models)

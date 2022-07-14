@@ -5,7 +5,6 @@
 
 #include <util/charset/utf8.h>
 #include <util/generic/deque.h>
-#include <util/generic/hash_set.h>
 
 namespace NTextProcessing::NDictionary {
     class IDictionaryBuilderImpl {

@@ -83,8 +83,14 @@
 
 #ifdef NDEBUG
     #define Y_IF_DEBUG(X)
+    #ifdef __cplusplus
+constexpr bool Y_IS_DEBUG_BUILD = false;
+    #endif
 #else
     #define Y_IF_DEBUG(X) X
+    #ifdef __cplusplus
+constexpr bool Y_IS_DEBUG_BUILD = true;
+    #endif
 #endif
 
 /**

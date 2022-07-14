@@ -1,4 +1,4 @@
-from numpy.testing import assert_raises, assert_, assert_equal
+from numpy.testing import assert_raises, assert_warns, assert_, assert_equal
 from numpy.compat import pickle
 
 import sys
@@ -16,13 +16,15 @@ def test_numpy_reloading():
     VisibleDeprecationWarning = np.VisibleDeprecationWarning
     ModuleDeprecationWarning = np.ModuleDeprecationWarning
 
-    reload(np)
+    with assert_warns(UserWarning):
+        reload(np)
     assert_(_NoValue is np._NoValue)
     assert_(ModuleDeprecationWarning is np.ModuleDeprecationWarning)
     assert_(VisibleDeprecationWarning is np.VisibleDeprecationWarning)
 
     assert_raises(RuntimeError, reload, numpy._globals)
-    reload(np)
+    with assert_warns(UserWarning):
+        reload(np)
     assert_(_NoValue is np._NoValue)
     assert_(ModuleDeprecationWarning is np.ModuleDeprecationWarning)
     assert_(VisibleDeprecationWarning is np.VisibleDeprecationWarning)
@@ -35,7 +37,9 @@ def test_novalue():
                                           protocol=proto)) is np._NoValue)
 
 
-def _test_full_reimport():
+import pytest
+@pytest.mark.skip
+def test_full_reimport():
     """At the time of writing this, it is *not* truly supported, but
     apparently enough users rely on it, for it to be an annoying change
     when it started failing previously.
@@ -45,13 +49,18 @@ def _test_full_reimport():
     # This is generally unsafe, especially, since we also reload the C-modules.
     code = textwrap.dedent(r"""
         import sys
+        from pytest import warns
         import numpy as np
 
         for k in list(sys.modules.keys()):
             if "numpy" in k:
                 del sys.modules[k]
 
-        import numpy as np
+        with warns(UserWarning):
+            import numpy as np
         """)
-    p = subprocess.run([sys.executable, '-c', code])
-    assert p.returncode == 0
+    p = subprocess.run([sys.executable, '-c', code], capture_output=True)
+    if p.returncode:
+        raise AssertionError(
+            f"Non-zero return code: {p.returncode!r}\n\n{p.stderr.decode()}"
+        )

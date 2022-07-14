@@ -4,7 +4,7 @@
 
     Lexers for grammar notations like BNF.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,7 +12,7 @@ import re
 
 from pygments.lexer import RegexLexer, bygroups, include, this, using, words
 from pygments.token import Comment, Keyword, Literal, Name, Number, \
-    Operator, Punctuation, String, Text
+    Operator, Punctuation, String, Text, Whitespace
 
 __all__ = ['BnfLexer', 'AbnfLexer', 'JsgfLexer', 'PegLexer']
 
@@ -39,7 +39,7 @@ class BnfLexer(RegexLexer):
     * We don't distinguish any operators and punctuation except
       `::=`.
 
-    Though these desision making might cause too minimal highlighting
+    Though these decision making might cause too minimal highlighting
     and you might be disappointed, but it is reasonable for us.
 
     .. versionadded:: 2.1
@@ -67,15 +67,15 @@ class BnfLexer(RegexLexer):
 
 class AbnfLexer(RegexLexer):
     """
-    Lexer for `IETF 7405 ABNF
-    <http://www.ietf.org/rfc/rfc7405.txt>`_
-    (Updates `5234 <http://www.ietf.org/rfc/rfc5234.txt>`_)
-    grammars.
+    Lexer for IETF 7405 ABNF.
+
+    (Updates `5234 <http://www.ietf.org/rfc/rfc5234.txt>`_) grammars.
 
     .. versionadded:: 2.1
     """
 
     name = 'ABNF'
+    url = 'http://www.ietf.org/rfc/rfc7405.txt'
     aliases = ['abnf']
     filenames = ['*.abnf']
     mimetypes = ['text/x-abnf']
@@ -117,7 +117,7 @@ class AbnfLexer(RegexLexer):
             (words(_core_rules, suffix=r'\b'), Keyword),
 
             # nonterminals (ALPHA *(ALPHA / DIGIT / "-"))
-            (r'[a-zA-Z][a-zA-Z0-9-]+\b', Name.Class),
+            (r'[a-zA-Z][a-zA-Z0-9-]*\b', Name.Class),
 
             # operators
             (r'(=/|=|/)', Operator),
@@ -126,7 +126,7 @@ class AbnfLexer(RegexLexer):
             (r'[\[\]()]', Punctuation),
 
             # fallback
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'.', Text),
         ],
     }
@@ -134,17 +134,15 @@ class AbnfLexer(RegexLexer):
 
 class JsgfLexer(RegexLexer):
     """
-    For `JSpeech Grammar Format <https://www.w3.org/TR/jsgf/>`_
-    grammars.
+    For JSpeech Grammar Format grammars.
 
     .. versionadded:: 2.2
     """
     name = 'JSGF'
+    url = 'https://www.w3.org/TR/jsgf/'
     aliases = ['jsgf']
     filenames = ['*.jsgf']
     mimetypes = ['application/jsgf', 'application/x-jsgf', 'text/jsgf']
-
-    flags = re.MULTILINE | re.UNICODE
 
     tokens = {
         'root': [
@@ -154,11 +152,11 @@ class JsgfLexer(RegexLexer):
         'comments': [
             (r'/\*\*(?!/)', Comment.Multiline, 'documentation comment'),
             (r'/\*[\w\W]*?\*/', Comment.Multiline),
-            (r'//.*', Comment.Single),
+            (r'//.*$', Comment.Single),
         ],
         'non-comments': [
             (r'\A#JSGF[^;]*', Comment.Preproc),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r';', Punctuation),
             (r'[=|()\[\]*+]', Operator),
             (r'/[^/]+/', Number.Float),
@@ -183,29 +181,29 @@ class JsgfLexer(RegexLexer):
         ],
         'grammar name': [
             (r';', Punctuation, '#pop'),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'\.', Punctuation),
             (r'[^;\s.]+', Name.Namespace),
         ],
         'rulename': [
             (r'>', Punctuation, '#pop'),
             (r'\*', Punctuation),
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             (r'([^.>]+)(\s*)(\.)', bygroups(Name.Namespace, Text, Punctuation)),
             (r'[^.>]+', Name.Constant),
         ],
         'documentation comment': [
             (r'\*/', Comment.Multiline, '#pop'),
-            (r'(^\s*\*?\s*)(@(?:example|see)\s+)'
+            (r'^(\s*)(\*?)(\s*)(@(?:example|see))(\s+)'
              r'([\w\W]*?(?=(?:^\s*\*?\s*@|\*/)))',
-             bygroups(Comment.Multiline, Comment.Special,
-                      using(this, state='example'))),
+             bygroups(Whitespace,Comment.Multiline, Whitespace, Comment.Special,
+                      Whitespace, using(this, state='example'))),
             (r'(^\s*\*?\s*)(@\S*)',
              bygroups(Comment.Multiline, Comment.Special)),
             (r'[^*\n@]+|\w|\W', Comment.Multiline),
         ],
         'example': [
-            (r'\n\s*\*', Comment.Multiline),
+            (r'(\n\s*)(\*)', bygroups(Whitespace, Comment.Multiline)),
             include('non-comments'),
             (r'.', Comment.Multiline),
         ],
@@ -214,8 +212,7 @@ class JsgfLexer(RegexLexer):
 
 class PegLexer(RegexLexer):
     """
-    This lexer is for `Parsing Expression Grammars
-    <https://bford.info/pub/lang/peg.pdf>`_ (PEG).
+    This lexer is for Parsing Expression Grammars (PEG).
 
     Various implementations of PEG have made different decisions
     regarding the syntax, so let's try to be accommodating:
@@ -234,6 +231,7 @@ class PegLexer(RegexLexer):
     """
 
     name = 'PEG'
+    url = 'https://bford.info/pub/lang/peg.pdf'
     aliases = ['peg']
     filenames = ['*.peg']
     mimetypes = ['text/x-peg']
@@ -241,7 +239,7 @@ class PegLexer(RegexLexer):
     tokens = {
         'root': [
             # Comments
-            (r'#.*', Comment.Single),
+            (r'#.*$', Comment.Single),
 
             # All operators
             (r'<-|[←:=/|&!?*+^↑~]', Operator),

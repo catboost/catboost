@@ -203,7 +203,7 @@ namespace NCatboostCuda {
             }
 
             if (ProgressTracker->NeedBestTestCursor()) {
-                Y_VERIFY(TestDataProvider);
+                CB_ENSURE(TestDataProvider, "Need test data provider");
                 cursors->BestTestCursor = MakeHolder<TStripeBuffer<float>>();
                 (*cursors->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(cursors->TestCursor);
             }
@@ -398,7 +398,7 @@ namespace NCatboostCuda {
                 }
 
                 if (bestTestCursor && iterationProgressTracker.IsBestTestIteration()) {
-                    Y_VERIFY(testCursor);
+                    CB_ENSURE(testCursor, "Need cursor for test data");
                     bestTestCursor->Copy(*testCursor);
                 }
             }

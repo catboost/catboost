@@ -25,7 +25,6 @@ from email import message_from_file
 
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.util import rfc822_escape
-from distutils.version import StrictVersion
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
@@ -39,6 +38,7 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
+from setuptools.extern.packaging import version
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -55,7 +55,7 @@ def _get_unpatched(cls):
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = StrictVersion('2.1')
+        mv = version.Version('2.1')
         self.metadata_version = mv
     return mv
 
@@ -103,7 +103,7 @@ def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
 
-    self.metadata_version = StrictVersion(msg['metadata-version'])
+    self.metadata_version = version.Version(msg['metadata-version'])
     self.name = _read_field_from_msg(msg, 'name')
     self.version = _read_field_from_msg(msg, 'version')
     self.description = _read_field_from_msg(msg, 'summary')
@@ -121,7 +121,10 @@ def read_pkg_file(self, file):
         self.download_url = None
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if self.long_description is None and self.metadata_version >= StrictVersion('2.1'):
+    if (
+        self.long_description is None and
+        self.metadata_version >= version.Version('2.1')
+    ):
         self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
 
@@ -132,7 +135,7 @@ def read_pkg_file(self, file):
     self.classifiers = _read_list_from_msg(msg, 'classifier')
 
     # PEP 314 - these fields only exist in 1.1
-    if self.metadata_version == StrictVersion('1.1'):
+    if self.metadata_version == version.Version('1.1'):
         self.requires = _read_list_from_msg(msg, 'requires')
         self.provides = _read_list_from_msg(msg, 'provides')
         self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
@@ -145,11 +148,14 @@ def read_pkg_file(self, file):
 
 
 def single_line(val):
-    # quick and dirty validation for description pypa/setuptools#1390
+    """
+    Quick and dirty validation for Summary pypa/setuptools#1390.
+    """
     if '\n' in val:
-        # TODO after 2021-07-31: Replace with `raise ValueError("newlines not allowed")`
+        # TODO: Replace with `raise ValueError("newlines not allowed")`
+        # after reviewing #2893.
         warnings.warn("newlines not allowed and will break in the future")
-        val = val.replace('\n', ' ')
+        val = val.strip().split('\n')[0]
     return val
 
 

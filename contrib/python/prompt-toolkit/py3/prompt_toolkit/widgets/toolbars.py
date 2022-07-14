@@ -152,7 +152,7 @@ class SystemToolbar:
         async def _accept_vi(event: E) -> None:
             "Run system command."
             event.app.vi_state.input_mode = InputMode.NAVIGATION
-            event.app.run_system_command(
+            await event.app.run_system_command(
                 self.system_buffer.text,
                 display_before_text=self._get_display_before_text(),
             )
@@ -352,7 +352,7 @@ class ValidationToolbar:
                 )
 
                 if show_position:
-                    text = "%s (line=%s column=%s)" % (
+                    text = "{} (line={} column={})".format(
                         buff.validation_error.message,
                         row + 1,
                         column + 1,

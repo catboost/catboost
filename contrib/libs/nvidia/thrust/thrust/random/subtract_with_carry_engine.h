@@ -28,8 +28,7 @@
 #include <cstddef> // for size_t
 #include <iostream>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -250,7 +249,7 @@ using random::subtract_with_carry_engine;
 using random::ranlux24_base;
 using random::ranlux48_base;
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/random/detail/subtract_with_carry_engine.inl>
 

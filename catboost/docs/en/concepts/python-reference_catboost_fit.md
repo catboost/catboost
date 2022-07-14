@@ -13,6 +13,7 @@ fit(X,
     y=None,
     cat_features=None,
     text_features=None,
+    embedding_features=None,
     pairs=None,
     sample_weight=None,
     group_id=None,
@@ -63,6 +64,7 @@ If a nontrivial value of the `cat_features` parameter is specified in the constr
 {% endcut %}
 
 {% cut "{{ python-type--list }}, {{ python-type--numpyarray }}, {{ python-type--pandasDataFrame }}, {{ python-type--pandasSeries }}" %}
+
 The input training dataset in the form of a two-dimensional feature matrix.
 
 {% endcut %}
@@ -166,6 +168,29 @@ None (all features are either considered numerical or of other types if specifie
 **Supported processing units**
 
 {% include [reusage-python-cpu-and-gpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
+
+
+
+### embedding_features
+
+#### Description
+
+A one-dimensional array of embedding columns indices (specified as integers) or names (specified as strings).
+
+{% include [reusage-python__cat_features__description__non-catfeatures-text](../_includes/work_src/reusage/python__cat_features__description__non-catfeatures-text.md) %}
+
+**Possible types**
+
+- {{ python-type--list }}
+- {{ python-type--numpyarray }}
+
+**Default value**
+
+{% include [default-value-none](../_includes/concepts/default-value-none.md) %}
+
+**Supported processing units**
+
+{{ cpu-gpu }}
 
 
 

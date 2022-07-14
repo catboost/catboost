@@ -28,8 +28,7 @@
 #include <vector>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup container_classes Container Classes
  *  \addtogroup host_containers Host Containers
@@ -199,7 +198,9 @@ template<typename T, typename Alloc = std::allocator<T> >
     host_vector &operator=(const std::vector<OtherT,OtherAlloc> &v)
     { Parent::operator=(v); return *this;}
 
-    /*! Copy construct from a \p vector_base of related type..
+    /*! Copy construct from a \p vector_base whose element type is convertible
+     *  to \c T.
+     *
      *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
@@ -207,7 +208,8 @@ template<typename T, typename Alloc = std::allocator<T> >
     host_vector(const detail::vector_base<OtherT,OtherAlloc> &v)
       :Parent(v) {}
 
-    /*! Assign a \p vector_base of related type.
+    /*! Assign a \p vector_base whose element type is convertible to \c T.
+     *
      *  \param v The \p vector_base to copy.
      */
     template<typename OtherT, typename OtherAlloc>
@@ -508,5 +510,4 @@ template<typename T, typename Alloc>
 /*! \}
  */
 
-} // namespace thrust
-
+THRUST_NAMESPACE_END

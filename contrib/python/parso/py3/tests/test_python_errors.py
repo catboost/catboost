@@ -28,7 +28,7 @@ def assert_comparison(code, error_code, positions):
     errors = [(error.start_pos, error.code) for error in _get_error_list(code)]
     assert [(pos, error_code) for pos in positions] == errors
 
-
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="parso don't support Python 3.10 yet")
 @pytest.mark.parametrize('code', FAILING_EXAMPLES)
 def test_python_exception_matches(code):
     wanted, line_nr = _get_actual_exception(code)
@@ -57,10 +57,10 @@ def test_non_async_in_async():
         error, = errors
         actual = error.message
     assert actual in wanted
-    if sys.version_info[:2] < (3, 8):
+    if sys.version_info[:2] not in ((3, 8), (3, 9)):
         assert line_nr == error.start_pos[0]
     else:
-        assert line_nr == 0  # For whatever reason this is zero in Python 3.8+
+        assert line_nr == 0  # For whatever reason this is zero in Python 3.8/3.9
 
 
 @pytest.mark.parametrize(
@@ -140,13 +140,16 @@ def _get_actual_exception(code):
 
 
 def test_default_except_error_postition():
-    # For this error the position seemed to be one line off, but that doesn't
-    # really matter.
+    # For this error the position seemed to be one line off in Python < 3.10,
+    # but that doesn't really matter.
     code = 'try: pass\nexcept: pass\nexcept X: pass'
     wanted, line_nr = _get_actual_exception(code)
     error, = _get_error_list(code)
     assert error.message in wanted
-    assert line_nr != error.start_pos[0]
+    if sys.version_info[:2] >= (3, 10):
+        assert line_nr == error.start_pos[0]
+    else:
+        assert line_nr != error.start_pos[0]
     # I think this is the better position.
     assert error.start_pos[0] == 2
 
@@ -494,3 +497,14 @@ def test_valid_empty_assignment(code):
 )
 def test_valid_del(code):
     assert not _get_error_list(code)
+
+
+@pytest.mark.parametrize(
+    ('source', 'version', 'no_errors'), [
+        ('[x for x in range(10) if lambda: 1]', '3.8', True),
+        ('[x for x in range(10) if lambda: 1]', '3.9', False),
+        ('[x for x in range(10) if (lambda: 1)]', '3.9', True),
+    ]
+)
+def test_lambda_in_comp_if(source, version, no_errors):
+    assert bool(_get_error_list(source, version=version)) ^ no_errors

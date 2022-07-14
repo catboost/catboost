@@ -1,7 +1,5 @@
 #include "str.h"
 
-#include <util/generic/yexception.h>
-
 static constexpr size_t MIN_BUFFER_GROW_SIZE = 16;
 
 TStringInput::~TStringInput() = default;

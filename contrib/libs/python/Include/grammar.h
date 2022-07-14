@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef USE_PYTHON3
-#include <contrib/tools/python3/src/Include/grammar.h>
+#error "No <grammar.h> in Python3"
 #else
 #include <contrib/tools/python/src/Include/grammar.h>
 #endif

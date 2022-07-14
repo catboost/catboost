@@ -36,8 +36,7 @@
 #include <thrust/iterator/iterator_facade.h>
 #include <thrust/detail/type_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup iterators
  *  \{
@@ -253,7 +252,7 @@ zip_iterator<thrust::tuple<Iterators...>> make_zip_iterator(Iterators... its);
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/iterator/detail/zip_iterator.inl>
 

@@ -37,8 +37,7 @@
 #include <thrust/iterator/iterator_facade.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 /*! \addtogroup iterators
@@ -75,7 +74,7 @@ namespace thrust
  *  #include <thrust/iterator/permutation_iterator.h>
  *  #include <thrust/device_vector.h>
  *  ...
- *  thrust::device_vector<float> values(4);
+ *  thrust::device_vector<float> values(8);
  *  values[0] = 10.0f;
  *  values[1] = 20.0f;
  *  values[2] = 30.0f;
@@ -213,5 +212,5 @@ permutation_iterator<ElementIterator,IndexIterator> make_permutation_iterator(El
 /*! \} // end iterators
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 

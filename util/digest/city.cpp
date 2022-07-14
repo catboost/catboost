@@ -1,5 +1,3 @@
-#ifndef NO_CITYHASH
-
 // Copyright (c) 2011 Google, Inc.
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,24 +27,24 @@
 // possible hash functions, by using SIMD instructions, or by
 // compromising on hash quality.
 
-    #include "city.h"
+#include "city.h"
 
 using uint8 = ui8;
 using uint32 = ui32;
 using uint64 = ui64;
 
-    #include <util/system/unaligned_mem.h>
-    #include <util/generic/algorithm.h>
+#include <util/system/unaligned_mem.h>
+#include <util/generic/algorithm.h>
 
 using namespace std;
 
 //#define UNALIGNED_LOAD64(p) (*(const uint64*)(p))
 //#define UNALIGNED_LOAD32(p) (*(const uint32*)(p))
 
-    #define UNALIGNED_LOAD64(p) (ReadUnaligned<uint64>((const void*)(p)))
-    #define UNALIGNED_LOAD32(p) (ReadUnaligned<uint32>((const void*)(p)))
+#define UNALIGNED_LOAD64(p) (ReadUnaligned<uint64>((const void*)(p)))
+#define UNALIGNED_LOAD32(p) (ReadUnaligned<uint32>((const void*)(p)))
 
-    #define LIKELY(x) Y_LIKELY(!!(x))
+#define LIKELY(x) Y_LIKELY(!!(x))
 
 // Some primes between 2^63 and 2^64 for various uses.
 static const uint64 k0 = 0xc3a5c85c97cb3127ULL;
@@ -309,15 +307,3 @@ uint128 CityHash128(const char* s, size_t len) noexcept {
         return CityHash128WithSeed(s, len, uint128(k0, k1));
     }
 }
-
-// TODO(yazevnul): move this function to unittests
-void TestCompilationOfCityHashTemplates() {
-    TStringBuf s;
-    CityHash64(s);
-    CityHash64WithSeed(s, 1);
-    CityHash64WithSeeds(s, 1, 2);
-    CityHash128(s);
-    CityHash128WithSeed(s, uint128(1, 2));
-}
-
-#endif

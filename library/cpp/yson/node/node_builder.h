@@ -18,17 +18,19 @@ class TNodeBuilder
 public:
     TNodeBuilder(TNode* node);
 
-    void OnStringScalar(const TStringBuf&) override;
+    void OnStringScalar(TStringBuf) override;
     void OnInt64Scalar(i64) override;
     void OnUint64Scalar(ui64) override;
     void OnDoubleScalar(double) override;
     void OnBooleanScalar(bool) override;
     void OnEntity() override;
     void OnBeginList() override;
+    void OnBeginList(ui64 reserveSize);
     void OnListItem() override;
     void OnEndList() override;
     void OnBeginMap() override;
-    void OnKeyedItem(const TStringBuf&) override;
+    void OnBeginMap(ui64 reserveSize);
+    void OnKeyedItem(TStringBuf) override;
     void OnEndMap() override;
     void OnBeginAttributes() override;
     void OnEndAttributes() override;

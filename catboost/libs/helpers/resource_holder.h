@@ -2,6 +2,7 @@
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
+#include <util/thread/lfqueue.h>
 
 
 namespace NCB {
@@ -19,6 +20,14 @@ namespace NCB {
         explicit TVectorHolder(TVector<T>&& data)
             : Data(std::move(data))
         {}
+    };
+
+    template <class T>
+    struct TLockFreeQueueHolder : public IResourceHolder {
+        TLockFreeQueue<T> Data;
+
+    public:
+        TLockFreeQueueHolder() = default;
     };
 
 }

@@ -55,7 +55,7 @@ IF (ARCH_I386 OR ARCH_X86_64)
             crc32c_sse4.cc
         )
     ELSE()
-        SRC_CPP_SSE4(crc32c_sse4.cc)
+        SRC_C_SSE4(crc32c_sse4.cc)
     ENDIF()
 ENDIF()
 

@@ -16,10 +16,11 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/detail/type_traits/minimum_type.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 { 
@@ -47,6 +48,6 @@ template<typename T1,
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 

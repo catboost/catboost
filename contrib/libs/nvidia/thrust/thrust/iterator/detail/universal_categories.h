@@ -21,8 +21,7 @@
 
 // XXX eliminate this file
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // define these types without inheritance to avoid ambiguous conversion to base classes
 
@@ -83,5 +82,5 @@ struct random_access_universal_iterator_tag
 };
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

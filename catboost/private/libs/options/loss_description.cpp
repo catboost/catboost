@@ -5,6 +5,7 @@
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>
+#include <util/generic/fwd.h>
 #include <util/string/split.h>
 #include <util/string/vector.h>
 #include <util/string/strip.h>
@@ -96,6 +97,16 @@ double NCatboostOptions::GetAlpha(const TMap<TString, TString>& lossParams) {
 double NCatboostOptions::GetAlpha(const TLossDescription& lossFunctionConfig) {
     const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     return GetAlpha(lossParams);
+}
+
+TVector<double> NCatboostOptions::GetAlphaMultiQuantile(const TMap<TString, TString>& lossParams) {
+    const TString median("0.5");
+    const TStringBuf alphaParam(lossParams.contains("alpha") ? lossParams.at("alpha") : median);
+    TVector<double> alpha;
+    for (const auto& value : StringSplitter(alphaParam).Split(',').SkipEmpty()) {
+        alpha.emplace_back(FromString<double>(value.Token()));
+    }
+    return alpha;
 }
 
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams) {

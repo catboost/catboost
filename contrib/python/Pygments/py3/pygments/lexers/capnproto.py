@@ -4,29 +4,28 @@
 
     Lexers for the Cap'n Proto schema language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
 from pygments.lexer import RegexLexer, default
-from pygments.token import Text, Comment, Keyword, Name, Literal
+from pygments.token import Text, Comment, Keyword, Name, Literal, Whitespace
 
 __all__ = ['CapnProtoLexer']
 
 
 class CapnProtoLexer(RegexLexer):
     """
-    For `Cap'n Proto <https://capnproto.org>`_ source.
+    For Cap'n Proto source.
 
     .. versionadded:: 2.2
     """
     name = 'Cap\'n Proto'
+    url = 'https://capnproto.org'
     filenames = ['*.capnp']
     aliases = ['capnp']
-
-    flags = re.MULTILINE | re.UNICODE
 
     tokens = {
         'root': [
@@ -39,7 +38,8 @@ class CapnProtoLexer(RegexLexer):
              r'extends|in|of|on|as|with|from|fixed)\b',
              Keyword),
             (r'[\w.]+', Name),
-            (r'[^#@=:$\w]+', Text),
+            (r'[^#@=:$\w\s]+', Text),
+            (r'\s+', Whitespace),
         ],
         'type': [
             (r'[^][=;,(){}$]+', Name.Class),

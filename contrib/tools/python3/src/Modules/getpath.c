@@ -1325,11 +1325,6 @@ calculate_zip_path(PyCalculatePath *calculate)
         goto done;
     }
 
-    /* Replace "00" with version */
-    size_t len = wcslen(calculate->zip_path);
-    calculate->zip_path[len - 6] = VERSION[0];
-    calculate->zip_path[len - 5] = VERSION[2];
-
     res = _PyStatus_OK();
 
 done:
@@ -1518,7 +1513,7 @@ calculate_path(PyCalculatePath *calculate, _PyPathConfig *pathconfig)
     }
 
     /* If a pyvenv.cfg configure file is found,
-       argv0_path is overriden with its 'home' variable. */
+       argv0_path is overridden with its 'home' variable. */
     status = calculate_read_pyenv(calculate);
     if (_PyStatus_EXCEPTION(status)) {
         return status;

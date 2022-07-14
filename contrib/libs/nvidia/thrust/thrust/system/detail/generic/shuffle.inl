@@ -25,7 +25,7 @@
 
 #include <cstdint>
 
-namespace thrust {
+THRUST_NAMESPACE_BEGIN
 namespace system {
 namespace detail {
 namespace generic {
@@ -48,7 +48,7 @@ class feistel_bijection {
     right_side_bits = total_bits - left_side_bits;
     right_side_mask = (1ull << right_side_bits) - 1;
 
-    for (std::uint64_t i = 0; i < num_rounds; i++) {
+    for (std::uint32_t i = 0; i < num_rounds; i++) {
       key[i] = g();
     }
   }
@@ -56,28 +56,34 @@ class feistel_bijection {
   __host__ __device__ std::uint64_t nearest_power_of_two() const {
     return 1ull << (left_side_bits + right_side_bits);
   }
+
   __host__ __device__ std::uint64_t operator()(const std::uint64_t val) const {
-    // Extract the right and left sides of the input
-    auto left = static_cast<std::uint32_t>(val >> right_side_bits);
-    auto right = static_cast<std::uint32_t>(val & right_side_mask);
-    round_state state = {left, right};
-
-    for (std::uint64_t i = 0; i < num_rounds; i++) {
-      state = do_round(state, i);
+    std::uint32_t state[2] = { static_cast<std::uint32_t>( val >> right_side_bits ), static_cast<std::uint32_t>( val & right_side_mask ) };
+    for( std::uint32_t i = 0; i < num_rounds; i++ )
+    {
+        std::uint32_t hi, lo;
+        constexpr std::uint64_t M0 = UINT64_C( 0xD2B74407B1CE6E93 );
+        mulhilo( M0, state[0], hi, lo );
+        lo = ( lo << ( right_side_bits - left_side_bits ) ) | state[1] >> left_side_bits;
+        state[0] = ( ( hi ^ key[i] ) ^ state[1] ) & left_side_mask;
+        state[1] = lo & right_side_mask;
     }
-
-    // Check we have the correct number of bits on each side
-    assert((state.left >> left_side_bits) == 0);
-    assert((state.right >> right_side_bits) == 0);
-
     // Combine the left and right sides together to get result
-    return state.left << right_side_bits | state.right;
+    return static_cast<std::uint64_t>(state[0] << right_side_bits) | static_cast<std::uint64_t>(state[1]);
   }
 
  private:
+   // Perform 64 bit multiplication and save result in two 32 bit int
+   static __host__ __device__ void mulhilo( std::uint64_t a, std::uint64_t b, std::uint32_t& hi, std::uint32_t& lo )
+   {
+       std::uint64_t product = a * b;
+       hi = static_cast<std::uint32_t>( product >> 32 );
+       lo = static_cast<std::uint32_t>( product );
+   }
+
   // Find the nearest power of two
-  __host__ __device__ std::uint64_t get_cipher_bits(std::uint64_t m) {
-    if (m == 0) return 0;
+  static __host__ __device__ std::uint64_t get_cipher_bits(std::uint64_t m) {
+    if (m <= 16) return 4;
     std::uint64_t i = 0;
     m--;
     while (m != 0) {
@@ -87,45 +93,12 @@ class feistel_bijection {
     return i;
   }
 
-  // Equivalent to boost::hash_combine
-  __host__ __device__
-  std::size_t hash_combine(std::uint64_t lhs, std::uint64_t rhs) const {
-    lhs ^= rhs + 0x9e3779b9 + (lhs << 6) + (lhs >> 2);
-    return lhs;
-  }
-
-  // Round function, a 'pseudorandom function' who's output is indistinguishable
-  // from random for each key value input. This is not cryptographically secure
-  // but sufficient for generating permutations. 
-  __host__ __device__ std::uint32_t round_function(std::uint64_t value,
-                                              const std::uint64_t key_) const {
-    std::uint64_t hash0 = thrust::random::taus88(static_cast<std::uint32_t>(value))();
-    std::uint64_t hash1 = thrust::random::ranlux48(value)();
-    return static_cast<std::uint32_t>(
-      hash_combine(hash_combine(hash0, key_), hash1) & left_side_mask);
-  }
-
-  __host__ __device__ round_state do_round(const round_state state,
-                                           const std::uint64_t round) const {
-    const std::uint32_t new_left = state.right & left_side_mask;
-    const std::uint32_t round_function_res =
-        state.left ^ round_function(state.right, key[round]);
-    if (right_side_bits != left_side_bits) {
-      // Upper bit of the old right becomes lower bit of new right if we have
-      // odd length feistel
-      const std::uint32_t new_right =
-          (round_function_res << 1ull) | state.right >> left_side_bits;
-      return {new_left, new_right};
-    }
-    return {new_left, round_function_res};
-  }
-
-  static constexpr std::uint64_t num_rounds = 16;
+  static constexpr std::uint32_t num_rounds = 24;
   std::uint64_t right_side_bits;
   std::uint64_t left_side_bits;
   std::uint64_t right_side_mask;
   std::uint64_t left_side_mask;
-  std::uint64_t key[num_rounds];
+  std::uint32_t key[num_rounds];
 };
 
 struct key_flag_tuple {
@@ -214,4 +187,4 @@ __host__ __device__ void shuffle_copy(
 }  // end namespace generic
 }  // end namespace detail
 }  // end namespace system
-}  // end namespace thrust
+THRUST_NAMESPACE_END

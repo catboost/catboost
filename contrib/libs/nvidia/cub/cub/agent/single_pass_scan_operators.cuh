@@ -41,11 +41,7 @@
 #include "../config.cuh"
 #include "../util_device.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -128,24 +124,22 @@ template <typename T>
 struct ScanTileState<T, true>
 {
     // Status word type
-    typedef typename If<(sizeof(T) == 8),
-        long long,
-        typename If<(sizeof(T) == 4),
-            int,
-            typename If<(sizeof(T) == 2),
-                short,
-                char>::Type>::Type>::Type StatusWord;
-
+    using StatusWord = cub::detail::conditional_t<
+      sizeof(T) == 8,
+      long long,
+      cub::detail::conditional_t<
+        sizeof(T) == 4,
+        int,
+        cub::detail::conditional_t<sizeof(T) == 2, short, char>>>;
 
     // Unit word type
-    typedef typename If<(sizeof(T) == 8),
-        longlong2,
-        typename If<(sizeof(T) == 4),
-            int2,
-            typename If<(sizeof(T) == 2),
-                int,
-                uchar2>::Type>::Type>::Type TxnWord;
-
+    using TxnWord = cub::detail::conditional_t<
+      sizeof(T) == 8,
+      longlong2,
+      cub::detail::conditional_t<
+        sizeof(T) == 4,
+        int2,
+        cub::detail::conditional_t<sizeof(T) == 2, int, uchar2>>>;
 
     // Device word type
     struct TileDescriptor
@@ -177,7 +171,7 @@ struct ScanTileState<T, true>
     __host__ __device__ __forceinline__
     cudaError_t Init(
         int     /*num_tiles*/,                      ///< [in] Number of tiles
-        void    *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void    *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t  /*temp_storage_bytes*/)             ///< [in] Size in bytes of \t d_temp_storage allocation
     {
         d_tile_descriptors = reinterpret_cast<TxnWord*>(d_temp_storage);
@@ -313,7 +307,7 @@ struct ScanTileState<T, false>
     __host__ __device__ __forceinline__
     cudaError_t Init(
         int     num_tiles,                          ///< [in] Number of tiles
-        void    *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void    *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t  temp_storage_bytes)                 ///< [in] Size in bytes of \t d_temp_storage allocation
     {
         cudaError_t error = cudaSuccess;
@@ -481,7 +475,7 @@ struct ReduceByKeyScanTileState<ValueT, KeyT, true>
     // Constants
     enum
     {
-        PAIR_SIZE           = sizeof(ValueT) + sizeof(KeyT),
+        PAIR_SIZE           = static_cast<int>(sizeof(ValueT) + sizeof(KeyT)),
         TXN_WORD_SIZE       = 1 << Log2<PAIR_SIZE + 1>::VALUE,
         STATUS_WORD_SIZE    = TXN_WORD_SIZE - PAIR_SIZE,
 
@@ -489,20 +483,19 @@ struct ReduceByKeyScanTileState<ValueT, KeyT, true>
     };
 
     // Status word type
-    typedef typename If<(STATUS_WORD_SIZE == 8),
-        long long,
-        typename If<(STATUS_WORD_SIZE == 4),
-            int,
-            typename If<(STATUS_WORD_SIZE == 2),
-                short,
-                char>::Type>::Type>::Type StatusWord;
+    using StatusWord = cub::detail::conditional_t<
+      STATUS_WORD_SIZE == 8,
+      long long,
+      cub::detail::conditional_t<
+        STATUS_WORD_SIZE == 4,
+        int,
+        cub::detail::conditional_t<STATUS_WORD_SIZE == 2, short, char>>>;
 
     // Status word type
-    typedef typename If<(TXN_WORD_SIZE == 16),
-        longlong2,
-        typename If<(TXN_WORD_SIZE == 8),
-            long long,
-            int>::Type>::Type TxnWord;
+    using TxnWord = cub::detail::conditional_t<
+      TXN_WORD_SIZE == 16,
+      longlong2,
+      cub::detail::conditional_t<TXN_WORD_SIZE == 8, long long, int>>;
 
     // Device word type (for when sizeof(ValueT) == sizeof(KeyT))
     struct TileDescriptorBigStatus
@@ -521,12 +514,10 @@ struct ReduceByKeyScanTileState<ValueT, KeyT, true>
     };
 
     // Device word type
-    typedef typename If<
-            (sizeof(ValueT) == sizeof(KeyT)),
-            TileDescriptorBigStatus,
-            TileDescriptorLittleStatus>::Type
-        TileDescriptor;
-
+    using TileDescriptor =
+      cub::detail::conditional_t<sizeof(ValueT) == sizeof(KeyT),
+                                 TileDescriptorBigStatus,
+                                 TileDescriptorLittleStatus>;
 
     // Device storage
     TxnWord *d_tile_descriptors;
@@ -544,7 +535,7 @@ struct ReduceByKeyScanTileState<ValueT, KeyT, true>
     __host__ __device__ __forceinline__
     cudaError_t Init(
         int     /*num_tiles*/,                      ///< [in] Number of tiles
-        void    *d_temp_storage,                    ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void    *d_temp_storage,                    ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t  /*temp_storage_bytes*/)             ///< [in] Size in bytes of \t d_temp_storage allocation
     {
         d_tile_descriptors = reinterpret_cast<TxnWord*>(d_temp_storage);
@@ -809,6 +800,5 @@ struct TilePrefixCallbackOp
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 

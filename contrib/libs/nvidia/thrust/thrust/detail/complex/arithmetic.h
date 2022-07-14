@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *  Copyright 2013 Filipe RNC Maia
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,13 +15,16 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
+#include <thrust/detail/complex/c99math.h>
 #include <cfloat>
 #include <cmath>
-#include <thrust/detail/complex/c99math.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
   /* --- Binary Arithmetic Operators --- */
 
@@ -160,14 +163,14 @@ operator/(const T0& x, const complex<T1>& y)
 
 /* --- Unary Arithmetic Operators --- */
 
-template <typename T> 
+template <typename T>
 __host__ __device__
 complex<T> operator+(const complex<T>& y)
 {
   return y;
 }
 
-template <typename T> 
+template <typename T>
 __host__ __device__
 complex<T> operator-(const complex<T>& y)
 {
@@ -187,7 +190,7 @@ T abs(const complex<T>& z)
 
 // XXX Why are we specializing here?
 namespace detail {
-namespace complex {	
+namespace complex {
 
 __host__ __device__
 inline float abs(const thrust::complex<float>& z)
@@ -258,7 +261,7 @@ inline float norm(const complex<float>& z)
     float a = z.real() * 4.0f;
     float b = z.imag() * 4.0f;
     return (a * a + b * b) / 16.0f;
-  } 
+  }
 
   return z.real() * z.real() + z.imag() * z.imag();
 }
@@ -276,7 +279,7 @@ inline double norm(const complex<double>& z)
     double a = z.real() * 4.0;
     double b = z.imag() * 4.0;
     return (a * a + b * b) / 16.0;
-  } 
+  }
 
   return z.real() * z.real() + z.imag() * z.imag();
 }
@@ -286,7 +289,7 @@ template <typename T0, typename T1>
 __host__ __device__
 complex<typename detail::promoted_numerical_type<T0, T1>::type>
 polar(const T0& m, const T1& theta)
-{ 
+{
   typedef typename detail::promoted_numerical_type<T0, T1>::type T;
 
   // Find `cos` and `sin` by ADL.
@@ -296,5 +299,5 @@ polar(const T0& m, const T1& theta)
   return complex<T>(m * cos(theta), m * sin(theta));
 }
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

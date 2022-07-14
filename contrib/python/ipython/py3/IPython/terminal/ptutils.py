@@ -9,8 +9,6 @@ not to be used outside IPython.
 
 import unicodedata
 from wcwidth import wcwidth
-import sys
-import traceback
 
 from IPython.core.completer import (
     provisionalcompleter, cursor_to_position,
@@ -22,6 +20,8 @@ from prompt_toolkit.patch_stdout import patch_stdout
 
 import pygments.lexers as pygments_lexers
 import os
+import sys
+import traceback
 
 _completion_sentinel = object()
 

@@ -91,6 +91,7 @@ class ReflectionTester;  // defined in test_util.h
 namespace internal {
 
 struct ArenaStringPtr;  // defined in arenastring.h
+class InlinedStringField;  // defined in inlined_string_field.h
 class LazyField;        // defined in lazy_field.h
 class EpsCopyInputStream;  // defined in parse_context.h
 
@@ -298,7 +299,7 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
     // We must delegate to CreateMaybeMessage() and NOT CreateMessageInternal()
     // because protobuf generated classes specialize CreateMaybeMessage() and we
     // need to use that specialization for code size reasons.
-    return Arena::CreateMaybeMessage<T>(arena, std::forward<Args>(args)...);
+    return Arena::CreateMaybeMessage<T>(arena, static_cast<Args&&>(args)...);
   }
 
   // API to create any objects on the arena. Note that only the object will
@@ -319,7 +320,7 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   template <typename T, typename... Args>
   PROTOBUF_NDEBUG_INLINE static T* Create(Arena* arena, Args&&... args) {
     return CreateInternal<T>(arena, std::is_convertible<T*, MessageLite*>(),
-                             std::forward<Args>(args)...);
+                             static_cast<Args&&>(args)...);
   }
 
   // Create an array of object type T on the arena *without* invoking the
@@ -350,19 +351,19 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   // policies. Do not use these in unit tests.
   // Returns the total space allocated by the arena, which is the sum of the
   // sizes of the underlying blocks.
-  uint64 SpaceAllocated() const { return impl_.SpaceAllocated(); }
+  uint64_t SpaceAllocated() const { return impl_.SpaceAllocated(); }
   // Returns the total space used by the arena. Similar to SpaceAllocated but
   // does not include free space and block overhead. The total space returned
   // may not include space used by other threads executing concurrently with
   // the call to this method.
-  uint64 SpaceUsed() const { return impl_.SpaceUsed(); }
+  uint64_t SpaceUsed() const { return impl_.SpaceUsed(); }
 
   // Frees all storage allocated by this arena after calling destructors
   // registered with OwnDestructor() and freeing objects registered with Own().
   // Any objects allocated on this arena are unusable after this call. It also
   // returns the total space used by the arena which is the sums of the sizes
   // of the allocated blocks. This method is not thread-safe.
-  uint64 Reset() { return impl_.Reset(); }
+  uint64_t Reset() { return impl_.Reset(); }
 
   // Adds |object| to a list of heap-allocated objects to be freed with |delete|
   // when the arena is destroyed or reset.
@@ -483,7 +484,7 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
 
     template <typename... Args>
     static T* Construct(void* ptr, Args&&... args) {
-      return new (ptr) T(std::forward<Args>(args)...);
+      return new (ptr) T(static_cast<Args&&>(args)...);
     }
 
     static T* New() {
@@ -527,9 +528,9 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
         InternalHelper<T>::is_arena_constructable::value,
         "CreateMessage can only construct types that are ArenaConstructable");
     if (arena == NULL) {
-      return new T(nullptr, std::forward<Args>(args)...);
+      return new T(nullptr, static_cast<Args&&>(args)...);
     } else {
-      return arena->DoCreateMessage<T>(std::forward<Args>(args)...);
+      return arena->DoCreateMessage<T>(static_cast<Args&&>(args)...);
     }
   }
 
@@ -632,9 +633,11 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
     CreateInArenaStorageInternal(ptr, arena,
                                  typename is_arena_constructable<T>::type(),
                                  std::forward<Args>(args)...);
-    RegisterDestructorInternal(
-        ptr, arena,
-        typename InternalHelper<T>::is_destructor_skippable::type());
+    if (arena != nullptr) {
+      RegisterDestructorInternal(
+          ptr, arena,
+          typename InternalHelper<T>::is_destructor_skippable::type());
+    }
   }
 
   template <typename T, typename... Args>
@@ -788,6 +791,7 @@ class PROTOBUF_EXPORT PROTOBUF_ALIGNAS(8) Arena {
   template <typename Type>
   friend class internal::GenericTypeHandler;
   friend struct internal::ArenaStringPtr;  // For AllocateAligned.
+  friend class internal::InlinedStringField;  // For AllocateAligned.
   friend class internal::LazyField;        // For CreateMaybeMessage.
   friend class internal::EpsCopyInputStream;  // For parser performance
   friend class MessageLite;

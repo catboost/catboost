@@ -15,6 +15,8 @@ namespace NFsPrivate {
 
     TString WinReadLink(const TString& path);
 
+    ULONG WinReadReparseTag(HANDLE h);
+
     HANDLE CreateFileWithUtf8Name(const TStringBuf fName, ui32 accessMode, ui32 shareMode, ui32 createMode, ui32 attributes, bool inheritHandle);
 
     bool WinRemove(const TString& path);
@@ -25,5 +27,5 @@ namespace NFsPrivate {
 
     bool WinSetCurrentWorkingDirectory(const TString& path);
 
-    bool WinMakeDirectory(const TString path);
+    bool WinMakeDirectory(const TString& path);
 }

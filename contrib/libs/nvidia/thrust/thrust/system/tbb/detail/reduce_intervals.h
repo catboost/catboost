@@ -27,8 +27,7 @@
 #include <thrust/reduce.h>
 #include <cassert>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -65,7 +64,7 @@ template<typename RandomAccessIterator1, typename RandomAccessIterator2, typenam
     Size interval_idx = r.begin();
 
     Size offset_to_first = interval_size * interval_idx;
-    Size offset_to_last = thrust::min(n, offset_to_first + interval_size);
+    Size offset_to_last = (thrust::min)(n, offset_to_first + interval_size);
 
     RandomAccessIterator1 my_first = first + offset_to_first;
     RandomAccessIterator1 my_last  = first + offset_to_last;
@@ -121,5 +120,5 @@ template<typename DerivedPolicy, typename RandomAccessIterator1, typename Size, 
 } // end detail
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

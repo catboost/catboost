@@ -13,6 +13,8 @@
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
 
+#include <util/generic/cast.h>
+
 #include <cmath>
 
 namespace NKernelHost {
@@ -81,7 +83,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Feature, Bin, CompressedIndex, Pairs, Depth, Bins);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::UpdateBinsPairs(Feature, Bin, CompressedIndex.Get(), Pairs.Get(), Pairs.Size(), Depth, Bins.Get(), stream.GetStream());
+            NKernel::UpdateBinsPairs(Feature, Bin, CompressedIndex.Get(), Pairs.Get(), SafeIntegerCast<ui32>(Pairs.Size()), Depth, Bins.Get(), stream.GetStream());
         }
     };
 
@@ -393,7 +395,7 @@ namespace NKernelHost {
                                       GroupDers2.Get(),
                                       Qids.Get(),
                                       Pairs.Get(),
-                                      static_cast<ui32>(Pairs.Size()),
+                                      SafeIntegerCast<ui32>(Pairs.Size()),
                                       PairDer2.Get(),
                                       stream.GetStream());
         }
@@ -420,7 +422,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Pairs, Bins, BinCount, PairBins);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::FillPairBins(Pairs.Get(), Bins.Get(), BinCount, Pairs.Size(), PairBins.Get(), stream.GetStream());
+            NKernel::FillPairBins(Pairs.Get(), Bins.Get(), BinCount, SafeIntegerCast<ui32>(Pairs.Size()), PairBins.Get(), stream.GetStream());
         }
     };
 
@@ -443,7 +445,8 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Pairs, Bins, PairWeights);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::ZeroSameLeafBinWeights(Pairs.Get(), Bins.Get(), Pairs.Size(), PairWeights.Get(), stream.GetStream());
+            CB_ENSURE(Pairs.Size() == PairWeights.Size());
+            NKernel::ZeroSameLeafBinWeights(Pairs.Get(), Bins.Get(), SafeIntegerCast<ui32>(Pairs.Size()), PairWeights.Get(), stream.GetStream());
         }
     };
 

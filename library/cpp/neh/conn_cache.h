@@ -5,7 +5,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/singleton.h>
 #include <util/generic/string.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/thread/lfqueue.h>
 
 #include "http_common.h"

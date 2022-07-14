@@ -1,10 +1,10 @@
 """
 Implementation for async generators.
 """
-from asyncio import Queue, get_event_loop
+from asyncio import Queue
 from typing import AsyncGenerator, Callable, Iterable, TypeVar, Union
 
-from .utils import run_in_executor_with_context
+from .utils import get_event_loop, run_in_executor_with_context
 
 __all__ = [
     "generator_to_async_generator",

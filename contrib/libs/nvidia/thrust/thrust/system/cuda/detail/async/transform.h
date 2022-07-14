@@ -47,8 +47,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace system { namespace cuda { namespace detail
 {
@@ -77,14 +76,13 @@ template <
   typename DerivedPolicy
 , typename ForwardIt, typename Size, typename OutputIt, typename UnaryOperation
 >
-auto async_transform_n(
+unique_eager_event async_transform_n(
   execution_policy<DerivedPolicy>& policy,
   ForwardIt                        first,
   Size                             n,
   OutputIt                         output,
   UnaryOperation                   op
-) -> unique_eager_event
-{
+) {
   unique_eager_event e;
 
   // Set up stream with dependencies.
@@ -155,7 +153,7 @@ THRUST_RETURNS(
 
 } // cuda_cub
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // THRUST_DEVICE_COMPILER == THRUST_DEVICE_COMPILER_NVCC
 

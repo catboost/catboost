@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/scatter.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_SCATTER_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/scatter.h>
-#include __THRUST_HOST_SYSTEM_SCATTER_HEADER
-#undef __THRUST_HOST_SYSTEM_SCATTER_HEADER
+#include <thrust/system/cpp/detail/scatter.h>
 
 #define __THRUST_DEVICE_SYSTEM_SCATTER_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/scatter.h>
 #include __THRUST_DEVICE_SYSTEM_SCATTER_HEADER

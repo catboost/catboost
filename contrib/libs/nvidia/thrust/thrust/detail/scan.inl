@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file scan.inl
- *  \brief Inline file for scan.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/scan.h>
@@ -28,8 +25,7 @@
 #include <thrust/system/detail/adl/scan.h>
 #include <thrust/system/detail/adl/scan_by_key.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -44,7 +40,7 @@ __host__ __device__
 {
   using thrust::system::detail::generic::inclusive_scan;
   return inclusive_scan(thrust::detail::derived_cast(thrust::detail::strip_const(exec)), first, last, result);
-} // end inclusive_scan() 
+} // end inclusive_scan()
 
 
 __thrust_exec_check_disable__
@@ -522,5 +518,5 @@ template<typename InputIterator1,
 }
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file fill.inl
- *  \brief Inline file for fill.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/fill.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,9 +24,7 @@
 #include <thrust/system/detail/generic/fill.h>
 #include <thrust/system/detail/adl/fill.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 __thrust_exec_check_disable__
 template<typename DerivedPolicy, typename ForwardIterator, typename T>
@@ -86,6 +83,4 @@ __host__ __device__
   return thrust::fill_n(select_system(system), first, n, value);
 } // end fill()
 
-
-} // end namespace thrust
-
+THRUST_NAMESPACE_END

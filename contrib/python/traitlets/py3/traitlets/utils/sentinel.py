@@ -4,8 +4,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 
-class Sentinel(object):
-
+class Sentinel:
     def __init__(self, name, module, docstring=None):
         self.name = name
         self.module = module
@@ -13,7 +12,7 @@ class Sentinel(object):
             self.__doc__ = docstring
 
     def __repr__(self):
-        return str(self.module) + '.' + self.name
+        return str(self.module) + "." + self.name
 
     def __copy__(self):
         return self

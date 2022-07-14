@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file sequence.inl
- *  \brief Inline file for sequence.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/sequence.h>
@@ -26,8 +23,7 @@
 #include <thrust/system/detail/generic/sequence.h>
 #include <thrust/system/detail/adl/sequence.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -114,5 +110,5 @@ template<typename ForwardIterator, typename T>
 } // end sequence()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

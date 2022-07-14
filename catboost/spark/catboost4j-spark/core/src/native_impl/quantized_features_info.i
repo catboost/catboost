@@ -42,6 +42,28 @@ namespace NSplitSelection {
 %pointer_class(bool, boolp)
 
 
+%catches(std::exception) TQuantizedFeaturesInfo::Init(TFeaturesLayout* featuresLayout);
+
+%catches(yexception) TQuantizedFeaturesInfo::GetNanMode(int floatFeatureIdx) const;
+%catches(yexception) TQuantizedFeaturesInfo::SetNanMode(int floatFeatureIdx, ENanMode nanMode);
+
+%catches(yexception) TQuantizedFeaturesInfo::GetQuantization(
+    int floatFeatureIdx,
+    TVector<float>* borders,
+    bool* hasDefaultQuantizedBin,
+    NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin
+) const;
+
+%catches(yexception) TQuantizedFeaturesInfo::SetQuantization(
+    int floatFeatureIdx,
+    // moved into
+    TVector<float>* borders,
+    // optional, poor man's TMaybe substitute
+    const NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin = nullptr
+);
+
+%catches(std::exception) TQuantizedFeaturesInfo::equalsImpl(const TQuantizedFeaturesInfo& rhs) const;
+
 namespace NCB {
     class TQuantizedFeaturesInfo {
     public:
@@ -55,11 +77,11 @@ namespace NCB {
         bool EqualWithoutOptionsTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 
         %extend {
-            ENanMode GetNanMode(int floatFeatureIdx) const throw(yexception) {
+            ENanMode GetNanMode(int floatFeatureIdx) const {
                 return self->GetNanMode(NCB::TFloatFeatureIdx(SafeIntegerCast<int>(floatFeatureIdx)));
             }
 
-            void SetNanMode(int floatFeatureIdx, ENanMode nanMode) throw(yexception) {
+            void SetNanMode(int floatFeatureIdx, ENanMode nanMode) {
                 self->SetNanMode(NCB::TFloatFeatureIdx(SafeIntegerCast<int>(floatFeatureIdx)), nanMode);
             }
 
@@ -68,7 +90,7 @@ namespace NCB {
                 TVector<float>* borders,
                 bool* hasDefaultQuantizedBin,
                 NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin
-            ) const throw(yexception) {
+            ) const {
                 const auto& quantization = self->GetQuantization(
                     NCB::TFloatFeatureIdx(SafeIntegerCast<ui32>(floatFeatureIdx))
                 );
@@ -87,7 +109,7 @@ namespace NCB {
                 TVector<float>* borders,
                 // optional, poor man's TMaybe substitute
                 const NSplitSelection::TDefaultQuantizedBin* defaultQuantizedBin = nullptr
-            ) throw(yexception) {
+            ) {
                 NSplitSelection::TQuantization quantization(
                     std::move(*borders),
                     defaultQuantizedBin ?
@@ -166,6 +188,7 @@ namespace NCB {
                     TVector_i32 catFeaturesUniqueValuesCounts = (TVector_i32)in.readUnshared();
                     native_impl.UpdateCatFeaturesInfo(
                         catFeaturesUniqueValuesCounts.toPrimitiveArray(),
+                        /*isInitialization*/ false,
                         this
                     );
                 } catch (Exception e) {
@@ -182,5 +205,26 @@ namespace NCB {
 }
 
 %template(QuantizedFeaturesInfoPtr) TIntrusivePtr<NCB::TQuantizedFeaturesInfo>;
+
+
+%catches(yexception) MakeQuantizedFeaturesInfo(
+    const NCB::TFeaturesLayout& featuresLayout
+);
+
+%catches(yexception) MakeEstimatedQuantizedFeaturesInfo(i32 featureCount);
+
+%catches(yexception) UpdateCatFeaturesInfo(
+    TConstArrayRef<i32> catFeaturesUniqValueCounts, // [flatFeatureIdx]
+    bool isInitialization,
+    NCB::TQuantizedFeaturesInfo* quantizedFeaturesInfo
+);
+
+%catches(yexception) CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
+
+%catches(yexception) GetCategoricalFeaturesUniqueValuesCounts(
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
+);
 
 %include "quantized_features_info.h"

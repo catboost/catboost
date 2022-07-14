@@ -24,9 +24,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup reductions
  *  \{
@@ -258,7 +256,7 @@ OutputType inner_product(InputIterator1 first1, InputIterator1 last1,
  *  \} // end reductions
  */
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/inner_product.inl>
 

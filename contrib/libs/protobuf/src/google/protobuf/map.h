@@ -118,7 +118,7 @@ class MapAllocator {
       return static_cast<pointer>(::operator new(n * sizeof(value_type)));
     } else {
       return reinterpret_cast<pointer>(
-          Arena::CreateArray<uint8>(arena_, n * sizeof(value_type)));
+          Arena::CreateArray<uint8_t>(arena_, n * sizeof(value_type)));
     }
   }
 
@@ -698,21 +698,18 @@ class Map {
         p = FindHelper(k);
       }
       const size_type b = p.second;  // bucket number
-      Node* node;
       // If K is not key_type, make the conversion to key_type explicit.
       using TypeToInit = typename std::conditional<
           std::is_same<typename std::decay<K>::type, key_type>::value, K&&,
           key_type>::type;
-      if (alloc_.arena() == nullptr) {
-        node = new Node{value_type(static_cast<TypeToInit>(std::forward<K>(k))),
-                        nullptr};
-      } else {
-        node = Alloc<Node>(1);
-        Arena::CreateInArenaStorage(
-            const_cast<Key*>(&node->kv.first), alloc_.arena(),
-            static_cast<TypeToInit>(std::forward<K>(k)));
-        Arena::CreateInArenaStorage(&node->kv.second, alloc_.arena());
-      }
+      Node* node = Alloc<Node>(1);
+      // Even when arena is nullptr, CreateInArenaStorage is still used to
+      // ensure the arena of submessage will be consistent. Otherwise,
+      // submessage may have its own arena when message-owned arena is enabled.
+      Arena::CreateInArenaStorage(const_cast<Key*>(&node->kv.first),
+                                  alloc_.arena(),
+                                  static_cast<TypeToInit>(std::forward<K>(k)));
+      Arena::CreateInArenaStorage(&node->kv.second, alloc_.arena());
 
       iterator result = InsertUnique(b, node);
       ++num_elements_;
@@ -1026,12 +1023,12 @@ class Map {
     size_type BucketNumber(const K& k) const {
       // We xor the hash value against the random seed so that we effectively
       // have a random hash function.
-      uint64 h = hash_function()(k) ^ seed_;
+      uint64_t h = hash_function()(k) ^ seed_;
 
       // We use the multiplication method to determine the bucket number from
       // the hash value. The constant kPhi (suggested by Knuth) is roughly
       // (sqrt(5) - 1) / 2 * 2^64.
-      constexpr uint64 kPhi = uint64{0x9e3779b97f4a7c15};
+      constexpr uint64_t kPhi = uint64_t{0x9e3779b97f4a7c15};
       return ((kPhi * h) >> 32) & (num_buckets_ - 1);
     }
 
@@ -1071,7 +1068,7 @@ class Map {
 
     void** CreateEmptyTable(size_type n) {
       GOOGLE_DCHECK(n >= kMinTableSize);
-      GOOGLE_DCHECK_EQ(n & (n - 1), 0);
+      GOOGLE_DCHECK_EQ(n & (n - 1), 0u);
       void** result = Alloc<void*>(n);
       memset(result, 0, n * sizeof(result[0]));
       return result;
@@ -1082,12 +1079,12 @@ class Map {
       // We get a little bit of randomness from the address of the map. The
       // lower bits are not very random, due to alignment, so we discard them
       // and shift the higher bits into their place.
-      size_type s = reinterpret_cast<uintptr_t>(this) >> 12;
+      size_type s = reinterpret_cast<uintptr_t>(this) >> 4;
 #if defined(__x86_64__) && defined(__GNUC__) && \
     !defined(GOOGLE_PROTOBUF_NO_RDTSC)
-      uint32 hi, lo;
+      uint32_t hi, lo;
       asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
-      s += ((static_cast<uint64>(hi) << 32) | lo);
+      s += ((static_cast<uint64_t>(hi) << 32) | lo);
 #endif
       return s;
     }

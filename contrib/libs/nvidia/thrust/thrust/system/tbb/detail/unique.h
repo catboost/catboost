@@ -20,8 +20,7 @@
 #include <thrust/system/tbb/detail/execution_policy.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -50,10 +49,20 @@ template<typename ExecutionPolicy,
                              BinaryPredicate binary_pred);
 
 
+template<typename DerivedPolicy,
+         typename ForwardIterator,
+         typename BinaryPredicate>
+  typename thrust::iterator_traits<ForwardIterator>::difference_type
+    unique_count(execution_policy<DerivedPolicy> &exec,
+                 ForwardIterator first,
+                 ForwardIterator last,
+                 BinaryPredicate binary_pred);
+
+
 } // end namespace detail
 } // end namespace tbb 
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/tbb/detail/unique.inl>
 

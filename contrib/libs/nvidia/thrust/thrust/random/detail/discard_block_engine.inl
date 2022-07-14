@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/random/discard_block_engine.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace random
 {
@@ -208,5 +211,5 @@ bool operator!=(const discard_block_engine<Engine,p,r> &lhs,
 
 } // end random
 
-} // end thrust
+THRUST_NAMESPACE_END
 

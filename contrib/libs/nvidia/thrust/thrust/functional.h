@@ -25,8 +25,7 @@
 #include <functional>
 #include <thrust/detail/functional/placeholder.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup function_objects Function Objects
  */
@@ -47,7 +46,7 @@ template<typename Operation> struct binary_traits;
  *  Unary Function must define nested \c typedefs. Those \c typedefs are
  *  provided by the base class \p unary_function.
  *
- *  The following code snippet demonstrates how to construct an 
+ *  The following code snippet demonstrates how to construct an
  *  Adaptable Unary Function using \p unary_function.
  *
  *  \code
@@ -87,7 +86,7 @@ struct unary_function
  *  Binary Function must define nested \c typedefs. Those \c typedefs are
  *  provided by the base class \p binary_function.
  *
- *  The following code snippet demonstrates how to construct an 
+ *  The following code snippet demonstrates how to construct an
  *  Adaptable Binary Function using \p binary_function.
  *
  *  \code
@@ -148,7 +147,7 @@ struct binary_function
     template <typename T>                                                      \
     __host__ __device__                                                        \
     constexpr auto operator()(T&& x) const                                     \
-      noexcept(noexcept(impl)) -> decltype(impl)                               \
+      noexcept(noexcept(impl)) THRUST_TRAILING_RETURN(decltype(impl))          \
     {                                                                          \
       return impl;                                                             \
     }                                                                          \
@@ -163,7 +162,7 @@ struct binary_function
     template <typename T1, typename T2>                                        \
     __host__ __device__                                                        \
     constexpr auto operator()(T1&& t1, T2&& t2) const                          \
-      noexcept(noexcept(impl)) -> decltype(impl)                               \
+      noexcept(noexcept(impl)) THRUST_TRAILING_RETURN(decltype(impl))          \
     {                                                                          \
       return impl;                                                             \
     }                                                                          \
@@ -1410,7 +1409,8 @@ struct project1st<void, void>
   template <typename T1, typename T2>
   __host__ __device__
   constexpr auto operator()(T1&& t1, T2&&) const
-    noexcept(noexcept(THRUST_FWD(t1))) -> decltype(THRUST_FWD(t1))
+    noexcept(noexcept(THRUST_FWD(t1)))
+    THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t1)))
   {
     return THRUST_FWD(t1);
   }
@@ -1469,7 +1469,8 @@ struct project2nd<void, void>
   template <typename T1, typename T2>
   __host__ __device__
   constexpr auto operator()(T1&&, T2&& t2) const
-  noexcept(noexcept(THRUST_FWD(t2))) -> decltype(THRUST_FWD(t2))
+  noexcept(noexcept(THRUST_FWD(t2)))
+  THRUST_TRAILING_RETURN(decltype(THRUST_FWD(t2)))
   {
     return THRUST_FWD(t2);
   }
@@ -1496,7 +1497,7 @@ struct project2nd<void, void>
  *  \see not1
  */
 template<typename Predicate>
-struct unary_negate 
+struct unary_negate
     : public thrust::unary_function<typename Predicate::argument_type, bool>
 {
   /*! Constructor takes a \p Predicate object to negate.
@@ -1538,7 +1539,7 @@ template<typename Predicate>
   __host__ __device__
   unary_negate<Predicate> not1(const Predicate &pred);
 
-/*! \p binary_negate is a function object adaptor: it is an Adaptable Binary 
+/*! \p binary_negate is a function object adaptor: it is an Adaptable Binary
  *  Predicate that represents the logical negation of some other Adaptable
  *  Binary Predicate. That is: if \c f is an object of class <tt>binary_negate<AdaptablePredicate></tt>,
  *  then there exists an object \c pred of class \c AdaptableBinaryPredicate
@@ -1565,8 +1566,8 @@ struct binary_negate
   __thrust_exec_check_disable__
   __host__ __device__
   bool operator()(const typename Predicate::first_argument_type& x, const typename Predicate::second_argument_type& y)
-  { 
-      return !pred(x,y); 
+  {
+      return !pred(x,y);
   }
 
   /*! \cond
@@ -1712,8 +1713,7 @@ THRUST_INLINE_CONSTANT thrust::detail::functional::placeholder<9>::type _10;
 #undef THRUST_BINARY_FUNCTOR_VOID_SPECIALIZATION
 #undef THRUST_BINARY_FUNCTOR_VOID_SPECIALIZATION_OP
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/functional.inl>
 #include <thrust/detail/functional/operators.h>
-

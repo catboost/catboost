@@ -34,9 +34,7 @@
 #include <thrust/system/tbb/detail/tabulate.h>
 #endif
 
-#define __THRUST_HOST_SYSTEM_TABULATE_HEADER <__THRUST_HOST_SYSTEM_ROOT/detail/tabulate.h>
-#include __THRUST_HOST_SYSTEM_TABULATE_HEADER
-#undef __THRUST_HOST_SYSTEM_TABULATE_HEADER
+#include <thrust/system/cpp/detail/tabulate.h>
 
 #define __THRUST_DEVICE_SYSTEM_TABULATE_HEADER <__THRUST_DEVICE_SYSTEM_ROOT/detail/tabulate.h>
 #include __THRUST_DEVICE_SYSTEM_TABULATE_HEADER

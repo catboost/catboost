@@ -5,11 +5,12 @@ import re
 import time
 import signal
 import shutil
+import inspect
 import logging
 import tempfile
 import subprocess
 import errno
-import distutils.version
+import packaging.version
 
 import six
 
@@ -91,7 +92,11 @@ class InvalidCommandError(Exception):
 
 class _Execution(object):
 
-    def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
+    def __init__(self, command, process, out_file, err_file,
+                 process_progress_listener=None, cwd=None, collect_cores=True,
+                 check_sanitizer=True, started=0, user_stdout=False, user_stderr=False,
+                 core_pattern=None):
+
         self._command = command
         self._process = process
         self._out_file = out_file
@@ -110,6 +115,8 @@ class _Execution(object):
         self._user_stdout = bool(user_stdout)
         self._user_stderr = bool(user_stderr)
         self._exit_code = None
+        self._core_pattern = core_pattern
+
         if process_progress_listener:
             process_progress_listener.open(command, process, out_file, err_file)
 
@@ -144,6 +151,10 @@ class _Execution(object):
     @property
     def command(self):
         return self._command
+
+    @property
+    def core_pattern(self):
+        return self._core_pattern
 
     @property
     def returncode(self):
@@ -253,7 +264,11 @@ class _Execution(object):
             self._out_file = None
 
     def _recover_core(self):
-        core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid)
+        core_path = cores.recover_core_dump_file(
+            self.command[0],
+            self._cwd,
+            self.process.pid,
+            self.core_pattern)
         if core_path:
             # Core dump file recovering may be disabled (for distbuild for example) - produce only bt
             store_cores = runtime._get_ya_config().collect_cores
@@ -271,7 +286,7 @@ class _Execution(object):
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
                 bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
                 with open(bt_filename, "wb") as afile:
-                    afile.write(self._backtrace)
+                    afile.write(six.ensure_binary(self._backtrace))
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
                 backtrace_to_html(bt_filename, pbt_filename)
@@ -422,6 +437,8 @@ def execute(
     process_progress_listener=None, close_fds=False,
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     executor=_Execution,
+    core_pattern=None,
+    popen_kwargs=None,
 ):
     """
     Executes a command
@@ -442,8 +459,9 @@ def execute(
     :param check_sanitizer: raise ExecutionError if stderr contains sanitize errors
     :param preexec_fn: subrpocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
+    :param popen_kwargs: subrpocess.Popen args dictionary. Useful for python3-only arguments
 
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if env is None:
         env = os.environ.copy()
@@ -464,6 +482,8 @@ def execute(
 
     if not wait and timeout is not None:
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
+    if popen_kwargs is None:
+        popen_kwargs = {}
 
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
@@ -498,7 +518,9 @@ def execute(
             executable = command[0]
         else:
             executable = command
-        if os.path.isabs(executable):
+        if not executable:
+            raise InvalidCommandError("Target program is invalid: {}".format(command))
+        elif os.path.isabs(executable):
             if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
                 exists = os.path.exists(executable)
                 if exists:
@@ -524,10 +546,20 @@ def execute(
         command, shell=shell, universal_newlines=True,
         stdout=out_file, stderr=err_file, stdin=in_file,
         cwd=cwd, env=env, creationflags=creationflags, close_fds=close_fds, preexec_fn=preexec_fn,
+        **popen_kwargs
     )
     yatest_logger.debug("Command pid: %s", process.pid)
 
-    res = executor(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
+    kwargs = {
+        'user_stdout': user_stdout,
+        'user_stderr': user_stderr,
+    }
+
+    if 'core_pattern' in inspect.getargspec(executor.__init__).args:
+        kwargs.update([('core_pattern', core_pattern)])
+
+    res = executor(command, process, out_file, err_file, process_progress_listener,
+                   cwd, collect_cores, check_sanitizer, started, **kwargs)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res
@@ -544,8 +576,8 @@ def _get_command_output_file(cmd, ext):
     try:
         # if execution is performed from test, save out / err to the test logs dir
         import yatest.common
-        import pytest
-        if not hasattr(pytest, 'config'):
+        import library.python.pytest.plugins.ya
+        if getattr(library.python.pytest.plugins.ya, 'pytest_config', None) is None:
             raise ImportError("not in test")
         filename = path.get_unique_file_path(yatest.common.output_path(), filename)
         yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(filename))
@@ -584,7 +616,7 @@ def py_execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
-    :return: Execution object
+    :return _Execution: Execution object
     """
     if isinstance(command, six.string_types):
         command = [command]
@@ -696,23 +728,23 @@ def _run_readelf(binary_path):
 
 
 def check_glibc_version(binary_path):
-    lucid_glibc_version = distutils.version.LooseVersion("2.11")
+    lucid_glibc_version = packaging.version.parse("2.11")
 
     for l in _run_readelf(binary_path).split('\n'):
         match = GLIBC_PATTERN.search(l)
         if not match:
             continue
-        assert distutils.version.LooseVersion(match.group(1)) <= lucid_glibc_version, match.group(0)
+        assert packaging.version.parse(match.group(1)) <= lucid_glibc_version, match.group(0)
 
 
 def backtrace_to_html(bt_filename, output):
     try:
         from library.python import coredump_filter
-        with open(output, "wb") as afile:
+        with open(output, "w") as afile:
             coredump_filter.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
-        with open(output, "wb") as afile:
+        with open(output, "w") as afile:
             afile.write("<html>Failed to import coredump_filter in USE_ARCADIA_PYTHON=no mode</html>")
 
 

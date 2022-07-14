@@ -6,12 +6,8 @@ SRCS(
     future_mt_ut.cpp
 )
 
-IF(NOT SANITIZER_TYPE)
-SIZE(SMALL)
-
-ELSE()
-SIZE(MEDIUM)
-
+IF(SANITIZER_TYPE)
+    SIZE(MEDIUM)
 ENDIF()
 
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  *  limitations under the License.
  */
 
+#pragma once
+
+#include <thrust/detail/config.h>
+
 #include <thrust/pair.h>
 #include <thrust/detail/swap.h>
+#include <thrust/tuple.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 template <typename T1, typename T2>
   __host__ __device__
@@ -140,13 +144,13 @@ template <typename T1, typename T2>
 
 // specializations of tuple_element for pair
 template<typename T1, typename T2>
-  struct tuple_element<0, pair<T1,T2> >
+  struct tuple_element<0, pair<T1,T2>>
 {
   typedef T1 type;
 }; // end tuple_element
 
 template<typename T1, typename T2>
-  struct tuple_element<1, pair<T1,T2> >
+  struct tuple_element<1, pair<T1,T2>>
 {
   typedef T2 type;
 }; // end tuple_element
@@ -154,7 +158,7 @@ template<typename T1, typename T2>
 
 // specialization of tuple_size for pair
 template<typename T1, typename T2>
-  struct tuple_size< pair<T1,T2 > >
+  struct tuple_size<pair<T1,T2>>
 {
   static const unsigned int value = 2;
 }; // end tuple_size
@@ -224,6 +228,4 @@ template<unsigned int N, typename T1, typename T2>
   return detail::pair_get<N, pair<T1,T2> >()(p);
 } // end get()
 
-
-} // end thrust
-
+THRUST_NAMESPACE_END

@@ -1,9 +1,9 @@
 #pragma once
 
+#include "callbacks.h"
 #include "cont_poller.h"
 #include "iostatus.h"
 #include "poller.h"
-#include "schedule_callback.h"
 #include "stack/stack_common.h"
 #include "trampoline.h"
 #include "custom_time.h"
@@ -95,6 +95,9 @@ public:
         return Scheduled_;
     }
 
+    /// \param this корутина, которая будет ждать
+    /// \param c корутина, которую будем ждать
+    /// \param deadLine максимальное время ожидания
     bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
 
     void ReSchedule() noexcept;
@@ -154,6 +157,7 @@ public:
         uint32_t defaultStackSize,
         THolder<IPollerFace> poller = IPollerFace::Default(),
         NCoro::IScheduleCallback* = nullptr,
+        NCoro::IEnterPollerCallback* = nullptr,
         NCoro::NStack::EGuard stackGuard = NCoro::NStack::EGuard::Canary,
         TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings = Nothing(),
         NCoro::ITime* time = nullptr
@@ -287,7 +291,8 @@ private:
     void Poll(TInstant deadline);
 
 private:
-    NCoro::IScheduleCallback* const CallbackPtr_ = nullptr;
+    NCoro::IScheduleCallback* const ScheduleCallback_ = nullptr;
+    NCoro::IEnterPollerCallback* const EnterPollerCallback_ = nullptr;
     const uint32_t DefaultStackSize_;
     THolder<NCoro::NStack::IAllocator> StackAllocator_;
 

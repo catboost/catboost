@@ -1,5 +1,9 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <sstream>
-#include <string>
+#include <util/generic/string.h>
 
 #include "onnx/onnx_pb.h"
 #include "onnx/onnxifi.h"

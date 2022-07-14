@@ -1,4 +1,4 @@
-//===-------------------------- debug.cpp ---------------------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -438,7 +438,7 @@ __libcpp_db::__less_than_comparable(const void* __i, const void* __j) const
     __i_node* j = __find_iterator(__j);
     __c_node* ci = i != nullptr ? i->__c_ : nullptr;
     __c_node* cj = j != nullptr ? j->__c_ : nullptr;
-    return ci != nullptr && ci == cj;
+    return ci == cj;
 }
 
 void

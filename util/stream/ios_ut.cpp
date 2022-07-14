@@ -11,7 +11,6 @@
 #include <util/charset/wide.h>
 
 #include <string>
-#include <iostream>
 
 class TStreamsTest: public TTestBase {
     UNIT_TEST_SUITE(TStreamsTest);
@@ -261,21 +260,21 @@ void TStreamsTest::TestBufferStream() {
 
     stream.Write(s.data(), s.size());
     char buf[5];
-    size_t readed = stream.Read(buf, 4);
-    UNIT_ASSERT_EQUAL(4, readed);
+    size_t bytesRead = stream.Read(buf, 4);
+    UNIT_ASSERT_EQUAL(4, bytesRead);
     UNIT_ASSERT_EQUAL(0, strncmp(s.data(), buf, 4));
 
     stream.Write(s.data(), s.size());
-    readed = stream.Read(buf, 2);
-    UNIT_ASSERT_EQUAL(2, readed);
+    bytesRead = stream.Read(buf, 2);
+    UNIT_ASSERT_EQUAL(2, bytesRead);
     UNIT_ASSERT_EQUAL(0, strncmp("te", buf, 2));
 
-    readed = stream.Read(buf, 2);
-    UNIT_ASSERT_EQUAL(2, readed);
+    bytesRead = stream.Read(buf, 2);
+    UNIT_ASSERT_EQUAL(2, bytesRead);
     UNIT_ASSERT_EQUAL(0, strncmp("st", buf, 2));
 
-    readed = stream.Read(buf, 2);
-    UNIT_ASSERT_EQUAL(0, readed);
+    bytesRead = stream.Read(buf, 2);
+    UNIT_ASSERT_EQUAL(0, bytesRead);
 }
 
 namespace {

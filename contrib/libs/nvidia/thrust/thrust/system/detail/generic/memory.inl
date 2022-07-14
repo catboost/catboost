@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/type_traits/pointer_traits.h>
 #include <thrust/system/detail/generic/memory.h>
@@ -21,8 +23,7 @@
 #include <thrust/detail/static_assert.h>
 #include <thrust/detail/malloc_and_free.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -100,5 +101,5 @@ void iter_swap(thrust::execution_policy<DerivedPolicy> &, Pointer1, Pointer2)
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

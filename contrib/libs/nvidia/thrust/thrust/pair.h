@@ -23,8 +23,7 @@
 #include <thrust/detail/config.h>
 #include <utility>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup utility
  *  \{
@@ -277,7 +276,6 @@ template<typename Pair> struct tuple_size;
 /*! \} // utility
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/pair.inl>
-

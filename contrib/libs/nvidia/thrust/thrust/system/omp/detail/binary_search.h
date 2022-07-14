@@ -20,8 +20,7 @@
 #include <thrust/system/omp/detail/execution_policy.h>
 #include <thrust/system/detail/generic/binary_search.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -69,5 +68,5 @@ bool binary_search(execution_policy<DerivedPolicy> &exec,
 } // end detail
 } // end omp
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

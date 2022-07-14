@@ -538,16 +538,16 @@ namespace NCatboostCuda {
                 break;
             }
             case ELossFunction::AUC: {
-                if (approxDim == 1) {
-                    if (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(params), 1, 2, isMulticlass, metricDescription));
-                    } else {
-                        result.emplace_back(new TCpuFallbackMetric(MakeBinClassAucMetric(params), metricDescription));
-                    }
+                auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
+                if ((approxDim == 1) && (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy)) {
+                    CB_ENSURE_INTERNAL(
+                        cpuMetrics.size() == 1,
+                        "CreateMetricFromDescription for AUC for binclass should return one-element vector"
+                    );
+                    result.emplace_back(new TGpuPointwiseMetric(std::move(cpuMetrics[0]), 1, 2, isMulticlass, metricDescription));
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
 
-                    auto cpuMetrics = CreateMetricFromDescription(metricDescription, approxDim);
                     for (auto& cpuMetric : cpuMetrics) {
                         result.emplace_back(new TCpuFallbackMetric(std::move(cpuMetric), metricDescription));
                     }

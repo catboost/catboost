@@ -1,9 +1,10 @@
-// Copyright (c) Facebook Inc. and Microsoft Corporation.
-// Licensed under the MIT license.
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
 
-#include <string>
+#include <util/generic/string.h>
 #include <vector>
 #include "onnx/common/status.h"
 #include "onnx/onnx-operators_pb.h"

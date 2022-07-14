@@ -6,6 +6,7 @@ import os
 import pytest
 import re
 import yatest.common
+import yatest.common.runtime
 
 from catboost_pytest_lib import (
     append_params_to_cmdline,
@@ -58,9 +59,8 @@ def diff_tool(threshold=2e-7):
     return get_limited_precision_dsv_diff_tool(threshold, True)
 
 
-@pytest.fixture(scope='module', autouse=True)
 def skipif_no_cuda():
-    for flag in pytest.config.option.flags:
+    for flag in yatest.common.runtime._get_ya_config().option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return pytest.mark.skipif(True, reason=flag)
 
@@ -1029,6 +1029,7 @@ def test_cv_for_pairs(is_inverted, boosting_type):
         '-m', output_model_path,
         '--cv', format_crossvalidation(is_inverted, 2, 7),
         '--eval-file', output_eval_path,
+        '--metric-period', '1'
     )
     fit_catboost_gpu(params)
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
@@ -1344,7 +1345,8 @@ def test_pairs_generation():
         '-m', output_model_path,
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
-        '--use-best-model', 'false'
+        '--use-best-model', 'false',
+        '--metric-period', '1'
     ]
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
@@ -1513,12 +1515,11 @@ def test_group_weights_file_quantized():
     return [local_canonical_file(first_eval_path)]
 
 
-NO_RANDOM_PARAMS = {
-    '--random-strength': '0',
-    '--bootstrap-type': 'No',
-    '--has-time': '',
-    '--set-metadata-from-freeargs': ''
-}
+NO_RANDOM_PARAMS = (
+    '--random-strength', '0',
+    '--bootstrap-type', 'No',
+    '--has-time'
+)
 
 METRIC_CHECKING_MULTICLASS_NO_WEIGHTS = 'Accuracy'
 METRIC_CHECKING_MULTICLASS_WITH_WEIGHTS = 'Accuracy:use_weights=false'
@@ -1639,27 +1640,29 @@ def test_multiclass_baseline(loss_function):
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
 
-    fit_params = {
-        '--loss-function': loss_function,
-        '--learning-rate': '0.03',
-        '-f': train_path,
-        '-t': test_path,
-        '--column-description': cd_path,
-        '--boosting-type': 'Plain',
-        '-i': '10',
-        '-T': '4',
-        '--use-best-model': 'false',
-        '--classes-count': '4',
-        '--custom-metric': METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
-        '--test-err-log': eval_error_path
-    }
+    fit_params = (
+        '--loss-function', loss_function,
+        '--learning-rate', '0.03',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--use-best-model', 'false',
+        '--classes-count', '4',
+        '--custom-metric', METRIC_CHECKING_MULTICLASS_NO_WEIGHTS,
+        '--test-err-log', eval_error_path
+    )
 
-    fit_params.update(NO_RANDOM_PARAMS)
+    fit_params += NO_RANDOM_PARAMS
 
     execute_catboost_fit('CPU', fit_params)
 
-    fit_params['--learn-err-log'] = learn_error_path
-    fit_params['--test-err-log'] = test_error_path
+    fit_params += (
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
     fit_catboost_gpu(fit_params)
 
     compare_metrics_with_diff(METRIC_CHECKING_MULTICLASS_NO_WEIGHTS, test_error_path, eval_error_path)
@@ -1685,21 +1688,21 @@ def test_multiclass_baseline_lost_class(loss_function):
 
     custom_metric = 'Accuracy:use_weights=false'
 
-    fit_params = {
-        '--loss-function': loss_function,
-        '-f': train_path,
-        '-t': test_path,
-        '--column-description': cd_path,
-        '--boosting-type': 'Plain',
-        '-i': '10',
-        '-T': '4',
-        '--custom-metric': custom_metric,
-        '--test-err-log': eval_error_path,
-        '--use-best-model': 'false',
-        '--classes-count': '4'
-    }
+    fit_params = (
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', 'Plain',
+        '-i', '10',
+        '-T', '4',
+        '--custom-metric', custom_metric,
+        '--test-err-log', eval_error_path,
+        '--use-best-model', 'false',
+        '--classes-count', '4'
+    )
 
-    fit_params.update(NO_RANDOM_PARAMS)
+    fit_params += NO_RANDOM_PARAMS
 
     with pytest.raises(yatest.common.ExecutionError):
         execute_catboost_fit('CPU', fit_params)
@@ -1815,6 +1818,7 @@ def test_custom_loss_for_multiclassification():
         '--custom-metric': custom_metric_string,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--metric-period': '1',
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
@@ -1872,7 +1876,8 @@ def test_custom_loss_for_classification(boosting_type):
         '-m': model_path,
         '--custom-metric': custom_metric_string,
         '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path
+        '--test-err-log': test_error_path,
+        '--metric-period': '1',
     }
 
     fit_params.update(CAT_COMPARE_PARAMS)
@@ -2285,7 +2290,8 @@ def test_reg_targets(loss_function, boosting_type, custom_metric):
         '--counter-calc-method', 'SkipTest',
         '--custom-metric', custom_metric,
         '--test-err-log', test_error_path,
-        '--boosting-type', boosting_type
+        '--boosting-type', boosting_type,
+        '--metric-period', '1'
     ]
     fit_catboost_gpu(params)
 
@@ -2519,6 +2525,7 @@ def test_yetirank_default_metric(loss_function):
         '-i', '10',
         '-T', '4',
         '--test-err-log', test_error_path,
+        '--metric-period', '1'
     ]
 
     fit_catboost_gpu(params)
@@ -2582,6 +2589,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         '--test-err-log': test_error_path,
         '--eval-file': output_eval_path,
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
 
     if boosting_type != 'Default':
@@ -2761,6 +2769,7 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
         '--eval-file': test_eval_path,
         '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
     fit_catboost_gpu(params)
 
@@ -3001,6 +3010,7 @@ def test_fit_with_per_feature_text_options(boosting_type):
         '--eval-file': test_eval_path,
         '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
+        '--metric-period': '1',
     }
     fit_catboost_gpu(params)
 
@@ -3096,7 +3106,8 @@ def test_metric_description(dataset_has_weights):
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--eval-metric': eval_metric,
-        '--custom-metric': custom_metric
+        '--custom-metric': custom_metric,
+        '--metric-period': '1'
     }
     fit_catboost_gpu(params)
     for filename in [learn_error_path, test_error_path]:
@@ -3156,7 +3167,8 @@ def test_combination(boosting_type, loss_function):
         '-w': '0.01',
         '-T': '4',
         '--leaf-estimation-method': 'Newton',
-        '--leaf-estimation-iterations': '1'
+        '--leaf-estimation-iterations': '1',
+        '--metric-period': '1'
     }
 
     weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0'}

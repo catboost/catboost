@@ -14,6 +14,8 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/allocator_traits.h>
 #include <thrust/detail/type_traits.h>
@@ -21,8 +23,7 @@
 #include <thrust/for_each.h>
 #include <thrust/uninitialized_fill.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 namespace allocator_traits_detail
@@ -58,7 +59,7 @@ template<typename Allocator, typename T>
 {};
 
 
-// we know that std::allocator::construct's only effect is to call T's 
+// we know that std::allocator::construct's only effect is to call T's
 // default constructor, so we needn't use it for default construction
 // unless T's constructor does something interesting
 template<typename U, typename T>
@@ -107,5 +108,5 @@ __host__ __device__
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -6,6 +6,7 @@ Major developers are Tim Hatch <tim@timhatch.com> and Armin Ronacher
 Other contributors, listed alphabetically, are:
 
 * Sam Aaron -- Ioke lexer
+* Jean Abou Samra -- LilyPond lexer
 * João Abecasis -- JSLT lexer
 * Ali Afshar -- image formatter
 * Thomas Aglassinger -- Easytrieve, JCL, Rexx, Transact-SQL and VBScript
@@ -15,6 +16,7 @@ Other contributors, listed alphabetically, are:
 * Andreas Amann -- AppleScript lexer
 * Timothy Armstrong -- Dart lexer fixes
 * Jeffrey Arnold -- R/S, Rd, BUGS, Jags, and Stan lexers
+* Eiríkr Åsheim -- Uxntal lexer
 * Jeremy Ashkenas -- CoffeeScript lexer
 * José Joaquín Atria -- Praat lexer
 * Stefan Matthias Aust -- Smalltalk lexer
@@ -49,6 +51,7 @@ Other contributors, listed alphabetically, are:
 * Pete Curry -- bugfixes
 * Bryan Davis -- EBNF lexer
 * Bruno Deferrari -- Shen lexer
+* Walter Dörwald -- UL4 lexer
 * Luke Drummond -- Meson lexer
 * Giedrius Dubinskas -- HTML formatter improvements
 * Owen Durni -- Haxe lexer
@@ -117,6 +120,7 @@ Other contributors, listed alphabetically, are:
 * Gerwin Klein -- Isabelle lexer
 * Eric Knibbe -- Lasso lexer
 * Stepan Koltsov -- Clay lexer
+* Oliver Kopp - Friendly grayscale style
 * Adam Koprowski -- Opa lexer
 * Benjamin Kowarsch -- Modula-2 lexer
 * Domen Kožar -- Nix lexer
@@ -143,7 +147,8 @@ Other contributors, listed alphabetically, are:
 * Stephen McKamey -- Duel/JBST lexer
 * Brian McKenna -- F# lexer
 * Charles McLaughlin -- Puppet lexer
-* Kurt McKee -- Tera Term macro lexer, PostgreSQL updates, MySQL overhaul
+* Kurt McKee -- Tera Term macro lexer, PostgreSQL updates, MySQL overhaul, JSON lexer
+* Joe Eli McIlvain -- Savi lexer
 * Lukas Meuser -- BBCode formatter, Lua lexer
 * Cat Miller -- Pig lexer
 * Paul Miller -- LiveScript lexer
@@ -173,6 +178,7 @@ Other contributors, listed alphabetically, are:
 * Clément Prévost -- UrbiScript lexer
 * Tanner Prynn -- cmdline -x option and loading lexers from files
 * Oleh Prypin -- Crystal lexer (based on Ruby lexer)
+* Nick Psaris -- K and Q lexers
 * Xidorn Quan -- Web IDL lexer
 * Elias Rabel -- Fortran fixed form lexer
 * raichoo -- Idris lexer
@@ -182,6 +188,7 @@ Other contributors, listed alphabetically, are:
 * Justin Reidy -- MXML lexer
 * Norman Richards -- JSON lexer
 * Corey Richardson -- Rust lexer updates
+* Fabrizio Riguzzi -- cplint leder 
 * Lubomir Rintel -- GoodData MAQL and CL lexers
 * Andre Roberge -- Tango style
 * Georg Rollinger -- HSAIL lexer
@@ -218,7 +225,9 @@ Other contributors, listed alphabetically, are:
 * Jeremy Thurgood -- Erlang, Squid config lexers
 * Brian Tiffin -- OpenCOBOL lexer
 * Bob Tolbert -- Hy lexer
+* Doug Torrance -- Macaulay2 lexer
 * Matthias Trute -- Forth lexer
+* Tuoa Spi T4 -- Bdd lexer
 * Erick Tryzelaar -- Felix lexer
 * Alexander Udalov -- Kotlin lexer improvements
 * Thomas Van Doren -- Chapel lexer
@@ -246,5 +255,8 @@ Other contributors, listed alphabetically, are:
 * Fabian Neumann -- CDDL lexer
 * Thomas Duboucher -- CDDL lexer
 * Philipp Imhof -- Pango Markup formatter
+* Thomas Voss -- Sed lexer
+* Martin Fischer -- WCAG contrast testing
+* Marc Auberer -- Spice lexer
 
 Many thanks for all contributions!

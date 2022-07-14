@@ -47,11 +47,7 @@
 
 #include <thrust/system/cuda/detail/core/triple_chevron_launch.h>
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /******************************************************************************
  * Kernel entry points
@@ -133,20 +129,18 @@ struct DispatchReduceByKey
     //-------------------------------------------------------------------------
 
     // The input keys type
-    typedef typename std::iterator_traits<KeysInputIteratorT>::value_type KeyInputT;
+    using KeyInputT = cub::detail::value_t<KeysInputIteratorT>;
 
     // The output keys type
-    typedef typename If<(Equals<typename std::iterator_traits<UniqueOutputIteratorT>::value_type, void>::VALUE),    // KeyOutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<KeysInputIteratorT>::value_type,                                              // ... then the input iterator's value type,
-        typename std::iterator_traits<UniqueOutputIteratorT>::value_type>::Type KeyOutputT;                         // ... else the output iterator's value type
+    using KeyOutputT =
+      cub::detail::non_void_value_t<UniqueOutputIteratorT, KeyInputT>;
 
     // The input values type
-    typedef typename std::iterator_traits<ValuesInputIteratorT>::value_type ValueInputT;
+    using ValueInputT = cub::detail::value_t<ValuesInputIteratorT>;
 
     // The output values type
-    typedef typename If<(Equals<typename std::iterator_traits<AggregatesOutputIteratorT>::value_type, void>::VALUE),    // ValueOutputT =  (if output iterator's value type is void) ?
-        typename std::iterator_traits<ValuesInputIteratorT>::value_type,                                                // ... then the input iterator's value type,
-        typename std::iterator_traits<AggregatesOutputIteratorT>::value_type>::Type ValueOutputT;                       // ... else the output iterator's value type
+    using ValueOutputT =
+      cub::detail::non_void_value_t<AggregatesOutputIteratorT, ValueInputT>;
 
     enum
     {
@@ -156,8 +150,7 @@ struct DispatchReduceByKey
     };
 
     // Tile status descriptor interface type
-    typedef ReduceByKeyScanTileState<ValueOutputT, OffsetT> ScanTileStateT;
-
+    using ScanTileStateT = ReduceByKeyScanTileState<ValueOutputT, OffsetT>;
 
     //-------------------------------------------------------------------------
     // Tuning policies
@@ -257,7 +250,7 @@ struct DispatchReduceByKey
         typename                    ReduceByKeyKernelT>      ///< Function type of cub::DeviceReduceByKeyKernelT
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,             ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,             ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,         ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         KeysInputIteratorT          d_keys_in,                  ///< [in] Pointer to the input sequence of keys
         UniqueOutputIteratorT       d_unique_out,               ///< [out] Pointer to the output sequence of unique keys (one key per run)
@@ -304,10 +297,6 @@ struct DispatchReduceByKey
             int device_ordinal;
             if (CubDebug(error = cudaGetDevice(&device_ordinal))) break;
 
-            // Get SM count
-            int sm_count;
-            if (CubDebug(error = cudaDeviceGetAttribute (&sm_count, cudaDevAttrMultiProcessorCount, device_ordinal))) break;
-
             // Number of input tiles
             int tile_size = reduce_by_key_config.block_threads * reduce_by_key_config.items_per_thread;
             int num_tiles = static_cast<int>(cub::DivideAndRoundUp(num_items, tile_size));
@@ -334,7 +323,7 @@ struct DispatchReduceByKey
             if (debug_synchronous) _CubLog("Invoking init_kernel<<<%d, %d, 0, %lld>>>()\n", init_grid_size, INIT_KERNEL_THREADS, (long long) stream);
 
             // Invoke init_kernel to initialize tile descriptors
-            thrust::cuda_cub::launcher::triple_chevron(
+            THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                 init_grid_size, INIT_KERNEL_THREADS, 0, stream
             ).doit(init_kernel,
                 tile_state,
@@ -371,7 +360,7 @@ struct DispatchReduceByKey
                     start_tile, scan_grid_size, reduce_by_key_config.block_threads, (long long) stream, reduce_by_key_config.items_per_thread, reduce_by_key_sm_occupancy);
 
                 // Invoke reduce_by_key_kernel
-                thrust::cuda_cub::launcher::triple_chevron(
+                THRUST_NS_QUALIFIER::cuda_cub::launcher::triple_chevron(
                     scan_grid_size, reduce_by_key_config.block_threads, 0,
                     stream
                 ).doit(reduce_by_key_kernel,
@@ -406,7 +395,7 @@ struct DispatchReduceByKey
      */
     CUB_RUNTIME_FUNCTION __forceinline__
     static cudaError_t Dispatch(
-        void*                       d_temp_storage,                 ///< [in] %Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
+        void*                       d_temp_storage,                 ///< [in] Device-accessible allocation of temporary storage.  When NULL, the required allocation size is written to \p temp_storage_bytes and no work is done.
         size_t&                     temp_storage_bytes,             ///< [in,out] Reference to size in bytes of \p d_temp_storage allocation
         KeysInputIteratorT          d_keys_in,                      ///< [in] Pointer to the input sequence of keys
         UniqueOutputIteratorT       d_unique_out,                   ///< [out] Pointer to the output sequence of unique keys (one key per run)
@@ -455,7 +444,6 @@ struct DispatchReduceByKey
     }
 };
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END
 
 

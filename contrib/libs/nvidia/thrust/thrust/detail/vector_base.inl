@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file vector_base.inl
- *  \brief Inline file for vector_base.h.
- */
+#pragma once
 
 #include <thrust/detail/config.h>
 #include <thrust/detail/vector_base.h>
@@ -33,8 +30,7 @@
 
 #include <stdexcept>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -1317,5 +1313,5 @@ bool operator!=(const std::vector<T1,Alloc1>&         lhs,
     return !(lhs == rhs);
 }
 
-} // end thrust
+THRUST_NAMESPACE_END
 

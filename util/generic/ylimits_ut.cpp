@@ -3,7 +3,6 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
-#include <util/string/cast.h>
 #include <util/system/valgrind.h>
 
 class TLimitTest: public TTestBase {

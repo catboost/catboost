@@ -11,14 +11,9 @@ SRCS(
     arch.cu
     stream_pool.cpp
     cuda_vec.cpp
+    cuda_graph.cpp
+    stream_capture.cpp
 )
-
-IF (CUDA_VERSION VERSION_GE "10.1")
-    SRCS(
-        cuda_graph.cpp
-        stream_capture.cpp
-    )
-ENDIF()
 
 PEERDIR(
     contrib/libs/nvidia/cub

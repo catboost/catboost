@@ -13,7 +13,7 @@ import os
 import signal
 import threading
 import traceback
-from asyncio import get_event_loop, new_event_loop, set_event_loop
+from asyncio import new_event_loop, set_event_loop
 from typing import (
     Generic,
     Iterable,
@@ -29,6 +29,7 @@ from typing import (
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app_session
+from prompt_toolkit.eventloop import get_event_loop
 from prompt_toolkit.filters import Condition, is_done, renderer_height_is_known
 from prompt_toolkit.formatted_text import (
     AnyFormattedText,
@@ -50,7 +51,6 @@ from prompt_toolkit.layout.controls import UIContent, UIControl
 from prompt_toolkit.layout.dimension import AnyDimension, D
 from prompt_toolkit.output import ColorDepth, Output
 from prompt_toolkit.styles import BaseStyle
-from prompt_toolkit.utils import in_main_thread
 
 from .formatters import Formatter, create_default_formatters
 

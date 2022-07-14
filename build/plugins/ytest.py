@@ -17,7 +17,7 @@ import ymake
 
 
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
-MDS_SHEME = 'mds'
+MDS_SCHEME = 'mds'
 CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
 CANON_RESULT_FILE_NAME = 'result.json'
@@ -29,7 +29,14 @@ VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
+SPLIT_FACTOR_TEST_FILES_MAX_VALUE = 4250
 PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
+DEFAULT_TIDY_CONFIG = "build/config/tests/clang_tidy/config.yaml"
+DEFAULT_TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_default_map.json"
+PROJECT_TIDY_CONFIG_MAP_PATH = "build/yandex_specific/config/clang_tidy/tidy_project_map.json"
+
+
+tidy_config_map = None
 
 def ontest_data(unit, *args):
     ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
@@ -177,6 +184,9 @@ def validate_test(unit, kw):
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
 
     if is_fat:
+        if size != consts.TestSize.Large:
+            errors.append("Only LARGE test may have ya:fat tag")
+
         if in_autocheck and not is_force_sandbox:
             if invalid_requirements_for_distbuild:
                 errors.append("'{}' REQUIREMENTS options can be used only for FAT tests without ya:force_distbuild tag. Remove TAG(ya:force_distbuild) or an option.".format(invalid_requirements_for_distbuild))
@@ -184,8 +194,8 @@ def validate_test(unit, kw):
                 errors.append("You can set sandbox tags '{}' only for FAT tests without ya:force_distbuild. Remove TAG(ya:force_sandbox) or sandbox tags.".format(sb_tags))
             if 'ya:sandbox_coverage' in tags:
                 errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests without ya:force_distbuild.")
-            if size != consts.TestSize.Large:
-                errors.append("Only LARGE test may have ya:fat tag")
+            if is_ytexec_run:
+                errors.append("Running LARGE tests over YT (ya:yt) on Distbuild (ya:force_distbuild) is forbidden. Consider removing TAG(ya:force_distbuild).")
     else:
         if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
@@ -222,10 +232,10 @@ def validate_test(unit, kw):
         except Exception as e:
             errors.append("Error when parsing test timeout: [[bad]]{}[[rst]]".format(e))
 
-        requiremtens_list = []
+        requirements_list = []
         for req_name, req_value in requirements.iteritems():
-            requiremtens_list.append(req_name + ":" + req_value)
-        valid_kw['REQUIREMENTS'] = serialize_list(requiremtens_list)
+            requirements_list.append(req_name + ":" + req_value)
+        valid_kw['REQUIREMENTS'] = serialize_list(requirements_list)
 
     if valid_kw.get("FUZZ-OPTS"):
         for option in get_list("FUZZ-OPTS"):
@@ -266,6 +276,8 @@ def validate_test(unit, kw):
     if valid_kw.get('SPLIT-FACTOR'):
         if valid_kw.get('FORK-MODE') == 'none':
             errors.append('SPLIT_FACTOR must be use with FORK_TESTS() or FORK_SUBTESTS() macro')
+
+        value = 1
         try:
             value = int(valid_kw.get('SPLIT-FACTOR'))
             if value <= 0:
@@ -275,13 +287,15 @@ def validate_test(unit, kw):
         except ValueError as e:
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
 
+        if valid_kw.get('FORK-TEST-FILES') and size != consts.TestSize.Large:
+            nfiles = count_entries(valid_kw.get('TEST-FILES'))
+            if nfiles * value > SPLIT_FACTOR_TEST_FILES_MAX_VALUE:
+                errors.append('Too much chunks generated:{} (limit: {}). Remove FORK_TEST_FILES() macro or reduce SPLIT_FACTOR({}).'.format(
+                    nfiles * value, SPLIT_FACTOR_TEST_FILES_MAX_VALUE, value))
+
     unit_path = get_norm_unit_path(unit)
     if not is_fat and "ya:noretries" in tags and not is_ytexec_run \
-            and not unit_path.startswith("devtools/") \
-            and not unit_path.startswith("infra/kernel/") \
-            and not unit_path.startswith("yt/python/yt") \
-            and not unit_path.startswith("infra/yp_dns_api/tests") \
-            and not unit_path.startswith("yp/tests"):
+            and not unit_path.startswith("devtools/dummy_arcadia/test/noretries"):
         errors.append("Only LARGE tests can have 'ya:noretries' tag")
 
     if errors:
@@ -323,6 +337,14 @@ def deserialize_list(val):
     return filter(None, val.replace('"', "").split(";"))
 
 
+def count_entries(x):
+    # see (de)serialize_list
+    assert x is None or isinstance(x, str), type(x)
+    if not x:
+        return 0
+    return x.count(";") + 1
+
+
 def get_values_list(unit, key):
     res = map(str.strip, (unit.get(key) or '').replace('$' + key, '').strip().split())
     return [r for r in res if r and r not in ['""', "''"]]
@@ -358,6 +380,44 @@ def match_coverage_extractor_requirements(unit):
     ])
 
 
+def get_tidy_config_map(unit, map_path):
+    config_map_path = unit.resolve(os.path.join("$S", map_path))
+    config_map = {}
+    try:
+        with open(config_map_path, 'r') as afile:
+            config_map = json.load(afile)
+    except ValueError:
+        ymake.report_configure_error("{} is invalid json".format(map_path))
+    except Exception as e:
+        ymake.report_configure_error(str(e))
+    return config_map
+
+
+def get_default_tidy_config(unit):
+    unit_path = get_norm_unit_path(unit)
+    tidy_default_config_map = get_tidy_config_map(unit, DEFAULT_TIDY_CONFIG_MAP_PATH)
+    for project_prefix, config_path in tidy_default_config_map.items():
+        if unit_path.startswith(project_prefix):
+            return config_path
+    return DEFAULT_TIDY_CONFIG
+
+
+ordered_tidy_map = None
+
+
+def get_project_tidy_config(unit):
+    global ordered_tidy_map
+    if ordered_tidy_map is None:
+        ordered_tidy_map = list(reversed(sorted(get_tidy_config_map(unit, PROJECT_TIDY_CONFIG_MAP_PATH).items())))
+    unit_path = get_norm_unit_path(unit)
+
+    for project_prefix, config_path in ordered_tidy_map:
+        if unit_path.startswith(project_prefix):
+            return config_path
+    else:
+        return get_default_tidy_config(unit)
+
+
 def onadd_ytest(unit, *args):
     keywords = {"DEPENDS": -1, "DATA": -1, "TIMEOUT": 1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
@@ -380,13 +440,33 @@ def onadd_ytest(unit, *args):
         return
     elif flat_args[1] == "no.test":
         return
+    test_size = ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or ''
+    test_tags = serialize_list(_get_test_tags(unit, spec_args))
+    test_timeout = ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or ''
+    test_requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
 
     if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         if flat_args[1] in ("unittest.py", "gunittest", "g_benchmark"):
             flat_args[1] = "clang_tidy"
+            test_size = 'SMALL'
+            test_tags = ''
+            test_timeout = "60"
+            test_requirements = []
+            unit.set(["TEST_YT_SPEC_VALUE", ""])
         else:
             return
+
+    if flat_args[1] == "clang_tidy" and unit.get("TIDY") == "yes":
+        if unit.get("TIDY_CONFIG"):
+            default_config_path = unit.get("TIDY_CONFIG")
+            project_config_path = unit.get("TIDY_CONFIG")
+        else:
+            default_config_path = get_default_tidy_config(unit)
+            project_config_path = get_project_tidy_config(unit)
+
+        unit.set(["DEFAULT_TIDY_CONFIG", default_config_path])
+        unit.set(["PROJECT_TIDY_CONFIG", project_config_path])
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
@@ -413,12 +493,12 @@ def onadd_ytest(unit, *args):
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
         'TEST-DATA': serialize_list(test_data),
-        'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
+        'TEST-TIMEOUT': test_timeout,
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
-        'SIZE': ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or '',
-        'TAG': serialize_list(_get_test_tags(unit, spec_args)),
-        'REQUIREMENTS': serialize_list(spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
+        'SIZE': test_size,
+        'TAG': test_tags,
+        'REQUIREMENTS': serialize_list(test_requirements),
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
@@ -472,9 +552,14 @@ def onadd_check(unit, *args):
     if unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
         return
-    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
-                                                     "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
+    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1,
+                                                     "REQUIREMENTS": -1, "FORK_MODE": 1, "SPLIT_FACTOR": 1,
+                                                     "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
+
+    if check_type in ("check.data", "check.resource") and unit.get('VALIDATE_DATA') == "no":
+        return
+
     test_dir = get_norm_unit_path(unit)
 
     test_timeout = ''
@@ -482,9 +567,12 @@ def onadd_check(unit, *args):
     extra_test_data = ''
     extra_test_dart_data = {}
     ymake_java_test = unit.get('YMAKE_JAVA_TEST') == 'yes'
+    use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
+    uid_ext = ''
+    script_rel_path = check_type
+    test_files = flat_args[1:]
 
-    if check_type in ["flake8.py2", "flake8.py3"]:
-        script_rel_path = check_type
+    if check_type in ["flake8.py2", "flake8.py3", "black"]:
         fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
         if ymake_java_test and not unit.get('ALL_SRCDIRS') or '':
@@ -500,25 +588,32 @@ def onadd_check(unit, *args):
         }
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
-        flat_args[1] = allowed_levels[check_level]
-        if check_level == 'none':
-            return
+        test_files[0] = allowed_levels[check_level]  # replace check_level with path to config file
         script_rel_path = "java.style"
         test_timeout = '120'
         fork_mode = unit.get('TEST_FORK_MODE') or ''
         if ymake_java_test:
             extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
-        extra_test_dart_data['JDK_RESOURCE'] = 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT')
+        extra_test_dart_data['JDK_RESOURCE'] = 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT')
     elif check_type == "gofmt":
-        script_rel_path = check_type
-        go_files = flat_args[1:]
-        if go_files:
-            test_dir = os.path.dirname(go_files[0]).lstrip("$S/")
-    else:
-        script_rel_path = check_type
+        if test_files:
+            test_dir = os.path.dirname(test_files[0]).lstrip("$S/")
+    elif check_type == "check.data":
+        uid_ext = unit.get("SBR_UID_EXT").split(" ", 1)[-1]  # strip variable name
+        data_re = re.compile(r"sbr:/?/?(\d+)=?.*")
+        data = flat_args[1:]
+        resources = []
+        for f in data:
+            matched = re.match(data_re, f)
+            if matched:
+                resources.append(matched.group(1))
+        if resources:
+            test_files = resources
+        else:
+            return
 
-    use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
-    test_files = serialize_list(flat_args[1:])
+    serialized_test_files = serialize_list(test_files)
+
     test_record = {
         'TEST-NAME': check_type.lower(),
         'TEST-TIMEOUT': test_timeout,
@@ -527,6 +622,8 @@ def onadd_check(unit, *args):
         'SOURCE-FOLDER-PATH': test_dir,
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
         'TEST-DATA': extra_test_data,
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
+        'SBR-UID-EXT': uid_ext,
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': fork_mode,
@@ -538,8 +635,8 @@ def onadd_check(unit, *args):
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
         # TODO remove FILES, see DEVTOOLS-7052
-        'FILES': test_files,
-        'TEST-FILES': test_files,
+        'FILES': serialized_test_files,
+        'TEST-FILES': serialized_test_files,
         'NO_JBUILD': 'yes' if ymake_java_test else 'no',
     }
     test_record.update(extra_test_dart_data)
@@ -768,8 +865,9 @@ def onjava_test(unit, *args):
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
         'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
         'NO_JBUILD': 'yes' if ymake_java_test else 'no',
-        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT'),
-        'JDK_FOR_TESTS': 'JDK' + (unit.get('JDK_VERSION') or '_DEFAULT') + '_FOR_TESTS',
+        'JDK_RESOURCE': 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT'),
+        'JDK_FOR_TESTS': 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT') + '_FOR_TESTS',
+        'YT-SPEC': serialize_list(get_unit_list_variable(unit, 'TEST_YT_SPEC_VALUE')),
     }
     test_classpath_origins = unit.get('TEST_CLASSPATH_VALUE')
     if test_classpath_origins:
@@ -978,7 +1076,7 @@ def _get_resource_from_uri(uri):
     m = CANON_MDS_RESOURCE_REGEX.match(uri)
     if m:
         res_id = m.group(1)
-        return "{}:{}".format(MDS_SHEME, res_id)
+        return "{}:{}".format(MDS_SCHEME, res_id)
 
     m = CANON_SBR_RESOURCE_REGEX.match(uri)
     if m:

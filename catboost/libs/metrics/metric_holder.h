@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
@@ -11,7 +13,9 @@ struct TMetricHolder {
     TVector<double> Stats;
 
     void Add(const TMetricHolder& other) {
-        Y_VERIFY(Stats.empty() || other.Stats.empty() || Stats.size() == other.Stats.size());
+        CB_ENSURE(
+            Stats.empty() || other.Stats.empty() || Stats.size() == other.Stats.size(),
+            "Number of stats does not match");
         if (other.Stats.empty()) {
             return;
         }

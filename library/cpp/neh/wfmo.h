@@ -5,8 +5,8 @@
 #include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/vector.h>
-#include <util/system/atomic.h>
-#include <util/system/atomic_ops.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic_ops.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 

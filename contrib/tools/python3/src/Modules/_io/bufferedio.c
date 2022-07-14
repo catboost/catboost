@@ -341,11 +341,10 @@ _enter_buffered_busy(buffered *self)
      : buffered_closed(self)))
 
 #define CHECK_CLOSED(self, error_msg) \
-    if (IS_CLOSED(self)) { \
+    if (IS_CLOSED(self) & (Py_SAFE_DOWNCAST(READAHEAD(self), Py_off_t, Py_ssize_t) == 0)) { \
         PyErr_SetString(PyExc_ValueError, error_msg); \
         return NULL; \
-    }
-
+    } \
 
 #define VALID_READ_BUFFER(self) \
     (self->readable && self->read_end != -1)
@@ -529,6 +528,9 @@ buffered_close(buffered *self, PyObject *args)
         _PyErr_ChainExceptions(exc, val, tb);
         Py_CLEAR(res);
     }
+
+    self->read_end = 0;
+    self->pos = 0;
 
 end:
     LEAVE_BUFFERED(self)
@@ -1483,6 +1485,15 @@ _bufferedreader_raw_read(buffered *self, char *start, Py_ssize_t len)
     }
     n = PyNumber_AsSsize_t(res, PyExc_ValueError);
     Py_DECREF(res);
+
+    if (n == -1 && PyErr_Occurred()) {
+        _PyErr_FormatFromCause(
+            PyExc_OSError,
+            "raw readinto() failed"
+        );
+        return -1;
+    }
+
     if (n < 0 || n > len) {
         PyErr_Format(PyExc_OSError,
                      "raw readinto() returned invalid length %zd "

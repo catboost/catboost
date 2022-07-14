@@ -95,13 +95,15 @@ namespace NCB {
     public:
         explicit TKNNCalcer(
             int totalDimension = 2,
-            int numClasses = 2,
+            bool isClassification = true,
+            int featureCount = 2,
             ui32 closeNum = 5,
             const TGuid& calcerId = CreateGuid()
         )
-            : TEmbeddingFeatureCalcer(numClasses, calcerId)
+            : TEmbeddingFeatureCalcer(featureCount, calcerId)
             , TotalDimension(totalDimension)
-            , NumClasses(numClasses)
+            , IsClassification(isClassification)
+            , FeatureCount_(featureCount)
             , CloseNum(closeNum)
             , Size(0)
             , Cloud(MakeHolder<TKNNUpdatableCloud>(NOnlineHnsw::TOnlineHnswBuildOptions({CloseNum, 300}),
@@ -111,7 +113,7 @@ namespace NCB {
         void Compute(const TEmbeddingsArray& embed, TOutputFloatIterator outputFeaturesIterator) const override;
 
         ui32 FeatureCount() const override {
-            return NumClasses;
+            return FeatureCount_;
         }
 
         EFeatureCalcerType Type() const override {
@@ -127,11 +129,13 @@ namespace NCB {
 
     private:
         int TotalDimension;
-        int NumClasses;
+        bool IsClassification;
+        int FeatureCount_;
         ui32 CloseNum;
         ui32 Size;
         TKNNCloudPtr Cloud;
-        TVector<ui32> Targets;
+        TVector<ui32> TargetClasses; // used for classification
+        TVector<float> Targets;       // used for regression
 
     protected:
         friend class TKNNCalcerVisitor;
@@ -139,7 +143,7 @@ namespace NCB {
 
     class TKNNCalcerVisitor final : public IEmbeddingCalcerVisitor{
     public:
-        void Update(ui32 classId, const TEmbeddingsArray& embed, TEmbeddingFeatureCalcer* featureCalcer) override;
+        void Update(float target, const TEmbeddingsArray& embed, TEmbeddingFeatureCalcer* featureCalcer) override;
     };
 
 };

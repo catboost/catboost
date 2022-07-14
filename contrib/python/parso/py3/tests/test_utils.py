@@ -74,6 +74,10 @@ def test_utf8_bom():
     ('code', 'errors'), [
         (b'# coding: wtf-12\nfoo', 'strict'),
         (b'# coding: wtf-12\nfoo', 'replace'),
+        (b'# coding: wtf-12\r\nfoo', 'strict'),
+        (b'# coding: wtf-12\r\nfoo', 'replace'),
+        (b'# coding: wtf-12\rfoo', 'strict'),
+        (b'# coding: wtf-12\rfoo', 'replace'),
     ]
 )
 def test_bytes_to_unicode_failing_encoding(code, errors):

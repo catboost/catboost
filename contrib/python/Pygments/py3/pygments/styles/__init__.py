@@ -4,7 +4,7 @@
 
     Contains built-in styles.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,6 +17,7 @@ STYLE_MAP = {
     'default':  'default::DefaultStyle',
     'emacs':    'emacs::EmacsStyle',
     'friendly': 'friendly::FriendlyStyle',
+    'friendly_grayscale': 'friendly_grayscale::FriendlyGrayscaleStyle',
     'colorful': 'colorful::ColorfulStyle',
     'autumn':   'autumn::AutumnStyle',
     'murphy':   'murphy::MurphyStyle',
@@ -54,6 +55,9 @@ STYLE_MAP = {
     'zenburn': 'zenburn::ZenburnStyle',
     'gruvbox-dark': 'gruvbox::GruvboxDarkStyle',
     'gruvbox-light': 'gruvbox::GruvboxLightStyle',
+    'dracula': 'dracula::DraculaStyle',
+    'one-dark': 'onedark::OneDarkStyle',
+    'lilypond' : 'lilypond::LilyPondStyle',
 }
 
 

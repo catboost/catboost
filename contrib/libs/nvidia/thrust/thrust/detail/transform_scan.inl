@@ -14,10 +14,9 @@
  *  limitations under the License.
  */
 
+#pragma once
 
-/*! \file transform_scan.inl
- *  \brief Inline file for transform_scan.h.
- */
+#include <thrust/detail/config.h>
 
 #include <thrust/scan.h>
 #include <thrust/iterator/iterator_traits.h>
@@ -25,8 +24,7 @@
 #include <thrust/system/detail/generic/transform_scan.h>
 #include <thrust/system/detail/adl/transform_scan.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 __thrust_exec_check_disable__
@@ -115,5 +113,5 @@ template<typename InputIterator,
 } // end transform_exclusive_scan()
 
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

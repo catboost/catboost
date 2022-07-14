@@ -61,7 +61,8 @@ from .utils import explode_text_fragments
 if TYPE_CHECKING:
     from typing_extensions import Protocol, TypeGuard
 
-    NotImplementedOrNone = object
+    from prompt_toolkit.key_binding.key_bindings import NotImplementedOrNone
+
 
 __all__ = [
     "AnyContainer",
@@ -825,7 +826,7 @@ class FloatContainer(Container):
 
             if postpone:
                 new_z_index = (
-                    number + 10 ** 8
+                    number + 10**8
                 )  # Draw as late as possible, but keep the order.
                 screen.draw_with_z_index(
                     z_index=new_z_index,
@@ -1364,7 +1365,7 @@ class ScrollOffsets:
         return to_int(self._right)
 
     def __repr__(self) -> str:
-        return "ScrollOffsets(top=%r, bottom=%r, left=%r, right=%r)" % (
+        return "ScrollOffsets(top={!r}, bottom={!r}, left={!r}, right={!r})".format(
             self._top,
             self._bottom,
             self._left,
@@ -1829,13 +1830,16 @@ class Window(Container):
         self.render_info = render_info
 
         # Set mouse handlers.
-        def mouse_handler(mouse_event: MouseEvent) -> None:
-            """Wrapper around the mouse_handler of the `UIControl` that turns
-            screen coordinates into line coordinates."""
+        def mouse_handler(mouse_event: MouseEvent) -> "NotImplementedOrNone":
+            """
+            Wrapper around the mouse_handler of the `UIControl` that turns
+            screen coordinates into line coordinates.
+            Returns `NotImplemented` if no UI invalidation should be done.
+            """
             # Don't handle mouse events outside of the current modal part of
             # the UI.
             if self not in get_app().layout.walk_through_modal_area():
-                return
+                return NotImplemented
 
             # Find row/col position first.
             yx_to_rowcol = {v: k for k, v in rowcol_to_yx.items()}
@@ -1861,6 +1865,8 @@ class Window(Container):
                         MouseEvent(
                             position=Point(x=col, y=row),
                             event_type=mouse_event.event_type,
+                            button=mouse_event.button,
+                            modifiers=mouse_event.modifiers,
                         )
                     )
                     break
@@ -1871,13 +1877,18 @@ class Window(Container):
                 # Report (0,0) instead.)
                 result = self.content.mouse_handler(
                     MouseEvent(
-                        position=Point(x=0, y=0), event_type=mouse_event.event_type
+                        position=Point(x=0, y=0),
+                        event_type=mouse_event.event_type,
+                        button=mouse_event.button,
+                        modifiers=mouse_event.modifiers,
                     )
                 )
 
             # If it returns NotImplemented, handle it here.
             if result == NotImplemented:
-                self._mouse_handler(mouse_event)
+                result = self._mouse_handler(mouse_event)
+
+            return result
 
         mouse_handlers.set_mouse_handler_for_range(
             x_min=write_position.xpos + sum(left_margin_widths),
@@ -2048,7 +2059,7 @@ class Window(Container):
                             return x, y  # Break out of all for loops.
 
                     # Set character in screen and shift 'x'.
-                    if x >= 0 and y >= 0 and x < write_position.width:
+                    if x >= 0 and y >= 0 and x < width:
                         new_buffer_row[x + xpos] = char
 
                         # When we print a multi width character, make sure
@@ -2547,15 +2558,22 @@ class Window(Container):
             ),
         )
 
-    def _mouse_handler(self, mouse_event: MouseEvent) -> None:
+    def _mouse_handler(self, mouse_event: MouseEvent) -> "NotImplementedOrNone":
         """
         Mouse handler. Called when the UI control doesn't handle this
         particular event.
+
+        Return `NotImplemented` if nothing was done as a consequence of this
+        key binding (no UI invalidate required in that case).
         """
         if mouse_event.event_type == MouseEventType.SCROLL_DOWN:
             self._scroll_down()
+            return None
         elif mouse_event.event_type == MouseEventType.SCROLL_UP:
             self._scroll_up()
+            return None
+
+        return NotImplemented
 
     def _scroll_down(self) -> None:
         "Scroll window down."
@@ -2609,7 +2627,7 @@ class ConditionalContainer(Container):
         self.filter = to_filter(filter)
 
     def __repr__(self) -> str:
-        return "ConditionalContainer(%r, filter=%r)" % (self.content, self.filter)
+        return f"ConditionalContainer({self.content!r}, filter={self.filter!r})"
 
     def reset(self) -> None:
         self.content.reset()
@@ -2712,7 +2730,7 @@ def to_container(container: AnyContainer) -> Container:
     elif hasattr(container, "__pt_container__"):
         return to_container(container.__pt_container__())
     else:
-        raise ValueError("Not a container object: %r" % (container,))
+        raise ValueError(f"Not a container object: {container!r}")
 
 
 def to_window(container: AnyContainer) -> Window:
@@ -2724,7 +2742,7 @@ def to_window(container: AnyContainer) -> Window:
     elif hasattr(container, "__pt_container__"):
         return to_window(cast("MagicContainer", container).__pt_container__())
     else:
-        raise ValueError("Not a Window object: %r." % (container,))
+        raise ValueError(f"Not a Window object: {container!r}.")
 
 
 def is_container(value: object) -> "TypeGuard[AnyContainer]":

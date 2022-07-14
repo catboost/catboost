@@ -25,9 +25,7 @@
 #include <thrust/detail/execution_policy.h>
 #include <thrust/iterator/iterator_traits.h>
 
-namespace thrust
-{
-
+THRUST_NAMESPACE_BEGIN
 
 /*! \addtogroup algorithms
  */
@@ -228,8 +226,6 @@ template <typename InputIterator, typename Predicate>
  *  \} // end reductions
  */
 
+THRUST_NAMESPACE_END
 
-} // end thrust
-
-#include <thrust/detail/count.inl>
-
+#include <thrust/detail/count.h>

@@ -14,9 +14,8 @@
  *  limitations under the License.
  */
 
-
-/*! \file device_malloc.h
- *  \brief Allocates storage in device memory
+/*! \file
+ *  \brief Allocates storage in device memory.
  */
 
 #pragma once
@@ -25,11 +24,9 @@
 #include <thrust/device_ptr.h>
 #include <cstddef> // for std::size_t
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-/*! \addtogroup allocation_functions Allocation Functions
- *  \ingroup memory_management_functions
+/*! \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -94,10 +91,10 @@ inline thrust::device_ptr<void> device_malloc(const std::size_t n);
 template<typename T>
   inline thrust::device_ptr<T> device_malloc(const std::size_t n);
 
-/*! \}
+/*! \} // memory_management
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_malloc.inl>
 

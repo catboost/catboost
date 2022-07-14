@@ -20,7 +20,7 @@ static std::function<float(ui64, ui64)> GetWeightFunction(EAutoClassWeightsType 
                     sqrt(maxSummaryClassWeight / summaryClassWeight) : 1.f;
             };
         case EAutoClassWeightsType::None:
-            Y_VERIFY(false);
+            CB_ENSURE(false, "Unexcepted auto class weights type");
     }
 }
 
@@ -60,7 +60,7 @@ namespace NCB {
         EAutoClassWeightsType autoClassWeightsType,
         NPar::ILocalExecutor* localExecutor
     ) {
-        Y_VERIFY(classCount > 0);
+        CB_ENSURE(classCount > 0, "Class count should be > 0");
         TVector<float> summaryClassWeights = CalculateSummaryClassWeight(
             targetClasses,
             itemWeights,
@@ -68,7 +68,7 @@ namespace NCB {
             localExecutor
         );
 
-        Y_VERIFY(summaryClassWeights.size() == classCount);
+        CB_ENSURE(summaryClassWeights.size() == classCount, "Number of classes and class weights mismatch");
 
         CATBOOST_INFO_LOG << "Class weights type: " << autoClassWeightsType << Endl;
         TVector<float> classWeights;

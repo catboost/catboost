@@ -24,8 +24,7 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -392,5 +391,5 @@ template<typename FromPtr, typename ToPtr, typename T = void>
 
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

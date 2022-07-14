@@ -6,4 +6,8 @@
 
 %include "tvector.i"
 
+
+%catches(std::exception) ModeFitImpl(const TVector<TString>& args);
+%catches(std::exception) ShutdownWorkers(const TString& hostsFile, i32 timeoutInSeconds);
+
 %include "master.h"

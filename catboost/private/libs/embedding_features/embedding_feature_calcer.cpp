@@ -64,19 +64,19 @@ namespace NCB {
     }
 
     TEmbeddingFeatureCalcer::TEmbeddingCalcerFbs TEmbeddingFeatureCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const {
-        Y_FAIL("Serialization to flatbuffer is not implemented");
+        CB_ENSURE(false, "Serialization to flatbuffer is not implemented");
     }
 
     void TEmbeddingFeatureCalcer::SaveLargeParameters(IOutputStream*) const {
-        Y_FAIL("Serialization is not implemented");
+        CB_ENSURE(false, "Serialization is not implemented");
     }
 
     void TEmbeddingFeatureCalcer::LoadParametersFromFB(const NCatBoostFbs::NEmbeddings::TEmbeddingCalcer*) {
-        Y_FAIL("Deserialization from flatbuffer is not implemented");
+        CB_ENSURE(false, "Deserialization from flatbuffer is not implemented");
     }
 
     void TEmbeddingFeatureCalcer::LoadLargeParameters(IInputStream*) {
-        Y_FAIL("Deserialization is not implemented");
+        CB_ENSURE(false, "Deserialization is not implemented");
     }
 
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> TEmbeddingFeatureCalcer::ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const {

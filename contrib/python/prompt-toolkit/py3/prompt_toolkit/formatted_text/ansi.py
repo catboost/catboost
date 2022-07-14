@@ -1,4 +1,5 @@
-from typing import Generator, List, Optional
+from string import Formatter
+from typing import Generator, List, Optional, Tuple, Union
 
 from prompt_toolkit.output.vt100 import BG_ANSI_COLORS, FG_ANSI_COLORS
 from prompt_toolkit.output.vt100 import _256_colors as _256_colors_table
@@ -55,7 +56,11 @@ class ANSI:
         formatted_text = self._formatted_text
 
         while True:
+            # NOTE: CSI is a special token within a stream of characters that
+            #       introduces an ANSI control sequence used to set the
+            #       style attributes of the following characters.
             csi = False
+
             c = yield
 
             # Everything between \001 and \002 should become a ZeroWidthEscape.
@@ -70,6 +75,7 @@ class ANSI:
                     else:
                         escaped_text += c
 
+            # Check for CSI
             if c == "\x1b":
                 # Start of color escape sequence.
                 square_bracket = yield
@@ -84,19 +90,37 @@ class ANSI:
                 # Got a CSI sequence. Color codes are following.
                 current = ""
                 params = []
+
                 while True:
                     char = yield
+
+                    # Construct number
                     if char.isdigit():
                         current += char
+
+                    # Eval number
                     else:
+                        # Limit and save number value
                         params.append(min(int(current or 0), 9999))
+
+                        # Get delimiter token if present
                         if char == ";":
                             current = ""
+
+                        # Check and evaluate color codes
                         elif char == "m":
                             # Set attributes and token.
                             self._select_graphic_rendition(params)
                             style = self._create_style_string()
                             break
+
+                        # Check and evaluate cursor forward
+                        elif char == "C":
+                            for i in range(params[0]):
+                                # add <SPACE> using current style
+                                formatted_text.append((style, " "))
+                            break
+
                         else:
                             # Ignore unsupported sequence.
                             break
@@ -127,14 +151,16 @@ class ANSI:
                 self._bgcolor = _bg_colors[attr]
             elif attr == 1:
                 self._bold = True
+            # elif attr == 2:
+            #   self._faint = True
             elif attr == 3:
                 self._italic = True
             elif attr == 4:
                 self._underline = True
             elif attr == 5:
-                self._blink = True
+                self._blink = True  # Slow blink
             elif attr == 6:
-                self._blink = True  # Fast blink.
+                self._blink = True  # Fast blink
             elif attr == 7:
                 self._reverse = True
             elif attr == 8:
@@ -142,7 +168,7 @@ class ANSI:
             elif attr == 9:
                 self._strike = True
             elif attr == 22:
-                self._bold = False
+                self._bold = False  # Normal intensity
             elif attr == 23:
                 self._italic = False
             elif attr == 24:
@@ -151,9 +177,12 @@ class ANSI:
                 self._blink = False
             elif attr == 27:
                 self._reverse = False
+            elif attr == 28:
+                self._hidden = False
             elif attr == 29:
                 self._strike = False
             elif not attr:
+                # Reset all style attributes
                 self._color = None
                 self._bgcolor = None
                 self._bold = False
@@ -179,7 +208,7 @@ class ANSI:
                 # True colors.
                 if n == 2 and len(attrs) >= 3:
                     try:
-                        color_str = "#%02x%02x%02x" % (
+                        color_str = "#{:02x}{:02x}{:02x}".format(
                             attrs.pop(),
                             attrs.pop(),
                             attrs.pop(),
@@ -219,7 +248,7 @@ class ANSI:
         return " ".join(result)
 
     def __repr__(self) -> str:
-        return "ANSI(%r)" % (self.value,)
+        return f"ANSI({self.value!r})"
 
     def __pt_formatted_text__(self) -> StyleAndTextTuples:
         return self._formatted_text
@@ -229,11 +258,17 @@ class ANSI:
         Like `str.format`, but make sure that the arguments are properly
         escaped. (No ANSI escapes can be injected.)
         """
-        # Escape all the arguments.
-        args = tuple(ansi_escape(a) for a in args)
-        kwargs = {k: ansi_escape(v) for k, v in kwargs.items()}
+        return ANSI(FORMATTER.vformat(self.value, args, kwargs))
 
-        return ANSI(self.value.format(*args, **kwargs))
+    def __mod__(self, value: object) -> "ANSI":
+        """
+        ANSI('<b>%s</b>') % value
+        """
+        if not isinstance(value, tuple):
+            value = (value,)
+
+        value = tuple(ansi_escape(i) for i in value)
+        return ANSI(self.value % value)
 
 
 # Mapping of the ANSI color codes to their names.
@@ -244,11 +279,19 @@ _bg_colors = {v: k for k, v in BG_ANSI_COLORS.items()}
 _256_colors = {}
 
 for i, (r, g, b) in enumerate(_256_colors_table.colors):
-    _256_colors[i] = "#%02x%02x%02x" % (r, g, b)
+    _256_colors[i] = f"#{r:02x}{g:02x}{b:02x}"
 
 
-def ansi_escape(text: str) -> str:
+def ansi_escape(text: object) -> str:
     """
     Replace characters with a special meaning.
     """
-    return text.replace("\x1b", "?").replace("\b", "?")
+    return str(text).replace("\x1b", "?").replace("\b", "?")
+
+
+class ANSIFormatter(Formatter):
+    def format_field(self, value: object, format_spec: str) -> str:
+        return ansi_escape(format(value, format_spec))
+
+
+FORMATTER = ANSIFormatter()

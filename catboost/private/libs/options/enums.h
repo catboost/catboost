@@ -125,6 +125,7 @@ enum class ELossFunction {
     Lq,
     MAE,
     Quantile,
+    MultiQuantile,
     Expectile,
     LogLinQuantile,
     MAPE,
@@ -182,6 +183,7 @@ enum class ELossFunction {
     Recall,
     F1,
     TotalF1,
+    F,
     MCC,
     ZeroOneLoss,
     HammingLoss,
@@ -352,6 +354,12 @@ enum class ENdcgDenominatorType {
     Position
 };
 
+enum class ENdcgSortType {
+    None,
+    ByPrediction,
+    ByTarget
+};
+
 enum class EMetricBestValue {
     Max,
     Min,
@@ -414,5 +422,10 @@ namespace NCB {
         RecursiveByPredictionValuesChange,
         RecursiveByLossFunctionChange,
         RecursiveByShapValues
+    };
+
+    enum class EFeaturesSelectionGrouping {
+        Individual,
+        ByTags
     };
 }

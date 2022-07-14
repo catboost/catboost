@@ -41,11 +41,7 @@
 #include "../util_type.cuh"
 #include "grid_mapping.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /**
@@ -162,7 +158,8 @@ public:
         {
             // This thread block gets a normal share of grains (avg_tiles_per_block)
             block_offset = normal_base_offset + (block_id * normal_share_items);
-            block_end = CUB_MIN(num_items, block_offset + normal_share_items);
+            // Avoid generating values greater than num_items, as it may cause overflow
+            block_end = block_offset + CUB_MIN(num_items - block_offset, normal_share_items);
         }
         // Else default past-the-end
     }
@@ -222,5 +219,4 @@ public:
 
 /** @} */       // end group GridModule
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

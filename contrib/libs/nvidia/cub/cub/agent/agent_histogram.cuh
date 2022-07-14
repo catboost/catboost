@@ -41,11 +41,7 @@
 #include "../grid/grid_queue.cuh"
 #include "../iterator/cache_modified_input_iterator.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 
 /******************************************************************************
@@ -115,13 +111,13 @@ struct AgentHistogram
     //---------------------------------------------------------------------
 
     /// The sample type of the input iterator
-    typedef typename std::iterator_traits<SampleIteratorT>::value_type SampleT;
+    using SampleT = cub::detail::value_t<SampleIteratorT>;
 
     /// The pixel type of SampleT
-    typedef typename CubVector<SampleT, NUM_CHANNELS>::Type PixelT;
+    using PixelT = typename CubVector<SampleT, NUM_CHANNELS>::Type;
 
     /// The quad type of SampleT
-    typedef typename CubVector<SampleT, 4>::Type QuadT;
+    using QuadT = typename CubVector<SampleT, 4>::Type;
 
     /// Constants
     enum
@@ -149,10 +145,12 @@ struct AgentHistogram
 
 
     /// Input iterator wrapper type (for applying cache modifier)
-    typedef typename If<IsPointer<SampleIteratorT>::VALUE,
-            CacheModifiedInputIterator<LOAD_MODIFIER, SampleT, OffsetT>,     // Wrap the native input pointer with CacheModifiedInputIterator
-            SampleIteratorT>::Type                                           // Directly use the supplied input iterator type
-        WrappedSampleIteratorT;
+    // Wrap the native input pointer with CacheModifiedInputIterator
+    // or directly use the supplied input iterator type
+    using WrappedSampleIteratorT = cub::detail::conditional_t<
+      std::is_pointer<SampleIteratorT>::value,
+      CacheModifiedInputIterator<LOAD_MODIFIER, SampleT, OffsetT>,
+      SampleIteratorT>;
 
     /// Pixel input iterator type (for applying cache modifier)
     typedef CacheModifiedInputIterator<LOAD_MODIFIER, PixelT, OffsetT>
@@ -779,9 +777,4 @@ struct AgentHistogram
 
 };
 
-
-
-
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
-
+CUB_NAMESPACE_END

@@ -4,14 +4,15 @@
 
     Lexer for the Forth language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
 from pygments.lexer import RegexLexer, bygroups
-from pygments.token import Text, Comment, Keyword, Name, String, Number
+from pygments.token import Text, Comment, Keyword, Name, String, Number, \
+        Whitespace
 
 
 __all__ = ['ForthLexer']
@@ -24,6 +25,7 @@ class ForthLexer(RegexLexer):
     .. versionadded:: 2.2
     """
     name = 'Forth'
+    url = 'https://www.forth.com/forth/'
     aliases = ['forth']
     filenames = ['*.frt', '*.fs']
     mimetypes = ['application/x-forth']
@@ -32,15 +34,15 @@ class ForthLexer(RegexLexer):
 
     tokens = {
         'root': [
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
             # All comment types
-            (r'\\.*?\n', Comment.Single),
+            (r'\\.*?$', Comment.Single),
             (r'\([\s].*?\)', Comment.Single),
             # defining words. The next word is a new command name
             (r'(:|variable|constant|value|buffer:)(\s+)',
-             bygroups(Keyword.Namespace, Text), 'worddef'),
+             bygroups(Keyword.Namespace, Whitespace), 'worddef'),
             # strings are rather simple
-            (r'([.sc]")(\s+?)', bygroups(String, Text), 'stringdef'),
+            (r'([.sc]")(\s+?)', bygroups(String, Whitespace), 'stringdef'),
             # keywords from the various wordsets
             # *** Wordset BLOCK
             (r'(blk|block|buffer|evaluate|flush|load|save-buffers|update|'

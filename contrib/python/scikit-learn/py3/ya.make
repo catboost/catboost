@@ -15,7 +15,7 @@ PEERDIR(
 
 ADDINCL(
     contrib/libs/cblas
-    FOR cython contrib/python/scipy
+    FOR cython contrib/python/scipy/py3
     contrib/python/scikit-learn/py3/sklearn/linear_model
     contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm
     contrib/python/scikit-learn/py3/sklearn/svm/src/liblinear

@@ -11,9 +11,9 @@ namespace NKernel {
 
     template <class Filter = TZeroWeightFilter>
     __global__ void FilterImpl(const float* weights,
-                               int size,
+                               ui32 size,
                                ui32* result) {
-        const int i = blockIdx.x * blockDim.x + threadIdx.x;
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         Filter filter;
         if (i < size) {
             result[i] = filter(__ldg(weights + i));

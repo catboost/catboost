@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
-/*! \file pool_options.h
- *  \brief \p pool_options is a type used by the pooling resource adaptors to fine-tune their behavior.
+/*! \file 
+ *  \brief A type used by the pooling resource adaptors to fine-tune their
+ *  behavior.
  */
 
 #pragma once
@@ -24,14 +25,14 @@
 
 #include <thrust/detail/integer_math.h>
 
+#include <thrust/detail/config.h>
 #include <thrust/detail/config/memory_resource.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
-/*! \addtogroup memory_management_classes Memory Management Classes
+/*! \addtogroup memory_resources Memory Resources
  *  \ingroup memory_management
  *  \{
  */
@@ -119,9 +120,9 @@ struct pool_options
     }
 };
 
-/*! \}
+/*! \} // memory_resources
  */
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 

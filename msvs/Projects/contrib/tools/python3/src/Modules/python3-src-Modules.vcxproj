@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=8732495 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DPy_BUILD_CORE_MODULE -DXML_STATIC -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DLZMA_API_STATIC -DFFI_BUILDING /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=8732495 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DPy_BUILD_CORE_MODULE -DXML_STATIC -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DLZMA_API_STATIC -DFFI_BUILDING /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF  -DCATBOOST_OPENSOURCE=yes  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9630116 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DPy_BUILD_CORE -DPy_BUILD_CORE_BUILTIN -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=9630116 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DPy_BUILD_CORE -DPy_BUILD_CORE_BUILTIN -DXML_STATIC -DLZMA_API_STATIC -DFFI_BUILDING /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/expat;$(SolutionDir)../contrib/libs/libbz2;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/zlib;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/tools/python3/src/Include;$(SolutionDir)../contrib/tools/python3/src/Include/internal;$(SolutionDir)../contrib/tools/python3/src/Modules;$(SolutionDir)../contrib/tools/python3/src/Modules/_decimal/libmpdec;$(SolutionDir)../contrib/tools/python3/src/PC;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/xz/liblzma/api;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/expat;$(SolutionDir)../contrib/libs/libbz2;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/tools/python3/src/Include;$(SolutionDir)../contrib/tools/python3/src/Include/internal;$(SolutionDir)../contrib/tools/python3/src/Modules;$(SolutionDir)../contrib/tools/python3/src/Modules/_decimal/libmpdec;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/lzma/liblzma/api;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -138,6 +138,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpdecimal.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\mpsignal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\numbertheory.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -145,6 +148,30 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\transpose.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\_iomodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\bufferedio.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\bytesio.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\fileio.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\iobase.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\stringio.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\textio.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\winconsoleio.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\multiprocessing.c">
@@ -216,6 +243,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_elementtree.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_functoolsmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_hashopenssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -243,9 +273,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_operator.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_peg_parser.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_pickle.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -268,6 +295,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_struct.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_threadmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_tracemalloc.c">
@@ -300,10 +330,16 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\cmathmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\config.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\errnomodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\faulthandler.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\gcmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\getbuildinfo.c">
@@ -312,16 +348,22 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\itertoolsmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\main.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\mathmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\md5module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\mmapmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\overlapped.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\parsermodule.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\posixmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\pyexpat.c">
@@ -342,10 +384,16 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\sha512module.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\signalmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\socketmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\symtablemodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\timemodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\unicodedata.c">
@@ -386,7 +434,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\transpose.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\typearith.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\umodarith.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_decimal\libmpdec\vccompat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\_iomodule.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\_iomodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\bufferedio.c.h"/>
@@ -397,7 +444,9 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\textio.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_io\clinic\winconsoleio.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_math.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\multiprocessing.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\posixshmem.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\clinic\semaphore.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_multiprocessing\multiprocessing.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\clinic\sha3module.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakHash.h"/>
@@ -408,6 +457,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\KeccakSponge.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\SnP-Relaned.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_sha3\kcp\align.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl\clinic\cert.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_111.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\_ssl_data_300.h"/>
@@ -434,6 +485,8 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_elementtree.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_hashopenssl.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_heapqmodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_localemodule.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_lsprof.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_lzmamodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_opcode.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\_operator.c.h"/>
@@ -455,6 +508,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\itertoolsmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\mathmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\md5module.c.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\overlapped.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\posixmodule.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\pyexpat.c.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\tools\python3\src\Modules\clinic\selectmodule.c.h"/>
@@ -479,15 +533,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
-      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
-      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
-      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\expat\contrib-libs-expat.vcxproj">
       <Project>{BF794ED3-B687-CE38-5FC3-A9AC59EC392B}</Project>
     </ProjectReference>
@@ -497,29 +542,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
       <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzma\contrib-libs-lzma.vcxproj">
+      <Project>{67104716-36C7-D4F8-BC46-5B33214C649D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\common\libs-xz-common.vcxproj">
-      <Project>{F9804092-4C13-EB40-22ED-4230BA4B282E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\xz\liblzma\libs-xz-liblzma.vcxproj">
-      <Project>{D34AC41F-BA71-4FE6-9395-4F644C2FED80}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
-      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
-      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

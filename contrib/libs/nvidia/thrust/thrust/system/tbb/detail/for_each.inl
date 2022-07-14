@@ -14,17 +14,19 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/static_assert.h>
 #include <thrust/distance.h>
 #include <thrust/iterator/iterator_traits.h>
 #include <thrust/distance.h>
 #include <thrust/system/detail/sequential/execution_policy.h>
+
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -78,7 +80,7 @@ RandomAccessIterator for_each_n(execution_policy<DerivedPolicy> &,
 
   // return the end of the range
   return first + n;
-} // end for_each_n 
+} // end for_each_n
 
 
 template<typename DerivedPolicy,
@@ -96,5 +98,5 @@ template<typename DerivedPolicy,
 } // end namespace detail
 } // end namespace tbb
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

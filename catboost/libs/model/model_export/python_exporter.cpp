@@ -35,7 +35,7 @@ namespace NCB {
         out << indent++ << "model_ctrs = catboost_model_ctrs_container(" << '\n';
 
         const TStaticCtrProvider* ctrProvider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
-        Y_VERIFY(ctrProvider, "Unsupported CTR provider");
+        CB_ENSURE(ctrProvider, "Unsupported CTR provider");
 
         TVector<TCompressedModelCtr> compressedModelCtrs = CompressModelCtrs(neededCtrs);
 

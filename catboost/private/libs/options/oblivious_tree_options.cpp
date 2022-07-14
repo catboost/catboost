@@ -33,9 +33,10 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , MaxCtrComplexityForBordersCaching("dev_max_ctr_complexity_for_borders_cache", 1, taskType)
       , MetaL2Exponent("meta_l2_exponent", 1.0, taskType)
       , MetaL2Frequency("meta_l2_frequency", 0.0, taskType)
+      , FixedBinarySplits("fixed_binary_splits", {}, taskType)
       , MonotoneConstraints("monotone_constraints", {}, taskType)
       , DevLeafwiseApproxes("dev_leafwise_approxes", false, taskType)
-      , FeaturePenalties("penalties", TFeaturePenaltiesOptions(), taskType)
+      , FeaturePenalties("penalties", TFeaturePenaltiesOptions())
       , TaskType("task_type", taskType)
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -64,6 +65,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
             &DevScoreCalcObjBlockSize,
             &DevExclusiveFeaturesBundleMaxBuckets,
             &SparseFeaturesConflictFraction,
+            &FixedBinarySplits,
             &MonotoneConstraints,
             &DevLeafwiseApproxes,
             &FeaturePenalties
@@ -86,6 +88,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
             DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets,
             SparseFeaturesConflictFraction,
+            FixedBinarySplits,
             MonotoneConstraints,
             DevLeafwiseApproxes,
             FeaturePenalties
@@ -97,7 +100,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
             AddRidgeToTargetFunctionFlag, ScoreFunction, GrowPolicy, MaxLeaves, MinDataInLeaf, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
-            DevExclusiveFeaturesBundleMaxBuckets, SparseFeaturesConflictFraction,
+            DevExclusiveFeaturesBundleMaxBuckets, SparseFeaturesConflictFraction, FixedBinarySplits,
             MonotoneConstraints, DevLeafwiseApproxes, FeaturePenalties
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.MetaL2Exponent, rhs.MetaL2Frequency, rhs.ModelSizeReg,
@@ -106,7 +109,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
                 rhs.ScoreFunction, rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MaxCtrComplexityForBordersCaching,
                 rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType, rhs.DevScoreCalcObjBlockSize,
                 rhs.DevExclusiveFeaturesBundleMaxBuckets, rhs.SparseFeaturesConflictFraction,
-                rhs.MonotoneConstraints, rhs.DevLeafwiseApproxes, rhs.FeaturePenalties);
+                rhs.FixedBinarySplits, rhs.MonotoneConstraints, rhs.DevLeafwiseApproxes, rhs.FeaturePenalties);
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator!=(const TObliviousTreeLearnerOptions& rhs) const {

@@ -138,6 +138,20 @@ Omitted (group weights are either read from the dataset description or set to 1 
 
 {{ cpu-gpu }}
 
+## --force-unit-auto-pair-weights {#--force-unit-auto-pair-weights}
+
+#### Description
+
+For each auto-generated pair in pairwise losses, set the pair weight equal to one.
+
+**{{ cli__params-table__title__default }}:**
+
+Omitted (for each auto-generated pair, the weight is set equal to the weight of the group containing the elements of the pair)
+
+**{{ cli__params-table__title__processing-units-type }}**
+
+{{ cpu-gpu }}
+
 ## --learn-baseline {#--learn-baseline}
 
 #### Description

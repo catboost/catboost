@@ -87,6 +87,8 @@ BELONGS ya.make
         include/libunwind.h [3:4]
         include/mach-o/compact_unwind_encoding.h [3:4]
         include/unwind.h [3:4]
+        include/unwind_arm_ehabi.h [3:4]
+        include/unwind_itanium.h [3:4]
         src/AddressSpace.hpp [3:4]
         src/CompactUnwinder.hpp [3:4]
         src/DwarfInstructions.hpp [3:4]
@@ -105,6 +107,7 @@ BELONGS ya.make
         src/UnwindRegistersRestore.S [3:4]
         src/UnwindRegistersSave.S [3:4]
         src/Unwind_AppleExtras.cpp [3:4]
+        src/cet_unwind.h [3:4]
         src/config.h [3:4]
         src/dwarf2.h [3:4]
         src/libunwind.cpp [3:4]
@@ -119,6 +122,8 @@ BELONGS ya.make
         include/libunwind.h [3:4]
         include/mach-o/compact_unwind_encoding.h [3:4]
         include/unwind.h [3:4]
+        include/unwind_arm_ehabi.h [3:4]
+        include/unwind_itanium.h [3:4]
         src/AddressSpace.hpp [3:4]
         src/CompactUnwinder.hpp [3:4]
         src/DwarfInstructions.hpp [3:4]
@@ -137,13 +142,15 @@ BELONGS ya.make
         src/UnwindRegistersRestore.S [3:4]
         src/UnwindRegistersSave.S [3:4]
         src/Unwind_AppleExtras.cpp [3:4]
+        src/cet_unwind.h [3:4]
         src/config.h [3:4]
         src/dwarf2.h [3:4]
         src/libunwind.cpp [3:4]
         src/libunwind_ext.h [3:4]
 
-KEEP     LLVM-exception       8494a9caed330d9a4f40e19cce7dc770
+KEEP     Apache-2.0 WITH LLVM-exception 8494a9caed330d9a4f40e19cce7dc770
 BELONGS ya.make
+    # startswith --- LLVM Exceptions to the Apache 2.0 License ----
     Note: matched license text is too long. Read it in the source files.
     Scancode info:
         Original SPDX id: LLVM-exception
@@ -189,6 +196,8 @@ BELONGS ya.make
         include/libunwind.h [5:5]
         include/mach-o/compact_unwind_encoding.h [5:5]
         include/unwind.h [5:5]
+        include/unwind_arm_ehabi.h [5:5]
+        include/unwind_itanium.h [5:5]
         src/AddressSpace.hpp [5:5]
         src/CompactUnwinder.hpp [5:5]
         src/DwarfInstructions.hpp [5:5]
@@ -207,6 +216,7 @@ BELONGS ya.make
         src/UnwindRegistersRestore.S [5:5]
         src/UnwindRegistersSave.S [5:5]
         src/Unwind_AppleExtras.cpp [5:5]
+        src/cet_unwind.h [5:5]
         src/config.h [5:5]
         src/dwarf2.h [5:5]
         src/libunwind.cpp [5:5]
@@ -221,6 +231,8 @@ BELONGS ya.make
         include/libunwind.h [5:5]
         include/mach-o/compact_unwind_encoding.h [5:5]
         include/unwind.h [5:5]
+        include/unwind_arm_ehabi.h [5:5]
+        include/unwind_itanium.h [5:5]
         src/AddressSpace.hpp [5:5]
         src/CompactUnwinder.hpp [5:5]
         src/DwarfInstructions.hpp [5:5]
@@ -239,6 +251,7 @@ BELONGS ya.make
         src/UnwindRegistersRestore.S [5:5]
         src/UnwindRegistersSave.S [5:5]
         src/Unwind_AppleExtras.cpp [5:5]
+        src/cet_unwind.h [5:5]
         src/config.h [5:5]
         src/dwarf2.h [5:5]
         src/libunwind.cpp [5:5]

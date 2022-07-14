@@ -6,7 +6,11 @@ import tempfile
 import test_helpers
 import pool_test_helpers
 
+from pyspark.ml import Pipeline, PipelineModel
+import pyspark.ml.evaluation
+from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.linalg import Vectors, VectorUDT
+import pyspark.ml.tuning
 from pyspark.sql import Row
 from pyspark.sql.types import *
 
@@ -319,3 +323,111 @@ def testModelSerialization():
     predictionsLoaded.show(truncate=False)
 
     shutil.rmtree(modelsDir)
+
+
+def testModelSerializationInPipeline():
+    spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
+    import catboost_spark
+
+    srcData = [
+        Row(0, "query0", 0.1, "Male", 0.2, "Germany", 0.11),
+        Row(1, "query0", 0.97, "Female", 0.82, "Russia", 0.33),
+        Row(1, "query1", 0.13, "Male", 0.22, "USA", 0.23),
+        Row(0, "Query 2", 0.14, "Male", 0.18, "Finland", 0.1),
+        Row(1, "Query 2", 0.9, "Female", 0.67, "USA", 0.17),
+        Row(0, "Query 2", 0.66, "Female", 0.1, "UK", 0.31)
+    ]
+    srcDataSchema = [
+        StructField("Label", IntegerType()),
+        StructField("GroupId", StringType()),
+        StructField("float0", DoubleType()),
+        StructField("Gender1", StringType()),
+        StructField("float2", DoubleType()),
+        StructField("Country3", StringType()),
+        StructField("float4", DoubleType())
+    ]
+
+    df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+
+    indexers = [
+        StringIndexer(inputCol=catFeature, outputCol=catFeature + "Index")
+        for catFeature in ["Gender1", "Country3"]
+    ]
+    assembler = VectorAssembler(
+        inputCols=["float0", "Gender1Index", "float2", "Country3Index", "float4"],
+        outputCol="features"
+    )
+    classifier = catboost_spark.CatBoostClassifier(labelCol="Label", iterations=20)
+
+    pipeline = Pipeline(stages=indexers + [assembler, classifier])
+    pipelineModel = pipeline.fit(df)
+
+    serializationDir = tempfile.mkdtemp(prefix=test_helpers.getCurrentMethodName())
+
+    modelPath = os.path.join(serializationDir, "serialized_pipeline_model")
+
+    pipelineModel.write().overwrite().save(modelPath)
+    loadedPipelineModel = PipelineModel.load(modelPath)
+
+    print ("predictions")
+    pipelineModel.transform(df).show(truncate=False)
+
+    print ("predictionsLoaded")
+    loadedPipelineModel.transform(df).show(truncate=False)
+
+    shutil.rmtree(serializationDir)
+
+
+def testWithCrossValidator():
+    spark = test_helpers.getOrCreateSparkSession(test_helpers.getCurrentMethodName())
+    import catboost_spark
+
+    featureNames = ["f1", "f2", "f3"]
+
+    srcDataSchema = pool_test_helpers.createSchema(
+        [
+            ("features", VectorUDT()),
+            ("label", DoubleType())
+        ],
+        featureNames,
+        addFeatureNamesMetadata=True
+    )
+
+    srcData = [
+        Row(Vectors.dense(0.1, 0.2, 0.11), 1.0),
+        Row(Vectors.dense(0.97, 0.82, 0.33), 2.0),
+        Row(Vectors.dense(0.13, 0.22, 0.23), 2.0),
+        Row(Vectors.dense(0.14, 0.18, 0.1), 1.0),
+        Row(Vectors.dense(0.9, 0.67, 0.17), 2.0),
+        Row(Vectors.dense(0.66, 0.1, 0.31), 1.0),
+        Row(Vectors.dense(0.13, 0.21, 0.6), 1.0),
+        Row(Vectors.dense(0.9, 0.82, 0.04), 2.0),
+        Row(Vectors.dense(0.87, 0.92, 1.0), 2.0),
+        Row(Vectors.dense(0.0, 0.1, 0.1), 1.0),
+        Row(Vectors.dense(0.0, 0.78, 0.19), 1.0),
+        Row(Vectors.dense(0.1, 0.33, 0.28), 2.0),
+        Row(Vectors.dense(0.01, 0.5, 0.2), 1.0),
+        Row(Vectors.dense(0.2, 0.99, 1.0), 1.0),
+        Row(Vectors.dense(0.56, 0.43, 0.88), 2.0),
+        Row(Vectors.dense(0.98, 0.02, 0.73), 2.0)
+    ]
+
+    df = spark.createDataFrame(spark.sparkContext.parallelize(srcData), StructType(srcDataSchema))
+
+    spark_cv_grid_params = pyspark.ml.tuning.ParamGridBuilder().addGrid(
+        catboost_spark.CatBoostClassifier().depth,
+        [3, 5]
+    ).build()
+    estimator = catboost_spark.CatBoostClassifier(iterations=20)
+    bce = pyspark.ml.evaluation.BinaryClassificationEvaluator(
+        rawPredictionCol="probability",
+        labelCol="label"
+    )
+    cv = pyspark.ml.tuning.CrossValidator(
+        estimator=estimator,
+        estimatorParamMaps=spark_cv_grid_params,
+        evaluator=bce,
+        numFolds=3,
+        seed=1
+    )
+    cv.fit(df)

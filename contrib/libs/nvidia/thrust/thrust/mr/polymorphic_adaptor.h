@@ -16,10 +16,11 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/mr/memory_resource.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace mr
 {
 
@@ -52,5 +53,5 @@ private:
 };
 
 } // end mr
-} // end thrust
+THRUST_NAMESPACE_END
 

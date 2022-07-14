@@ -24,6 +24,14 @@
 #  define __has_cpp_attribute(X) 0
 #endif
 
+// Trailing return types seem to confuse Doxygen, and cause it to interpret
+// parts of the function's body as new function signatures.
+#if defined(THRUST_DOXYGEN)
+#  define THRUST_TRAILING_RETURN(...)
+#else
+#  define THRUST_TRAILING_RETURN(...) -> __VA_ARGS__
+#endif
+
 #if THRUST_CPP_DIALECT >= 2014 && __has_cpp_attribute(nodiscard)
 #  define THRUST_NODISCARD [[nodiscard]]
 #else
@@ -39,7 +47,7 @@
 // FIXME: Combine THRUST_INLINE_CONSTANT and
 // THRUST_INLINE_INTEGRAL_MEMBER_CONSTANT into one macro when NVCC properly
 // supports `constexpr` globals in host and device code.
-#if defined(__CUDA_ARCH__) || defined(__NVCOMPILER_CUDA__)
+#if defined(__CUDA_ARCH__) || defined(_NVHPC_CUDA)
 // FIXME: Add this when NVCC supports inline variables.
 //#  if   THRUST_CPP_DIALECT >= 2017
 //#    define THRUST_INLINE_CONSTANT                 inline constexpr
@@ -65,7 +73,7 @@
 #  endif
 #endif
 
-#if defined(__NVCOMPILER_CUDA__)
+#if defined(_NVHPC_CUDA)
 #  define THRUST_IS_DEVICE_CODE __builtin_is_device_code()
 #  define THRUST_IS_HOST_CODE (!__builtin_is_device_code())
 #  define THRUST_INCLUDE_DEVICE_CODE 1

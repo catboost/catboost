@@ -1,7 +1,6 @@
 #include "store_policy.h"
 
 #include <library/cpp/testing/unittest/registar.h>
-#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 
 Y_UNIT_TEST_SUITE(StorePolicy) {

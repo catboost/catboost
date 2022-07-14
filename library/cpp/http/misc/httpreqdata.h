@@ -13,52 +13,52 @@
 #include <util/system/yassert.h>
 #include <util/generic/string.h>
 #include <util/datetime/base.h>
-#include <util/generic/buffer.h>
+#include <util/generic/vector.h>
+#include <util/generic/maybe.h>
 
 using THttpHeadersContainer = THashMap<TString, TString, TCIOps, TCIOps>;
 
 class TBaseServerRequestData {
 public:
     TBaseServerRequestData(SOCKET s = INVALID_SOCKET);
-    TBaseServerRequestData(const char* qs, SOCKET s = INVALID_SOCKET);
+    TBaseServerRequestData(TStringBuf qs, SOCKET s = INVALID_SOCKET);
 
     void SetHost(const TString& host, ui16 port) {
-        Host = host;
-        Port = ToString(port);
+        Host_ = host;
+        Port_ = ToString(port);
     }
 
     const TString& ServerName() const {
-        return Host;
+        return Host_;
     }
 
     NAddr::IRemoteAddrPtr ServerAddress() const {
-        return NAddr::GetSockAddr(Socket);
+        return NAddr::GetSockAddr(Socket_);
     }
 
     const TString& ServerPort() const {
-        return Port;
+        return Port_;
     }
 
-    const char* ScriptName() const {
-        return Path;
+    TStringBuf ScriptName() const {
+        return Path_;
     }
 
-    const char* QueryString() const {
-        return Search;
+    TStringBuf Query() const {
+        return Query_;
     }
 
-    TStringBuf QueryStringBuf() const {
-        return TStringBuf(Search, SearchLength);
+    TStringBuf OrigQuery() const {
+        return OrigQuery_;
     }
 
-    TStringBuf OrigQueryStringBuf() const {
-        return OrigSearch;
-    }
-
-    void AppendQueryString(const char* str, size_t length);
-    const char* RemoteAddr() const;
+    void AppendQueryString(TStringBuf str);
+    TStringBuf RemoteAddr() const;
     void SetRemoteAddr(TStringBuf addr);
-    const char* HeaderIn(const char* key) const;
+    // Returns nullptr when the header does not exist
+    const TString* HeaderIn(TStringBuf key) const;
+    // Throws on missing header
+    TStringBuf HeaderInOrEmpty(TStringBuf key) const;
 
     const THttpHeadersContainer& HeadersIn() const {
         return HeadersIn_;
@@ -69,39 +69,36 @@ public:
     }
 
     TString HeaderByIndex(size_t n) const noexcept;
-    const char* Environment(const char* key) const;
+    TStringBuf Environment(TStringBuf key) const;
 
     void Clear();
 
     void SetSocket(SOCKET s) noexcept {
-        Socket = s;
+        Socket_ = s;
     }
 
     ui64 RequestBeginTime() const noexcept {
-        return BeginTime;
+        return BeginTime_;
     }
 
-    void SetPath(const TString& path);
-    const char* GetCurPage() const;
-    bool Parse(const char* req);
+    void SetPath(TString path);
+    const TString& GetCurPage() const;
+    bool Parse(TStringBuf req);
     void AddHeader(const TString& name, const TString& value);
 
 private:
-    TBuffer PathStorage;
-    mutable char* Addr;
-    TString Host;
-    TString Port;
-    char* Path;
-    char* Search;
-    size_t SearchLength; // length of Search
-    TStringBuf OrigSearch;
+    mutable TMaybe<TString> Addr_;
+    TString Host_;
+    TString Port_;
+    TString Path_;
+    TStringBuf Query_;
+    TStringBuf OrigQuery_;
     THttpHeadersContainer HeadersIn_;
-    mutable char AddrData[INET6_ADDRSTRLEN];
-    SOCKET Socket;
-    ui64 BeginTime;
-    mutable TString CurPage;
-    TBuffer ParseBuf;
-    TBuffer ModifiedQueryString;
+    SOCKET Socket_;
+    ui64 BeginTime_;
+    mutable TString CurPage_;
+    TVector<char> ParseBuf_;
+    TString ModifiedQueryString_;
 };
 
 class TServerRequestData: public TBaseServerRequestData {
@@ -110,14 +107,14 @@ public:
         : TBaseServerRequestData(s)
     {
     }
-    TServerRequestData(const char* qs, SOCKET s = INVALID_SOCKET)
+    TServerRequestData(TStringBuf qs, SOCKET s = INVALID_SOCKET)
         : TBaseServerRequestData(qs, s)
     {
         Scan();
     }
 
     void Scan() {
-        CgiParam.Scan(QueryStringBuf());
+        CgiParam.Scan(Query());
     }
 
 public:

@@ -134,7 +134,7 @@ namespace NCatboostDistributed {
             /*taskType*/ETaskType::CPU,
             poolLoadOptions,
             params->ObjectsOrder,
-            /*readTest*/false,
+            /*readTest*/true,
             GetSubsetForWorker(workerCount, hostId, params->LearnObjectsGrouping),
             testDatasetSubsets,
             catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
@@ -143,7 +143,6 @@ namespace NCatboostDistributed {
             &profile
         );
 
-        TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
             params->FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
@@ -161,7 +160,7 @@ namespace NCatboostDistributed {
             /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
             quantizedFeaturesInfo,
             &catBoostOptions,
-            &labelConverter,
+            &params->LabelConverter,
             &NPar::LocalExecutor(),
             localData.Rand.Get()
         );
@@ -1260,7 +1259,7 @@ namespace NCatboostDistributed {
                     const auto pivot = pivots[dimension][leaf];
                     const auto& exactDiff = localData.ExactDiff[dimension][leaf];
                     double sumWeights = 0;
-                    for (const auto [diff, weight] : exactDiff) {
+                    for (const auto& [diff, weight] : exactDiff) {
                         if (diff == pivot) {
                             sumWeights += weight;
                         }

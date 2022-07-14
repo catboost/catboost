@@ -247,7 +247,7 @@ private[spark] class ProcessRowsOutputIterator(
     val processRowCallback: (Array[Any], Int) => Array[Any], // add necessary data to row
     var objectIdx : Int = 0
 ) extends Iterator[Row] {
-  def next : Row = {
+  def next() : Row = {
     val dstRow = processRowCallback(dstRows(objectIdx), objectIdx)
     dstRows(objectIdx) = null // to speed up cleanup
     objectIdx = objectIdx + 1
@@ -792,15 +792,31 @@ private[spark] object DataHelpers {
     attrGroup.toMetadata
   }
 
-  def getClassNamesFromLabelData(data: DataFrame, labelColumn: String) : Array[String] = {
+  def getDistinctIntLabelValues(data: DataFrame, labelColumn: String) : Array[Int] = {
     val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
     data.schema(labelColumn).dataType match {
-      case DataTypes.IntegerType => iterator.map{ _.getAs[Int](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.LongType => iterator.map{ _.getAs[Long](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.FloatType => iterator.map{ _.getAs[Float](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.DoubleType => iterator.map{ _.getAs[Double](0) }.toSeq.sorted.map{ _.toString }.toArray
-      case DataTypes.StringType => iterator.map{ _.getString(0) }.toArray
-      case _ => throw new CatBoostError("Unsupported data type for Label")
+      case DataTypes.IntegerType => iterator.map{ _.getAs[Int](0) }.toSeq.sorted.toArray
+      case DataTypes.LongType => iterator.map{ _.getAs[Long](0) }.toSeq.sorted.map{ _.toInt }.toArray
+      case _ => throw new CatBoostError("Unsupported data type for Integer Label")
+    }
+  }
+  
+  def getDistinctFloatLabelValues(data: DataFrame, labelColumn: String) : Array[Float] = {
+    val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
+    data.schema(labelColumn).dataType match {
+      case DataTypes.FloatType => iterator.map{ _.getAs[Float](0) }.toSeq.sorted.toArray
+      case DataTypes.DoubleType => iterator.map{ _.getAs[Double](0) }.toSeq.sorted.map{ _.toFloat }.toArray
+      case _ => throw new CatBoostError("Unsupported data type for Float Label")
+    }
+  }
+  
+  def getDistinctStringLabelValues(data: DataFrame, labelColumn: String) : TVector_TString = {
+    val iterator = data.select(labelColumn).distinct.toLocalIterator.asScala
+    data.schema(labelColumn).dataType match {
+      case DataTypes.StringType => new TVector_TString(
+        iterator.map{ _.getString(0) }.toSeq.sorted.toIterable.asJava
+      )
+      case _ => throw new CatBoostError("Unsupported data type for String Label")
     }
   }
   
@@ -1205,7 +1221,7 @@ private[spark] object DataHelpers {
     }
     val (columnIndexMap, selectedColumnNames, _, estimatedFeatureCount) = selectColumnsAndReturnIndex(
       data.srcPool,
-      columnTypeNames,
+      columnTypeNames.toSeq,
       includeEstimatedFeatures,
       includeDatasetIdx=includeDatasetIdx && data.isInstanceOf[UsualDatasetForTraining]
     )
@@ -1333,7 +1349,7 @@ private[spark] object DataHelpers {
     val mainDataProvider = mainDataProviders.get(0)
     val tmpMainFilePath = Files.createTempFile(tmpFilePrefix, tmpFileSuffix)
     tmpMainFilePath.toFile.deleteOnExit
-    native_impl.SaveQuantizedPoolWrapper(mainDataProvider, tmpMainFilePath.toString)
+    native_impl.SaveQuantizedPool(mainDataProvider, tmpMainFilePath.toString)
     
     var tmpPairsDataFilePath : Option[Path] = None
     if (data.isInstanceOf[DatasetForTrainingWithPairs]) {
@@ -1346,7 +1362,7 @@ private[spark] object DataHelpers {
     if (estimatedFeatureCount.isDefined) {
       tmpEstimatedFilePath = Some(Files.createTempFile(tmpFilePrefix, tmpFileSuffix))
       tmpEstimatedFilePath.get.toFile.deleteOnExit
-      native_impl.SaveQuantizedPoolWrapper(estimatedDataProviders.get(0), tmpEstimatedFilePath.get.toString)
+      native_impl.SaveQuantizedPool(estimatedDataProviders.get(0), tmpEstimatedFilePath.get.toString)
     }
 
     log.info(s"${dataPartName}: save loaded data to files: finish")

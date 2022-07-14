@@ -24,22 +24,16 @@ class TFullModel;
 struct TCombinationClassFeatures;
 
 
-EFstrType GetDefaultFstrType(const TFullModel& model) throw(yexception);
+EFstrType GetDefaultFstrType(const TFullModel& model);
 
-// needed for forwarding exceptions from C++ to JVM
-TVector<TString> GetMaybeGeneratedModelFeatureIdsWrapper(
-    const TFullModel& model,
-    const NCB::TFeaturesLayoutPtr datasetFeaturesLayout // can be null
-) throw(yexception);
+bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model);
 
-bool PreparedTreesNeedLeavesWeightsFromDataset(const TFullModel& model) throw(yexception);
-
-// needed for forwarding exceptions from C++ to JVM
+// needed for API with TDataProviderPtr
 TVector<double> CollectLeavesStatisticsWrapper(
     const NCB::TDataProviderPtr dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception);
+);
 
 
 TShapPreparedTrees PrepareTreesWithoutIndependent(
@@ -52,7 +46,7 @@ TShapPreparedTrees PrepareTreesWithoutIndependent(
     ECalcTypeShapValues calcType,
     bool calcShapValuesByLeaf,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception);
+);
 
 
 // returned TVector is row-major matrix representation of Stats[featureIdx][metricIdx]
@@ -63,25 +57,25 @@ TVector<double> CalcFeatureEffectLossChangeMetricStatsWrapper(
     const NCB::TDataProviderPtr dataset,
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception);
+);
 
 
 TVector<double> CalcFeatureEffectLossChangeFromScores(
     const TFullModel& model,
     const TCombinationClassFeatures& combinationClassFeatures,
     TConstArrayRef<double> scoresMatrix // row-major matrix representation of Stats[featureIdx][metricIdx]
-) throw(yexception);
+);
 
 TVector<double> CalcFeatureEffectAverageChangeWrapper(
     const TFullModel& model,
     TConstArrayRef<double> leafWeightsFromDataset // can be empty
-) throw(yexception);
+);
 
 TVector<double> GetPredictionDiffWrapper(
     const TFullModel& model,
     const NCB::TRawObjectsDataProviderPtr objectsDataProvider,
     NPar::TLocalExecutor* localExecutor
-) throw(yexception);
+);
 
 
 class TShapValuesResult {
@@ -99,7 +93,7 @@ public:
     }
 
     // returns matrix data of (dimension x (featureCount + 1)) size in row-major order
-    TVector<double> Get(i32 objectIdx) const throw(yexception);
+    TVector<double> Get(i32 objectIdx) const;
 
 private:
     TVector<TVector<TVector<double>>> Data; // [objectIdx][dimension][featureIdx]
@@ -111,7 +105,7 @@ TShapValuesResult CalcShapValuesWithPreparedTreesWrapper(
     const TShapPreparedTrees& preparedTrees,
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor
-) throw (yexception);
+);
 
 
 void GetSelectedFeaturesIndices(
@@ -119,7 +113,7 @@ void GetSelectedFeaturesIndices(
     const TString& feature1Name,
     const TString& feature2Name,
     TArrayRef<i32> featureIndices // out param
-) throw (yexception);
+);
 
 
 class TShapInteractionValuesResult {
@@ -137,7 +131,7 @@ public:
     }
 
     // returns matrix data of ((featureCount + 1) x (featureCount + 1)) size in row-major order
-    TVector<double> Get(i32 objectIdx, i32 dimensionIdx = 0) const throw(yexception);
+    TVector<double> Get(i32 objectIdx, i32 dimensionIdx = 0) const;
 
 private:
     TVector<TVector<TVector<TVector<double>>>> Data; // [featureIdx1][featureIdx2][dim][objectIdx]
@@ -150,7 +144,7 @@ TShapInteractionValuesResult CalcShapInteractionValuesWithPreparedTreesWrapper(
     ECalcTypeShapValues calcType,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees
-) throw (yexception);
+);
 
 
 void CalcInteraction(
@@ -158,4 +152,4 @@ void CalcInteraction(
     TVector<i32>* firstIndices,
     TVector<i32>* secondIndices,
     TVector<double>* scores
-) throw(yexception);
+);

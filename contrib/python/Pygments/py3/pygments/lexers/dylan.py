@@ -4,7 +4,7 @@
 
     Lexers for the Dylan language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -12,19 +12,20 @@ import re
 
 from pygments.lexer import Lexer, RegexLexer, bygroups, do_insertions, default
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation, Generic, Literal
+    Number, Punctuation, Generic, Literal, Whitespace
 
 __all__ = ['DylanLexer', 'DylanConsoleLexer', 'DylanLidLexer']
 
 
 class DylanLexer(RegexLexer):
     """
-    For the `Dylan <http://www.opendylan.org/>`_ language.
+    For the Dylan language.
 
     .. versionadded:: 0.7
     """
 
     name = 'Dylan'
+    url = 'http://www.opendylan.org/'
     aliases = ['dylan']
     filenames = ['*.dylan', '*.dyl', '*.intr']
     mimetypes = ['text/x-dylan']
@@ -110,23 +111,23 @@ class DylanLexer(RegexLexer):
     tokens = {
         'root': [
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # single line comment
             (r'//.*?\n', Comment.Single),
 
             # lid header
             (r'([a-z0-9-]+)(:)([ \t]*)(.*(?:\n[ \t].+)*)',
-                bygroups(Name.Attribute, Operator, Text, String)),
+                bygroups(Name.Attribute, Operator, Whitespace, String)),
 
             default('code')  # no header match, switch to code
         ],
         'code': [
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # single line comment
-            (r'//.*?\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
 
             # multi-line comment
             (r'/\*', Comment.Multiline, 'comment'),
@@ -190,7 +191,7 @@ class DylanLexer(RegexLexer):
             (valid_name, Name),
         ],
         'comment': [
-            (r'[^*/]', Comment.Multiline),
+            (r'[^*/]+', Comment.Multiline),
             (r'/\*', Comment.Multiline, '#push'),
             (r'\*/', Comment.Multiline, '#pop'),
             (r'[*/]', Comment.Multiline)
@@ -226,14 +227,14 @@ class DylanLidLexer(RegexLexer):
     tokens = {
         'root': [
             # Whitespace
-            (r'\s+', Text),
+            (r'\s+', Whitespace),
 
             # single line comment
-            (r'//.*?\n', Comment.Single),
+            (r'(//.*?)(\n)', bygroups(Comment.Single, Whitespace)),
 
             # lid header
             (r'(.*?)(:)([ \t]*)(.*(?:\n[ \t].+)*)',
-             bygroups(Name.Attribute, Operator, Text, String)),
+             bygroups(Name.Attribute, Operator, Whitespace, String)),
         ]
     }
 

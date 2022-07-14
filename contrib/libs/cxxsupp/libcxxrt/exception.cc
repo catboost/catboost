@@ -492,7 +492,7 @@ static struct InitMainTls {
 static __cxa_thread_info *thread_info_fast()
 {
    if (THR_INFO) {
-   	return THR_INFO;
+       return THR_INFO;
    }
 	return static_cast<__cxa_thread_info*>(pthread_getspecific(eh_key));
 }

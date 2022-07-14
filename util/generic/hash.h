@@ -77,8 +77,8 @@ struct __yhashtable_iterator {
         : cur(n)
     {
     } /*y*/
-    __yhashtable_iterator() {
-    }
+    __yhashtable_iterator() = default;
+
     reference operator*() const {
         return cur->val;
     }
@@ -1568,6 +1568,24 @@ public:
 
     std::pair<iterator, bool> insert(const value_type& obj) {
         return rep.insert_unique(obj);
+    }
+
+    template <class M>
+    std::pair<iterator, bool> insert_or_assign(const Key& k, M&& value) {
+        auto result = try_emplace(k, std::forward<M>(value));
+        if (!result.second) {
+            result.first->second = std::forward<M>(value);
+        }
+        return result;
+    }
+
+    template <class M>
+    std::pair<iterator, bool> insert_or_assign(Key&& k, M&& value) {
+        auto result = try_emplace(std::move(k), std::forward<M>(value));
+        if (!result.second) {
+            result.first->second = std::forward<M>(value);
+        }
+        return result;
     }
 
     template <typename... Args>

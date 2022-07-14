@@ -4,7 +4,7 @@
 
     Lexers for the Ooc language.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -17,11 +17,12 @@ __all__ = ['OocLexer']
 
 class OocLexer(RegexLexer):
     """
-    For `Ooc <http://ooc-lang.org/>`_ source code
+    For Ooc source code
 
     .. versionadded:: 1.2
     """
     name = 'Ooc'
+    url = 'http://ooc-lang.org/'
     aliases = ['ooc']
     filenames = ['*.ooc']
     mimetypes = ['text/x-ooc']

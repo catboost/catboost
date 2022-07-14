@@ -17,7 +17,6 @@
 #include <library/cpp/json/json_writer.h>
 
 TString ArcadiaSourceRoot() {
-    TString sourceRoot = NPrivate::GetTestEnv().SourceRoot;
     if (const auto& sourceRoot = NPrivate::GetTestEnv().SourceRoot) {
         return sourceRoot;
     } else {

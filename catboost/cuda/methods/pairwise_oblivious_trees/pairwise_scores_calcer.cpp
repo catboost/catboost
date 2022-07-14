@@ -46,7 +46,7 @@ NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimal
     }
 
     const auto policyCount = policies.size();
-    Y_VERIFY(policyCount);
+    CB_ENSURE(policyCount, "Dataset does not have any features?");
     bestSplits.Reset(NCudaLib::TStripeMapping::RepeatOnAllDevices(policyCount));
 
     for (ui32 i = 0; i < policies.size(); ++i) {

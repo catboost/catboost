@@ -98,9 +98,9 @@ public:
         Y_ASSERT(!IsOpen());
     }
 
-    inline void WriteData(ELogPriority priority, const char* data, size_t len) const {
+    inline void WriteData(ELogPriority priority, const char* data, size_t len, TLogRecord::TMetaFlags metaFlags = {}) const {
         if (IsOpen()) {
-            Backend_->WriteData(TLogRecord(priority, data, len));
+            Backend_->WriteData(TLogRecord(priority, data, len, std::move(metaFlags)));
         }
     }
 
@@ -226,21 +226,21 @@ THolder<TLogBackend> TLog::ReleaseBackend() noexcept {
     return Impl_->ReleaseBackend();
 }
 
-void TLog::Write(ELogPriority priority, const char* data, size_t len) const {
+void TLog::Write(ELogPriority priority, const char* data, size_t len, TLogRecord::TMetaFlags metaFlags) const {
     if (Formatter_) {
         const auto formated = Formatter_(priority, TStringBuf{data, len});
-        Impl_->WriteData(priority, formated.data(), formated.size());
+        Impl_->WriteData(priority, formated.data(), formated.size(), std::move(metaFlags));
     } else {
-        Impl_->WriteData(priority, data, len);
+        Impl_->WriteData(priority, data, len, std::move(metaFlags));
     }
 }
 
-void TLog::Write(ELogPriority priority, const TStringBuf data) const {
-    Write(priority, data.data(), data.size());
+void TLog::Write(ELogPriority priority, const TStringBuf data, TLogRecord::TMetaFlags metaFlags) const {
+    Write(priority, data.data(), data.size(), std::move(metaFlags));
 }
 
-void TLog::Write(const char* data, size_t len) const {
-    Write(Impl_->DefaultPriority(), data, len);
+void TLog::Write(const char* data, size_t len, TLogRecord::TMetaFlags metaFlags) const {
+    Write(Impl_->DefaultPriority(), data, len, std::move(metaFlags));
 }
 
 void TLog::SetFormatter(TLogFormatter formatter) noexcept {

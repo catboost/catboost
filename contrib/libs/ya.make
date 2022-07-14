@@ -8,6 +8,7 @@ RECURSE(
     crcutil
     cxxsupp/libcxx
     cxxsupp/libcxxabi-parts
+    double-conversion
     expat
     fastlz
     flatbuffers
@@ -23,11 +24,14 @@ RECURSE(
     linuxvdso
     lz4
     lz4/generated
+    lzma
     lzmasdk
     mimalloc
     nayuki_md5
     nvidia
     onnx
+    onnx/proto
+    onnx/python
     openssl
     protobuf
     protobuf/python
@@ -44,7 +48,6 @@ RECURSE(
     tcmalloc/dynamic
     tensorboard
     xxhash
-    xz
     zlib
     zstd
     zstd06

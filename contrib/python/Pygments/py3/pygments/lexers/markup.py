@@ -4,13 +4,13 @@
 
     Lexers for non-HTML markup languages.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
 import re
 
-from pygments.lexers.html import HtmlLexer, XmlLexer
+from pygments.lexers.html import XmlLexer
 from pygments.lexers.javascript import JavascriptLexer
 from pygments.lexers.css import CssLexer
 
@@ -106,7 +106,7 @@ class MoinWikiLexer(RegexLexer):
 
 class RstLexer(RegexLexer):
     """
-    For `reStructuredText <http://docutils.sf.net/rst.html>`_ markup.
+    For reStructuredText markup.
 
     .. versionadded:: 0.7
 
@@ -121,6 +121,7 @@ class RstLexer(RegexLexer):
         .. versionadded:: 0.8
     """
     name = 'reStructuredText'
+    url = 'https://docutils.sourceforge.io/rst.html'
     aliases = ['restructuredtext', 'rst', 'rest']
     filenames = ['*.rst', '*.rest']
     mimetypes = ["text/x-rst", "text/prs.fallenstein.rst"]
@@ -339,7 +340,7 @@ class GroffLexer(RegexLexer):
 
     name = 'Groff'
     aliases = ['groff', 'nroff', 'man']
-    filenames = ['*.[1234567]', '*.man']
+    filenames = ['*.[1-9]', '*.man', '*.1p', '*.3pm']
     mimetypes = ['application/x-troff', 'text/troff']
 
     tokens = {
@@ -497,11 +498,12 @@ class MozPreprocCssLexer(DelegatingLexer):
 
 class MarkdownLexer(RegexLexer):
     """
-    For `Markdown <https://help.github.com/categories/writing-on-github/>`_ markup.
+    For Markdown markup.
 
     .. versionadded:: 2.2
     """
     name = 'Markdown'
+    url = 'https://daringfireball.net/projects/markdown/'
     aliases = ['markdown', 'md']
     filenames = ['*.md', '*.markdown']
     mimetypes = ["text/x-markdown"]
@@ -606,11 +608,12 @@ class MarkdownLexer(RegexLexer):
 
 class TiddlyWiki5Lexer(RegexLexer):
     """
-    For `TiddlyWiki5 <https://tiddlywiki.com/#TiddlerFiles>`_ markup.
+    For TiddlyWiki5 markup.
 
     .. versionadded:: 2.7
     """
     name = 'tiddler'
+    url = 'https://tiddlywiki.com/#TiddlerFiles'
     aliases = ['tid']
     filenames = ['*.tid']
     mimetypes = ["text/vnd.tiddlywiki"]

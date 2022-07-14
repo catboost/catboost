@@ -49,8 +49,7 @@ except ImportError:
     from collections import Mapping
 from typing import Tuple
 
-from parso.tree import Node, BaseNode, Leaf, ErrorNode, ErrorLeaf, \
-    search_ancestor
+from parso.tree import Node, BaseNode, Leaf, ErrorNode, ErrorLeaf, search_ancestor  # noqa
 from parso.python.prefix import split_prefix
 from parso.utils import split_lines
 
@@ -549,7 +548,11 @@ class Function(ClassOrFunc):
     def __init__(self, children):
         super().__init__(children)
         parameters = self.children[2]  # After `def foo`
-        parameters.children[1:-1] = _create_params(parameters, parameters.children[1:-1])
+        parameters_children = parameters.children[1:-1]
+        # If input parameters list already has Param objects, keep it as is;
+        # otherwise, convert it to a list of Param objects.
+        if not any(isinstance(child, Param) for child in parameters_children):
+            parameters.children[1:-1] = _create_params(parameters, parameters_children)
 
     def _get_param_nodes(self):
         return self.children[2].children
@@ -652,7 +655,11 @@ class Lambda(Function):
         # We don't want to call the Function constructor, call its parent.
         super(Function, self).__init__(children)
         # Everything between `lambda` and the `:` operator is a parameter.
-        self.children[1:-2] = _create_params(self, self.children[1:-2])
+        parameters_children = self.children[1:-2]
+        # If input children list already has Param objects, keep it as is;
+        # otherwise, convert it to a list of Param objects.
+        if not any(isinstance(child, Param) for child in parameters_children):
+            self.children[1:-2] = _create_params(self, parameters_children)
 
     @property
     def name(self):
@@ -776,7 +783,7 @@ class WithStmt(Flow):
         return names
 
     def get_test_node_from_name(self, name):
-        node = search_ancestor(name, "with_item")
+        node = name.search_ancestor("with_item")
         if node is None:
             raise ValueError('The name is not actually part of a with statement.')
         return node.children[0]
@@ -1080,11 +1087,9 @@ class Param(PythonBaseNode):
     """
     type = 'param'
 
-    def __init__(self, children, parent):
+    def __init__(self, children, parent=None):
         super().__init__(children)
         self.parent = parent
-        for child in children:
-            child.parent = self
 
     @property
     def star_count(self):
@@ -1171,7 +1176,7 @@ class Param(PythonBaseNode):
         """
         Returns the function/lambda of a parameter.
         """
-        return search_ancestor(self, 'funcdef', 'lambdef')
+        return self.search_ancestor('funcdef', 'lambdef')
 
     def get_code(self, include_prefix=True, include_comma=True):
         """

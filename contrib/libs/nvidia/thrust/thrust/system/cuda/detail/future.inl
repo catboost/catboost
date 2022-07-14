@@ -31,8 +31,7 @@
 #include <type_traits>
 #include <thrust/detail/memory_wrapper.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 // Forward declaration.
 struct new_stream_t;
@@ -1367,7 +1366,7 @@ THRUST_DECLTYPE_RETURNS(std::move(dependency))
 
 }} // namespace system::cuda
 
-} // end namespace thrust
+THRUST_NAMESPACE_END
 
 #endif // C++14
 

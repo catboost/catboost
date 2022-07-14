@@ -14,12 +14,13 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/allocator/tagged_allocator.h>
 #include <limits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace detail
 {
 
@@ -96,8 +97,8 @@ bool operator!=(const tagged_allocator<T1,Pointer1,Tag> &, const tagged_allocato
 {
   return false;
 }
-    
+
 
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END
 

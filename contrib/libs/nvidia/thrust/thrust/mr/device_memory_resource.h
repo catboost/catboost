@@ -23,8 +23,7 @@
 #include __THRUST_DEVICE_SYSTEM_MEMORY_HEADER
 #undef __THRUST_DEVICE_SYSTEM_MEMORY_HEADER
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 
 typedef thrust::system::__THRUST_DEVICE_SYSTEM_NAMESPACE::memory_resource
@@ -35,5 +34,5 @@ typedef thrust::system::__THRUST_DEVICE_SYSTEM_NAMESPACE::universal_host_pinned_
     universal_host_pinned_memory_resource;
 
 
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -7,7 +7,7 @@
     Modified by Daniel J. Ramirez <djrmuv@gmail.com> based on the original
     python.py.
 
-    :copyright: Copyright 2006-2021 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -16,7 +16,7 @@ import re
 from pygments.lexer import RegexLexer, include, bygroups, default, words, \
     combined
 from pygments.token import Text, Comment, Operator, Keyword, Name, String, \
-    Number, Punctuation
+    Number, Punctuation, Whitespace
 
 __all__ = ["GDScriptLexer"]
 
@@ -25,10 +25,11 @@ line_re = re.compile(".*?\n")
 
 class GDScriptLexer(RegexLexer):
     """
-    For `GDScript source code <https://www.godotengine.org>`_.
+    For GDScript source code.
     """
 
     name = "GDScript"
+    url = 'https://www.godotengine.org'
     aliases = ["gdscript", "gd"]
     filenames = ["*.gd"]
     mimetypes = ["text/x-gdscript", "application/x-gdscript"]
@@ -51,19 +52,19 @@ class GDScriptLexer(RegexLexer):
 
     tokens = {
         "root": [
-            (r"\n", Text),
+            (r"\n", Whitespace),
             (
                 r'^(\s*)([rRuUbB]{,2})("""(?:.|\n)*?""")',
-                bygroups(Text, String.Affix, String.Doc),
+                bygroups(Whitespace, String.Affix, String.Doc),
             ),
             (
                 r"^(\s*)([rRuUbB]{,2})('''(?:.|\n)*?''')",
-                bygroups(Text, String.Affix, String.Doc),
+                bygroups(Whitespace, String.Affix, String.Doc),
             ),
-            (r"[^\S\n]+", Text),
+            (r"[^\S\n]+", Whitespace),
             (r"#.*$", Comment.Single),
             (r"[]{}:(),;[]", Punctuation),
-            (r"\\\n", Text),
+            (r"(\\)(\n)", bygroups(Text, Whitespace)),
             (r"\\", Text),
             (r"(in|and|or|not)\b", Operator.Word),
             (
@@ -71,8 +72,8 @@ class GDScriptLexer(RegexLexer):
                 Operator,
             ),
             include("keywords"),
-            (r"(func)((?:\s|\\\s)+)", bygroups(Keyword, Text), "funcname"),
-            (r"(class)((?:\s|\\\s)+)", bygroups(Keyword, Text), "classname"),
+            (r"(func)(\s+)", bygroups(Keyword, Whitespace), "funcname"),
+            (r"(class)(\s+)", bygroups(Keyword, Whitespace), "classname"),
             include("builtins"),
             (
                 '([rR]|[uUbB][rR]|[rR][uUbB])(""")',
@@ -278,6 +279,7 @@ class GDScriptLexer(RegexLexer):
                         "PackedVector3Array",
                         "PackedColorArray",
                         "null",
+                        "void",
                     ),
                     prefix=r"(?<!\.)",
                     suffix=r"\b",
@@ -316,12 +318,12 @@ class GDScriptLexer(RegexLexer):
         "tdqs": [
             (r'"""', String.Double, "#pop"),
             include("strings-double"),
-            (r"\n", String.Double),
+            (r"\n", Whitespace),
         ],
         "tsqs": [
             (r"'''", String.Single, "#pop"),
             include("strings-single"),
-            (r"\n", String.Single),
+            (r"\n", Whitespace),
         ],
     }
 

@@ -33,11 +33,11 @@ public:
     ~TFakeMutex() = default;
 };
 
-class TSysMutex {
+class TMutex {
 public:
-    TSysMutex();
-    TSysMutex(TSysMutex&&);
-    ~TSysMutex();
+    TMutex();
+    TMutex(TMutex&&) noexcept;
+    ~TMutex();
 
     void Acquire() noexcept;
     bool TryAcquire() noexcept;
@@ -61,7 +61,4 @@ public:
 private:
     class TImpl;
     THolder<TImpl> Impl_;
-};
-
-class TMutex: public TSysMutex {
 };

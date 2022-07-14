@@ -31,6 +31,18 @@ namespace NCatboostCuda {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
                 using TWeakLearner = TGreedySubsetsSearcher<TModel>;
                 using TBoostingImpl = TBoosting<TTargetTemplate, TWeakLearner>;
+                CB_ENSURE(
+                    catBoostOptions.ObliviousTreeOptions->FixedBinarySplits->empty()
+                    || catBoostOptions.ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree,
+                    "Fixed splits are not supported for symmetric trees");
+                const auto& floatFeatures = featuresManager.GetFloatFeatureIds();
+                for (auto feature : catBoostOptions.ObliviousTreeOptions->FixedBinarySplits.Get()) {
+                    const bool isFloat = Find(floatFeatures, feature) != floatFeatures.end();
+                    CB_ENSURE(isFloat, "Fixed splits are supported only for float features. Feature " << feature << " is not float feature.");
+                    const auto& borders = featuresManager.GetBorders(feature);
+                    const bool isBinary = borders.size() == 1;
+                    CB_ENSURE(isBinary, "Fixed splits are supported only for binary features. Feature " << feature << " has " << borders.size() << " borders.");
+                }
                 auto resultModel = Train<TBoostingImpl>(featuresManager,
                                                         internalOptions,
                                                         catBoostOptions,

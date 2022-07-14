@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 NVIDIA Corporation
+ *  Copyright 2008-2021 NVIDIA Corporation
  *  Copyright 2013 Filipe RNC Maia
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,10 +45,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/complex.h>
 #include <thrust/detail/complex/math_private.h>
 
-namespace thrust{
+THRUST_NAMESPACE_BEGIN
 namespace detail{
 namespace complex{
 
@@ -74,7 +76,7 @@ complex<float> clogf(const complex<float>& z){
   float ax, ay;
   float x0, y0, x1, y1, x2, y2, t, hm1;
   float val[12];
-  int i, sorted;	
+  int i, sorted;
   const float e = 2.7182818284590452354f;
 
   x = z.real();
@@ -102,7 +104,7 @@ complex<float> clogf(const complex<float>& z){
    */
   // For high values of ay -> hypotf(FLT_MAX,ay) = inf
   // We expect that for values at or below ay = 1e34f this should not happen
-  if (ay > 1e34f){ 
+  if (ay > 1e34f){
     return (complex<float>(std::log(hypotf(x / e, y / e)) + 1.0f, std::atan2(y, x)));
   }
   if (ax == 1.f) {
@@ -120,7 +122,7 @@ complex<float> clogf(const complex<float>& z){
     return (complex<float>(std::log(hypotf(x, y)), std::atan2(y, x)));
   }
 
-  /* 
+  /*
    * From this point on, we don't need to worry about underflow or
    * overflow in calculating ax*ax or ay*ay.
    */
@@ -194,5 +196,5 @@ inline complex<float> log(const complex<float>& z){
   return detail::complex::clogf(z);
 }
 
-} // namespace thrust
-    
+THRUST_NAMESPACE_END
+

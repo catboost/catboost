@@ -40,8 +40,6 @@ def parse_args():
             current_list.append(a)
 
     parser = optparse.OptionParser()
-    parser.add_option('--no-gpl', action='store_true')
-    parser.add_option('--allow-lgpl', action='store_true')
     parser.add_option('--build-root')
     parser.add_option('--module-name')
     parser.add_option('-o', '--output')
@@ -49,30 +47,6 @@ def parse_args():
     parser.add_option('-t', '--type')
     opts, _ = parser.parse_args(free_args)
     return lics, peers, credits, opts,
-
-
-def validate_mf(mf, module_type):
-    path = mf['path']
-
-    if mf.get('no_gpl', False):
-        if module_type == 'LIBRARY':
-            raise Exception('Macro [[imp]]NO_GPL[[rst]] not allowed for [[bad]]LIBRARY[[rst]]')
-
-        if 'dependencies' not in mf:
-            raise BadMfError("Can't validate manifest for {}: no info about 'dependencies'".format(path))
-
-        bad_mfs = [dep['path'] for dep in mf['dependencies'] if 'licenses' not in dep]
-        if bad_mfs:
-            raise BadMfError("Can't validate licenses for {}: no 'licenses' info for dependency(es) {}".format(path,', '.join(bad_mfs)))
-
-        lgpl_ok = mf.get('allow_lgpl', False)
-        bad_lics = ["[[imp]]{}[[rst]] licensed with {}".format(dep['path'], lic) for dep in mf['dependencies'] for lic in dep['licenses'] if 'gpl' in lic.lower() and (not lgpl_ok or 'lgpl' not in lic.lower())]
-        if bad_lics:
-            raise GplNotAllowed('[[bad]]License check failed:[[rst]]\n{}'.format('\n'.join(bad_lics)))
-
-        bad_contribs = [dep['path'] + '/ya.make' for dep in mf['dependencies'] if dep['path'].startswith('contrib/') and not dep['licenses']]
-        if bad_contribs:
-            logging.warning("[[warn]]Can't check NO_GPL properly[[rst]] because the following project(s) has no [[imp]]LICENSE[[rst]] macro:\n%s", '\n'.join(bad_contribs))
 
 
 def generate_header(meta):
@@ -87,8 +61,6 @@ def generate_mf():
         'path': os.path.dirname(options.output),
         'licenses': lics,
         'dependencies': [],
-        'no_gpl': options.no_gpl,
-        'allow_lgpl': options.allow_lgpl,
         'license_texts': ''
     }
 
@@ -113,12 +85,15 @@ def generate_mf():
         if meta['license_texts']:
             final_credits.append(generate_header(meta) + '\n' + meta['license_texts'])
         for peer in peers:
-            candidate = peer + '.mf'
+            candidate = os.path.join(build_root, peer + '.mf')
             with open(candidate) as src:
                 data = json.loads(src.read())
                 texts = data.get('license_texts')
                 if texts:
-                    final_credits.append(generate_header(data) + '\n' + texts)
+                    candidate_text = generate_header(data) + '\n' + texts
+                    if isinstance(candidate_text, unicode):
+                        candidate_text = candidate_text.encode('utf-8')
+                    final_credits.append(candidate_text)
 
         with io.open(options.credits_output, 'w', encoding='utf-8') as f:
             data = '\n\n'.join(final_credits)
@@ -128,8 +103,6 @@ def generate_mf():
 
     with open(file_name, 'w') as mf_file:
         json.dump(meta, mf_file, indent=4)
-
-    validate_mf(meta, options.type)
 
 
 if __name__ == '__main__':

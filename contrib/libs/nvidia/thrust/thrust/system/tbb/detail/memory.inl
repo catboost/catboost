@@ -14,14 +14,15 @@
  *  limitations under the License.
  */
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/system/cpp/detail/execution_policy.h>
 #include <thrust/system/tbb/memory.h>
 #include <thrust/system/cpp/memory.h>
 #include <limits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -82,5 +83,5 @@ inline void free(pointer<void> ptr)
 
 } // end tbb
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

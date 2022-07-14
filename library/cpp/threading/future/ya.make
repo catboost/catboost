@@ -1,5 +1,9 @@
 
 
+SUBSCRIBER(
+    swarmer
+)
+
 LIBRARY()
 
 SRCS(
@@ -15,6 +19,8 @@ SRCS(
 
 END()
 
-RECURSE_FOR_TESTS(
+RECURSE(
     mt_ut
+    perf
+    ut
 )

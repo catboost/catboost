@@ -1,6 +1,6 @@
 --- contrib/python/setuptools/py3/pkg_resources/__init__.py	(index)
 +++ contrib/python/setuptools/py3/pkg_resources/__init__.py	(working tree)
-@@ -3214,6 +3214,90 @@ def _mkstemp(*args, **kw):
+@@ -3229,6 +3229,90 @@ def _mkstemp(*args, **kw):
          os.open = old_open
  
  

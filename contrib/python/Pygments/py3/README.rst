@@ -30,6 +30,10 @@ Continuous testing runs on GitHub workflows:
 .. image:: https://github.com/pygments/pygments/workflows/Pygments/badge.svg
    :target: https://github.com/pygments/pygments/actions?query=workflow%3APygments
 
+Contribution guidelines are found in Contributing.md_.
+
+.. _Contributing.md: https://github.com/pygments/pygments/blob/master/Contributing.md
+
 The authors
 -----------
 

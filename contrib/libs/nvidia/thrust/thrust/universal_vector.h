@@ -14,8 +14,7 @@
  *  limitations under the License.
  */
 
-
-/*! \file universal_vector.h
+/*! \file
  *  \brief A dynamically-sizable array of elements which resides in memory
  *         accessible to both hosts and devices.
  */
@@ -30,11 +29,9 @@
 #include __THRUST_DEVICE_SYSTEM_VECTOR_HEADER
 #undef __THRUST_DEVICE_SYSTEM_VECTOR_HEADER
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
-/** \addtogroup memory_resources Memory Resources
- *  \ingroup memory_management_classes
+/*! \addtogroup containers Containers
  *  \{
  */
 
@@ -52,8 +49,7 @@ namespace thrust
  */
 using thrust::system::__THRUST_DEVICE_SYSTEM_NAMESPACE::universal_vector;
 
-/*! \}
+/*! \} // containers
  */
 
-} // end thrust
-
+THRUST_NAMESPACE_END

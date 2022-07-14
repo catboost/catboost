@@ -73,7 +73,9 @@ void NCatboostCuda::TBlockedHistogramsHelper::Rebuild() {
 
     NCudaLib::TMappingBuilder<NCudaLib::TStripeMapping> solutionsMappingBuilder;
     for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
-        Y_VERIFY(solutionOffsets.At(dev) == FlatResultsSlice.back().At(dev).Right);
+        CB_ENSURE(
+            solutionOffsets.At(dev) == FlatResultsSlice.back().At(dev).Right,
+            "Solution offset and result slice boundary do not match at device " << dev);
         solutionsMappingBuilder.SetSizeAt(dev, solutionOffsets.At(dev));
     }
 

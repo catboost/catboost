@@ -24,8 +24,7 @@
 #include <thrust/iterator/detail/device_system_tag.h>
 #include <thrust/iterator/detail/any_system_tag.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -120,6 +119,6 @@ thrust::device_system_tag select_system(thrust::any_system_tag);
 } // end generic
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/system/detail/generic/select_system.inl>

@@ -2,6 +2,8 @@
 
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 
 
 LICENSE(Apache-2.0)
@@ -17,7 +19,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/demangle
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
 )
 
 ADDINCL(

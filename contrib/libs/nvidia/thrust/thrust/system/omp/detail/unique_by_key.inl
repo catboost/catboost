@@ -21,8 +21,7 @@
 #include <thrust/system/detail/generic/unique_by_key.h>
 #include <thrust/pair.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace omp
@@ -70,5 +69,5 @@ template<typename DerivedPolicy,
 } // end namespace detail
 } // end namespace omp
 } // end namespace system
-} // end namespace thrust
+THRUST_NAMESPACE_END
 

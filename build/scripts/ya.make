@@ -19,11 +19,15 @@ TEST_SRCS(
     compile_jsrc.py
     compile_pysrc.py
     configure_file.py
+    copy_docs_files.py
+    copy_docs_files_to_dir.py
+    copy_files_to_dir.py
     copy_to_dir.py
     coverage-info.py
     cpp_flatc_wrapper.py
     create_jcoverage_report.py
     extract_asrc.py
+    extract_docs.py
     extract_jacoco_report.py
     f2c.py
     fail_module_cmd.py
@@ -59,6 +63,7 @@ TEST_SRCS(
     merge_coverage_data.py
     merge_files.py
     mkdir.py
+    mkdocs_builder_wrapper.py
     mkver.py
     pack_ios.py
     pack_jcoverage_resources.py
@@ -90,6 +95,10 @@ TEST_SRCS(
     xargs.py
     yield_line.py
     yndexer.py
+)
+
+PEERDIR(
+    ydb/library/yql/public/udf
 )
 
 END()

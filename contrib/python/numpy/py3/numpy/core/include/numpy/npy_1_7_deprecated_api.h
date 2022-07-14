@@ -1,9 +1,9 @@
-#ifndef _NPY_1_7_DEPRECATED_API_H
-#define _NPY_1_7_DEPRECATED_API_H
-
 #ifndef NPY_DEPRECATED_INCLUDES
 #error "Should never include npy_*_*_deprecated_api directly."
 #endif
+
+#ifndef NUMPY_CORE_INCLUDE_NUMPY_NPY_1_7_DEPRECATED_API_H_
+#define NUMPY_CORE_INCLUDE_NUMPY_NPY_1_7_DEPRECATED_API_H_
 
 /* Emit a warning if the user did not specifically request the old API */
 #ifndef NPY_NO_DEPRECATED_API
@@ -13,11 +13,10 @@
 #define _WARN___LOC__ __FILE__ "(" _WARN___STR1__(__LINE__) ") : Warning Msg: "
 #pragma message(_WARN___LOC__"Using deprecated NumPy API, disable it with " \
                          "#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION")
-#elif defined(__GNUC__)
+#else
 #warning "Using deprecated NumPy API, disable it with " \
          "#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION"
 #endif
-/* TODO: How to do this warning message for other compilers? */
 #endif
 
 /*
@@ -123,4 +122,4 @@
  */
 #include "old_defines.h"
 
-#endif
+#endif  /* NUMPY_CORE_INCLUDE_NUMPY_NPY_1_7_DEPRECATED_API_H_ */

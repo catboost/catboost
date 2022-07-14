@@ -7,3 +7,7 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    metrics
+)

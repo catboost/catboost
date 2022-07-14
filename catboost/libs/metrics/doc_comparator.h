@@ -1,5 +1,6 @@
 #pragma once
 
-inline bool CompareDocs(double approxLeft, float targetLeft, double approxRight, float targetRight) {
+template<typename TFloat>
+inline bool CompareDocs(double approxLeft, TFloat targetLeft, double approxRight, TFloat targetRight) {
     return approxLeft != approxRight ? approxLeft > approxRight : targetLeft < targetRight;
 }

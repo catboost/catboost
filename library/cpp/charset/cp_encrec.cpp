@@ -1,6 +1,5 @@
 #include "codepage.h"
 
-#include <util/string/cast.h>
 #include <util/stream/output.h>
 
 void Encoder::Tr(const wchar32* in, char* out, size_t len) const {

@@ -77,7 +77,7 @@ void CalcHashes(
     NPar::ILocalExecutor* localExecutor) {
 
     const size_t sampleCount = end - begin;
-    Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
+    CB_ENSURE((size_t)featuresSubsetIndexing.Size() == sampleCount, "Unexpected range of samples");
     if (sampleCount == 0) {
         return;
     }

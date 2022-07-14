@@ -1,17 +1,17 @@
 --- contrib/python/ipython/py3/.dist-info/METADATA	(index)
 +++ contrib/python/ipython/py3/.dist-info/METADATA	(working tree)
-@@ -24,7 +24,7 @@ Classifier: Programming Language :: Python :: 3 :: Only
- Classifier: Topic :: System :: Shells
- Requires-Python: >=3.7
- Requires-Dist: setuptools (>=18.5)
+@@ -28,7 +28,7 @@ Classifier: Programming Language :: Python :: 3 :: Only
+ License-File: LICENSE
+ Requires-Dist: backcall
+ Requires-Dist: decorator
 -Requires-Dist: jedi (>=0.16)
 +Requires-Dist: jedi (>=0.13)
- Requires-Dist: decorator
+ Requires-Dist: matplotlib-inline
  Requires-Dist: pickleshare
- Requires-Dist: traitlets (>=4.2)
+ Requires-Dist: prompt-toolkit (!=3.0.0,!=3.0.1,<3.1.0,>=2.0.0)
 --- contrib/python/ipython/py3/ya.make	(index)
 +++ contrib/python/ipython/py3/ya.make	(working tree)
-@@ -14,13 +14,28 @@ PEERDIR(
+@@ -14,14 +14,29 @@ PEERDIR(
      contrib/python/decorator
      contrib/python/jedi
      contrib/python/matplotlib-inline
@@ -19,6 +19,7 @@
      contrib/python/pickleshare
      contrib/python/prompt-toolkit
      contrib/python/setuptools
+     contrib/python/stack-data
      contrib/python/traitlets
  )
  
@@ -41,22 +42,3 @@
  NO_LINT()
  
  NO_CHECK_IMPORTS(
-@@ -32,7 +47,6 @@ PY_SRCS(
-     IPython/__init__.py
-     IPython/__main__.py
-     IPython/config.py
--    IPython/conftest.py
-     IPython/consoleapp.py
-     IPython/core/__init__.py
-     IPython/core/alias.py
-@@ -255,10 +269,6 @@ RESOURCE_FILES(
-     .dist-info/entry_points.txt
-     .dist-info/top_level.txt
-     IPython/core/profile/README_STARTUP
--    IPython/testing/plugin/README.txt
--    IPython/testing/plugin/test_combo.txt
--    IPython/testing/plugin/test_example.txt
--    IPython/testing/plugin/test_exampleip.txt
- )
- 
- END()

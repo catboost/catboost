@@ -27,11 +27,10 @@
 #include <cstddef>
 #include <thrust/device_ptr.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 /*!
- *  \addtogroup allocation_functions Allocation Functions
+ *  \addtogroup memory_management Memory Management
  *  \{
  */
 
@@ -79,10 +78,9 @@ template <typename T>
 template <typename T>
   device_ptr<T> device_new(const size_t n = 1);
 
-/*! \}
+/*! \} // memory_management
  */
 
-} // end thrust
+THRUST_NAMESPACE_END
 
 #include <thrust/detail/device_new.inl>
-

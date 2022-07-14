@@ -15,6 +15,10 @@
 
 #include <util/generic/ptr.h>
 
+#if defined(HAVE_CUDA)
+#include <catboost/cuda/cuda_lib/devices_provider.h>
+#include <catboost/cuda/cuda_lib/cuda_manager.h>
+#endif
 
 using namespace NCB;
 
@@ -45,6 +49,15 @@ int mode_eval_feature(int argc, const char* argv[]) {
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &featureEvalJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+    #if defined(HAVE_CUDA)
+    THolder<TStopCudaManagerCallback> stopCudaManagerGuard;
+    if (NCatboostOptions::GetTaskType(catBoostFlatJsonOptions) == ETaskType::GPU) {
+        auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
+        stopCudaManagerGuard = StartCudaManager(
+            NCudaLib::CreateDeviceRequestConfig(options),
+            options.LoggingLevel);
+    }
+    #endif
     ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 

@@ -13,6 +13,7 @@ NO_RUNTIME()
 NO_UTIL()
 
 DISABLE(NEED_PLATFORM_PEERDIRS)
+DISABLE(OPENSOURCE_EXPORT)
 
 IF (OS_SDK == "ubuntu-14")
     PEERDIR(
@@ -28,7 +29,7 @@ IF (OS_SDK == "ubuntu-14")
         secure_getenv.cpp
         timespec_get.c
     )
-    SRC_CPP_PIC(
+    SRC_C_PIC(
         glibc.cpp
         -fno-lto
     )

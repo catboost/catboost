@@ -2,6 +2,8 @@
 
 #include "asio.h"
 
+#include <library/cpp/deprecated/atomic/atomic.h>
+
 #include <util/thread/factory.h>
 #include <util/system/thread.h>
 

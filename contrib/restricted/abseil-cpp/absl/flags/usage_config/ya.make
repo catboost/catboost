@@ -2,6 +2,8 @@
 
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 
 
 LICENSE(Apache-2.0)
@@ -20,7 +22,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/flags/internal/program_name
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
     contrib/restricted/abseil-cpp/absl/synchronization
     contrib/restricted/abseil-cpp/absl/synchronization/internal
     contrib/restricted/abseil-cpp/absl/time

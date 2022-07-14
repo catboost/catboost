@@ -1,5 +1,4 @@
 #include "mutex.h"
-#include "atomic.h"
 
 #include <library/cpp/testing/unittest/registar.h>
 

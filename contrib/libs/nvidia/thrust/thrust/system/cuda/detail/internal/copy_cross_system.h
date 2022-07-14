@@ -30,6 +30,8 @@
 // this file must not be included on its own, ever,
 // but must be part of include in thrust/system/cuda/detail/copy.h
 
+#include <thrust/detail/config.h>
+
 #include <thrust/system/cuda/config.h>
 
 #include <thrust/distance.h>
@@ -40,8 +42,7 @@
 #include <thrust/detail/temporary_array.h>
 #include <thrust/type_traits/is_trivially_relocatable.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace cuda_cub {
 
 namespace __copy {
@@ -240,4 +241,4 @@ namespace __copy {
 }    // namespace __copy
 
 } // namespace cuda_cub
-} // end namespace thrust
+THRUST_NAMESPACE_END

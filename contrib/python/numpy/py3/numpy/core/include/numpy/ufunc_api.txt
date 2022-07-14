@@ -23,8 +23,9 @@ NumPy Ufunc C-API
 ::
 
   int
-  PyUFunc_GenericFunction(PyUFuncObject *ufunc, PyObject *args, PyObject
-                          *kwds, PyArrayObject **op)
+  PyUFunc_GenericFunction(PyUFuncObject *NPY_UNUSED(ufunc) , PyObject
+                          *NPY_UNUSED(args) , PyObject *NPY_UNUSED(kwds)
+                          , PyArrayObject **NPY_UNUSED(op) )
 
 
 ::
@@ -233,7 +234,8 @@ owns a new reference to errobj.
 ::
 
   int
-  PyUFunc_SetUsesArraysAsData(void **data, size_t i)
+  PyUFunc_SetUsesArraysAsData(void **NPY_UNUSED(data) , size_t
+                              NPY_UNUSED(i) )
 
 
 ::

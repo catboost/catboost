@@ -20,8 +20,7 @@
 #include <thrust/detail/allocator_aware_execution_policy.h>
 #include <thrust/system/tbb/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace tbb
@@ -58,5 +57,5 @@ using thrust::system::tbb::par;
 
 
 } // end tbb
-} // end thrust
+THRUST_NAMESPACE_END
 

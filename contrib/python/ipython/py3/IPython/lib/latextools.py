@@ -12,6 +12,8 @@ import subprocess
 from base64 import encodebytes
 import textwrap
 
+from pathlib import Path, PurePath
+
 from IPython.utils.process import find_cmd, FindCmdError
 from traitlets.config import get_config
 from traitlets.config.configurable import SingletonConfigurable
@@ -75,7 +77,6 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
         format, e.g. '#AA20FA'.
     scale : float
         Scale factor for the resulting PNG.
-
     None is returned when the backend cannot be used.
 
     """
@@ -95,8 +96,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
                 try:
                     color = "RGB {}".format(" ".join([str(int(x, 16)) for x in
                                                       textwrap.wrap(color[1:], 2)]))
-                except ValueError:
-                    raise ValueError('Invalid color specification {}.'.format(color))
+                except ValueError as e:
+                    raise ValueError('Invalid color specification {}.'.format(color)) from e
             else:
                 raise ValueError('Invalid color specification {}.'.format(color))
     else:
@@ -109,7 +110,8 @@ def latex_to_png(s, encode=False, backend=None, wrap=False, color='Black',
 
 def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
     try:
-        from matplotlib import mathtext
+        from matplotlib import figure, font_manager, mathtext
+        from matplotlib.backends import backend_agg
         from pyparsing import ParseFatalException
     except ImportError:
         return None
@@ -120,11 +122,18 @@ def latex_to_png_mpl(s, wrap, color='Black', scale=1.0):
         s = u'${0}$'.format(s)
 
     try:
-        mt = mathtext.MathTextParser('bitmap')
-        f = BytesIO()
-        dpi = 120*scale
-        mt.to_png(f, s, fontsize=12, dpi=dpi, color=color)
-        return f.getvalue()
+        prop = font_manager.FontProperties(size=12)
+        dpi = 120 * scale
+        buffer = BytesIO()
+
+        # Adapted from mathtext.math_to_image
+        parser = mathtext.MathTextParser("path")
+        width, height, depth, _, _ = parser.parse(s, dpi=72, prop=prop)
+        fig = figure.Figure(figsize=(width / 72, height / 72))
+        fig.text(0, depth / height, s, fontproperties=prop, color=color)
+        backend_agg.FigureCanvasAgg(fig)
+        fig.savefig(buffer, dpi=dpi, format="png", transparent=True)
+        return buffer.getvalue()
     except (ValueError, RuntimeError, ParseFatalException):
         return None
 
@@ -136,12 +145,12 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
     except FindCmdError:
         return None
     try:
-        workdir = tempfile.mkdtemp()
-        tmpfile = os.path.join(workdir, "tmp.tex")
-        dvifile = os.path.join(workdir, "tmp.dvi")
-        outfile = os.path.join(workdir, "tmp.png")
+        workdir = Path(tempfile.mkdtemp())
+        tmpfile = workdir.joinpath("tmp.tex")
+        dvifile = workdir.joinpath("tmp.dvi")
+        outfile = workdir.joinpath("tmp.png")
 
-        with open(tmpfile, "w", encoding='utf8') as f:
+        with tmpfile.open("w", encoding="utf8") as f:
             f.writelines(genelatex(s, wrap))
 
         with open(os.devnull, 'wb') as devnull:
@@ -151,11 +160,28 @@ def latex_to_png_dvipng(s, wrap, color='Black', scale=1.0):
 
             resolution = round(150*scale)
             subprocess.check_call(
-                ["dvipng", "-T", "tight", "-D", str(resolution), "-z", "9",
-                 "-bg", "transparent", "-o", outfile, dvifile, "-fg", color],
-                 cwd=workdir, stdout=devnull, stderr=devnull)
+                [
+                    "dvipng",
+                    "-T",
+                    "tight",
+                    "-D",
+                    str(resolution),
+                    "-z",
+                    "9",
+                    "-bg",
+                    "Transparent",
+                    "-o",
+                    outfile,
+                    dvifile,
+                    "-fg",
+                    color,
+                ],
+                cwd=workdir,
+                stdout=devnull,
+                stderr=devnull,
+            )
 
-        with open(outfile, "rb") as f:
+        with outfile.open("rb") as f:
             return f.read()
     except subprocess.CalledProcessError:
         return None

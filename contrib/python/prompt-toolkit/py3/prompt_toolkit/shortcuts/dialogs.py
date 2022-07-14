@@ -1,12 +1,11 @@
 import functools
-from asyncio import get_event_loop
-from typing import Any, Callable, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Sequence, Tuple, TypeVar
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import Completer
-from prompt_toolkit.eventloop import run_in_executor_with_context
+from prompt_toolkit.eventloop import get_event_loop, run_in_executor_with_context
 from prompt_toolkit.filters import FilterOrBool
 from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
@@ -110,6 +109,7 @@ def input_dialog(
     validator: Optional[Validator] = None,
     password: FilterOrBool = False,
     style: Optional[BaseStyle] = None,
+    default: str = "",
 ) -> Application[str]:
     """
     Display a text input box.
@@ -127,6 +127,7 @@ def input_dialog(
     cancel_button = Button(text=cancel_text, handler=_return_none)
 
     textfield = TextArea(
+        text=default,
         multiline=False,
         password=password,
         completer=completer,
@@ -175,7 +176,8 @@ def radiolist_dialog(
     text: AnyFormattedText = "",
     ok_text: str = "Ok",
     cancel_text: str = "Cancel",
-    values: Optional[List[Tuple[_T, AnyFormattedText]]] = None,
+    values: Optional[Sequence[Tuple[_T, AnyFormattedText]]] = None,
+    default: Optional[_T] = None,
     style: Optional[BaseStyle] = None,
 ) -> Application[_T]:
     """
@@ -190,7 +192,7 @@ def radiolist_dialog(
     def ok_handler() -> None:
         get_app().exit(result=radio_list.current_value)
 
-    radio_list = RadioList(values)
+    radio_list = RadioList(values=values, default=default)
 
     dialog = Dialog(
         title=title,
@@ -213,7 +215,8 @@ def checkboxlist_dialog(
     text: AnyFormattedText = "",
     ok_text: str = "Ok",
     cancel_text: str = "Cancel",
-    values: Optional[List[Tuple[_T, AnyFormattedText]]] = None,
+    values: Optional[Sequence[Tuple[_T, AnyFormattedText]]] = None,
+    default_values: Optional[Sequence[_T]] = None,
     style: Optional[BaseStyle] = None,
 ) -> Application[List[_T]]:
     """
@@ -228,7 +231,7 @@ def checkboxlist_dialog(
     def ok_handler() -> None:
         get_app().exit(result=cb_list.current_values)
 
-    cb_list = CheckboxList(values)
+    cb_list = CheckboxList(values=values, default_values=default_values)
 
     dialog = Dialog(
         title=title,
@@ -264,7 +267,7 @@ def progress_dialog(
         focusable=False,
         # Prefer this text area as big as possible, to avoid having a window
         # that keeps resizing when we add text to it.
-        height=D(preferred=10 ** 10),
+        height=D(preferred=10**10),
     )
 
     dialog = Dialog(

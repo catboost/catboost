@@ -13,7 +13,7 @@ A quote from the [Open Neural Network Exchange](https://github.com/onnx/onnx/blo
 - Only models trained on datasets without categorical features are currently supported.
 - Exported ONNX-ML models cannot be currently loaded and applied by {{ product }} libraries/executable. This export format is suitable only for external Machine Learning libraries.
 - {% include [reusage-common-phrases-native-catboost-format-is-faster](../_includes/work_src/reusage-common-phrases/native-catboost-format-is-faster.md) %}
-    
+
 - The model's metadata is stored in the `metadata_props` component of the [ONNX Model](https://github.com/onnx/onnx/blob/master/docs/IR.md#models).
 
 ## Applying a trained model with ONNX {#applying-model}
@@ -57,7 +57,7 @@ Possible types: tensor of shape [N_examples] and one of the following types:
 
 ### Model output parameters for regression
 
-#### probabilities
+#### predictions
 
 The target value predicted by the model.
 
@@ -108,11 +108,11 @@ breast_cancer = datasets.load_breast_cancer()
 
 sess = rt.InferenceSession('breast_cancer.onnx')
 
-# onnxruntime bug: 'label' inference is broken for binary classification 
-#label = sess.run(['label'], 
+# onnxruntime bug: 'label' inference is broken for binary classification
+#label = sess.run(['label'],
 #                 {'features': breast_cancer.data.astype(np.float32)})
 
-probabilities = sess.run(['probabilities'], 
+probabilities = sess.run(['probabilities'],
                          {'features': breast_cancer.data.astype(np.float32)})
 ```
 
@@ -156,15 +156,15 @@ iris = datasets.load_iris()
 sess = rt.InferenceSession('iris.onnx')
 
 # can get only label
-label = sess.run(['label'], 
+label = sess.run(['label'],
                  {'features': iris.data.astype(np.float32)})
 
 # can get only probabilities
-probabilities = sess.run(['probabilities'], 
+probabilities = sess.run(['probabilities'],
                          {'features': iris.data.astype(np.float32)})
 
 # or both
-label, probabilities = sess.run(['label', 'probabilities'], 
+label, probabilities = sess.run(['label', 'probabilities'],
                                 {'features': iris.data.astype(np.float32)})
 ```
 
@@ -207,7 +207,7 @@ boston = datasets.load_boston()
 
 sess = rt.InferenceSession('boston.onnx')
 
-predictions = sess.run(['predictions'], 
+predictions = sess.run(['predictions'],
                        {'features': boston.data.astype(np.float32)})
 ```
 

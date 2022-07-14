@@ -119,12 +119,14 @@ void TCont::ReSchedule() noexcept {
 TContExecutor::TContExecutor(
     uint32_t defaultStackSize,
     THolder<IPollerFace> poller,
-    NCoro::IScheduleCallback* callback,
+    NCoro::IScheduleCallback* scheduleCallback,
+    NCoro::IEnterPollerCallback* enterPollerCallback,
     NCoro::NStack::EGuard defaultGuard,
     TMaybe<NCoro::NStack::TPoolAllocatorSettings> poolSettings,
     NCoro::ITime* time
 )
-    : CallbackPtr_(callback)
+    : ScheduleCallback_(scheduleCallback)
+    , EnterPollerCallback_(enterPollerCallback)
     , DefaultStackSize_(defaultStackSize)
     , Poller_(std::move(poller))
     , Time_(time)
@@ -169,9 +171,21 @@ void TContExecutor::WaitForIO() {
         //      to prevent ourselves from locking out of io by constantly waking coroutines.
 
         if (ReadyNext_.Empty()) {
+            if (EnterPollerCallback_) {
+                EnterPollerCallback_->OnEnterPoller();
+            }
             Poll(next);
+            if (EnterPollerCallback_) {
+                EnterPollerCallback_->OnExitPoller();
+            }
         } else if (LastPoll_ + TDuration::MilliSeconds(5) < now) {
+            if (EnterPollerCallback_) {
+                EnterPollerCallback_->OnEnterPoller();
+            }
             Poll(now);
+            if (EnterPollerCallback_) {
+                EnterPollerCallback_->OnExitPoller();
+            }
         }
 
         Ready_.Append(ReadyNext_);
@@ -293,8 +307,8 @@ void TContExecutor::RunScheduler() noexcept {
         };
 
         while (true) {
-            if (CallbackPtr_ && Current_) {
-                CallbackPtr_->OnUnschedule(*this);
+            if (ScheduleCallback_ && Current_) {
+                ScheduleCallback_->OnUnschedule(*this);
             }
 
             WaitForIO();
@@ -311,8 +325,8 @@ void TContExecutor::RunScheduler() noexcept {
 
             TCont* cont = Ready_.PopFront();
 
-            if (CallbackPtr_) {
-                CallbackPtr_->OnSchedule(*this, *cont);
+            if (ScheduleCallback_) {
+                ScheduleCallback_->OnSchedule(*this, *cont);
             }
 
             Current_ = cont;

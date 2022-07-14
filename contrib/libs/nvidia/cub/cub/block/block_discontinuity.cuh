@@ -37,11 +37,7 @@
 #include "../util_type.cuh"
 #include "../util_ptx.cuh"
 
-/// Optional outer namespace(s)
-CUB_NS_PREFIX
-
-/// CUB namespace
-namespace cub {
+CUB_NAMESPACE_BEGIN
 
 /**
  * \brief The BlockDiscontinuity class provides [<em>collective</em>](index.html#sec0) methods for flagging discontinuities within an ordered set of items partitioned across a CUDA thread block. ![](discont_logo.png)
@@ -74,7 +70,7 @@ namespace cub {
  *
  * __global__ void ExampleKernel(...)
  * {
- *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+ *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
  *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
  *
  *     // Allocate shared memory for BlockDiscontinuity
@@ -98,6 +94,13 @@ namespace cub {
  * \par Performance Considerations
  * - Incurs zero bank conflicts for most types
  *
+ * \par Re-using dynamically allocating shared memory
+ * The following example under the examples/block folder illustrates usage of
+ * dynamically shared memory with BlockReduce and how to re-purpose
+ * the same memory region:
+ * <a href="../../examples/block/example_block_reduce_dyn_smem.cu">example_block_reduce_dyn_smem.cu</a>
+ *
+ * This example can be easily adapted to the storage required by BlockDiscontinuity.
  */
 template <
     typename    T,
@@ -164,7 +167,6 @@ private:
     };
 
     /// Templated unrolling of item comparison (inductive case)
-    template <int ITERATION, int MAX_ITERATIONS>
     struct Iterate
     {
         // Head flags
@@ -179,15 +181,15 @@ private:
             T                       (&preds)[ITEMS_PER_THREAD],         ///< [out] Calling thread's predecessor items
             FlagOp                  flag_op)                            ///< [in] Binary boolean flag predicate
         {
-            preds[ITERATION] = input[ITERATION - 1];
-
-            flags[ITERATION] = ApplyOp<FlagOp>::FlagT(
-                flag_op,
-                preds[ITERATION],
-                input[ITERATION],
-                (linear_tid * ITEMS_PER_THREAD) + ITERATION);
-
-            Iterate<ITERATION + 1, MAX_ITERATIONS>::FlagHeads(linear_tid, flags, input, preds, flag_op);
+            #pragma unroll
+            for (int i = 1; i < ITEMS_PER_THREAD; ++i) {
+                preds[i] = input[i - 1];
+                flags[i] = ApplyOp<FlagOp>::FlagT(
+                    flag_op,
+                    preds[i],
+                    input[i],
+                    (linear_tid * ITEMS_PER_THREAD) + i);
+            }
         }
 
         // Tail flags
@@ -201,47 +203,17 @@ private:
             T                       (&input)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
             FlagOp                  flag_op)                            ///< [in] Binary boolean flag predicate
         {
-            flags[ITERATION] = ApplyOp<FlagOp>::FlagT(
-                flag_op,
-                input[ITERATION],
-                input[ITERATION + 1],
-                (linear_tid * ITEMS_PER_THREAD) + ITERATION + 1);
-
-            Iterate<ITERATION + 1, MAX_ITERATIONS>::FlagTails(linear_tid, flags, input, flag_op);
+            #pragma unroll
+            for (int i = 0; i < ITEMS_PER_THREAD - 1; ++i) {
+                flags[i] = ApplyOp<FlagOp>::FlagT(
+                    flag_op,
+                    input[i],
+                    input[i + 1],
+                    (linear_tid * ITEMS_PER_THREAD) + i + 1);
+            }
         }
 
     };
-
-    /// Templated unrolling of item comparison (termination case)
-    template <int MAX_ITERATIONS>
-    struct Iterate<MAX_ITERATIONS, MAX_ITERATIONS>
-    {
-        // Head flags
-        template <
-            int             ITEMS_PER_THREAD,
-            typename        FlagT,
-            typename        FlagOp>
-        static __device__ __forceinline__ void FlagHeads(
-            int                     /*linear_tid*/,
-            FlagT                   (&/*flags*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
-            T                       (&/*input*/)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
-            T                       (&/*preds*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's predecessor items
-            FlagOp                  /*flag_op*/)                            ///< [in] Binary boolean flag predicate
-        {}
-
-        // Tail flags
-        template <
-            int             ITEMS_PER_THREAD,
-            typename        FlagT,
-            typename        FlagOp>
-        static __device__ __forceinline__ void FlagTails(
-            int                     /*linear_tid*/,
-            FlagT                   (&/*flags*/)[ITEMS_PER_THREAD],         ///< [out] Calling thread's discontinuity head_flags
-            T                       (&/*input*/)[ITEMS_PER_THREAD],         ///< [in] Calling thread's input items
-            FlagOp                  /*flag_op*/)                            ///< [in] Binary boolean flag predicate
-        {}
-    };
-
 
     /******************************************************************************
      * Thread fields
@@ -322,7 +294,7 @@ public:
         }
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
     }
 
     template <
@@ -349,7 +321,7 @@ public:
         head_flags[0] = ApplyOp<FlagOp>::FlagT(flag_op, preds[0], input[0], linear_tid * ITEMS_PER_THREAD);
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
     }
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
@@ -379,7 +351,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -443,7 +415,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -521,7 +493,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -570,7 +542,7 @@ public:
                 (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -600,7 +572,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -657,7 +629,7 @@ public:
             (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -699,7 +671,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -772,10 +744,10 @@ public:
                 (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -811,7 +783,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -890,10 +862,10 @@ public:
             (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -929,7 +901,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -1008,10 +980,10 @@ public:
                 (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -1048,7 +1020,7 @@ public:
      *
      * __global__ void ExampleKernel(...)
      * {
-     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads on type int
+     *     // Specialize BlockDiscontinuity for a 1D block of 128 threads of type int
      *     typedef cub::BlockDiscontinuity<int, 128> BlockDiscontinuity;
      *
      *     // Allocate shared memory for BlockDiscontinuity
@@ -1130,10 +1102,10 @@ public:
             (linear_tid * ITEMS_PER_THREAD) + ITEMS_PER_THREAD);
 
         // Set head_flags for remaining items
-        Iterate<1, ITEMS_PER_THREAD>::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
+        Iterate::FlagHeads(linear_tid, head_flags, input, preds, flag_op);
 
         // Set tail_flags for remaining items
-        Iterate<0, ITEMS_PER_THREAD - 1>::FlagTails(linear_tid, tail_flags, input, flag_op);
+        Iterate::FlagTails(linear_tid, tail_flags, input, flag_op);
     }
 
 
@@ -1144,5 +1116,4 @@ public:
 };
 
 
-}               // CUB namespace
-CUB_NS_POSTFIX  // Optional outer namespace(s)
+CUB_NAMESPACE_END

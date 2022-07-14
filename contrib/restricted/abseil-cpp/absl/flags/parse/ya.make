@@ -2,13 +2,14 @@
 
 LIBRARY()
 
+WITHOUT_LICENSE_TEXTS()
+
 
 
 LICENSE(Apache-2.0)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/base/internal/exponential_biased
     contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc
     contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
     contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
@@ -35,9 +36,14 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/hash
     contrib/restricted/abseil-cpp/absl/hash/internal
     contrib/restricted/abseil-cpp/absl/numeric
+    contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/absl_cord
-    contrib/restricted/abseil-cpp/absl/strings/internal
+    contrib/restricted/abseil-cpp/absl/strings/cord
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_cord_internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_functions
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_handle
+    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_info
     contrib/restricted/abseil-cpp/absl/strings/internal/str_format
     contrib/restricted/abseil-cpp/absl/synchronization
     contrib/restricted/abseil-cpp/absl/synchronization/internal

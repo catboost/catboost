@@ -104,7 +104,7 @@ namespace NCB {
                         localExecutor
                     );
                     objectsDataSubset = dynamic_cast<TTObjectsDataProvider*>(baseObjectsDataSubset.Get());
-                    Y_VERIFY(objectsDataSubset);
+                    CB_ENSURE(objectsDataSubset, "Unexpected type of data provider");
                 }
             );
 
@@ -361,7 +361,7 @@ namespace NCB {
                         localExecutor
                     );
                     objectsDataSubset = dynamic_cast<TTObjectsDataProvider*>(baseObjectsDataSubset.Get());
-                    Y_VERIFY(objectsDataSubset);
+                    CB_ENSURE(objectsDataSubset, "Unexpected type of data provider");
                 }
             );
 

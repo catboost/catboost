@@ -16,6 +16,8 @@ namespace NThreading {
 
         ////////////////////////////////////////////////////////////////////////////////
 
+        [[noreturn]] void ThrowFutureException(TStringBuf message, const TSourceLocation& source);
+
         enum class TError {
             Error
         };
@@ -45,14 +47,14 @@ namespace NThreading {
             };
 
             void AccessValue(TDuration timeout, int acquireState) const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
-                        ythrow TFutureException() << "value not set";
+                        ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
 
                     if (!Wait(timeout)) {
-                        ythrow TFutureException() << "wait timeout";
+                        ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
                     state = AtomicGet(State);
@@ -65,11 +67,11 @@ namespace NThreading {
                         break;
                     case ValueRead:
                         if (acquireState != ValueRead) {
-                            ythrow TFutureException() << "value being read";
+                            ::NThreading::NImpl::ThrowFutureException("value being read"sv, __LOCATION__);
                         }
                         break;
                     case ValueMoved:
-                        ythrow TFutureException() << "value was moved";
+                        ::NThreading::NImpl::ThrowFutureException("value was moved"sv, __LOCATION__);
                     default:
                         Y_ASSERT(state == ValueSet);
                 }
@@ -107,7 +109,7 @@ namespace NThreading {
             }
 
             void TryRethrow() const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 TryRethrowWithState(state);
             }
 
@@ -129,7 +131,7 @@ namespace NThreading {
             void SetValue(TT&& value) {
                 bool success = TrySetValue(std::forward<TT>(value));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -139,7 +141,7 @@ namespace NThreading {
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -169,7 +171,7 @@ namespace NThreading {
             void SetException(std::exception_ptr e) {
                 bool success = TrySetException(std::move(e));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -178,7 +180,7 @@ namespace NThreading {
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -208,7 +210,7 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state == NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
@@ -229,7 +231,7 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state != NotReady) {
                         return true;
                     }
@@ -244,7 +246,7 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(int state) const {
+            void TryRethrowWithState(TAtomicBase state) const {
                 if (Y_UNLIKELY(state == ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
@@ -288,7 +290,7 @@ namespace NThreading {
             }
 
             void TryRethrow() const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 TryRethrowWithState(state);
             }
 
@@ -297,14 +299,14 @@ namespace NThreading {
             }
 
             void GetValue(TDuration timeout = TDuration::Zero()) const {
-                int state = AtomicGet(State);
+                TAtomicBase state = AtomicGet(State);
                 if (Y_UNLIKELY(state == NotReady)) {
                     if (timeout == TDuration::Zero()) {
-                        ythrow TFutureException() << "value not set";
+                        ::NThreading::NImpl::ThrowFutureException("value not set"sv, __LOCATION__);
                     }
 
                     if (!Wait(timeout)) {
-                        ythrow TFutureException() << "wait timeout";
+                        ::NThreading::NImpl::ThrowFutureException("wait timeout"sv, __LOCATION__);
                     }
 
                     state = AtomicGet(State);
@@ -318,7 +320,7 @@ namespace NThreading {
             void SetValue() {
                 bool success = TrySetValue();
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -327,7 +329,7 @@ namespace NThreading {
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -355,7 +357,7 @@ namespace NThreading {
             void SetException(std::exception_ptr e) {
                 bool success = TrySetException(std::move(e));
                 if (Y_UNLIKELY(!success)) {
-                    ythrow TFutureException() << "value already set";
+                    ::NThreading::NImpl::ThrowFutureException("value already set"sv, __LOCATION__);
                 }
             }
 
@@ -364,7 +366,7 @@ namespace NThreading {
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
                         return false;
                     }
@@ -394,7 +396,7 @@ namespace NThreading {
             template <typename F>
             bool Subscribe(F&& func) {
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state == NotReady) {
                         Callbacks.emplace_back(std::forward<F>(func));
                         return true;
@@ -415,7 +417,7 @@ namespace NThreading {
                 TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
-                    int state = AtomicGet(State);
+                    TAtomicBase state = AtomicGet(State);
                     if (state != NotReady) {
                         return true;
                     }
@@ -430,7 +432,7 @@ namespace NThreading {
                 return readyEvent->WaitD(deadline);
             }
 
-            void TryRethrowWithState(int state) const {
+            void TryRethrowWithState(TAtomicBase state) const {
                 if (Y_UNLIKELY(state == ExceptionSet)) {
                     Y_ASSERT(Exception);
                     std::rethrow_exception(Exception);
@@ -649,7 +651,7 @@ namespace NThreading {
     template <typename T>
     inline void TFuture<T>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -751,7 +753,7 @@ namespace NThreading {
 
     inline void TFuture<void>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -858,7 +860,7 @@ namespace NThreading {
     template <typename T>
     inline void TPromise<T>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -932,7 +934,7 @@ namespace NThreading {
 
     inline void TPromise<void>::EnsureInitialized() const {
         if (!State) {
-            ythrow TFutureException() << "state not initialized";
+            ::NThreading::NImpl::ThrowFutureException("state not initialized"sv, __LOCATION__);
         }
     }
 
@@ -961,6 +963,12 @@ namespace NThreading {
     inline TFuture<T> MakeFuture() {
         struct TCache {
             TFuture<T> Instance{new NImpl::TFutureState<T>(Default<T>())};
+
+            TCache() {
+                // Immediately advance state from ValueSet to ValueRead.
+                // This should prevent corrupting shared value with an ExtractValue() call.
+                Y_UNUSED(Instance.GetValue());
+            }
         };
         return Singleton<TCache>()->Instance;
     }

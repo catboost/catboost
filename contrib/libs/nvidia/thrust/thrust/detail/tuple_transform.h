@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <thrust/detail/config.h>
+
 #include <thrust/tuple.h>
 #include <thrust/detail/tuple_meta_transform.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -79,5 +80,5 @@ tuple_host_device_transform(const Tuple &t, UnaryFunction f)
 
 } // end detail
 
-} // end thrust
+THRUST_NAMESPACE_END
 

@@ -1,15 +1,11 @@
 PACKAGE()
 
-LICENSE(BSD-3-Clause)
+WITHOUT_LICENSE_TEXTS()
 
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
+LICENSE(BSD-3-Clause)
 
 
 
 GENERATE_PY_PROTOS(contrib/libs/protobuf/src/google/protobuf/descriptor.proto)
 
 END()
-
-RECURSE(
-    google_lib
-)

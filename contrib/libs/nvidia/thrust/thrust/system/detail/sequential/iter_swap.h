@@ -21,8 +21,7 @@
 #include <thrust/detail/raw_pointer_cast.h>
 #include <thrust/detail/swap.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 namespace system
 {
 namespace detail
@@ -43,5 +42,5 @@ __host__ __device__
 } // end sequential
 } // end detail
 } // end system
-} // end thrust
+THRUST_NAMESPACE_END
 

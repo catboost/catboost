@@ -24,11 +24,11 @@ get_feature_importance(data=None,
 
 The dataset for feature importance calculation.
 
-The required dataset depends on the selected feature importance calculation type (specified in the¬†`type` parameter):
+The required dataset depends on the selected feature importance calculation type (specified in the `type` parameter):
 
-- {{ title__regular-feature-importance-PredictionValuesChange }}¬†вАФ Either None or the same dataset that was used for training if the model does not contain information regarding the weight of leaves. All models trained with {{ product }} version 0.9 or higher contain leaf weight information by default.
-- {{ title__regular-feature-importance-LossFunctionChange }} ¬†вАФ Any dataset. Feature importances are calculated on a subset for large datasets.
-- {{ title__predictiondiff }}¬†вАФ A list of object pairs.
+- {{ title__regular-feature-importance-PredictionValuesChange }} —  Either None or the same dataset that was used for training if the model does not contain information regarding the weight of leaves. All models trained with {{ product }} version 0.9 or higher contain leaf weight information by default.
+- {{ title__regular-feature-importance-LossFunctionChange }}  —  Any dataset. Feature importances are calculated on a subset for large datasets.
+- {{ title__predictiondiff }} —  A list of object pairs.
 
 **Possible types**
 
@@ -63,7 +63,7 @@ _Alias:_`fstr_type` (deprecated, use `type` instead)
 The type of feature importance to calculate.
 
 Possible values:
-- FeatureImportance: Equal to¬†[{{ title__regular-feature-importance-PredictionValuesChange }}](../concepts/fstr.md#regular-feature-importance) for non-ranking metrics and [{{ title__regular-feature-importance-LossFunctionChange }}](../concepts/fstr.md#regular-feature-importances__lossfunctionchange) for ranking metrics (the value is determined automatically).
+- FeatureImportance: Equal to [{{ title__regular-feature-importance-PredictionValuesChange }}](../concepts/fstr.md#regular-feature-importance) for non-ranking metrics and [{{ title__regular-feature-importance-LossFunctionChange }}](../concepts/fstr.md#regular-feature-importances__lossfunctionchange) for ranking metrics (the value is determined automatically).
 
 - [{{ title__ShapValues }}](../concepts/shap-values.md): A vector $v$ with contributions of each feature to the prediction for every input object and the expected value of the model prediction for the object (average prediction given no knowledge about the object).
 - [{{ title__Interaction }}](../concepts/feature-interaction.md#feature-interaction-strength): The value of the feature interaction strength for each pair of features.
@@ -77,7 +77,7 @@ Possible values:
 
 {% note info %}
 
-It is recommended to use¬†{{ python-type__EFStrType }} for this parameter.
+It is recommended to use {{ python-type__EFStrType }} for this parameter.
 
 {% endnote %}
 
@@ -95,7 +95,7 @@ Return the feature importances as a list of the following pairs sorted by featur
 (feature_id, feature importance)
 ```
 
-Should be used if one of the following values of the¬†`type`parameter is selected:
+Should be used if one of the following values of the `type`parameter is selected:
 - {{ title__regular-feature-importance-PredictionValuesChange }}
 - {{ title__regular-feature-importance-PredictionValuesChange }}
 
@@ -130,11 +130,11 @@ False
 
 The purpose of this parameter depends on the type of the given value:
 
-- {{ python-type--bool }}¬†вАФ Output progress to stdout.
+- {{ python-type--bool }} —  Output progress to stdout.
 
-    Works with the¬†[{{ title__ShapValues }}](../concepts/shap-values.md) type of feature importance calculation.
+    Works with the [{{ title__ShapValues }}](../concepts/shap-values.md) type of feature importance calculation.
 
-- {{ python-type--int }}¬†вАФ The logging period.
+- {{ python-type--int }} —  The logging period.
 
 **Possible types**
 

@@ -12,7 +12,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
-#include <util/system/atomic.h>
+#include <library/cpp/deprecated/atomic/atomic.h>
 #include <util/system/info.h>
 #include <util/system/spinlock.h>
 

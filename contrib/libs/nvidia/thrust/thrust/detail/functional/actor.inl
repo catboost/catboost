@@ -23,6 +23,8 @@
 // Based on Boost.Phoenix v1.2
 // Copyright (c) 2001-2002 Joel de Guzman
 
+#pragma once
+
 #include <thrust/detail/config.h>
 #include <thrust/detail/functional/composite.h>
 #include <thrust/detail/functional/operators/assignment_operator.h>
@@ -31,8 +33,7 @@
 
 #include <type_traits>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 namespace detail
 {
@@ -110,4 +111,4 @@ template<typename Eval>
 
 } // end functional
 } // end detail
-} // end thrust
+THRUST_NAMESPACE_END

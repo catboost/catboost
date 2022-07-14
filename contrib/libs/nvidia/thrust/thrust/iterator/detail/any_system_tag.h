@@ -19,8 +19,7 @@
 #include <thrust/detail/config.h>
 #include <thrust/detail/execution_policy.h>
 
-namespace thrust
-{
+THRUST_NAMESPACE_BEGIN
 
 struct any_system_tag
   : thrust::execution_policy<any_system_tag>
@@ -30,5 +29,5 @@ struct any_system_tag
   template<typename T> operator T () const {return T();}
 };
 
-} // end thrust
+THRUST_NAMESPACE_END
 
