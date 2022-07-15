@@ -35,7 +35,7 @@ for /f "delims=" %%F in ('where python 2^>nul') do (
     call :test_python %%~sF
     if not ERRORLEVEL 1 (
         set YA_BAT_PYTHON=%%F
-        if "%%F" == "C:\windows\py.exe" (
+        if /I "%%F" == "C:\Windows\py.exe" (
             set YA_PY_KNOB=-3
         )
         exit /b 0
@@ -46,7 +46,7 @@ for /f delims^=^=^"^ tokens^=2 %%F in ('ftype Python.File 2^>nul') do (
     call :test_python %%F
     if not ERRORLEVEL 1 (
         set YA_BAT_PYTHON=%%F
-        if "%%F" == "C:\windows\py.exe" (
+        if /I "%%F" == "C:\Windows\py.exe" (
             set YA_PY_KNOB=-3
         )
         exit /b 0

@@ -62,6 +62,7 @@ namespace NLastGetopt {
 
         EHasArg HasArg_ = DEFAULT_HAS_ARG; // the argument parsing politics
         bool Required_ = false;            // option existence politics
+        bool EqParseOnly_ = false;             // allows option not to read argument
 
         bool AllowMultipleCompletion_ = false; // let the completer know that this option can occur more than once
 
@@ -283,6 +284,23 @@ namespace NLastGetopt {
         TOpt& Required() {
             Required_ = true;
             return *this;
+        }
+
+        /**
+         *  allow only --option=arg parsing and disable --option arg
+         *  @return self
+         */
+        TOpt& DisableSpaceParse() {
+            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT);
+            EqParseOnly_ = true;
+            return *this;
+        }
+
+        /**
+         *  @return true if only --option=arg parse allowed
+         */
+        bool IsEqParseOnly() const {
+            return EqParseOnly_;
         }
 
         /**
