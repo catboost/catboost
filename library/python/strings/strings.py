@@ -82,10 +82,17 @@ def _convert_deep(x, enc, convert, relaxed=True):
     raise TypeError('unsupported type')
 
 
+# Result as from six.ensure_text
 def unicodize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
     return _convert_deep(x, enc, to_unicode, relaxed)
 
 
+# Result as from six.ensure_str
+def ensure_str_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
+    return _convert_deep(x, enc, six.ensure_str, relaxed)
+
+
+# Result as from six.ensure_binary
 def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
     return _convert_deep(x, enc, to_str, relaxed)
 

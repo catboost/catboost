@@ -4,6 +4,7 @@ from .strings import (
     DEFAULT_ENCODING,
     ENCODING_ERRORS_POLICY,
     encode,
+    ensure_str_deep,
     fs_encoding,
     get_stream_encoding,
     guess_default_encoding,
