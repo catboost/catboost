@@ -715,14 +715,14 @@ constexpr std::pair<It, It> EqualRange(It begin, It end, const Val& val, Comp co
 }
 
 template <class TContainer>
-constexpr auto AdjacentFind(const TContainer& c) {
+constexpr auto AdjacentFind(TContainer&& c) {
     using std::begin;
     using std::end;
     return std::adjacent_find(begin(c), end(c));
 }
 
 template <class TContainer, class Compare>
-constexpr auto AdjacentFind(const TContainer& c, Compare comp) {
+constexpr auto AdjacentFind(TContainer&& c, Compare comp) {
     using std::begin;
     using std::end;
     return std::adjacent_find(begin(c), end(c), comp);
@@ -736,7 +736,7 @@ namespace NPrivate {
 }
 
 template <class TContainer, class TGetKey>
-constexpr auto AdjacentFindBy(const TContainer& c, const TGetKey& getKey) {
+constexpr auto AdjacentFindBy(TContainer&& c, const TGetKey& getKey) {
     using std::begin;
     using std::end;
     return ::NPrivate::AdjacentFindBy(begin(c), end(c), getKey);

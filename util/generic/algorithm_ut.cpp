@@ -428,6 +428,16 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
         TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
         UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
+
+        TVector<int> v4 = {1, 1, 1, 1, 1};
+        for (;;) {
+            if (auto it = AdjacentFind(v4); it == v4.end()) {
+                break;
+            } else {
+                *it += 1;
+            }
+        }
+        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{5, 4, 3, 2, 1}));
     }
 
     Y_UNIT_TEST(AdjacentFindByTest) {
@@ -444,6 +454,16 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
         UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
         UNIT_ASSERT_EQUAL(AdjacentFindBy(v3, std::mem_fn(&TStringBuf::size)), v3.begin() + 1);
+
+        TVector<int> v4 = {101, 201, 301, 401, 501};
+        for (;;) {
+            if (auto it = AdjacentFindBy(v4, [](int a) { return a % 10; }); it == v4.end()) {
+                break;
+            } else {
+                *it += 1;
+            }
+        }
+        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{105, 204, 303, 402, 501}));
     }
 
     Y_UNIT_TEST(IsSortedTest) {
