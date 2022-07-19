@@ -109,9 +109,6 @@ class TsConfig(object):
         root_dir = opts["rootDir"]
         out_dir = opts["outDir"]
 
-        opts["rootDir"] = sources_path_rel(root_dir)
-        opts["outDir"] = build_path_rel(out_dir)
-
         if opts.get("typeRoots"):
             opts["typeRoots"] = list(map(sources_path_rel, opts["typeRoots"])) + list(map(build_path_rel, opts["typeRoots"]))
 
@@ -122,9 +119,6 @@ class TsConfig(object):
         opts["paths"]["*"] = ["*", "./@types/*"]
 
         opts["baseUrl"] = "./node_modules"
-
-        self.data["include"] = list(map(sources_path_rel, self.data.get("include", [])))
-        self.data["exclude"] = list(map(sources_path_rel, self.data.get("exclude", [])))
 
         if opts.get("sourceMap"):
             opts["sourceRoot"] = os.path.relpath(root_dir, out_dir)
