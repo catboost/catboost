@@ -2,7 +2,7 @@
 set -e
 
 ESLINT_VERSION="7.27.0"
-PACKAGES="eslint@$ESLINT_VERSION @yandex-int/lint@1.15.0"
+PACKAGES="eslint@$ESLINT_VERSION @yandex-int/eslint-plugin-config@1.1.0"
 
 echo "Creating temporary directory…"
 TMP_DIR=$(mktemp -d)
@@ -23,7 +23,7 @@ tar --create --gzip --file=$ARCHIVE $RESOURCE_DIR
 echo "Archive $(pwd)/$ARCHIVE is created"
 
 echo "Uploading file ${ARCHIVE}…"
-DESCRIPTION="Bundle for https://st.yandex-team.ru/FEI-24069. Content: ${PACKAGES}."
+DESCRIPTION="Bundle for https://st.yandex-team.ru/FBP-84. Content: ${PACKAGES}."
 ya upload $ARCHIVE -d="${DESCRIPTION}" --ttl="inf" --attr="eslint=${ESLINT_VERSION}"
 echo "File $ARCHIVE is uploaded"
 
