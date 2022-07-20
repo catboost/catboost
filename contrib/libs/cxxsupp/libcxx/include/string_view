@@ -324,13 +324,10 @@ public:
 #endif
 
     _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
-    basic_string_view(nullptr_t) = delete;
-
-    _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
     basic_string_view(const _CharT* __s)
         : __data(__s), __size(_VSTD::__char_traits_length_checked<_Traits>(__s)) {}
 
-#if _LIBCPP_STD_VER > 20
+#if _LIBCPP_STD_VER > 17
     basic_string_view(nullptr_t) = delete;
 #endif
 
