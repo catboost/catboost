@@ -169,7 +169,7 @@ def get_import_path(module_path):
 
 def call(cmd, cwd, env=None):
     # sys.stderr.write('{}\n'.format(' '.join(cmd)))
-    return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env)
+    return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env, text=True)
 
 
 def classify_srcs(srcs, args):
@@ -614,7 +614,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, test_module_path))
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
-        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
+        tests = [x for x in (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             tests = filter_out_skip_tests(tests, args.skip_tests)
     test_main_found = '#TestMain' in tests
@@ -625,7 +625,7 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os.makedirs(os.path.join(test_src_dir, xtest_module_path))
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
-        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env).decode('UTF-8') or '').strip().split('\n') if len(x) > 0]
+        xtests = [x for x in (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n') if len(x) > 0]
         if args.skip_tests:
             xtests = filter_out_skip_tests(xtests, args.skip_tests)
     xtest_main_found = '#TestMain' in xtests
