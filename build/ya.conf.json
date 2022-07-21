@@ -4606,46 +4606,6 @@
                 }
             ]
         },
-        "kiwi": {
-            "tools": {
-                "kwmktorrent": {
-                    "bottle": "kwmktorrent",
-                    "executable": "kwmktorrent"
-                },
-                "kwmqbuild": {
-                    "bottle": "kwmqbuild",
-                    "executable": "kwmqbuild"
-                },
-                "kwfeed": {
-                    "bottle": "kwfeed",
-                    "executable": "kwfeed"
-                },
-                "metaquery.sh": {
-                    "bottle": "kwfeed",
-                    "executable": "metaquery.sh"
-                },
-                "protobin_diff": {
-                    "bottle": "protobin_diff",
-                    "executable": "protobin_diff"
-                },
-                "multipb_convert": {
-                    "bottle": "multipb_convert",
-                    "executable": "multipb_convert"
-                },
-                "kwworm": {
-                    "bottle": "kwworm",
-                    "executable": "kwworm"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "optrace": {
             "tools": {
                 "optrace": {
@@ -5102,21 +5062,6 @@
                     "host": {
                         "os": "DARWIN",
                         "arch": "arm64"
-                    },
-                    "default": true
-                }
-            ]
-        },
-        "kiwi_protos": {
-            "tools": {
-                "kiwi_protos": {
-                    "bottle": "kiwi_protos"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
                     },
                     "default": true
                 }
@@ -8037,75 +7982,6 @@
             },
             "executable": "ninja"
         },
-        "kwfeed": {
-            "formula": {
-                "sandbox_id": 36077631,
-                "match": "KWFeed"
-            },
-            "executable": {
-                "kwfeed": [
-                    "kwfeed"
-                ],
-                "metaquery.sh": [
-                    "metaquery.sh"
-                ]
-            }
-        },
-        "protobin_diff": {
-            "formula": {
-                "sandbox_id": 28621470,
-                "match": "protobin_diff"
-            },
-            "executable": {
-                "protobin_diff": [
-                    "protobin_diff"
-                ]
-            }
-        },
-        "multipb_convert": {
-            "formula": {
-                "sandbox_id": 31061929,
-                "match": "Multipb_convert"
-            },
-            "executable": {
-                "multipb_convert": [
-                    "multipb_convert"
-                ]
-            }
-        },
-        "kwworm": {
-            "formula": {
-                "sandbox_id": 18521490,
-                "match": "Kwworm"
-            },
-            "executable": {
-                "kwworm": [
-                    "kwworm"
-                ]
-            }
-        },
-        "kwmktorrent": {
-            "formula": {
-                "sandbox_id": 451506451,
-                "match": "KWMKTorrent"
-            },
-            "executable": {
-                "kwmktorrent": [
-                    "kwmktorrent"
-                ]
-            }
-        },
-        "kwmqbuild": {
-            "formula": {
-                "sandbox_id": 41067877,
-                "match": "KWMQBuild"
-            },
-            "executable": {
-                "kwmqbuild": [
-                    "kwmqbuild"
-                ]
-            }
-        },
         "gpt": {
             "formula": {
                 "sandbox_id": 21836503,
@@ -8141,12 +8017,6 @@
             "formula": {
                 "sandbox_id": 42519064,
                 "match": "fast_diff"
-            }
-        },
-        "kiwi_protos": {
-            "formula": {
-                "sandbox_id": 32521995,
-                "match": "KiWi python protos"
             }
         },
         "allure_commandline": {
