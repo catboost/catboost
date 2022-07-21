@@ -10,7 +10,7 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-VERSION(2021-04-02-7959d59028dd126416cdf10dbbd22162922e1336)
+VERSION(2022-02-20-34313583331e5c8cb0d3df28efb6c34c428fd235)
 
 
 
@@ -201,6 +201,7 @@ ENDIF()
 SRCS(
     src/algorithm.cpp
     src/any.cpp
+    src/assert.cpp
     src/atomic.cpp
     src/barrier.cpp
     src/bind.cpp

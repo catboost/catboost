@@ -1326,34 +1326,26 @@ template <class _Tp> struct _LIBCPP_TEMPLATE_VIS add_rvalue_reference
 template <class _Tp> using add_rvalue_reference_t = typename add_rvalue_reference<_Tp>::type;
 #endif
 
-// __uncvref
-
-template <class _Tp>
-struct __uncvref  {
-    typedef _LIBCPP_NODEBUG typename remove_cv<typename remove_reference<_Tp>::type>::type type;
-};
-
 template <class _Tp>
 struct __unconstref {
     typedef _LIBCPP_NODEBUG typename remove_const<typename remove_reference<_Tp>::type>::type type;
 };
 
-#ifndef _LIBCPP_CXX03_LANG
 template <class _Tp>
-using __uncvref_t _LIBCPP_NODEBUG = typename __uncvref<_Tp>::type;
-#endif
+using __uncvref_t _LIBCPP_NODEBUG = typename remove_cv<typename remove_reference<_Tp>::type>::type;
 
 // __is_same_uncvref
 
 template <class _Tp, class _Up>
-struct __is_same_uncvref : _IsSame<typename __uncvref<_Tp>::type,
-                                   typename __uncvref<_Up>::type> {};
+struct __is_same_uncvref : _IsSame<__uncvref_t<_Tp>, __uncvref_t<_Up> > {};
 
 // C++20, enabled for C++17 in Arcadia
 #if _LIBCPP_STD_VER > 14
 // remove_cvref - same as __uncvref
 template <class _Tp>
-struct remove_cvref : public __uncvref<_Tp> {};
+struct remove_cvref {
+    using type _LIBCPP_NODEBUG = __uncvref_t<_Tp>;
+};
 
 template <class _Tp> using remove_cvref_t = typename remove_cvref<_Tp>::type;
 #endif
