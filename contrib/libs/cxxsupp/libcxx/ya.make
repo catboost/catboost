@@ -10,7 +10,9 @@ LICENSE(
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-VERSION(2022-02-20-34313583331e5c8cb0d3df28efb6c34c428fd235)
+VERSION(2022-02-20)
+
+ORIGINAL_SOURCE(https://github.com/llvm/llvm-project/archive/34313583331e5c8cb0d3df28efb6c34c428fd235.tar.gz)
 
 
 
