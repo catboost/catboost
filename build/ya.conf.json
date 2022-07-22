@@ -6676,10 +6676,17 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [
-                    1373452987
-                ],
-                "match": "arc"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ARC_CLIENT",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "ARC"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "arc": [
