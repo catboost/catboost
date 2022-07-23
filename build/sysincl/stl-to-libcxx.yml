@@ -164,6 +164,7 @@
 
 # This includes all headers needed to resolve includes in c-headers from libcxx listed avove
 - includes:
+  - __assert:                                     contrib/libs/cxxsupp/libcxx/include/__assert
   - __availability:                               contrib/libs/cxxsupp/libcxx/include/__availability
   - __bsd_locale_fallbacks.h:                     contrib/libs/cxxsupp/libcxx/include/__bsd_locale_fallbacks.h
   - __locale:                                     contrib/libs/cxxsupp/libcxx/include/__locale
