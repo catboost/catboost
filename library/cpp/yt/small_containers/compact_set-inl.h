@@ -230,6 +230,12 @@ typename TCompactSet<T, N, C>::size_type TCompactSet<T, N, C>::count(const T& v)
 }
 
 template <typename T, unsigned N,  typename C>
+bool TCompactSet<T, N, C>::contains(const T& v) const
+{
+    return count(v) == 1;
+}
+
+template <typename T, unsigned N,  typename C>
 std::pair<typename TCompactSet<T, N, C>::const_iterator, bool> TCompactSet<T, N, C>::insert(const T& v)
 {
     if (!IsSmall()) {
