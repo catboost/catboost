@@ -337,15 +337,6 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 TVector<bool> GetSkipMetricOnTest(bool testHasTarget, const TVector<const IMetric*>& metrics);
 
 TMetricHolder EvalErrors(
-    const TVector<TVector<double>>& approx,
-    TConstArrayRef<float> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> queriesInfo,
-    const IMetric& error,
-    NPar::ILocalExecutor* localExecutor
-);
-
-TMetricHolder EvalErrors(
     TConstArrayRef<TConstArrayRef<double>> approx,
     TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
@@ -357,8 +348,8 @@ TMetricHolder EvalErrors(
 );
 
 TMetricHolder EvalErrors(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    TConstArrayRef<TConstArrayRef<double>> approx,
+    TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
@@ -366,26 +357,6 @@ TMetricHolder EvalErrors(
     const IMetric& error,
     NPar::ILocalExecutor* localExecutor
 );
-
-inline static TMetricHolder EvalErrors(
-    const TVector<TVector<double>>& approx,
-    TConstArrayRef<TConstArrayRef<float>> target,
-    TConstArrayRef<float> weight,
-    TConstArrayRef<TQueryInfo> queriesInfo,
-    const IMetric& error,
-    NPar::ILocalExecutor* localExecutor
-) {
-    return EvalErrors(
-        approx,
-        /*approxDelta*/{},
-        /*isExpApprox*/false,
-        target,
-        weight,
-        queriesInfo,
-        error,
-        localExecutor
-    );
-}
 
 inline bool IsMaxOptimal(const IMetric& metric) {
     EMetricBestValue bestValueType;

@@ -2,6 +2,7 @@
 
 #include "approx_calcer_multi.h"
 #include "gradient_walker.h"
+#include "eval_additive_metric_with_leaves.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
@@ -212,10 +213,10 @@ static void CalcLeafValuesSimple(
     auto weights = statistics->GetWeights();
 
     const auto leafUpdaterFunc = [&](
-                                     bool recalcLeafWeights,
-                                     const TVector<TVector<double>>& approxes,
-                                     TVector<double>* leafDeltas //
-                                 ) {
+        bool recalcLeafWeights,
+        const TVector<TVector<double>>& approxes,
+        TVector<TVector<double>>* leafDeltas
+    ) {
         leafDer.SetZeroDers();
 
         if (estimationMethod == ELeavesEstimation::Exact) {
@@ -226,7 +227,7 @@ static void CalcLeafValuesSimple(
                 statistics->GetSampleWeights(),
                 statistics->GetObjectsCountInLeaf(),
                 statistics->GetApprox(0),
-                (*leafDeltas)[0]);
+                (*leafDeltas)[0][0]);
             return;
         }
 
@@ -241,7 +242,7 @@ static void CalcLeafValuesSimple(
             weightedDers,
             &leafDer,
             localExecutor);
-        (*leafDeltas)[0] = CalcLeafDelta(
+        (*leafDeltas)[0][0] = CalcLeafDelta(
             leafDer,
             estimationMethod,
             l2Regularizer,
@@ -250,12 +251,13 @@ static void CalcLeafValuesSimple(
     };
 
     const auto approxUpdaterFunc = [&] (
-                                       const TVector<double>& leafDeltas,
-                                       TVector<TVector<double>>* approxes) {
+        const TVector<TVector<double>>& leafDeltas,
+        TVector<TVector<double>>* approxes
+    ) {
         UpdateApproxDeltas(
             error.GetIsExpApprox(),
             statistics->GetObjectsCountInLeaf(),
-            leafDeltas[0],
+            leafDeltas[0][0],
             localExecutor,
             (*approxes)[0]);
     };
@@ -273,35 +275,34 @@ static void CalcLeafValuesSimple(
         &lossFunction);
 
 
-    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx) {
-        const auto& additiveStats = EvalErrors(
+    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx, const TVector<TVector<double>>& leafDeltas) {
+        const auto& additiveStats = EvalErrorsWithLeaves(
             To2DConstArrayRef<double>(approx),
-            /*approxDelta*/ {},
+            To2DConstArrayRef<double>(leafDeltas),
+            /*indices*/{},
             error.GetIsExpApprox(),
-            labels,
+            {labels},
             weights,
-            {},
-            *(lossFunction[0]),
+            /*queryInfo*/{},
+            *lossFunction[0],
             localExecutor);
         return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
-    const auto approxCopyFunc = [localExecutor](const TVector<TVector<double>>& src, TVector<TVector<double>>* dst) {
-        CopyApprox(src, dst, localExecutor);
-    };
-
-    GradientWalker</*IsLeafwise*/ true>(
+    const auto leafValuesRef = statistics->GetLeafValuesRef();
+    TVector<TVector<double>> leafValues(1, TVector<double>(1)); // [approxDim][0]
+    leafValues[0][0] = leafValuesRef->at(0);
+    FastGradientWalker(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
-        /*leafCount*/ 0,
+        /*leafCount*/ 1,
         /*approxDimension*/ 1,
         leafUpdaterFunc,
         approxUpdaterFunc,
         lossCalcerFunc,
-        approxCopyFunc,
         statistics->GetApproxRef(),
-        statistics->GetLeafValuesRef()
-    );
+        &leafValues);
+    leafValuesRef->at(0) = leafValues[0][0];
 }
 
 void CalcLeafValues(
@@ -331,25 +332,33 @@ void CalcLeafValues(
             weightedDers,
             localExecutor);
     } else {
+        const auto leafValuesRef = statistics->GetLeafValuesRef();
+        const auto approxDim = statistics->GetApproxDimension();
+        TVector<TVector<double>> leafValues(approxDim, TVector<double>(1)); // [approxDim][0]
+        for (auto dim : xrange(approxDim)) {
+            leafValues[dim][0] = leafValuesRef->at(dim);
+        }
         CalcLeafValuesMulti(
             params,
-            /*isLeafwise*/ true,
-            /*leafCount*/ 0,
+            /*leafCount*/ 1,
             error,
             /*queryInfo*/ {},
             /*indices*/ {},
             To2DConstArrayRef<float>(statistics->GetLabels()),
             statistics->GetWeights(),
-            statistics->GetApproxDimension(),
+            approxDim,
             statistics->GetAllObjectsSumWeight(),
             statistics->GetLearnObjectsCount(),
             statistics->GetObjectsCountInLeaf(),
             params.MetricOptions->ObjectiveMetric,
             rng,
             localExecutor,
-            statistics->GetLeafValuesRef(),
+            &leafValues,
             statistics->GetApproxRef()
         );
+        for (auto dim : xrange(approxDim)) {
+            leafValuesRef->at(dim) = leafValues[dim][0];
+        }
     }
 }
 
