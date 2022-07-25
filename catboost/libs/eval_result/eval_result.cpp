@@ -329,17 +329,19 @@ namespace NCB {
                     "Raw feature values are not available for quantized pools"
                 );
 
+                auto internalIdx = pool.MetaInfo.FeaturesLayout->GetInternalFeatureIdx(it->second.Index);
+
                 if (it->second.IsCategorical) {
                     columnPrinter.push_back(
                         MakeHolder<TCatFeaturePrinter>(
-                            (*rawObjectsData->GetCatFeature(it->second.Index))->ExtractValues(executor),
-                            rawObjectsData->GetCatFeaturesHashToString(it->second.Index),
+                            (*rawObjectsData->GetCatFeature(internalIdx))->ExtractValues(executor),
+                            rawObjectsData->GetCatFeaturesHashToString(internalIdx),
                             outputColumn
                         )
                     );
                 } else {
                     TMaybeOwningArrayHolder<float> extractedValues
-                        = (*rawObjectsData->GetFloatFeature(it->second.Index))->ExtractValues(executor);
+                        = (*rawObjectsData->GetFloatFeature(internalIdx))->ExtractValues(executor);
                     columnPrinter.push_back(
                         MakeHolder<TArrayPrinter<float>>(
                             TMaybeOwningConstArrayHolder<float>::CreateOwningReinterpretCast(extractedValues),
