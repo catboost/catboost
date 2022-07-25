@@ -594,6 +594,11 @@ def onadd_check(unit, *args):
         fork_mode = unit.get('TEST_FORK_MODE') or ''
         if ymake_java_test:
             extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
+
+        # jstyle should use the latest jdk
+        unit.onpeerdir([unit.get('JDK_LATEST_PEERDIR')])
+        extra_test_dart_data['JDK_LATEST_VERSION'] = unit.get('JDK_LATEST_VERSION')
+        # TODO remove when ya-bin will be released (https://st.yandex-team.ru/DEVTOOLS-9611)
         extra_test_dart_data['JDK_RESOURCE'] = 'JDK' + (unit.get('JDK_VERSION') or unit.get('JDK_REAL_VERSION') or '_DEFAULT')
     elif check_type == "gofmt":
         if test_files:
