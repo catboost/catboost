@@ -1,2 +1,4 @@
 additional_requirements:
 - setuptools
+disable_dos_to_unix:
+- pytz/zoneinfo/*
