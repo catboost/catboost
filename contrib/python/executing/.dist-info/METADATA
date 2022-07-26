@@ -1,12 +1,11 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 0.8.3
+Version: 0.9.0
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
 Author-email: alex.mojaki@gmail.com
 License: MIT
-Platform: UNKNOWN
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 2
@@ -162,5 +161,3 @@ The plan is to extend to more operations in the future.
 - **[`python-devtools`](https://github.com/samuelcolvin/python-devtools)**: Uses `executing` for print debugging similar to `icecream`.
 - **[`sentry_sdk`](https://github.com/getsentry/sentry-python)**: Add the integration `sentry_sdk.integrations.executingExecutingIntegration()` to show the function `__qualname__` in each frame in sentry events.
 - **[`varname`](https://github.com/pwwang/python-varname)**: Dark magics about variable names in python. Uses `executing` to find where its various magical functions like `varname` and `nameof` are called from.
-
-
