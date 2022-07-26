@@ -308,19 +308,9 @@
             "uri": "file://test_gpu.test_cv_Ordered-inverted_/test.eval"
         }
     ],
-    "test_gpu.test_cv[Ordered]": [
-        {
-            "uri": "file://test_gpu.test_cv_Ordered_/test.eval"
-        }
-    ],
     "test_gpu.test_cv[Plain-inverted]": [
         {
             "uri": "file://test_gpu.test_cv_Plain-inverted_/test.eval"
-        }
-    ],
-    "test_gpu.test_cv[Plain]": [
-        {
-            "uri": "file://test_gpu.test_cv_Plain_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Ordered-inverted]": [
@@ -328,19 +318,9 @@
             "uri": "file://test_gpu.test_cv_for_pairs_Ordered-inverted_/test.eval"
         }
     ],
-    "test_gpu.test_cv_for_pairs[Ordered]": [
-        {
-            "uri": "file://test_gpu.test_cv_for_pairs_Ordered_/test.eval"
-        }
-    ],
     "test_gpu.test_cv_for_pairs[Plain-inverted]": [
         {
             "uri": "file://test_gpu.test_cv_for_pairs_Plain-inverted_/test.eval"
-        }
-    ],
-    "test_gpu.test_cv_for_pairs[Plain]": [
-        {
-            "uri": "file://test_gpu.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered-inverted]": [
@@ -348,19 +328,9 @@
             "uri": "file://test_gpu.test_cv_for_query_Ordered-inverted_/test.eval"
         }
     ],
-    "test_gpu.test_cv_for_query[Ordered]": [
-        {
-            "uri": "file://test_gpu.test_cv_for_query_Ordered_/test.eval"
-        }
-    ],
     "test_gpu.test_cv_for_query[Plain-inverted]": [
         {
             "uri": "file://test_gpu.test_cv_for_query_Plain-inverted_/test.eval"
-        }
-    ],
-    "test_gpu.test_cv_for_query[Plain]": [
-        {
-            "uri": "file://test_gpu.test_cv_for_query_Plain_/test.eval"
         }
     ],
     "test_gpu.test_eval_feature[CPU]": [
