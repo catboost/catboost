@@ -399,6 +399,15 @@
     "test.test_feature_importance_prettified[CPU]": {
         "uri": "file://test.test_feature_importance_prettified_CPU_/feature_importance.txt"
     },
+    "test.test_feature_importance_sage_all_feature_types": {
+        "uri": "file://test.test_feature_importance_sage_all_feature_types/feature_importance.npy"
+    },
+    "test.test_feature_importance_sage_basic": {
+        "uri": "file://test.test_feature_importance_sage_basic/feature_importance.npy"
+    },
+    "test.test_feature_importance_sage_querywise": {
+        "uri": "file://test.test_feature_importance_sage_querywise/feature_importance.npy"
+    },
     "test.test_feature_names_from_model": {
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },

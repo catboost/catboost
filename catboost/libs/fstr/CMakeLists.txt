@@ -29,6 +29,7 @@ target_sources(catboost-libs-fstr PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/loss_change_fstr.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/output_fstr.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/partial_dependence.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/sage_values.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_exact.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_interaction_values.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_prepared_trees.cpp
