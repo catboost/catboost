@@ -2648,6 +2648,7 @@ def test_generated_regression_losses_with_specified_params():
             'Huber:delta=1.0': metrics.Huber(delta=1.0), 'Huber:delta=0.5': metrics.Huber(delta=0.5),
             'Huber:delta=2.0': metrics.Huber(delta=2.0),
             'Expectile:alpha=0.2': metrics.Expectile(alpha=0.2), 'Expectile:alpha=0.8': metrics.Expectile(alpha=0.8),
+            'MultiQuantile:alpha=0.2,0.4': metrics.MultiQuantile(alpha="0.2,0.4"),
             'Tweedie:variance_power=1.2': metrics.Tweedie(variance_power=1.2),
             'Tweedie:variance_power=1.5': metrics.Tweedie(variance_power=1.5),
             'Tweedie:variance_power=1.8': metrics.Tweedie(variance_power=1.8)
