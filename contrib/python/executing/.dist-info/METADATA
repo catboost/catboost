@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: executing
-Version: 0.9.0
+Version: 0.9.1
 Summary: Get the currently executing AST node of a frame, and other information
 Home-page: https://github.com/alexmojaki/executing
 Author: Alex Hall
