@@ -11,6 +11,7 @@ ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.5.tar.gz)
 LICENSE(Python-2.0)
 
 PEERDIR(
+    contrib/libs/libc_compat
     contrib/tools/python3/src/Modules
 )
 
