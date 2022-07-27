@@ -246,10 +246,6 @@
     - fstream.h
     - ../include/fenv.h
 
-- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
-  includes:
-    - backtrace.h: contrib/libs/backtrace/backtrace.h
-
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
   includes:
@@ -414,7 +410,11 @@
   includes:
     - stab.h
 
-- source_filter: "^contrib/tools/fluent-bit"
+- source_filter: "^contrib/tools/fluent-bit-(full|minimal)"
+  includes:
+    - backtrace.h: contrib/libs/backtrace/backtrace.h
+
+- source_filter: "^contrib/restricted/boost/stacktrace/include/boost/stacktrace/detail"
   includes:
     - backtrace.h: contrib/libs/backtrace/backtrace.h
 
