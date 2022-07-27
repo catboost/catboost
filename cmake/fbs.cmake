@@ -8,7 +8,7 @@ function(target_fbs_source Tgt Key Src)
         ${CMAKE_BINARY_DIR}/${fbsRel}.cpp
         ${OutputDir}/${OutputBase}.iter.fbs.h
         ${OutputDir}/${OutputBase}.bfbs
-      COMMAND Python2::Interpreter
+      COMMAND Python3::Interpreter
         ${CMAKE_SOURCE_DIR}/build/scripts/cpp_flatc_wrapper.py
         ${CMAKE_BINARY_DIR}/contrib/tools/flatc/bin/flatc
         ${FBS_CPP_FLAGS} ${ARGN}
