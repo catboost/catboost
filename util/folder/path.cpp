@@ -4,6 +4,7 @@
 
 #include <util/generic/yexception.h>
 #include <util/string/cast.h>
+#include <util/string/escape.h>
 #include <util/system/compiler.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>
@@ -187,7 +188,7 @@ TFsPath::TSplit& TFsPath::GetSplit() const {
 }
 
 static Y_FORCE_INLINE void VerifyPath(const TStringBuf path) {
-    Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath");
+    Y_VERIFY(!path.Contains('\0'), "wrong format of TFsPath: %s", EscapeC(path).c_str());
 }
 
 TFsPath::TFsPath() {
