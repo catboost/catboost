@@ -527,6 +527,9 @@
         "lama": {
             "description": "Analytics tool for safe reactor calculation"
         },
+        "mfkit": {
+            "description": "Toolkit for maps frontend"
+        },
         "vh3": {
             "description": "Run VH3 CLI"
         },
@@ -747,6 +750,28 @@
                 "lama": {
                     "bottle": "lama",
                     "executable": "lama"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "mfkit": {
+            "tools": {
+                "mfkit": {
+                    "bottle": "mfkit",
+                    "executable": "mfkit"
                 }
             },
             "platforms": [
@@ -7819,7 +7844,7 @@
         },
         "infractl": {
             "formula": {
-                "sandbox_id": 1390051695,
+                "sandbox_id": 1391299720,
                 "match": "infractl"
             },
             "executable": {
@@ -8985,6 +9010,23 @@
             "executable": {
                 "lama": [
                     "lama"
+                ]
+            }
+        },
+        "mfkit": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "MAPS_FRONT_TOOLKIT",
+                        "owner": "MAPS_FRONT"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                 }
+            },
+            "executable": {
+                "mfkit": [
+                    "mfkit"
                 ]
             }
         },
