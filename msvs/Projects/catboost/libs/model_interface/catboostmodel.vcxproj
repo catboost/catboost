@@ -294,11 +294,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.global.vcxproj">
       <Project>{2056A240-BF23-7679-9796-46BECFF3F8A4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.global.vcxproj">
-      <Project>{C833F46B-5133-2225-17FA-BA9CBACB3D28}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py2\pypython-attrs-py2.global.vcxproj">
+      <Project>{6A81ED2F-526B-2A15-0804-DCA4DA17C887}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.global.vcxproj">
-      <Project>{31AB3A5F-7E5B-9E60-93B9-51EA299DE4D8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.global.vcxproj">
+      <Project>{ADB613B0-8D3A-4DFE-77B5-B78F8208C333}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
       <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>

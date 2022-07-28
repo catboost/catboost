@@ -20,7 +20,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
@@ -77,231 +77,7 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/_6774d1245bd6bb95e238996a80.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.py2.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\setters.py.utwm.yapyc">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_c14ce857c702f4faf420bfa52a.yasm" "-" "contrib/python/attrs/attr/setters.py" "_feefc3035adfb5682f08d3c90d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/setters.py.utwm.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_db1089c33c30744205c617d3e1.rodata" "$(SolutionDir)../contrib/python/attrs/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_84c9c5be8a62f95a054937b82c.rodata" "-" "contrib/python/attrs/attr/validators.py" "_89dd57305c1986666c756a8fef.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/validators.py.xi5i.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_7f29b2dc4057bad65d663a3295.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_c14ce857c702f4faf420bfa52a.yasm" "-" "contrib/python/attrs/attr/setters.py" "_feefc3035adfb5682f08d3c90d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/setters.py.utwm.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_db1089c33c30744205c617d3e1.rodata" "$(SolutionDir)../contrib/python/attrs/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_84c9c5be8a62f95a054937b82c.rodata" "-" "contrib/python/attrs/attr/validators.py" "_89dd57305c1986666c756a8fef.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/validators.py.xi5i.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_7f29b2dc4057bad65d663a3295.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/_c14ce857c702f4faf420bfa52a.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\setters.py.utwm.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\validators.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\validators.py.xi5i.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_c14ce857c702f4faf420bfa52a.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\_db1089c33c30744205c617d3e1.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_84c9c5be8a62f95a054937b82c.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_7f29b2dc4057bad65d663a3295.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/__init__.py-" "$(SolutionDir)../contrib/python/attrs/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/__init__.py.xwht.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_cmp.py-" "$(SolutionDir)../contrib/python/attrs/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_cmp.py.5oo4.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_compat.py-" "$(SolutionDir)../contrib/python/attrs/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_compat.py.uihj.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_config.py-" "$(SolutionDir)../contrib/python/attrs/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_config.py.xwhv.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_funcs.py-" "$(SolutionDir)../contrib/python/attrs/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_funcs.py.hhk5.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_make.py-" "$(SolutionDir)../contrib/python/attrs/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_make.py.qnlu.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_version_info.py-" "$(SolutionDir)../contrib/python/attrs/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_version_info.py.dnmj.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/converters.py-" "$(SolutionDir)../contrib/python/attrs/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/converters.py.oqg6.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/exceptions.py-" "$(SolutionDir)../contrib/python/attrs/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/exceptions.py.bnme.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/filters.py-" "$(SolutionDir)../contrib/python/attrs/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/filters.py.4jwx.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/setters.py-" "$(SolutionDir)../contrib/python/attrs/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/setters.py.utwm.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/validators.py-" "$(SolutionDir)../contrib/python/attrs/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/validators.py.xi5i.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/__init__.py-" "$(SolutionDir)../contrib/python/attrs/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/__init__.py.xwht.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_cmp.py-" "$(SolutionDir)../contrib/python/attrs/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_cmp.py.5oo4.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_compat.py-" "$(SolutionDir)../contrib/python/attrs/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_compat.py.uihj.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_config.py-" "$(SolutionDir)../contrib/python/attrs/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_config.py.xwhv.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_funcs.py-" "$(SolutionDir)../contrib/python/attrs/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_funcs.py.hhk5.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_make.py-" "$(SolutionDir)../contrib/python/attrs/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_make.py.qnlu.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/_version_info.py-" "$(SolutionDir)../contrib/python/attrs/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_version_info.py.dnmj.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/converters.py-" "$(SolutionDir)../contrib/python/attrs/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/converters.py.oqg6.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/exceptions.py-" "$(SolutionDir)../contrib/python/attrs/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/exceptions.py.bnme.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/filters.py-" "$(SolutionDir)../contrib/python/attrs/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/filters.py.4jwx.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/setters.py-" "$(SolutionDir)../contrib/python/attrs/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/setters.py.utwm.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/attrs/attr/validators.py-" "$(SolutionDir)../contrib/python/attrs/attr/validators.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/validators.py.xi5i.yapyc"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/attr/__init__.py.xwht.yapyc	$B/contrib/python/attrs/attr/_cmp.py.5oo4.yapyc	$B/contrib/python/attrs/attr/_compat.py.uihj.yapyc	$B/contrib/python/attrs/attr/_config.py.xwhv.yapyc	$B/contrib/python/attrs/attr/_funcs.py.hhk5.yapyc	$B/contrib/python/attrs/attr/_make.py.qnlu.yapyc	$B/contrib/python/attrs/attr/_version_info.py.dnmj.yapyc	$B/contrib/python/attrs/attr/converters.py.oqg6.yapyc	$B/contrib/python/attrs/attr/exceptions.py.bnme.yapyc	$B/contrib/python/attrs/attr/filters.py.4jwx.yapyc	$B/contrib/python/attrs/attr/setters.py.utwm.yapyc	$B/contrib/python/attrs/attr/validators.py.xi5i.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\attrs\attr\__init__.py;$(SolutionDir)..\contrib\python\attrs\attr\_cmp.py;$(SolutionDir)..\contrib\python\attrs\attr\_compat.py;$(SolutionDir)..\contrib\python\attrs\attr\_config.py;$(SolutionDir)..\contrib\python\attrs\attr\_funcs.py;$(SolutionDir)..\contrib\python\attrs\attr\_make.py;$(SolutionDir)..\contrib\python\attrs\attr\_version_info.py;$(SolutionDir)..\contrib\python\attrs\attr\converters.py;$(SolutionDir)..\contrib\python\attrs\attr\exceptions.py;$(SolutionDir)..\contrib\python\attrs\attr\filters.py;$(SolutionDir)..\contrib\python\attrs\attr\setters.py;$(SolutionDir)..\contrib\python\attrs\attr\validators.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\__init__.py.xwht.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_cmp.py.5oo4.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_compat.py.uihj.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_config.py.xwhv.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_funcs.py.hhk5.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_make.py.qnlu.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_version_info.py.dnmj.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\converters.py.oqg6.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\exceptions.py.bnme.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\filters.py.4jwx.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\setters.py.utwm.yapyc;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\validators.py.xi5i.yapyc;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\.dist-info\METADATA">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.yasm" "-" "contrib/python/attrs/.dist-info/METADATA" "_1f6c46a0b819e0d6c102125761.rodata" "$(SolutionDir)../contrib/python/attrs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_60e14f2b2b3d233ffee657b5ec.rodata" "-" "contrib/python/attrs/.dist-info/top_level.txt" "_bd7752ec4523bff59762492648.rodata" "$(SolutionDir)../contrib/python/attrs/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_979e70450dc885ec3438188c82.rodata" "-" "contrib/python/attrs/attr/py.typed" "_d81a8b205dffce84e03af366da.rodata" "$(SolutionDir)../contrib/python/attrs/attr/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5578190f2cc239f4b920d46364.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_6774d1245bd6bb95e238996a80.yasm" "-" "contrib/python/attrs/.dist-info/METADATA" "_1f6c46a0b819e0d6c102125761.rodata" "$(SolutionDir)../contrib/python/attrs/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_60e14f2b2b3d233ffee657b5ec.rodata" "-" "contrib/python/attrs/.dist-info/top_level.txt" "_bd7752ec4523bff59762492648.rodata" "$(SolutionDir)../contrib/python/attrs/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_979e70450dc885ec3438188c82.rodata" "-" "contrib/python/attrs/attr/py.typed" "_d81a8b205dffce84e03af366da.rodata" "$(SolutionDir)../contrib/python/attrs/attr/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5578190f2cc239f4b920d46364.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/_6774d1245bd6bb95e238996a80.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\.dist-info\METADATA;$(SolutionDir)..\contrib\python\attrs\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\attrs\attr\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_6774d1245bd6bb95e238996a80.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\_60e14f2b2b3d233ffee657b5ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_979e70450dc885ec3438188c82.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_5578190f2cc239f4b920d46364.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\attrs\attr\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_48fbadbabe25acf719d106f587.yasm" "$(SolutionDir)../contrib/python/attrs/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_3a8edf5df7935be47015bead04.rodata" "-" "contrib/python/attrs/attr/__init__.py" "_05ad0eaff3efaabbddb27b8663.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/__init__.py.xwht.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d3cfb10d292126df494fd6627e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_ee46b05f763272650d88a98932.rodata" "-" "contrib/python/attrs/attr/_cmp.py" "_4ddcc8df5286ef096f4fe83e43.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_cmp.py.5oo4.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d2962085409fc85db3fb3c69cb.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_1f59a658db653c132079242451.rodata" "-" "contrib/python/attrs/attr/_compat.py" "_b8f8c53bbf77558c3cd90cc6d9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_compat.py.uihj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_56b77d9c2d210d8c9121097f9e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_4804dbfe5e6a53f6c3253b1fe8.rodata" "-" "contrib/python/attrs/attr/_config.py" "_971bcd7d0da5a6f25ba475a17d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_config.py.xwhv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_b46cb8a03e325a1d5bba438645.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5239ca05c7f5c75082b1d4d1fa.rodata" "-" "contrib/python/attrs/attr/_funcs.py" "_b0710d2f94359963a2aef8d829.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_funcs.py.hhk5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_1542be1fbd2741fbdd8477fc8a.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_7555183ba0018e70ba37ff857f.rodata" "-" "contrib/python/attrs/attr/_make.py" "_ab1007a20352389b610b4d7c6e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_make.py.qnlu.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_4b1ddd7f015a023d45720666bc.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_74c34997c83a39aec0680938aa.rodata" "-" "contrib/python/attrs/attr/_version_info.py" "_a532d22314c5e464d32fc07228.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_version_info.py.dnmj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d4e3c7ec523ada28ea71cb997e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_0692404c2e5023e757a4f0a067.rodata" "-" "contrib/python/attrs/attr/converters.py" "_c0851366d0efda1722eb6fbce5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/converters.py.oqg6.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_191955fe303ac602041e6cda83.rodata" "$(SolutionDir)../contrib/python/attrs/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_57fe4fdd6b17fc1e3e22f43995.rodata" "-" "contrib/python/attrs/attr/exceptions.py" "_aad77658cd395aa25d1f1efe4b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/exceptions.py.bnme.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_9762e0854a7cbf6f2c11d4b875.rodata" "$(SolutionDir)../contrib/python/attrs/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_9b101c945c561e14697e0e31a5.rodata" "-" "contrib/python/attrs/attr/filters.py" "_417a826d8a75d552c7a6883093.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/filters.py.4jwx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_27278d0497651703f8d5558762.rodata" "$(SolutionDir)../contrib/python/attrs/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_38574ed86e6e96c1b61cbad845.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_48fbadbabe25acf719d106f587.yasm" "$(SolutionDir)../contrib/python/attrs/attr/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_3a8edf5df7935be47015bead04.rodata" "-" "contrib/python/attrs/attr/__init__.py" "_05ad0eaff3efaabbddb27b8663.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/__init__.py.xwht.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d3cfb10d292126df494fd6627e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_cmp.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_ee46b05f763272650d88a98932.rodata" "-" "contrib/python/attrs/attr/_cmp.py" "_4ddcc8df5286ef096f4fe83e43.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_cmp.py.5oo4.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d2962085409fc85db3fb3c69cb.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_1f59a658db653c132079242451.rodata" "-" "contrib/python/attrs/attr/_compat.py" "_b8f8c53bbf77558c3cd90cc6d9.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_compat.py.uihj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_56b77d9c2d210d8c9121097f9e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_config.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_4804dbfe5e6a53f6c3253b1fe8.rodata" "-" "contrib/python/attrs/attr/_config.py" "_971bcd7d0da5a6f25ba475a17d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_config.py.xwhv.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_b46cb8a03e325a1d5bba438645.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_funcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5239ca05c7f5c75082b1d4d1fa.rodata" "-" "contrib/python/attrs/attr/_funcs.py" "_b0710d2f94359963a2aef8d829.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_funcs.py.hhk5.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_1542be1fbd2741fbdd8477fc8a.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_make.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_7555183ba0018e70ba37ff857f.rodata" "-" "contrib/python/attrs/attr/_make.py" "_ab1007a20352389b610b4d7c6e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_make.py.qnlu.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_4b1ddd7f015a023d45720666bc.rodata" "$(SolutionDir)../contrib/python/attrs/attr/_version_info.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_74c34997c83a39aec0680938aa.rodata" "-" "contrib/python/attrs/attr/_version_info.py" "_a532d22314c5e464d32fc07228.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/_version_info.py.dnmj.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_d4e3c7ec523ada28ea71cb997e.rodata" "$(SolutionDir)../contrib/python/attrs/attr/converters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_0692404c2e5023e757a4f0a067.rodata" "-" "contrib/python/attrs/attr/converters.py" "_c0851366d0efda1722eb6fbce5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/converters.py.oqg6.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_191955fe303ac602041e6cda83.rodata" "$(SolutionDir)../contrib/python/attrs/attr/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_57fe4fdd6b17fc1e3e22f43995.rodata" "-" "contrib/python/attrs/attr/exceptions.py" "_aad77658cd395aa25d1f1efe4b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/exceptions.py.bnme.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_9762e0854a7cbf6f2c11d4b875.rodata" "$(SolutionDir)../contrib/python/attrs/attr/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_9b101c945c561e14697e0e31a5.rodata" "-" "contrib/python/attrs/attr/filters.py" "_417a826d8a75d552c7a6883093.rodata" "$(SolutionDir)$(Configuration)/contrib/python/attrs/attr/filters.py.4jwx.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_27278d0497651703f8d5558762.rodata" "$(SolutionDir)../contrib/python/attrs/attr/setters.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_38574ed86e6e96c1b61cbad845.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/attrs/_48fbadbabe25acf719d106f587.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\attrs\attr\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\__init__.py.xwht.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_cmp.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_cmp.py.5oo4.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_compat.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_compat.py.uihj.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_config.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_config.py.xwhv.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_funcs.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_funcs.py.hhk5.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_make.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_make.py.qnlu.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\_version_info.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\_version_info.py.dnmj.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\converters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\converters.py.oqg6.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\exceptions.py.bnme.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\filters.py;$(SolutionDir)$(Configuration)\contrib\python\attrs\attr\filters.py.4jwx.yapyc;$(SolutionDir)..\contrib\python\attrs\attr\setters.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\attrs\_48fbadbabe25acf719d106f587.yasm;$(SolutionDir)$(Configuration)\contrib\python\attrs\_3a8edf5df7935be47015bead04.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_d3cfb10d292126df494fd6627e.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_ee46b05f763272650d88a98932.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_d2962085409fc85db3fb3c69cb.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_1f59a658db653c132079242451.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_56b77d9c2d210d8c9121097f9e.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_4804dbfe5e6a53f6c3253b1fe8.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_b46cb8a03e325a1d5bba438645.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_5239ca05c7f5c75082b1d4d1fa.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_1542be1fbd2741fbdd8477fc8a.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_7555183ba0018e70ba37ff857f.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_4b1ddd7f015a023d45720666bc.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_74c34997c83a39aec0680938aa.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_d4e3c7ec523ada28ea71cb997e.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_0692404c2e5023e757a4f0a067.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_191955fe303ac602041e6cda83.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_57fe4fdd6b17fc1e3e22f43995.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_9762e0854a7cbf6f2c11d4b875.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_9b101c945c561e14697e0e31a5.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_27278d0497651703f8d5558762.rodata;$(SolutionDir)$(Configuration)\contrib\python\attrs\_38574ed86e6e96c1b61cbad845.rodata;</Outputs>
-    </CustomBuild>
-  </ItemGroup>
+  <ItemGroup/>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
@@ -350,6 +126,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py2\pypython-attrs-py2.vcxproj">
+      <Project>{5AB9292C-6324-89DD-6877-F04958F9F526}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
     </ProjectReference>
@@ -361,9 +140,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>{F56D05C3-DCE3-DF03-B792-75B4F5F59907}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{99480F9B-8814-368A-8A11-C9595B291CEC}</Project>
@@ -388,12 +164,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
-      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
-      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

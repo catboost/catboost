@@ -878,6 +878,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.vcxproj">
       <Project>{2A505A08-73FD-9F97-DBC1-5BC70FFD9C70}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py2\pypython-attrs-py2.vcxproj">
+      <Project>{5AB9292C-6324-89DD-6877-F04958F9F526}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>{B19D597D-A363-F744-6165-C68C1835DD61}</Project>
     </ProjectReference>
