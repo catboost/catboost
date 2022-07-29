@@ -128,6 +128,19 @@ ENDIF()
 
 END()
 
+RECURSE(
+    ldflags
+    python27
+    python310
+    python34
+    python35
+    python36
+    python37
+    python38
+    python39
+    ymake_python3
+)
+
 RECURSE_FOR_TESTS(
     tests
 )
