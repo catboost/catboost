@@ -1,4 +1,6 @@
 import json
+import os
+import six
 from _common import iterpair, listid, pathid, rootrel_arc_src, tobuilddir, filter_out_by_keyword
 import ymake
 
@@ -119,7 +121,7 @@ def onall_resource_files(unit, *args):
 
 def on_declare_external_resource_by_json(unit, name, json_file):
     platform = unit.get('CANONIZED_TARGET_PLATFORM')
-    json_file_path = unit.resolve(unit.resolve_arc_path(json_file))
+    json_file_path = _get_abs_path(unit, json_file)
     with open(json_file_path) as f:
         formula = json.load(f)
     if 'by_platform' in formula:
@@ -133,7 +135,7 @@ def on_declare_external_resource_by_json(unit, name, json_file):
 
 
 def on_declare_external_host_resources_bundle_by_json(unit, name, json_file):
-    json_file_path = unit.resolve(unit.resolve_arc_path(json_file))
+    json_file_path = _get_abs_path(unit, json_file)
     with open(json_file_path) as f:
         formula = json.load(f)
     if 'by_platform' in formula:
@@ -144,3 +146,35 @@ def on_declare_external_host_resources_bundle_by_json(unit, name, json_file):
         unit.ondeclare_external_host_resources_bundle(params)
     else:
         ymake.report_configure_error('Wrong format of "{}"'.format(json_file_path))
+
+
+def on_ya_conf_json(unit, conf_file):
+    conf_abs_path = unit.resolve('$S/' + conf_file)
+    if not os.path.exists(conf_abs_path):
+        ymake.report_configure_error('File "{}" not found'.format(conf_abs_path))
+        return
+
+    # conf_file should be passed to the RESOURCE_FILES macro without path.
+    # To resolve it later by name only we must add it's path to SRCDIR().
+    conf_dir = os.path.dirname(conf_file)
+    if conf_dir:
+        unit.onsrcdir(conf_dir)
+    unit.onresource_files(os.path.basename(conf_file))
+
+    with open(conf_abs_path) as f:
+        conf = json.load(f)
+    for bottle_name, bottle in conf['bottles'].items():
+        formula = bottle['formula']
+        if isinstance(formula, six.string_types):
+            if formula.startswith(conf_dir):
+                abs_path = unit.resolve('$S/' + formula)
+                if os.path.exists(abs_path):
+                    unit.onresource_files(formula)
+                else:
+                    ymake.report_configure_error('File "{}" (referenced from bottle "{}" in "{}") is not found'.format(abs_path, bottle_name, conf_abs_path))
+            else:
+                ymake.report_configure_error('File "{}" (referenced from bottle "{}" in "{}") must be located in "{}" file tree'.format(formula, bottle_name, conf_file, conf_dir))
+
+
+def _get_abs_path(unit, path):
+    return unit.resolve(unit.resolve_arc_path(path))
