@@ -11,6 +11,7 @@ ELSE()
     ELSEIF (OS_DARWIN)
         CFLAGS(GLOBAL "-F$QT_RESOURCE_GLOBAL/lib")
         LDFLAGS("-F$QT_RESOURCE_GLOBAL/lib")
+        LDFLAGS("-Wl,-rpath,$QT_RESOURCE_GLOBAL/lib")
         # Qt version 5.15.2 for darwin
         DECLARE_EXTERNAL_RESOURCE(QT sbr:2773128565)
     ELSE()
