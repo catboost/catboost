@@ -12,14 +12,9 @@ target_link_libraries(library-cpp-langs PUBLIC
   contrib-libs-cxxsupp
   yutil
   cpp-digest-lower_case
-  tools-enum_parser-enum_serialization_runtime
 )
 target_sources(library-cpp-langs PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/langs/generated/uniscripts.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/langs/langs.cpp
-)
-generate_enum_serilization(library-cpp-langs
-  ${CMAKE_SOURCE_DIR}/library/cpp/langs/scripts.h
-  INCLUDE_HEADERS
-  library/cpp/langs/scripts.h
+  ${CMAKE_SOURCE_DIR}/library/cpp/langs/scripts.cpp
 )
