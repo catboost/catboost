@@ -80,35 +80,9 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\langs\generated\uniscripts.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\langs\langs.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\langs\scripts.h_serialized.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\cpp\langs\scripts.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\langs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/langs/scripts.h" "--include-path" "library/cpp/langs/scripts.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/langs/scripts.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\cpp\langs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/langs/scripts.h" "--include-path" "library/cpp/langs/scripts.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/langs/scripts.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/cpp/langs/scripts.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\cpp\langs\scripts.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\langs\scripts.h_serialized.cpp;</Outputs>
-    </CustomBuild>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\langs\scripts.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\langs\langs.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\langs\scripts.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -130,12 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
-      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
