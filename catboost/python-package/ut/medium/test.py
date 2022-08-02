@@ -7185,8 +7185,7 @@ def test_grow_policy_fails(task_type, grow_policy):
     for format in ['AppleCoreML', 'cpp', 'python', 'onnx']:
         with pytest.raises(CatBoostError):
             model.save_model(model_output, format=format)
-    with pytest.raises(CatBoostError):
-        sum_models([model, model.copy()])
+    _ = sum_models([model, model.copy()])
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)

@@ -9302,18 +9302,22 @@ def test_binclass_probability_threshold():
     assert test_is_not_dummy
 
 
-def test_model_sum():
+@pytest.mark.parametrize('grow_policy', ['Depthwise', 'Lossguide', 'SymmetricTree'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'MultiClass'])
+def test_model_sum(grow_policy, loss_function):
     model_path = yatest.common.test_output_path('model.bin')
     model_eval = yatest.common.test_output_path('model_eval.txt')
+    pool = 'adult'
     execute_catboost_fit('CPU', [
-        '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '--cd', data_file('adult', 'train.cd'),
+        '--loss-function', loss_function,
+        '-f', data_file(pool, 'train_small'),
+        '--cd', data_file(pool, 'train.cd'),
         '-i', '10',
         '-m', model_path,
-        '-t', data_file('adult', 'test_small'),
+        '-t', data_file(pool, 'test_small'),
         '--eval-file', model_eval,
         '--output-columns', 'SampleId,RawFormulaVal',
+        '--grow-policy', grow_policy,
     ])
 
     sum_path = yatest.common.test_output_path('sum.bin')
@@ -9330,8 +9334,8 @@ def test_model_sum():
         CATBOOST_PATH,
         'calc',
         '-m', sum_path,
-        '--input-path', data_file('adult', 'test_small'),
-        '--cd', data_file('adult', 'train.cd'),
+        '--input-path', data_file(pool, 'test_small'),
+        '--cd', data_file(pool, 'train.cd'),
         '--output-path', sum_eval,
     ])
     yatest.common.execute(get_limited_precision_dsv_diff_tool(0) + [model_eval, sum_eval])
