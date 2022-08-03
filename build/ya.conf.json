@@ -8146,8 +8146,17 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 1397622074,
-                "match": "horadric"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "HORADRIC_CLI",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "STABILITY"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "horadric": [
@@ -8706,11 +8715,17 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": [
-                    1375849577,
-                    1375849575
-                ],
-                "match": "bin/sedem"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "SEDEM_CLI",
+                        "owner": "MAPS-CI",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "sedem": [
@@ -8871,7 +8886,7 @@
         },
         "skotty": {
             "formula": {
-                "sandbox_id": 1365587624,
+                "sandbox_id": 1397333344,
                 "match": "launcher"
             },
             "executable": {
