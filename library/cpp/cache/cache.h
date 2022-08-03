@@ -151,11 +151,12 @@ private:
     size_t MaxSize;
 };
 
-template <typename TKey, typename TValue>
+template <typename TKey, typename TValue, class TSizeProvider = TUniformSizeProvider<TValue>>
 class TLFUList {
 public:
-    TLFUList(size_t maxSize)
+    TLFUList(size_t maxSize, const TSizeProvider& sizeProvider = TSizeProvider())
         : List()
+        , SizeProvider(sizeProvider)
         , ListSize(0)
         , MaxSize(maxSize)
     {
@@ -227,7 +228,7 @@ public:
 public:
     TItem* Insert(TItem* item) {
         List.PushBack(item); // give a chance for promotion
-        ++ListSize;
+        ListSize += SizeProvider(item->Value);
 
         return RemoveIfOverflown();
     }
@@ -249,7 +250,7 @@ public:
 
     void Erase(TItem* item) {
         item->Unlink();
-        --ListSize;
+        ListSize -= SizeProvider(item->Value);
     }
 
     void Promote(TItem* item) {
@@ -278,6 +279,7 @@ public:
 private:
     typedef TIntrusiveList<TItem> TListType;
     TListType List;
+    TSizeProvider SizeProvider;
     size_t ListSize;
     size_t MaxSize;
 };
@@ -717,16 +719,16 @@ public:
     }
 };
 
-template <typename TKey, typename TValue, typename TDeleter = TNoopDelete, typename TAllocator = std::allocator<void>>
-class TLFUCache: public TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter, TAllocator> {
-    typedef TCache<TKey, TValue, TLFUList<TKey, TValue>, TDeleter, TAllocator> TBase;
-    using TListType = TLFUList<TKey, TValue>;
+template <typename TKey, typename TValue, typename TDeleter = TNoopDelete, typename TAllocator = std::allocator<void>, class TSizeProvider = TUniformSizeProvider<TValue>>
+class TLFUCache: public TCache<TKey, TValue, TLFUList<TKey, TValue, TSizeProvider>, TDeleter, TAllocator> {
+    typedef TCache<TKey, TValue, TLFUList<TKey, TValue, TSizeProvider>, TDeleter, TAllocator> TBase;
+    using TListType = TLFUList<TKey, TValue, TSizeProvider>;
 
 public:
     typedef typename TBase::TIterator TIterator;
 
-    TLFUCache(size_t maxSize, bool multiValue = false)
-        : TBase(TListType(maxSize), multiValue)
+    TLFUCache(size_t maxSize, bool multiValue = false, const TSizeProvider& sizeProvider = TSizeProvider())
+        : TBase(TListType(maxSize, sizeProvider), multiValue)
     {
     }
 

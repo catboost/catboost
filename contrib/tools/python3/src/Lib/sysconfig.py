@@ -403,7 +403,7 @@ def _get_sysconfigdata_name():
     multiarch = getattr(sys.implementation, '_multiarch', '')
     return os.environ.get(
         '_PYTHON_SYSCONFIGDATA_NAME',
-        f'_sysconfigdata_{sys.abiflags}_{sys.platform}_{multiarch}',
+        '_sysconfigdata_arcadia'  # f'_sysconfigdata_{sys.abiflags}_{sys.platform}_{multiarch}',
     )
 
 
@@ -472,7 +472,6 @@ def _generate_posix_vars():
 
 def _init_posix(vars):
     """Initialize the module as appropriate for POSIX systems."""
-    return
     # _sysconfigdata is generated at build time, see _generate_posix_vars()
     name = _get_sysconfigdata_name()
     _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
