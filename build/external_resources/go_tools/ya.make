@@ -10,7 +10,7 @@ ELSEIF(GOSTD_VERSION == 1.18.4)
         sbr:3383386553 FOR DARWIN-ARM64
         sbr:3383397086 FOR DARWIN
         sbr:3383407059 FOR LINUX
-        sbr:3383375786 FOR WIN32
+        sbr:3392015425 FOR WIN32
     )
 ELSE()
     MESSAGE(FATAL_ERROR Unsupported version [${GOSTD_VERSION}] of Go Standard Library)
