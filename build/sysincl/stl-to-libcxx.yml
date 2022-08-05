@@ -110,6 +110,7 @@
   - ostream:                   contrib/libs/cxxsupp/libcxx/include/ostream
   - queue:                     contrib/libs/cxxsupp/libcxx/include/queue
   - random:                    contrib/libs/cxxsupp/libcxx/include/random
+  - ranges:                    contrib/libs/cxxsupp/libcxx/include/ranges
   - ratio:                     contrib/libs/cxxsupp/libcxx/include/ratio
   - regex:                     contrib/libs/cxxsupp/libcxx/include/regex
   - scoped_allocator:          contrib/libs/cxxsupp/libcxx/include/scoped_allocator

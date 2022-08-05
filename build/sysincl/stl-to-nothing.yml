@@ -95,6 +95,7 @@
   - ostream
   - queue
   - random
+  - ranges
   - ratio
   - regex
   - scoped_allocator
