@@ -9,13 +9,6 @@
 
 #include <initializer_list>
 
-struct TStringLess {
-    template <class T1, class T2>
-    inline bool operator()(const T1& t1, const T2& t2) const noexcept {
-        return TStringBuf(t1) < TStringBuf(t2);
-    }
-};
-
 class TCgiParameters: public TMultiMap<TString, TString> {
 public:
     TCgiParameters() = default;
