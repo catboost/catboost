@@ -4,6 +4,7 @@ import os
 import re
 import glob
 import socket
+import sys
 import logging
 import platform
 import subprocess
@@ -93,7 +94,10 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
                 oct(stat.S_ISVTX),
             )
             logger.debug("Search for core dump files match pattern '%s' in '%s'", pattern.mask, pattern.path)
-            cores = glob.glob(os.path.join(pattern.path, pattern.mask))
+            escaped_pattern_path = pattern.path
+            if sys.version_info[0] == 3:
+                escaped_pattern_path = glob.escape(pattern.path)
+            cores = glob.glob(os.path.join(escaped_pattern_path, pattern.mask))
             files = os.listdir(pattern.path)
             logger.debug(
                 "Matched core dump files (%d/%d): [%s] (mismatched samples: %s)",
