@@ -1325,6 +1325,12 @@ extern "C" _LIBCPP_FUNC_VIS void __sanitizer_annotate_contiguous_container(
 #  define _LIBCPP_FALLTHROUGH() ((void)0)
 #endif
 
+#if defined(_LIBCPP_COMPILER_CLANG_BASED)
+# define _LIBCPP_REINITIALIZES_OBJECT [[clang::reinitializes]]
+#else
+# define _LIBCPP_REINITIALIZES_OBJECT
+#endif
+
 #if __has_attribute(__nodebug__) && !defined(__CUDACC__)
 #define _LIBCPP_NODEBUG __attribute__((__nodebug__))
 #else

@@ -636,6 +636,12 @@ _YandexAbort();
         } while (0)
 #endif
 
+#if defined(__clang__)
+    #define Y_REINITIALIZES_OBJECT [[clang::reinitializes]]
+#else
+    #define Y_REINITIALIZES_OBJECT
+#endif
+
 #ifdef __cplusplus
 
 void UseCharPointerImpl(volatile const char*);

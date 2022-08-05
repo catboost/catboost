@@ -8,6 +8,7 @@
 #include <string>
 #include <string_view>
 
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 #include "ptr.h"
@@ -561,7 +562,7 @@ private:
     }
 
 public:
-    inline void clear() noexcept {
+    Y_REINITIALIZES_OBJECT inline void clear() noexcept {
 #ifdef TSTRING_IS_STD_STRING
         Storage_.clear();
 #else

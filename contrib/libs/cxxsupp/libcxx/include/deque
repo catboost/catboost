@@ -1467,7 +1467,7 @@ public:
         _NOEXCEPT_(!__alloc_traits::propagate_on_container_swap::value ||
                    __is_nothrow_swappable<allocator_type>::value);
 #endif
-    _LIBCPP_INLINE_VISIBILITY
+    _LIBCPP_REINITIALIZES_OBJECT _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT;
 
     _LIBCPP_INLINE_VISIBILITY
@@ -2948,6 +2948,7 @@ deque<_Tp, _Allocator>::swap(deque& __c)
 }
 
 template <class _Tp, class _Allocator>
+_LIBCPP_REINITIALIZES_OBJECT
 inline
 void
 deque<_Tp, _Allocator>::clear() _NOEXCEPT

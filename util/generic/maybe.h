@@ -6,6 +6,7 @@
 #include "yexception.h"
 
 #include <util/system/align.h>
+#include <util/system/compiler.h>
 #include <util/stream/output.h>
 #include <util/ysaveload.h>
 
@@ -284,7 +285,7 @@ public:
         return *Data();
     }
 
-    void Clear() noexcept {
+    Y_REINITIALIZES_OBJECT void Clear() noexcept {
         if (Defined()) {
             this->Defined_ = false;
             Data()->~T();

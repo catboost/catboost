@@ -9,8 +9,9 @@
 
 #include <utility>
 
-#include <util/system/yassert.h>
+#include <util/system/compiler.h>
 #include <util/system/defaults.h>
+#include <util/system/yassert.h>
 
 template <class T, class U>
 using TGuardConversion = typename std::enable_if_t<std::is_convertible<U*, T*>::value>;
@@ -189,14 +190,14 @@ public:
         return this->DoRelease(T_);
     }
 
-    inline void Reset(T* t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(T* t) noexcept {
         if (T_ != t) {
             DoDestroy();
             T_ = t;
         }
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Destroy();
     }
 
@@ -284,18 +285,18 @@ public:
         return this->DoRelease(T_);
     }
 
-    inline void Reset(T* t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(T* t) noexcept {
         if (T_ != t) {
             DoDestroy();
             T_ = t;
         }
     }
 
-    inline void Reset(TAutoPtr<T, D> t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(TAutoPtr<T, D> t) noexcept {
         Reset(t.Release());
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Destroy();
     }
 
@@ -546,11 +547,11 @@ public:
     // Effectively replace both:
     // Reset(const TIntrusivePtr&)
     // Reset(TIntrusivePtr&&)
-    inline void Reset(TIntrusivePtr t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(TIntrusivePtr t) noexcept {
         Swap(t);
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Drop();
     }
 
@@ -666,11 +667,11 @@ public:
     // Effectively replace both:
     // Reset(const TIntrusiveConstPtr&)
     // Reset(TIntrusiveConstPtr&&)
-    inline void Reset(TIntrusiveConstPtr t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(TIntrusiveConstPtr t) noexcept {
         Swap(t);
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Drop();
     }
 
@@ -865,11 +866,11 @@ public:
     // Effectively replace both:
     // Reset(const TSharedPtr& t)
     // Reset(TSharedPtr&& t)
-    inline void Reset(TSharedPtr t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(TSharedPtr t) noexcept {
         Swap(t);
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Drop();
     }
 
@@ -1015,14 +1016,14 @@ public:
         return DoRelease(T_);
     }
 
-    inline void Reset(T* t) noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset(T* t) noexcept {
         if (T_ != t) {
             DoDestroy();
             T_ = t;
         }
     }
 
-    inline void Reset() noexcept {
+    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
         Destroy();
     }
 
@@ -1094,11 +1095,11 @@ public:
         T_.Swap(r.T_);
     }
 
-    inline void Reset(TCowPtr p) {
+    Y_REINITIALIZES_OBJECT inline void Reset(TCowPtr p) {
         p.Swap(*this);
     }
 
-    inline void Reset() {
+    Y_REINITIALIZES_OBJECT inline void Reset() {
         T_.Reset();
     }
 
