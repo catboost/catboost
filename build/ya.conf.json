@@ -547,6 +547,9 @@
         },
         "tasklet": {
             "description": "Run tasklet CLI"
+        },
+        "rm": {
+            "description": "ReleaseMachine cmd tool"
         }
     },
     "toolchain": {
@@ -6650,6 +6653,28 @@
                     "default": true
                 }
             ]
+        },
+        "rm": {
+            "tools": {
+                "rm": {
+                    "bottle": "rm",
+                    "executable": "rm_tool"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -9183,6 +9208,17 @@
             "executable": {
                 "tasklet": [
                     "tasklet-tool"
+                ]
+            }
+        },
+        "rm": {
+            "formula": {
+                "sandbox_id": 1399654892,
+                "match": "rm_tool"
+            },
+            "executable": {
+                "rm_tool": [
+                    "rm_tool"
                 ]
             }
         }
