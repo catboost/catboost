@@ -56,7 +56,7 @@ bool DoubleToStringConverter::HandleSpecialValues(
     StringBuilder* result_builder) const {
   Double double_inspect(value);
   if (double_inspect.IsInfinite()) {
-    if (infinity_symbol_ == NULL) return false;
+    if (infinity_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
     if (value < 0) {
       result_builder->AddCharacter('-');
     }
@@ -64,7 +64,7 @@ bool DoubleToStringConverter::HandleSpecialValues(
     return true;
   }
   if (double_inspect.IsNan()) {
-    if (nan_symbol_ == NULL) return false;
+    if (nan_symbol_ == DOUBLE_CONVERSION_NULLPTR) return false;
     result_builder->AddString(nan_symbol_);
     return true;
   }

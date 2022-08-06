@@ -8,9 +8,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(3.2.0)
+VERSION(3.2.1)
 
-ORIGINAL_SOURCE(https://github.com/google/double-conversion/archive/v3.2.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/google/double-conversion/archive/v3.2.1.tar.gz)
 
 ADDINCL(
     GLOBAL contrib/libs/double-conversion

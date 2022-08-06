@@ -136,7 +136,7 @@ void Bignum::AssignHexString(Vector<const char> value) {
   DOUBLE_CONVERSION_ASSERT(sizeof(uint64_t) * 8 >= kBigitSize + 4);  // TODO: static_assert
   // Accumulates converted hex digits until at least kBigitSize bits.
   // Works with non-factor-of-four kBigitSizes.
-  uint64_t tmp = 0;  // Accumulates converted hex digits until at least
+  uint64_t tmp = 0;
   for (int cnt = 0; !value.is_empty(); value.pop_back()) {
     tmp |= (HexCharValue(value.last()) << cnt);
     if ((cnt += 4) >= kBigitSize) {
@@ -146,7 +146,8 @@ void Bignum::AssignHexString(Vector<const char> value) {
     }
   }
   if (tmp > 0) {
-    RawBigit(used_bigits_++) = tmp;
+    DOUBLE_CONVERSION_ASSERT(tmp <= kBigitMask);
+    RawBigit(used_bigits_++) = (tmp & kBigitMask);
   }
   Clamp();
 }
