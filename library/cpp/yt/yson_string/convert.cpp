@@ -75,7 +75,7 @@ TYsonString ConvertToYsonString<TStringBuf>(const TStringBuf& value)
 {
     auto buffer = TSharedMutableRef::Allocate<TConvertStringToYsonStringTag>(
         1 + MaxVarInt64Size + value.length(),
-        /*initializeStorage*/ false);
+        {.InitializeStorage = false});
     auto* ptr = buffer.Begin();
     *ptr++ = NDetail::StringMarker;
     ptr += WriteVarInt64(ptr, static_cast<i64>(value.length()));

@@ -166,6 +166,12 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//! Various options for allocating TSharedMutableRef.
+struct TSharedMutableRefAllocateOptions
+{
+    bool InitializeStorage = true;
+};
+
 //! A reference to a mutable range of memory with shared ownership.
 //! Use with caution :)
 class TSharedMutableRef
@@ -200,31 +206,31 @@ public:
     //! Allocates a new shared block of memory.
     //! The memory is marked with a given tag.
     template <class TTag>
-    static TSharedMutableRef Allocate(size_t size, bool initializeStorage = true);
+    static TSharedMutableRef Allocate(size_t size, TSharedMutableRefAllocateOptions options = {});
 
     //! Allocates a new shared block of memory.
     //! The memory is marked with TDefaultSharedBlobTag.
-    static TSharedMutableRef Allocate(size_t size, bool initializeStorage = true);
+    static TSharedMutableRef Allocate(size_t size, TSharedMutableRefAllocateOptions options = {});
 
     //! Allocates a new shared block of memory.
     //! The memory is marked with a given tag.
-    static TSharedMutableRef Allocate(size_t size, bool initializeStorage, TRefCountedTypeCookie tagCookie);
+    static TSharedMutableRef Allocate(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie);
 
     //! Allocates a new page aligned shared block of memory.
     //! #size must be divisible by page size.
     //! The memory is marked with a given tag.
     template <class TTag>
-    static TSharedMutableRef AllocatePageAligned(size_t size, bool initializeStorage = true);
+    static TSharedMutableRef AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options = {});
 
     //! Allocates a new page aligned shared block of memory.
     //! #size must be divisible by page size.
     //! The memory is marked with TDefaultSharedBlobTag.
-    static TSharedMutableRef AllocatePageAligned(size_t size, bool initializeStorage = true);
+    static TSharedMutableRef AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options = {});
 
     //! Allocates a new page aligned shared block of memory.
     //! #size must be divisible by page size.
     //! The memory is marked with a given tag.
-    static TSharedMutableRef AllocatePageAligned(size_t size, bool initializeStorage, TRefCountedTypeCookie tagCookie);
+    static TSharedMutableRef AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie);
 
     //! Creates a TSharedMutableRef for the whole blob taking ownership of its content.
     static TSharedMutableRef FromBlob(TBlob&& blob);

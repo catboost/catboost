@@ -76,7 +76,7 @@ void TBlob::Reserve(size_t newCapacity)
     }
 }
 
-void TBlob::Resize(size_t newSize, bool initializeStorage /*= true*/)
+void TBlob::Resize(size_t newSize, bool initializeStorage)
 {
     if (newSize > Size_) {
         if (newSize > Capacity_) {

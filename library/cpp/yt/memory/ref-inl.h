@@ -180,14 +180,14 @@ Y_FORCE_INLINE TSharedMutableRef::operator TRef() const
     return TRef(Begin(), Size());
 }
 
-Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, bool initializeStorage)
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    return Allocate<TDefaultSharedBlobTag>(size, initializeStorage);
+    return Allocate<TDefaultSharedBlobTag>(size, options);
 }
 
-Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, bool initializeStorage)
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    return AllocatePageAligned<TDefaultSharedBlobTag>(size, initializeStorage);
+    return AllocatePageAligned<TDefaultSharedBlobTag>(size, options);
 }
 
 template <class TTag>
@@ -210,15 +210,15 @@ Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Slice(void* begin, void* end
 }
 
 template <class TTag>
-Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, bool initializeStorage)
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    return Allocate(size, initializeStorage, GetRefCountedTypeCookie<TTag>());
+    return Allocate(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 template <class TTag>
-Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, bool initializeStorage)
+Y_FORCE_INLINE TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options)
 {
-    return AllocatePageAligned(size, initializeStorage, GetRefCountedTypeCookie<TTag>());
+    return AllocatePageAligned(size, options, GetRefCountedTypeCookie<TTag>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////

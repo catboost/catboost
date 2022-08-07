@@ -103,9 +103,9 @@ protected:
     const TRefCountedTypeCookie Cookie_;
 #endif
 
-    void Initialize(bool initializeStorage)
+    void Initialize(TSharedMutableRefAllocateOptions options)
     {
-        if (initializeStorage) {
+        if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
         }
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
@@ -122,10 +122,10 @@ class TDefaultAllocationHolder
     , public TWithExtraSpace<TDefaultAllocationHolder>
 {
 public:
-    TDefaultAllocationHolder(size_t size, bool initializeStorage, TRefCountedTypeCookie cookie)
+    TDefaultAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
         : TAllocationHolderBase(size, cookie)
     {
-        Initialize(initializeStorage);
+        Initialize(options);
     }
 
     char* GetBegin()
@@ -140,11 +140,11 @@ class TPageAlignedAllocationHolder
     : public TAllocationHolderBase<TPageAlignedAllocationHolder>
 {
 public:
-    TPageAlignedAllocationHolder(size_t size, bool initializeStorage, TRefCountedTypeCookie cookie)
+    TPageAlignedAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
         : TAllocationHolderBase(size, cookie)
         , Begin_(static_cast<char*>(NYTAlloc::AllocatePageAligned(size)))
     {
-        Initialize(initializeStorage);
+        Initialize(options);
     }
 
     ~TPageAlignedAllocationHolder()
@@ -210,7 +210,7 @@ TSharedRef TSharedRef::MakeCopy(TRef ref, TRefCountedTypeCookie tagCookie)
     if (ref.Empty()) {
         return TSharedRef::MakeEmpty();
     }
-    auto result = TSharedMutableRef::Allocate(ref.Size(), false, tagCookie);
+    auto result = TSharedMutableRef::Allocate(ref.Size(), {.InitializeStorage = false}, tagCookie);
     ::memcpy(result.Begin(), ref.Begin(), ref.Size());
     return result;
 }
@@ -234,16 +234,16 @@ std::vector<TSharedRef> TSharedRef::Split(size_t partSize) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
-TSharedMutableRef TSharedMutableRef::Allocate(size_t size, bool initializeStorage, TRefCountedTypeCookie tagCookie)
+TSharedMutableRef TSharedMutableRef::Allocate(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie)
 {
-    auto holder = NewWithExtraSpace<TDefaultAllocationHolder>(size, size, initializeStorage, tagCookie);
+    auto holder = NewWithExtraSpace<TDefaultAllocationHolder>(size, size, options, tagCookie);
     auto ref = holder->GetRef();
     return TSharedMutableRef(ref, std::move(holder));
 }
 
-TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, bool initializeStorage, TRefCountedTypeCookie tagCookie)
+TSharedMutableRef TSharedMutableRef::AllocatePageAligned(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie tagCookie)
 {
-    auto holder = New<TPageAlignedAllocationHolder>(size, initializeStorage, tagCookie);
+    auto holder = New<TPageAlignedAllocationHolder>(size, options, tagCookie);
     auto ref = holder->GetRef();
     return TSharedMutableRef(ref, std::move(holder));
 }
@@ -263,7 +263,7 @@ TSharedMutableRef TSharedMutableRef::MakeCopy(TRef ref, TRefCountedTypeCookie ta
     if (ref.Empty()) {
         return TSharedMutableRef::MakeEmpty();
     }
-    auto result = Allocate(ref.Size(), false, tagCookie);
+    auto result = Allocate(ref.Size(), {.InitializeStorage = false}, tagCookie);
     ::memcpy(result.Begin(), ref.Begin(), ref.Size());
     return result;
 }
