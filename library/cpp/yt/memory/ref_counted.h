@@ -38,7 +38,7 @@ struct TFreeMemory
 {
     static void Do(void* ptr)
     {
-        NYTAlloc::FreeNonNull(ptr);
+        ::free(ptr);
     }
 };
 
