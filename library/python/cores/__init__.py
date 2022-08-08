@@ -4,7 +4,6 @@ import os
 import re
 import glob
 import socket
-import sys
 import logging
 import platform
 import subprocess
@@ -95,7 +94,7 @@ def recover_core_dump_file(binary_path, cwd, pid, core_pattern=None):
             )
             logger.debug("Search for core dump files match pattern '%s' in '%s'", pattern.mask, pattern.path)
             escaped_pattern_path = pattern.path
-            if sys.version_info[0] == 3:
+            if six.PY3:
                 escaped_pattern_path = glob.escape(pattern.path)
             cores = glob.glob(os.path.join(escaped_pattern_path, pattern.mask))
             files = os.listdir(pattern.path)
