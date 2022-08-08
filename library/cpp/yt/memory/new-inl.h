@@ -6,6 +6,8 @@
 
 #include <library/cpp/ytalloc/api/ytalloc.h>
 
+#include <library/cpp/yt/malloc//malloc.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -303,6 +305,16 @@ template <class T>
 void* TWithExtraSpace<T>::GetExtraSpacePtr()
 {
     return static_cast<T*>(this) + 1;
+}
+
+template <class T>
+size_t TWithExtraSpace<T>::GetUsableSpaceSize() const
+{
+#ifdef _win_
+    return 0;
+#else
+    return malloc_usable_size(const_cast<T*>(static_cast<const T*>(this))) - sizeof(T);
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////

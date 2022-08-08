@@ -77,13 +77,6 @@ class TAllocationHolderBase
     : public TRefCounted
 {
 public:
-    TAllocationHolderBase(size_t size, TRefCountedTypeCookie cookie)
-        : Size_(size)
-#ifdef YT_ENABLE_REF_COUNTED_TRACKING
-        , Cookie_(cookie)
-#endif
-    { }
-
     ~TAllocationHolderBase()
     {
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
@@ -98,13 +91,15 @@ public:
     }
 
 protected:
-    const size_t Size_;
+    size_t Size_;
 #ifdef YT_ENABLE_REF_COUNTED_TRACKING
-    const TRefCountedTypeCookie Cookie_;
+    TRefCountedTypeCookie Cookie_;
 #endif
 
-    void Initialize(TSharedMutableRefAllocateOptions options)
+    void Initialize(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
     {
+        Size_ = size;
+        Cookie_ = cookie;
         if (options.InitializeStorage) {
             ::memset(static_cast<TDerived*>(this)->GetBegin(), 0, Size_);
         }
@@ -123,9 +118,13 @@ class TDefaultAllocationHolder
 {
 public:
     TDefaultAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
-        : TAllocationHolderBase(size, cookie)
     {
-        Initialize(options);
+        if (options.ExtendToUsableSize) {
+            if (auto usableSize = GetUsableSpaceSize(); usableSize != 0) {
+                size = usableSize;
+            }
+        }
+        Initialize(size, options, cookie);
     }
 
     char* GetBegin()
@@ -141,10 +140,9 @@ class TPageAlignedAllocationHolder
 {
 public:
     TPageAlignedAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
-        : TAllocationHolderBase(size, cookie)
-        , Begin_(static_cast<char*>(NYTAlloc::AllocatePageAligned(size)))
+        : Begin_(static_cast<char*>(NYTAlloc::AllocatePageAligned(size)))
     {
-        Initialize(options);
+        Initialize(size, options, cookie);
     }
 
     ~TPageAlignedAllocationHolder()

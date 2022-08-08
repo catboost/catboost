@@ -116,6 +116,7 @@ class TWithExtraSpace
 protected:
     const void* GetExtraSpacePtr() const;
     void* GetExtraSpacePtr();
+    size_t GetUsableSpaceSize() const;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
