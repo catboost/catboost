@@ -536,8 +536,8 @@
         "marketsre": {
             "description": "Run Market SRE Cli"
         },
-        "dns-client2": {
-            "description": "Run dns-client2(tools for change RRs)"
+        "dns-client": {
+            "description": "Run dns-client(tools for change RRs)"
         },
         "metrika-core": {
             "description": "Run metrika-core toolkit"
@@ -852,11 +852,11 @@
                 }
             ]
         },
-        "dns-client2": {
+        "dns-client": {
             "tools": {
-                "dns-client2": {
-                    "bottle": "dns-client2",
-                    "executable": "dns-client2"
+                "dns-client": {
+                    "bottle": "dns-client",
+                    "executable": "dns-client"
                 }
             },
             "platforms": [
@@ -9133,7 +9133,7 @@
                 ]
             }
         },
-        "dns-client2": {
+        "dns-client": {
             "formula": {
                 "latest_matched": {
                     "query": {
@@ -9145,7 +9145,7 @@
                 }
             },
             "executable": {
-                "dns-client2": [
+                "dns-client": [
                     "dns-client2"
                 ]
             }
