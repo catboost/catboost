@@ -1,13 +1,12 @@
 Metadata-Version: 2.1
 Name: asttokens
-Version: 2.0.5
+Version: 2.0.7
 Summary: Annotate AST trees with source code positions
 Home-page: https://github.com/gristlabs/asttokens
 Author: Dmitry Sagalovskiy, Grist Labs
 Author-email: dmitry@getgrist.com
 License: Apache 2.0
 Keywords: code,ast,parse,tokenize,refactor
-Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
@@ -25,11 +24,14 @@ Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
+License-File: LICENSE
 Requires-Dist: six
+Requires-Dist: typing ; python_version < "3.5"
 Provides-Extra: test
-Requires-Dist: astroid ; extra == 'test'
+Requires-Dist: astroid (<=2.5.3) ; extra == 'test'
 Requires-Dist: pytest ; extra == 'test'
 
 ASTTokens
@@ -39,8 +41,8 @@ ASTTokens
     :target: https://pypi.python.org/pypi/asttokens/
 .. image:: https://img.shields.io/pypi/pyversions/asttokens.svg
     :target: https://pypi.python.org/pypi/asttokens/
-.. image:: https://travis-ci.org/gristlabs/asttokens.svg?branch=master
-    :target: https://travis-ci.org/gristlabs/asttokens
+.. image:: https://github.com/gristlabs/asttokens/actions/workflows/build-and-test.yml/badge.svg
+    :target: https://github.com/gristlabs/asttokens/actions/workflows/build-and-test.yml
 .. image:: https://readthedocs.org/projects/asttokens/badge/?version=latest
     :target: http://asttokens.readthedocs.io/en/latest/index.html
 .. image:: https://coveralls.io/repos/github/gristlabs/asttokens/badge.svg
@@ -114,5 +116,3 @@ To contribute:
 3. Run tests in your current interpreter with the command ``pytest`` or ``python -m pytest``.
 4. Run tests across all supported interpreters with the ``tox`` command. You will need to have the interpreters installed separately. We recommend ``pyenv`` for that. Use ``tox -p auto`` to run the tests in parallel.
 5. By default certain tests which take a very long time to run are skipped, but they are run on travis CI. To run them locally, set the environment variable ``ASTTOKENS_SLOW_TESTS``. For example run ``ASTTOKENS_SLOW_TESTS=1 tox`` to run the full suite of tests.
-
-

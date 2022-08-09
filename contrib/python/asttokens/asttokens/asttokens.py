@@ -14,14 +14,19 @@
 
 import ast
 import bisect
+import io
 import token
 import tokenize
-import io
+from .util import Token, match_token, is_non_coding_token, patched_generate_tokens
 import six
 from six.moves import xrange      # pylint: disable=redefined-builtin
 from .line_numbers import LineNumbers
-from .util import Token, match_token, is_non_coding_token
-from .mark_tokens import MarkTokens
+from typing import Callable, Iterator, List, Optional, Tuple, Any, cast,TYPE_CHECKING
+from ast import Module
+
+if TYPE_CHECKING:
+  from .util import AstNode
+
 
 class ASTTokens(object):
   """
@@ -43,14 +48,17 @@ class ASTTokens(object):
   tree created separately.
   """
   def __init__(self, source_text, parse=False, tree=None, filename='<unknown>'):
+    # type: (Any, bool, Optional[Module], str) -> None
+    # FIXME: Strictly, the type of source_type is one of the six string types, but hard to specify with mypy given
+    # https://mypy.readthedocs.io/en/stable/common_issues.html#variables-vs-type-aliases
+
     self._filename = filename
     self._tree = ast.parse(source_text, filename) if parse else tree
 
     # Decode source after parsing to let Python 2 handle coding declarations.
     # (If the encoding was not utf-8 compatible, then even if it parses correctly,
     # we'll fail with a unicode error here.)
-    if isinstance(source_text, six.binary_type):
-      source_text = source_text.decode('utf8')
+    source_text = six.ensure_text(source_text)
 
     self._text = source_text
     self._line_numbers = LineNumbers(source_text)
@@ -66,6 +74,7 @@ class ASTTokens(object):
 
 
   def mark_tokens(self, root_node):
+    # type: (Module) -> None
     """
     Given the root of the AST or Astroid tree produced from source_text, visits all nodes marking
     them with token and position information by adding ``.first_token`` and
@@ -73,16 +82,20 @@ class ASTTokens(object):
     ``tree`` arguments are set, but may be used manually with a separate AST or Astroid tree.
     """
     # The hard work of this class is done by MarkTokens
+    from .mark_tokens import MarkTokens # to avoid import loops
     MarkTokens(self).visit_tree(root_node)
 
 
   def _generate_tokens(self, text):
+    # type: (str) -> Iterator[Token]
     """
     Generates tokens for the given code.
     """
-    # This is technically an undocumented API for Python3, but allows us to use the same API as for
+    # tokenize.generate_tokens is technically an undocumented API for Python3, but allows us to use the same API as for
     # Python2. See http://stackoverflow.com/a/4952291/328565.
-    for index, tok in enumerate(tokenize.generate_tokens(io.StringIO(text).readline)):
+    # FIXME: Remove cast once https://github.com/python/typeshed/issues/7003 gets fixed
+    original_tokens = tokenize.generate_tokens(cast(Callable[[], str], io.StringIO(text).readline))
+    for index, tok in enumerate(patched_generate_tokens(original_tokens)):
       tok_type, tok_str, start, end, line = tok
       yield Token(tok_type, tok_str, start, end, line, index,
                   self._line_numbers.line_to_offset(start[0], start[1]),
@@ -90,25 +103,30 @@ class ASTTokens(object):
 
   @property
   def text(self):
+    # type: () -> str
     """The source code passed into the constructor."""
     return self._text
 
   @property
   def tokens(self):
+    # type: () -> List[Token]
     """The list of tokens corresponding to the source code from the constructor."""
     return self._tokens
 
   @property
   def tree(self):
+    # type: () -> Optional[Module]
     """The root of the AST tree passed into the constructor or parsed from the source code."""
     return self._tree
 
   @property
   def filename(self):
+    # type: () -> str
     """The filename that was parsed"""
     return self._filename
 
   def get_token_from_offset(self, offset):
+    # type: (int) -> Token
     """
     Returns the token containing the given character offset (0-based position in source text),
     or the preceeding token if the position is between tokens.
@@ -116,6 +134,7 @@ class ASTTokens(object):
     return self._tokens[bisect.bisect(self._token_offsets, offset) - 1]
 
   def get_token(self, lineno, col_offset):
+    # type: (int, int) -> Token
     """
     Returns the token containing the given (lineno, col_offset) position, or the preceeding token
     if the position is between tokens.
@@ -126,12 +145,14 @@ class ASTTokens(object):
     return self.get_token_from_offset(self._line_numbers.line_to_offset(lineno, col_offset))
 
   def get_token_from_utf8(self, lineno, col_offset):
+    # type: (int, int) -> Token
     """
     Same as get_token(), but interprets col_offset as a UTF8 offset, which is what `ast` uses.
     """
     return self.get_token(lineno, self._line_numbers.from_utf8_col(lineno, col_offset))
 
   def next_token(self, tok, include_extra=False):
+    # type: (Token, bool) -> Token
     """
     Returns the next token after the given one. If include_extra is True, includes non-coding
     tokens from the tokenize module, such as NL and COMMENT.
@@ -143,6 +164,7 @@ class ASTTokens(object):
     return self._tokens[i]
 
   def prev_token(self, tok, include_extra=False):
+    # type: (Token, bool) -> Token
     """
     Returns the previous token before the given one. If include_extra is True, includes non-coding
     tokens from the tokenize module, such as NL and COMMENT.
@@ -154,6 +176,7 @@ class ASTTokens(object):
     return self._tokens[i]
 
   def find_token(self, start_token, tok_type, tok_str=None, reverse=False):
+    # type: (Token, int, Optional[str], bool) -> Token
     """
     Looks for the first token, starting at start_token, that matches tok_type and, if given, the
     token string. Searches backwards if reverse is True. Returns ENDMARKER token if not found (you
@@ -165,7 +188,12 @@ class ASTTokens(object):
       t = advance(t, include_extra=True)
     return t
 
-  def token_range(self, first_token, last_token, include_extra=False):
+  def token_range(self,
+                  first_token,  # type: Token
+                  last_token,  # type: Token
+                  include_extra=False,  # type: bool
+                  ):
+    # type: (...) -> Iterator[Token]
     """
     Yields all tokens in order from first_token through and including last_token. If
     include_extra is True, includes non-coding tokens such as tokenize.NL and .COMMENT.
@@ -175,6 +203,7 @@ class ASTTokens(object):
         yield self._tokens[i]
 
   def get_tokens(self, node, include_extra=False):
+    # type: (AstNode, bool) -> Iterator[Token]
     """
     Yields all tokens making up the given node. If include_extra is True, includes non-coding
     tokens such as tokenize.NL and .COMMENT.
@@ -182,6 +211,7 @@ class ASTTokens(object):
     return self.token_range(node.first_token, node.last_token, include_extra=include_extra)
 
   def get_text_range(self, node):
+    # type: (AstNode) -> Tuple[int, int]
     """
     After mark_tokens() has been called, returns the (startpos, endpos) positions in source text
     corresponding to the given node. Returns (0, 0) for nodes (like `Load`) that don't correspond
@@ -198,6 +228,7 @@ class ASTTokens(object):
     return (start, node.last_token.endpos)
 
   def get_text(self, node):
+    # type: (AstNode) -> str
     """
     After mark_tokens() has been called, returns the text corresponding to the given node. Returns
     '' for nodes (like `Load`) that don't correspond to any particular text.
