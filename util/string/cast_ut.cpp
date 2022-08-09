@@ -300,8 +300,8 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         BadFloatTester<float>("a10E-5");
         BadFloatTester<float>("10 ");
         BadFloatTester<float>("10\t");
-        //BadFloatTester<float>("10E");
-        //BadFloatTester<float>("10.E");
+        // BadFloatTester<float>("10E");
+        // BadFloatTester<float>("10.E");
         BadFloatTester<float>("..0");
         BadFloatTester<float>(""); // IGNIETFERRO-300
         BadFloatTester<double>("1.00.01");
@@ -435,6 +435,32 @@ Y_UNIT_TEST_SUITE(TCastTest) {
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault(s4, def2), def2);
         UNIT_CHECK_GENERATED_EXCEPTION(FromString<size_t>(s4), yexception);
         UNIT_ASSERT_VALUES_EQUAL(FromStringWithDefault<size_t>(s4), size_t());
+    }
+
+    Y_UNIT_TEST(TestMaybe) {
+        TMaybe<int> res;
+
+        TString s1("100500");
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s1), yexception);
+        UNIT_ASSERT_VALUES_EQUAL(res, 100500);
+
+        UNIT_ASSERT_VALUES_EQUAL(TryFromString<int>("100500"), 100500);
+
+        TString s2("100q500");
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s2), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        TUtf16String s3 = u"-100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<size_t>(s3), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        TUtf16String s4 = u"-f100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s4), yexception);
+        UNIT_ASSERT(res.Empty());
+
+        std::string s5 = "100500";
+        UNIT_CHECK_GENERATED_NO_EXCEPTION(res = TryFromString<int>(s5), yexception);
+        UNIT_ASSERT_VALUES_EQUAL(res, 100500);
     }
 
     Y_UNIT_TEST(TestBool) {
