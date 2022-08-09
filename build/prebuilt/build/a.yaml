@@ -16,9 +16,14 @@ ci:
           required: [platforms, tools]
           type: object
           properties:
+            create-pr:
+              title: Create PR after commit
+              type: boolean
+              default: false
             musl:
               title: Build with musl-libc
               type: boolean
+              default: true
             platforms:
               title: Platforms
               type: array
@@ -44,9 +49,6 @@ ci:
                   build-flags:
                     title: Build flags (optional)
                     type: string
-                  json-path:
-                    title: "Path to json file (optional)"
-                    type: string
 
   flows:
     build-n-commit:
@@ -63,7 +65,12 @@ ci:
             checkout_arcadia_from_url: arcadia-arc:/#${context.target_revision.hash}
             project: ${by.tool-path}
             musl: ${flow-vars.musl}
-        build-all:
+        commit:
           needs:
             - build
-          task: dummy
+          task: projects/devtools/deploy_tools/resource_map_committer
+          input:
+            resource_ids: ${tasks.*.resources[?type == 'PLATFORM_MAPPING'].id[]}
+            arc_revision: ${context.target_revision.hash}
+            branch: ${context.version_info.full}
+            create_pr: ${flow-vars.create-pr}
