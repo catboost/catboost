@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\275247663946af7ebe4a7098ce.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\293d4acb2a76e14dc78ca2de06.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\73df457261d379f910acb1ba1e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\e65fe2c794caf5597c183cc8a8.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
@@ -89,11 +89,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/293d4acb2a76e14dc78ca2de06.cpp" "_f4e1775e8e66b8aa5fae6883bb=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_456c30773e246d078865d56825=resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_8fe2902698116373c3b2fb235d=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_58af84f6f08244041c0280ca03=resfs/file/contrib/python/asttokens/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp" "_67cd2b331f4247d3daefae833d=py/namespace/f8750e03fe7898166c90812abfbec17e/contrib/python/asttokens"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp" "_67cd2b331f4247d3daefae833d=py/namespace/f8750e03fe7898166c90812abfbec17e/contrib/python/asttokens"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/e65fe2c794caf5597c183cc8a8.cpp" "_f4e1775e8e66b8aa5fae6883bb=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_456c30773e246d078865d56825=resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_8fe2902698116373c3b2fb235d=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_58af84f6f08244041c0280ca03=resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_23e79f9dfd019c040efd9b0fa3=resfs/src/resfs/file/contrib/python/asttokens/asttokens/py.typed" "_e8c10e59afbe96acf82a3ad749=resfs/file/contrib/python/asttokens/asttokens/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,11 +108,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/293d4acb2a76e14dc78ca2de06.cpp" "_f4e1775e8e66b8aa5fae6883bb=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_456c30773e246d078865d56825=resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_8fe2902698116373c3b2fb235d=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_58af84f6f08244041c0280ca03=resfs/file/contrib/python/asttokens/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp" "_67cd2b331f4247d3daefae833d=py/namespace/f8750e03fe7898166c90812abfbec17e/contrib/python/asttokens"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp" "_67cd2b331f4247d3daefae833d=py/namespace/f8750e03fe7898166c90812abfbec17e/contrib/python/asttokens"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/e65fe2c794caf5597c183cc8a8.cpp" "_f4e1775e8e66b8aa5fae6883bb=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_456c30773e246d078865d56825=resfs/file/contrib/python/asttokens/.dist-info/METADATA" "_8fe2902698116373c3b2fb235d=resfs/src/resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_58af84f6f08244041c0280ca03=resfs/file/contrib/python/asttokens/.dist-info/top_level.txt" "_23e79f9dfd019c040efd9b0fa3=resfs/src/resfs/file/contrib/python/asttokens/asttokens/py.typed" "_e8c10e59afbe96acf82a3ad749=resfs/file/contrib/python/asttokens/asttokens/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/asttokens/275247663946af7ebe4a7098ce.cpp	$B/contrib/python/asttokens/293d4acb2a76e14dc78ca2de06.cpp	$B/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp	</Message>
+      <Message>$B/contrib/python/asttokens/275247663946af7ebe4a7098ce.cpp	$B/contrib/python/asttokens/73df457261d379f910acb1ba1e.cpp	$B/contrib/python/asttokens/e65fe2c794caf5597c183cc8a8.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\275247663946af7ebe4a7098ce.cpp;$(SolutionDir)$(Configuration)\contrib\python\asttokens\293d4acb2a76e14dc78ca2de06.cpp;$(SolutionDir)$(Configuration)\contrib\python\asttokens\73df457261d379f910acb1ba1e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\275247663946af7ebe4a7098ce.cpp;$(SolutionDir)$(Configuration)\contrib\python\asttokens\73df457261d379f910acb1ba1e.cpp;$(SolutionDir)$(Configuration)\contrib\python\asttokens\e65fe2c794caf5597c183cc8a8.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

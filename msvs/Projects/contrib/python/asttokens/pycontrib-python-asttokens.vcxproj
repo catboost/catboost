@@ -105,33 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_275247663946af7ebe4a7098ce.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_275247663946af7ebe4a7098ce.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\_293d4acb2a76e14dc78ca2de06.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.obj" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.obj" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_293d4acb2a76e14dc78ca2de06.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_293d4acb2a76e14dc78ca2de06.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\_73df457261d379f910acb1ba1e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
@@ -158,6 +131,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/asttokens/_73df457261d379f910acb1ba1e.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_73df457261d379f910acb1ba1e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_73df457261d379f910acb1ba1e.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e65fe2c794caf5597c183cc8a8.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.obj" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.obj" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e65fe2c794caf5597c183cc8a8.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e65fe2c794caf5597c183cc8a8.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\asttokens
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm" "-" "contrib/python/asttokens/.dist-info/METADATA" "_f4e1775e8e66b8aa5fae6883bb.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_456c30773e246d078865d56825.rodata" "-" "contrib/python/asttokens/.dist-info/top_level.txt" "_8fe2902698116373c3b2fb235d.rodata" "$(SolutionDir)../contrib/python/asttokens/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_58af84f6f08244041c0280ca03.rodata" "-" "contrib/python/asttokens/asttokens/py.typed" "_23e79f9dfd019c040efd9b0fa3.rodata" "$(SolutionDir)../contrib/python/asttokens/asttokens/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/asttokens/_e8c10e59afbe96acf82a3ad749.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/asttokens/_293d4acb2a76e14dc78ca2de06.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\.dist-info\METADATA;$(SolutionDir)..\contrib\python\asttokens\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_293d4acb2a76e14dc78ca2de06.yasm;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_456c30773e246d078865d56825.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_58af84f6f08244041c0280ca03.rodata;</Outputs>
+      <Message>$B/contrib/python/asttokens/_e65fe2c794caf5597c183cc8a8.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\asttokens\.dist-info\METADATA;$(SolutionDir)..\contrib\python\asttokens\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\asttokens\asttokens\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e65fe2c794caf5597c183cc8a8.yasm;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_456c30773e246d078865d56825.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_58af84f6f08244041c0280ca03.rodata;$(SolutionDir)$(Configuration)\contrib\python\asttokens\_e8c10e59afbe96acf82a3ad749.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\asttokens\asttokens\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
