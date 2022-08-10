@@ -11,6 +11,7 @@ import operator
 import warnings
 
 from collections import deque
+from collections.abc import Sized
 from itertools import (
     chain,
     combinations,
@@ -106,7 +107,14 @@ def tail(n, iterable):
     ['E', 'F', 'G']
 
     """
-    return iter(deque(iterable, maxlen=n))
+    # If the given iterable has a length, then we can use islice to get its
+    # final elements. Note that if the iterable is not actually Iterable,
+    # either islice or deque will throw a TypeError. This is why we don't
+    # check if it is Iterable.
+    if isinstance(iterable, Sized):
+        yield from islice(iterable, max(0, len(iterable) - n), None)
+    else:
+        yield from iter(deque(iterable, maxlen=n))
 
 
 def consume(iterator, n=None):
