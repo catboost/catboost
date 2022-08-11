@@ -8400,7 +8400,7 @@
             },
             "executable": {
                 "saas2": [
-                    "saas2"
+                    "bin/saas2"
                 ]
             }
         },
