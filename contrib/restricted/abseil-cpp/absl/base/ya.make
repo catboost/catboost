@@ -8,12 +8,6 @@ LICENSE(Apache-2.0)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-PEERDIR(
-    contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
-    contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
-    contrib/restricted/abseil-cpp/absl/base/log_severity
-)
-
 ADDINCL(
     GLOBAL contrib/restricted/abseil-cpp
 )
@@ -28,10 +22,17 @@ CFLAGS(
 
 SRCS(
     internal/cycleclock.cc
+    internal/low_level_alloc.cc
+    internal/raw_logging.cc
+    internal/scoped_set_env.cc
     internal/spinlock.cc
+    internal/spinlock_wait.cc
+    internal/strerror.cc
     internal/sysinfo.cc
     internal/thread_identity.cc
+    internal/throw_delegate.cc
     internal/unscaledcycleclock.cc
+    log_severity.cc
 )
 
 END()

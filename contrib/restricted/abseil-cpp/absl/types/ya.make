@@ -8,6 +8,26 @@ LICENSE(Apache-2.0)
 
 LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
-NO_RUNTIME()
+PEERDIR(
+    contrib/restricted/abseil-cpp/absl/base
+)
+
+ADDINCL(
+    GLOBAL contrib/restricted/abseil-cpp
+)
+
+NO_COMPILER_WARNINGS()
+
+NO_UTIL()
+
+CFLAGS(
+    -DNOMINMAX
+)
+
+SRCS(
+    bad_any_cast.cc
+    bad_optional_access.cc
+    bad_variant_access.cc
+)
 
 END()

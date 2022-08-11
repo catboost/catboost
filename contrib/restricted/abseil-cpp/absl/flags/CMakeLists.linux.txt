@@ -18,46 +18,29 @@ target_include_directories(abseil-cpp-absl-flags PUBLIC
 target_link_libraries(abseil-cpp-absl-flags PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
-  base-internal-low_level_alloc
-  base-internal-raw_logging
-  base-internal-spinlock_wait
-  base-internal-throw_delegate
-  absl-base-log_severity
   abseil-cpp-absl-city
-  container-internal-absl_hashtablez_sampler
-  container-internal-raw_hash_set
+  abseil-cpp-absl-container
   abseil-cpp-absl-debugging
-  absl-debugging-stacktrace
-  absl-debugging-symbolize
   abseil-cpp-absl-demangle
-  absl-flags-commandlineflag
-  flags-internal-commandlineflag
-  flags-internal-flag
-  flags-internal-private_handle_accessor
-  flags-internal-program_name
-  absl-flags-marshalling
-  absl-flags-reflection
-  absl-flags-usage_config
   abseil-cpp-absl-hash
-  absl-hash-internal
   abseil-cpp-absl-numeric
-  profiling-internal-exponential_biased
+  abseil-cpp-absl-profiling
   abseil-cpp-absl-strings
-  absl-strings-cord
-  strings-internal-absl_cord_internal
-  strings-internal-absl_strings_internal
-  strings-internal-cordz_functions
-  strings-internal-cordz_handle
-  strings-internal-cordz_info
-  strings-internal-str_format
   abseil-cpp-absl-synchronization
-  absl-synchronization-internal
   abseil-cpp-absl-time
-  absl-time-civil_time
-  absl-time-time_zone
-  absl-types-bad_optional_access
-  absl-types-bad_variant_access
+  abseil-cpp-absl-types
 )
 target_sources(abseil-cpp-absl-flags PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/commandlineflag.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/flag.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/commandlineflag.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/flag.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/private_handle_accessor.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/program_name.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/internal/usage.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/marshalling.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/parse.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/reflection.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/usage.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/flags/usage_config.cc
 )

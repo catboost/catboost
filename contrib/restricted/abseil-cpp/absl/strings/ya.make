@@ -10,12 +10,7 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
-    contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
-    contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate
-    contrib/restricted/abseil-cpp/absl/base/log_severity
     contrib/restricted/abseil-cpp/absl/numeric
-    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
 )
 
 ADDINCL(
@@ -30,20 +25,43 @@ CFLAGS(
     -DNOMINMAX
 )
 
+SRCDIR(contrib/restricted/abseil-cpp/absl)
+
 SRCS(
-    ascii.cc
-    charconv.cc
-    escaping.cc
-    internal/charconv_bigint.cc
-    internal/charconv_parse.cc
-    internal/memutil.cc
-    match.cc
-    numbers.cc
-    str_cat.cc
-    str_replace.cc
-    str_split.cc
-    string_view.cc
-    substitute.cc
+    status/statusor.cc
+    strings/ascii.cc
+    strings/charconv.cc
+    strings/cord.cc
+    strings/escaping.cc
+    strings/internal/charconv_bigint.cc
+    strings/internal/charconv_parse.cc
+    strings/internal/cord_internal.cc
+    strings/internal/cord_rep_btree.cc
+    strings/internal/cord_rep_btree_navigator.cc
+    strings/internal/cord_rep_btree_reader.cc
+    strings/internal/cord_rep_consume.cc
+    strings/internal/cord_rep_ring.cc
+    strings/internal/cordz_functions.cc
+    strings/internal/cordz_handle.cc
+    strings/internal/cordz_info.cc
+    strings/internal/cordz_sample_token.cc
+    strings/internal/escaping.cc
+    strings/internal/memutil.cc
+    strings/internal/ostringstream.cc
+    strings/internal/str_format/arg.cc
+    strings/internal/str_format/bind.cc
+    strings/internal/str_format/extension.cc
+    strings/internal/str_format/float_conversion.cc
+    strings/internal/str_format/output.cc
+    strings/internal/str_format/parser.cc
+    strings/internal/utf8.cc
+    strings/match.cc
+    strings/numbers.cc
+    strings/str_cat.cc
+    strings/str_replace.cc
+    strings/str_split.cc
+    strings/string_view.cc
+    strings/substitute.cc
 )
 
 END()

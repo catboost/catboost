@@ -18,31 +18,14 @@ target_include_directories(abseil-cpp-absl-status PUBLIC
 target_link_libraries(abseil-cpp-absl-status PUBLIC
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
-  base-internal-low_level_alloc
-  base-internal-raw_logging
-  base-internal-spinlock_wait
-  base-internal-throw_delegate
-  absl-base-log_severity
   abseil-cpp-absl-debugging
-  absl-debugging-stacktrace
-  absl-debugging-symbolize
   abseil-cpp-absl-demangle
   abseil-cpp-absl-numeric
-  profiling-internal-exponential_biased
+  abseil-cpp-absl-profiling
   abseil-cpp-absl-strings
-  absl-strings-cord
-  strings-internal-absl_cord_internal
-  strings-internal-absl_strings_internal
-  strings-internal-cordz_functions
-  strings-internal-cordz_handle
-  strings-internal-cordz_info
-  strings-internal-str_format
   abseil-cpp-absl-synchronization
-  absl-synchronization-internal
   abseil-cpp-absl-time
-  absl-time-civil_time
-  absl-time-time_zone
-  absl-types-bad_optional_access
+  abseil-cpp-absl-types
 )
 target_sources(abseil-cpp-absl-status PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/status/status.cc

@@ -13,20 +13,17 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
-    contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
-    contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate
-    contrib/restricted/abseil-cpp/absl/base/log_severity
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
-    contrib/restricted/abseil-cpp/absl/time/civil_time
-    contrib/restricted/abseil-cpp/absl/time/time_zone
 )
 
 ADDINCL(
     GLOBAL contrib/restricted/abseil-cpp
 )
+
+IF (OS_DARWIN)
+    EXTRALIBS("-framework CoreFoundation")
+ENDIF()
 
 NO_COMPILER_WARNINGS()
 
@@ -41,6 +38,16 @@ SRCS(
     clock.cc
     duration.cc
     format.cc
+    internal/cctz/src/civil_time_detail.cc
+    internal/cctz/src/time_zone_fixed.cc
+    internal/cctz/src/time_zone_format.cc
+    internal/cctz/src/time_zone_if.cc
+    internal/cctz/src/time_zone_impl.cc
+    internal/cctz/src/time_zone_info.cc
+    internal/cctz/src/time_zone_libc.cc
+    internal/cctz/src/time_zone_lookup.cc
+    internal/cctz/src/time_zone_posix.cc
+    internal/cctz/src/zone_info_source.cc
     time.cc
 )
 

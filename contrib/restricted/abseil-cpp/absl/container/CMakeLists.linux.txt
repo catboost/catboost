@@ -7,4 +7,29 @@
 
 
 
-add_library(abseil-cpp-absl-container INTERFACE)
+add_library(abseil-cpp-absl-container)
+target_compile_options(abseil-cpp-absl-container PRIVATE
+  -DNOMINMAX
+  -Wno-everything
+)
+target_include_directories(abseil-cpp-absl-container PUBLIC
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
+)
+target_link_libraries(abseil-cpp-absl-container PUBLIC
+  contrib-libs-cxxsupp
+  abseil-cpp-absl-base
+  abseil-cpp-absl-debugging
+  abseil-cpp-absl-demangle
+  abseil-cpp-absl-hash
+  abseil-cpp-absl-numeric
+  abseil-cpp-absl-profiling
+  abseil-cpp-absl-strings
+  abseil-cpp-absl-synchronization
+  abseil-cpp-absl-time
+  abseil-cpp-absl-types
+)
+target_sources(abseil-cpp-absl-container PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/hashtablez_sampler_force_weak_definition.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set.cc
+)

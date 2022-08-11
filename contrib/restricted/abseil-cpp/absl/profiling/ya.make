@@ -2,15 +2,11 @@
 
 LIBRARY()
 
-WITHOUT_LICENSE_TEXTS()
-
 
 
 LICENSE(Apache-2.0)
 
-PEERDIR(
-    contrib/restricted/abseil-cpp/absl/base
-)
+LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 ADDINCL(
     GLOBAL contrib/restricted/abseil-cpp
@@ -24,10 +20,9 @@ CFLAGS(
     -DNOMINMAX
 )
 
-SRCDIR(contrib/restricted/abseil-cpp/absl/debugging/internal)
-
 SRCS(
-    demangle.cc
+    internal/exponential_biased.cc
+    internal/periodic_sampler.cc
 )
 
 END()

@@ -10,45 +10,17 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/base/internal/low_level_alloc
-    contrib/restricted/abseil-cpp/absl/base/internal/raw_logging
-    contrib/restricted/abseil-cpp/absl/base/internal/spinlock_wait
-    contrib/restricted/abseil-cpp/absl/base/internal/throw_delegate
-    contrib/restricted/abseil-cpp/absl/base/log_severity
     contrib/restricted/abseil-cpp/absl/city
-    contrib/restricted/abseil-cpp/absl/container/internal/absl_hashtablez_sampler
-    contrib/restricted/abseil-cpp/absl/container/internal/raw_hash_set
+    contrib/restricted/abseil-cpp/absl/container
     contrib/restricted/abseil-cpp/absl/debugging
-    contrib/restricted/abseil-cpp/absl/debugging/stacktrace
-    contrib/restricted/abseil-cpp/absl/debugging/symbolize
     contrib/restricted/abseil-cpp/absl/demangle
-    contrib/restricted/abseil-cpp/absl/flags/commandlineflag
-    contrib/restricted/abseil-cpp/absl/flags/internal/commandlineflag
-    contrib/restricted/abseil-cpp/absl/flags/internal/flag
-    contrib/restricted/abseil-cpp/absl/flags/internal/private_handle_accessor
-    contrib/restricted/abseil-cpp/absl/flags/internal/program_name
-    contrib/restricted/abseil-cpp/absl/flags/marshalling
-    contrib/restricted/abseil-cpp/absl/flags/reflection
-    contrib/restricted/abseil-cpp/absl/flags/usage_config
     contrib/restricted/abseil-cpp/absl/hash
-    contrib/restricted/abseil-cpp/absl/hash/internal
     contrib/restricted/abseil-cpp/absl/numeric
-    contrib/restricted/abseil-cpp/absl/profiling/internal/exponential_biased
+    contrib/restricted/abseil-cpp/absl/profiling
     contrib/restricted/abseil-cpp/absl/strings
-    contrib/restricted/abseil-cpp/absl/strings/cord
-    contrib/restricted/abseil-cpp/absl/strings/internal/absl_cord_internal
-    contrib/restricted/abseil-cpp/absl/strings/internal/absl_strings_internal
-    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_functions
-    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_handle
-    contrib/restricted/abseil-cpp/absl/strings/internal/cordz_info
-    contrib/restricted/abseil-cpp/absl/strings/internal/str_format
     contrib/restricted/abseil-cpp/absl/synchronization
-    contrib/restricted/abseil-cpp/absl/synchronization/internal
     contrib/restricted/abseil-cpp/absl/time
-    contrib/restricted/abseil-cpp/absl/time/civil_time
-    contrib/restricted/abseil-cpp/absl/time/time_zone
-    contrib/restricted/abseil-cpp/absl/types/bad_optional_access
-    contrib/restricted/abseil-cpp/absl/types/bad_variant_access
+    contrib/restricted/abseil-cpp/absl/types
 )
 
 ADDINCL(
@@ -64,7 +36,18 @@ CFLAGS(
 )
 
 SRCS(
+    commandlineflag.cc
     flag.cc
+    internal/commandlineflag.cc
+    internal/flag.cc
+    internal/private_handle_accessor.cc
+    internal/program_name.cc
+    internal/usage.cc
+    marshalling.cc
+    parse.cc
+    reflection.cc
+    usage.cc
+    usage_config.cc
 )
 
 END()
