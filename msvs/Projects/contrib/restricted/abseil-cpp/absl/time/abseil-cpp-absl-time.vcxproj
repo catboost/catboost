@@ -78,6 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\civil_time_detail.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_fixed.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_format.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_if.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_impl.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_info.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_libc.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_lookup.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\time_zone_posix.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\internal\cctz\src\zone_info_source.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\civil_time.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\clock.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\time\duration.cc"/>
@@ -110,32 +120,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
-      <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\spinlock_wait\base-internal-spinlock_wait.vcxproj">
-      <Project>{AD59D561-C3C2-7163-8691-7C5CA1F199EE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\throw_delegate\base-internal-throw_delegate.vcxproj">
-      <Project>{54B668D5-4CE5-3175-13C6-35CA57F303F9}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\log_severity\absl-base-log_severity.vcxproj">
-      <Project>{C9918ED1-4C5B-5AD8-D640-EB537BA8DFDE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\numeric\abseil-cpp-absl-numeric.vcxproj">
       <Project>{712179CD-DCD3-3049-EA4D-D416593142EB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\abseil-cpp-absl-strings.vcxproj">
       <Project>{C94DBD31-AE85-DCD5-7C63-712955C59002}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\strings\internal\absl_strings_internal\strings-internal-absl_strings_internal.vcxproj">
-      <Project>{CCFF9B15-FE51-1012-6FBE-985A6A2AD777}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\civil_time\absl-time-civil_time.vcxproj">
-      <Project>{76AC917E-AEF9-219C-67C7-3D3299141392}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\time\time_zone\absl-time-time_zone.vcxproj">
-      <Project>{C90415E2-11A6-7C43-3BAE-276EBF6D81E3}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

@@ -80,8 +80,21 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\address_is_readable.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\elf_mem_image.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\examine_stack.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\vdso_support.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\failure_signal_handler.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\leak_check.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\leak_check_disable.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\stacktrace.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\symbolize.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\failure_signal_handler.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\address_is_readable.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\demangle.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\elf_mem_image.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\examine_stack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\stacktrace_config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\symbolize.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\vdso_support.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\leak_check.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\stacktrace.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\symbolize.h"/>
@@ -95,11 +108,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging\base-internal-raw_logging.vcxproj">
-      <Project>{F9CAC534-B202-1BEF-0A8B-D9744CF09AA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\log_severity\absl-base-log_severity.vcxproj">
-      <Project>{C9918ED1-4C5B-5AD8-D640-EB537BA8DFDE}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
+      <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>
