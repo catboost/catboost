@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: filelock
-Version: 3.7.1
+Version: 3.8.0
 Summary: A platform independent file lock.
 Home-page: https://github.com/tox-dev/py-filelock
 Download-URL: https://github.com/tox-dev/py-filelock/archive/main.zip
@@ -16,10 +16,6 @@ Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3 :: Only
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Programming Language :: Python :: 3.8
-Classifier: Programming Language :: Python :: 3.9
-Classifier: Programming Language :: Python :: 3.10
 Classifier: Topic :: Internet
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: System
@@ -27,23 +23,23 @@ Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Provides-Extra: docs
-Requires-Dist: furo (>=2021.8.17b43) ; extra == 'docs'
-Requires-Dist: sphinx (>=4.1) ; extra == 'docs'
-Requires-Dist: sphinx-autodoc-typehints (>=1.12) ; extra == 'docs'
+Requires-Dist: furo (>=2022.6.21) ; extra == 'docs'
+Requires-Dist: sphinx (>=5.1.1) ; extra == 'docs'
+Requires-Dist: sphinx-autodoc-typehints (>=1.19.1) ; extra == 'docs'
 Provides-Extra: testing
-Requires-Dist: covdefaults (>=1.2.0) ; extra == 'testing'
-Requires-Dist: coverage (>=4) ; extra == 'testing'
-Requires-Dist: pytest (>=4) ; extra == 'testing'
-Requires-Dist: pytest-cov ; extra == 'testing'
-Requires-Dist: pytest-timeout (>=1.4.2) ; extra == 'testing'
+Requires-Dist: covdefaults (>=2.2) ; extra == 'testing'
+Requires-Dist: coverage (>=6.4.2) ; extra == 'testing'
+Requires-Dist: pytest (>=7.1.2) ; extra == 'testing'
+Requires-Dist: pytest-cov (>=3) ; extra == 'testing'
+Requires-Dist: pytest-timeout (>=2.1) ; extra == 'testing'
 
 # py-filelock
 
-[![PyPI](https://img.shields.io/pypi/v/filelock?style=flat-square)](https://pypi.org/project/filelock/)
+[![PyPI](https://img.shields.io/pypi/v/filelock)](https://pypi.org/project/filelock/)
 [![Supported Python
 versions](https://img.shields.io/pypi/pyversions/filelock.svg)](https://pypi.org/project/filelock/)
 [![Documentation
-status](https://readthedocs.org/projects/py-filelock/badge/?version=latest&style=flat-square)](https://py-filelock.readthedocs.io/en/latest/?badge=latest)
+status](https://readthedocs.org/projects/py-filelock/badge/?version=latest)](https://py-filelock.readthedocs.io/en/latest/?badge=latest)
 [![Code style:
 black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Downloads](https://pepy.tech/badge/filelock/month)](https://pepy.tech/project/filelock/month)
