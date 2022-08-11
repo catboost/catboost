@@ -420,7 +420,7 @@ namespace NNetliba {
                             TCmdBufferReady ready;
                             ready.Command = CMD_BUFFER_READY;
                             ready.PacketGuid = data.PacketGuid;
-                            ready.RemoteAddr = blk->GetData() - (char*)nullptr;
+                            ready.RemoteAddr = reinterpret_cast<ui64>(blk->GetData()) / sizeof(char);
                             ready.RemoteKey = blk->GetMemRegion()->GetRKey();
 
                             peer->PostSend(BP, &ready, sizeof(ready), TCompleteInfo::CI_IGNORE, 0);
