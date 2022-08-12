@@ -33,4 +33,6 @@ SRCS(
     user_r.c
 )
 
+NO_COMPILER_WARNINGS()
+
 END()
