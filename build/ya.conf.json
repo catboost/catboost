@@ -539,6 +539,9 @@
         "dns-client": {
             "description": "Run dns-client(tools for change RRs)"
         },
+        "puncher": {
+            "description": "Run Puncher CLI"
+        },
         "metrika-core": {
             "description": "Run metrika-core toolkit"
         },
@@ -857,6 +860,35 @@
                 "dns-client": {
                     "bottle": "dns-client",
                     "executable": "dns-client"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN",
+                        "arch": "arm64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "puncher": {
+            "tools": {
+                "puncher": {
+                    "bottle": "puncher",
+                    "executable": "puncher"
                 }
             },
             "platforms": [
@@ -9163,6 +9195,23 @@
             "executable": {
                 "dns-client": [
                     "dns-client2"
+                ]
+            }
+        },
+        "puncher": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "PUNCHER_CLI",
+                        "owner": "NOCDEV"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
+            },
+            "executable": {
+                "puncher": [
+                    "puncher"
                 ]
             }
         },
