@@ -1161,19 +1161,16 @@ void TCalcScoreFold::SetSampledControl(
         Fill(Control.begin(), Control.end(), true);
         return;
     }
-    ui32 sampleSize = 0;
     if (samplingUnit == ESamplingUnit::Group) {
         for (auto& queryInfo : queriesInfo) {
             auto itBegin = GetDataPtr(Control, queryInfo.Begin);
             auto itEnd = GetDataPtr(Control, queryInfo.End);
             auto isTaken = rand->GenRandReal1() < BernoulliSampleRate;
-            sampleSize += isTaken;
             Fill(itBegin, itEnd, isTaken);
         }
     } else {
         for (int docIdx = 0; docIdx < docCount; ++docIdx) {
             Control[docIdx] = rand->GenRandReal1() < BernoulliSampleRate;
-            sampleSize += Control[docIdx];
         }
     }
 }
@@ -1183,10 +1180,8 @@ void TCalcScoreFold::SetControlNoZeroWeighted(
     const float* sampleWeights
 ) {
     constexpr float EPS = std::numeric_limits<float>::epsilon();
-    ui32 sampleSize = 0;
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
         Control[docIdx] = sampleWeights[docIdx] > EPS;
-        sampleSize += Control[docIdx];
     }
 }
 

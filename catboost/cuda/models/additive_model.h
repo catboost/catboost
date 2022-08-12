@@ -15,6 +15,7 @@ namespace NCatboostCuda {
         }
 
         TAdditiveModel(const TAdditiveModel& other) = default;
+        TAdditiveModel& operator=(const TAdditiveModel& other) = default;
 
         template <class TDataSet, class TCursor>
         void Append(const TDataSet& ds,
