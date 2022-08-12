@@ -1,0 +1,11 @@
+
+
+RESOURCES_LIBRARY()
+
+IF (NOT HOST_OS_LINUX)
+    MESSAGE(FATAL_ERROR "Unsupported platform for squashfs-tools")
+ELSE()
+    DECLARE_EXTERNAL_RESOURCE(SQUASHFS sbr:3400192086)
+ENDIF()
+
+END()
