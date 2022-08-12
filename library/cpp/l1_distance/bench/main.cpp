@@ -99,7 +99,7 @@ namespace {
     struct TL1DistanceSSE64ui8_96bytes {
         template <bool MemAligned = false>
         inline ui32 CalcDistance(const ui8* __restrict x, const ui8* __restrict y) {
-            Y_ASSERT(!MemAligned || ((x - (const ui8*)nullptr) % 16 == 0 && (y - (const ui8*)nullptr) % 16 == 0));
+            Y_ASSERT(!MemAligned || (reinterpret_cast<uintptr_t>(x) % 16 == 0) && (reinterpret_cast<uintptr_t>(y) % 16 == 0));
 
             __m128i x1 = MemAligned ? _mm_load_si128((__m128i*)&x[0]) : _mm_loadu_si128((__m128i*)&x[0]);
             __m128i y1 = MemAligned ? _mm_load_si128((__m128i*)&y[0]) : _mm_loadu_si128((__m128i*)&y[0]);
