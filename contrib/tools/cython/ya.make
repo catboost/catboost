@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(0.29.30)
+VERSION(0.29.32)
 
 LICENSE(Apache-2.0)
 

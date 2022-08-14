@@ -1,7 +1,7 @@
 # cython.* namespace for pure mode.
 from __future__ import absolute_import
 
-__version__ = "0.29.30"
+__version__ = "0.29.32"
 
 try:
     from __builtin__ import basestring
@@ -353,7 +353,7 @@ class typedef(CythonType):
     __getitem__ = index_type
 
 class _FusedType(CythonType):
-    pass
+    __getitem__ = index_type
 
 
 def fused_type(*args):

@@ -27,8 +27,8 @@ from pytz.tzinfo import DstTzInfo, StaticTzInfo  # noqa
 
 # I test for expected version to ensure the correct version of pytz is
 # actually being tested.
-EXPECTED_VERSION = '2022.1'
-EXPECTED_OLSON_VERSION = '2022a'
+EXPECTED_VERSION = '2022.2.1'
+EXPECTED_OLSON_VERSION = '2022b'
 
 fmt = '%Y-%m-%d %H:%M:%S %Z%z'
 
@@ -612,33 +612,6 @@ class ReferenceUSEasternDSTEndTestCase(USEasternDSTEndTestCase):
 
 class LocalTestCase(unittest.TestCase):
     def testLocalize(self):
-        loc_tz = pytz.timezone('Europe/Amsterdam')
-
-        loc_time = loc_tz.localize(datetime(1930, 5, 10, 0, 0, 0))
-        # Actually +00:19:32, but Python datetime rounds this
-        self.assertEqual(loc_time.strftime('%Z%z'), 'AMT+0020')
-
-        loc_time = loc_tz.localize(datetime(1930, 5, 20, 0, 0, 0))
-        # Actually +00:19:32, but Python datetime rounds this
-        self.assertEqual(loc_time.strftime('%Z%z'), 'NST+0120')
-
-        loc_time = loc_tz.localize(datetime(1940, 5, 10, 0, 0, 0))
-        # pre-2017a, abbreviation was NCT
-        self.assertEqual(loc_time.strftime('%Z%z'), '+0020+0020')
-
-        loc_time = loc_tz.localize(datetime(1940, 5, 20, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CEST+0200')
-
-        loc_time = loc_tz.localize(datetime(2004, 2, 1, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CET+0100')
-
-        loc_time = loc_tz.localize(datetime(2004, 4, 1, 0, 0, 0))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CEST+0200')
-
-        loc_time = loc_tz.localize(datetime(1943, 3, 29, 1, 59, 59))
-        self.assertEqual(loc_time.strftime('%Z%z'), 'CET+0100')
-
-        # Switch to US
         loc_tz = pytz.timezone('US/Eastern')
 
         # End of DST ambiguity check
@@ -712,26 +685,6 @@ class LocalTestCase(unittest.TestCase):
             '2004-04-04 01:50:00 EST-0500'
         )
 
-    def testPartialMinuteOffsets(self):
-        # utcoffset in Amsterdam was not a whole minute until 1937
-        # However, we fudge this by rounding them, as the Python
-        # datetime library
-        tz = pytz.timezone('Europe/Amsterdam')
-        utc_dt = datetime(1914, 1, 1, 13, 40, 28, tzinfo=UTC)  # correct
-        utc_dt = utc_dt.replace(second=0)  # But we need to fudge it
-        loc_dt = utc_dt.astimezone(tz)
-        self.assertEqual(
-            loc_dt.strftime('%Y-%m-%d %H:%M:%S %Z%z'),
-            '1914-01-01 14:00:00 AMT+0020'
-        )
-
-        # And get back...
-        utc_dt = loc_dt.astimezone(UTC)
-        self.assertEqual(
-            utc_dt.strftime('%Y-%m-%d %H:%M:%S %Z%z'),
-            '1914-01-01 13:40:00 UTC+0000'
-        )
-
     def no_testCreateLocaltime(self):
         # It would be nice if this worked, but it doesn't.
         tz = pytz.timezone('Europe/Amsterdam')
@@ -758,7 +711,6 @@ class CommonTimezonesTestCase(unittest.TestCase):
         self.assertTrue('US/Eastern' in pytz.common_timezones_set)
 
     def test_belfast(self):
-        # Belfast uses London time.
         self.assertTrue('Europe/Belfast' in pytz.all_timezones_set)
         self.assertFalse('Europe/Belfast' in pytz.common_timezones)
         self.assertFalse('Europe/Belfast' in pytz.common_timezones_set)
