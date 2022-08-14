@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\5cbf7f602f28ee1e6e6065102b.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\7f93352da0f459214c621db385.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\b7aa071b497d4c72208121b79c.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\stack-data\d53eb223cf2d5742c376c2fd4e.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
@@ -89,11 +89,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp" "_90c25afa63e9dd95aee7919a14=py/namespace/c27d0f04dbac5e0d3122c7902fa7ce63/contrib/python/stack-data"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/7f93352da0f459214c621db385.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_938aaf0beb7bf5e65812e716ed=resfs/src/resfs/file/contrib/python/stack-data/stack_data/py.typed" "_8d371662a7fc204ba58d861712=resfs/file/contrib/python/stack-data/stack_data/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp" "_90c25afa63e9dd95aee7919a14=py/namespace/c27d0f04dbac5e0d3122c7902fa7ce63/contrib/python/stack-data"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,11 +108,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp" "_90c25afa63e9dd95aee7919a14=py/namespace/c27d0f04dbac5e0d3122c7902fa7ce63/contrib/python/stack-data"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/7f93352da0f459214c621db385.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_938aaf0beb7bf5e65812e716ed=resfs/src/resfs/file/contrib/python/stack-data/stack_data/py.typed" "_8d371662a7fc204ba58d861712=resfs/file/contrib/python/stack-data/stack_data/py.typed"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\stack-data
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp" "_eabfda93473f8d3c1e44ea0b2d=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_2b181cec627b3230e9f3887f78=resfs/file/contrib/python/stack-data/.dist-info/METADATA" "_d2dafdd49c1ceb877436226bfc=resfs/src/resfs/file/contrib/python/stack-data/.dist-info/top_level.txt" "_f3c032a7ba08351b65a6c98267=resfs/file/contrib/python/stack-data/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp" "_90c25afa63e9dd95aee7919a14=py/namespace/c27d0f04dbac5e0d3122c7902fa7ce63/contrib/python/stack-data"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/stack-data/5cbf7f602f28ee1e6e6065102b.cpp	$B/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp	$B/contrib/python/stack-data/d53eb223cf2d5742c376c2fd4e.cpp	</Message>
+      <Message>$B/contrib/python/stack-data/5cbf7f602f28ee1e6e6065102b.cpp	$B/contrib/python/stack-data/7f93352da0f459214c621db385.cpp	$B/contrib/python/stack-data/b7aa071b497d4c72208121b79c.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\5cbf7f602f28ee1e6e6065102b.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\b7aa071b497d4c72208121b79c.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\d53eb223cf2d5742c376c2fd4e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\stack-data\5cbf7f602f28ee1e6e6065102b.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\7f93352da0f459214c621db385.cpp;$(SolutionDir)$(Configuration)\contrib\python\stack-data\b7aa071b497d4c72208121b79c.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
