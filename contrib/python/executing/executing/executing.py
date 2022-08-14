@@ -448,6 +448,26 @@ class Source(object):
         return self._qualnames.get((code.co_name, code.co_firstlineno), code.co_name)
 
 
+if PY3:
+    from importlib.abc import MetaPathFinder
+
+    class ReloadCacheFinder(MetaPathFinder):
+        def find_spec(self, fullname, path, target=None):
+            # Based on https://github.com/ipython/ipython/issues/13598#issuecomment-1207869067
+            # to fix that issue.
+            # `target` should be a module (rather than None) if and only if the module is being reloaded.
+            filename = getattr(target, "__file__", None)
+            if not filename:
+                return
+            # Clear any cached data for this filename.
+            linecache.checkcache(filename)
+            for source_class in all_subclasses(Source):
+                source_cache = source_class._class_local("__source_cache", {})
+                source_cache.pop(filename, None)
+
+    sys.meta_path.insert(0, ReloadCacheFinder())
+
+
 class Executing(object):
     """
     Information about the operation a frame is currently executing.
@@ -1121,3 +1141,12 @@ def node_linenos(node):
             linenos = [node.lineno]
         for lineno in linenos:
             yield lineno
+
+
+def all_subclasses(cls):
+    """
+    Returns a set of all subclasses of a given class, including the class itself,
+    and all direct and indirect descendants.
+    """
+    direct = set(cls.__subclasses__())
+    return {cls} | {s for c in direct for s in all_subclasses(c)}
