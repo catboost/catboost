@@ -5,7 +5,7 @@
 ## {{ dl--invoke-format }} {#method-call-format}
 
 ```python
-plot_tree(tree_idx, pool=None)
+set_feature_names(feature_names)
 ```
 
 ## {{ dl--parameters }} {#parameters}
