@@ -7,6 +7,7 @@ IF (NOT OS_WINDOWS)
 ENDIF()
 
 SRCS(
+    atomic_intrusive_ptr_ut.cpp
     intrusive_ptr_ut.cpp
     weak_ptr_ut.cpp
 )
