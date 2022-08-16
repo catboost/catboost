@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+
 """
 Commonly useful filters for `attr.asdict`.
 """
@@ -20,10 +22,10 @@ def _split_what(what):
 
 def include(*what):
     """
-    Whitelist *what*.
+    Include *what*.
 
-    :param what: What to whitelist.
-    :type what: `list` of `type` or `attr.Attribute`\\ s
+    :param what: What to include.
+    :type what: `list` of `type` or `attrs.Attribute`\\ s
 
     :rtype: `callable`
     """
@@ -37,10 +39,10 @@ def include(*what):
 
 def exclude(*what):
     """
-    Blacklist *what*.
+    Exclude *what*.
 
-    :param what: What to blacklist.
-    :type what: `list` of classes or `attr.Attribute`\\ s.
+    :param what: What to exclude.
+    :type what: `list` of classes or `attrs.Attribute`\\ s.
 
     :rtype: `callable`
     """

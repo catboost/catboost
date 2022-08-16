@@ -1,18 +1,22 @@
+# SPDX-License-Identifier: MIT
+
 from __future__ import absolute_import, division, print_function
 
 import copy
 import inspect
 import linecache
 import sys
-import threading
-import uuid
 import warnings
 
 from operator import itemgetter
 
-from . import _config, setters
+# We need to import _compat itself in addition to the _compat members to avoid
+# having the thread-local in the globals here.
+from . import _compat, _config, setters
 from ._compat import (
+    HAS_F_STRINGS,
     PY2,
+    PY310,
     PYPY,
     isclass,
     iteritems,
@@ -56,6 +60,8 @@ _empty_metadata_singleton = metadata_proxy({})
 
 # Unique object for unequivocal getattr() defaults.
 _sentinel = object()
+
+_ng_default_on_setattr = setters.pipe(setters.convert, setters.validate)
 
 
 class _Nothing(object):
@@ -143,11 +149,11 @@ def attrib(
         is used and no value is passed while instantiating or the attribute is
         excluded using ``init=False``.
 
-        If the value is an instance of `Factory`, its callable will be
+        If the value is an instance of `attrs.Factory`, its callable will be
         used to construct a new value (useful for mutable data types like lists
         or dicts).
 
-        If a default is not set (or set manually to `attr.NOTHING`), a value
+        If a default is not set (or set manually to `attrs.NOTHING`), a value
         *must* be supplied when instantiating; otherwise a `TypeError`
         will be raised.
 
@@ -160,7 +166,7 @@ def attrib(
 
     :param validator: `callable` that is called by ``attrs``-generated
         ``__init__`` methods after the instance has been initialized.  They
-        receive the initialized instance, the `Attribute`, and the
+        receive the initialized instance, the :func:`~attrs.Attribute`, and the
         passed value.
 
         The return value is *not* inspected so the validator has to throw an
@@ -233,10 +239,10 @@ def attrib(
         parameter is ignored).
     :param on_setattr: Allows to overwrite the *on_setattr* setting from
         `attr.s`. If left `None`, the *on_setattr* value from `attr.s` is used.
-        Set to `attr.setters.NO_OP` to run **no** `setattr` hooks for this
+        Set to `attrs.setters.NO_OP` to run **no** `setattr` hooks for this
         attribute -- regardless of the setting in `attr.s`.
     :type on_setattr: `callable`, or a list of callables, or `None`, or
-        `attr.setters.NO_OP`
+        `attrs.setters.NO_OP`
 
     .. versionadded:: 15.2.0 *convert*
     .. versionadded:: 16.3.0 *metadata*
@@ -327,16 +333,25 @@ def _make_method(name, script, filename, globs=None):
     if globs is None:
         globs = {}
 
-    _compile_and_eval(script, globs, locs, filename)
-
     # In order of debuggers like PDB being able to step through the code,
     # we add a fake linecache entry.
-    linecache.cache[filename] = (
-        len(script),
-        None,
-        script.splitlines(True),
-        filename,
-    )
+    count = 1
+    base_filename = filename
+    while True:
+        linecache_tuple = (
+            len(script),
+            None,
+            script.splitlines(True),
+            filename,
+        )
+        old_val = linecache.cache.setdefault(filename, linecache_tuple)
+        if old_val == linecache_tuple:
+            break
+        else:
+            filename = "{}-{}>".format(base_filename[:-1], count)
+            count += 1
+
+    _compile_and_eval(script, globs, locs, filename)
 
     return locs[name]
 
@@ -571,15 +586,11 @@ def _transform_attrs(
             cls, {a.name for a in own_attrs}
         )
 
-    attr_names = [a.name for a in base_attrs + own_attrs]
-
-    AttrsClass = _make_attr_tuple_class(cls.__name__, attr_names)
-
     if kw_only:
         own_attrs = [a.evolve(kw_only=True) for a in own_attrs]
         base_attrs = [a.evolve(kw_only=True) for a in base_attrs]
 
-    attrs = AttrsClass(base_attrs + own_attrs)
+    attrs = base_attrs + own_attrs
 
     # Mandatory vs non-mandatory attr order only matters when they are part of
     # the __init__ signature and when they aren't kw_only (which are moved to
@@ -598,7 +609,13 @@ def _transform_attrs(
 
     if field_transformer is not None:
         attrs = field_transformer(cls, attrs)
-    return _Attributes((attrs, base_attrs, base_attr_map))
+
+    # Create AttrsClass *after* applying the field_transformer since it may
+    # add or remove attributes!
+    attr_names = [a.name for a in attrs]
+    AttrsClass = _make_attr_tuple_class(cls.__name__, attr_names)
+
+    return _Attributes((AttrsClass(attrs), base_attrs, base_attr_map))
 
 
 if PYPY:
@@ -615,7 +632,6 @@ if PYPY:
             return
 
         raise FrozenInstanceError()
-
 
 else:
 
@@ -654,7 +670,7 @@ class _ClassBuilder(object):
         "_on_setattr",
         "_slots",
         "_weakref_slot",
-        "_has_own_setattr",
+        "_wrote_own_setattr",
         "_has_custom_setattr",
     )
 
@@ -701,7 +717,7 @@ class _ClassBuilder(object):
         self._on_setattr = on_setattr
 
         self._has_custom_setattr = has_custom_setattr
-        self._has_own_setattr = False
+        self._wrote_own_setattr = False
 
         self._cls_dict["__attrs_attrs__"] = self._attrs
 
@@ -709,7 +725,33 @@ class _ClassBuilder(object):
             self._cls_dict["__setattr__"] = _frozen_setattrs
             self._cls_dict["__delattr__"] = _frozen_delattrs
 
-            self._has_own_setattr = True
+            self._wrote_own_setattr = True
+        elif on_setattr in (
+            _ng_default_on_setattr,
+            setters.validate,
+            setters.convert,
+        ):
+            has_validator = has_converter = False
+            for a in attrs:
+                if a.validator is not None:
+                    has_validator = True
+                if a.converter is not None:
+                    has_converter = True
+
+                if has_validator and has_converter:
+                    break
+            if (
+                (
+                    on_setattr == _ng_default_on_setattr
+                    and not (has_validator or has_converter)
+                )
+                or (on_setattr == setters.validate and not has_validator)
+                or (on_setattr == setters.convert and not has_converter)
+            ):
+                # If class-level on_setattr is set to convert + validate, but
+                # there's no field to convert or validate, pretend like there's
+                # no on_setattr.
+                self._on_setattr = None
 
         if getstate_setstate:
             (
@@ -759,7 +801,7 @@ class _ClassBuilder(object):
 
         # If we've inherited an attrs __setattr__ and don't write our own,
         # reset it to object's.
-        if not self._has_own_setattr and getattr(
+        if not self._wrote_own_setattr and getattr(
             cls, "__attrs_own_setattr__", False
         ):
             cls.__attrs_own_setattr__ = False
@@ -787,7 +829,7 @@ class _ClassBuilder(object):
         # XXX: a non-attrs class and subclass the resulting class with an attrs
         # XXX: class.  See `test_slotted_confused` for details.  For now that's
         # XXX: OK with us.
-        if not self._has_own_setattr:
+        if not self._wrote_own_setattr:
             cd["__attrs_own_setattr__"] = False
 
             if not self._has_custom_setattr:
@@ -847,7 +889,7 @@ class _ClassBuilder(object):
         cls = type(self._cls)(self._cls.__name__, self._cls.__bases__, cd)
 
         # The following is a fix for
-        # https://github.com/python-attrs/attrs/issues/102.  On Python 3,
+        # <https://github.com/python-attrs/attrs/issues/102>.  On Python 3,
         # if a method mentions `__class__` or uses the no-arg super(), the
         # compiler will bake a reference to the class in the method itself
         # as `method.__closure__`.  Since we replace the class with a
@@ -879,7 +921,7 @@ class _ClassBuilder(object):
 
     def add_repr(self, ns):
         self._cls_dict["__repr__"] = self._add_method_dunders(
-            _make_repr(self._attrs, ns=ns)
+            _make_repr(self._attrs, ns, self._cls)
         )
         return self
 
@@ -958,13 +1000,19 @@ class _ClassBuilder(object):
                 self._cache_hash,
                 self._base_attr_map,
                 self._is_exc,
-                self._on_setattr is not None
-                and self._on_setattr is not setters.NO_OP,
+                self._on_setattr,
                 attrs_init=False,
             )
         )
 
         return self
+
+    def add_match_args(self):
+        self._cls_dict["__match_args__"] = tuple(
+            field.name
+            for field in self._attrs
+            if field.init and not field.kw_only
+        )
 
     def add_attrs_init(self):
         self._cls_dict["__attrs_init__"] = self._add_method_dunders(
@@ -978,8 +1026,7 @@ class _ClassBuilder(object):
                 self._cache_hash,
                 self._base_attr_map,
                 self._is_exc,
-                self._on_setattr is not None
-                and self._on_setattr is not setters.NO_OP,
+                self._on_setattr,
                 attrs_init=True,
             )
         )
@@ -1038,7 +1085,7 @@ class _ClassBuilder(object):
 
         self._cls_dict["__attrs_own_setattr__"] = True
         self._cls_dict["__setattr__"] = self._add_method_dunders(__setattr__)
-        self._has_own_setattr = True
+        self._wrote_own_setattr = True
 
         return self
 
@@ -1192,6 +1239,7 @@ def attrs(
     getstate_setstate=None,
     on_setattr=None,
     field_transformer=None,
+    match_args=True,
 ):
     r"""
     A class decorator that adds `dunder
@@ -1240,7 +1288,7 @@ def attrs(
         *cmp*, or *hash* overrides whatever *auto_detect* would determine.
 
         *auto_detect* requires Python 3. Setting it ``True`` on Python 2 raises
-        a `PythonTooOldError`.
+        an `attrs.exceptions.PythonTooOldError`.
 
     :param bool repr: Create a ``__repr__`` method with a human readable
         representation of ``attrs`` attributes..
@@ -1327,7 +1375,7 @@ def attrs(
 
         If you assign a value to those attributes (e.g. ``x: int = 42``), that
         value becomes the default value like if it were passed using
-        ``attr.ib(default=42)``.  Passing an instance of `Factory` also
+        ``attr.ib(default=42)``.  Passing an instance of `attrs.Factory` also
         works as expected in most cases (see warning below).
 
         Attributes annotated as `typing.ClassVar`, and attributes that are
@@ -1369,7 +1417,7 @@ def attrs(
     :param bool collect_by_mro: Setting this to `True` fixes the way ``attrs``
        collects attributes from base classes.  The default behavior is
        incorrect in certain cases of multiple inheritance.  It should be on by
-       default but is kept off for backward-compatability.
+       default but is kept off for backward-compatibility.
 
        See issue `#428 <https://github.com/python-attrs/attrs/issues/428>`_ for
        more details.
@@ -1399,13 +1447,20 @@ def attrs(
         the callable.
 
         If a list of callables is passed, they're automatically wrapped in an
-        `attr.setters.pipe`.
+        `attrs.setters.pipe`.
 
     :param Optional[callable] field_transformer:
         A function that is called with the original class object and all
         fields right before ``attrs`` finalizes the class.  You can use
         this, e.g., to automatically add converters or validators to
         fields based on their types.  See `transform-fields` for more details.
+
+    :param bool match_args:
+        If `True` (default), set ``__match_args__`` on the class to support
+        `PEP 634 <https://www.python.org/dev/peps/pep-0634/>`_ (Structural
+        Pattern Matching). It is a tuple of all positional-only ``__init__``
+        parameter names on Python 3.10 and later. Ignored on older Python
+        versions.
 
     .. versionadded:: 16.0.0 *slots*
     .. versionadded:: 16.1.0 *frozen*
@@ -1440,6 +1495,7 @@ def attrs(
        ``init=False`` injects ``__attrs_init__``
     .. versionchanged:: 21.1.0 Support for ``__attrs_pre_init__``
     .. versionchanged:: 21.1.0 *cmp* undeprecated
+    .. versionadded:: 21.3.0 *match_args*
     """
     if auto_detect and PY2:
         raise PythonTooOldError(
@@ -1556,6 +1612,13 @@ def attrs(
                     " init must be True."
                 )
 
+        if (
+            PY310
+            and match_args
+            and not _has_own_attribute(cls, "__match_args__")
+        ):
+            builder.add_match_args()
+
         return builder.build_class()
 
     # maybe_cls's type depends on the usage of the decorator.  It's a class
@@ -1586,7 +1649,6 @@ if PY2:
             and cls.__setattr__.__name__ == _frozen_setattrs.__name__
         )
 
-
 else:
 
     def _has_frozen_base_class(cls):
@@ -1601,30 +1663,12 @@ def _generate_unique_filename(cls, func_name):
     """
     Create a "filename" suitable for a function being generated.
     """
-    unique_id = uuid.uuid4()
-    extra = ""
-    count = 1
-
-    while True:
-        unique_filename = "<attrs generated {0} {1}.{2}{3}>".format(
-            func_name,
-            cls.__module__,
-            getattr(cls, "__qualname__", cls.__name__),
-            extra,
-        )
-        # To handle concurrency we essentially "reserve" our spot in
-        # the linecache with a dummy line.  The caller can then
-        # set this value correctly.
-        cache_line = (1, None, (str(unique_id),), unique_filename)
-        if (
-            linecache.cache.setdefault(unique_filename, cache_line)
-            == cache_line
-        ):
-            return unique_filename
-
-        # Looks like this spot is taken. Try again.
-        count += 1
-        extra = "-{0}".format(count)
+    unique_filename = "<attrs generated {0} {1}.{2}>".format(
+        func_name,
+        cls.__module__,
+        getattr(cls, "__qualname__", cls.__name__),
+    )
+    return unique_filename
 
 
 def _make_hash(cls, attrs, frozen, cache_hash):
@@ -1841,66 +1885,134 @@ def _add_eq(cls, attrs=None):
     return cls
 
 
-_already_repring = threading.local()
+if HAS_F_STRINGS:
 
+    def _make_repr(attrs, ns, cls):
+        unique_filename = "repr"
+        # Figure out which attributes to include, and which function to use to
+        # format them. The a.repr value can be either bool or a custom
+        # callable.
+        attr_names_with_reprs = tuple(
+            (a.name, (repr if a.repr is True else a.repr), a.init)
+            for a in attrs
+            if a.repr is not False
+        )
+        globs = {
+            name + "_repr": r
+            for name, r, _ in attr_names_with_reprs
+            if r != repr
+        }
+        globs["_compat"] = _compat
+        globs["AttributeError"] = AttributeError
+        globs["NOTHING"] = NOTHING
+        attribute_fragments = []
+        for name, r, i in attr_names_with_reprs:
+            accessor = (
+                "self." + name
+                if i
+                else 'getattr(self, "' + name + '", NOTHING)'
+            )
+            fragment = (
+                "%s={%s!r}" % (name, accessor)
+                if r == repr
+                else "%s={%s_repr(%s)}" % (name, name, accessor)
+            )
+            attribute_fragments.append(fragment)
+        repr_fragment = ", ".join(attribute_fragments)
 
-def _make_repr(attrs, ns):
-    """
-    Make a repr method that includes relevant *attrs*, adding *ns* to the full
-    name.
-    """
-
-    # Figure out which attributes to include, and which function to use to
-    # format them. The a.repr value can be either bool or a custom callable.
-    attr_names_with_reprs = tuple(
-        (a.name, repr if a.repr is True else a.repr)
-        for a in attrs
-        if a.repr is not False
-    )
-
-    def __repr__(self):
-        """
-        Automatically created by attrs.
-        """
-        try:
-            working_set = _already_repring.working_set
-        except AttributeError:
-            working_set = set()
-            _already_repring.working_set = working_set
-
-        if id(self) in working_set:
-            return "..."
-        real_cls = self.__class__
         if ns is None:
-            qualname = getattr(real_cls, "__qualname__", None)
-            if qualname is not None:
-                class_name = qualname.rsplit(">.", 1)[-1]
-            else:
-                class_name = real_cls.__name__
+            cls_name_fragment = (
+                '{self.__class__.__qualname__.rsplit(">.", 1)[-1]}'
+            )
         else:
-            class_name = ns + "." + real_cls.__name__
+            cls_name_fragment = ns + ".{self.__class__.__name__}"
 
-        # Since 'self' remains on the stack (i.e.: strongly referenced) for the
-        # duration of this call, it's safe to depend on id(...) stability, and
-        # not need to track the instance and therefore worry about properties
-        # like weakref- or hash-ability.
-        working_set.add(id(self))
-        try:
-            result = [class_name, "("]
-            first = True
-            for name, attr_repr in attr_names_with_reprs:
-                if first:
-                    first = False
+        lines = [
+            "def __repr__(self):",
+            "  try:",
+            "    already_repring = _compat.repr_context.already_repring",
+            "  except AttributeError:",
+            "    already_repring = {id(self),}",
+            "    _compat.repr_context.already_repring = already_repring",
+            "  else:",
+            "    if id(self) in already_repring:",
+            "      return '...'",
+            "    else:",
+            "      already_repring.add(id(self))",
+            "  try:",
+            "    return f'%s(%s)'" % (cls_name_fragment, repr_fragment),
+            "  finally:",
+            "    already_repring.remove(id(self))",
+        ]
+
+        return _make_method(
+            "__repr__", "\n".join(lines), unique_filename, globs=globs
+        )
+
+else:
+
+    def _make_repr(attrs, ns, _):
+        """
+        Make a repr method that includes relevant *attrs*, adding *ns* to the
+        full name.
+        """
+
+        # Figure out which attributes to include, and which function to use to
+        # format them. The a.repr value can be either bool or a custom
+        # callable.
+        attr_names_with_reprs = tuple(
+            (a.name, repr if a.repr is True else a.repr)
+            for a in attrs
+            if a.repr is not False
+        )
+
+        def __repr__(self):
+            """
+            Automatically created by attrs.
+            """
+            try:
+                already_repring = _compat.repr_context.already_repring
+            except AttributeError:
+                already_repring = set()
+                _compat.repr_context.already_repring = already_repring
+
+            if id(self) in already_repring:
+                return "..."
+            real_cls = self.__class__
+            if ns is None:
+                qualname = getattr(real_cls, "__qualname__", None)
+                if qualname is not None:  # pragma: no cover
+                    # This case only happens on Python 3.5 and 3.6. We exclude
+                    # it from coverage, because we don't want to slow down our
+                    # test suite by running them under coverage too for this
+                    # one line.
+                    class_name = qualname.rsplit(">.", 1)[-1]
                 else:
-                    result.append(", ")
-                result.extend(
-                    (name, "=", attr_repr(getattr(self, name, NOTHING)))
-                )
-            return "".join(result) + ")"
-        finally:
-            working_set.remove(id(self))
+                    class_name = real_cls.__name__
+            else:
+                class_name = ns + "." + real_cls.__name__
 
-    return __repr__
+            # Since 'self' remains on the stack (i.e.: strongly referenced)
+            # for the duration of this call, it's safe to depend on id(...)
+            # stability, and not need to track the instance and therefore
+            # worry about properties like weakref- or hash-ability.
+            already_repring.add(id(self))
+            try:
+                result = [class_name, "("]
+                first = True
+                for name, attr_repr in attr_names_with_reprs:
+                    if first:
+                        first = False
+                    else:
+                        result.append(", ")
+                    result.extend(
+                        (name, "=", attr_repr(getattr(self, name, NOTHING)))
+                    )
+                return "".join(result) + ")"
+            finally:
+                already_repring.remove(id(self))
+
+        return __repr__
 
 
 def _add_repr(cls, ns=None, attrs=None):
@@ -1910,7 +2022,7 @@ def _add_repr(cls, ns=None, attrs=None):
     if attrs is None:
         attrs = cls.__attrs_attrs__
 
-    cls.__repr__ = _make_repr(attrs, ns)
+    cls.__repr__ = _make_repr(attrs, ns, cls)
     return cls
 
 
@@ -1927,7 +2039,7 @@ def fields(cls):
     :raise attr.exceptions.NotAnAttrsClassError: If *cls* is not an ``attrs``
         class.
 
-    :rtype: tuple (with name accessors) of `attr.Attribute`
+    :rtype: tuple (with name accessors) of `attrs.Attribute`
 
     ..  versionchanged:: 16.2.0 Returned tuple allows accessing the fields
         by name.
@@ -1954,7 +2066,7 @@ def fields_dict(cls):
         class.
 
     :rtype: an ordered dict where keys are attribute names and values are
-        `attr.Attribute`\\ s. This will be a `dict` if it's
+        `attrs.Attribute`\\ s. This will be a `dict` if it's
         naturally ordered like on Python 3.6+ or an
         :class:`~collections.OrderedDict` otherwise.
 
@@ -2008,10 +2120,14 @@ def _make_init(
     cache_hash,
     base_attr_map,
     is_exc,
-    has_global_on_setattr,
+    cls_on_setattr,
     attrs_init,
 ):
-    if frozen and has_global_on_setattr:
+    has_cls_on_setattr = (
+        cls_on_setattr is not None and cls_on_setattr is not setters.NO_OP
+    )
+
+    if frozen and has_cls_on_setattr:
         raise ValueError("Frozen classes can't use on_setattr.")
 
     needs_cached_setattr = cache_hash or frozen
@@ -2029,9 +2145,7 @@ def _make_init(
                 raise ValueError("Frozen classes can't use on_setattr.")
 
             needs_cached_setattr = True
-        elif (
-            has_global_on_setattr and a.on_setattr is not setters.NO_OP
-        ) or _is_slot_attr(a.name, base_attr_map):
+        elif has_cls_on_setattr and a.on_setattr is not setters.NO_OP:
             needs_cached_setattr = True
 
     unique_filename = _generate_unique_filename(cls, "init")
@@ -2046,7 +2160,7 @@ def _make_init(
         base_attr_map,
         is_exc,
         needs_cached_setattr,
-        has_global_on_setattr,
+        has_cls_on_setattr,
         attrs_init,
     )
     if cls.__module__ in sys.modules:
@@ -2183,7 +2297,7 @@ def _attrs_to_init_script(
     base_attr_map,
     is_exc,
     needs_cached_setattr,
-    has_global_on_setattr,
+    has_cls_on_setattr,
     attrs_init,
 ):
     """
@@ -2257,7 +2371,7 @@ def _attrs_to_init_script(
 
         attr_name = a.name
         has_on_setattr = a.on_setattr is not None or (
-            a.on_setattr is not setters.NO_OP and has_global_on_setattr
+            a.on_setattr is not setters.NO_OP and has_cls_on_setattr
         )
         arg_name = a.name.lstrip("_")
 
@@ -2474,19 +2588,26 @@ class Attribute(object):
     """
     *Read-only* representation of an attribute.
 
+    The class has *all* arguments of `attr.ib` (except for ``factory``
+    which is only syntactic sugar for ``default=Factory(...)`` plus the
+    following:
+
+    - ``name`` (`str`): The name of the attribute.
+    - ``inherited`` (`bool`): Whether or not that attribute has been inherited
+      from a base class.
+    - ``eq_key`` and ``order_key`` (`typing.Callable` or `None`): The callables
+      that are used for comparing and ordering objects by this attribute,
+      respectively. These are set by passing a callable to `attr.ib`'s ``eq``,
+      ``order``, or ``cmp`` arguments. See also :ref:`comparison customization
+      <custom-comparison>`.
+
     Instances of this class are frequently used for introspection purposes
     like:
 
     - `fields` returns a tuple of them.
     - Validators get them passed as the first argument.
-    - The *field transformer* hook receives a list of them.
-
-    :attribute name: The name of the attribute.
-    :attribute inherited: Whether or not that attribute has been inherited from
-        a base class.
-
-    Plus *all* arguments of `attr.ib` (except for ``factory``
-    which is only syntactic sugar for ``default=Factory(...)``.
+    - The :ref:`field transformer <transform-fields>` hook receives a list of
+      them.
 
     .. versionadded:: 20.1.0 *inherited*
     .. versionadded:: 20.1.0 *on_setattr*
@@ -2832,7 +2953,7 @@ class Factory(object):
     """
     Stores a factory callable.
 
-    If passed as the default value to `attr.ib`, the factory is used to
+    If passed as the default value to `attrs.field`, the factory is used to
     generate a new value.
 
     :param callable factory: A callable that takes either none or exactly one
