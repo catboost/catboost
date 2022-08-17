@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "CatBoost widget for plots in Jupyter",
   "main": "src/index.js",
+  "files": [
+    "src/**/*",
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "webpack --mode=production && jupyter labextension build .",
     "clean": "rimraf dist && rimraf ../nbextension && rimraf ../labextension",
