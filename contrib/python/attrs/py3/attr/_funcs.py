@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: MIT
 
-from __future__ import absolute_import, division, print_function
 
 import copy
 
-from ._compat import iteritems
 from ._make import NOTHING, _obj_setattr, fields
 from .exceptions import AttrsAttributeNotFoundError
 
@@ -107,7 +105,7 @@ def asdict(
                             value_serializer=value_serializer,
                         ),
                     )
-                    for kk, vv in iteritems(v)
+                    for kk, vv in v.items()
                 )
             else:
                 rv[a.name] = v
@@ -179,7 +177,7 @@ def _asdict_anything(
                     value_serializer=value_serializer,
                 ),
             )
-            for kk, vv in iteritems(val)
+            for kk, vv in val.items()
         )
     else:
         rv = val
@@ -278,7 +276,7 @@ def astuple(
                             if has(vv.__class__)
                             else vv,
                         )
-                        for kk, vv in iteritems(v)
+                        for kk, vv in v.items()
                     )
                 )
             else:
@@ -329,7 +327,7 @@ def assoc(inst, **changes):
     )
     new = copy.copy(inst)
     attrs = fields(inst.__class__)
-    for k, v in iteritems(changes):
+    for k, v in changes.items():
         a = getattr(attrs, k, NOTHING)
         if a is NOTHING:
             raise AttrsAttributeNotFoundError(

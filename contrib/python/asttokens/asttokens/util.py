@@ -24,7 +24,7 @@ from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union, cast,
 from six import iteritems
 
 if TYPE_CHECKING:
-  from astroid.node_classes import NodeNG  # type: ignore[import]
+  from astroid.node_classes import NodeNG
 
   # Type class used to expand out the definition of AST to include fields added by this library
   # It's not actually used for anything other than type checking though!

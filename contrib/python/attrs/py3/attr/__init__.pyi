@@ -3,11 +3,13 @@ import sys
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     List,
     Mapping,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     Type,
@@ -22,6 +24,7 @@ from . import exceptions as exceptions
 from . import filters as filters
 from . import setters as setters
 from . import validators as validators
+from ._cmp import cmp_using as cmp_using
 from ._version_info import VersionInfo
 
 __version__: str
@@ -51,11 +54,14 @@ _OnSetAttrArgType = Union[
 _FieldTransformer = Callable[
     [type, List[Attribute[Any]]], List[Attribute[Any]]
 ]
-_CompareWithType = Callable[[Any, Any], bool]
 # FIXME: in reality, if multiple validators are passed they must be in a list
 # or tuple, but those are invariant and so would prevent subtypes of
 # _ValidatorType from working when passed in a list or tuple.
 _ValidatorArgType = Union[_ValidatorType[_T], Sequence[_ValidatorType[_T]]]
+
+# A protocol to be able to statically accept an attrs class.
+class AttrsInstance(Protocol):
+    __attrs_attrs__: ClassVar[Any]
 
 # _make --
 
@@ -399,13 +405,9 @@ def define(
 mutable = define
 frozen = define  # they differ only in their defaults
 
-# TODO: add support for returning NamedTuple from the mypy plugin
-class _Fields(Tuple[Attribute[Any], ...]):
-    def __getattr__(self, name: str) -> Attribute[Any]: ...
-
-def fields(cls: type) -> _Fields: ...
-def fields_dict(cls: type) -> Dict[str, Attribute[Any]]: ...
-def validate(inst: Any) -> None: ...
+def fields(cls: Type[AttrsInstance]) -> Any: ...
+def fields_dict(cls: Type[AttrsInstance]) -> Dict[str, Attribute[Any]]: ...
+def validate(inst: AttrsInstance) -> None: ...
 def resolve_types(
     cls: _C,
     globalns: Optional[Dict[str, Any]] = ...,
@@ -449,7 +451,7 @@ def make_class(
 # https://github.com/python/typing/issues/253
 # XXX: remember to fix attrs.asdict/astuple too!
 def asdict(
-    inst: Any,
+    inst: AttrsInstance,
     recurse: bool = ...,
     filter: Optional[_FilterType[Any]] = ...,
     dict_factory: Type[Mapping[Any, Any]] = ...,
@@ -462,7 +464,7 @@ def asdict(
 
 # TODO: add support for returning NamedTuple from the mypy plugin
 def astuple(
-    inst: Any,
+    inst: AttrsInstance,
     recurse: bool = ...,
     filter: Optional[_FilterType[Any]] = ...,
     tuple_factory: Type[Sequence[Any]] = ...,

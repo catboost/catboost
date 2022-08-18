@@ -15,12 +15,15 @@
       <a href="https://pypi.org/project/attrs/">
          <img src="https://img.shields.io/pypi/v/attrs" />
       </a>
+      <a href="https://pepy.tech/project/attrs">
+         <img src="https://static.pepy.tech/personalized-badge/attrs?period=month&units=international_system&left_color=grey&right_color=blue&left_text=Downloads%20/%20Month" alt="Downloads per month" />
+      </a>
    </p>
 
 .. teaser-begin
 
 ``attrs`` is the Python package that will bring back the **joy** of **writing classes** by relieving you from the drudgery of implementing object protocols (aka `dunder methods <https://www.attrs.org/en/latest/glossary.html#term-dunder-methods>`_).
-`Trusted by NASA <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/personalizing-your-profile#list-of-qualifying-repositories-for-mars-2020-helicopter-contributor-badge>`_ for Mars missions since 2020!
+`Trusted by NASA <https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/personalizing-your-profile#list-of-qualifying-repositories-for-mars-2020-helicopter-contributor-achievement>`_ for Mars missions since 2020!
 
 Its main goal is to help you to write **concise** and **correct** software without slowing down your code.
 
@@ -65,11 +68,11 @@ For that, it gives you a class decorator and a way to declaratively define the a
    C(a='foo', b='bar')
 
 
-After *declaring* your attributes ``attrs`` gives you:
+After *declaring* your attributes, ``attrs`` gives you:
 
 - a concise and explicit overview of the class's attributes,
 - a nice human-readable ``__repr__``,
-- a equality-checking methods,
+- equality-checking methods,
 - an initializer,
 - and much more,
 
@@ -82,8 +85,8 @@ Simply assign ``attrs.field()`` to the attributes instead of annotating them wit
 
 ----
 
-This example uses ``attrs``'s `modern APIs <https://www.attrs.org/en/stable/api.html#next-generation-apis>`_ that have been introduced in version 20.1.0, and the ``attrs`` package import name that has been added in version 21.3.0.
-The classic APIs (``@attr.s``, ``attr.ib``, plus their serious business aliases) and the ``attr`` package import name will remain **indefinitely**.
+This example uses ``attrs``'s modern APIs that have been introduced in version 20.1.0, and the ``attrs`` package import name that has been added in version 21.3.0.
+The classic APIs (``@attr.s``, ``attr.ib``, plus their serious-business aliases) and the ``attr`` package import name will remain **indefinitely**.
 
 Please check out `On The Core API Names <https://www.attrs.org/en/latest/names.html>`_ for a more in-depth explanation.
 
@@ -91,36 +94,25 @@ Please check out `On The Core API Names <https://www.attrs.org/en/latest/names.h
 Data Classes
 ============
 
-On the tin, ``attrs`` might remind you of ``dataclasses`` (and indeed, ``dataclasses`` are a descendant of ``attrs``).
-In practice it does a lot more more and is more flexible.
+On the tin, ``attrs`` might remind you of ``dataclasses`` (and indeed, ``dataclasses`` `are a descendant <https://hynek.me/articles/import-attrs/>`_ of ``attrs``).
+In practice it does a lot more and is more flexible.
 For instance it allows you to define `special handling of NumPy arrays for equality checks <https://www.attrs.org/en/stable/comparison.html#customization>`_, or allows more ways to `plug into the initialization process <https://www.attrs.org/en/stable/init.html#hooking-yourself-into-initialization>`_.
 
 For more details, please refer to our `comparison page <https://www.attrs.org/en/stable/why.html#data-classes>`_.
-
-
-.. -getting-help-
-
-Getting Help
-============
-
-Please use the ``python-attrs`` tag on `Stack Overflow <https://stackoverflow.com/questions/tagged/python-attrs>`_ to get help.
-
-Answering questions of your fellow developers is also a great way to help the project!
-
 
 .. -project-information-
 
 Project Information
 ===================
 
-``attrs`` is released under the `MIT <https://choosealicense.com/licenses/mit/>`_ license,
-its documentation lives at `Read the Docs <https://www.attrs.org/>`_,
-the code on `GitHub <https://github.com/python-attrs/attrs>`_,
-and the latest release on `PyPI <https://pypi.org/project/attrs/>`_.
-It’s rigorously tested on Python 2.7, 3.5+, and PyPy.
-
-We collect information on **third-party extensions** in our `wiki <https://github.com/python-attrs/attrs/wiki/Extensions-to-attrs>`_.
-Feel free to browse and add your own!
+- **License**: `MIT <https://choosealicense.com/licenses/mit/>`_
+- **PyPI**: https://pypi.org/project/attrs/
+- **Source Code**: https://github.com/python-attrs/attrs
+- **Documentation**:  https://www.attrs.org/
+- **Changelog**: https://www.attrs.org/en/stable/changelog.html
+- **Get Help**: please use the ``python-attrs`` tag on `StackOverflow <https://stackoverflow.com/questions/tagged/python-attrs>`_
+- **Third-party Extensions**: https://github.com/python-attrs/attrs/wiki/Extensions-to-attrs
+- **Supported Python Versions**: 3.5 and later (last 2.7-compatible release is `21.4.0 <https://pypi.org/project/attrs/21.4.0/>`_)
 
 If you'd like to contribute to ``attrs`` you're most welcome and we've written `a little guide <https://github.com/python-attrs/attrs/blob/main/.github/CONTRIBUTING.md>`_ to get you started!
 
