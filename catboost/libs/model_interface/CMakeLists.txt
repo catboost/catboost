@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(static)
 
 add_library(catboostmodel SHARED)
 target_link_libraries(catboostmodel PUBLIC

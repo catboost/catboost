@@ -7,6 +7,7 @@
 
 
 find_package(OpenSSL REQUIRED)
+add_subdirectory(asio)
 
 add_library(library-cpp-neh)
 target_link_libraries(library-cpp-neh PUBLIC

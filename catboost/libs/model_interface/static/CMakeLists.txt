@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(lib)
 
 add_fat_object(libcatboostmodel)
 target_link_libraries(libcatboostmodel PUBLIC

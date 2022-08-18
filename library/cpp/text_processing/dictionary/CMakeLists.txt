@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(idl)
 
 add_library(cpp-text_processing-dictionary)
 target_link_libraries(cpp-text_processing-dictionary PUBLIC

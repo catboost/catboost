@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(no_cuda)
 
 add_library(_catboost SHARED)
 target_compile_options(_catboost PRIVATE

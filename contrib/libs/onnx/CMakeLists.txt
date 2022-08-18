@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(proto)
 
 add_library(contrib-libs-onnx)
 target_compile_options(contrib-libs-onnx PUBLIC

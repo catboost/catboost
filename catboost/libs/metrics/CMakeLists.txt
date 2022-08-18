@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(catboost-libs-metrics)
 target_link_libraries(catboost-libs-metrics PUBLIC

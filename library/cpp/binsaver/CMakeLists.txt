@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut_util)
 
 add_library(library-cpp-binsaver)
 target_link_libraries(library-cpp-binsaver PUBLIC

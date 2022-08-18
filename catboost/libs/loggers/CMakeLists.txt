@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(tensorboard_logger_example)
 
 add_library(catboost-libs-loggers)
 target_link_libraries(catboost-libs-loggers PUBLIC

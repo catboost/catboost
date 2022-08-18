@@ -6,6 +6,9 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(flatbuffers)
+add_subdirectory(model_export)
+add_subdirectory(ut)
 
 add_library(catboost-libs-model)
 target_link_libraries(catboost-libs-model PUBLIC

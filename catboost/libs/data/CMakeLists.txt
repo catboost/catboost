@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(catboost-libs-data)
 target_link_libraries(catboost-libs-data PUBLIC

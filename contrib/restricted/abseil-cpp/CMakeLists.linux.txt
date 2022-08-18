@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(absl)
 
 add_library(contrib-restricted-abseil-cpp INTERFACE)
 target_link_libraries(contrib-restricted-abseil-cpp INTERFACE

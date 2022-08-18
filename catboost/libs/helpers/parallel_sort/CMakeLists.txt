@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(libs-helpers-parallel_sort)
 target_link_libraries(libs-helpers-parallel_sort PUBLIC

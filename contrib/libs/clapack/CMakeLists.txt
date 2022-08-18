@@ -6,6 +6,8 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(part1)
+add_subdirectory(part2)
 
 add_library(contrib-libs-clapack INTERFACE)
 target_link_libraries(contrib-libs-clapack INTERFACE

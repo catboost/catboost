@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+add_subdirectory(ut)
 
 add_library(private-libs-feature_estimator)
 target_link_libraries(private-libs-feature_estimator PUBLIC
