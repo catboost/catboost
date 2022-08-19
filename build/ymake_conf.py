@@ -794,14 +794,6 @@ class System(object):
         emit('REALPRJNAME')
         emit('SONAME')
 
-    @staticmethod
-    def print_linux_const():
-        print('''
-when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
-    C_SYSTEM_LIBRARIES_INTERCEPT+=-ldmalloc
-}
-''')
-
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
         emit('CANONIZED_TARGET_PLATFORM', self.platform.canonized_platform)
@@ -822,8 +814,6 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
         if self.platform.is_posix:
             self.print_nix_target_const()
-            if self.platform.is_linux:
-                self.print_linux_const()
         elif self.platform.is_windows:
             self.print_windows_target_const()
 
