@@ -5,7 +5,6 @@
 
 #include <util/generic/maybe.h>
 #include <util/string/split.h>
-#include <util/string/join.h>
 #include <util/string/strip.h>
 #include <util/string/type.h>
 #include <util/system/spinlock.h>
