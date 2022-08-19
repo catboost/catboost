@@ -100,6 +100,7 @@ See the [changelog](CHANGELOG.md) for details about specific releases.
 
 | CUB Release               | Included In                             |
 | ------------------------- | --------------------------------------- |
+| 1.17.1                    | TBD                                     |
 | 1.17.0                    | TBD                                     |
 | 1.16.0                    | TBD                                     |
 | 1.15.0                    | NVIDIA HPC SDK 22.1 & CUDA Toolkit 11.6 |

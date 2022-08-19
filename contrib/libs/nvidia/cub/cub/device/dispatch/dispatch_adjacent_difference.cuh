@@ -199,30 +199,27 @@ struct DispatchAdjacentDifference : public SelectedPolicy
                                              sizeof(InputT);
 
       void *allocations[1]            = {nullptr};
-      std::size_t allocation_sizes[1] = {first_tile_previous_size};
+      std::size_t allocation_sizes[1] = {MayAlias * first_tile_previous_size};
 
-      if (MayAlias)
+      if (CubDebug(error = AliasTemporaries(d_temp_storage,
+                                            temp_storage_bytes,
+                                            allocations,
+                                            allocation_sizes)))
       {
-        if (CubDebug(error = AliasTemporaries(d_temp_storage,
-                                              temp_storage_bytes,
-                                              allocations,
-                                              allocation_sizes)))
+        break;
+      }
+
+      if (d_temp_storage == nullptr)
+      {
+        // Return if the caller is simply requesting the size of the storage
+        // allocation
+
+        if (temp_storage_bytes == 0)
         {
-          break;
+          temp_storage_bytes = 1;
         }
 
-        if (d_temp_storage == nullptr)
-        {
-          // Return if the caller is simply requesting the size of the storage
-          // allocation
-
-          if (temp_storage_bytes == 0)
-          {
-            temp_storage_bytes = 1;
-          }
-
-          break;
-        }
+        break;
       }
 
       if (num_items == OffsetT{})

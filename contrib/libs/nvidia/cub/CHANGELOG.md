@@ -1,3 +1,15 @@
+# CUB 1.17.1
+
+## Summary
+
+CUB 1.17.1 is a minor bugfix release.
+
+- NVIDIA/cub#508: Ensure that `temp_storage_bytes` is properly set in
+  the `AdjacentDifferenceCopy` device algorithms.
+- NVIDIA/cub#508: Remove excessive calls to the binary operator given to
+  the `AdjacentDifferenceCopy` device algorithms.
+- Fix device-side debug synchronous behavior in `DeviceSegmentedSort`.
+
 # CUB 1.17.0
 
 ## Summary

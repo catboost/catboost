@@ -21,9 +21,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(1.17.0)
+VERSION(1.17.1)
 
-ORIGINAL_SOURCE(https://github.com/NVIDIA/thrust/archive/1.17.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/NVIDIA/thrust/archive/1.17.1.tar.gz)
 
 ADDINCL(
     GLOBAL contrib/libs/nvidia/thrust

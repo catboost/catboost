@@ -143,16 +143,40 @@ struct AgentDifference
     {
       if (IS_FIRST_TILE)
       {
-        BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
-          .SubtractLeft(input, output, difference_op);
+        if (IS_LAST_TILE)
+        {
+          BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
+            .SubtractLeftPartialTile(input,
+                                     output,
+                                     difference_op,
+                                     num_remaining);
+        }
+        else
+        {
+          BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
+            .SubtractLeft(input, output, difference_op);
+        }
       }
       else
       {
-        InputT tile_prev_input = MayAlias ? first_tile_previous[tile_idx]
-                                          : *(input_it + tile_base - 1);
+        InputT tile_prev_input = MayAlias 
+                               ? first_tile_previous[tile_idx]
+                               : *(input_it + tile_base - 1);
 
-        BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
-          .SubtractLeft(input, output, difference_op, tile_prev_input);
+        if (IS_LAST_TILE)
+        {
+          BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
+            .SubtractLeftPartialTile(input,
+                                     output,
+                                     difference_op,
+                                     num_remaining,
+                                     tile_prev_input);
+        }
+        else
+        {
+          BlockAdjacentDifferenceT(temp_storage.adjacent_difference)
+            .SubtractLeft(input, output, difference_op, tile_prev_input);
+        }
       }
     }
     else

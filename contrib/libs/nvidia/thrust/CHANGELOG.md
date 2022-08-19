@@ -1,5 +1,11 @@
 # Changelog
 
+## Thrust 1.17.1
+
+### Summary
+
+Thrust 1.17.1 is a minor bugfix release that provides an updated version of CUB.
+
 ## Thrust 1.17.0
 
 ### Summary
