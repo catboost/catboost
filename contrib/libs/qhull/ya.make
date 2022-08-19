@@ -4,6 +4,7 @@ LIBRARY()
 
 LICENSE(
     LicenseRef-scancode-other-permissive AND
+    LicenseRef-scancode-unknown-license-reference AND
     Qhull
 )
 
@@ -11,9 +12,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(7.2.0)
+VERSION(8.0.2)
 
-ORIGINAL_SOURCE(https://github.com/qhull/qhull/archive/v7.2.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/qhull/qhull/archive/v8.0.2.tar.gz)
 
 ADDINCL(
     contrib/libs/qhull

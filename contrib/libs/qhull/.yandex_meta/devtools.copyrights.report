@@ -29,13 +29,33 @@
 # FILE_INCLUDE - include all file data into licenses text file
 # =======================
 
-KEEP     COPYRIGHT_SERVICE_LABEL c70cb8b6c01d9794054bfd5430ec92c6
+KEEP     COPYRIGHT_SERVICE_LABEL 34e0a31246e1d7eb0ff65ef66d378c6f
 BELONGS ya.make
     License text:
-                            Qhull, Copyright (c) 1993-2015
+                            Qhull, Copyright (c) 1993-2020
     Scancode info:
         Original SPDX id: COPYRIGHT_SERVICE_LABEL
         Score           : 100.00
         Match type      : COPYRIGHT
     Files with this license:
         COPYING.txt [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 4ab8f677719cebeedb283bb6a216f97c
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        COPYING.txt [16:19]
+
+KEEP     COPYRIGHT_SERVICE_LABEL f1888ed6ca6de6682de69237944ec387
+BELONGS ya.make
+    Note: matched license text is too long. Read it in the source files.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        COPYING.txt [16:19]
