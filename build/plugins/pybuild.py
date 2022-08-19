@@ -132,7 +132,7 @@ def add_python_lint_checks(unit, py_ver, files):
                 resolved_files.append(resolved)
         return resolved_files
 
-    if unit.get('LINT_LEVEL_VALUE') == "none":
+    if unit.get('_NO_LINT_VALUE') == "none":
 
         no_lint_allowed_paths = (
             "contrib/",
@@ -150,7 +150,7 @@ def add_python_lint_checks(unit, py_ver, files):
         if not upath.startswith(no_lint_allowed_paths):
             ymake.report_configure_error("NO_LINT() is allowed only in " + ", ".join(no_lint_allowed_paths))
 
-    if files and unit.get('LINT_LEVEL_VALUE') not in ("none", "none_internal"):
+    if files and unit.get('_NO_LINT_VALUE') not in ("none", "none_internal"):
         resolved_files = get_resolved_files()
         flake8_cfg = 'build/config/tests/flake8/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)

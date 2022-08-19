@@ -51,7 +51,7 @@ def on_ts_configure(unit, tsconfig_path):
 
 
 def _setup_eslint(unit):
-    if unit.get('LINT_LEVEL_VALUE') == "none":
+    if unit.get('_NO_LINT_VALUE') == "none":
         return
 
     lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')

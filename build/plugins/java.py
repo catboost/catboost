@@ -220,15 +220,27 @@ def onjava_module(unit, *args):
     unit.set_property(['JAVA_DART_DATA', dart])
     if not idea_only and unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         unit.on_add_classpath_clash_check()
-        if unit.get('LINT_LEVEL_VALUE') != "none":
+        if unit.get('LINT_LEVEL_VALUE') != "none" and unit.get('_NO_LINT_VALUE') != 'none':
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])
 
 
 def on_add_java_style_checks(unit, *args):
-    if unit.get('LINT_LEVEL_VALUE') != "none":
-        # if unit.get('WITH_KOTLIN_VALUE') == 'yes':
-        #     unit.onadd_check(['ktlint'] + list(args))
+    if unit.get('LINT_LEVEL_VALUE') != "none" and unit.get('_NO_LINT_VALUE') != 'none':
         unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')] + list(args))
+
+
+def on_add_kotlin_style_checks(unit, *args):
+    """
+    ktlint can be disabled using NO_LINT() and NO_LINT(ktlint)
+    """
+    if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        no_lint_value = unit.get('_NO_LINT_VALUE')
+        if no_lint_value == '':
+            # unit.onadd_check(['ktlint'] + list(args))
+            pass
+        elif no_lint_value not in ('none', 'none_internal', 'ktlint'):
+            ymake.report_configure_error('Unsupported value for NO_LINT macro: {}'.format(no_lint_value))
+
 
 
 def on_add_classpath_clash_check(unit, *args):
