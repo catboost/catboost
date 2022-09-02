@@ -1,5 +1,4 @@
 set(CMAKE_C_FLAGS "\
-  -m64 \
   -fexceptions \
   -fno-common \
   -fcolor-diagnostics \
@@ -21,26 +20,11 @@ set(CMAKE_C_FLAGS "\
   -D_GNU_SOURCE \
   -D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE \
   -D__LONG_LONG_SUPPORTED \
-  -DSSE_ENABLED=1 \
-  -DSSE3_ENABLED=1 \
-  -DSSSE3_ENABLED=1 \
-  -DSSE41_ENABLED=1 \
-  -DSSE42_ENABLED=1 \
-  -DPOPCNT_ENABLED=1 \
-  -DCX16_ENABLED=1 \
   -D_libunwind_ \
   -DLIBCXX_BUILDING_LIBCXXRT \
-  -msse2 \
-  -msse3 \
-  -mssse3 \
-  -msse4.1 \
-  -msse4.2 \
-  -mpopcnt \
-  -mcx16 \
   "
 )
 set(CMAKE_CXX_FLAGS "\
-  -m64 \
   -fexceptions \
   -fno-common \
   -fcolor-diagnostics \
@@ -62,22 +46,8 @@ set(CMAKE_CXX_FLAGS "\
   -D_GNU_SOURCE \
   -D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE \
   -D__LONG_LONG_SUPPORTED \
-  -DSSE_ENABLED=1 \
-  -DSSE3_ENABLED=1 \
-  -DSSSE3_ENABLED=1 \
-  -DSSE41_ENABLED=1 \
-  -DSSE42_ENABLED=1 \
-  -DPOPCNT_ENABLED=1 \
-  -DCX16_ENABLED=1 \
   -D_libunwind_ \
   -DLIBCXX_BUILDING_LIBCXXRT \
-  -msse2 \
-  -msse3 \
-  -mssse3 \
-  -msse4.1 \
-  -msse4.2 \
-  -mpopcnt \
-  -mcx16 \
   -Woverloaded-virtual \
   -Wimport-preprocessor-directive-pedantic \
   -Wno-undefined-var-template \
@@ -103,4 +73,43 @@ if (APPLE)
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-init-array")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-init-array")
+endif()
+
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  set(CMAKE_CXX_FLAGS "\
+  ${CMAKE_CXX_FLAGS} \
+  -m64 \
+  -DSSE_ENABLED=1 \
+  -DSSE3_ENABLED=1 \
+  -DSSSE3_ENABLED=1 \
+  -DSSE41_ENABLED=1 \
+  -DSSE42_ENABLED=1 \
+  -DPOPCNT_ENABLED=1 \
+  -DCX16_ENABLED=1 \
+  -msse2 \
+  -msse3 \
+  -mssse3 \
+  -msse4.1 \
+  -msse4.2 \
+  -mpopcnt \
+  -mcx16 \
+  ")
+  set(CMAKE_C_FLAGS "\
+  ${CMAKE_C_FLAGS} \
+  -m64 \
+  -msse2 \
+  -msse3 \
+  -mssse3 \
+  -msse4.1 \
+  -msse4.2 \
+  -mpopcnt \
+  -mcx16 \
+  -DSSE_ENABLED=1 \
+  -DSSE3_ENABLED=1 \
+  -DSSSE3_ENABLED=1 \
+  -DSSE41_ENABLED=1 \
+  -DSSE42_ENABLED=1 \
+  -DPOPCNT_ENABLED=1 \
+  -DCX16_ENABLED=1 \
+  ")
 endif()
