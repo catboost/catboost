@@ -1,6 +1,6 @@
 [package]
 name = "catboost-sys"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
 edition = "2018"
 

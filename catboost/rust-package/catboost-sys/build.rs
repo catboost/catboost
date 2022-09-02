@@ -11,15 +11,21 @@ fn main() {
         .canonicalize()
         .unwrap();
 
+    let mut ya_args = vec![
+        "make",
+        "-r",
+        cb_model_interface_root.to_str().unwrap(),
+        "-o",
+        out_dir.to_str().unwrap(),
+    ];
+
+    if target.contains("apple") && target.contains("aarch64") {
+        let mut target_platform_args = vec!["--target-platform", "CLANG12-DARWIN-ARM64"];
+        ya_args.append(&mut target_platform_args);
+    }
+
     Command::new("../../../ya")
-        .args(&[
-            "make",
-            "-r",
-            cb_model_interface_root.to_str().unwrap(),
-            // "--sanitize=address",
-            "-o",
-            out_dir.to_str().unwrap(),
-        ])
+        .args(ya_args)
         .status()
         .unwrap_or_else(|e| {
             panic!("Failed to yamake libcatboostmodel: {}", e);

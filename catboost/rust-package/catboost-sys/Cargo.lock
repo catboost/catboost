@@ -62,7 +62,7 @@ checksum = "228047a76f468627ca71776ecdebd732a3423081fcf5125585bcd7c49886ce12"
 
 [[package]]
 name = "catboost-sys"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bindgen",
 ]
