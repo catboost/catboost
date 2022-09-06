@@ -105,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_360f49b351ecf72704fca77977.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_360f49b351ecf72704fca77977.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_8fef497c67e84bcb5422d8fa99.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.obj" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.obj" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_8fef497c67e84bcb5422d8fa99.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_8fef497c67e84bcb5422d8fa99.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_a7541289be6ac0abe144b6e552.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
@@ -131,33 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_a7541289be6ac0abe144b6e552.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_a7541289be6ac0abe144b6e552.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_c191e818412b9d31e9f2a993fd.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.obj" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.obj" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_c191e818412b9d31e9f2a993fd.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_c191e818412b9d31e9f2a993fd.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_c22094af4670e6a29a09229d93.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -190,11 +190,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm" "-" "." "_88817db6c599ccdbc6b8784e35.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.yasm" "-" "matplotlib_inline.*" "_540192b2dd29e10f74fa3c9b45.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.yasm" "-" "matplotlib_inline.backend_inline" "_d130701021533eba6b6368fc52.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm" "-" "." "_88817db6c599ccdbc6b8784e35.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -205,11 +205,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm" "-" "." "_88817db6c599ccdbc6b8784e35.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.yasm" "-" "matplotlib_inline.*" "_540192b2dd29e10f74fa3c9b45.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.yasm" "-" "matplotlib_inline.backend_inline" "_d130701021533eba6b6368fc52.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm" "-" "." "_88817db6c599ccdbc6b8784e35.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -217,9 +217,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm	$B/contrib/python/matplotlib-inline/_c191e818412b9d31e9f2a993fd.yasm	</Message>
+      <Message>$B/contrib/python/matplotlib-inline/_8fef497c67e84bcb5422d8fa99.yasm	$B/contrib/python/matplotlib-inline/_a7541289be6ac0abe144b6e552.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_a7541289be6ac0abe144b6e552.yasm;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_c191e818412b9d31e9f2a993fd.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_8fef497c67e84bcb5422d8fa99.yasm;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\_a7541289be6ac0abe144b6e552.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\matplotlib-inline\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

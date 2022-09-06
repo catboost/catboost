@@ -79,8 +79,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\360f49b351ecf72704fca77977.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\8fef497c67e84bcb5422d8fa99.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\a7541289be6ac0abe144b6e552.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\c191e818412b9d31e9f2a993fd.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\c22094af4670e6a29a09229d93.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -90,11 +90,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp" "_88817db6c599ccdbc6b8784e35=py/namespace/55af74065d9e0472bc46f6ed648306e9/contrib/python/matplotlib-inline"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/8fef497c67e84bcb5422d8fa99.cpp" "_540192b2dd29e10f74fa3c9b45=py/no_check_imports/5533riddgodhqmciuokks2uvom"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/c191e818412b9d31e9f2a993fd.cpp" "_d130701021533eba6b6368fc52=py/no_check_imports/ozwnsdgfvkqnmjqinflexa3ylm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp" "_88817db6c599ccdbc6b8784e35=py/namespace/55af74065d9e0472bc46f6ed648306e9/contrib/python/matplotlib-inline"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
@@ -113,11 +113,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp" "_88817db6c599ccdbc6b8784e35=py/namespace/55af74065d9e0472bc46f6ed648306e9/contrib/python/matplotlib-inline"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/8fef497c67e84bcb5422d8fa99.cpp" "_540192b2dd29e10f74fa3c9b45=py/no_check_imports/5533riddgodhqmciuokks2uvom"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/c191e818412b9d31e9f2a993fd.cpp" "_d130701021533eba6b6368fc52=py/no_check_imports/ozwnsdgfvkqnmjqinflexa3ylm"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp" "_88817db6c599ccdbc6b8784e35=py/namespace/55af74065d9e0472bc46f6ed648306e9/contrib/python/matplotlib-inline"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline
 if %errorlevel% neq 0 goto :cmEnd
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/matplotlib-inline/360f49b351ecf72704fca77977.cpp	$B/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp	$B/contrib/python/matplotlib-inline/c191e818412b9d31e9f2a993fd.cpp	$B/contrib/python/matplotlib-inline/c22094af4670e6a29a09229d93.cpp	</Message>
+      <Message>$B/contrib/python/matplotlib-inline/360f49b351ecf72704fca77977.cpp	$B/contrib/python/matplotlib-inline/8fef497c67e84bcb5422d8fa99.cpp	$B/contrib/python/matplotlib-inline/a7541289be6ac0abe144b6e552.cpp	$B/contrib/python/matplotlib-inline/c22094af4670e6a29a09229d93.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\360f49b351ecf72704fca77977.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\a7541289be6ac0abe144b6e552.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\c191e818412b9d31e9f2a993fd.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\c22094af4670e6a29a09229d93.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\360f49b351ecf72704fca77977.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\8fef497c67e84bcb5422d8fa99.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\a7541289be6ac0abe144b6e552.cpp;$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\c22094af4670e6a29a09229d93.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
