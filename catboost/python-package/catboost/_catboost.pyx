@@ -516,7 +516,7 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
 ctypedef const TFullModel* TFullModel_const_ptr
 
 cdef extern from "catboost/libs/model/model.h":
-    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], TVector[double], ECtrTableMergePolicy) nogil except +ProcessException
+    cdef TFullModel SumModels(TVector[TFullModel_const_ptr], const TVector[double]&, const TVector[TString]&, ECtrTableMergePolicy) nogil except +ProcessException
 
 cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "NCB":
     cdef void ExportModel(
@@ -5046,6 +5046,7 @@ cdef class _CatBoost:
     cpdef _sum_models(self, models, weights, ctr_merge_policy):
         cdef TVector[TFullModel_const_ptr] models_vector
         cdef TVector[double] weights_vector
+        cdef TVector[TString] model_prefix_vector
         cdef ECtrTableMergePolicy merge_policy
         if not TryFromString[ECtrTableMergePolicy](to_arcadia_string(ctr_merge_policy), merge_policy):
             raise CatBoostError("Unknown ctr table merge policy {}".format(ctr_merge_policy))
@@ -5053,7 +5054,7 @@ cdef class _CatBoost:
         for model_id in range(len(models)):
             models_vector.push_back((<_CatBoost>models[model_id]).__model)
             weights_vector.push_back(weights[model_id])
-        cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, merge_policy)
+        cdef TFullModel tmp_model = SumModels(models_vector, weights_vector, model_prefix_vector, merge_policy)
         self.model_blob = None
         self.__model.Swap(tmp_model)
 

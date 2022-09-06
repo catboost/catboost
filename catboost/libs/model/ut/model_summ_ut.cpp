@@ -106,4 +106,18 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
         AssertModelSumEqualSliced(GetAdultPool(), true, false);
         AssertModelSumEqualSliced(GetAdultPool(), false, true);
     }
+
+    Y_UNIT_TEST(SumWithParamPrefixes) {
+        const auto model1 = SimpleFloatModel();
+        const auto model2 = SimpleFloatModel();
+        const auto largeModel = SumModels({&model1, &model2}, {2.0, 1.0}, {"m1:", "m2:"});
+
+        for (const auto& [key, value] : largeModel.ModelInfo) {
+            if (key.StartsWith("m1:")) {
+                UNIT_ASSERT(largeModel.ModelInfo.contains(TString("m2:") + key.substr(3)));
+            } else if (key.StartsWith("m2:")) {
+                UNIT_ASSERT(largeModel.ModelInfo.contains(TString("m1:") + key.substr(3)));
+            }
+        }
+    }
 }

@@ -452,7 +452,7 @@ private[spark] object CatBoostModel {
     } else {
       new TVector_double(Iterator.fill(models.length)(1.0).toArray)
     }
-    native_impl.SumModels(nativeModels, weightsVector, ctrMergePolicy)
+    native_impl.SumModels(nativeModels, weightsVector, /*modelParamsPrefixes*/ new TVector_TString, ctrMergePolicy)
   }
 }
 
