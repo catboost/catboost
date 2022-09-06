@@ -26,6 +26,7 @@ fit(X,
     verbose=None,
     logging_level=None,
     plot=False,
+    plot_file=None,
     column_description=None,
     verbose_eval=None,
     metric_period=None,
@@ -542,6 +543,26 @@ Plot the following information during training:
 **Supported processing units**
 
 {% include [reusage-python-cpu](../_includes/work_src/reusage-python/cpu.md) %}
+
+
+
+### plot_file
+
+#### Description
+
+Save a plot with the training progress information (metric values, custom loss values) to the file specified by this parameter.
+
+**Possible types**
+
+File-like object or {{ python-type--string }}
+
+**Default value**
+
+None
+
+**Supported processing units**
+
+{% include [reusage-python-cpu](../_includes/work_src/reusage-python/cpu-and-gpu.md) %}
 
 
 
