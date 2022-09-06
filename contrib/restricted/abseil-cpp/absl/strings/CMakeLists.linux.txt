@@ -25,6 +25,8 @@ target_sources(abseil-cpp-absl-strings PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/ascii.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/charconv.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord_analysis.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/cord_buffer.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/escaping.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/charconv_bigint.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/charconv_parse.cc
@@ -33,6 +35,7 @@ target_sources(abseil-cpp-absl-strings PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cord_rep_btree_navigator.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cord_rep_btree_reader.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cord_rep_consume.cc
+  ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cord_rep_crc.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cord_rep_ring.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cordz_functions.cc
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp/absl/strings/internal/cordz_handle.cc

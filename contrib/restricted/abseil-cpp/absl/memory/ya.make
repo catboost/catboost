@@ -8,9 +8,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(20211102.0)
+VERSION(20220623.0)
 
-ORIGINAL_SOURCE(https://github.com/abseil/abseil-cpp/archive/20211102.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/abseil/abseil-cpp/archive/20220623.0.tar.gz)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/meta

@@ -42,11 +42,11 @@ namespace {
 //   Returns: 2
 inline ABSL_ATTRIBUTE_ALWAYS_INLINE int Fls128(uint128 n) {
   if (uint64_t hi = Uint128High64(n)) {
-    ABSL_INTERNAL_ASSUME(hi != 0);
+    ABSL_ASSUME(hi != 0);
     return 127 - countl_zero(hi);
   }
   const uint64_t low = Uint128Low64(n);
-  ABSL_INTERNAL_ASSUME(low != 0);
+  ABSL_ASSUME(low != 0);
   return 63 - countl_zero(low);
 }
 
@@ -332,6 +332,7 @@ std::ostream& operator<<(std::ostream& os, int128 v) {
 ABSL_NAMESPACE_END
 }  // namespace absl
 
+#ifdef ABSL_INTERNAL_NEED_REDUNDANT_CONSTEXPR_DECL
 namespace std {
 constexpr bool numeric_limits<absl::uint128>::is_specialized;
 constexpr bool numeric_limits<absl::uint128>::is_signed;
@@ -381,3 +382,4 @@ constexpr int numeric_limits<absl::int128>::max_exponent10;
 constexpr bool numeric_limits<absl::int128>::traps;
 constexpr bool numeric_limits<absl::int128>::tinyness_before;
 }  // namespace std
+#endif

@@ -107,7 +107,6 @@ BELONGS absl/algorithm/ya.make absl/base/ya.make absl/container/ya.make absl/deb
         absl/debugging/internal/vdso_support.cc [1:1]
         absl/debugging/internal/vdso_support.h [2:2]
         absl/debugging/leak_check.cc [1:1]
-        absl/debugging/leak_check_disable.cc [1:1]
         absl/debugging/stacktrace.cc [1:1]
         absl/memory/memory.h [1:1]
         absl/meta/type_traits.h [2:2]
@@ -365,9 +364,8 @@ BELONGS absl/base/ya.make absl/container/ya.make absl/debugging/ya.make absl/fun
         absl/container/internal/hashtablez_sampler.cc [1:1]
         absl/container/internal/hashtablez_sampler.h [1:1]
         absl/container/internal/hashtablez_sampler_force_weak_definition.cc [1:1]
-        absl/container/internal/have_sse.h [1:1]
         absl/container/internal/layout.h [1:1]
-        absl/container/internal/node_hash_policy.h [1:1]
+        absl/container/internal/node_slot_policy.h [1:1]
         absl/container/internal/raw_hash_map.h [1:1]
         absl/container/internal/raw_hash_set.cc [1:1]
         absl/container/internal/raw_hash_set.h [1:1]
@@ -444,6 +442,9 @@ BELONGS absl/debugging/ya.make absl/flags/ya.make absl/numeric/ya.make absl/stri
         absl/debugging/internal/stacktrace_riscv-inl.inc [1:1]
         absl/flags/internal/flag_msvc.inc [2:2]
         absl/numeric/internal/representation.h [1:1]
+        absl/strings/cord_analysis.cc [1:1]
+        absl/strings/cord_analysis.h [1:1]
+        absl/strings/cord_buffer.h [1:1]
         absl/strings/cordz_test_helpers.h [1:1]
         absl/strings/internal/cord_internal.h [1:1]
         absl/strings/internal/cord_rep_btree.cc [1:1]
@@ -454,6 +455,8 @@ BELONGS absl/debugging/ya.make absl/flags/ya.make absl/numeric/ya.make absl/stri
         absl/strings/internal/cord_rep_btree_reader.h [1:1]
         absl/strings/internal/cord_rep_consume.cc [1:1]
         absl/strings/internal/cord_rep_consume.h [1:1]
+        absl/strings/internal/cord_rep_crc.cc [1:1]
+        absl/strings/internal/cord_rep_crc.h [1:1]
         absl/strings/internal/cord_rep_ring_reader.h [1:1]
         absl/strings/internal/cord_rep_test_util.h [1:1]
         absl/strings/internal/cordz_update_scope.h [1:1]
@@ -469,6 +472,21 @@ BELONGS absl/random/ya.make
         Match type      : COPYRIGHT
     Files with this license:
         absl/random/internal/nanobenchmark.h [1:1]
+
+KEEP     COPYRIGHT_SERVICE_LABEL 79f032533180bf3f602e8ed67e6258aa
+BELONGS absl/base/ya.make absl/functional/ya.make absl/strings/ya.make
+    License text:
+        // Copyright 2022 The Abseil Authors.
+    Scancode info:
+        Original SPDX id: COPYRIGHT_SERVICE_LABEL
+        Score           : 100.00
+        Match type      : COPYRIGHT
+    Files with this license:
+        absl/base/internal/prefetch.h [1:1]
+        absl/functional/any_invocable.h [1:1]
+        absl/functional/internal/any_invocable.h [1:1]
+        absl/strings/cord_buffer.cc [1:1]
+        absl/strings/internal/cord_data_edge.h [1:1]
 
 KEEP     COPYRIGHT_SERVICE_LABEL d34864d3c7c7a5ffae3d414344aa54a8
 BELONGS absl/base/ya.make absl/debugging/ya.make absl/flags/ya.make absl/hash/ya.make absl/numeric/ya.make absl/status/ya.make absl/strings/ya.make absl/synchronization/ya.make
