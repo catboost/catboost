@@ -236,8 +236,7 @@ def on_add_kotlin_style_checks(unit, *args):
     if unit.get('WITH_KOTLIN_VALUE') == 'yes':
         no_lint_value = unit.get('_NO_LINT_VALUE')
         if no_lint_value == '':
-            # unit.onadd_check(['ktlint'] + list(args))
-            pass
+            unit.onadd_check(['ktlint'] + list(args))
         elif no_lint_value not in ('none', 'none_internal', 'ktlint'):
             ymake.report_configure_error('Unsupported value for NO_LINT macro: {}'.format(no_lint_value))
 

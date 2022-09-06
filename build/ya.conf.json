@@ -8893,7 +8893,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 1155032720,
+                "sandbox_id": 1419977507,
                 "match": "yadi-arc"
             },
             "executable": {
@@ -8948,7 +8948,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 1415917741,
+                "sandbox_id": 1420293282,
                 "match": "wall-e"
             },
             "executable": {
