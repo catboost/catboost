@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(0.1.3)
+VERSION(0.1.6)
 
 LICENSE(BSD-3-Clause)
 
@@ -15,7 +15,7 @@ PEERDIR(
 NO_LINT()
 
 NO_CHECK_IMPORTS(
-    matplotlib_inline.backend_inline
+    matplotlib_inline.*
 )
 
 PY_SRCS(
