@@ -110,6 +110,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\low_level_alloc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\low_level_scheduling.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\per_thread_tls.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\prefetch.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\raw_logging.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\scheduling_mode.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\base\internal\scoped_set_env.h"/>

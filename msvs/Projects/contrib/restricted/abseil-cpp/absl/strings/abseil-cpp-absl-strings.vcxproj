@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_navigator.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_reader.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_consume.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_crc.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_ring.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_functions.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_handle.cc"/>
@@ -104,6 +105,8 @@
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\ascii.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\charconv.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord_analysis.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord_buffer.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\escaping.cc">
       <ObjectFileName>$(IntDir)escaping_extra1.obj</ObjectFileName>
     </ClCompile>
@@ -117,15 +120,19 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\ascii.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\charconv.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord_analysis.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\cord_buffer.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\escaping.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\char_map.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\charconv_bigint.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\charconv_parse.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_data_edge.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_navigator.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_btree_reader.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_consume.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_crc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_flat.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cord_rep_ring.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\strings\internal\cordz_functions.h"/>

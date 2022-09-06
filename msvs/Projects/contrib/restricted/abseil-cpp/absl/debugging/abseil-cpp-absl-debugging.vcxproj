@@ -84,7 +84,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\vdso_support.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\failure_signal_handler.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\leak_check.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\leak_check_disable.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\stacktrace.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\symbolize.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\failure_signal_handler.h"/>

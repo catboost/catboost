@@ -91,7 +91,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hash_policy_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hashtable_debug_hooks.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\hashtablez_sampler.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\have_sse.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\inlined_vector.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\layout.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\container\internal\raw_hash_map.h"/>
