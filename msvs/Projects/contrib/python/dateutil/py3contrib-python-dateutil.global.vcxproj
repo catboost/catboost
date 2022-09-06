@@ -236,12 +236,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "-" "contrib/python/dateutil/dateutil/__init__.py" "_455956898cbd573b866b34813c.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8cde61858cdfeeaa7b77d0ef45.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3" "_e95bbe8cd971f68f987ecc98ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_531858c2cbafd594b3f68211f2.rodata" "-" "contrib/python/dateutil/dateutil/_common.py" "_ed354a0a9af4abef4e02343e59.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_fd76d84001ebc16e7cc7e49997.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3" "_51f902e50f43c68c1309089c26.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_604e6470cdfecece9584fda00e.rodata" "-" "contrib/python/dateutil/dateutil/_version.py" "_d8951de02917cc207c34c526d6.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_595f7e5dc9b32dc529700a542b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3" "_0f4e09fad60f0fb00c8f912678.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_c1b53687e57ca5b6a1f266907d.rodata" "-" "contrib/python/dateutil/dateutil/easter.py" "_2022e91267d8dc972d4bfc8aba.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_a0a032007b693de26baf7e46c7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3" "_a3af7a166fdbeac2822428ec27.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_5ac908f24c53d543085b6f34ec.rodata" "-" "contrib/python/dateutil/dateutil/parser/__init__.py" "_bd8ff580f713492a8ce8b18c0c.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_5f3f3425abe6a18a83f7f07416.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3" "_6f0c015cb6054335c551a1cb08.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_355fc601c3f3f8b594fcd90136.rodata" "-" "contrib/python/dateutil/dateutil/parser/_parser.py" "_257c074d515ceb70eb590fab45.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_7e282cfbf90955d27a94abe584.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3" "_dd9100a3812d1e678cd9297069.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_3d87b40ed4a2a442cbfe895c3d.rodata" "-" "contrib/python/dateutil/dateutil/parser/isoparser.py" "_db2337e3c97b45622505838719.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_46d20116d4a260b2880560a468.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3" "_ddba7043cd423508c1cb15e844.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_12fe598df07ac58d50494edf5b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -253,207 +247,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm" "-" "contrib/python/dateutil/dateutil/__init__.py" "_455956898cbd573b866b34813c.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8cde61858cdfeeaa7b77d0ef45.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3" "_e95bbe8cd971f68f987ecc98ac.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_531858c2cbafd594b3f68211f2.rodata" "-" "contrib/python/dateutil/dateutil/_common.py" "_ed354a0a9af4abef4e02343e59.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_fd76d84001ebc16e7cc7e49997.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3" "_51f902e50f43c68c1309089c26.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_604e6470cdfecece9584fda00e.rodata" "-" "contrib/python/dateutil/dateutil/_version.py" "_d8951de02917cc207c34c526d6.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_595f7e5dc9b32dc529700a542b.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3" "_0f4e09fad60f0fb00c8f912678.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_c1b53687e57ca5b6a1f266907d.rodata" "-" "contrib/python/dateutil/dateutil/easter.py" "_2022e91267d8dc972d4bfc8aba.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_a0a032007b693de26baf7e46c7.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3" "_a3af7a166fdbeac2822428ec27.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_5ac908f24c53d543085b6f34ec.rodata" "-" "contrib/python/dateutil/dateutil/parser/__init__.py" "_bd8ff580f713492a8ce8b18c0c.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_5f3f3425abe6a18a83f7f07416.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3" "_6f0c015cb6054335c551a1cb08.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_355fc601c3f3f8b594fcd90136.rodata" "-" "contrib/python/dateutil/dateutil/parser/_parser.py" "_257c074d515ceb70eb590fab45.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_7e282cfbf90955d27a94abe584.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3" "_dd9100a3812d1e678cd9297069.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_3d87b40ed4a2a442cbfe895c3d.rodata" "-" "contrib/python/dateutil/dateutil/parser/isoparser.py" "_db2337e3c97b45622505838719.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_46d20116d4a260b2880560a468.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3" "_ddba7043cd423508c1cb15e844.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_12fe598df07ac58d50494edf5b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm	$B/contrib/python/dateutil/dateutil/__init__.py.2amy.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\__init__.py.2amy.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\_common.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_common.py.qziv.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\_version.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_version.py.tbfg.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\easter.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\easter.py.lqev.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\__init__.py.lony.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\_parser.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\_parser.py.jns6.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\isoparser.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\isoparser.py.p7e2.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_e58b4203614322d2e32cb040f5.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8cde61858cdfeeaa7b77d0ef45.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_531858c2cbafd594b3f68211f2.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_fd76d84001ebc16e7cc7e49997.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_604e6470cdfecece9584fda00e.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_595f7e5dc9b32dc529700a542b.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_c1b53687e57ca5b6a1f266907d.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_a0a032007b693de26baf7e46c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_5ac908f24c53d543085b6f34ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_5f3f3425abe6a18a83f7f07416.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_355fc601c3f3f8b594fcd90136.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_7e282cfbf90955d27a94abe584.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_3d87b40ed4a2a442cbfe895c3d.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_46d20116d4a260b2880560a468.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_12fe598df07ac58d50494edf5b.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\__init__.py.2amy.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\_common.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/_common.py.qziv.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\_common.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_common.py.qziv.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\_version.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/_version.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/_version.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/_version.py.tbfg.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\_version.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_version.py.tbfg.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\easter.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/easter.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/easter.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/easter.py.lqev.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\easter.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\easter.py.lqev.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/parser/__init__.py.lony.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\__init__.py.lony.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\_parser.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/_parser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/_parser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/parser/_parser.py.jns6.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\_parser.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\_parser.py.jns6.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\isoparser.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/parser/isoparser.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/parser/isoparser.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/parser/isoparser.py.p7e2.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\isoparser.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\isoparser.py.p7e2.yapyc3;</Outputs>
+      <Message>$B/contrib/python/dateutil/_e58b4203614322d2e32cb040f5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\__init__.py.2amy.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\_common.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_common.py.qziv.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\_version.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\_version.py.tbfg.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\easter.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\easter.py.lqev.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\__init__.py.lony.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\_parser.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\_parser.py.jns6.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\parser\isoparser.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\parser\isoparser.py.p7e2.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_e58b4203614322d2e32cb040f5.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8cde61858cdfeeaa7b77d0ef45.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_531858c2cbafd594b3f68211f2.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_fd76d84001ebc16e7cc7e49997.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_604e6470cdfecece9584fda00e.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_595f7e5dc9b32dc529700a542b.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_c1b53687e57ca5b6a1f266907d.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_a0a032007b693de26baf7e46c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_5ac908f24c53d543085b6f34ec.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_5f3f3425abe6a18a83f7f07416.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_355fc601c3f3f8b594fcd90136.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_7e282cfbf90955d27a94abe584.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_3d87b40ed4a2a442cbfe895c3d.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_46d20116d4a260b2880560a468.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_12fe598df07ac58d50494edf5b.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\relativedelta.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -461,12 +263,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "-" "contrib/python/dateutil/dateutil/relativedelta.py" "_271cfddc961a4cb034a0ed2684.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_179522c9fd3f6cd86e83a80e1a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3" "_7016f18978218ece1fd8b71ae5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_3a547c3c5aaa4706d9237971bd.rodata" "-" "contrib/python/dateutil/dateutil/rrule.py" "_384abcad15a2cd426c6cf5e069.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_28b21187e53bd976b5a6358f37.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3" "_c38b7fa801099e92b5ce5705da.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_012b7612a09b2bedf019694cf0.rodata" "-" "contrib/python/dateutil/dateutil/tz/__init__.py" "_135e947f9bef443549db766748.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_aac1e79de7c4031fd0dfc8f68e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3" "_425c3f7bffe4dac8d308d29faa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_ddf317f07ea4739d11f8897091.rodata" "-" "contrib/python/dateutil/dateutil/tz/_common.py" "_68cb51dfc43b3a3eacfd185887.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_4af7e449992664a8cbdb00e73a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3" "_8eb4c4ed021b6f98569cdced8f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_b0c45574c637404f7470656de0.rodata" "-" "contrib/python/dateutil/dateutil/tz/_factories.py" "_a0ae0658875a66e4aaad03bbc5.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_617c0923312982185db5d31dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3" "_c0fb7db118fd9ad3cdd2b1f03f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8d7c0b1cbc588a5d90d3ef7d58.rodata" "-" "contrib/python/dateutil/dateutil/tz/tz.py" "_484a1aa9f2013686159a4a0e9a.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_feee538765dfe301f6fc05ce65.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3" "_926f937d66a78da3e1bc8153fd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_a5d8df1eaea1b56560df109e78.rodata" "-" "contrib/python/dateutil/dateutil/tz/win.py" "_c56d23344692a5d43f9118e483.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_61c265c380064e283a49c97e2f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3" "_d34edea569168efdfdf74b6341.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_1a296e423f8e575d7020807b3c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -478,207 +274,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm" "-" "contrib/python/dateutil/dateutil/relativedelta.py" "_271cfddc961a4cb034a0ed2684.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_179522c9fd3f6cd86e83a80e1a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3" "_7016f18978218ece1fd8b71ae5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_3a547c3c5aaa4706d9237971bd.rodata" "-" "contrib/python/dateutil/dateutil/rrule.py" "_384abcad15a2cd426c6cf5e069.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_28b21187e53bd976b5a6358f37.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3" "_c38b7fa801099e92b5ce5705da.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_012b7612a09b2bedf019694cf0.rodata" "-" "contrib/python/dateutil/dateutil/tz/__init__.py" "_135e947f9bef443549db766748.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_aac1e79de7c4031fd0dfc8f68e.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3" "_425c3f7bffe4dac8d308d29faa.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_ddf317f07ea4739d11f8897091.rodata" "-" "contrib/python/dateutil/dateutil/tz/_common.py" "_68cb51dfc43b3a3eacfd185887.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_4af7e449992664a8cbdb00e73a.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3" "_8eb4c4ed021b6f98569cdced8f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_b0c45574c637404f7470656de0.rodata" "-" "contrib/python/dateutil/dateutil/tz/_factories.py" "_a0ae0658875a66e4aaad03bbc5.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_617c0923312982185db5d31dfc.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3" "_c0fb7db118fd9ad3cdd2b1f03f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8d7c0b1cbc588a5d90d3ef7d58.rodata" "-" "contrib/python/dateutil/dateutil/tz/tz.py" "_484a1aa9f2013686159a4a0e9a.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_feee538765dfe301f6fc05ce65.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3" "_926f937d66a78da3e1bc8153fd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_a5d8df1eaea1b56560df109e78.rodata" "-" "contrib/python/dateutil/dateutil/tz/win.py" "_c56d23344692a5d43f9118e483.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_61c265c380064e283a49c97e2f.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3" "_d34edea569168efdfdf74b6341.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_1a296e423f8e575d7020807b3c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/relativedelta.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/relativedelta.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm	$B/contrib/python/dateutil/dateutil/relativedelta.py.4s6e.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\relativedelta.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\relativedelta.py.4s6e.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\rrule.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\rrule.py.bt4w.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\__init__.py.2vl7.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_common.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_common.py.kgcn.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_factories.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_factories.py.chu6.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\tz.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\tz.py.xapn.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\win.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\win.py.4huy.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_703937c056e520c87deeb34f4d.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_179522c9fd3f6cd86e83a80e1a.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_3a547c3c5aaa4706d9237971bd.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_28b21187e53bd976b5a6358f37.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_012b7612a09b2bedf019694cf0.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_aac1e79de7c4031fd0dfc8f68e.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_ddf317f07ea4739d11f8897091.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_4af7e449992664a8cbdb00e73a.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b0c45574c637404f7470656de0.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_617c0923312982185db5d31dfc.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8d7c0b1cbc588a5d90d3ef7d58.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_feee538765dfe301f6fc05ce65.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_a5d8df1eaea1b56560df109e78.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_61c265c380064e283a49c97e2f.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_1a296e423f8e575d7020807b3c.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\relativedelta.py.4s6e.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\rrule.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/rrule.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/rrule.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/rrule.py.bt4w.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\rrule.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\rrule.py.bt4w.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/tz/__init__.py.2vl7.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\__init__.py.2vl7.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_common.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_common.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_common.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/tz/_common.py.kgcn.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_common.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_common.py.kgcn.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_factories.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/_factories.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/_factories.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/tz/_factories.py.chu6.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_factories.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_factories.py.chu6.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\tz.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/tz.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/tz.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/tz/tz.py.xapn.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\tz.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\tz.py.xapn.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\win.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tz/win.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tz/win.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/tz/win.py.4huy.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\win.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\win.py.4huy.yapyc3;</Outputs>
+      <Message>$B/contrib/python/dateutil/_703937c056e520c87deeb34f4d.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\relativedelta.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\relativedelta.py.4s6e.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\rrule.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\rrule.py.bt4w.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\__init__.py.2vl7.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_common.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_common.py.kgcn.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\_factories.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\_factories.py.chu6.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\tz.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\tz.py.xapn.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\tz\win.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tz\win.py.4huy.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_703937c056e520c87deeb34f4d.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_179522c9fd3f6cd86e83a80e1a.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_3a547c3c5aaa4706d9237971bd.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_28b21187e53bd976b5a6358f37.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_012b7612a09b2bedf019694cf0.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_aac1e79de7c4031fd0dfc8f68e.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_ddf317f07ea4739d11f8897091.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_4af7e449992664a8cbdb00e73a.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b0c45574c637404f7470656de0.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_617c0923312982185db5d31dfc.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8d7c0b1cbc588a5d90d3ef7d58.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_feee538765dfe301f6fc05ce65.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_a5d8df1eaea1b56560df109e78.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_61c265c380064e283a49c97e2f.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_1a296e423f8e575d7020807b3c.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\tzwin.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -686,12 +290,6 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm" "-" "contrib/python/dateutil/dateutil/tzwin.py" "_297dc6dab77ac0d2d25f618169.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_d0f8191723fe5ff5503b16c364.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3" "_7fc16c48b9faa99c4cb58166cb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_fa157f67058738c77d9e9d24c7.rodata" "-" "contrib/python/dateutil/dateutil/utils.py" "_46437c59f4f71252fdaf1e2e5a.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_43e147f03d53cec6e25a4ae161.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3" "_063d1a4265f28fd12910254f28.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0b4146df08d294e858ff5faefa.rodata" "-" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "_8899c198dfb2d93392545b0414.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8b380a8b434852f5f6bc798f3c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3" "_9732c4688167b067cd1c6de040.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_db44e403c716cfe538de3f2312.rodata" "-" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "_b348d143826c767997d36dd7d4.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_76e2d4d3c8f18ef624ee259740.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3" "_4ddba34b72776afd6397936c17.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_750069ae6fe64a304ed0798e85.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -703,114 +301,15 @@ cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm" "-" "contrib/python/dateutil/dateutil/tzwin.py" "_297dc6dab77ac0d2d25f618169.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_d0f8191723fe5ff5503b16c364.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3" "_7fc16c48b9faa99c4cb58166cb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_fa157f67058738c77d9e9d24c7.rodata" "-" "contrib/python/dateutil/dateutil/utils.py" "_46437c59f4f71252fdaf1e2e5a.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_43e147f03d53cec6e25a4ae161.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3" "_063d1a4265f28fd12910254f28.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0b4146df08d294e858ff5faefa.rodata" "-" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "_8899c198dfb2d93392545b0414.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_8b380a8b434852f5f6bc798f3c.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3" "_9732c4688167b067cd1c6de040.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_db44e403c716cfe538de3f2312.rodata" "-" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "_b348d143826c767997d36dd7d4.rodata" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_76e2d4d3c8f18ef624ee259740.rodata" "-" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3" "_4ddba34b72776afd6397936c17.rodata" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_750069ae6fe64a304ed0798e85.rodata"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/tzwin.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/tzwin.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm	$B/contrib/python/dateutil/dateutil/tzwin.py.kmxm.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tzwin.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tzwin.py.kmxm.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\utils.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\utils.py.wkmw.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\__init__.py.skpy.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py.3ens.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_64808b10dcc67cdc847d9c1db5.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_d0f8191723fe5ff5503b16c364.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_fa157f67058738c77d9e9d24c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_43e147f03d53cec6e25a4ae161.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_0b4146df08d294e858ff5faefa.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8b380a8b434852f5f6bc798f3c.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_db44e403c716cfe538de3f2312.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_76e2d4d3c8f18ef624ee259740.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_750069ae6fe64a304ed0798e85.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tzwin.py.kmxm.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\utils.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/utils.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/utils.py.wkmw.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\utils.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\utils.py.wkmw.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\__init__.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/__init__.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/zoneinfo/__init__.py.skpy.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\__init__.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\__init__.py.skpy.yapyc3;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
-if %errorlevel% neq 0 goto :cmEnd
-set "PYTHONHASHSEED=0"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "contrib/python/dateutil/dateutil/zoneinfo/rebuild.py-" "$(SolutionDir)../contrib/python/dateutil/dateutil/zoneinfo/rebuild.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/dateutil/dateutil/zoneinfo/rebuild.py.3ens.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py.3ens.yapyc3;</Outputs>
+      <Message>$B/contrib/python/dateutil/_64808b10dcc67cdc847d9c1db5.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\dateutil\dateutil\tzwin.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\tzwin.py.kmxm.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\utils.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\utils.py.wkmw.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\__init__.py.skpy.yapyc3;$(SolutionDir)..\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py;$(SolutionDir)$(Configuration)\contrib\python\dateutil\dateutil\zoneinfo\rebuild.py.3ens.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_64808b10dcc67cdc847d9c1db5.yasm;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_d0f8191723fe5ff5503b16c364.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_fa157f67058738c77d9e9d24c7.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_43e147f03d53cec6e25a4ae161.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_0b4146df08d294e858ff5faefa.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_8b380a8b434852f5f6bc798f3c.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_db44e403c716cfe538de3f2312.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_76e2d4d3c8f18ef624ee259740.rodata;$(SolutionDir)$(Configuration)\contrib\python\dateutil\_750069ae6fe64a304ed0798e85.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
