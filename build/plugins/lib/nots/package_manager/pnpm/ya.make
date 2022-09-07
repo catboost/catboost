@@ -4,6 +4,7 @@ PY23_LIBRARY()
 
 PY_SRCS(
     __init__.py
+    constants.py
     lockfile.py
     package_manager.py
     workspace.py

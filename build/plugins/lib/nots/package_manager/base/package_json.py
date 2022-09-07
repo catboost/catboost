@@ -3,7 +3,7 @@ import json
 
 from six import iteritems
 
-from . import constants
+from .utils import build_pj_path
 
 
 class PackageJsonWorkspaceError(RuntimeError):
@@ -80,7 +80,7 @@ class PackageJson(object):
 
         for (name, rel_path) in self.get_workspace_dep_paths():
             dep_path = os.path.normpath(os.path.join(pj_dir, rel_path))
-            dep_pj = PackageJson.load(os.path.join(dep_path, constants.PACKAGE_JSON_FILENAME))
+            dep_pj = PackageJson.load(build_pj_path(dep_path))
 
             if name != dep_pj.get_name():
                 raise PackageJsonWorkspaceError(

@@ -4,8 +4,6 @@ PY23_LIBRARY()
 
 PY_SRCS(
     __init__.py
-    tsc_wrapper.py
-    ts_bundle_wrapper.py
     ts_errors.py
     ts_config.py
 )

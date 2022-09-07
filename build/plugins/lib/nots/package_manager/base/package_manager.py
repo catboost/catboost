@@ -1,12 +1,13 @@
 import os
 import sys
 import subprocess
-import tarfile
 
 from abc import ABCMeta, abstractmethod
 from six import add_metaclass
 
-from . import constants
+from .constants import NPM_REGISTRY_URL
+from .node_modules_bundler import bundle_node_modules
+from .utils import build_nm_path
 
 
 class PackageManagerError(RuntimeError):
@@ -26,8 +27,8 @@ class PackageManagerCommandError(PackageManagerError):
 
 @add_metaclass(ABCMeta)
 class BasePackageManager(object):
-    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, script_path, contribs_path):
-        self.module_path = build_path[len(build_root) + 1:]
+    def __init__(self, build_root, build_path, sources_path, nodejs_bin_path, script_path, contribs_path, module_path=None):
+        self.module_path = build_path[len(build_root) + 1:] if module_path is None else module_path
         self.build_path = build_path
         self.sources_path = sources_path
         self.build_root = build_root
@@ -37,11 +38,15 @@ class BasePackageManager(object):
         self.contribs_path = contribs_path
 
     @abstractmethod
-    def install(self):
+    def create_node_modules(self):
         pass
 
     @abstractmethod
-    def get_peer_paths_from_package_json(self):
+    def get_local_peers_from_package_json(self):
+        pass
+
+    @abstractmethod
+    def get_peers_from_package_json(self):
         pass
 
     @abstractmethod
@@ -52,14 +57,18 @@ class BasePackageManager(object):
     def extract_packages_meta_from_lockfiles(self, lf_paths):
         pass
 
-    def create_node_modules_bundle(self, path):
+    def bundle_node_modules(self, bundle_path):
         """
-        Creates tarball from the node_modules directory contents.
-        :param path: tarball path
-        :type path: str
+        Creates node_modules bundle.
+        :param bundle_path: tarball path
+        :type bundle_path: str
         """
-        with tarfile.open(path, "w") as tf:
-            tf.add(self._nm_path(), arcname=".")
+        bundle_node_modules(
+            build_root=self.build_root,
+            node_modules_path=self._nm_path(),
+            peers=self.get_peers_from_package_json(),
+            bundle_path=bundle_path,
+        )
 
     def _exec_command(self, args, include_defaults=True):
         if not self.nodejs_bin_path:
@@ -81,7 +90,7 @@ class BasePackageManager(object):
             raise PackageManagerCommandError(cmd, p.returncode, stdout.decode("utf-8"), stderr.decode("utf-8"))
 
     def _nm_path(self, *parts):
-        return os.path.join(self.build_path, "node_modules", *parts)
+        return os.path.join(build_nm_path(self.build_path), *parts)
 
     def _contrib_tarball_path(self, pkg):
         return os.path.join(self.contribs_path, pkg.tarball_path)
@@ -90,7 +99,7 @@ class BasePackageManager(object):
         return "file:" + self._contrib_tarball_path(pkg)
 
     def _get_default_options(self):
-        return ["--registry", constants.NPM_REGISTRY_URL]
+        return ["--registry", NPM_REGISTRY_URL]
 
     def _get_debug_log_path(self):
         return None
