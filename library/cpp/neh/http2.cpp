@@ -183,7 +183,7 @@ namespace {
     }
 
     bool Compress(TData& data, const TString& compressionScheme) {
-        if (compressionScheme == "gzip") {
+        if (compressionScheme == "gzip" && data.size() > 23) {  // there is no string less than 24 bytes long that might be compressed with gzip
             try {
                 TData gzipped(data.size());
                 TMemoryOutput out(gzipped.data(), gzipped.size());
