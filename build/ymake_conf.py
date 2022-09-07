@@ -106,10 +106,8 @@ class Platform(object):
 
         self.is_android = self.os == 'android'
         if self.is_android:
-            # This is default Android API level unless `ANDROID_API` is specified
-            # 18 is the smallest level with OpenGL support
-            # 21 is the smallest level for 64-bit platforms
-            default_android_api = 21 if self.is_64_bit else 18
+            # This is default Android API level unless `-DANDROID_API` is specified in cmdline
+            default_android_api = 21
             self.android_api = int(preset('ANDROID_API', default_android_api))
 
         self.is_cygwin = self.os == 'cygwin'
