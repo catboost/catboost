@@ -98,6 +98,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\json_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
@@ -196,6 +197,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\json_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
