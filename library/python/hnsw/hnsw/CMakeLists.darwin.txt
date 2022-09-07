@@ -6,6 +6,7 @@
 # original buildsystem will not be accepted.
 
 
+find_package(Python3 REQUIRED)
 
 add_library(_hnsw SHARED)
 target_compile_options(_hnsw PRIVATE
@@ -14,12 +15,10 @@ target_compile_options(_hnsw PRIVATE
 target_cython_sources(_hnsw PRIVATE
   ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/_hnsw.pyx
 )
-target_include_directories(_hnsw PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/python/Include
-)
 target_link_libraries(_hnsw PUBLIC
   contrib-libs-cxxsupp
   yutil
+  Python3::Module
   python-numpy-include
   cpp-hnsw-helpers
   cpp-hnsw-index
@@ -49,6 +48,6 @@ target_cython_options(_hnsw
   --cplus
 )
 use_export_script(_hnsw
-  ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/hnsw.exports
+  ${CMAKE_SOURCE_DIR}/library/python/hnsw/hnsw/hnsw3.exports
 )
 vcs_info(_hnsw)
