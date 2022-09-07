@@ -6,7 +6,7 @@ PROVIDES(tornado)
 
 
 
-VERSION(6.1)
+VERSION(6.2)
 
 LICENSE(Apache-2.0)
 

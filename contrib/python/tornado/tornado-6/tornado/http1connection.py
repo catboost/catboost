@@ -69,8 +69,7 @@ class _ExceptionLoggingContext(object):
 
 
 class HTTP1ConnectionParameters(object):
-    """Parameters for `.HTTP1Connection` and `.HTTP1ServerConnection`.
-    """
+    """Parameters for `.HTTP1Connection` and `.HTTP1ServerConnection`."""
 
     def __init__(
         self,
@@ -132,7 +131,11 @@ class HTTP1Connection(httputil.HTTPConnection):
         self.no_keep_alive = params.no_keep_alive
         # The body limits can be altered by the delegate, so save them
         # here instead of just referencing self.params later.
-        self._max_body_size = self.params.max_body_size or self.stream.max_buffer_size
+        self._max_body_size = (
+            self.params.max_body_size
+            if self.params.max_body_size is not None
+            else self.stream.max_buffer_size
+        )
         self._body_timeout = self.params.body_timeout
         # _write_finished is set to True when finish() has been called,
         # i.e. there will be no more data sent.  Data may still be in the
@@ -703,8 +706,7 @@ class HTTP1Connection(httputil.HTTPConnection):
 
 
 class _GzipMessageDelegate(httputil.HTTPMessageDelegate):
-    """Wraps an `HTTPMessageDelegate` to decode ``Content-Encoding: gzip``.
-    """
+    """Wraps an `HTTPMessageDelegate` to decode ``Content-Encoding: gzip``."""
 
     def __init__(self, delegate: httputil.HTTPMessageDelegate, chunk_size: int) -> None:
         self._delegate = delegate
@@ -716,7 +718,7 @@ class _GzipMessageDelegate(httputil.HTTPMessageDelegate):
         start_line: Union[httputil.RequestStartLine, httputil.ResponseStartLine],
         headers: httputil.HTTPHeaders,
     ) -> Optional[Awaitable[None]]:
-        if headers.get("Content-Encoding") == "gzip":
+        if headers.get("Content-Encoding", "").lower() == "gzip":
             self._decompressor = GzipDecompressor()
             # Downstream delegates will only see uncompressed data,
             # so rename the content-encoding header.

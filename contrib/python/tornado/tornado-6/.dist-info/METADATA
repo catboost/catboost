@@ -1,22 +1,23 @@
 Metadata-Version: 2.1
 Name: tornado
-Version: 6.1
+Version: 6.2
 Summary: Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed.
 Home-page: http://www.tornadoweb.org/
 Author: Facebook
 Author-email: python-tornado@googlegroups.com
 License: http://www.apache.org/licenses/LICENSE-2.0
-Platform: UNKNOWN
+Project-URL: Source, https://github.com/tornadoweb/tornado
 Classifier: License :: OSI Approved :: Apache Software License
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
 Classifier: Programming Language :: Python :: 3.7
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
-Requires-Python: >= 3.5
+Requires-Python: >= 3.7
+Description-Content-Type: text/x-rst
+License-File: LICENSE
 
 Tornado Web Server
 ==================
@@ -40,7 +41,8 @@ Here is a simple "Hello, world" example web app for Tornado:
 
 .. code-block:: python
 
-    import tornado.ioloop
+    import asyncio
+
     import tornado.web
 
     class MainHandler(tornado.web.RequestHandler):
@@ -52,10 +54,13 @@ Here is a simple "Hello, world" example web app for Tornado:
             (r"/", MainHandler),
         ])
 
-    if __name__ == "__main__":
+    async def main():
         app = make_app()
         app.listen(8888)
-        tornado.ioloop.IOLoop.current().start()
+        await asyncio.Event().wait()
+
+    if __name__ == "__main__":
+        asyncio.run(main())
 
 This example does not use any of Tornado's asynchronous features; for
 that see this `simple chat room
@@ -66,5 +71,3 @@ Documentation
 
 Documentation and links to additional resources are available at
 https://www.tornadoweb.org
-
-
