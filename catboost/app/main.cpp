@@ -59,6 +59,7 @@ int main(int argc, const char* argv[]) {
         TModChooser modChooser;
         modChooser.AddMode("fit", mode_fit, "train model");
         modChooser.AddMode("calc", mode_calc, "evaluate model predictions");
+        modChooser.AddMode("dataset-statistics", mode_dataset_statistics, "calculate dataset statistics");
         modChooser.AddMode("fstr", mode_fstr, "evaluate feature importances");
         modChooser.AddMode("ostr", mode_ostr, "evaluate object importances");
         modChooser.AddMode("eval-metrics", mode_eval_metrics, "evaluate metrics for model");

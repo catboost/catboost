@@ -53,6 +53,7 @@ target_sources(catboost-libs-helpers PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/hash.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/int_cast.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/interrupt.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/json_helpers.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/map_merge.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/math_utils.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/matrix.cpp
