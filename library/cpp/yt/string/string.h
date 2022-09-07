@@ -36,7 +36,8 @@ static constexpr TStringBuf DefaultRangeEllipsisFormat = "...";
 // ASCII characters from 0x20 = ' ' to 0x7e = '~' are printable.
 static constexpr char PrintableASCIILow = 0x20;
 static constexpr char PrintableASCIIHigh = 0x7e;
-static constexpr TStringBuf Int2Hex = "0123456789abcdef";
+static constexpr TStringBuf IntToHexLowercase = "0123456789abcdef";
+static constexpr TStringBuf IntToHexUppercase = "0123456789ABCDEF";
 
 //! Joins a range of items into a string intermixing them with the delimiter.
 /*!
@@ -196,7 +197,11 @@ TString Trim(const TString& str, const TString& whitespaces);
 
 //! Implemented for |[u]i(32|64)|.
 template <class T>
-char* WriteIntToBufferBackwards(char* ptr, T value);
+char* WriteDecIntToBufferBackwards(char* ptr, T value);
+
+//! Implemented for |[u]i(32|64)|.
+template <class T>
+char* WriteHexIntToBufferBackwards(char* ptr, T value, bool uppercase);
 
 ////////////////////////////////////////////////////////////////////////////////
 

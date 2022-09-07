@@ -74,7 +74,7 @@ TEST(TFormatTest, Strings)
     EXPECT_EQ(100, std::ssize(Format("%100v", "abc")));
 }
 
-TEST(TFormatTest, Integers)
+TEST(TFormatTest, DecIntegers)
 {
     EXPECT_EQ("123", Format("%d", 123));
     EXPECT_EQ("123", Format("%v", 123));
@@ -99,6 +99,28 @@ TEST(TFormatTest, Integers)
     EXPECT_EQ("0", Format("%v", 0ULL));
     EXPECT_EQ("18446744073709551615", Format("%" PRIu64, std::numeric_limits<ui64>::max()));
     EXPECT_EQ("18446744073709551615", Format("%v", std::numeric_limits<ui64>::max()));
+}
+
+TEST(TFormatTest, HexIntegers)
+{
+    EXPECT_EQ("7b", Format("%x", 123));
+    EXPECT_EQ("7B", Format("%X", 123));
+
+    EXPECT_EQ("02a", Format("%03x", 42));
+    EXPECT_EQ("2a", Format("%01x", 42));
+
+    EXPECT_EQ("7fffffff", Format("%x", std::numeric_limits<i32>::max()));
+    EXPECT_EQ("-80000000", Format("%x", std::numeric_limits<i32>::min()));
+
+    EXPECT_EQ("0", Format("%x", 0U));
+    EXPECT_EQ("0", Format("%X", 0U));
+    EXPECT_EQ("ffffffff", Format("%x", std::numeric_limits<ui32>::max()));
+
+    EXPECT_EQ("7fffffffffffffff", Format("%x", std::numeric_limits<i64>::max()));
+    EXPECT_EQ("-8000000000000000", Format("%x", std::numeric_limits<i64>::min()));
+
+    EXPECT_EQ("0", Format("%x", 0ULL));
+    EXPECT_EQ("ffffffffffffffff", Format("%x", std::numeric_limits<ui64>::max()));
 }
 
 TEST(TFormatTest, Floats)

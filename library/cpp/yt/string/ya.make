@@ -4,6 +4,7 @@ SRCS(
     enum.cpp
     guid.cpp
     string.cpp
+    format.cpp
 )
 
 PEERDIR(
