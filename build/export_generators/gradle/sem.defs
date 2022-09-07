@@ -1,11 +1,15 @@
 {
-    "moduleTemplate":"This is module file. MacroName is '{{macro}}'. Name is '{{name}}'",
-    "rootTemplate":"{% for subdir in subdirs -%}\nadd_subdirectory({{subdir}})\n{% endfor -%}",
+    "moduleTemplate":"This is module file. MacroName is '{{macro}}'. Name is '{{name}}'\n\n{% if consumer_link_library %}consumer_link_libraries({{name}}\n{% for library in consumer_link_library -%}\n {{library}}\n{% endfor -%}){% endif %}",
+    "rootTemplate":"{% for subdir in subdirs -%}\nadd_subdirectory({{subdir}})\n{% endfor -%}\n",
     "commands":
     {
         "KnownTargets":
         [
-            "add_jar",
+            "add_jar"
+        ],
+        "KnownInducedAttrs":
+        [
+            "consumer_link_library"
         ]
     }
 }
