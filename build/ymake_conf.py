@@ -1901,6 +1901,15 @@ class MSVCCompiler(MSVC, Compiler):
             4013,  # 'function' undefined; assuming extern returning int
         ]
         warns_disabled = [
+            # While this warning corresponds to enabled-by-default -Wmacro-redefinition,
+            # it floods clog with abundant amount of log lines,
+            # as yvals_core.h from Windows SDK redefines certain
+            # which macros logically belong to libcxx
+            4005,  # '__cpp_lib_*': macro redefinition.
+
+            # Ne need to recheck this, but it looks like _CRT_USE_BUILTIN_OFFSETOF still makes sense
+            4117,  # macro name '_CRT_USE_BUILTIN_OFFSETOF' is reserved, '#define' ignored
+
             4127,  # conditional expression is constant
             4200,  # nonstandard extension used : zero-sized array in struct/union
             4201,  # nonstandard extension used : nameless struct/union
