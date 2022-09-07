@@ -10,7 +10,7 @@
 #include <util/system/compat.h>
 #include <util/random/random.h>
 
-#include <limits.h>
+#include <climits>
 
 using namespace std::chrono_literals;
 
@@ -412,6 +412,8 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
 
     Y_UNIT_TEST(TestInstantToString) {
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06.023455Z"), ToString(TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)));
+        UNIT_ASSERT_VALUES_EQUAL(TString("2022-08-23T13:04:43.023455Z"), ToString(TInstant::Seconds(1661259883) + TDuration::MicroSeconds(23455)));
+        UNIT_ASSERT_VALUES_EQUAL(TString("2122-11-23T15:12:26.023455Z"), ToString(TInstant::Seconds(4824889946) + TDuration::MicroSeconds(23455)));
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06.023455Z"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToString());
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06Z"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToStringUpToSeconds());
     }
