@@ -1,35 +1,62 @@
 extern crate bindgen;
 
+use anyhow::{anyhow, Context, Result};
 use std::env;
+use std::fs::{create_dir_all, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+// use std::process::Command;
 
-fn main() {
+// TODO: Similar to tch-rs-sys, we should prefer to download the binaries from github rather than rebuilding
+//https://github.com/catboost/catboost/releases/download/v{}/libcatboostmodel.so
+fn download_file(url: String, folder: PathBuf, file_name: &str) -> Result<()> {
+    let body = ureq::get(&url).call()?;
+    let mut buffer = Vec::new();
+    let _ = body.into_reader().read_to_end(&mut buffer)?;
+    let mut file = File::create(folder.join(file_name))
+        .context("Failed to create destination file for writing")?;
+    let _ = file.write(&buffer).context("Failed to write file")?;
+    return Ok(());
+}
+
+fn main() -> Result<()> {
     let target = env::var("TARGET").unwrap();
-    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
-    let cb_model_interface_root = Path::new("../../libs/model_interface/")
+
+    let version = "1.0.6";
+
+    let source_file = if target.contains("apple") && target.contains("aarch64") {
+        let base_file = "libcatboostmodel.dylib".to_string();
+        base_file
+    } else if target.contains("linux") {
+        let base_file = "libcatboostmodel.so".to_string();
+        base_file
+    } else {
+        return Err(anyhow!("Unknown target triple").context(target));
+    };
+
+    let dest_file = format!("{}.1", source_file);
+
+    let download_url = format!(
+        "https://github.com/catboost/catboost/releases/download/v{}/{}",
+        version, source_file
+    );
+
+    let out_dir =
+        PathBuf::from(env::var("OUT_DIR").context("Couldn't get OUT_DIR from env variable")?);
+
+    let model_interface_dir = out_dir.join("catboost/libs/model_interface");
+
+    create_dir_all(&model_interface_dir).context("Couldn't create model interface directory")?;
+
+    download_file(
+        download_url,
+        Path::new(&model_interface_dir).to_path_buf(),
+        &dest_file,
+    )?;
+
+    let cb_model_interface_root = Path::new("model_interface/")
         .canonicalize()
-        .unwrap();
-
-    let mut ya_args = vec![
-        "make",
-        "-r",
-        cb_model_interface_root.to_str().unwrap(),
-        "-o",
-        out_dir.to_str().unwrap(),
-    ];
-
-    if target.contains("apple") && target.contains("aarch64") {
-        let mut target_platform_args = vec!["--target-platform", "CLANG12-DARWIN-ARM64"];
-        ya_args.append(&mut target_platform_args);
-    }
-
-    Command::new("../../../ya")
-        .args(ya_args)
-        .status()
-        .unwrap_or_else(|e| {
-            panic!("Failed to yamake libcatboostmodel: {}", e);
-        });
+        .context("Failed to find model_interface C directory")?;
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
@@ -41,7 +68,7 @@ fn main() {
 
     bindings
         .write_to_file(out_dir.join("bindings.rs"))
-        .expect("Couldn't write bindings.");
+        .context("Couldn't write bindings.")?;
 
     println!(
         "cargo:rustc-link-search={}",
@@ -54,4 +81,6 @@ fn main() {
         println!("cargo:rustc-link-lib=stdc++");
     }
     println!("cargo:rustc-link-lib=dylib=catboostmodel");
+
+    return Ok(());
 }
