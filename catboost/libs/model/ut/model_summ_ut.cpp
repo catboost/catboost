@@ -120,4 +120,12 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
             }
         }
     }
+
+    Y_UNIT_TEST(SumWithZeroWeights) {
+        const auto models = TVector<TFullModel>{ SimpleFloatModel(), SimpleFloatModel(), SimpleFloatModel(), SimpleFloatModel() };
+        const auto sumNonZeroWeightsModel = SumModels({&models[0], &models[2]}, {2.0, 1.0}, {"m0:", "m2:"});
+        const auto sumWithZeroWeightsModel = SumModels({&models[0], &models[1], &models[2], &models[3]}, {2.0, 0.0, 1.0, 0.0}, {"m0:", "m1:", "m2:", "m3:"});
+
+        UNIT_ASSERT_EQUAL(sumNonZeroWeightsModel, sumWithZeroWeightsModel);
+    }
 }
