@@ -17,7 +17,6 @@ SRCS(
     generic/deque_ut.cpp
     generic/explicit_type_ut.cpp
     generic/flags_ut.cpp
-    generic/function_ref_ut.cpp
     generic/function_ut.cpp
     generic/guid_ut.cpp
     generic/hash_primes_ut.cpp
@@ -56,6 +55,12 @@ SRCS(
     generic/ylimits_ut.cpp
     generic/ymath_ut.cpp
 )
+
+IF(NOT MSVC)
+    SRCS(
+        generic/function_ref_ut.cpp
+    )
+ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/util/tests/ya_util_tests.inc)
 
