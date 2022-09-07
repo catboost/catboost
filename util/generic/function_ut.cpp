@@ -8,7 +8,15 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
         return (int)x;
     }
 
+    int FFN(double x) noexcept {
+        return (int)x;
+    }
+
     int FFF(double x, char xx) {
+        return (int)x + (int)xx;
+    }
+
+    int FFFN(double x, char xx) noexcept {
         return (int)x + (int)xx;
     }
 
@@ -16,14 +24,54 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
         int F(double x) {
             return FF(x);
         }
+
+        int FN(double x) noexcept {
+            return FFN(x);
+        }
+
+        int FC(double x) const {
+            return FF(x);
+        }
+
+        int FCN(double x) const noexcept {
+            return FFN(x);
+        }
+
+#define Y_FOR_EACH_REF_QUALIFIED_MEMBERS(XX) \
+    XX(AsMutLvalue, &, false)                \
+    XX(AsMutLvalueN, &, true)                \
+    XX(AsMutRvalue, &&, false)               \
+    XX(AsMutRvalueN, &&, true)               \
+    XX(AsConstLvalue, const&, false)         \
+    XX(AsConstLvalueN, const&, true)         \
+    XX(AsConstRvalue, const&&, false)        \
+    XX(AsConstRvalueN, const&&, true)
+
+#define Y_ADD_MEMBER(name, qualifiers, isNoexcept)       \
+    int name(double x) qualifiers noexcept(isNoexcept) { \
+        return FF(x);                                    \
+    }
+
+        Y_FOR_EACH_REF_QUALIFIED_MEMBERS(Y_ADD_MEMBER)
+#undef Y_ADD_MEMBER
     };
 
     Y_UNIT_TEST(TestPlainFunc) {
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(FF)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(FFN)>, decltype(FF));
     }
 
     Y_UNIT_TEST(TestMethod) {
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::F)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::FN)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::FC)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::FCN)>, decltype(FF));
+
+#define Y_CHECK_MEMBER(name, qualifiers, isNoexcept) \
+    UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::name)>, decltype(FF));
+
+        Y_FOR_EACH_REF_QUALIFIED_MEMBERS(Y_CHECK_MEMBER)
+#undef Y_CHECK_MEMBER
     }
 
     Y_UNIT_TEST(TestLambda) {
@@ -31,7 +79,17 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
             return FF(x);
         };
 
+        auto fn = [](double x) mutable noexcept -> int {
+            return FFN(x);
+        };
+
+        auto fcn = [](double x) noexcept -> int {
+            return FFN(x);
+        };
+
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(f)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(fn)>, decltype(FF));
+        UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(fcn)>, decltype(FF));
     }
 
     Y_UNIT_TEST(TestFunction) {
@@ -57,6 +115,7 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
 
     Y_UNIT_TEST(TestPlainFunctionTraits) {
         TestCT<decltype(FFF)>();
+        TestCT<decltype(FFFN)>();
     }
 
     Y_UNIT_TEST(TestLambdaTraits) {
@@ -64,6 +123,16 @@ Y_UNIT_TEST_SUITE(TestFunctionSignature) {
             return FFF(xx, xxx);
         };
 
+        auto fffn = [](double xx, char xxx) mutable noexcept -> int {
+            return FFFN(xx, xxx);
+        };
+
+        auto fffcn = [](double xx, char xxx) noexcept -> int {
+            return FFFN(xx, xxx);
+        };
+
         TestCT<decltype(fff)>();
+        TestCT<decltype(fffn)>();
+        TestCT<decltype(fffcn)>();
     }
 }
