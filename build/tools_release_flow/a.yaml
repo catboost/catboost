@@ -2,7 +2,7 @@ title: Tools release flow
 service: ya_make
 
 ci:
-  secret: sec-01g9yyfb1fdnszke6vdd80za1y
+  secret: sec-01g3gh4pajg2mrbzvewmb51e7s
   runtime:
     sandbox:
       owner: YATOOL
@@ -56,7 +56,7 @@ ci:
                       - resource_map
                     # default: resource_map
                   output:
-                    title: Path to commit (with format)
+                    title: Path to commit
                     type: string
 
   flows:
@@ -82,7 +82,10 @@ ci:
           input:
             config:
               arc_revision: ${context.target_revision.hash}
-              tools: ${flow-vars.tools}
+              tools_array: ${flow-vars.tools}
               is_release: true
               create_pr: true
+              branch_prefix: deploy-tools
+              branch_suffix: ${context.version_info.full}
+              push_from_user: true
             sb_resources: ${(tasks.*.resources[])[?type == 'PLATFORM_MAPPING']}

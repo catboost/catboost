@@ -6738,13 +6738,7 @@
             }
         },
         "yexport": {
-            "formula": {
-                "sandbox_id": [
-                    1408893661
-                ],
-                "platform_replacements": {},
-                "match": "yexport"
-            },
+            "formula": "build/external_resources/yexport/resources.json",
             "executable": {
                 "yexport": [
                     "yexport"
