@@ -6,3 +6,7 @@ IF (NOT AUTOCHECK)
         ${CONTRIB}
     )
 ENDIF()
+
+RECURSE(
+    
+)

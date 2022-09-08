@@ -10,7 +10,6 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/city
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/strings
     contrib/restricted/abseil-cpp/absl/types
@@ -29,6 +28,7 @@ CFLAGS(
 )
 
 SRCS(
+    internal/city.cc
     internal/hash.cc
     internal/low_level_hash.cc
 )

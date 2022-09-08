@@ -15,10 +15,8 @@ ORIGINAL_SOURCE(https://github.com/abseil/abseil-cpp/archive/20220623.0.tar.gz)
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/algorithm
     contrib/restricted/abseil-cpp/absl/base
-    contrib/restricted/abseil-cpp/absl/city
     contrib/restricted/abseil-cpp/absl/container
     contrib/restricted/abseil-cpp/absl/debugging
-    contrib/restricted/abseil-cpp/absl/demangle
     contrib/restricted/abseil-cpp/absl/flags
     contrib/restricted/abseil-cpp/absl/functional
     contrib/restricted/abseil-cpp/absl/hash
@@ -42,10 +40,8 @@ END()
 RECURSE(
     absl/algorithm
     absl/base
-    absl/city
     absl/container
     absl/debugging
-    absl/demangle
     absl/flags
     absl/functional
     absl/hash
