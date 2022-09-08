@@ -80,14 +80,10 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_avx2.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)fast_exp_avx2.cpp.avx2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)fast_exp_avx2.cpp.avx2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_sse2.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)fast_exp_sse2.cpp.sse2.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)fast_exp_sse2.cpp.sse2.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

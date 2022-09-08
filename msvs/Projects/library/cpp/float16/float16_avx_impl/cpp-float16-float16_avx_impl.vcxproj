@@ -79,8 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\float16\float16_avx_impl\float16_avx.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)float16_avx.cpp.avx.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)float16_avx.cpp.avx.obj</ObjectFileName>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX /DAVX_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX /DAVX_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
