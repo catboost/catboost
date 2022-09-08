@@ -11,17 +11,6 @@ add_library(util-charset)
 target_link_libraries(util-charset PUBLIC
   contrib-libs-cxxsupp
 )
-target_sources(util-charset PRIVATE
-  ${CMAKE_SOURCE_DIR}/util/charset/wide_sse41.cpp
-)
-set_property(
-  SOURCE
-  ${CMAKE_SOURCE_DIR}/util/charset/wide_sse41.cpp
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -msse4.1
-)
 target_joined_source(util-charset
   all_charset.cpp
   ${CMAKE_SOURCE_DIR}/util/charset/generated/unidata.cpp
@@ -30,4 +19,11 @@ target_joined_source(util-charset
   ${CMAKE_SOURCE_DIR}/util/charset/unidata.cpp
   ${CMAKE_SOURCE_DIR}/util/charset/utf8.cpp
   ${CMAKE_SOURCE_DIR}/util/charset/wide.cpp
+)
+target_sources_custom(util-charset
+  .sse41
+  SRCS
+  ${CMAKE_SOURCE_DIR}/util/charset/wide_sse41.cpp
+  CUSTOM_FLAGS
+  -msse4.1
 )
