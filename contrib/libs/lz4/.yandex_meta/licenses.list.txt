@@ -123,22 +123,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 ====================COPYRIGHT====================
-   Copyright (C) 2011-2017, Yann Collet.
-   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
+ * Copyright (C) 2011-2016, Yann Collet.
 
 
 ====================COPYRIGHT====================
-   Copyright (C) 2011-present, Yann Collet.
+ * Copyright (C) 2022, Xiaomi Inc.
 
 
 ====================COPYRIGHT====================
-Copyright (c) 2011-2016, Yann Collet
+Copyright (c) 2011-2020, Yann Collet
 All rights reserved.
 
 
 ====================File: LICENSE====================
 LZ4 Library
-Copyright (c) 2011-2016, Yann Collet
+Copyright (c) 2011-2020, Yann Collet
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,

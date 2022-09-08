@@ -64,6 +64,7 @@ BELONGS ya.make
         Match type      : REFERENCE
         Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
     Files with this license:
+        lz4file.c [5:5]
         lz4frame.c [5:5]
 
 KEEP     BSD-2-Clause         277d8cde0a8190e7d13bbd99a0e026d1
@@ -79,7 +80,7 @@ BELONGS ya.make
         Match type      : NOTICE
         Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
     Files with this license:
-        README.md [133:137]
+        README.md [165:169]
 
 KEEP     BSD-2-Clause         4dd667b9970dee7e9fc4b2cd74fbcf72
 BELONGS ya.make
@@ -90,6 +91,7 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : http://opensource.org/licenses/bsd-license.php, http://www.opensource.org/licenses/BSD-2-Clause, https://spdx.org/licenses/BSD-2-Clause
     Files with this license:
+        lz4file.c [7:28]
         lz4frame.c [7:28]
 
 SKIP     LicenseRef-scancode-warranty-disclaimer 5de060509cb22def9ceec8dc7f2355be
@@ -103,7 +105,7 @@ BELONGS ya.make
         Match type      : TEXT
         Links           : https://github.com/nexB/scancode-toolkit/tree/develop/src/licensedcode/data/licenses/warranty-disclaimer.LICENSE
     Files with this license:
-        lz4frame.h [501:501]
+        lz4frame.h [518:518]
 
 KEEP     BSD-2-Clause         68092a45bf6b6ec767dc44b4ccef998d
 BELONGS ya.make
@@ -128,12 +130,14 @@ BELONGS ya.make
     Files with this license:
         lz4.c [5:5]
         lz4.h [6:6]
+        lz4file.h [5:5]
         lz4frame.h [5:5]
+        lz4frame_static.h [6:6]
         lz4hc.h [5:5]
 
 KEEP     BSD-3-Clause         9dc6fd16d88abc469b17dd337095122b
 BELONGS ya.make
-FILE_INCLUDE LICENSE found in files: README.md at line 124
+FILE_INCLUDE LICENSE found in files: README.md at line 155
     License text:
          - `LICENSE` : contains the BSD license text
     Scancode info:
@@ -142,7 +146,7 @@ FILE_INCLUDE LICENSE found in files: README.md at line 124
         Match type      : REFERENCE
         Links           : http://www.opensource.org/licenses/BSD-3-Clause, https://spdx.org/licenses/BSD-3-Clause
     Files with this license:
-        README.md [124:124]
+        README.md [155:155]
 
 KEEP     BSD-2-Clause         c67981f06ea0c00fcf4c73a2ef8d2c8a
 BELONGS ya.make
@@ -155,7 +159,9 @@ BELONGS ya.make
     Files with this license:
         lz4.c [7:28]
         lz4.h [8:29]
+        lz4file.h [7:28]
         lz4frame.h [7:28]
+        lz4frame_static.h [8:29]
         lz4hc.h [7:28]
 
 KEEP     BSD-2-Clause         cb9c91d0eb767b84fe8deed36ba3875b
