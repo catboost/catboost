@@ -340,6 +340,10 @@
             "description": "Autocheck data inspection tool",
             "visible": false
         },
+        "coverage-diff-report": {
+            "description": "Run coverage diff report",
+            "visible": false
+        },
         "releaser": {
             "description": "Release tool"
         },
@@ -4736,6 +4740,28 @@
                 }
             ]
         },
+        "coverage-diff-report": {
+            "tools": {
+                "coverage-diff-report": {
+                    "bottle": "coverage-diff-report",
+                    "executable": "coverage-diff-report"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "gpt": {
             "tools": {
                 "gpt_perf": {
@@ -8044,6 +8070,26 @@
                 ]
             }
         },
+        "coverage-diff-report": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "COVERAGE_DIFF_REPORT_BIN",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "YATOOL"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
+            },
+            "executable": {
+                "coverage-diff-report": [
+                    "coverage_diff"
+                ]
+            }
+        },
         "rsync": {
             "formula": {
                 "sandbox_id": [
@@ -9013,7 +9059,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1429170329,
+                "sandbox_id": 1430511676,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9024,7 +9070,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1429171449,
+                "sandbox_id": 1430510445,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9046,7 +9092,7 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1429170994,
+                "sandbox_id": 1430511066,
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
@@ -9095,7 +9141,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1429171663,
+                "sandbox_id": 1430511400,
                 "match": "yt_sync"
             },
             "executable": {
@@ -9106,7 +9152,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1429170744,
+                "sandbox_id": 1430511478,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9117,7 +9163,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1429170694,
+                "sandbox_id": 1430515547,
                 "match": "exp_stats"
             },
             "executable": {
