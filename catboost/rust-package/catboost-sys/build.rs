@@ -1,5 +1,3 @@
-extern crate bindgen;
-
 use anyhow::{anyhow, Context, Result};
 use std::env;
 use std::fs::{create_dir_all, File};
