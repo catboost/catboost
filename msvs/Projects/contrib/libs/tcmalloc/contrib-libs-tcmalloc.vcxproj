@@ -203,17 +203,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\base\abseil-cpp-absl-base.vcxproj">
       <Project>{D4441C16-1A60-AC3B-C46F-A602E33E2248}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\city\abseil-cpp-absl-city.vcxproj">
-      <Project>{4B9028E4-4039-F789-E741-D88BFFC9DFFD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\container\abseil-cpp-absl-container.vcxproj">
       <Project>{132C6772-47DC-500A-B256-2F3E6648C800}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\debugging\abseil-cpp-absl-debugging.vcxproj">
       <Project>{555B82DA-9717-22EB-2E6B-ABC66CD65809}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\demangle\abseil-cpp-absl-demangle.vcxproj">
-      <Project>{0C7FCEF6-C6D4-5453-F293-DFF90FE3B912}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\abseil-cpp\absl\flags\abseil-cpp-absl-flags.vcxproj">
       <Project>{A3D6B1C1-9032-C4CC-C160-88211323873F}</Project>

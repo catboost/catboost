@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\address_is_readable.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\demangle.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\elf_mem_image.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\examine_stack.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\restricted\abseil-cpp\absl\debugging\internal\vdso_support.cc"/>
