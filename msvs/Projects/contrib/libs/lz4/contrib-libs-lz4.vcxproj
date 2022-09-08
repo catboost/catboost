@@ -81,6 +81,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lz4\lz4.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\lz4\lz4file.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\lz4\lz4frame.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -88,7 +91,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4file.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4frame.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4frame_static.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\lz4\lz4hc.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
