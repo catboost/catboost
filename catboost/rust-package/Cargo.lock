@@ -85,7 +85,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1ad822118d20d2c234f427000d5acc36eabe1e29a348c89b63dd60b13f28e5d"
 
 [[package]]
-name = "catboost"
+name = "catboost-rs"
 version = "0.1.1"
 dependencies = [
  "catboost-sys",

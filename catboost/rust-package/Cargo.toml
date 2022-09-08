@@ -1,5 +1,5 @@
 [package]
-name = "catboost"
+name = "catboost-rs"
 version = "0.1.1"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>", "Loh Jia Long <jlloh89@gmail.com>"]
 edition = "2018"
