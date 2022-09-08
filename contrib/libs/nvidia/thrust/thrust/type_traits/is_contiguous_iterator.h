@@ -156,7 +156,7 @@ struct is_libstdcxx_normal_iterator<
 #if   _MSC_VER >= 1916 // MSVC 2017 version 15.9.
 template <typename Iterator>
 struct is_msvc_contiguous_iterator
-  : is_pointer<::std::_Unwrapped_t<Iterator> > {};
+  : is_pointer<::std::remove_reference_t<::std::remove_cv_t<Iterator>>> {};
 #elif _MSC_VER >= 1700 // MSVC 2012.
 template <typename Iterator>
 struct is_msvc_contiguous_iterator : false_type {};

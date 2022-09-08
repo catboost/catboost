@@ -6,10 +6,9 @@
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/methods/kernel/score_calcers.cuh>
 
-#include _CUB_INCLUDE(cub/block/block_reduce.cuh)
+#include <contrib/libs/nvidia/cub/cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>

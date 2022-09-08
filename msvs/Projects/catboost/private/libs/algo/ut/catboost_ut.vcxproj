@@ -335,9 +335,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\contrib-libs-lz4.vcxproj">
       <Project>{3E6BC25C-7681-5FB8-F139-A03845C5F910}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
-      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
       <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
     </ProjectReference>
@@ -601,6 +598,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\py3\pypython-traitlets-py3.global.vcxproj">
       <Project>{C9721258-FCFC-11E8-3860-C8CFE02E043D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
+      <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.global.vcxproj">
       <Project>{4E507DA8-7440-F9EE-B41C-1180E1585413}</Project>

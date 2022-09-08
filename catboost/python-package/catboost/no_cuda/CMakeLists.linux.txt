@@ -6,7 +6,7 @@
 # original buildsystem will not be accepted.
 
 
-find_package(Python3 REQUIRED)
+find_package(Python3 REQUIRED COMPONENTS Development)
 
 add_library(_catboost_no_cuda SHARED)
 set_property(TARGET _catboost_no_cuda PROPERTY

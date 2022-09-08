@@ -3,6 +3,7 @@ import html
 import os
 import sys
 from collections import defaultdict, Counter
+from enum import Enum
 from textwrap import dedent
 from types import FrameType, CodeType, TracebackType
 from typing import (
@@ -45,6 +46,21 @@ Typically this would be created from a RangeInLine by markers_from_ranges.
 Then use Line.render to insert the markers correctly.
 """
 
+
+class BlankLines(Enum):
+    """The values are intended to correspond to the following behaviour:
+    HIDDEN: blank lines are not shown in the output
+    VISIBLE: blank lines are visible in the output
+    SINGLE: any consecutive blank lines are shown as a single blank line
+            in the output. This option requires the line number to be shown.
+            For a single blank line, the corresponding line number is shown.
+            Two or more consecutive blank lines are shown as a single blank
+            line in the output with a custom string shown instead of a
+            specific line number.
+    """
+    HIDDEN = 1
+    VISIBLE = 2
+    SINGLE=3
 
 class Variable(
     NamedTuple('_Variable',
@@ -171,13 +187,15 @@ class Options:
             after: int = 1,
             include_signature: bool = False,
             max_lines_per_piece: int = 6,
-            pygments_formatter=None
+            pygments_formatter=None,
+            blank_lines = BlankLines.HIDDEN
     ):
         self.before = before
         self.after = after
         self.include_signature = include_signature
         self.max_lines_per_piece = max_lines_per_piece
         self.pygments_formatter = pygments_formatter
+        self.blank_lines = blank_lines
 
     def __repr__(self):
         keys = sorted(self.__dict__)
@@ -200,6 +218,16 @@ class LineGap(object):
 
 
 LINE_GAP = LineGap()
+
+
+class BlankLineRange:
+    """
+    Records the line number range for blank lines gaps between pieces.
+    For a single blank line, begin_lineno == end_lineno.
+    """
+    def __init__(self, begin_lineno: int, end_lineno: int):
+        self.begin_lineno = begin_lineno
+        self.end_lineno = end_lineno
 
 
 class Line(object):
@@ -336,6 +364,11 @@ class Line(object):
                     return None
         else:
             range_end = len(self.text)
+        if range_start == range_end == 0:
+            # This is an empty line. If it were included, it would result
+            # in a value of zero for the common indentation assigned to
+            # a block of code.
+            return None
 
         return RangeInLine(range_start, range_end, data)
 
@@ -522,6 +555,7 @@ class FrameInfo(object):
         self.options = options or Options()  # type: Options
         self.source = self.executing.source  # type: Source
 
+
     def __repr__(self):
         return "{self.__class__.__name__}({self.frame})".format(self=self)
 
@@ -682,10 +716,11 @@ class FrameInfo(object):
         return min(indents[1:])
 
     @cached_property
-    def lines(self) -> List[Union[Line, LineGap]]:
+    def lines(self) -> List[Union[Line, LineGap, BlankLineRange]]:
         """
         A list of lines to display, determined by options.
-        The objects yielded either have type Line or are the singleton LINE_GAP.
+        The objects yielded either have type Line, BlankLineRange
+        or are the singleton LINE_GAP.
         Always check the type that you're dealing with when iterating.
 
         LINE_GAP can be created in two ways:
@@ -700,6 +735,8 @@ class FrameInfo(object):
         if not pieces:
             return []
 
+        add_empty_lines = self.options.blank_lines in (BlankLines.VISIBLE, BlankLines.SINGLE)
+        prev_piece = None
         result = []
         for i, piece in enumerate(pieces):
             if (
@@ -709,6 +746,12 @@ class FrameInfo(object):
                     and pieces[1] != self.scope_pieces[1]
             ):
                 result.append(LINE_GAP)
+            elif prev_piece and add_empty_lines and piece.start > prev_piece.stop:
+                if self.options.blank_lines == BlankLines.SINGLE:
+                    result.append(BlankLineRange(prev_piece.stop, piece.start-1))
+                else:  # BlankLines.VISIBLE
+                    for lineno in range(prev_piece.stop, piece.start):
+                        result.append(Line(self, lineno))
 
             lines = [Line(self, i) for i in piece]  # type: List[Line]
             if piece != self.executing_piece:
@@ -718,6 +761,7 @@ class FrameInfo(object):
                     middle=[LINE_GAP],
                 )
             result.extend(lines)
+            prev_piece = piece
 
         real_lines = [
             line
@@ -733,7 +777,6 @@ class FrameInfo(object):
         leading_indent = len(real_lines[0].text) - len(dedented_lines[0])
         for line in real_lines:
             line.leading_indent = leading_indent
-
         return result
 
     @cached_property

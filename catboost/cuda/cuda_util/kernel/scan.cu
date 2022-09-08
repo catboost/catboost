@@ -2,8 +2,7 @@
 #include "segmented_scan_helpers.cuh"
 #include "fill.cuh"
 
-#include <library/cpp/cuda/wrappers/cub_include.h>
-#include _CUB_INCLUDE(cub/device/device_scan.cuh)
+#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
 
 namespace NKernel {
 

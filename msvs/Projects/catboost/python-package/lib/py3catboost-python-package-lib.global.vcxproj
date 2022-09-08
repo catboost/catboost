@@ -654,9 +654,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\contrib-libs-lz4.vcxproj">
       <Project>{3E6BC25C-7681-5FB8-F139-A03845C5F910}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
-      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzma\contrib-libs-lzma.vcxproj">
       <Project>{67104716-36C7-D4F8-BC46-5B33214C649D}</Project>
     </ProjectReference>

@@ -1,6 +1,5 @@
 #pragma once
-#include <library/cpp/cuda/wrappers/cub_include.h>
-#include _CUB_INCLUDE(cub/thread/thread_load.cuh)
+#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
 
 
 __forceinline__ __device__ ui32 bfe(ui32 a, ui32 start, ui32 length)

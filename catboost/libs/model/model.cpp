@@ -1820,32 +1820,24 @@ TFullModel SumModels(
     CB_ENSURE(modelVector.size() == weights.size());
     CB_ENSURE(modelParamsPrefixes.empty() || (modelVector.size() == modelParamsPrefixes.size()));
 
-    TVector<const TFullModel*> nonZeroWeightModelVector;
-    TVector<double> nonZeroWeights;
-    TVector<TString> nonZeroWeightModelParamsPrefixes;
+    CB_ENSURE(
+        IsAllOblivious(modelVector) || IsAllNonSymmetric(modelVector),
+        "Summation of symmetric and non-symmetric models is not supported [for now]");
 
-    for (auto i : xrange(modelVector.size())) {
-        if (FuzzyEquals(weights[i], 0.0)) {
-            CATBOOST_WARNING_LOG << "SumModels. Model #" << i << " has weight 0 in sum.\n";
-        } else {
-            nonZeroWeightModelVector.push_back(modelVector[i]);
-            nonZeroWeights.push_back(weights[i]);
-            if (!nonZeroWeightModelParamsPrefixes.empty()) {
-                nonZeroWeightModelParamsPrefixes.push_back(modelParamsPrefixes[i]);
-            }
-        }
-    }
-
-    const auto approxDimension = nonZeroWeightModelVector.back()->GetDimensionsCount();
+    const auto approxDimension = modelVector.back()->GetDimensionsCount();
     size_t maxFlatFeatureVectorSize = 0;
     TVector<TIntrusivePtr<ICtrProvider>> ctrProviders;
     bool allModelsHaveLeafWeights = true;
     bool someModelHasLeafWeights = false;
-    for (const auto& model : nonZeroWeightModelVector) {
+    for (const auto& model : modelVector) {
         Y_ASSERT(model != nullptr);
         CB_ENSURE(
             model->ModelTrees->GetTextFeatures().empty(),
             "Models summation is not supported for models with text features"
+        );
+        CB_ENSURE(
+            model->ModelTrees->GetEmbeddingFeatures().empty(),
+            "Models summation is not supported for models with embedding features"
         );
         CB_ENSURE(
             model->GetDimensionsCount() == approxDimension,
@@ -1870,7 +1862,7 @@ TFullModel SumModels(
         "because not all models have leaf weights" << Endl;
     }
     TVector<TFlatFeature> flatFeatureInfoVector(maxFlatFeatureVectorSize);
-    for (const auto& model : nonZeroWeightModelVector) {
+    for (const auto& model : modelVector) {
         for (const auto& floatFeature : model->ModelTrees->GetFloatFeatures()) {
             flatFeatureInfoVector[floatFeature.Position.FlatIndex].SetOrCheck(floatFeature);
         }
@@ -1883,8 +1875,8 @@ TFullModel SumModels(
         std::visit(merger, flatFeature.FeatureVariant);
     }
     TVector<double> totalBias(approxDimension);
-    for (const auto modelId : xrange(nonZeroWeightModelVector.size())) {
-        TScaleAndBias normer = nonZeroWeightModelVector[modelId]->GetScaleAndBias();
+    for (const auto modelId : xrange(modelVector.size())) {
+        TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
         auto normerBias = normer.GetBiasRef();
         if (!normerBias.empty()) {
             CB_ENSURE(totalBias.size() == normerBias.size(), "Bias dimensions missmatch");
@@ -1894,32 +1886,32 @@ TFullModel SumModels(
         }
     }
     TFullModel result;
-    if (IsAllOblivious(nonZeroWeightModelVector)) {
+    if (IsAllOblivious(modelVector)) {
         SumModels<TObliviousTreeBuilder>(
-            nonZeroWeightModelVector,
-            nonZeroWeights,
+            modelVector,
+            weights,
             merger.MergedFloatFeatures,
             merger.MergedCatFeatures,
             allModelsHaveLeafWeights,
             &result);
     } else if (IsAllNonSymmetric(modelVector)) {
         SumModels<TNonSymmetricTreeModelBuilder>(
-            nonZeroWeightModelVector,
-            nonZeroWeights,
+            modelVector,
+            weights,
             merger.MergedFloatFeatures,
             merger.MergedCatFeatures,
             allModelsHaveLeafWeights,
             &result);
     } else {
-        CB_ENSURE(false, "This should be unreachable");
+        CB_ENSURE_INTERNAL(false, "This should be unreachable");
     }
 
-    for (const auto modelIdx : xrange(nonZeroWeightModelVector.size())) {
+    for (const auto modelIdx : xrange(modelVector.size())) {
         TStringBuilder keyPrefix;
-        if (nonZeroWeightModelParamsPrefixes.empty()) {
+        if (modelParamsPrefixes.empty()) {
             keyPrefix << "model" << modelIdx << ":";
         } else {
-            keyPrefix << nonZeroWeightModelParamsPrefixes[modelIdx];
+            keyPrefix << modelParamsPrefixes[modelIdx];
         }
         for (const auto& [key, value]: modelVector[modelIdx]->ModelInfo) {
             result.ModelInfo[keyPrefix + key] = value;
@@ -1929,7 +1921,7 @@ TFullModel SumModels(
     result.UpdateDynamicData();
     result.ModelInfo["model_guid"] = CreateGuidAsString();
     result.SetScaleAndBias({1, totalBias});
-    SumModelsParams(nonZeroWeightModelVector, &result.ModelInfo);
+    SumModelsParams(modelVector, &result.ModelInfo);
     return result;
 }
 

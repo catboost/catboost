@@ -1,12 +1,11 @@
 #include "transform.cuh"
 #include <library/cpp/cuda/wrappers/arch.cuh>
-#include <library/cpp/cuda/wrappers/cub_include.h>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/operators.cuh>
 
 #include <util/generic/cast.h>
 
-#include _CUB_INCLUDE(cub/block/block_radix_sort.cuh)
+#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
 
 
 namespace NKernel {

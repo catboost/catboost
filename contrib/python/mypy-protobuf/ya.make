@@ -4,12 +4,13 @@ PY3_LIBRARY()
 
 
 
-VERSION(3.2.0)
+VERSION(3.3.0)
 
 LICENSE(Apache-2.0)
 
 PEERDIR(
     contrib/python/protobuf
+    contrib/python/types-protobuf
 )
 
 NO_LINT()
