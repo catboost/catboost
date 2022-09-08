@@ -1,0 +1,32 @@
+{
+  "moduleTemplatePath":"module_template.txt",
+  "renameModuleFile":"build.gradle.kts",
+  "renameRootFile":"settings.gradle.kts",
+  "rootTemplatePath":"root_template.txt",
+  "filesToCopy":
+  [
+    "build.gradle.kts",
+    "gradlew",
+    "gradlew.bat",
+    "gradle/wrapper/gradle-wrapper.properties"
+  ],
+  "commands":
+  {
+    "KnownTargets":
+    [
+      "add_jar"
+    ],
+    "KnownAttrs":
+    [
+    ],
+    "KnownInducedAttrs":
+    [
+      "consumer_link_library"
+    ],
+    "KnownRootAttrs":
+    [
+      "add_library"
+    ]
+  }
+}
+
