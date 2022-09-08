@@ -3,10 +3,7 @@ use std::env;
 use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-// use std::process::Command;
 
-// TODO: Similar to tch-rs-sys, we should prefer to download the binaries from github rather than rebuilding
-//https://github.com/catboost/catboost/releases/download/v{}/libcatboostmodel.so
 fn download_file(url: String, folder: PathBuf, file_name: &str) -> Result<()> {
     let body = ureq::get(&url).call()?;
     let mut buffer = Vec::new();
