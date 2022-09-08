@@ -1,11 +1,14 @@
 [package]
 name = "catboost"
-version = "0.1.0"
-authors = ["Sergey Kiselev <kiselev.sg@gmail.com>"]
+version = "0.1.1"
+authors = ["Sergey Kiselev <kiselev.sg@gmail.com>", "Loh Jia Long <jlloh89@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/jlloh/catboost/tree/refactor-crate-avoid-build/catboost/rust-package"
+description = """
+Rust bindings for catboost
+"""
+license = "MIT/Apache-2.0"
 
-[workspace]
-members = ["catboost-sys"]
 
 [dependencies]
-catboost-sys = { path = "catboost-sys", version = "0.1.1"}
+catboost-sys = "0.1.2"
