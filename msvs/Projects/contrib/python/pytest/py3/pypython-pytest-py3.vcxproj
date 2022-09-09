@@ -2484,9 +2484,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\py3contrib-python-atomicwrites.vcxproj">
-      <Project>{5AECC9B7-19E4-6E57-329A-7E40825C92A3}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.vcxproj">
       <Project>{0CD7AE88-DE09-CF37-A443-C3C5415FAD33}</Project>
     </ProjectReference>

@@ -348,9 +348,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\asttokens\pycontrib-python-asttokens.global.vcxproj">
       <Project>{982D451B-0606-EC54-BBAD-20349948A9A6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\py3contrib-python-atomicwrites.global.vcxproj">
-      <Project>{3F261226-11A9-6451-F0B7-B02A21FAA986}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\atomicwrites\pycontrib-python-atomicwrites.global.vcxproj">
       <Project>{2056A240-BF23-7679-9796-46BECFF3F8A4}</Project>
     </ProjectReference>
