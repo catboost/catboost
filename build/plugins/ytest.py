@@ -598,7 +598,7 @@ def onadd_check(unit, *args):
             raise Exception("'{}' is not allowed in LINT(), use one of {}".format(check_level, allowed_levels.keys()))
         test_files[0] = allowed_levels[check_level]  # replace check_level with path to config file
         script_rel_path = "java.style"
-        test_timeout = '120'
+        test_timeout = '240'
         fork_mode = unit.get('TEST_FORK_MODE') or ''
         if ymake_java_test:
             extra_test_data = java_srcdirs_to_data(unit, 'ALL_SRCDIRS')
