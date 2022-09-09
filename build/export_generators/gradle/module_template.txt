@@ -14,23 +14,19 @@ dependencies{
 
     implementation("com.google.guava:guava:31.0.1-jre")
 {% endif -%}
+{% for target in targets -%}
+{% for library in target.consumer_link_library -%}
+{% if target.isTest -%}
+    testImplementation(project(":{{ library | replace("/", ":") }}"))
+{% else -%}
+    implementation(project(":{{ library | replace("/", ":") }}"))
+{% endif -%}
+{% endfor -%}
+{% endfor -%}
 }
-{% if hasTest %}
+
+{% if hasTest -%}
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 {% endif -%}
-
-/*
-Libraries{
-{% for target in targets -%}
-{% for library in target.consumer_link_library -%}
-{% if target.isTestTarget -%}
-    library for test:{{ library }}
-{% else -%}
-    library:{{ library }}
-{% endif -%}
-{% endfor -%}
-{% endfor -%}
-}
-*/
