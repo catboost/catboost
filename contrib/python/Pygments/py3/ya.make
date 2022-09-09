@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(2.12.0)
+VERSION(2.13.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -92,6 +92,7 @@ PY_SRCS(
     pygments/lexers/cddl.py
     pygments/lexers/chapel.py
     pygments/lexers/clean.py
+    pygments/lexers/comal.py
     pygments/lexers/compiled.py
     pygments/lexers/configs.py
     pygments/lexers/console.py
@@ -146,6 +147,7 @@ PY_SRCS(
     pygments/lexers/iolang.py
     pygments/lexers/j.py
     pygments/lexers/javascript.py
+    pygments/lexers/jmespath.py
     pygments/lexers/jslt.py
     pygments/lexers/julia.py
     pygments/lexers/jvm.py
@@ -271,6 +273,7 @@ PY_SRCS(
     pygments/styles/friendly.py
     pygments/styles/friendly_grayscale.py
     pygments/styles/fruity.py
+    pygments/styles/gh_dark.py
     pygments/styles/gruvbox.py
     pygments/styles/igor.py
     pygments/styles/inkpot.py
@@ -281,6 +284,7 @@ PY_SRCS(
     pygments/styles/monokai.py
     pygments/styles/murphy.py
     pygments/styles/native.py
+    pygments/styles/nord.py
     pygments/styles/onedark.py
     pygments/styles/paraiso_dark.py
     pygments/styles/paraiso_light.py
@@ -290,6 +294,7 @@ PY_SRCS(
     pygments/styles/rrt.py
     pygments/styles/sas.py
     pygments/styles/solarized.py
+    pygments/styles/staroffice.py
     pygments/styles/stata_dark.py
     pygments/styles/stata_light.py
     pygments/styles/tango.py

@@ -36,7 +36,6 @@ from pygments.token import Keyword, Name, Comment, String, Error, Operator
 class AlgolStyle(Style):
 
     background_color = "#ffffff"
-    default_style = ""
 
     styles = {
         Comment:                   "italic #888",

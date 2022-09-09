@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 import struct
 import subprocess
 import sys
@@ -10,6 +11,8 @@ import container
 def main(output_path, entry_path, input_paths, squashfs_path):
     output_tmp_path = output_path + '.tmp'
     shutil.copy2(entry_path, output_tmp_path)
+    st = os.stat(output_tmp_path)
+    os.chmod(output_tmp_path, st.st_mode | stat.S_IWUSR)
 
     layer_paths = []
     other_paths = []

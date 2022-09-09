@@ -20,7 +20,6 @@ class StataLightStyle(Style):
     meant to be a complete style, just for use with Stata.
     """
 
-    default_style = ''
     styles = {
         Text:                  '#111111',
         Whitespace:            '#bbbbbb',

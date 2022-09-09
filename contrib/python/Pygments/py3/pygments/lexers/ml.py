@@ -911,7 +911,7 @@ class FStarLexer(RegexLexer):
             (r'\b([A-Z][\w\']*)(?=\s*\.)', Name.Namespace, 'dotted'),
             (r'\b([A-Z][\w\']*)', Name.Class),
             (r'\(\*(?![)])', Comment, 'comment'),
-            (r'^\/\/.+$', Comment),
+            (r'\/\/.+$', Comment),
             (r'\b(%s)\b' % '|'.join(keywords), Keyword),
             (r'\b(%s)\b' % '|'.join(assume_keywords), Name.Exception),
             (r'\b(%s)\b' % '|'.join(decl_keywords), Keyword.Declaration),

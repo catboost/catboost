@@ -175,12 +175,12 @@ def objective(baselexer):
                 return 0.8
             return 0
 
-        def get_tokens_unprocessed(self, text):
+        def get_tokens_unprocessed(self, text, stack=('root',)):
             from pygments.lexers._cocoa_builtins import COCOA_INTERFACES, \
                 COCOA_PROTOCOLS, COCOA_PRIMITIVES
 
             for index, token, value in \
-                    baselexer.get_tokens_unprocessed(self, text):
+                    baselexer.get_tokens_unprocessed(self, text, stack):
                 if token is Name or token is Name.Class:
                     if value in COCOA_INTERFACES or value in COCOA_PROTOCOLS \
                        or value in COCOA_PRIMITIVES:

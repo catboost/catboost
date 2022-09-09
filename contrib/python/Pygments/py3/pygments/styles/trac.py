@@ -18,8 +18,6 @@ class TracStyle(Style):
     Port of the default trac highlighter design.
     """
 
-    default_style = ''
-
     styles = {
         Whitespace:             '#bbbbbb',
         Comment:                'italic #999988',

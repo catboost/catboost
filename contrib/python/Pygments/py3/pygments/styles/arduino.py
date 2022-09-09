@@ -20,7 +20,6 @@ class ArduinoStyle(Style):
     """
 
     background_color = "#ffffff"
-    default_style = ""
 
     styles = {
         Whitespace:                "",        # class: 'w'

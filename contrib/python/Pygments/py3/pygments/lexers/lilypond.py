@@ -77,7 +77,7 @@ class LilyPondLexer(SchemeLexer):
     tokens = {
         "root": [
             # Whitespace.
-            (r"\s+", Token.Whitespace),
+            (r"\s+", Token.Text.Whitespace),
 
             # Multi-line comment. These are non-nestable.
             (r"%\{.*?%\}", Token.Comment.Multiline),
@@ -191,7 +191,7 @@ class LilyPondLexer(SchemeLexer):
         # everything that looks like a-known-property.foo.bar-baz as
         # one single property name.
         "maybe-subproperties": [
-            (r"\s+", Token.Whitespace),
+            (r"\s+", Token.Text.Whitespace),
             (r"(\.)((?:[^\W\d]|-)+?)" + NAME_END_RE,
              bygroups(Token.Punctuation, Token.Name.Builtin.GrobProperty)),
             default("#pop"),

@@ -20,8 +20,6 @@ class PastieStyle(Style):
     Style similar to the pastie default style.
     """
 
-    default_style = ''
-
     styles = {
         Whitespace:             '#bbbbbb',
         Comment:                '#888888',

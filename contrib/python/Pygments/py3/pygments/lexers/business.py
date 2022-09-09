@@ -129,7 +129,7 @@ class CobolLexer(RegexLexer):
                 'SEQUENCE', 'SEQUENTIAL', 'SHARING', 'SIGN', 'SIGNED', 'SIGNED-INT',
                 'SIGNED-LONG', 'SIGNED-SHORT', 'SIZE', 'SORT-MERGE', 'SOURCE',
                 'SOURCE-COMPUTER', 'SPECIAL-NAMES', 'STANDARD',
-                'STANDARD-1', 'STANDARD-2', 'STATUS', 'SUM',
+                'STANDARD-1', 'STANDARD-2', 'STATUS', 'SUBKEY', 'SUM',
                 'SYMBOLIC', 'SYNC', 'SYNCHRONIZED', 'TALLYING', 'TAPE',
                 'TEST', 'THROUGH', 'THRU', 'TIME', 'TIMES', 'TO', 'TOP', 'TRAILING',
                 'TRANSFORM', 'TYPE', 'UNDERLINE', 'UNIT', 'UNSIGNED',

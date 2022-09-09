@@ -33,8 +33,6 @@ PURPLE = "#815ba4"
 
 class ParaisoLightStyle(Style):
 
-    default_style = ''
-
     background_color = BACKGROUND
     highlight_color = SELECTION
 

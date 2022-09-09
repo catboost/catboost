@@ -20,7 +20,6 @@ class VimStyle(Style):
 
     background_color = "#000000"
     highlight_color = "#222222"
-    default_style = "#cccccc"
 
     styles = {
         Token:                     "#cccccc",

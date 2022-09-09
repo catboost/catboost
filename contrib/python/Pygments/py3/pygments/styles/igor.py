@@ -16,7 +16,6 @@ class IgorStyle(Style):
     """
     Pygments version of the official colors for Igor Pro procedures.
     """
-    default_style = ""
 
     styles = {
         Comment:                'italic #FF0000',

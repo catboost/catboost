@@ -73,7 +73,7 @@ class AdaLexer(RegexLexer):
             include('numbers'),
             (r"'[^']'", String.Character),
             (r'(\w+)(\s*|[(,])', bygroups(Name, using(this))),
-            (r"(<>|=>|:=|[()|:;,.'])", Punctuation),
+            (r"(<>|=>|:=|@|[\[\]]|[()|:;,.'])", Punctuation),
             (r'[*<>+=/&-]', Operator),
             (r'\n+', Text),
         ],
@@ -101,6 +101,7 @@ class AdaLexer(RegexLexer):
         'type_def': [
             (r';', Punctuation, '#pop'),
             (r'\(', Punctuation, 'formal_part'),
+            (r'\[', Punctuation, 'formal_part'),
             (r'with|and|use', Keyword.Reserved),
             (r'array\b', Keyword.Reserved, ('#pop', 'array_def')),
             (r'record\b', Keyword.Reserved, ('record_def')),
@@ -117,11 +118,14 @@ class AdaLexer(RegexLexer):
             include('root'),
         ],
         'import': [
-            (r'[\w.]+', Name.Namespace, '#pop'),
+            # TODO: use Name.Namespace if appropriate.  This needs
+            # work to disinguish imports from aspects.
+            (r'[\w.]+', Name, '#pop'),
             default('#pop'),
         ],
         'formal_part': [
             (r'\)', Punctuation, '#pop'),
+            (r'\]', Punctuation, '#pop'),
             (r'\w+', Name.Variable),
             (r',|:[^=]', Punctuation),
             (r'(in|not|null|out|access)\b', Keyword.Reserved),

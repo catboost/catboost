@@ -18,8 +18,6 @@ class ColorfulStyle(Style):
     A colorful style, inspired by CodeRay.
     """
 
-    default_style = ""
-
     styles = {
         Whitespace:                "#bbbbbb",
 

@@ -16,7 +16,6 @@ from pygments.token import Keyword, Name, Comment, String, Error, \
 class BlackWhiteStyle(Style):
 
     background_color = "#ffffff"
-    default_style = ""
 
     styles = {
         Comment:                   "italic",

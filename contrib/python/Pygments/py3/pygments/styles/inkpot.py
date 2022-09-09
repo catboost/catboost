@@ -14,8 +14,9 @@ from pygments.token import Text, Other, Keyword, Name, Comment, String, \
 
 
 class InkPotStyle(Style):
+
     background_color = "#1e1e27"
-    default_style = ""
+
     styles = {
         Text:                      "#cfbfad",
         Other:                     "#cfbfad",
