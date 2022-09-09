@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(7.1.2)
+VERSION(7.1.3)
 
 LICENSE(MIT)
 
@@ -16,12 +16,6 @@ PEERDIR(
     contrib/python/py
     contrib/python/tomli
 )
-
-IF (OS_WINDOWS)
-    PEERDIR(
-        contrib/python/atomicwrites
-    )
-ENDIF()
 
 NO_LINT()
 
