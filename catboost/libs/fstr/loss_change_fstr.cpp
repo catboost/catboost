@@ -7,6 +7,7 @@
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/yetirank_helpers.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <catboost/private/libs/pairs/util.h>
 
 #include <util/string/split.h>
 
@@ -140,7 +141,9 @@ void CreateMetricAndLossDescriptionForLossChange(
         (IsYetiRankLossFunction(lossDescription->GetLossFunction())
          && metricDescription->LossFunction != ELossFunction::NDCG);
     if (*needYetiRankPairs) {
-        *metricDescription = NCatboostOptions::ParseLossDescription("PairLogit");
+        TString lossDescription = "PairLogit:max_pairs=";
+        lossDescription.append(ToString(MAX_PAIR_COUNT_ON_GPU));
+        *metricDescription = NCatboostOptions::ParseLossDescription(lossDescription);
     }
     *metric = std::move(
         CreateMetricFromDescription(*metricDescription, model.ModelTrees->GetDimensionsCount())[0]
