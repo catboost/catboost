@@ -54,6 +54,7 @@ namespace NLastGetopt {
         bool AllowUnknownLongOptions_ = false;
 
         ui32 Wrap_ = 80;
+        bool CheckUserTypos_ = false;
 
     private:
         ui32 FreeArgsMin_; // minimal number of free args
@@ -338,6 +339,14 @@ namespace NLastGetopt {
                 .HasArg(NO_ARGUMENT)
                 .IfPresentDisableCompletion()
                 .Handler(&PrintUsageAndExit);
+        }
+
+        /**
+         * Set check user typos or not
+         * @param check   bool flag for chosing
+         */
+        void SetCheckUserTypos(bool check = true) {
+            CheckUserTypos_ = check;
         }
 
         /**

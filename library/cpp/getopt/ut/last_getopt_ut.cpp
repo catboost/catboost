@@ -825,4 +825,29 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT_VALUES_EQUAL(25, number);
         UNIT_ASSERT_VALUES_EQUAL(2, r.GetFreeArgCount());
     }
+
+    Y_UNIT_TEST(TestCheckUserTypos) {
+        {
+            TOptsNoDefault opts;
+            opts.SetCheckUserTypos();
+            opts.AddLongOption("from");
+            opts.AddLongOption("to");
+
+            UNIT_ASSERT_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "-from", "/home", "--to=/etc"})),
+                    TUsageException);
+            UNIT_ASSERT_NO_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "--from", "from", "--to=/etc"})));
+        }
+
+        {
+            TOptsNoDefault opts;
+            opts.SetCheckUserTypos();
+            opts.AddLongOption('f', "file", "");
+            opts.AddLongOption('r', "read", "");
+            opts.AddLongOption("fr");
+            UNIT_ASSERT_NO_EXCEPTION(
+                    TOptsParseResultTestWrapper(&opts, V({"copy", "-fr"})));
+        }
+    }
 }
