@@ -84,7 +84,7 @@ ci:
               arc_revision: ${context.target_revision.hash}
               tools_array: ${flow-vars.tools}
               is_release: true
-              create_pr: true
+              create_pr: ${flow-vars.create_pr}
               branch_prefix: deploy-tools
               branch_suffix: ${context.version_info.full}
               push_from_user: false
