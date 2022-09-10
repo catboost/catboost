@@ -367,6 +367,7 @@ namespace {
                 benchReport["name"] = result.TestName;
                 benchReport["samples"] = result.Samples;
                 benchReport["run_time"] = result.RunTime;
+                benchReport["iterations"] = result.Iterations;
 
                 if (result.CyclesPerIteration) {
                     benchReport["per_iteration_cycles"] = *result.CyclesPerIteration;
