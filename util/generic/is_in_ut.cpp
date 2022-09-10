@@ -2,6 +2,7 @@
 
 #include "algorithm.h"
 #include "hash.h"
+#include "hash_multi_map.h"
 #include "hash_set.h"
 #include "is_in.h"
 #include "map.h"

@@ -7,7 +7,7 @@
 #include <util/memory/blob.h>
 #include <util/generic/list.h>
 #include <util/generic/map.h>
-#include <util/generic/hash.h>
+#include <util/generic/hash_multi_map.h>
 #include <util/generic/deque.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>

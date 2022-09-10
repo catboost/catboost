@@ -100,6 +100,8 @@ JOIN_SRCS(
     generic/fwd.cpp
     generic/guid.cpp
     generic/hash.cpp
+    generic/hash_multi_map.cpp
+    generic/hash_table.cpp
     generic/hash_primes.cpp
     generic/hash_set.cpp
     generic/hide_ptr.cpp
