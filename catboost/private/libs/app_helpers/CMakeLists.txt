@@ -14,6 +14,7 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   private-libs-algo
   catboost-libs-column_description
   catboost-libs-data
+  catboost-libs-dataset_statistics
   catboost-libs-eval_result
   catboost-libs-fstr
   catboost-libs-helpers
@@ -34,6 +35,7 @@ target_link_libraries(private-libs-app_helpers PUBLIC
 target_sources(private-libs-app_helpers PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/bind_options.cpp
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_calc_helpers.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.cpp
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fit_helpers.cpp
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fstr_helpers.cpp
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp

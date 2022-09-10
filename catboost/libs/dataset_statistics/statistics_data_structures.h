@@ -122,3 +122,20 @@ public:
         return result;
     }
 };
+
+struct TDatasetStatistics {
+public:
+    TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
+
+    TDataMetaInfo MetaInfo;
+    TFeatureStatistics FeatureStatistics;
+    TTargetsStatistics TargetsStatistics;
+    // ToDo: maybe add GroupStatistics
+
+    void Init(const TDataMetaInfo& metaInfo) {
+        MetaInfo = metaInfo;
+
+        FeatureStatistics.Init(MetaInfo);
+        TargetsStatistics.Init(MetaInfo);
+    }
+};

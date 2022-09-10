@@ -1,4 +1,4 @@
-#include "calculate_statistics.h"
+#include "mode_dataset_statistics_helpers.h"
 
 #include <library/cpp/getopt/small/last_getopt.h>
 
@@ -15,12 +15,12 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .StoreResult(&ThreadCount);
 }
 
-void TCalculateStatisticsParams::ProcessParams(int argc, const char* argv[]) {
+void TCalculateStatisticsParams::ProcessParams(int argc, const char* argv[], NLastGetopt::TOpts* parserPtr) {
     TCalculateStatisticsParams& params = *this;
 
     params.DatasetReadingParams.ValidatePoolParams();
 
-    auto parser = NLastGetopt::TOpts();
+    auto parser = parserPtr ? *parserPtr : NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParserOpts(parser);
     parser.SetFreeArgsNum(0);
@@ -29,7 +29,7 @@ void TCalculateStatisticsParams::ProcessParams(int argc, const char* argv[]) {
     params.DatasetReadingParams.ValidatePoolParams();
 }
 
-void CalculateDatasetStatics(const TCalculateStatisticsParams& calculateStatisticsParams, const TString& outputPath) {
+void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(calculateStatisticsParams.ThreadCount - 1);
 
@@ -66,6 +66,7 @@ void CalculateDatasetStatics(const TCalculateStatisticsParams& calculateStatisti
 
     auto dataProviderBuilder = MakeHolder<TDatasetStatisticsProviderBuilder>(
         NCB::TDataProviderBuilderOptions{},
+        /*isLocal*/ true,
         &localExecutor);
 
     CB_ENSURE_INTERNAL(
@@ -74,5 +75,5 @@ void CalculateDatasetStatics(const TCalculateStatisticsParams& calculateStatisti
 
     datasetLoader->DoIfCompatible(dynamic_cast<IDatasetVisitor*>(dataProviderBuilder.Get()));
 
-    dataProviderBuilder->OutputResult(outputPath);
+    dataProviderBuilder->OutputResult(calculateStatisticsParams.OutputPath);
 }

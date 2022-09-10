@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     bind_options.cpp
     mode_calc_helpers.cpp
+    mode_dataset_statistics_helpers.cpp
     mode_fit_helpers.cpp
     mode_fstr_helpers.cpp
     mode_normalize_model_helpers.cpp
@@ -14,6 +15,7 @@ PEERDIR(
     catboost/private/libs/algo
     catboost/libs/column_description
     catboost/libs/data
+    catboost/libs/dataset_statistics
     catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/helpers
