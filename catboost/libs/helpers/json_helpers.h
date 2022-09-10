@@ -1,5 +1,6 @@
 #pragma once
 
+#include "exception.h"
 #include <library/cpp/json/json_writer.h>
 
 #include <util/stream/str.h>
@@ -14,10 +15,6 @@ static TJsonValue VectorToJson(const TVector<T>& values) {
         jsonValue.AppendValue(value);
     }
     return jsonValue;
-}
-
-inline void FromJson(const TJsonValue& value, TString* result) {
-    *result = value.GetString();
 }
 
 static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput, IOutputStream* out) {
@@ -36,21 +33,26 @@ inline TString WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool form
 }
 
 template <typename T>
-static void FromJson(const TJsonValue& value, T* result) {
+void FromJson(const NJson::TJsonValue& value, T* result) {
     switch (value.GetType()) {
-        case EJsonValueType::JSON_INTEGER:
+        case NJson::EJsonValueType::JSON_INTEGER:
             *result = T(value.GetInteger());
             break;
-        case EJsonValueType::JSON_DOUBLE:
+        case NJson::EJsonValueType::JSON_DOUBLE:
             *result = T(value.GetDouble());
             break;
-        case EJsonValueType::JSON_UINTEGER:
+        case NJson::EJsonValueType::JSON_UINTEGER:
             *result = T(value.GetUInteger());
             break;
+        case NJson::EJsonValueType::JSON_STRING:
+            *result = FromString<T>(value.GetString());
+            break;
         default:
-            Y_ASSERT(false);
+            CB_ENSURE("Incorrect format");
     }
 }
+
+void FromJson(const NJson::TJsonValue& value, TString* result);
 
 template <typename T>
 static T FromJson(const TJsonValue& value) {
@@ -67,6 +69,14 @@ static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
     }
     return result;
 }
+
+NJson::TJsonValue ReadTJsonValue(TStringBuf paramsJson);
+
+/*
+ * Use this function instead of simple ToString(jsonValue) because it saves floating point values with proper precision
+ */
+TString WriteTJsonValue(const NJson::TJsonValue& jsonValue);
+
 
 template <typename T>
 static void InsertEnumType(const TString& typeName, const T& value, TJsonValue* jsonValuePtr) {
