@@ -364,7 +364,7 @@
   includes:
     - jni.h
 
-- source_filter: "^contrib/(libs/(ffmpeg-3|kenlm|kyotocabinet)|tools/ag)"
+- source_filter: "^contrib/(libs/(ffmpeg-3|kyotocabinet)|tools/ag)"
   includes:
     - lzma.h
 
