@@ -1,6 +1,6 @@
 --- contrib/python/ipython/py3/IPython/core/completer.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/completer.py	(working tree)
-@@ -1025,6 +1025,7 @@ def _make_signature(completion)-> str:
+@@ -1029,6 +1029,7 @@ def _make_signature(completion)-> str:
  
      """
  
@@ -8,7 +8,7 @@
      # it looks like this might work on jedi 0.17
      if hasattr(completion, 'get_signatures'):
          signatures = completion.get_signatures()
-@@ -1438,7 +1439,7 @@ class IPCompleter(Completer):
+@@ -1442,7 +1443,7 @@ class IPCompleter(Completer):
                  else:
                      raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
  
@@ -17,7 +17,7 @@
          try_jedi = True
  
          try:
-@@ -1465,7 +1466,7 @@ class IPCompleter(Completer):
+@@ -1469,7 +1470,7 @@ class IPCompleter(Completer):
          if not try_jedi:
              return []
          try:
