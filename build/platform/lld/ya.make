@@ -39,6 +39,16 @@ IF (OS_ANDROID)
             -Wl,--no-rosegment
         )
     ENDIF()
+    # Enable optimized relocations format (e.g. .rela.dyn section) to reduce binary size
+    # See:
+    # https://android.googlesource.com/platform/ndk/+/master/docs/BuildSystemMaintainers.md#relr-and-relocation-packing
+    IF (ANDROID_API >= 30)
+        LDFLAGS(-Wl,--pack-dyn-relocs=android+relr)
+    ELSEIF (ANDROID_API >= 28)
+        LDFLAGS(-Wl,--pack-dyn-relocs=android+relr,--use-android-relr-tags)
+    ELSEIF (ANDROID_API >= 23)
+        LDFLAGS(-Wl,--pack-dyn-relocs=android)
+    ENDIF()
 ELSEIF (OS_LINUX)
     LDFLAGS(
         -fuse-ld=${LLD_ROOT_RESOURCE_GLOBAL}/ld.lld

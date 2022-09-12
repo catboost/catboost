@@ -89,8 +89,8 @@ android {{
     }}
 
     dependencies {{
-        implementation 'com.google.android.gms:play-services-location:16.0.0'
-        implementation 'com.google.android.gms:play-services-gcm:16.0.0'
+        implementation 'com.google.android.gms:play-services-location:20.0.0'
+        implementation 'com.google.android.gms:play-services-gcm:17.0.0'
         implementation 'com.evernote:android-job:1.2.6'
         implementation 'androidx.annotation:annotation:1.1.0'
         implementation 'androidx.core:core:1.1.0'
