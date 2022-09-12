@@ -218,7 +218,10 @@
 
 - source_filter: "^contrib/libs/libgit2"
   includes:
-    - util.h:        contrib/libs/libgit2/src/util.h
+    - alloc.h:       contrib/libs/libgit2/src/util/alloc.h
+    - thread.h:      contrib/libs/libgit2/src/util/thread.h
+    - regexp.h:      contrib/libs/libgit2/src/util/regexp.h
+    - util.h:        contrib/libs/libgit2/src/util/util.h
 
 - source_filter: "^contrib/libs/nodejs_12"
   includes:

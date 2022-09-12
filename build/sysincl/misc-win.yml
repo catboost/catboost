@@ -7,10 +7,6 @@
   includes:
   - strings.h:     contrib/libs/jemalloc/include/msvc_compat/strings.h
 
-- source_filter: "^contrib/libs/libgit2"
-  includes:
-  - regex.h:       contrib/libs/libgit2/deps/regex/regex.h
-
 - source_filter: "^contrib/libs/libpq/src"
   includes:
   - arpa/inet.h:   contrib/libs/libpq/src/include/port/win32/arpa/inet.h
