@@ -671,9 +671,6 @@ class BaseBlockManager(DataManager):
             result.axes[axis] = new_axis
             return result
 
-        if consolidate:
-            self._consolidate_inplace()
-
         # some axes don't allow reindexing with dups
         if not allow_dups:
             self.axes[axis]._validate_can_reindex(indexer)
@@ -998,11 +995,20 @@ class BlockManager(libinternals.BlockManager, BaseBlockManager):
         dtype = interleaved_dtype([blk.dtype for blk in self.blocks])
 
         n = len(self)
-        if isinstance(dtype, ExtensionDtype):
+
+        # GH#46406
+        immutable_ea = isinstance(dtype, SparseDtype)
+
+        if isinstance(dtype, ExtensionDtype) and not immutable_ea:
             cls = dtype.construct_array_type()
             result = cls._empty((n,), dtype=dtype)
         else:
-            result = np.empty(n, dtype=dtype)
+            # error: Argument "dtype" to "empty" has incompatible type
+            # "Union[Type[object], dtype[Any], ExtensionDtype, None]"; expected
+            # "None"
+            result = np.empty(
+                n, dtype=object if immutable_ea else dtype  # type: ignore[arg-type]
+            )
             result = ensure_wrapped_if_datetimelike(result)
 
         for blk in self.blocks:
@@ -1010,6 +1016,10 @@ class BlockManager(libinternals.BlockManager, BaseBlockManager):
             # result[blk.mgr_locs] = blk._slice((slice(None), loc))
             for i, rl in enumerate(blk.mgr_locs):
                 result[rl] = blk.iget((i, loc))
+
+        if immutable_ea:
+            dtype = cast(ExtensionDtype, dtype)
+            result = dtype.construct_array_type()._from_sequence(result, dtype=dtype)
 
         return result
 
@@ -1681,6 +1691,10 @@ class BlockManager(libinternals.BlockManager, BaseBlockManager):
         self._known_consolidated = True
 
     def _consolidate_inplace(self) -> None:
+        # In general, _consolidate_inplace should only be called via
+        #  DataFrame._consolidate_inplace, otherwise we will fail to invalidate
+        #  the DataFrame's _item_cache. The exception is for newly-created
+        #  BlockManager objects not yet attached to a DataFrame.
         if not self.is_consolidated():
             self.blocks = tuple(_consolidate(self.blocks))
             self._is_consolidated = True

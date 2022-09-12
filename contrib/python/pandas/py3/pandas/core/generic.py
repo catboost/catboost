@@ -2847,7 +2847,7 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
         -------
         None or int
             Number of rows affected by to_sql. None is returned if the callable
-            passed into ``method`` does not return the number of rows.
+            passed into ``method`` does not return an integer number of rows.
 
             The number of returned rows affected is the sum of the ``rowcount``
             attribute of ``sqlite3.Cursor`` or SQLAlchemy connectable which may not
@@ -6482,9 +6482,14 @@ class NDFrame(PandasObject, indexing.IndexingMixin):
                     if k not in result:
                         continue
                     downcast_k = downcast if not is_dict else downcast.get(k)
-                    result.loc[:, k] = result[k].fillna(
-                        v, limit=limit, downcast=downcast_k
+                    # GH47649
+                    result.loc[:, k] = (
+                        result[k].fillna(v, limit=limit, downcast=downcast_k).values
                     )
+                    # TODO: result.loc[:, k] = result.loc[:, k].fillna(
+                    #     v, limit=limit, downcast=downcast_k
+                    # )
+                    # Revert when GH45751 is fixed
                 return result if not inplace else None
 
             elif not is_list_like(value):
