@@ -22,12 +22,15 @@ namespace NKernel {
     scores[tid] = bestScore; \
     __shared__ int indices[BlockSize]; \
     indices[tid] = bestIndex; \
+    __shared__ float gains[BlockSize]; \
+    gains[tid] = bestGain; \
     __syncthreads();\
     for (ui32 s = BlockSize >> 1; s > 0; s >>= 1) { \
         if (tid < s) { \
-            if (scores[tid] > scores[tid + s] || (scores[tid] == scores[tid + s] && indices[tid] > indices[tid + s]) ) { \
+            if (gains[tid] > gains[tid + s] || (gains[tid] == gains[tid + s] && indices[tid] > indices[tid + s]) ) { \
                 scores[tid] = scores[tid + s]; \
                 indices[tid] = indices[tid + s]; \
+                gains[tid] = gains[tid + s]; \
         }\
     }\
         __syncthreads();\
@@ -38,10 +41,12 @@ namespace NKernel {
             result->FeatureId = bf[index].FeatureId;\
             result->BinId = bf[index].BinId;\
             result->Score = scores[0];\
+            result->Gain = gains[0];\
         } else {\
             result->FeatureId = -1;\
             result->BinId = -1;\
             result->Score = FLT_MAX;\
+            result->Gain = FLT_MAX;\
         }\
     }
 //    histId * binFeatureCount * statCount + statId * binFeatureCount + features->FirstFoldIndex;
@@ -60,6 +65,7 @@ namespace NKernel {
                                          TBestSplitProperties* result) {
 
         float bestScore = FLT_MAX;
+        float bestGain = FLT_MAX;
         int bestIndex = -1;
         int tid = threadIdx.x;
 
@@ -76,6 +82,7 @@ namespace NKernel {
                 continue;
             }
             calcer.NextFeature(bf[binFeatureId]);
+            TScoreCalcer beforeSplitCalcer = calcer;
 
             for (int i = 0; i < pCount; i++) {
                 const int leafId = __ldg(partIds + i);
@@ -122,12 +129,16 @@ namespace NKernel {
             }
 
             float score = calcer.GetScore();
+            const float scoreBefore = beforeSplitCalcer.GetScore();
 
-            ui32 featureId = bf[binFeatureId].FeatureId;
-            score *= __ldg(binFeaturesWeights + featureId);
+            float gain = score - scoreBefore;
 
-            if (score < bestScore) {
+            const ui32 featureId = bf[binFeatureId].FeatureId;
+            gain *= __ldg(binFeaturesWeights + featureId);
+
+            if (gain < bestGain) {
                 bestScore = score;
+                bestGain = gain;
                 bestIndex = binFeatureId;
             }
         }
@@ -299,6 +310,7 @@ namespace NKernel {
 
         float bestScore = FLT_MAX;
         int bestIndex = -1;
+        float bestGain = FLT_MAX;
         int tid = threadIdx.x;
 
         result += blockIdx.x + blockIdx.y * gridDim.x;
@@ -365,6 +377,7 @@ namespace NKernel {
             if (gain < bestScore) {
                 bestScore = gain;
                 bestIndex = binFeatureId;
+                bestGain = gain;
             }
         }
 
@@ -388,6 +401,7 @@ namespace NKernel {
 
         float bestScore = FLT_MAX;
         int bestIndex = -1;
+        float bestGain = FLT_MAX;
         int tid = threadIdx.x;
         result += blockIdx.x + blockIdx.y * gridDim.x;
         const int thisPartId = blockIdx.y == 0 ? partId : maybeSecondPartId;
@@ -452,6 +466,7 @@ namespace NKernel {
             if (gain < bestScore) {
                 bestScore = gain;
                 bestIndex = binFeatureId;
+                bestGain = gain;
             }
         }
 

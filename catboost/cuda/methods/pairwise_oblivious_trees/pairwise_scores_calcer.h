@@ -73,7 +73,7 @@ namespace NCatboostCuda {
 
         void Compute();
 
-        TBestSplitResult FindOptimalSplit(bool needBestSolution);
+        TBestSplitResult FindOptimalSplit(bool needBestSolution, double scoreBeforeSplit);
 
     private:
         const TCompressedDataSet<TLayoutPolicy>& Features;

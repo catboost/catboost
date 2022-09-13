@@ -266,6 +266,8 @@ namespace NKernelHost {
     private:
         TCudaBufferPtr<const float> Scores;
         TCudaBufferPtr<const TCBinFeature> BinFeature;
+        double ScoreBeforeSplit;
+        TCudaBufferPtr<const float> FeatureWeights;
         ui32 BestIndexBias;
         TCudaBufferPtr<TBestSplitPropertiesWithIndex> Best;
 
@@ -274,20 +276,28 @@ namespace NKernelHost {
 
         TSelectBestSplitKernel(TCudaBufferPtr<const float> scores,
                                TCudaBufferPtr<const TCBinFeature> binFeature,
+                               double scoreBeforeSplit,
+                               TCudaBufferPtr<const float> featureWeights,
                                ui32 bestIndexBias,
                                TCudaBufferPtr<TBestSplitPropertiesWithIndex> best)
             : Scores(scores)
             , BinFeature(binFeature)
+            , ScoreBeforeSplit(scoreBeforeSplit)
+            , FeatureWeights(featureWeights)
             , BestIndexBias(bestIndexBias)
             , Best(best)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Scores, BinFeature, BestIndexBias, Best);
+        Y_SAVELOAD_DEFINE(Scores, BinFeature, ScoreBeforeSplit, FeatureWeights, BestIndexBias, Best);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(BinFeature.Size() == Scores.Size());
-            NKernel::SelectBestSplit(Scores.Get(), BinFeature.Get(), BinFeature.Size(), BestIndexBias, Best.Get(), stream.GetStream());
+
+            NKernel::SelectBestSplit(
+                Scores.Get(), BinFeature.Get(), BinFeature.Size(),
+                ScoreBeforeSplit, FeatureWeights.Get(),
+                BestIndexBias, Best.Get(), stream.GetStream());
         }
     };
 
@@ -537,6 +547,8 @@ inline void UpdatePairwiseBins(const NCudaLib::TCudaBuffer<TUi32, NCudaLib::TStr
 
 inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping>& scores,
                                const TCudaBuffer<TCBinFeature, NCudaLib::TStripeMapping>& features,
+                               double scoreBeforeSplit,
+                               const TCudaBuffer<float, NCudaLib::TMirrorMapping>& featureWeights,
                                TCudaBuffer<TBestSplitPropertiesWithIndex, NCudaLib::TStripeMapping>& result,
                                ui32 stream = 0) {
     NCudaLib::TDistributedObject<ui32> offsets = CreateDistributedObject<ui32>(0u);
@@ -546,7 +558,7 @@ inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping
     }
 
     using TKernel = NKernelHost::TSelectBestSplitKernel;
-    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, scores, features, offsets, result);
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, scores, features, scoreBeforeSplit, featureWeights, offsets, result);
 }
 
 inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy policy,
