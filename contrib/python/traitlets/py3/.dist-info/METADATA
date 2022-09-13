@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.3.0
+Version: 5.4.0
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Author-email: IPython Development Team <ipython-dev@python.org>
 License: # Licensing terms
@@ -65,6 +65,7 @@ License: # Licensing terms
         
             # Copyright (c) IPython Development Team.
             # Distributed under the terms of the Modified BSD License.
+License-File: COPYING.md
 Keywords: Interactive,Interpreter,Shell,Web
 Classifier: Intended Audience :: Developers
 Classifier: Intended Audience :: Science/Research
@@ -83,6 +84,7 @@ Description-Content-Type: text/markdown
 [![Tests](https://github.com/ipython/traitlets/actions/workflows/tests.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/tests.yml)
 [![Test downstream projects](https://github.com/ipython/traitlets/actions/workflows/downstream.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/downstream.yml)
 [![Documentation Status](https://readthedocs.org/projects/traitlets/badge/?version=latest)](https://traitlets.readthedocs.io/en/latest/?badge=latest)
+[![Tidelift](https://tidelift.com/subscription/pkg/pypi-traitlets)](https://tidelift.com/badges/package/pypi/traitlets?style=flat)
 
 |               |                                      |
 | ------------- | ------------------------------------ |

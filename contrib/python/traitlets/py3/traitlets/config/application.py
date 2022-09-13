@@ -830,12 +830,12 @@ class Application(SingletonConfigurable):
 
         if not isinstance(path, list):
             path = [path]
-        for path in path[::-1]:
+        for current in reversed(path):
             # path list is in descending priority order, so load files backwards:
-            pyloader = cls.python_config_loader_class(basefilename + ".py", path=path, log=log)
+            pyloader = cls.python_config_loader_class(basefilename + ".py", path=current, log=log)
             if log:
-                log.debug("Looking for %s in %s", basefilename, path or os.getcwd())
-            jsonloader = cls.json_config_loader_class(basefilename + ".json", path=path, log=log)
+                log.debug("Looking for %s in %s", basefilename, current or os.getcwd())
+            jsonloader = cls.json_config_loader_class(basefilename + ".json", path=current, log=log)
             loaded: t.List[t.Any] = []
             filenames: t.List[str] = []
             for loader in [pyloader, jsonloader]:
@@ -882,7 +882,7 @@ class Application(SingletonConfigurable):
         """Load config files by filename and path."""
         filename, ext = os.path.splitext(filename)
         new_config = Config()
-        for (config, filename) in self._load_config_files(
+        for (config, fname) in self._load_config_files(
             filename,
             path=path,
             log=self.log,
@@ -890,9 +890,9 @@ class Application(SingletonConfigurable):
         ):
             new_config.merge(config)
             if (
-                filename not in self._loaded_config_files
+                fname not in self._loaded_config_files
             ):  # only add to list of loaded files if not previously loaded
-                self._loaded_config_files.append(filename)
+                self._loaded_config_files.append(fname)
         # add self.cli_config to preserve CLI config priority
         new_config.merge(self.cli_config)
         self.update_config(new_config)
@@ -940,6 +940,8 @@ class Application(SingletonConfigurable):
     def generate_config_file(self, classes=None):
         """generate default config file from Configurables"""
         lines = ["# Configuration file for %s." % self.name]
+        lines.append("")
+        lines.append("c = get_config()  # noqa")
         lines.append("")
         classes = self.classes if classes is None else classes
         config_classes = list(self._classes_with_config_traits(classes))
