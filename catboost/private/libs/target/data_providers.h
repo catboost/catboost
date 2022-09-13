@@ -82,6 +82,12 @@ namespace NCB {
         bool isNonEmptyAndNonConst,
         bool allowConstLabel);
 
+    TSharedWeights<float> MakeWeights(
+        const TWeights<float>& rawWeights,
+        const TWeights<float>& rawGroupWeights,
+        bool isForGpu,
+        NPar::ILocalExecutor* localExecutor);
+
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,

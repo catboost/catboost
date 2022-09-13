@@ -96,7 +96,12 @@ namespace NCB {
     }
 
     const TWeights<float>& TCalcMetricDataProvider::GetWeights() const {
-        return DataProvider->RawTargetData.GetWeights();
+        const auto& weights = *NCB::MakeWeights(
+            DataProvider->RawTargetData.GetWeights(),
+            DataProvider->RawTargetData.GetGroupWeights(),
+            /*isForGpu*/ false,
+            /*localExecutor*/ nullptr);
+        return weights;
     }
 
     TMaybe<TSharedVector<TQueryInfo>> TCalcMetricDataProvider::GetQueriesInfo() const {
