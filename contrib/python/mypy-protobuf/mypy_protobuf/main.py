@@ -938,8 +938,6 @@ def generate_mypy_stubs(
         output = response.file.add()
         output.name = fd.name[:-6].replace("-", "_").replace(".", "/") + "_pb2.pyi"
         output.content = pkg_writer.write()
-        if not quiet:
-            print("Writing mypy to", output.name, file=sys.stderr)
 
 
 def generate_mypy_grpc_stubs(
@@ -964,8 +962,6 @@ def generate_mypy_grpc_stubs(
         output = response.file.add()
         output.name = fd.name[:-6].replace("-", "_").replace(".", "/") + "_pb2_grpc.pyi"
         output.content = pkg_writer.write()
-        if not quiet:
-            print("Writing mypy to", output.name, file=sys.stderr)
 
 
 @contextmanager
