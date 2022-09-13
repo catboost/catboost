@@ -444,14 +444,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py2\pypython-Jinja2-py2.global.vcxproj">
       <Project>{5A3D943D-1CD4-DA3F-F14D-5F563FD83D84}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\py3\pypython-Jinja2-py3.global.vcxproj">
-      <Project>{CAEFC93A-91F2-E134-6A1C-1B7A8A66BE95}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py2\pypython-MarkupSafe-py2.global.vcxproj">
       <Project>{DBE410BD-B7CE-63DF-8D8A-BDB14151A7BB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\py3\pypython-MarkupSafe-py3.global.vcxproj">
-      <Project>{C724FA94-187F-BD78-BA1E-CB365E7E1818}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Pygments\py2\pypython-Pygments-py2.global.vcxproj">
       <Project>{6426C752-DF10-D002-6A8F-980B7DA0EAA5}</Project>
