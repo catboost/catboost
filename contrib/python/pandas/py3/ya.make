@@ -7,7 +7,6 @@ VERSION(1.4.4)
 LICENSE(BSD-3-Clause)
 
 PEERDIR(
-    contrib/python/Jinja2
     contrib/python/dateutil
     contrib/python/numpy
     contrib/python/pytz
