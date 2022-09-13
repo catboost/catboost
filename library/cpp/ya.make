@@ -91,6 +91,7 @@ RECURSE(
     tokenizer
     tokenizer/ut
     yson
+    yson/fuzz
     yson/json
     yson/node
     yt

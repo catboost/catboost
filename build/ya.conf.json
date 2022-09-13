@@ -6759,7 +6759,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [1444383119],
+                "sandbox_id": [
+                    1444383119
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -7174,8 +7176,11 @@
         "clang14": {
             "formula": {
                 "sandbox_id": [
-                    1407778338,
-                    1432506119
+                    1441176665,
+                    1432506119,
+                    1445478860,
+                    1445454611,
+                    1445513330
                 ],
                 "match": "CLANG"
             },
@@ -8417,7 +8422,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1444858042,
+                "sandbox_id": 1446213794,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9073,7 +9078,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1444858418,
+                "sandbox_id": 1446213850,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9084,7 +9089,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1444858014,
+                "sandbox_id": 1446213801,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9166,7 +9171,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1443934436,
+                "sandbox_id": 1446216954,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9177,7 +9182,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1443935179,
+                "sandbox_id": 1446214103,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9188,7 +9193,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1421371541,
+                "sandbox_id": 1445618318,
                 "match": "lama"
             },
             "executable": {
@@ -9229,8 +9234,17 @@
         },
         "marketsre": {
             "formula": {
-                "sandbox_id": 1413362862,
-                "match": "marketsre"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "MARKET_SRE_CLI_BINARY",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "MARKETSRE"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "marketsre": [
