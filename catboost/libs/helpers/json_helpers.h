@@ -82,3 +82,8 @@ template <typename T>
 static void InsertEnumType(const TString& typeName, const T& value, TJsonValue* jsonValuePtr) {
     jsonValuePtr->InsertValue(typeName, ToString<T>(value));
 }
+
+template <typename T>
+static void ReadEnumType(const TString& typeName, const TJsonValue& jsonValue, T* valuePtr) {
+    *valuePtr = FromString<T>(jsonValue[typeName].GetString());
+}
