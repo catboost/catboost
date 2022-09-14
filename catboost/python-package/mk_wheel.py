@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 
 sys.dont_write_bytecode = True
 
-PL_LINUX = ['manylinux1_x86_64']
+PL_LINUX = ['manylinux1_x86_64', 'manylinux_2_28_aarch64']
 PL_MACOS_X86_64 = [
     'macosx_10_6_intel',
     'macosx_10_9_intel',
@@ -47,9 +47,9 @@ class PythonTrait(object):
     def gen_cmd(self, arc_path):
         cmd = [
             sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
-            '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO', '-DOS_SDK=local',
+            '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO',
         ]
-
+        print(f'Running build command: {cmd}')
         if not self.python_version.from_sandbox:
             cmd += ['-DUSE_ARCADIA_PYTHON=no']
             cmd += extra_opts(self._on_win())
