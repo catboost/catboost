@@ -2,7 +2,7 @@
 
 #include "fwd.h"
 
-#include "hash_multi_map.h"
+#include "hash_table.h"
 
 template <class Key, class T, class HashFcn, class EqualKey, class Alloc>
 class THashMap: public TMapOps<THashMap<Key, T, HashFcn, EqualKey, Alloc>> {
