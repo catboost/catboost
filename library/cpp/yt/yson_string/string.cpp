@@ -155,11 +155,26 @@ TString TYsonString::ToString() const
         [] (const TNullPayload&) -> TString {
             YT_ABORT();
         },
-        [&] (const TRefCountedPtr&) {
+        [&] (const THolder&) {
             return TString(AsStringBuf());
         },
         [] (const TString& payload) {
             return payload;
+        });
+}
+
+TSharedRef TYsonString::ToSharedRef() const
+{
+    return Visit(
+        Payload_,
+        [] (const TNullPayload&) -> TSharedRef {
+            YT_ABORT();
+        },
+        [&] (const THolder& holder) {
+            return TSharedRef(Begin_, Size_, holder);
+        },
+        [] (const TString& payload) {
+            return TSharedRef::FromString(payload);
         });
 }
 

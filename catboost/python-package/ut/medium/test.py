@@ -1208,6 +1208,7 @@ def test_model_pickling(task_type):
 
 def test_save_load_equality(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+
     def check_load_from_stream(model):
         cb_stream = CatBoost()
         with open(output_model_path, 'rb') as stream:
@@ -3760,6 +3761,7 @@ def test_randomized_search_only_dist(task_type):
             "task_type": task_type
         }
     )
+
     class UniformChoice:
 
         def __init__(self, values):
@@ -5514,6 +5516,7 @@ def test_model_sum_and_init_with_differing_nan_processing_strategy(task_type):
     np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
     no_nan_pool = Pool(features, label=labels)
     nan_pool = Pool(features_with_nans, label=labels)
+
     def make_model(nan_mode=None, init_model=None):
         model = CatBoostRegressor(
             iterations=10,
