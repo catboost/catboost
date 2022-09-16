@@ -15,7 +15,8 @@ from argparse import ArgumentParser
 
 sys.dont_write_bytecode = True
 
-PL_LINUX = ['manylinux1_x86_64', 'manylinux_2_28_aarch64']
+PL_LINUX_X86_64 = ['manylinux1_x86_64']
+PL_LINUX_ARM64 = ['linux_aarch64']
 PL_MACOS_X86_64 = [
     'macosx_10_6_intel',
     'macosx_10_9_intel',
@@ -49,7 +50,7 @@ class PythonTrait(object):
             sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
             '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO',
         ]
-        print(f'Running build command: {cmd}')
+        print(f'Running build command: {"".join(cmd)}')
         if not self.python_version.from_sandbox:
             cmd += ['-DUSE_ARCADIA_PYTHON=no']
             cmd += extra_opts(self._on_win())
@@ -124,7 +125,10 @@ def transform_target_platforms(target_platforms):
     platform_tags = set()
     for platform in target_platforms:
         if 'linux' in platform:
-            platform_tags = platform_tags.union(PL_LINUX)
+            if 'arm64' in platform:
+                platform_tags = platform_tags.union(PL_LINUX_ARM64)
+            else:
+                platform_tags = platform_tags.union(PL_LINUX_X86_64)
         elif 'darwin' in platform:
             if 'arm64' in platform:
                platform_tags = platform_tags.union(PL_MACOS_ARM64)
