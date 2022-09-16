@@ -125,7 +125,7 @@ def transform_target_platforms(target_platforms):
     platform_tags = set()
     for platform in target_platforms:
         if 'linux' in platform:
-            if 'arm64' in platform:
+            if 'aarch64' in platform:
                 platform_tags = platform_tags.union(PL_LINUX_ARM64)
             else:
                 platform_tags = platform_tags.union(PL_LINUX_X86_64)
