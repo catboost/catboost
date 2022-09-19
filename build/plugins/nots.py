@@ -8,7 +8,7 @@ def _create_pm(unit):
     from lib.nots.package_manager import manager
 
     sources_path = unit.path()
-    module_path = None
+    module_path = unit.get("MODDIR")
     if unit.get("TS_TEST_FOR"):
         sources_path = unit.get("TS_TEST_FOR_DIR")
         module_path = unit.get("TS_TEST_FOR_PATH")
@@ -90,7 +90,7 @@ def on_ts_test_configure(unit, jestconfig_path):
         "JEST-CONFIG-PATH": jestconfig_path,
     }
 
-    _add_test_type(unit, "ts_test", mod_dir, test_files, test_record_args)
+    _add_test_type(unit, "ts_test", None, test_files, test_record_args)
 
 
 def _setup_eslint(unit):
@@ -173,7 +173,7 @@ def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args=None)
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SIZE': 'SMALL',
         'TEST-FILES': ytest.serialize_list(test_files),
-        'TEST-CWD': test_cwd,
+        'TEST-CWD': test_cwd or '',
         'TAG': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_TAGS_VALUE')),
         'REQUIREMENTS': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
     }
