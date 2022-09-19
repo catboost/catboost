@@ -4,6 +4,8 @@
 #include "ref_counted.h"
 #endif
 
+#include <util/system/sanitizers.h>
+
 namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,6 +99,7 @@ Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
     YT_ASSERT(oldStrongCount >= n);
     if (oldStrongCount == n) {
         std::atomic_thread_fence(std::memory_order_acquire);
+        NSan::Acquire(&StrongCount_);
         return true;
     } else {
         return false;
@@ -120,6 +123,7 @@ Y_FORCE_INLINE bool TRefCounter::WeakUnref() const
     YT_ASSERT(oldWeakCount > 0);
     if (oldWeakCount == 1) {
         std::atomic_thread_fence(std::memory_order_acquire);
+        NSan::Acquire(&WeakCount_);
         return true;
     } else {
         return false;

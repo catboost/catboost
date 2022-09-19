@@ -14,6 +14,11 @@ extern "C" { // sanitizers API
     void __msan_check_mem_is_initialized(const volatile void* x, size_t size);
 #endif
 
+#if defined(_tsan_enabled_)
+    void __tsan_acquire(void* a);
+    void __tsan_release(void* a);
+#endif
+
 }; // sanitizers API
 
 namespace NSan {
@@ -138,4 +143,20 @@ namespace NSan {
         Y_UNUSED(description);
     }
 #endif
+
+    inline static void Acquire(void* a) {
+#if defined(_tsan_enabled_)
+        __tsan_acquire(a);
+#else
+        Y_UNUSED(a);
+#endif
+    }
+
+    inline static void Release(void* a) {
+#if defined(_tsan_enabled_)
+        __tsan_release(a);
+#else
+        Y_UNUSED(a);
+#endif
+    }
 }
