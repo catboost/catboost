@@ -6832,8 +6832,7 @@
                         },
                         "owner": "ARC"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -7924,8 +7923,7 @@
                         "owner": "YP"
                     }
                 },
-                "update_interval": 604800,
-                "ignore_platform": false
+                "update_interval": 604800
             },
             "executable": {
                 "yp-util": [
@@ -7941,8 +7939,7 @@
                         "owner": "YP"
                     }
                 },
-                "update_interval": 604800,
-                "ignore_platform": false
+                "update_interval": 604800
             },
             "executable": {
                 "yp": [
@@ -7986,8 +7983,7 @@
                         },
                         "owner": "DRUG-RELEASERS"
                     },
-                    "update_inteval": 43200,
-                    "ignore_platform": false
+                    "update_inteval": 43200
                 }
             },
             "executable": {
@@ -8079,8 +8075,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8099,8 +8094,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8278,8 +8272,7 @@
                         },
                         "owner": "STABILITY"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8436,6 +8429,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "REPORT_RENDERER_BUNDLE",
+                        "owner": "REPORT_RENDERER",
                         "attributes": {
                             "released": "stable"
                         }
@@ -8453,6 +8447,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "APPTEKA_BUNDLE",
+                        "owner": "avtumanova",
                         "attributes": {
                             "released": "stable"
                         }
@@ -8855,8 +8850,7 @@
                             "released": "stable"
                         }
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9209,8 +9203,7 @@
                         "resource_type": "MAPS_FRONT_TOOLKIT",
                         "owner": "MAPS_FRONT"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9242,8 +9235,7 @@
                         },
                         "owner": "MARKETSRE"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9259,8 +9251,7 @@
                         "resource_type": "DNS_CLIENT2_BINARY",
                         "owner": "MNT_TRAF"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9276,8 +9267,7 @@
                         "resource_type": "PUNCHER_CLI",
                         "owner": "NOCDEV"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9329,12 +9319,12 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "ABCD_CLI",
+                        "owner": "atridis",
                         "attributes": {
                             "released": "stable"
                         }
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
