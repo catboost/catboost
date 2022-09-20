@@ -86,6 +86,7 @@ def on_ts_test_configure(unit, jestconfig_path):
         "TS-TEST-FOR-PATH": unit.get("TS_TEST_FOR_PATH"),
         "TS-OUT-DIR": unit.get("TS_CONFIG_OUT_DIR"),
         "TS-TEST-DATA-DIRS": ytest.serialize_list(data_dirs),
+        "TS-TEST-DATA-DIRS-RENAME": unit.get("_TS_TEST_DATA_DIRS_RENAME_VALUE"),
         "NODE-MODULES-BUNDLE-FILENAME": constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
         "JEST-CONFIG-PATH": jestconfig_path,
     }
