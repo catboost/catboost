@@ -10538,3 +10538,154 @@ def test_train_with_embedding_features(problem_type):
     preds_path = test_output_path(PREDS_TXT_PATH)
     np.savetxt(preds_path, np.array(preds))
     return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize(
+    'estimator_type',
+    ['classifier', 'regressor'],
+    ids=['estimator_type=classifier', 'estimator_type=regressor']
+)
+@pytest.mark.parametrize(
+    'with_cat_features',
+    [False, True],
+    ids=['with_cat_features=False', 'with_cat_features=True']
+)
+def test_eval_fraction_on_ndarray(estimator_type, with_cat_features):
+    if estimator_type == 'classifier':
+        loss_function = 'Logloss'
+    else:
+        loss_function = 'RMSE'
+
+    if with_cat_features:
+        features_dtype = np.int32
+        cat_features = [0, 7, 11]
+        lower_bound = -32000
+        upper_bound = 32000
+    else:
+        features_dtype = np.float32
+        cat_features = []
+        lower_bound = -1.0
+        upper_bound = 1.0
+
+    n_features = 20
+
+    for order in ('C', 'F'):
+        all_features_data, all_labels = generate_random_labeled_dataset(
+            n_samples=100,
+            n_features=n_features,
+            labels=[0, 1],
+            features_dtype=features_dtype,
+            features_range=(lower_bound, upper_bound),
+            features_order=order
+        )
+
+        train_features_data = all_features_data[:75]
+        train_labels = all_labels[:75]
+        eval_features_data = all_features_data[75:]
+        eval_labels = all_labels[75:]
+
+        params = {'iterations': 10, 'has_time': True, 'cat_features': cat_features, 'loss_function': loss_function}
+
+        model_on_splitted = CatBoost(params)
+        model_on_splitted.fit(train_features_data, train_labels, eval_set=(eval_features_data, eval_labels))
+
+        params['eval_fraction'] = 0.25
+        model_on_all = CatBoost(params)
+        model_on_all.fit(all_features_data, all_labels)
+
+        assert model_on_splitted == model_on_all
+
+    # canonized result with shuffling
+
+    all_features_data, all_labels = generate_random_labeled_dataset(
+        n_samples=100,
+        n_features=n_features,
+        labels=[0, 1],
+        features_dtype=features_dtype,
+        features_range=(lower_bound, upper_bound)
+    )
+
+    params = {'iterations': 10, 'cat_features': cat_features, 'loss_function': loss_function, 'eval_fraction': 0.25}
+    model_on_all = CatBoost(params)
+    model_on_all.fit(all_features_data, all_labels)
+
+    preds = model_on_all.predict(all_features_data)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize(
+    'estimator_type',
+    ['classifier', 'regressor'],
+    ids=['estimator_type=classifier', 'estimator_type=regressor']
+)
+@pytest.mark.parametrize(
+    'with_cat_features',
+    [False, True],
+    ids=['with_cat_features=False', 'with_cat_features=True']
+)
+def test_eval_fraction_on_pool(estimator_type, with_cat_features):
+    if estimator_type == 'classifier':
+        loss_function = 'Logloss'
+    else:
+        loss_function = 'RMSE'
+
+    if with_cat_features:
+        features_dtype = np.int32
+        cat_features = [0, 7, 11]
+        lower_bound = -32000
+        upper_bound = 32000
+    else:
+        features_dtype = np.float32
+        cat_features = []
+        lower_bound = -1.0
+        upper_bound = 1.0
+
+    n_features = 20
+    for order in ('C', 'F'):
+        all_features_data, all_labels = generate_random_labeled_dataset(
+            n_samples=100,
+            n_features=n_features,
+            labels=[0, 1],
+            features_dtype=features_dtype,
+            features_range=(lower_bound, upper_bound),
+            features_order=order
+        )
+
+        all_pool = Pool(all_features_data, label=all_labels, cat_features=cat_features)
+        train_pool = Pool(all_features_data[:75], label=all_labels[:75], cat_features=cat_features)
+        eval_pool = Pool(all_features_data[75:], label=all_labels[75:], cat_features=cat_features)
+
+        params = {'iterations': 10, 'has_time': True, 'cat_features': cat_features, 'loss_function': loss_function}
+
+        model_on_splitted = CatBoost(params)
+        model_on_splitted.fit(train_pool, eval_set=eval_pool)
+
+        params['eval_fraction'] = 0.25
+        model_on_all = CatBoost(params)
+        model_on_all.fit(all_pool)
+
+        assert model_on_splitted == model_on_all
+
+    # canonized result with shuffling
+
+    all_features_data, all_labels = generate_random_labeled_dataset(
+        n_samples=100,
+        n_features=n_features,
+        labels=[0, 1],
+        features_dtype=features_dtype,
+        features_range=(lower_bound, upper_bound)
+    )
+    all_pool = Pool(all_features_data, label=all_labels, cat_features=cat_features)
+
+    params = {'iterations': 10, 'cat_features': cat_features, 'loss_function': loss_function, 'eval_fraction': 0.25}
+    model_on_all = CatBoost(params)
+    model_on_all.fit(all_pool)
+
+    preds = model_on_all.predict(all_features_data)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)

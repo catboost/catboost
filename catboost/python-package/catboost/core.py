@@ -1051,6 +1051,12 @@ class Pool(_PoolBase):
         slicedPool = Pool(None)
         slicedPool._take_slice(self, rindex)
         return slicedPool
+    
+    def train_eval_split(self, has_time, is_classification, eval_fraction, save_eval_pool):
+        train_pool = Pool(None)
+        eval_pool = Pool(None)
+        self._train_eval_split(train_pool, eval_pool, has_time, is_classification, eval_fraction, save_eval_pool)
+        return train_pool, eval_pool
 
     def set_pairs(self, pairs):
         self._check_pairs_type(pairs)
@@ -2177,6 +2183,24 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
+
+    def _dataset_train_eval_split(self, train_pool, params, save_eval_pool):
+        """
+        returns:
+            train_pool, eval_pool
+                eval_pool will be uninitialized if save_eval_pool is false
+        """
+
+        is_classification = (getattr(self, '_estimator_type', None) == 'classifier') or _CatBoostBase._is_classification_objective(params.get('loss_function', 'RMSE'))
+
+        return train_pool.train_eval_split(
+            params.get('has_time', False),
+            is_classification,
+            params['eval_fraction'],
+            save_eval_pool
+        )
+
+
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
@@ -2245,6 +2269,11 @@ class CatBoost(_CatBoostBase):
         _check_param_types(params)
         params = _params_type_cast(params)
         _check_train_params(params)
+
+        if params.get('eval_fraction', 0.0) != 0.0:
+            if eval_set is not None:
+                raise CatBoostError("Both eval_fraction and eval_set specified")
+            train_pool, eval_set = self._dataset_train_eval_split(train_pool, params, save_eval_pool=True)
 
         eval_set_list = eval_set if isinstance(eval_set, list) else [eval_set]
         eval_sets = []
@@ -2346,6 +2375,9 @@ class CatBoost(_CatBoostBase):
             if not self._object._has_leaf_weights_in_model():
                 if allow_clear_pool:
                     train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                    if params.get('eval_fraction', 0.0) != 0.0:
+                        train_pool, _ = self._dataset_train_eval_split(train_pool, params, save_eval_pool=False)
+
                 self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
             else:
                 self.get_feature_importance(type=EFstrType.PredictionValuesChange)
