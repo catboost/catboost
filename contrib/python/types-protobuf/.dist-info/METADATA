@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: types-protobuf
-Version: 3.20.3
+Version: 3.20.4
 Summary: Typing stubs for protobuf
 Home-page: https://github.com/python/typeshed
 License: Apache-2.0 license
@@ -25,6 +25,6 @@ types and metadata should be contributed there.
 Generated with aid from mypy-protobuf v3.3.0
 
 See https://github.com/python/typeshed/blob/master/README.md for more details.
-This package was generated from typeshed commit `3e71efbc737322615e80a2571bff0f0233edf440`.
+This package was generated from typeshed commit `97c935a3fe372c99b25ecad5b09f8097178415ee`.
 
 
