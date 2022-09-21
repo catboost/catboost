@@ -79,7 +79,36 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\dataset_statistics_data_provider_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics\histograms.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\statistics_data_structures.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/dataset_statistics/histograms.h" "--include-path" "catboost/libs/dataset_statistics/histograms.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/dataset_statistics/histograms.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/dataset_statistics/histograms.h" "--include-path" "catboost/libs/dataset_statistics/histograms.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/dataset_statistics/histograms.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/dataset_statistics/histograms.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics\histograms.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\dataset_statistics\dataset_statistics_data_provider_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\dataset_statistics\statistics_data_structures.h"/>
   </ItemGroup>
@@ -388,6 +417,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
