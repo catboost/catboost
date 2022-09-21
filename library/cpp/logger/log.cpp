@@ -5,12 +5,9 @@
 #include "stream.h"
 #include "thread.h"
 
-#include <util/string/cast.h>
 #include <util/stream/printf.h>
 #include <util/system/yassert.h>
-#include <util/generic/string.h>
 #include <util/generic/scope.h>
-#include <util/generic/yexception.h>
 
 THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
     TLogBackendCreatorUninitialized creator;

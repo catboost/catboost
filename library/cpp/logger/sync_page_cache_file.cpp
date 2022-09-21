@@ -5,7 +5,6 @@
 #include <util/system/file.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
-#include <util/system/rwlock.h>
 #include <util/system/align.h>
 
 class TSyncPageCacheFileLogBackend::TImpl: public TNonCopyable {
