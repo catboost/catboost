@@ -67,13 +67,18 @@ SEPARATOR_TYPES = [
     'BySense',
 ]
 
-TEXT_FEATURE_ESTIMATORS = [
+CLASSIFICATION_TEXT_FEATURE_ESTIMATORS = [
     'BoW',
     'NaiveBayes',
     'BM25',
     'BoW,NaiveBayes',
     'BoW,NaiveBayes,BM25'
 ]
+
+REGRESSION_TEXT_FEATURE_ESTIMATORS = [
+    'BoW'
+]
+
 
 ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE = data_file('rotten_tomatoes_small_with_embeddings', 'train')
 ROTTEN_TOMATOES_CD = {
@@ -9506,7 +9511,7 @@ def test_logcosh():
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
-@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('feature_estimators', CLASSIFICATION_TEXT_FEATURE_ESTIMATORS)
 def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_estimators):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
@@ -9555,7 +9560,7 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
 
 
 @pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
-@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('feature_estimators', CLASSIFICATION_TEXT_FEATURE_ESTIMATORS)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_fit_multiclass_with_text_features(separator_type, feature_estimators, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -9600,6 +9605,55 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
         local_canonical_file(learn_error_path),
         local_canonical_file(test_error_path),
         local_canonical_file(test_eval_path)
+    ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', REGRESSION_TEXT_FEATURE_ESTIMATORS)
+def test_fit_regression_with_text_features(boosting_type, separator_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
+    cmd = (
+        '--loss-function', 'RMSE',
+        '--eval-metric', 'RMSE',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    yatest.common.execute(diff_tool(1e-6) + [test_eval_path, calc_eval_path])
+    return [
+        local_canonical_file(learn_error_path, diff_tool(1e-6)),
+        local_canonical_file(test_error_path, diff_tool(1e-6)),
+        local_canonical_file(test_eval_path, diff_tool(1e-6))
     ]
 
 
@@ -9849,8 +9903,9 @@ def test_text_processing_options(dictionaries, loss_function):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('problem_type', ['binclass', 'regression'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_fit_with_per_feature_text_options(boosting_type):
+def test_fit_with_per_feature_text_options(problem_type, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
@@ -9870,12 +9925,12 @@ def test_fit_with_per_feature_text_options(boosting_type):
         ],
         'feature_processing': {
             '0': [
-                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes'] if problem_type == 'binclass' else ['BoW']},
                 {'tokenizers_names': ['Space'], 'dictionaries_names': ['Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
             ],
             '1': [
-                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes', 'BM25']},
-                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Trigram'], 'feature_calcers': ['BoW', 'BM25']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes', 'BM25'] if problem_type == 'binclass' else ['BoW']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Trigram'], 'feature_calcers': ['BoW', 'BM25'] if problem_type == 'binclass' else ['BoW']},
             ],
             '2': [
                 {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word', 'Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
@@ -9887,8 +9942,8 @@ def test_fit_with_per_feature_text_options(boosting_type):
     test_file = data_file(pool_name, 'test')
     cd_file = data_file(pool_name, 'cd_binclass')
     cmd = (
-        '--loss-function', 'Logloss',
-        '--eval-metric', 'AUC',
+        '--loss-function', 'Logloss' if problem_type == 'binclass' else 'RMSE',
+        '--eval-metric', 'AUC' if problem_type == 'binclass' else 'RMSE',
         '-f', data_file(pool_name, 'train'),
         '-t', test_file,
         '--text-processing', json.dumps(text_processing),
@@ -9906,9 +9961,12 @@ def test_fit_with_per_feature_text_options(boosting_type):
     execute_catboost_fit('CPU', cmd)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert filecmp.cmp(test_eval_path, calc_eval_path)
+    yatest.common.execute(diff_tool(1e-6) + [test_eval_path, calc_eval_path])
 
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    return [
+        local_canonical_file(learn_error_path, diff_tool(1e-6)),
+        local_canonical_file(test_error_path, diff_tool(1e-6))
+    ]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
