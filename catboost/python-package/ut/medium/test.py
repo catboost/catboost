@@ -5102,14 +5102,11 @@ def test_option_used_ram_limit():
     for limit in [1000, 1234.56, 0, 0.0, 0.5,
                   '100', '34.56', '0', '0.0', '0.5',
                   '1.2mB', '1000b', '', None, 'none', 'inf']:
-        CatBoost({'used_ram_limit': limit})
+        CatBoost({'used_ram_limit': limit}).fit([[0, 1], [2, 3]], [0, 1])
 
     for limit in [-1000, 'any', '-0.5', 'nolimit', 'oo']:
-        try:
-            CatBoost({'used_ram_limit': limit})
-            assert False, "Shall not allow used_ram_limit={!r}".format(limit)
-        except:
-            assert True
+        with pytest.raises(Exception):
+            CatBoost({'used_ram_limit': limit, 'iterations': 1}).fit([[0, 1], [2, 3]], [0, 1])
 
 
 def get_values_that_json_dumps_breaks_on():
@@ -5125,7 +5122,7 @@ def get_values_that_json_dumps_breaks_on():
                 continue
             name_value[name] = value
             name_value['array of ' + name] = np.array([[1, 0], [0, 1]], dtype=dtype)
-        except:
+        except Exception:
             pass
     return name_value
 
@@ -7244,17 +7241,15 @@ def test_grow_policy_restriction(task_type, grow_policy):
         'devices': '0',
         'grow_policy': grow_policy
     }
-    is_failed = False
-    try:
+
+    with pytest.raises(Exception):
         if grow_policy == 'Lossguide':
             params['max_leaves'] = 65537
         else:
             params['max_depth'] = 17
         classifier = CatBoostClassifier(**params)
         classifier.fit(pool)
-    except:
-        is_failed = True
-    assert is_failed
+
     if grow_policy == 'Lossguide':
         params['max_leaves'] = 65536
     else:
@@ -9199,11 +9194,8 @@ def test_bad_uncertainty_prediction_types_usage():
     regressor = CatBoostRegressor(iterations=100, posterior_sampling=True)
     regressor.fit(pool)
     for prediction_type in ['TotalUncertainty', 'VirtEnsembles']:
-        try:
+        with pytest.raises(Exception):
             regressor.predict(pool, prediction_type=prediction_type)
-        except:
-            continue
-        assert False
 
 
 @pytest.mark.parametrize('virtual_ensembles_count', [1, 5])

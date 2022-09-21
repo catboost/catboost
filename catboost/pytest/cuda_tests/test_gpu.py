@@ -344,7 +344,7 @@ def test_bootstrap_no(boosting_type):
     should_xfail = boosting_type == 'Plain'
     try:
         assert (filecmp.cmp(yatest.common.test_output_path('test_no.eval'), yatest.common.test_output_path('test_bayes.eval')))
-    except:
+    except Exception:
         assert should_xfail
         return pytest.xfail(reason="MLTOOLS-5003")
 
@@ -2508,7 +2508,7 @@ def test_apply_with_grow_policy(grow_policy):
 
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
+    assert (compare_evals_with_precision(test_eval_path, calc_eval_path, skip_last_column_in_fit=False))
 
 
 @pytest.mark.parametrize('loss_function', ('YetiRank', 'YetiRankPairwise'))
@@ -2778,7 +2778,7 @@ def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+    assert (compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -2825,7 +2825,7 @@ def test_fit_multiclass_with_text_features(separator_type, feature_estimators, l
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(
+    assert (
         compare_evals_with_precision(
             test_eval_path,
             calc_eval_path,
@@ -2935,7 +2935,7 @@ def test_shrink_model_with_text_features(grow_policy):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+    assert (compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -3001,7 +3001,7 @@ def test_text_processing_options(dictionaries, loss_function):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(
+    assert (
         compare_evals_with_precision(
             test_eval_path,
             calc_eval_path,
@@ -3074,7 +3074,7 @@ def test_fit_with_per_feature_text_options(problem_type, boosting_type):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+    assert (compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]

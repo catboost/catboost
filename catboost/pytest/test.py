@@ -3320,7 +3320,7 @@ def test_loss_change_fstr_without_pairs(boosting_type):
     )
     yatest.common.execute(fstr_cmd)
 
-    try:
+    with pytest.raises(Exception):
         fstr_cmd = (
             CATBOOST_PATH,
             'fstr',
@@ -3330,10 +3330,8 @@ def test_loss_change_fstr_without_pairs(boosting_type):
             '--fstr-type', 'LossFunctionChange',
         )
         yatest.common.execute(fstr_cmd)
-    except:
-        return [local_canonical_file(output_fstr_path)]
 
-    assert False
+    return [local_canonical_file(output_fstr_path)]
 
 
 def test_loss_change_fstr_on_different_pool_type():
@@ -5264,7 +5262,7 @@ def test_multiclass_baseline_from_file(boosting_type, loss_function):
     )
     execute_catboost_fit('CPU', cmd)
 
-    try:
+    with pytest.raises(Exception):
         cmd = (
             '--use-best-model', 'false',
             '--loss-function', loss_function,
@@ -5282,10 +5280,8 @@ def test_multiclass_baseline_from_file(boosting_type, loss_function):
             '--eval-file', output_eval_path_1,
         )
         execute_catboost_fit('CPU', cmd)
-    except:
-        return [local_canonical_file(output_eval_path_0), local_canonical_file(output_eval_path_1)]
 
-    assert False
+    return [local_canonical_file(output_eval_path_0), local_canonical_file(output_eval_path_1)]
 
 
 def test_baseline_from_file_output_on_quantized_pool():
@@ -9830,12 +9826,9 @@ def test_uncertainty_prediction_requirements(loss_function):
         '--output-path', formula_predict_path,
         '--prediction-type', 'VirtEnsembles'
     )
-    try:
-        yatest.common.execute(calc_cmd)
-    except:
-        return
+
     # assert replaced to warning
-    # assert False
+    yatest.common.execute(calc_cmd)
 
 
 DICTIONARIES_OPTIONS = [
