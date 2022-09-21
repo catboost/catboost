@@ -43,7 +43,7 @@
    Copyright (c) 2016      Gustavo Grieco <gustavo.grieco@imag.fr>
    Copyright (c) 2016      Pascal Cuoq <cuoq@trust-in-soft.com>
    Copyright (c) 2016      Ed Schouten <ed@nuxi.nl>
-   Copyright (c) 2017-2018 Rhodri James <rhodri@wildebeest.org.uk>
+   Copyright (c) 2017-2022 Rhodri James <rhodri@wildebeest.org.uk>
    Copyright (c) 2017      Václav Slavík <vaclav@slavik.io>
    Copyright (c) 2017      Viktor Szakats <commit@vsz.me>
    Copyright (c) 2017      Chanho Park <chanho61.park@samsung.com>
@@ -78,6 +78,7 @@
    Copyright (c) 2017      José Gutiérrez de la Concha <jose@zeroc.com>
    Copyright (c) 2019      David Loffredo <loffredo@steptools.com>
    Copyright (c) 2021      Dong-hee Na <donghee.na@python.org>
+   Copyright (c) 2022      Martin Ettl <ettl.martin78@googlemail.com>
    Licensed under the MIT license:
 
 
@@ -102,6 +103,21 @@
    Copyright (c) 2018      Anton Maklakov <antmak.pub@gmail.com>
    Copyright (c) 2019      David Loffredo <loffredo@steptools.com>
    Copyright (c) 2020      Boris Kolpackov <boris@codesynthesis.com>
+   Copyright (c) 2022      Martin Ettl <ettl.martin78@googlemail.com>
+   Licensed under the MIT license:
+
+
+====================COPYRIGHT====================
+   Copyright (c) 1997-2000 Thai Open Source Software Center Ltd
+   Copyright (c) 2000      Clark Cooper <coopercc@users.sourceforge.net>
+   Copyright (c) 2002      Greg Stein <gstein@users.sourceforge.net>
+   Copyright (c) 2002-2006 Karl Waclawek <karl@waclawek.net>
+   Copyright (c) 2002-2003 Fred L. Drake, Jr. <fdrake@users.sourceforge.net>
+   Copyright (c) 2005-2009 Steven Solie <steven@solie.ca>
+   Copyright (c) 2016-2021 Sebastian Pipping <sebastian@pipping.org>
+   Copyright (c) 2017      Rhodri James <rhodri@wildebeest.org.uk>
+   Copyright (c) 2019      David Loffredo <loffredo@steptools.com>
+   Copyright (c) 2021      Dong-hee Na <donghee.na@python.org>
    Licensed under the MIT license:
 
 
@@ -142,7 +158,7 @@
    Copyright (c) 2002-2003 Fred L. Drake, Jr. <fdrake@users.sourceforge.net>
    Copyright (c) 2002-2006 Karl Waclawek <karl@waclawek.net>
    Copyright (c) 2003      Greg Stein <gstein@users.sourceforge.net>
-   Copyright (c) 2016-2021 Sebastian Pipping <sebastian@pipping.org>
+   Copyright (c) 2016-2022 Sebastian Pipping <sebastian@pipping.org>
    Copyright (c) 2018      Yury Gribov <tetra2005@gmail.com>
    Copyright (c) 2019      David Loffredo <loffredo@steptools.com>
    Licensed under the MIT license:
@@ -150,7 +166,7 @@
 
 ====================COPYRIGHT====================
 Copyright (c) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
-Copyright (c) 2001-2019 Expat maintainers
+Copyright (c) 2001-2022 Expat maintainers
 
 
 ====================File: AUTHORS====================
