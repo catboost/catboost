@@ -11,6 +11,7 @@ add_library(catboost-libs-dataset_statistics)
 target_link_libraries(catboost-libs-dataset_statistics PUBLIC
   contrib-libs-cxxsupp
   yutil
+  tools-enum_parser-enum_serialization_runtime
   catboost-libs-data
   private-libs-options
   private-libs-target
@@ -18,5 +19,11 @@ target_link_libraries(catboost-libs-dataset_statistics PUBLIC
 )
 target_sources(catboost-libs-dataset_statistics PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/dataset_statistics_data_provider_builder.cpp
+  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/histograms.cpp
   ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/statistics_data_structures.cpp
+)
+generate_enum_serilization(catboost-libs-dataset_statistics
+  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/histograms.h
+  INCLUDE_HEADERS
+  catboost/libs/dataset_statistics/histograms.h
 )
