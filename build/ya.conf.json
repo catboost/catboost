@@ -8447,7 +8447,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "APPTEKA_BUNDLE",
-                        "owner": "avtumanova",
+                        "owner": "REPORT_RENDERER",
                         "attributes": {
                             "released": "stable"
                         }
