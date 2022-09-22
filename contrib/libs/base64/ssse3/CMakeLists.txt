@@ -6,30 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(libs-base64-ssse3)
-target_link_libraries(libs-base64-ssse3 PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(libs-base64-ssse3 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/ssse3/codec_ssse3.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
-)
-set_property(
-  SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/ssse3/codec_ssse3.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -mssse3
-  -std=c11
-)
-set_property(
-  SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/ssse3/lib.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -mssse3
-  -std=c11
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE)
+  include(CMakeLists.linux.txt)
+endif()

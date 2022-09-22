@@ -6,6 +6,8 @@
 # original buildsystem will not be accepted.
 
 
-if (APPLE)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
   include(CMakeLists.darwin.txt)
 endif()

@@ -6,30 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(libs-base64-avx2)
-target_link_libraries(libs-base64-avx2 PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(libs-base64-avx2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
-)
-set_property(
-  SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/codec_avx2.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -mavx2
-  -std=c11
-)
-set_property(
-  SOURCE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/base64/avx2/lib.c
-  APPEND
-  PROPERTY
-  COMPILE_OPTIONS
-  -mavx2
-  -std=c11
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE)
+  include(CMakeLists.linux.txt)
+endif()
