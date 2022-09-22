@@ -1,6 +1,6 @@
 import os
-
 import ytest
+import fnmatch
 from _common import to_yesno, strip_roots, rootrel_arc_src
 
 
@@ -65,16 +65,26 @@ def on_ts_configure(unit, tsconfig_path):
     _setup_eslint(unit)
 
 
-def on_ts_test_configure(unit, jestconfig_path):
+def on_ts_test_configure(unit):
     from lib.nots.package_manager import constants
+
+    test_runner_handlers = _get_test_runner_handlers()
+    test_runner = unit.get("TS_TEST_RUNNER")
+
+    if test_runner not in test_runner_handlers:
+        raise Exception("Test runner: {} is not available, try to use one of these: {}".format(test_runner, ", ".join(test_runner_handlers.keys())))
+
+    if not test_runner:
+        raise Exception("Test runner is not specified")
 
     test_files = ytest.get_values_list(unit, "_TS_TEST_SRCS_VALUE")
     if not test_files:
         raise Exception("No tests found in {}".format(unit.path()))
 
-    abs_jestconfig_path = unit.resolve(unit.resolve_arc_path(jestconfig_path))
-    if not abs_jestconfig_path:
-        raise Exception("jest config not found: {}".format(jestconfig_path))
+    config_path = unit.get("TS_TEST_CONFIG_PATH")
+    abs_config_path = unit.resolve(unit.resolve_arc_path(config_path))
+    if not abs_config_path:
+        raise Exception("{} config not found: {}".format(test_runner, config_path))
 
     pm = _create_pm(unit)
     mod_dir = unit.get("MODDIR")
@@ -84,14 +94,61 @@ def on_ts_test_configure(unit, jestconfig_path):
     test_record_args = {
         "CUSTOM-DEPENDENCIES": " ".join(pm.get_peers_from_package_json()),
         "TS-TEST-FOR-PATH": unit.get("TS_TEST_FOR_PATH"),
+        "TS-ROOT-DIR": unit.get("TS_CONFIG_ROOT_DIR"),
         "TS-OUT-DIR": unit.get("TS_CONFIG_OUT_DIR"),
         "TS-TEST-DATA-DIRS": ytest.serialize_list(data_dirs),
         "TS-TEST-DATA-DIRS-RENAME": unit.get("_TS_TEST_DATA_DIRS_RENAME_VALUE"),
         "NODE-MODULES-BUNDLE-FILENAME": constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
-        "JEST-CONFIG-PATH": jestconfig_path,
+        "CONFIG-PATH": config_path,
     }
 
-    _add_test_type(unit, "ts_test", None, test_files, test_record_args)
+    add_ts_test_type = test_runner_handlers[test_runner]
+    add_ts_test_type(unit, test_runner, None, test_files, test_record_args)
+
+
+def _get_test_runner_handlers():
+    return {
+        "jest": _add_default_ts_test,
+        "hermione": _add_hermione_ts_test
+    }
+
+
+def _add_default_ts_test(unit, test_runner, mod_dir, resolved_files, test_record_args):
+    _add_test_type(unit, test_runner, mod_dir, resolved_files, test_record_args)
+
+
+def _add_hermione_ts_test(unit, test_runner, mod_dir, resolved_files, test_record_args):
+    test_tags = list(set(['ya:fat', 'ya:external'] + ytest.get_values_list(unit, 'TEST_TAGS_VALUE')))
+    test_requirements = list(set(['network:full'] + ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')))
+
+    if not len(test_record_args["TS-TEST-DATA-DIRS"]):
+        _add_default_hermione_test_data(unit, test_record_args)
+
+    test_record_args.update({
+        'SIZE': 'LARGE',
+        'TAG': ytest.serialize_list(test_tags),
+        'REQUIREMENTS': ytest.serialize_list(test_requirements),
+    })
+
+    _add_test_type(unit, test_runner, mod_dir, resolved_files, test_record_args)
+
+
+def _add_default_hermione_test_data(unit, test_record_args):
+    mod_dir = unit.get("MODDIR")
+    root_dir = test_record_args["TS-ROOT-DIR"]
+    out_dir = test_record_args["TS-OUT-DIR"]
+    test_for_path = test_record_args["TS-TEST-FOR-PATH"]
+
+    abs_root_dir = os.path.normpath(os.path.join(unit.resolve(unit.path()), root_dir))
+    file_paths = find_file_paths(abs_root_dir, "**/screens/*/*/*.png")
+    file_dirs = [os.path.dirname(file) for file in file_paths]
+
+    rename_from, rename_to = [os.path.relpath(os.path.normpath(os.path.join(mod_dir, dir)), test_for_path) for dir in [root_dir, out_dir]]
+
+    test_record_args.update({
+        "TS-TEST-DATA-DIRS": ytest.serialize_list(_resolve_module_files(unit, mod_dir, file_dirs)),
+        "TS-TEST-DATA-DIRS-RENAME": "{}:{}".format(rename_from, rename_to),
+    })
 
 
 def _setup_eslint(unit):
@@ -118,31 +175,6 @@ def _add_eslint(unit, test_cwd, test_files):
     _add_test_type(unit, "eslint", test_cwd, test_files, test_record_args)
 
 
-def on_hermione_configure(unit, config_path):
-    test_files = ytest.get_values_list(unit, '_HERMIONE_SRCS_VALUE')
-    if not test_files:
-        return
-
-    mod_dir = unit.get('MODDIR')
-    resolved_files = _resolve_module_files(unit, mod_dir, test_files)
-
-    _add_hermione(unit, config_path, mod_dir, resolved_files)
-
-
-def _add_hermione(unit, config_path, test_cwd, test_files):
-    test_tags = list(set(['ya:fat', 'ya:external'] + ytest.get_values_list(unit, 'TEST_TAGS_VALUE')))
-    test_requirements = list(set(['network:full'] + ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')))
-
-    test_record_args = {
-        'SIZE': 'LARGE',
-        'TAG': ytest.serialize_list(test_tags),
-        'REQUIREMENTS': ytest.serialize_list(test_requirements),
-        'HERMIONE-CONFIG-PATH': config_path,
-    }
-
-    _add_test_type(unit, "hermione", test_cwd, test_files, test_record_args)
-
-
 def _resolve_module_files(unit, mod_dir, file_paths):
     resolved_files = []
 
@@ -153,6 +185,22 @@ def _resolve_module_files(unit, mod_dir, file_paths):
         resolved_files.append(resolved)
 
     return resolved_files
+
+
+def find_file_paths(abs_path, pattern):
+    file_paths = []
+    _, ext = os.path.splitext(pattern)
+
+    for root, _, filenames in os.walk(abs_path):
+        if not any(f.endswith(ext) for f in filenames):
+            continue
+
+        abs_file_paths = [os.path.join(root, f) for f in filenames]
+
+        for file_path in fnmatch.filter(abs_file_paths, pattern):
+            file_paths.append(file_path)
+
+    return file_paths
 
 
 def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args=None):
