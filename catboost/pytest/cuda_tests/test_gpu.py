@@ -2879,7 +2879,7 @@ def test_fit_regression_with_text_features(separator_type, feature_estimators):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(
+    assert (
         compare_evals_with_precision(
             test_eval_path,
             calc_eval_path,
