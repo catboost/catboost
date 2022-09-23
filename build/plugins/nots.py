@@ -1,6 +1,7 @@
+import fnmatch
 import os
 import ytest
-import fnmatch
+
 from _common import to_yesno, strip_roots, rootrel_arc_src
 
 
@@ -26,7 +27,13 @@ def _create_pm(unit):
 
 def on_from_npm_lockfiles(unit, *args):
     pm = _create_pm(unit)
-    lf_paths = map(lambda p: unit.resolve(unit.resolve_arc_path(p)), args)
+    lf_paths = []
+
+    for lf_path in args:
+        abs_lf_path = unit.resolve(unit.resolve_arc_path(lf_path))
+        if not abs_lf_path:
+            raise Exception("lockfile not found: {}".format(lf_path))
+        lf_paths.append(abs_lf_path)
 
     for pkg in pm.extract_packages_meta_from_lockfiles(lf_paths):
         unit.onfrom_npm([pkg.name, pkg.version, pkg.sky_id, pkg.integrity, pkg.integrity_algorithm, pkg.tarball_path])
@@ -81,7 +88,7 @@ def on_ts_test_configure(unit):
     if not test_files:
         raise Exception("No tests found in {}".format(unit.path()))
 
-    config_path = unit.get("TS_TEST_CONFIG_PATH")
+    config_path = unit.get(unit.get("TS_TEST_CONFIG_PATH_VAR"))
     abs_config_path = unit.resolve(unit.resolve_arc_path(config_path))
     if not abs_config_path:
         raise Exception("{} config not found: {}".format(test_runner, config_path))
@@ -103,34 +110,40 @@ def on_ts_test_configure(unit):
     }
 
     add_ts_test_type = test_runner_handlers[test_runner]
-    add_ts_test_type(unit, test_runner, None, test_files, test_record_args)
+    add_ts_test_type(unit, test_runner, test_files, test_record_args)
 
 
 def _get_test_runner_handlers():
     return {
-        "jest": _add_default_ts_test,
-        "hermione": _add_hermione_ts_test
+        "jest": _add_jest_ts_test,
+        "hermione": _add_hermione_ts_test,
     }
 
 
-def _add_default_ts_test(unit, test_runner, mod_dir, resolved_files, test_record_args):
-    _add_test_type(unit, test_runner, mod_dir, resolved_files, test_record_args)
+def _add_jest_ts_test(unit, test_runner, resolved_files, test_record_args):
+    nots_plugins_path = os.path.join(unit.get("NOTS_PLUGINS_PATH"), "jest")
+    test_record_args.update({
+        "CUSTOM-DEPENDENCIES": " ".join((test_record_args["CUSTOM-DEPENDENCIES"], nots_plugins_path)),
+        "NOTS-PLUGINS-PATH": nots_plugins_path,
+    })
+
+    _add_test_type(unit, test_runner, resolved_files, test_record_args)
 
 
-def _add_hermione_ts_test(unit, test_runner, mod_dir, resolved_files, test_record_args):
-    test_tags = list(set(['ya:fat', 'ya:external'] + ytest.get_values_list(unit, 'TEST_TAGS_VALUE')))
-    test_requirements = list(set(['network:full'] + ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')))
+def _add_hermione_ts_test(unit, test_runner, resolved_files, test_record_args):
+    test_tags = list(set(["ya:fat", "ya:external"] + ytest.get_values_list(unit, "TEST_TAGS_VALUE")))
+    test_requirements = list(set(["network:full"] + ytest.get_values_list(unit, "TEST_REQUIREMENTS_VALUE")))
 
     if not len(test_record_args["TS-TEST-DATA-DIRS"]):
         _add_default_hermione_test_data(unit, test_record_args)
 
     test_record_args.update({
-        'SIZE': 'LARGE',
-        'TAG': ytest.serialize_list(test_tags),
-        'REQUIREMENTS': ytest.serialize_list(test_requirements),
+        "SIZE": "LARGE",
+        "TAG": ytest.serialize_list(test_tags),
+        "REQUIREMENTS": ytest.serialize_list(test_requirements),
     })
 
-    _add_test_type(unit, test_runner, mod_dir, resolved_files, test_record_args)
+    _add_test_type(unit, test_runner, resolved_files, test_record_args)
 
 
 def _add_default_hermione_test_data(unit, test_record_args):
@@ -140,7 +153,7 @@ def _add_default_hermione_test_data(unit, test_record_args):
     test_for_path = test_record_args["TS-TEST-FOR-PATH"]
 
     abs_root_dir = os.path.normpath(os.path.join(unit.resolve(unit.path()), root_dir))
-    file_paths = find_file_paths(abs_root_dir, "**/screens/*/*/*.png")
+    file_paths = _find_file_paths(abs_root_dir, "**/screens/*/*/*.png")
     file_dirs = [os.path.dirname(file) for file in file_paths]
 
     rename_from, rename_to = [os.path.relpath(os.path.normpath(os.path.join(mod_dir, dir)), test_for_path) for dir in [root_dir, out_dir]]
@@ -152,27 +165,20 @@ def _add_default_hermione_test_data(unit, test_record_args):
 
 
 def _setup_eslint(unit):
-    if unit.get('_NO_LINT_VALUE') == "none":
+    if unit.get("_NO_LINT_VALUE") == "none":
         return
 
-    lint_files = ytest.get_values_list(unit, '_TS_LINT_SRCS_VALUE')
+    lint_files = ytest.get_values_list(unit, "_TS_LINT_SRCS_VALUE")
     if not lint_files:
         return
 
-    # MODDIR == devtools/dummy_arcadia/ts/packages/with_lint
-    # CURDIR == $S/MODDIR
-    mod_dir = unit.get('MODDIR')
+    mod_dir = unit.get("MODDIR")
     resolved_files = _resolve_module_files(unit, mod_dir, lint_files)
-
-    _add_eslint(unit, mod_dir, resolved_files)
-
-
-def _add_eslint(unit, test_cwd, test_files):
     test_record_args = {
-        'ESLINT_CONFIG_NAME': unit.get('ESLINT_CONFIG_NAME'),
+        "ESLINT_CONFIG_NAME": unit.get("ESLINT_CONFIG_NAME"),
     }
 
-    _add_test_type(unit, "eslint", test_cwd, test_files, test_record_args)
+    _add_test_type(unit, "eslint", resolved_files, test_record_args, mod_dir)
 
 
 def _resolve_module_files(unit, mod_dir, file_paths):
@@ -187,7 +193,7 @@ def _resolve_module_files(unit, mod_dir, file_paths):
     return resolved_files
 
 
-def find_file_paths(abs_path, pattern):
+def _find_file_paths(abs_path, pattern):
     file_paths = []
     _, ext = os.path.splitext(pattern)
 
@@ -203,32 +209,32 @@ def find_file_paths(abs_path, pattern):
     return file_paths
 
 
-def _add_test_type(unit, test_type, test_cwd, test_files, test_record_args=None):
+def _add_test_type(unit, test_type, test_files, test_record_args=None, test_cwd=None):
     if test_record_args is None:
         test_record_args = {}
 
     test_dir = ytest.get_norm_unit_path(unit)
 
     test_record = {
-        'TEST-NAME': test_type.lower(),
-        'TEST-TIMEOUT': unit.get('TEST_TIMEOUT') or '',
-        'TEST-ENV': ytest.prepare_env(unit.get('TEST_ENV_VALUE')),
-        'TESTED-PROJECT-NAME': os.path.splitext(unit.filename())[0],
-        'SCRIPT-REL-PATH': test_type,
-        'SOURCE-FOLDER-PATH': test_dir,
-        'BUILD-FOLDER-PATH': test_dir,
-        'BINARY-PATH': os.path.join(test_dir, unit.filename()),
-        'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
-        'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
-        'SIZE': 'SMALL',
-        'TEST-FILES': ytest.serialize_list(test_files),
-        'TEST-CWD': test_cwd or '',
-        'TAG': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_TAGS_VALUE')),
-        'REQUIREMENTS': ytest.serialize_list(ytest.get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
+        "TEST-NAME": test_type.lower(),
+        "TEST-TIMEOUT": unit.get("TEST_TIMEOUT") or "",
+        "TEST-ENV": ytest.prepare_env(unit.get("TEST_ENV_VALUE")),
+        "TESTED-PROJECT-NAME": os.path.splitext(unit.filename())[0],
+        "SCRIPT-REL-PATH": test_type,
+        "SOURCE-FOLDER-PATH": test_dir,
+        "BUILD-FOLDER-PATH": test_dir,
+        "BINARY-PATH": os.path.join(test_dir, unit.filename()),
+        "SPLIT-FACTOR": unit.get("TEST_SPLIT_FACTOR") or "",
+        "FORK-MODE": unit.get("TEST_FORK_MODE") or "",
+        "SIZE": "SMALL",
+        "TEST-FILES": ytest.serialize_list(test_files),
+        "TEST-CWD": test_cwd or "",
+        "TAG": ytest.serialize_list(ytest.get_values_list(unit, "TEST_TAGS_VALUE")),
+        "REQUIREMENTS": ytest.serialize_list(ytest.get_values_list(unit, "TEST_REQUIREMENTS_VALUE")),
     }
     test_record.update(test_record_args)
 
     data = ytest.dump_test(unit, test_record)
     if data:
-        unit.set_property(['DART_DATA', data])
-        ytest.save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
+        unit.set_property(["DART_DATA", data])
+        ytest.save_in_file(unit.get("TEST_DART_OUT_FILE"), data)
