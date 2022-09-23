@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\misc\guid.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\misc\source_location.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\misc\variant.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\cast-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\cast.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\misc\enum-inl.h"/>
