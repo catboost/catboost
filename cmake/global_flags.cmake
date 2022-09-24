@@ -42,7 +42,6 @@ set(CMAKE_CXX_FLAGS "\
   -D_LARGEFILE_SOURCE \
   -D__STDC_CONSTANT_MACROS \
   -D__STDC_FORMAT_MACROS \
-  -D_FILE_OFFSET_BITS=64 \
   -D_GNU_SOURCE \
   -D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE \
   -D__LONG_LONG_SUPPORTED \
@@ -73,6 +72,12 @@ if (APPLE)
 elseif(UNIX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-init-array")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fuse-init-array")
+endif()
+
+if (ANDROID)
+  include_directories(SYSTEM ${CMAKE_ANDROID_NDK}/sources/cxx-stl/llvm-libc++abi/include)
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
 endif()
 
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
@@ -112,4 +117,10 @@ if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   -DPOPCNT_ENABLED=1 \
   -DCX16_ENABLED=1 \
   ")
+endif()
+
+if (NOT CMAKE_CROSSCOMPILING)
+  set(TOOLS_ROOT ${CMAKE_BINARY_DIR})
+elseif(NOT TOOLS_ROOT)
+  message(FATAL_ERROR "TOOLS_ROOT is required for crosscompilation")
 endif()

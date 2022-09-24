@@ -35,7 +35,7 @@ add_custom_command(
   DEPENDS
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   COMMAND
-  ${CMAKE_BINARY_DIR}/tools/archiver/archiver
+  ${TOOLS_ROOT}/tools/archiver/archiver
   -q
   -p
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie:
@@ -47,11 +47,11 @@ add_custom_command(
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   DEPENDS
   ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer/special_tokens.txt
-  ${CMAKE_BINARY_DIR}/tools/triecompiler/triecompiler
+  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
   WORKING_DIRECTORY
   ${CMAKE_SOURCE_DIR}/library/cpp/tokenizer
   COMMAND
-  ${CMAKE_BINARY_DIR}/tools/triecompiler/triecompiler
+  ${TOOLS_ROOT}/tools/triecompiler/triecompiler
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   -0
   -i
