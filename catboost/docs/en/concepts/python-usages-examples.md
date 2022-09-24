@@ -995,7 +995,7 @@ Examples:
 
 #### {{ error-function--Logit }}
 
-{% include [reusage-common-phrases-implemantation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
+{% include [reusage-common-phrases-implementation-example](../_includes/work_src/reusage-common-phrases/implemantation-example.md) %}
 
 
 ```python
