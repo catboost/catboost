@@ -6,6 +6,7 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
+#include <util/generic/noncopyable.h>
 #include <util/generic/scope.h>
 #include <util/generic/singleton.h>
 #include <util/generic/strbuf.h>
@@ -122,7 +123,7 @@ static jbyteArray JavaToStringUTF8(JNIEnv* jenv, const jstring& str) {
     return bytes;
 }
 
-class TJVMFloatArrayAsArrayRef {
+class TJVMFloatArrayAsArrayRef : private TMoveOnly {
 public:
     TJVMFloatArrayAsArrayRef(JNIEnv* jenv, jfloatArray floatArray, size_t numElements)
         : JEnv(jenv)
@@ -138,8 +139,18 @@ public:
          : TJVMFloatArrayAsArrayRef(jenv, floatArray, jenv->GetArrayLength(floatArray))
     {}
 
+    TJVMFloatArrayAsArrayRef(TJVMFloatArrayAsArrayRef&& rhs)
+        : JEnv(rhs.JEnv)
+        , FloatArray(rhs.FloatArray)
+        , Data(rhs.Data)
+    {
+        rhs.JEnv = nullptr;
+    }
+
     ~TJVMFloatArrayAsArrayRef() {
-        JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), 0);
+        if (JEnv) {
+            JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), 0);
+        }
     }
 
     TArrayRef<float> Get() const {
@@ -147,16 +158,16 @@ public:
     }
 
 private:
-    JNIEnv* JEnv;
+    JNIEnv* JEnv;           // if null means this objects has been moved from
     jfloatArray FloatArray;
     TArrayRef<float> Data;
 };
 
-class TJVMStringAsStringBuf {
+class TJVMStringAsStringBuf : private TMoveOnly {
 public:
     TJVMStringAsStringBuf(JNIEnv* jenv, jstring string)
         : JEnv(jenv)
-        , Utf8Array(JavaToStringUTF8(jenv, string))
+        , Utf8Array((jbyteArray)jenv->NewGlobalRef(JavaToStringUTF8(jenv, string)))
     {
         jboolean isCopy = JNI_FALSE;
         jbyte* utf8 = jenv->GetByteArrayElements(Utf8Array, &isCopy);
@@ -164,10 +175,18 @@ public:
         Data = TStringBuf((const char*) utf8, jenv->GetArrayLength(Utf8Array));
     }
 
+    TJVMStringAsStringBuf(TJVMStringAsStringBuf&& rhs)
+        : JEnv(rhs.JEnv)
+        , Utf8Array(rhs.Utf8Array)
+        , Data(rhs.Data)
+    {
+        rhs.JEnv = nullptr;
+    }
+
     ~TJVMStringAsStringBuf() {
-        JEnv->DeleteLocalRef(Utf8Array);
-        if (Data.Data() != nullptr) {
+        if (JEnv) {
             JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.Data()), JNI_ABORT);
+            JEnv->DeleteGlobalRef(Utf8Array);
         }
     }
 
@@ -176,7 +195,7 @@ public:
     }
 
 private:
-    JNIEnv* JEnv;
+    JNIEnv* JEnv;          // if null means this objects has been moved from
     jbyteArray Utf8Array;
     TStringBuf Data;
 };
