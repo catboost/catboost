@@ -35,7 +35,18 @@ object TestHelpers {
     }).collect()
   }
 
-  def assertEqualsWithPrecision(expected: DataFrame, actual: DataFrame, sortByFields: Seq[String] = Seq()) = {
+  def assertEqualsWithPrecision(
+    expected: DataFrame,
+    actual: DataFrame,
+    sortByFields: Seq[String] = Seq(),
+    ignoreNullableInSchema: Boolean = false
+  ): Unit = {
+    if (expected == null) {
+      Assert.assertTrue(actual == null)
+      return ()
+    }
+    Assert.assertTrue(actual != null)
+
     Assert.assertEquals(expected.count, actual.count)
 
     Assert.assertEquals(expected.schema.size, actual.schema.size)
@@ -44,7 +55,9 @@ object TestHelpers {
       val actualField = actual.schema(i)
       Assert.assertEquals(expectedField.name, actualField.name)
       Assert.assertEquals(expectedField.dataType, actualField.dataType)
-      Assert.assertEquals(expectedField.nullable, actualField.nullable)
+      if (!ignoreNullableInSchema) {
+        Assert.assertEquals(expectedField.nullable, actualField.nullable)
+      }
       Assert.assertEquals(expectedField.metadata, actualField.metadata)
     }
 
@@ -83,6 +96,7 @@ object TestHelpers {
         }
       }
     }
+    ()
   }
   
   def addIndexColumn(df: DataFrame) : DataFrame = {
