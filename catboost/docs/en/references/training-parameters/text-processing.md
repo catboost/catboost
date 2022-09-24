@@ -25,7 +25,7 @@ Command-line: `--tokenizers`
 
 This parameter works with `dictionaries` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
 
 {% endnote %}
 
