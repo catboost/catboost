@@ -21,5 +21,5 @@ The following common variables are used in formulas of the described metrics:
 - $a_{p}$ is the value calculated using the resulting model for the winner object for the Pairwise metrics.
 - $a_{n}$ is the value calculated using the resulting model for the loser object for the Pairwise metrics.
 - $w_{pn}$ is the weight of the ($p$; $n$) pair for the Pairwise metrics.
-- $Group$ is the array of object identifiers from the input dataset with a common `{{ cd-file__col-type__GroupId }}`. It is used to calculate theGroupwise metrics.
+- $Group$ is the array of object identifiers from the input dataset with a common `{{ cd-file__col-type__GroupId }}`. It is used to calculate the Groupwise metrics.
 - $Groups$ is the set of all arrays of identifiers from the input dataset with a common `{{ cd-file__col-type__GroupId }}`. It is used to calculate the Groupwise metrics.
