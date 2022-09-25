@@ -1526,6 +1526,9 @@ class GnuCompiler(Compiler):
         if self.build.is_coverage:
             emit('_IS_COVERAGE', 'yes')
 
+        if self.tc.is_clang and self.tc.version_at_least(9):
+            emit('_HAS_TIME_TRACE', 'yes')
+
         print('@import "${CONF_ROOT}/conf/compilers/gnu_compiler.conf"')
 
 
