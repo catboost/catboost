@@ -21,13 +21,6 @@
     #error "sorry, not expected to work on 32-bit platform"
 #endif
 
-// TODO(yazevnul): current implementation invokes `std::get<PrimitiveType>ArrayRegion` with `mode=0`
-// which which asks JRE to make a copy of array [1] and then we invoke
-// `Release<PrimitiveType>ArrayElements` with `mode=0` which asks JRE to copy elements back and free
-// the buffer. In most of the cases we have no need to copy elements back (because we don't change
-// them), and in some cases we can use that and avoid alocation of our own arrays.
-//
-// [1] https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/functions.html
 
 #define Y_BEGIN_JNI_API_CALL() \
     try {
@@ -149,7 +142,7 @@ public:
 
     ~TJVMFloatArrayAsArrayRef() {
         if (JEnv) {
-            JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), 0);
+            JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), JNI_ABORT);
         }
     }
 
@@ -348,7 +341,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
     CB_ENSURE(data, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jdata, data) {
-        jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), 0);
+        jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), JNI_ABORT);
     };
     const size_t dataSize = jenv->GetArrayLength(jdata);
 
@@ -788,7 +781,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 jnumericFeatures,
                 const_cast<float*>(numericFeatures.data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -933,7 +926,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 numericFeatureMatrixRowObjects[i],
                 const_cast<float*>(numericFeatureMatrixRows[i].data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1084,7 +1077,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 jnumericFeatures,
                 const_cast<float*>(numericFeatures.data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1101,7 +1094,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseIntArrayElements(
                 jcatFeatures,
                 const_cast<jint*>(reinterpret_cast<const jint*>(catFeatures.data())),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1197,7 +1190,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 numericFeatureMatrixRowObjects[i],
                 const_cast<float*>(numericFeatureMatrixRows[i].data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1225,7 +1218,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseIntArrayElements(
                 catFeatureMatrixRowObjects[i],
                 const_cast<jint*>(reinterpret_cast<const jint*>(catFeatureMatrixRows[i].data())),
-                0);
+                JNI_ABORT);
         }
     };
 
