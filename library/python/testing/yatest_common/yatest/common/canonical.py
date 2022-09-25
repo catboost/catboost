@@ -21,7 +21,10 @@ def _copy(src, dst, universal_lines=False):
     shutil.copy(src, dst)
 
 
-def canonical_file(path, diff_tool=None, local=False, universal_lines=False, diff_file_name=None, diff_tool_timeout=None):
+@runtime.default_arg0
+def canonical_file(
+    path, diff_tool=None, local=False, universal_lines=False, diff_file_name=None, diff_tool_timeout=None
+):
     """
     Create canonical file that can be returned from a test
     :param path: path to the file
@@ -44,9 +47,12 @@ def canonical_file(path, diff_tool=None, local=False, universal_lines=False, dif
                     raise Exception("Invalid custom diff-tool: not cmd")
             except:
                 raise Exception("Invalid custom diff-tool: not binary path")
-    return runtime._get_ya_plugin_instance().file(safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
+    return runtime._get_ya_plugin_instance().file(
+        safe_path, diff_tool=diff_tool, local=local, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
+    )
 
 
+@runtime.default_arg0
 def canonical_dir(path, diff_tool=None, diff_file_name=None, diff_tool_timeout=None):
     abs_path = os.path.abspath(path)
     assert os.path.exists(abs_path), "Canonical path {} does not exist".format(path)
@@ -56,15 +62,28 @@ def canonical_dir(path, diff_tool=None, diff_file_name=None, diff_tool_timeout=N
     tempdir = tempfile.mkdtemp()
     safe_path = os.path.join(tempdir, os.path.basename(abs_path))
     shutil.copytree(abs_path, safe_path)
-    return runtime._get_ya_plugin_instance().file(safe_path, diff_tool=diff_tool, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
+    return runtime._get_ya_plugin_instance().file(
+        safe_path, diff_tool=diff_tool, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout
+    )
 
 
 def canonical_execute(
-    binary, args=None, check_exit_code=True,
-    shell=False, timeout=None, cwd=None,
-    env=None, stdin=None, stderr=None, creationflags=0,
-    file_name=None, save_locally=False, close_fds=False,
-    diff_tool=None, diff_file_name=None, diff_tool_timeout=None,
+    binary,
+    args=None,
+    check_exit_code=True,
+    shell=False,
+    timeout=None,
+    cwd=None,
+    env=None,
+    stdin=None,
+    stderr=None,
+    creationflags=0,
+    file_name=None,
+    save_locally=False,
+    close_fds=False,
+    diff_tool=None,
+    diff_file_name=None,
+    diff_tool_timeout=None,
 ):
     """
     Shortcut to execute a binary and canonize its stdout
@@ -101,15 +120,28 @@ def canonical_execute(
     del execute_args["diff_tool_timeout"]
     if not file_name and stdin:
         file_name = os.path.basename(stdin.name)
-    return _canonical_execute(process.execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout)
+    return _canonical_execute(
+        process.execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout
+    )
 
 
 def canonical_py_execute(
-    script_path, args=None, check_exit_code=True,
-    shell=False, timeout=None, cwd=None, env=None,
-    stdin=None, stderr=None, creationflags=0,
-    file_name=None, save_locally=False, close_fds=False,
-    diff_tool=None, diff_file_name=None, diff_tool_timeout=None,
+    script_path,
+    args=None,
+    check_exit_code=True,
+    shell=False,
+    timeout=None,
+    cwd=None,
+    env=None,
+    stdin=None,
+    stderr=None,
+    creationflags=0,
+    file_name=None,
+    save_locally=False,
+    close_fds=False,
+    diff_tool=None,
+    diff_file_name=None,
+    diff_tool_timeout=None,
 ):
     """
     Shortcut to execute a python script and canonize its stdout
@@ -140,7 +172,9 @@ def canonical_py_execute(
     del execute_args["diff_tool"]
     del execute_args["diff_file_name"]
     del execute_args["diff_tool_timeout"]
-    return _canonical_execute(process.py_execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout)
+    return _canonical_execute(
+        process.py_execute, execute_args, file_name, save_locally, diff_tool, diff_file_name, diff_tool_timeout
+    )
 
 
 def _prepare_args(args):
@@ -173,4 +207,10 @@ def _canonical_execute(excutor, kwargs, file_name, save_locally, diff_tool, diff
         with open(err_file_path, "wb") as err_file:
             err_file.write(res.std_err)
 
-    return canonical_file(out_file_path, local=save_locally, diff_tool=diff_tool, diff_file_name=diff_file_name, diff_tool_timeout=diff_tool_timeout)
+    return canonical_file(
+        out_file_path,
+        local=save_locally,
+        diff_tool=diff_tool,
+        diff_file_name=diff_file_name,
+        diff_tool_timeout=diff_tool_timeout,
+    )

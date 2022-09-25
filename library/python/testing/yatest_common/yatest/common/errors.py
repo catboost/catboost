@@ -3,7 +3,6 @@ import sys
 
 
 class RestartTestException(Exception):
-
     def __init__(self, *args, **kwargs):
         super(RestartTestException, self).__init__(*args, **kwargs)
         sys.stderr.write("##restart-test##\n")
@@ -12,7 +11,6 @@ class RestartTestException(Exception):
 
 
 class InfrastructureException(Exception):
-
     def __init__(self, *args, **kwargs):
         super(InfrastructureException, self).__init__(*args, **kwargs)
         sys.stderr.write("##infrastructure-error##\n")
