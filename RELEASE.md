@@ -10,7 +10,7 @@
 * Add eval_fraction parameter. #1500
 * Non-symmetric trees model summation.
 * `init_model` parameter now works with non-symmetric trees.
-* Support for Apache Spark 3.3 (only for Scala 2.12).
+* Partial support for Apache Spark 3.3 (only for Scala 2.12 and without PySpark).
 
 ## Speedups
 * 2x speedup DCG, nDCG and FilteredDCG metrics calculation for groups with >= 50 objects and with top=-1 (all objects from each group, default value)
