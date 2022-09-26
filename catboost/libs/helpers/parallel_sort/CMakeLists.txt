@@ -6,15 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(libs-helpers-parallel_sort)
-target_link_libraries(libs-helpers-parallel_sort PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-index_range
-  cpp-threading-local_executor
-)
-target_sources(libs-helpers-parallel_sort PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/helpers/parallel_sort/parallel_sort.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

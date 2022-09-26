@@ -6,38 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-netliba-v6)
-target_compile_options(cpp-netliba-v6 PRIVATE
-  -DCATBOOST_OPENSOURCE=yes
-)
-target_link_libraries(cpp-netliba-v6 PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-binsaver
-  cpp-netliba-socket
-  cpp-string_utils-url
-  cpp-threading-atomic
-  cpp-threading-mux_event
-)
-target_sources(cpp-netliba-v6 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/stdafx.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_address.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_client_server.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_http.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_acks.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/block_chain.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_debug.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/udp_socket.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_low.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_buffers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_mem.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_cs.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/cpu_affinity.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/net_request.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_collective.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v6/ib_memstream.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

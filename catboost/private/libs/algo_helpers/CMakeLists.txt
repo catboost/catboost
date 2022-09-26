@@ -6,30 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-algo_helpers)
-target_link_libraries(private-libs-algo_helpers PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-cat_feature
-  catboost-libs-data
-  catboost-libs-helpers
-  catboost-libs-metrics
-  catboost-libs-model
-  private-libs-lapack
-  private-libs-options
-)
-target_sources(private-libs-algo_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/approx_updater_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/custom_objective_descriptor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/ders_holder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/error_functions.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/hessian.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/langevin_utils.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/online_predictor.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/pairwise_leaves_calculation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/scoring_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/algo_helpers/survival_aft_utils.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

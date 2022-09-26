@@ -6,13 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-malloc-mimalloc)
-target_link_libraries(cpp-malloc-mimalloc PUBLIC
-  contrib-libs-cxxsupp
-  cpp-malloc-api
-  contrib-libs-mimalloc
-)
-target_sources(cpp-malloc-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/malloc/mimalloc/info.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

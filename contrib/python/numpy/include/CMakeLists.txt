@@ -6,16 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(python-numpy-include INTERFACE)
-target_include_directories(python-numpy-include INTERFACE
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/include/numpy
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/src/common
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/core/src/npymath
-  ${CMAKE_SOURCE_DIR}/contrib/python/numpy/include/numpy/distutils/include
-)
-target_link_libraries(python-numpy-include INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

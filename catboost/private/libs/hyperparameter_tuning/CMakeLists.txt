@@ -6,19 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-hyperparameter_tuning)
-target_link_libraries(private-libs-hyperparameter_tuning PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo_helpers
-  catboost-libs-data
-  catboost-libs-helpers
-  catboost-libs-train_lib
-  catboost-libs-metrics
-  private-libs-options
-  library-cpp-json
-)
-target_sources(private-libs-hyperparameter_tuning PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

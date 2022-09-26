@@ -6,24 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-monoforest)
-target_link_libraries(catboost-libs-monoforest PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  catboost-libs-logging
-  catboost-libs-model
-)
-target_sources(catboost-libs-monoforest PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/additive_model.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/grid.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/interpretation.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/model_import.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/monom.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/oblivious_tree.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/non_symmetric_tree.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/polynom.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/monoforest/split.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

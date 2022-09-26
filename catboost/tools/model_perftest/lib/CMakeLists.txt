@@ -6,27 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(tools-model_perftest-lib INTERFACE)
-target_link_libraries(tools-model_perftest-lib INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo
-  catboost-libs-data
-  cpp-getopt-small
-  cpp-threading-future
-)
-
-add_global_library_for(tools-model_perftest-lib.global tools-model_perftest-lib)
-target_link_libraries(tools-model_perftest-lib.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo
-  catboost-libs-data
-  cpp-getopt-small
-  cpp-threading-future
-)
-target_sources(tools-model_perftest-lib.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_perftest/lib/main.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/tools/model_perftest/lib/perftest_modules.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

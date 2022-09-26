@@ -6,29 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(private-libs-data_util)
-target_link_libraries(private-libs-data_util PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-index_range
-  library-cpp-binsaver
-  library-cpp-object_factory
-)
-target_sources(private-libs-data_util PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_util/path_with_scheme.cpp
-)
-
-add_global_library_for(private-libs-data_util.global private-libs-data_util)
-target_link_libraries(private-libs-data_util.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-index_range
-  library-cpp-binsaver
-  library-cpp-object_factory
-)
-target_sources(private-libs-data_util.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_util/line_data_reader.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/data_util/exists_checker.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

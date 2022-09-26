@@ -6,15 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(text_processing-ut-lib)
-target_link_libraries(text_processing-ut-lib PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-data_types
-  private-libs-options
-  private-libs-text_processing
-)
-target_sources(text_processing-ut-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/ut/lib/text_processing_data.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-yt-memory)
-target_link_libraries(cpp-yt-memory PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-yt-assert
-  cpp-yt-misc
-  cpp-ytalloc-api
-)
-target_sources(cpp-yt-memory PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref_tracked.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

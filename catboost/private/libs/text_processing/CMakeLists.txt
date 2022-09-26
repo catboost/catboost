@@ -6,23 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(ut)
-
-add_library(private-libs-text_processing)
-target_link_libraries(private-libs-text_processing PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  private-libs-data_types
-  private-libs-options
-  cpp-text_processing-dictionary
-  cpp-text_processing-tokenizer
-  cpp-threading-local_executor
-)
-target_sources(private-libs-text_processing PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_column_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_dataset.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/text_digitizers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/text_processing/tokenizer.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

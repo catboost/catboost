@@ -6,19 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-mimalloc)
-target_compile_options(contrib-libs-mimalloc PRIVATE
-  -w
-  -DMI_MALLOC_OVERRIDE=1
-  -DMI_PADDING=0
-)
-target_include_directories(contrib-libs-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/include
-)
-target_link_libraries(contrib-libs-mimalloc PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(contrib-libs-mimalloc PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/mimalloc/src/static.c
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

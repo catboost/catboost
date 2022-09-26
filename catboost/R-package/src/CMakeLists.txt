@@ -6,34 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboostr SHARED)
-target_include_directories(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/r-lang
-)
-target_link_libraries(catboostr PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-malloc-mimalloc
-  catboost-libs-cat_feature
-  catboost-libs-data
-  catboost-libs-eval_result
-  catboost-libs-fstr
-  libs-gpu_config-maybe_have_cuda
-  catboost-libs-logging
-  catboost-libs-model
-  catboost-libs-train_lib
-  private-libs-algo
-  private-libs-data_util
-  private-libs-documents_importance
-  private-libs-init
-  private-libs-options
-)
-target_sources(catboostr PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/init.c
-)
-use_export_script(catboostr
-  ${CMAKE_SOURCE_DIR}/catboost/R-package/src/catboostr.exports
-)
-vcs_info(catboostr)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

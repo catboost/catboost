@@ -6,14 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-lapack)
-target_link_libraries(private-libs-lapack PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-clapack
-  cpp-containers-2d_array
-)
-target_sources(private-libs-lapack PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/lapack/linear_system.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

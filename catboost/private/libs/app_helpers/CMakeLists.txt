@@ -6,42 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-app_helpers)
-target_link_libraries(private-libs-app_helpers PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo
-  catboost-libs-column_description
-  catboost-libs-data
-  catboost-libs-dataset_statistics
-  catboost-libs-eval_result
-  catboost-libs-fstr
-  catboost-libs-helpers
-  private-libs-labels
-  catboost-libs-logging
-  catboost-libs-model
-  catboost-libs-train_lib
-  private-libs-options
-  cpp-getopt-small
-  library-cpp-grid_creator
-  library-cpp-json
-  library-cpp-logger
-  library-cpp-object_factory
-  cpp-text_processing-dictionary
-  cpp-threading-local_executor
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(private-libs-app_helpers PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/bind_options.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_calc_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_dataset_statistics_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fit_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_fstr_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/mode_normalize_model_helpers.cpp
-)
-generate_enum_serilization(private-libs-app_helpers
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/app_helpers/implementation_type_enum.h
-  INCLUDE_HEADERS
-  catboost/private/libs/app_helpers/implementation_type_enum.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

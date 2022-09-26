@@ -6,41 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-netliba-v12)
-target_compile_options(cpp-netliba-v12 PUBLIC
-  -DCATBOOST_OPENSOURCE=yes
-)
-target_link_libraries(cpp-netliba-v12 PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-threading-mux_event
-  cpp-digest-crc32c
-  library-cpp-binsaver
-  cpp-netliba-socket
-  cpp-string_utils-url
-  cpp-threading-future
-  cpp-containers-disjoint_interval_tree
-)
-target_sources(cpp-netliba-v12 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/block_chain.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/cpu_affinity.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_buffers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_collective.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_cs.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_low.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_mem.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_memstream.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/ib_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/local_ip_params.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/net_acks.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/net_request.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/net_test.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/stdafx.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_address.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_debug.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_host.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_http.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_socket.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/v12/udp_test.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

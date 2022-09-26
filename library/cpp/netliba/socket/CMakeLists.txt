@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-netliba-socket)
-target_link_libraries(cpp-netliba-socket PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-libc_compat
-  cpp-threading-chunk_queue
-  cpp-deprecated-atomic
-)
-target_sources(cpp-netliba-socket PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/socket/creators.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/socket/socket.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/netliba/socket/stdafx.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -6,7 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(limited_precision_dsv_diff)
-add_subdirectory(limited_precision_json_diff)
-add_subdirectory(model_comparator)
-add_subdirectory(model_perftest)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

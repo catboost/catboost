@@ -6,25 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-target)
-target_link_libraries(private-libs-target PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-data
-  private-libs-data_types
-  catboost-libs-helpers
-  private-libs-labels
-  catboost-libs-logging
-  catboost-libs-metrics
-  private-libs-options
-  private-libs-pairs
-  library-cpp-json
-)
-target_sources(private-libs-target PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/target/binarize_target.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/target/classification_target_helper.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/target/data_providers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/target/target_converter.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/target/calc_class_weights.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

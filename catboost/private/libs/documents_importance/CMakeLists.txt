@@ -6,30 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-documents_importance)
-target_link_libraries(private-libs-documents_importance PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo
-  private-libs-algo_helpers
-  catboost-libs-data
-  catboost-libs-model
-  private-libs-options
-  catboost-libs-helpers
-  private-libs-target
-  library-cpp-fast_exp
-  cpp-threading-local_executor
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(private-libs-documents_importance PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/docs_importance.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/tree_statistics.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/ders_helpers.cpp
-)
-generate_enum_serilization(private-libs-documents_importance
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/documents_importance/enums.h
-  INCLUDE_HEADERS
-  catboost/private/libs/documents_importance/enums.h
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

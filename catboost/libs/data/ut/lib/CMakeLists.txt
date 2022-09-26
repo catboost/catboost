@@ -6,22 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(data-ut-lib)
-target_link_libraries(data-ut-lib PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-testing-unittest
-  catboost-libs-cat_feature
-  catboost-libs-data
-  private-libs-data_types
-  private-libs-data_util
-  catboost-libs-helpers
-  private-libs-options
-)
-target_sources(data-ut-lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_data_provider.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_loader.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_objects.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/data/ut/lib/for_target.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

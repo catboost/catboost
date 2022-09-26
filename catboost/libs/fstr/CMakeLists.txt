@@ -6,33 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-fstr)
-target_link_libraries(catboost-libs-fstr PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  private-libs-algo
-  catboost-libs-data
-  catboost-libs-helpers
-  catboost-libs-loggers
-  catboost-libs-logging
-  catboost-libs-model
-  private-libs-options
-  private-libs-target
-  cpp-threading-local_executor
-)
-target_sources(catboost-libs-fstr PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/calc_fstr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/compare_documents.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/feature_str.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/independent_tree_shap.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/loss_change_fstr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/output_fstr.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/partial_dependence.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/sage_values.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_exact.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_interaction_values.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_prepared_trees.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/shap_values.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/fstr/util.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

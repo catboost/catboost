@@ -7,5 +7,4 @@
 
 
 add_subdirectory(libs)
-add_subdirectory(python)
 add_subdirectory(tools)
