@@ -132,12 +132,12 @@ private:
     bool ProcessNotNummeric(float f);
 
 public:
-    TVector<ui32> Histogram;
+    TVector<ui64> Histogram;
     TBorders Borders;
 
-    ui32 Nans;
-    ui32 MinusInf;
-    ui32 PlusInf;
+    ui64 Nans;
+    ui64 MinusInf;
+    ui64 PlusInf;
 };
 
 struct THistograms {
@@ -167,6 +167,17 @@ public:
     SAVELOAD(
         FloatFeatureHistogram
     );
+
+    ui64 GetObjectCount() const {
+        if (FloatFeatureHistogram.empty()) {
+            return 0;
+        }
+        ui64 result = 0;
+        for (auto bucket : FloatFeatureHistogram[0].Histogram) {
+            result += bucket;
+        }
+        return result;
+    }
 
 public:
     TVector<TFloatFeatureHistogram> FloatFeatureHistogram;

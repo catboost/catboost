@@ -145,6 +145,10 @@ void THistograms::AddFloatFeatureUniformHistogram(
     ui32 featureId,
     TVector<float>* features
 ) {
+    CB_ENSURE_INTERNAL(
+        featureId < FloatFeatureHistogram.size(),
+        "FeaturedId " << featureId << " is bigger then FloatFeatureHistogram size " << FloatFeatureHistogram.size()
+    );
     FloatFeatureHistogram[featureId].CalcUniformHistogram(*features);
 }
 

@@ -191,12 +191,12 @@ public:
     // TRawTargetData
 
     void AddTarget(ui32 localObjectIdx, const TString& value) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(localObjectIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(localObjectIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
         DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
