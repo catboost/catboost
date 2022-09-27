@@ -37,14 +37,18 @@ function(target_proto_messages Tgt Scope)
           ${OutputDir}/${OutputBase}.pb.cc
           ${OutputDir}/${OutputBase}.pb.h
           ${ProtocExtraOuts}
-        COMMAND protoc
+        COMMAND ${TOOLS_ROOT}/contrib/tools/protoc/bin/protoc
           ${COMMON_PROTOC_FLAGS}
           "-I$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTO_ADDINCL>>,;-I>"
           "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTO_OUTS>>,;>"
-          --plugin=protoc-gen-cpp_styleguide=${CMAKE_BINARY_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
+          --plugin=protoc-gen-cpp_styleguide=${TOOLS_ROOT}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
           "$<JOIN:$<TARGET_GENEX_EVAL:${Tgt},$<TARGET_PROPERTY:${Tgt},PROTOC_OPTS>>,;>"
           ${protoRel}
-        DEPENDS ${proto} $<TARGET_PROPERTY:${Tgt},PROTOC_DEPS> ${CMAKE_BINARY_DIR}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
+        DEPENDS
+          ${proto}
+          $<TARGET_PROPERTY:${Tgt},PROTOC_DEPS>
+          ${TOOLS_ROOT}/contrib/tools/protoc/bin/protoc
+          ${TOOLS_ROOT}/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMAND_EXPAND_LISTS
     )
