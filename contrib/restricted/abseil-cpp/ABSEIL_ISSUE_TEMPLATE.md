@@ -11,7 +11,7 @@ Please submit a new Abseil Issue using the template below:
 proposed API changes. No controversial claims should be made here. If there are
 design constraints that need to be considered, they should be presented here
 **along with justification for those constraints**. Linking to other docs is
-good, but please keep the **pertinent information as self-contained** as
+good, but please keep the **pertinent information as self contained** as
 possible in this section.]
 
 ## Proposed API Change (s)
