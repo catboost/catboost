@@ -28,7 +28,7 @@ A comma-separated list of input files that contain the validation dataset descri
 
 {% include [files-internal-format-for-multimple-files](../../yandex_specific/_includes/reusage-formats/format-for-multimple-files.md) %}
 
-{% include [files-internal-files-internal__desc__possible-values](../../yandex_specific/_includes/reusage-formats/files-internal__desc__possible-values.md) %}
+{% include [files-internal-files-internal__desc__possbile-values](../../yandex_specific/_includes/reusage-formats/files-internal__desc__possbile-values.md) %}
 
 {% endif %}
 
