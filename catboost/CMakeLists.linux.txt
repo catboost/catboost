@@ -8,6 +8,7 @@
 
 add_subdirectory(R-package)
 add_subdirectory(app)
+add_subdirectory(cuda)
 add_subdirectory(idl)
 add_subdirectory(jvm-packages)
 add_subdirectory(libs)

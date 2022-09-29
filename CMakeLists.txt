@@ -7,7 +7,7 @@
 
 
 cmake_minimum_required(VERSION 3.15)
-project(CATBOOST LANGUAGES ASM C CXX)
+project(CATBOOST LANGUAGES ASM C CUDA CXX)
 
 set(BUILD_SHARED_LIBS Off)
 set(CMAKE_CXX_STANDARD 20)
@@ -22,6 +22,7 @@ list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 enable_testing()
 include(cmake/archive.cmake)
 include(cmake/conan.cmake)
+include(cmake/cuda.cmake)
 include(cmake/cython.cmake)
 include(cmake/fat_object.cmake)
 include(cmake/fbs.cmake)

@@ -33,6 +33,9 @@ target_link_options(model_ut PRIVATE
   -lpthread
   -lrt
   -ldl
+  -lcudadevrt
+  -lculibos
+  -lcudart_static
 )
 target_sources(model_ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/ut/model_export_helpers_ut.cpp

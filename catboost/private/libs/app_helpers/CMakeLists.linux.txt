@@ -30,6 +30,8 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   library-cpp-object_factory
   cpp-text_processing-dictionary
   cpp-threading-local_executor
+  catboost-cuda-train_lib
+  libs-model-cuda
   tools-enum_parser-enum_serialization_runtime
 )
 target_sources(private-libs-app_helpers PRIVATE
