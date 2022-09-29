@@ -9105,7 +9105,12 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1465376681,
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "BIGB_BB_CLUSTER_ANALYZER_TGZ",
+                        "owner": "BSYETI"
+                    }
+                },
                 "match": "bb_cluster_analyzer"
             },
             "executable": {
