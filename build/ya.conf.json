@@ -5707,18 +5707,14 @@
                 }
             ]
         },
-        "golang_1.18": {
+        "golang": {
             "tools": {
-                "golang": {
-                    "bottle": "golang_1.18",
-                    "executable": "golang"
-                },
                 "go": {
-                    "bottle": "golang_1.18",
+                    "bottle": "golang",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.18",
+                    "bottle": "golang",
                     "executable": "gofmt"
                 }
             },
@@ -5751,7 +5747,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.18.4"
+                "version": "1.19.1"
             }
         },
         "godoc": {
@@ -6921,7 +6917,7 @@
         },
         "yoimports": {
             "formula": {
-                "sandbox_id": 1313057974,
+                "sandbox_id": 1467074895,
                 "match": "yoimports"
             },
             "executable": {
@@ -8490,7 +8486,7 @@
                 ]
             }
         },
-        "golang_1.18": {
+        "golang": {
             "formula": {
                 "sandbox_id": [
                     1455627161,
@@ -9111,8 +9107,7 @@
                         "owner": "BSYETI"
                     }
                 },
-                "match": "bb_cluster_analyzer",
-                "sandbox_id": 1466655644
+                "match": "bb_cluster_analyzer"
             },
             "executable": {
                 "bb_cluster_analyzer": [

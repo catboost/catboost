@@ -309,6 +309,9 @@ bool THttpParser::DecodeContent() {
         }
         NBlockCodecs::TDecodedInput decoder(&in, codec);
         DecodedContent_ = decoder.ReadAll();
+    } else if (ContentEncoding_ == "lz4") {
+        const auto* codec = NBlockCodecs::Codec(TStringBuf(ContentEncoding_));
+        DecodedContent_ = codec->Decode(Content_);
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;
     }
