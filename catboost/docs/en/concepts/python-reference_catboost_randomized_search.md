@@ -190,22 +190,6 @@ bool
 
 True
 
-### calc_cv_statistics
-
-#### Description
-
-Estimate the quality by using cross-validation with the best of the found parameters. The model is fitted using these parameters.
-
-This option can be enabled if the `search_by_train_test_split` parameter is set to True.
-
-**Possible types**
-
-bool
-
-**Default value**
-
-True
-
 ### refit
 
 #### Description
