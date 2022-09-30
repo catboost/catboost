@@ -32,27 +32,18 @@ include(cmake/swig.cmake)
 include(cmake/yandex_common.cmake)
 include(cmake/global_vars.cmake)
 
-conan_cmake_configure(
-  GENERATORS cmake_find_package
-  REQUIRES
-    openssl/1.1.1l
-    ragel/6.10
-    swig/4.0.2
-    yasm/1.3.0
-    zlib/1.2.12
-  IMPORTS
-    "bin, *swig* -> ./bin"
-    "bin, *yasm* -> ./bin"
-    "bin, ragel* -> ./bin"
-    "bin, ytasm* -> ./bin"
-)
-conan_cmake_autodetect(settings)
-conan_cmake_install(
-  PATH_OR_REFERENCE .
-  BUILD missing
-  REMOTE conancenter
-  SETTINGS ${settings}
-)
+if (CMAKE_IS_CROSSCOMPILING)
+  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+else()
+  conan_cmake_autodetect(settings)
+  conan_cmake_install(
+    PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}
+    INSTALL_FOLDER ${CMAKE_BINARY_DIR}
+    BUILD missing
+    REMOTE conancenter
+    SETTINGS ${settings}
+  )
+endif()
 
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
   include(CMakeLists.linux.txt)
