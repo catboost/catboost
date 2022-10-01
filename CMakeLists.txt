@@ -32,7 +32,7 @@ include(cmake/swig.cmake)
 include(cmake/yandex_common.cmake)
 include(cmake/global_vars.cmake)
 
-if (CMAKE_IS_CROSSCOMPILING)
+if (CMAKE_CROSSCOMPILING)
   include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 else()
   conan_cmake_autodetect(settings)
