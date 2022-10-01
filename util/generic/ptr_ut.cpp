@@ -2,6 +2,7 @@
 #include "vector.h"
 #include "noncopyable.h"
 
+#include <library/cpp/testing/common/probe.h>
 #include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/hash_set.h>
@@ -32,7 +33,8 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestMakeShared);
     UNIT_TEST(TestComparison);
     UNIT_TEST(TestSimpleIntrusivePtrCtorTsan);
-    UNIT_TEST(TestRefCountedPtrsInHashSet)
+    UNIT_TEST(TestRefCountedPtrsInHashSet);
+    UNIT_TEST(TestSharedPtrDowncast);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -86,6 +88,7 @@ private:
     template <class T, class TRefCountedPtr>
     void TestRefCountedPtrsInHashSetImpl();
     void TestRefCountedPtrsInHashSet();
+    void TestSharedPtrDowncast();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TPointerTest);
@@ -832,5 +835,58 @@ void TPointerTest::TestIntrusiveConstConstruction() {
         c.Reset();
         UNIT_ASSERT_VALUES_EQUAL(cnt.Counter.load(), 0);
         UNIT_ASSERT_VALUES_EQUAL(cnt.Increments.load(), 1);
+    }
+}
+
+class TVirtualProbe: public NTesting::TProbe {
+public:
+    using NTesting::TProbe::TProbe;
+
+    virtual ~TVirtualProbe() = default;
+};
+
+class TDerivedProbe: public TVirtualProbe {
+public:
+    using TVirtualProbe::TVirtualProbe;
+};
+
+void TPointerTest::TestSharedPtrDowncast() {
+    {
+        NTesting::TProbeState probeState = {};
+
+        {
+            TSimpleSharedPtr<TVirtualProbe> base = MakeSimpleShared<TDerivedProbe>(&probeState);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+            {
+                auto derived = base.As<TDerivedProbe>();
+                UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+                UNIT_ASSERT_VALUES_EQUAL(base.Get(), derived.Get());
+                UNIT_ASSERT_VALUES_EQUAL(base.ReferenceCounter(), derived.ReferenceCounter());
+
+                UNIT_ASSERT_VALUES_EQUAL(base.RefCount(), 2l);
+                UNIT_ASSERT_VALUES_EQUAL(derived.RefCount(), 2l);
+            }
+
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 0);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
+    }
+    {
+        NTesting::TProbeState probeState = {};
+
+        {
+            TSimpleSharedPtr<TVirtualProbe> base = MakeSimpleShared<TDerivedProbe>(&probeState);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+
+            auto derived = std::move(base).As<TDerivedProbe>();
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Constructors, 1);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.CopyConstructors, 0);
+            UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 0);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(probeState.Destructors, 1);
     }
 }
