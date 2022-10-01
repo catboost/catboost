@@ -242,6 +242,7 @@ default:
   error-function__CtrFactor: CtrFactor
   error-function--AUC: AUC
   error-function--QueryAUC: QueryAUC
+  error-function--PRAUC: PRAUC
   error-function--NormalizedGini: NormalizedGini
   error-function--Accuracy: Accuracy
   error-function--MultiRMSE: MultiRMSE
