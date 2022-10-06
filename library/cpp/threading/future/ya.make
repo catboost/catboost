@@ -7,6 +7,7 @@ SUBSCRIBER(
 LIBRARY()
 
 SRCS(
+    async_semaphore.cpp
     async.cpp
     core/future.cpp
     core/fwd.cpp
