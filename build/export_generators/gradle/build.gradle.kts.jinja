@@ -15,7 +15,7 @@ dependencies{
     implementation("com.google.guava:guava:31.0.1-jre")
 {% endif -%}
 {% for target in targets -%}
-{% for library in target.consumer_link_library -%}
+{% for library in target.consumer_classpath -%}
 {% if target.isTest -%}
     testImplementation(project(":{{ library | replace("/", ":") }}"))
 {% else -%}
