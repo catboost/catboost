@@ -350,8 +350,6 @@ def _do_compile_go(args):
         import_path if import_path != "unsafe" else "",
         '-D',
         '""',
-        '-goversion',
-        'go{}'.format(args.goversion)
     ]
     if args.lang:
         cmd.append('-lang=go{}'.format(args.lang))
