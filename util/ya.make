@@ -82,7 +82,6 @@ ENDIF()
 # generic
 JOIN_SRCS(
     all_generic.cpp
-    generic/scope.cpp
     generic/adaptor.cpp
     generic/algorithm.cpp
     generic/array_ref.cpp
@@ -97,6 +96,7 @@ JOIN_SRCS(
     generic/fastqueue.cpp
     generic/flags.cpp
     generic/function.cpp
+    generic/function_ref.cpp
     generic/fwd.cpp
     generic/guid.cpp
     generic/hash.cpp
@@ -121,6 +121,7 @@ JOIN_SRCS(
     generic/ptr.cpp
     generic/queue.cpp
     generic/refcount.cpp
+    generic/scope.cpp
     generic/serialized_enum.cpp
     generic/set.cpp
     generic/singleton.cpp
@@ -141,12 +142,6 @@ JOIN_SRCS(
     generic/ylimits.cpp
     generic/ymath.cpp
 )
-
-IF(NOT MSVC)
-    SRCS(
-        generic/function_ref.cpp
-    )
-ENDIF()
 
 # memory
 JOIN_SRCS(

@@ -26,7 +26,6 @@ target_sources(yutil PRIVATE
   ${CMAKE_SOURCE_DIR}/util/digest/city.cpp
   ${CMAKE_SOURCE_DIR}/util/random/random.cpp
   ${CMAKE_SOURCE_DIR}/util/string/cast.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/function_ref.cpp
   ${CMAKE_SOURCE_DIR}/util/system/valgrind.cpp
   ${CMAKE_SOURCE_DIR}/util/system/mktemp_system.cpp
 )
@@ -65,7 +64,6 @@ target_joined_source(yutil
 )
 target_joined_source(yutil
   all_generic.cpp
-  ${CMAKE_SOURCE_DIR}/util/generic/scope.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/adaptor.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/algorithm.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/array_ref.cpp
@@ -80,6 +78,7 @@ target_joined_source(yutil
   ${CMAKE_SOURCE_DIR}/util/generic/fastqueue.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/flags.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/function.cpp
+  ${CMAKE_SOURCE_DIR}/util/generic/function_ref.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/fwd.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/guid.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/hash.cpp
@@ -104,6 +103,7 @@ target_joined_source(yutil
   ${CMAKE_SOURCE_DIR}/util/generic/ptr.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/queue.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/refcount.cpp
+  ${CMAKE_SOURCE_DIR}/util/generic/scope.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/serialized_enum.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/set.cpp
   ${CMAKE_SOURCE_DIR}/util/generic/singleton.cpp
