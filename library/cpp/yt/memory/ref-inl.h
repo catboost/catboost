@@ -99,15 +99,15 @@ Y_FORCE_INLINE TMutableRef TMutableRef::Slice(size_t startOffset, size_t endOffs
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Y_FORCE_INLINE TSharedRef::TSharedRef(TRef ref, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedRef::TSharedRef(TRef ref, TSharedRangeHolderPtr holder)
     : TSharedRange<char>(ref, std::move(holder))
 { }
 
-Y_FORCE_INLINE TSharedRef::TSharedRef(const void* data, size_t length, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedRef::TSharedRef(const void* data, size_t length, TSharedRangeHolderPtr holder)
     : TSharedRange<char>(static_cast<const char*>(data), length, std::move(holder))
 { }
 
-Y_FORCE_INLINE TSharedRef::TSharedRef(const void* begin, const void* end, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedRef::TSharedRef(const void* begin, const void* end, TSharedRangeHolderPtr holder)
     : TSharedRange<char>(static_cast<const char*>(begin), static_cast<const char*>(end), std::move(holder))
 { }
 
@@ -158,15 +158,15 @@ Y_FORCE_INLINE  TSharedRef TSharedRef::Slice(const void* begin, const void* end)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(const TMutableRef& ref, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(const TMutableRef& ref, TSharedRangeHolderPtr holder)
     : TSharedMutableRange<char>(ref, std::move(holder))
 { }
 
-Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(void* data, size_t length, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(void* data, size_t length, TSharedRangeHolderPtr holder)
     : TSharedMutableRange<char>(static_cast<char*>(data), length, std::move(holder))
 { }
 
-Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(void* begin, void* end, ISharedRangeHolderPtr holder)
+Y_FORCE_INLINE TSharedMutableRef::TSharedMutableRef(void* begin, void* end, TSharedRangeHolderPtr holder)
     : TSharedMutableRange<char>(static_cast<char*>(begin), static_cast<char*>(end), std::move(holder))
 { }
 
@@ -257,7 +257,7 @@ size_t GetByteSize(const std::vector<T>& parts)
 ////////////////////////////////////////////////////////////////////////////////
 
 class TSharedRefArrayImpl
-    : public ISharedRangeHolder
+    : public TSharedRangeHolder
     , public TWithExtraSpace<TSharedRefArrayImpl>
 {
 public:

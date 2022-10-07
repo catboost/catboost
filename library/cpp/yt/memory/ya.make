@@ -6,6 +6,7 @@ SRCS(
     blob.cpp
     ref.cpp
     ref_tracked.cpp
+    shared_range.cpp
 )
 
 PEERDIR(

@@ -22,7 +22,7 @@ char MutableEmptyRefData[1] = {0};
 ////////////////////////////////////////////////////////////////////////////////
 
 class TBlobHolder
-    : public ISharedRangeHolder
+    : public TSharedRangeHolder
 {
 public:
     explicit TBlobHolder(TBlob&& blob)
@@ -36,7 +36,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 class TStringHolder
-    : public ISharedRangeHolder
+    : public TSharedRangeHolder
 {
 public:
     TStringHolder(TString&& string, TRefCountedTypeCookie cookie)
@@ -74,7 +74,7 @@ private:
 
 template <class TDerived>
 class TAllocationHolderBase
-    : public ISharedRangeHolder
+    : public TSharedRangeHolder
 {
 public:
     ~TAllocationHolderBase()
@@ -359,7 +359,7 @@ TMutableRef TSharedRefArrayBuilder::AllocateAndAdd(size_t size)
     YT_ASSERT(CurrentAllocationPtr_ + size <= Impl_->GetBeginAllocationPtr() + AllocationCapacity_);
     TMutableRef ref(CurrentAllocationPtr_, size);
     CurrentAllocationPtr_ += size;
-    ISharedRangeHolderPtr holder(Impl_.Get(), false);
+    TSharedRangeHolderPtr holder(Impl_.Get(), false);
     TSharedRef sharedRef(ref, std::move(holder));
     Add(std::move(sharedRef));
     return ref;
