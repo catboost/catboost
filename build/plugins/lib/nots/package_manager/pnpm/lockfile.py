@@ -111,9 +111,9 @@ def _parse_package_meta(key, meta):
 
 def _parse_package_key(key):
     """
+    Returns tuple of scoped package name and version.
     :param key: package key in format "/({scope}/)?{package_name}/{package_version}(_{peer_dependencies})?"
     :type key: string
-    :return: tuple of scoped package name and version
     :rtype: (str, str)
     """
     try:
@@ -132,7 +132,6 @@ def _parse_sky_id_from_tarball_url(tarball_url):
     """
     :param tarball_url: tarball url
     :type tarball_url: string
-    :return: sky id
     :rtype: string
     """
     if tarball_url.startswith("file:"):
@@ -148,9 +147,9 @@ def _parse_sky_id_from_tarball_url(tarball_url):
 
 def _parse_package_integrity(integrity):
     """
+    Returns tuple of algorithm and hash (hex).
     :param integrity: package integrity in format "{algo}-{base64_of_hash}"
     :type integrity: string
-    :return: tuple of algorithm and hash (hex)
     :rtype: (str, str)
     """
     algo, hash_b64 = integrity.split("-", 1)

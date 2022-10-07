@@ -42,15 +42,26 @@ class PackageJson(object):
         with open(self.path) as f:
             self.data = json.load(f)
 
+    def write(self, path=None):
+        """
+        :param path: path to store package.json, defaults to original path
+        :type path: str
+        """
+        if path is None:
+            path = self.path
+
+        with open(path, "w") as f:
+            json.dump(self.data, f)
+
     def get_name(self):
         return self.data.get("name")
 
-    def get_workspace_dep_paths(self):
+    def get_workspace_dep_spec_paths(self):
         """
-        :return: Workspace dependencies.
+        Returns names and paths from specifiers of the defined workspace dependencies.
         :rtype: list of (str, str)
         """
-        dep_paths = []
+        spec_paths = []
         schema = self.WORKSPACE_SCHEMA
         schema_len = len(schema)
 
@@ -67,9 +78,21 @@ class PackageJson(object):
                     raise PackageJsonWorkspaceError(
                         "Expected relative path specifier for workspace dependency, but got '{}' for {} in {}".format(spec, name, self.path))
 
-                dep_paths.append((name, spec_path))
+                spec_paths.append((name, spec_path))
 
-        return dep_paths
+        return spec_paths
+
+    def get_workspace_dep_paths(self, base_path=None):
+        """
+        Returns paths of the defined workspace dependencies.
+        :param base_path: base path to resolve relative dep paths
+        :type base_path: str
+        :rtype: list of str
+        """
+        if base_path is None:
+            base_path = os.path.dirname(self.path)
+
+        return [os.path.normpath(os.path.join(base_path, p)) for _, p in self.get_workspace_dep_spec_paths()]
 
     def get_workspace_deps(self):
         """
@@ -78,7 +101,7 @@ class PackageJson(object):
         ws_deps = []
         pj_dir = os.path.dirname(self.path)
 
-        for (name, rel_path) in self.get_workspace_dep_paths():
+        for name, rel_path in self.get_workspace_dep_spec_paths():
             dep_path = os.path.normpath(os.path.join(pj_dir, rel_path))
             dep_pj = PackageJson.load(build_pj_path(dep_path))
 
@@ -90,9 +113,11 @@ class PackageJson(object):
 
         return ws_deps
 
-    def get_workspace_map(self):
+    def get_workspace_map(self, ignore_self=False):
         """
-        :return: Absolute paths of workspace dependencies (including transitive) mapped to package.json and depth.
+        Returns absolute paths of the workspace dependencies (including transitive) mapped to package.json and depth.
+        :param ignore_self: whether path of the current module will be excluded
+        :type ignore_self: bool
         :rtype: dict of (PackageJson, int)
         """
         ws_deps = {}
@@ -105,7 +130,8 @@ class PackageJson(object):
             if pj_dir in ws_deps:
                 continue
 
-            ws_deps[pj_dir] = (pj, depth)
+            if not ignore_self or pj != self:
+                ws_deps[pj_dir] = (pj, depth)
 
             for dep_pj in pj.get_workspace_deps():
                 pj_queue.append((dep_pj, depth + 1))
