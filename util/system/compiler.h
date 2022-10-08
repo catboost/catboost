@@ -636,7 +636,7 @@ _YandexAbort();
         } while (0)
 #endif
 
-#if defined(__clang__)
+#if defined(__clang__) && Y_CUDA_AT_LEAST(11, 0)
     #define Y_REINITIALIZES_OBJECT [[clang::reinitializes]]
 #else
     #define Y_REINITIALIZES_OBJECT
