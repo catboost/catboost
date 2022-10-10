@@ -15,7 +15,7 @@
 
 To install the {{ r-package }} directly from the {{ product }} repository:
 
-1. {% if audience == "internal" %} {% include [arcadia_users_step](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %}Install the `libc` header files on macOS and Linux.
+1. {% if audience == "internal" %} {% include [arcadia_users_step](../yandex_specific/_includes/arcadia_users_step.md) %} {% endif %} Install the `libc` header files on macOS and Linux.
 
     Depending on the used OS:
 
