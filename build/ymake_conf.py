@@ -1381,7 +1381,9 @@ class GnuCompiler(Compiler):
 
         # Disable some warnings which will fail compilation at the time
         self.c_warnings += [
-            '-Wno-parentheses'
+            '-Wno-parentheses',
+            '-Wno-unused-but-set-variable',
+            '-Wno-unused-but-set-parameter',
         ]
 
         self.c_defines = ['-DFAKEID=$CPP_FAKEID']
