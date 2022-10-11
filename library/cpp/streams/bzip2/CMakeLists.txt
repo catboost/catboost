@@ -6,13 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-streams-bzip2)
-target_link_libraries(cpp-streams-bzip2 PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-libbz2
-)
-target_sources(cpp-streams-bzip2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/streams/bzip2/bzip2.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

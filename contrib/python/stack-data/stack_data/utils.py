@@ -170,3 +170,11 @@ def assert_(condition, error=""):
         if isinstance(error, str):
             error = AssertionError(error)
         raise error
+
+
+# Copied from the standard traceback module pre-3.11
+def some_str(value):
+    try:
+        return str(value)
+    except:
+        return '<unprintable %s object>' % type(value).__name__

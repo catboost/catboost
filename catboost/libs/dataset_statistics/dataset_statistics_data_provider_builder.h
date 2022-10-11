@@ -43,6 +43,7 @@ public:
         CB_ENSURE(!haveUnknownNumberOfSparseFeatures, "Not supported");
         InProcess = true;
         ResultTaken = false;
+        MetaInfo = metaInfo;
 
         InBlock = inBlock;
 
@@ -191,12 +192,12 @@ public:
     // TRawTargetData
 
     void AddTarget(ui32 localObjectIdx, const TString& value) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(localObjectIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 localObjectIdx, float value) override {
-        CB_ENSURE(false, "Not implemented");
-        Y_UNUSED(localObjectIdx, value);
+        DatasetStatistics.TargetsStatistics.Update(/* flatTargetIdx */ 0, value);
+        Y_UNUSED(localObjectIdx);
     }
     void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
         DatasetStatistics.TargetsStatistics.Update(flatTargetIdx, value);
@@ -227,7 +228,7 @@ public:
 
         if (ObjectCount != 0) {
             CATBOOST_INFO_LOG << "Object info sizes: " << ObjectCount << " "
-                              << DatasetStatistics.MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
+                              << MetaInfo.FeaturesLayout->GetExternalFeatureCount() << Endl;
         } else {
             // should this be an error?
             CATBOOST_ERROR_LOG << "No objects info loaded" << Endl;
@@ -280,7 +281,7 @@ public:
 private:
     template <EFeatureType FeatureType>
     ui32 GetInternalFeatureIdx(ui32 flatFeatureIdx) const {
-        return DatasetStatistics.MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx).Idx;
+        return MetaInfo.FeaturesLayout->GetExpandingInternalFeatureIdx<FeatureType>(flatFeatureIdx).Idx;
     }
 
 private:
@@ -301,6 +302,7 @@ private:
     };
     std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
     TDatasetStatistics DatasetStatistics;
+    TDataMetaInfo MetaInfo;
     ui32 CatFeatureCount;
 
 public:

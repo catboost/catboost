@@ -6,19 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-yt-string)
-target_link_libraries(cpp-yt-string PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-yt-assert
-  cpp-yt-exception
-  cpp-yt-misc
-  cpp-yt-small_containers
-)
-target_sources(cpp-yt-string PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/string/enum.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/string/guid.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/string/string.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/yt/string/format.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

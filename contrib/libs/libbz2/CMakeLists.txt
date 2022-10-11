@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-libbz2)
-target_compile_options(contrib-libs-libbz2 PRIVATE
-  -Wno-everything
-)
-target_sources(contrib-libs-libbz2 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/blocksort.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/bzlib.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/compress.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/crctable.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/decompress.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/huffman.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/libbz2/randtable.c
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -1134,20 +1134,52 @@
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.tsv"
         }
     ],
-    "test_gpu.test_fit_with_per_feature_text_options[Ordered]": [
+    "test_gpu.test_fit_regression_with_text_features[BoW-ByDelimiter]": [
         {
-            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+            "uri": "file://test_gpu.test_fit_regression_with_text_features_BoW-ByDelimiter_/learn.tsv"
         },
         {
-            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+            "uri": "file://test_gpu.test_fit_regression_with_text_features_BoW-ByDelimiter_/test.tsv"
         }
     ],
-    "test_gpu.test_fit_with_per_feature_text_options[Plain]": [
+    "test_gpu.test_fit_regression_with_text_features[BoW-BySense]": [
         {
-            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+            "uri": "file://test_gpu.test_fit_regression_with_text_features_BoW-BySense_/learn.tsv"
         },
         {
-            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/test.tsv"
+            "uri": "file://test_gpu.test_fit_regression_with_text_features_BoW-BySense_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Ordered-binclass]": [
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered-binclass_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Ordered-regression]": [
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered-regression_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Plain-binclass]": [
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain-binclass_/learn.tsv"
+        },
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain-binclass_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Plain-regression]": [
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain-regression_/learn.tsv"
+        },
+        {
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain-regression_/test.tsv"
         }
     ],
     "test_gpu.test_fold_len_mult": [

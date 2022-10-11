@@ -131,6 +131,7 @@
                 ]
             }
         },
+        "eval_fraction": 0,
         "float_features_binarization": {
             "border_count": 254,
             "border_type": "GreedyLogSum",
@@ -176,17 +177,6 @@
                         ],
                         "feature_calcers": [
                             "BoW"
-                        ],
-                        "tokenizers_names": [
-                            "Space"
-                        ]
-                    },
-                    {
-                        "dictionaries_names": [
-                            "Word"
-                        ],
-                        "feature_calcers": [
-                            "NaiveBayes"
                         ],
                         "tokenizers_names": [
                             "Space"

@@ -6,12 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-deprecated-kmp)
-target_link_libraries(cpp-deprecated-kmp PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(cpp-deprecated-kmp PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/deprecated/kmp/kmp.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

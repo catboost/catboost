@@ -1,16 +1,33 @@
-#!/usr/bin/env python
+#!/usr/bin/env sh
+
+# Shell commands follow
+# Next line is bilingual: it starts a comment in Python, but do nothing in shell
+""":"
+
+# Find a suitable python interpreter
+for cmd in python3 python; do
+   command -v > /dev/null $cmd && exec $cmd $0 "$@"
+done
+
+echo "Python interpreter is not found in this system, please, install python or contact DEVTOOLSSUPPORT" >2
+
+exit 2
+
+":"""
+# Previous line is bilingual: it ends a comment in Python, but do nothing in shell
+# Shell commands end here
+# Python script follows
+
 import os
 import sys
 import platform
 import json
 
-URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/373962/000ced60f88958175457814f345562b9"]
-MD5 = "000ced60f88958175457814f345562b9"
+URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/250854/ad2e1585c0bcee518aee2faa315ce403"]
+MD5 = "ad2e1585c0bcee518aee2faa315ce403"
 
 RETRIES = 5
 HASH_PREFIX = 10
-
-HOME_DIR = os.path.expanduser('~')
 
 
 def create_dirs(path):
@@ -25,8 +42,28 @@ def create_dirs(path):
     return path
 
 
+def home_dir():
+    # Do not trust $HOME, as it is unreliable in certain environments
+    # Temporarily delete os.environ["HOME"] to force reading current home directory from /etc/passwd
+    home_from_env = os.environ.pop("HOME", None)
+    try:
+        home_from_passwd = os.path.expanduser("~")
+        if os.path.isabs(home_from_passwd):
+            # This home dir is valid, prefer it over $HOME
+            return home_from_passwd
+        else:
+            # When python is built with musl (this is quire weird though),
+            # only users from /etc/passwd will be properly resolved,
+            # as musl does not have nss module for LDAP integration.
+            return home_from_env
+
+    finally:
+        if home_from_env is not None:
+            os.environ["HOME"] = home_from_env
+
+
 def misc_root():
-    return create_dirs(os.getenv('YA_CACHE_DIR') or os.path.join(HOME_DIR, '.ya'))
+    return create_dirs(os.getenv('YA_CACHE_DIR') or os.path.join(home_dir(), '.ya'))
 
 
 def tool_root():
@@ -36,7 +73,7 @@ def tool_root():
 def ya_token():
     def get_token_from_file():
         try:
-            with open(os.environ.get('YA_TOKEN_PATH', os.path.join(HOME_DIR, '.ya_token')), 'r') as f:
+            with open(os.environ.get('YA_TOKEN_PATH', os.path.join(home_dir(), '.ya_token')), 'r') as f:
                 return f.read().strip()
         except:
             pass
@@ -53,8 +90,28 @@ def uniq(size=6):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
 
+_ssl_is_tuned = False
+def _tune_ssl():
+    global _ssl_is_tuned
+    if _ssl_is_tuned:
+        return
+    try:
+        import ssl
+        ssl._create_default_https_context = ssl._create_unverified_context
+    except AttributeError:
+        pass
+
+    try:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    except (AttributeError, ImportError):
+        pass
+    _ssl_is_tuned = True
+
+
 def _fetch(url, into):
     import hashlib
+    _tune_ssl()
 
     try:
         from urllib2 import urlopen
@@ -118,6 +175,15 @@ def _extract(path, into):
     import tarfile
 
     tar = tarfile.open(path, errorlevel=2)
+
+    # tar.extractall() will try to set file ownership according to the attributes stored in the archive
+    # by calling TarFile.chown() method.
+    # As this information is hardly relevant to the point of deployment / extraction,
+    # it will just fail (python2) if ya is executed with root euid, or silently set non-existent numeric owner (python3)
+    # to the files being extracted.
+    # mock it with noop to retain current user ownership.
+    tar.chown = lambda *args, **kwargs: None
+
     tar.extractall(path=into)
     tar.close()
 
@@ -196,13 +262,19 @@ def main():
     if my_platform == 'darwin' and my_machine == 'arm64':
         my_platform = 'darwin-arm64'
 
-    # match by max prefix length, prefer shortest
-    best_key = max(meta.keys(), key=lambda x: (len(os.path.commonprefix([my_platform, x])), -len(x)))
+    def _platform_key(target_platform):
+        """ match by max prefix length, prefer shortest """
+        def _key_for_platform(platform):
+            return len(os.path.commonprefix([target_platform, platform])), -len(platform)
+
+        return _key_for_platform
+
+    best_key = max(meta.keys(), key=_platform_key(my_platform))
     value = meta[best_key]
 
     if len(sys.argv) == 2 and sys.argv[1].startswith('--print-sandbox-id='):
         target = sys.argv[1].split('=')[1]
-        best_target = max(meta.keys(), key=lambda x: len(os.path.commonprefix([target, x])))
+        best_target = max(meta.keys(), key=_platform_key(target))
         sys.stdout.write(str(meta[best_target]['resource_id']) + '\n')
         exit(0)
 

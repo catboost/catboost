@@ -6,22 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(blockcodecs-codecs-legacy_zstd06 INTERFACE)
-target_link_libraries(blockcodecs-codecs-legacy_zstd06 INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-zstd06
-  cpp-blockcodecs-core
-)
-
-add_global_library_for(blockcodecs-codecs-legacy_zstd06.global blockcodecs-codecs-legacy_zstd06)
-target_link_libraries(blockcodecs-codecs-legacy_zstd06.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-zstd06
-  cpp-blockcodecs-core
-)
-target_sources(blockcodecs-codecs-legacy_zstd06.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/legacy_zstd06/legacy_zstd06.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

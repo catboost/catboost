@@ -24,6 +24,7 @@ To install the {{ r-package }} from a local copy of the {{ product }} repositor
 
     ```
     install.packages('devtools')
+    devtools::build()
     devtools::install()
     ```
 

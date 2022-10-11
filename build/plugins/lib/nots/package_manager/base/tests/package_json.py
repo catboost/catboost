@@ -4,6 +4,39 @@ import pytest
 from build.plugins.lib.nots.package_manager.base.package_json import PackageJson, PackageJsonWorkspaceError
 
 
+def test_get_workspace_dep_spec_paths_ok():
+    pj = PackageJson("/packages/foo/package.json")
+    pj.data = {
+        "dependencies": {
+            "@yandex-int/bar": "workspace:../bar",
+        },
+        "devDependencies": {
+            "@yandex-int/baz": "workspace:../baz",
+        },
+    }
+
+    ws_dep_paths = pj.get_workspace_dep_spec_paths()
+
+    assert ws_dep_paths == [
+        ("@yandex-int/bar", "../bar"),
+        ("@yandex-int/baz", "../baz"),
+    ]
+
+
+def test_get_workspace_dep_spec_paths_invalid_path():
+    pj = PackageJson("/packages/foo/package.json")
+    pj.data = {
+        "dependencies": {
+            "@yandex-int/bar": "workspace:*",
+        },
+    }
+
+    with pytest.raises(PackageJsonWorkspaceError) as e:
+        pj.get_workspace_dep_spec_paths()
+
+    assert str(e.value) == "Expected relative path specifier for workspace dependency, but got 'workspace:*' for @yandex-int/bar in /packages/foo/package.json"
+
+
 def test_get_workspace_dep_paths_ok():
     pj = PackageJson("/packages/foo/package.json")
     pj.data = {
@@ -18,23 +51,28 @@ def test_get_workspace_dep_paths_ok():
     ws_dep_paths = pj.get_workspace_dep_paths()
 
     assert ws_dep_paths == [
-        ("@yandex-int/bar", "../bar"),
-        ("@yandex-int/baz", "../baz"),
+        ("@yandex-int/bar", "/packages/bar"),
+        ("@yandex-int/baz", "/packages/baz"),
     ]
 
 
-def test_get_workspace_dep_paths_invalid_path():
+def test_get_workspace_dep_paths_with_custom_base_path():
     pj = PackageJson("/packages/foo/package.json")
     pj.data = {
         "dependencies": {
-            "@yandex-int/bar": "workspace:*",
+            "@yandex-int/bar": "workspace:../bar",
+        },
+        "devDependencies": {
+            "@yandex-int/baz": "workspace:../baz",
         },
     }
 
-    with pytest.raises(PackageJsonWorkspaceError) as e:
-        pj.get_workspace_dep_paths()
+    ws_dep_paths = pj.get_workspace_dep_paths(base_path="custom/dir")
 
-    assert str(e.value) == "Expected relative path specifier for workspace dependency, but got 'workspace:*' for @yandex-int/bar in /packages/foo/package.json"
+    assert ws_dep_paths == [
+        ("@yandex-int/bar", "custom/dir/bar"),
+        ("@yandex-int/baz", "custom/dir/baz"),
+    ]
 
 
 def test_get_workspace_deps_ok():

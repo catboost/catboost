@@ -1,3 +1,31 @@
+# Release 1.1
+## New features
+* Multiquantile regression
+
+  Now it's possible to train models with shared tree structure and multiple predicted quantile values in each leaf. Currently this approach doesn't give a strong guarantee for predicted quantile values consistency, but it still provides more consistency than training multiple independent models for each quantile. You can read [short description in the documentation](https://catboost.ai/en/docs/concepts/loss-functions-regression#MultiQuantile). Short example for Python: `loss_function='MultiQuantile:alpha=0.2,0.4'`. Supported only on CPU for now.
+* Support text and embedding features for regression and ranking.
+* Spark: Read/write Spark's Dataset-like API for Pool. #2030
+* Support HashedCateg column type. This allows to use externally prehashed categorical features both in training and prediction.
+* New option `plot_file` in Python functions with `plot` parameter allows to save plots to file. #758
+* Add eval_fraction parameter. #1500
+* Non-symmetric trees model summation.
+* `init_model` parameter now works with non-symmetric trees.
+* Partial support for Apache Spark 3.3 (only for Scala 2.12 and without PySpark).
+
+## Speedups
+* 2x speedup DCG, nDCG and FilteredDCG metrics calculation for groups with >= 50 objects and with top=-1 (all objects from each group, default value)
+* Fixed 2x slowdown of PairLogit and other ranking losses on CPU introduced in release 0.23
+
+## Bugfixes
+* Fix for pandas integer array. #2096
+* Save feature names to json format. #2102
+* Fix feature weights on CPU
+* Use feature weights on GPU
+* Fix gradient calculation for QueryRMSE on GPU
+* Fix ranking metrics with group weights in calc_metrics
+* Fix JVM applier on data with text features. #2132
+
+
 # Release 1.0.6
 ## New features
 

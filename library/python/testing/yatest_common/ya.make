@@ -14,15 +14,15 @@ PY_SRCS(
     yatest/common/canonical.py
     yatest/common/environment.py
     yatest/common/errors.py
-    yatest/common/legacy.py
     yatest/common/misc.py
     yatest/common/network.py
     yatest/common/path.py
     yatest/common/process.py
     yatest/common/runtime.py
     yatest/common/runtime_java.py
-    yatest/common/tags.py
 )
+
+STYLE_PYTHON()
 
 PEERDIR(
     contrib/python/packaging

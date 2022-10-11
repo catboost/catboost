@@ -1,0 +1,32 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies{
+{% if hasTest -%}
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+
+    api("org.apache.commons:commons-math3:3.6.1")
+
+    implementation("com.google.guava:guava:31.0.1-jre")
+{% endif -%}
+{% for target in targets -%}
+{% for library in target.consumer_classpath -%}
+{% if target.isTest -%}
+    testImplementation(project(":{{ library | replace("/", ":") }}"))
+{% else -%}
+    implementation(project(":{{ library | replace("/", ":") }}"))
+{% endif -%}
+{% endfor -%}
+{% endfor -%}
+}
+
+{% if hasTest -%}
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
+{% endif -%}

@@ -53,6 +53,16 @@ class TsConfig(object):
         """
         return self.get_or_create_compiler_options().get(name, default)
 
+    def inject_plugin(self, plugin):
+        """
+        :param plugin: plugin dict (ts-patch compatible, see https://github.com/nonara/ts-patch)
+        :type plugin: dict of str
+        """
+        opts = self.get_or_create_compiler_options()
+        if not opts.get("plugins"):
+            opts["plugins"] = []
+        opts["plugins"].append(plugin)
+
     def validate(self):
         """
         Checks whether the config is compatible with current toolchain.

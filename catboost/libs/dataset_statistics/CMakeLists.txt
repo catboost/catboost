@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(catboost-libs-dataset_statistics)
-target_link_libraries(catboost-libs-dataset_statistics PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-data
-  private-libs-options
-  private-libs-target
-  library-cpp-json
-)
-target_sources(catboost-libs-dataset_statistics PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/dataset_statistics_data_provider_builder.cpp
-  ${CMAKE_SOURCE_DIR}/catboost/libs/dataset_statistics/statistics_data_structures.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

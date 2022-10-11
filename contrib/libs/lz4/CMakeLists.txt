@@ -6,17 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-lz4)
-target_include_directories(contrib-libs-lz4 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/xxhash
-)
-target_link_libraries(contrib-libs-lz4 PUBLIC
-  contrib-libs-xxhash
-)
-target_sources(contrib-libs-lz4 PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lz4/lz4.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lz4/lz4file.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lz4/lz4frame.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/lz4/lz4hc.c
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

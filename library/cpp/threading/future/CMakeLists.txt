@@ -13,6 +13,7 @@ target_link_libraries(cpp-threading-future PUBLIC
   yutil
 )
 target_sources(cpp-threading-future PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/async_semaphore.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/async.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/core/future.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/threading/future/core/fwd.cpp

@@ -242,6 +242,7 @@ default:
   error-function__CtrFactor: CtrFactor
   error-function--AUC: AUC
   error-function--QueryAUC: QueryAUC
+  error-function--PRAUC: PRAUC
   error-function--NormalizedGini: NormalizedGini
   error-function--Accuracy: Accuracy
   error-function--MultiRMSE: MultiRMSE
@@ -554,7 +555,7 @@ default:
   loss-functions__obligatory-text: This parameter is obligatory (the default value is not defined)
   loss-functions__params__default: 'true'
   ctr-types__TargetBorderCount: TargetBorderCount
-  parameters__ctr-targer-border-count__default: >-
+  parameters__ctr-target-border-count__default: >-
     Number_of_classes - 1 for Multiclassification problems when training on CPU,
     1 otherwise
   title__missing-values-processing: Missing values processing
@@ -635,7 +636,7 @@ default:
   learning-to-select-for-predefined-ranking: 'http://proceedings.mlr.press/v97/vorobev19a/vorobev19a.pdf'
   stochastic-gradient-langevin-boosting: 'https://arxiv.org/abs/2001.07248'
   releases-page: 'https://github.com/catboost/catboost/releases'
-  release-version: 1.0.6
+  release-version: 1.1
   pmml-supported-version: '4.3'
   cpu-gpu: CPU and GPU
 internal:

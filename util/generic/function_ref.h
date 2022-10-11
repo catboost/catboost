@@ -5,11 +5,28 @@
 
 #include <functional>
 
-template <typename Signature>
+namespace NPrivate {
+
+    template <typename Signature>
+    struct TIsNoexcept;
+
+    template <typename Ret, typename... Args>
+    struct TIsNoexcept<Ret(Args...)> {
+        static constexpr bool Value = false;
+    };
+
+    template <typename Ret, typename... Args>
+    struct TIsNoexcept<Ret(Args...) noexcept> {
+        static constexpr bool Value = true;
+    };
+
+} // namespace NPrivate
+
+template <typename Signature, bool IsNoexcept = NPrivate::TIsNoexcept<Signature>::Value>
 class TFunctionRef;
 
 template <typename Ret, typename... Args, bool IsNoexcept>
-class TFunctionRef<Ret(Args...) noexcept(IsNoexcept)> {
+class TFunctionRef<Ret(Args...) noexcept(IsNoexcept), IsNoexcept> {
 public:
     using TSignature = Ret(Args...) noexcept(IsNoexcept);
 

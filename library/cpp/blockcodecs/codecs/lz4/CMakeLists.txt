@@ -6,22 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(blockcodecs-codecs-lz4 INTERFACE)
-target_link_libraries(blockcodecs-codecs-lz4 INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-lz4
-  cpp-blockcodecs-core
-)
-
-add_global_library_for(blockcodecs-codecs-lz4.global blockcodecs-codecs-lz4)
-target_link_libraries(blockcodecs-codecs-lz4.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  contrib-libs-lz4
-  cpp-blockcodecs-core
-)
-target_sources(blockcodecs-codecs-lz4.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/blockcodecs/codecs/lz4/lz4.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

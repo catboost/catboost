@@ -6,12 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-containers-ring_buffer)
-target_link_libraries(cpp-containers-ring_buffer PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(cpp-containers-ring_buffer PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/ring_buffer/ring_buffer.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

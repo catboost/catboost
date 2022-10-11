@@ -7,9 +7,9 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         TLazyValue<int> value([]() {
             return 5;
         });
-        UNIT_ASSERT(!value);
+        UNIT_ASSERT(!value.WasLazilyInitialized());
         UNIT_ASSERT_EQUAL(*value, 5);
-        UNIT_ASSERT(value);
+        UNIT_ASSERT(value.WasLazilyInitialized());
     }
 
     Y_UNIT_TEST(TestLazyValueInitialization) {
@@ -26,19 +26,19 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
 
     Y_UNIT_TEST(TestLazyValueCopy) {
         TLazyValue<int> value([]() { return 5; });
-        UNIT_ASSERT(!value);
+        UNIT_ASSERT(!value.WasLazilyInitialized());
 
         TLazyValue<int> emptyCopy = value;
-        UNIT_ASSERT(!emptyCopy);
+        UNIT_ASSERT(!emptyCopy.WasLazilyInitialized());
 
         UNIT_ASSERT_EQUAL(*emptyCopy, 5);
-        UNIT_ASSERT(emptyCopy);
-        UNIT_ASSERT(!value);
+        UNIT_ASSERT(emptyCopy.WasLazilyInitialized());
+        UNIT_ASSERT(!value.WasLazilyInitialized());
 
         UNIT_ASSERT_EQUAL(*value, 5);
 
         TLazyValue<int> notEmptyCopy = value;
-        UNIT_ASSERT(notEmptyCopy);
+        UNIT_ASSERT(notEmptyCopy.WasLazilyInitialized());
         UNIT_ASSERT_EQUAL(*notEmptyCopy, 5);
     }
 
@@ -150,8 +150,8 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         auto lv = MakeLazy([] {
             return 100500;
         });
-        UNIT_ASSERT(!lv);
+        UNIT_ASSERT(!lv.WasLazilyInitialized());
         UNIT_ASSERT(lv.GetRef() == 100500);
-        UNIT_ASSERT(lv);
+        UNIT_ASSERT(lv.WasLazilyInitialized());
     }
 }

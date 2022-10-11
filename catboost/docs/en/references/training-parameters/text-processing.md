@@ -25,7 +25,7 @@ Command-line: `--tokenizers`
 
 This parameter works with `dictionaries` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -80,7 +80,7 @@ Command-line: `--dictionaries`
 
 This parameter works with `tokenizers` and `feature_calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% endnote %}
 
@@ -136,7 +136,7 @@ Command-line: `--feature-calcers`
 
 This parameter works with `tokenizers` and `dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](../../_includes/work_src/reusage/tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 

@@ -258,6 +258,8 @@ _Examples:_ Three classes — `AUC:misclass_cost_matrix=0/0.5/2/1/0/1/0/0.5/0`, 
 
 {% endcut %}
 
+{% include [pr-auc](../_includes/concepts/pr-auc.md) %}
+
 
 ## {{ title__loss-functions__text__optimization }} {#usage-information}
 

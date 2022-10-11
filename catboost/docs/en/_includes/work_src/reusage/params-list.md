@@ -1915,7 +1915,7 @@ c(CtrType[:{{ ctr-types__TargetBorderCount }}=BorderCount][:TargetBorderType=Bor
 
 **Default value**
 
-{{ parameters__ctr-targer-border-count__default }}
+{{ parameters__ctr-target-border-count__default }}
 
 **{{ cli__params-table__title__processing-units-type }}**
 

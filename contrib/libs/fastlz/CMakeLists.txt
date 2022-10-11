@@ -6,14 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-fastlz)
-target_compile_options(contrib-libs-fastlz PRIVATE
-  -Wno-everything
-)
-target_link_libraries(contrib-libs-fastlz PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(contrib-libs-fastlz PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/fastlz/fastlz.c
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

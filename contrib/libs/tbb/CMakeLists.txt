@@ -6,49 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-tbb)
-target_compile_options(contrib-libs-tbb PRIVATE
-  -D__TBB_BUILD
-  -mrtm
-  -mwaitpkg
-  -DUSE_PTHREAD
-  -D__TBB_USE_ITT_NOTIFY
-  -DDO_ITT_NOTIFY
-  -Wno-everything
-)
-target_include_directories(contrib-libs-tbb PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/include
-)
-target_link_libraries(contrib-libs-tbb PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(contrib-libs-tbb PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/allocator.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/arena.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/arena_slot.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/concurrent_bounded_queue.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/dynamic_link.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/exception.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/global_control.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/governor.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/main.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/market.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/misc.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/misc_ex.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/observer_proxy.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/parallel_pipeline.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/private_server.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/profiling.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/queuing_rw_mutex.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/rml_tbb.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/rtm_mutex.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/rtm_rw_mutex.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/semaphore.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/small_object_pool.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task_dispatcher.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/task_group_context.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/version.cpp
-  ${CMAKE_SOURCE_DIR}/contrib/libs/tbb/src/tbb/itt_notify.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

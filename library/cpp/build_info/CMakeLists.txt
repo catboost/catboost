@@ -6,52 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-find_package(Python2 REQUIRED)
-
-add_library(library-cpp-build_info)
-target_include_directories(library-cpp-build_info PUBLIC
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info
-)
-target_link_libraries(library-cpp-build_info PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-string_utils-base64
-)
-target_sources(library-cpp-build_info PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/build_info/build_info_static.cpp
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/build_info.cpp
-)
-add_custom_command(
-  OUTPUT
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
-  DEPENDS
-  ${CMAKE_SOURCE_DIR}/build/scripts/build_info_gen.py
-  COMMAND
-  Python2::Interpreter
-  ${CMAKE_SOURCE_DIR}/build/scripts/build_info_gen.py
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
-  \"${CMAKE_CXX_COMPILER}\"
-  \"${CMAKE_CXX_FLAGS}\"
-)
-set(
-  KOSHER_SVN_VERSION
-  
-)
-set(
-  SANDBOX_TASK_ID
-  0
-)
-configure_file(
-  ${CMAKE_SOURCE_DIR}/library/cpp/build_info/sandbox.cpp.in
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/sandbox.cpp
-)
-set(
-  BUILD_TYPE
-  RELEASE
-)
-configure_file(
-  ${CMAKE_SOURCE_DIR}/library/cpp/build_info/build_info.cpp.in
-  ${CMAKE_BINARY_DIR}/library/cpp/build_info/build_info.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

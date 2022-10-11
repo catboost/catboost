@@ -431,8 +431,8 @@ public:                       \
 //strings
 #define UNIT_ASSERT_STRINGS_EQUAL_C(A, B, C)                                                                 \
     do {                                                                                                     \
-        const TString _a(A);                                                                                 \
-        const TString _b(B);                                                                                 \
+        const TString _a(A); /* NOLINT(performance-unnecessary-copy-initialization) */                       \
+        const TString _b(B); /* NOLINT(performance-unnecessary-copy-initialization) */                       \
         if (_a != _b) {                                                                                      \
             auto&& failMsg = Sprintf("%s != %s %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings equal assertion failed", failMsg);                                       \
@@ -443,8 +443,8 @@ public:                       \
 
 #define UNIT_ASSERT_STRING_CONTAINS_C(A, B, C)                                                                                  \
     do {                                                                                                                        \
-        const TString _a(A);                                                                                                    \
-        const TString _b(B);                                                                                                    \
+        const TString _a(A); /* NOLINT(performance-unnecessary-copy-initialization) */                                          \
+        const TString _b(B); /* NOLINT(performance-unnecessary-copy-initialization) */                                          \
         if (!_a.Contains(_b)) {                                                                                                 \
             auto&& msg = Sprintf("\"%s\" does not contain \"%s\", %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings contains assertion failed", msg);                                                           \
@@ -455,8 +455,8 @@ public:                       \
 
 #define UNIT_ASSERT_NO_DIFF(A, B)                                                                                                              \
     do {                                                                                                                                       \
-        const TString _a(A);                                                                                                                   \
-        const TString _b(B);                                                                                                                   \
+        const TString _a(A); /* NOLINT(performance-unnecessary-copy-initialization) */                                                         \
+        const TString _b(B); /* NOLINT(performance-unnecessary-copy-initialization) */                                                         \
         if (_a != _b) {                                                                                                                        \
             UNIT_FAIL_IMPL("strings (" #A ") and (" #B ") are different", Sprintf("\n%s", ::NUnitTest::ColoredDiff(_a, _b, " \t\n.,:;'\"").data())); \
         }                                                                                                                                      \
@@ -465,8 +465,8 @@ public:                       \
 //strings
 #define UNIT_ASSERT_STRINGS_UNEQUAL_C(A, B, C)                                                           \
     do {                                                                                                 \
-        const TString _a(A);                                                                             \
-        const TString _b(B);                                                                             \
+        const TString _a(A); /* NOLINT(performance-unnecessary-copy-initialization) */                   \
+        const TString _b(B); /* NOLINT(performance-unnecessary-copy-initialization) */                   \
         if (_a == _b) {                                                                                  \
             auto&& msg = Sprintf("%s == %s %s", ToString(_a).data(), ToString(_b).data(), (::TStringBuilder() << C).data()); \
             UNIT_FAIL_IMPL("strings unequal assertion failed", msg);                                     \

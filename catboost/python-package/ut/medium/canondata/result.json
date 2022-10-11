@@ -183,8 +183,14 @@
     "test.test_cv_with_not_binarized_target[CPU]": {
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"
     },
-    "test.test_cv_with_text": {
-        "uri": "file://test.test_cv_with_text/result.csv"
+    "test.test_cv_with_text[binclass]": {
+        "uri": "file://test.test_cv_with_text_binclass_/result.csv"
+    },
+    "test.test_cv_with_text[multiclass]": {
+        "uri": "file://test.test_cv_with_text_multiclass_/result.csv"
+    },
+    "test.test_cv_with_text[regression]": {
+        "uri": "file://test.test_cv_with_text_regression_/result.csv"
     },
     "test.test_dataframe_with_pandas_categorical_columns[cat_features_specified=True]": {
         "uri": "file://test.test_dataframe_with_pandas_categorical_columns_cat_features_specified=True_/predictions.txt"
@@ -339,6 +345,30 @@
     ],
     "test.test_eval_features_with_file_header": {
         "uri": "file://test.test_eval_features_with_file_header/eval_results.csv"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_ndarray[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_ndarray_with_cat_features=True-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=False-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=False-estimator_type=regressor_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=classifier]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=classifier_/predictions.txt"
+    },
+    "test.test_eval_fraction_on_pool[with_cat_features=True-estimator_type=regressor]": {
+        "uri": "file://test.test_eval_fraction_on_pool_with_cat_features=True-estimator_type=regressor_/predictions.txt"
     },
     "test.test_eval_period_size": [
         {

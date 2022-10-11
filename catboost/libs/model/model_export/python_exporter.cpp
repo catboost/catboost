@@ -218,10 +218,6 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        int leafValueCount = 0;
-        for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
-            leafValueCount += treeSize * model.ModelTrees->GetDimensionsCount();
-        }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';

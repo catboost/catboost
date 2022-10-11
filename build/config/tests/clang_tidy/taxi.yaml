@@ -1,6 +1,8 @@
 Checks: >
   -*,
-  bugprone-use-after-move,
+  # bugprone-use-after-move is intentionally disabled.
+  # See comment in config.yaml for the details.
+  -bugprone-use-after-move,
   performance-implicit-conversion-in-loop,
 #  arcadia-typeid-name-restriction,
 #  readability-identifier-naming,

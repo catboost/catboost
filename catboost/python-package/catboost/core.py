@@ -43,7 +43,7 @@ import scipy.sparse
 
 _typeof = type
 
-from .plot_helpers import save_plot_file, try_plot_offline
+from .plot_helpers import save_plot_file, try_plot_offline, OfflineMetricVisualizer
 from . import _catboost
 from .metrics import BuiltinMetric
 
@@ -1051,6 +1051,12 @@ class Pool(_PoolBase):
         slicedPool = Pool(None)
         slicedPool._take_slice(self, rindex)
         return slicedPool
+    
+    def train_eval_split(self, has_time, is_classification, eval_fraction, save_eval_pool):
+        train_pool = Pool(None)
+        eval_pool = Pool(None)
+        self._train_eval_split(train_pool, eval_pool, has_time, is_classification, eval_fraction, save_eval_pool)
+        return train_pool, eval_pool
 
     def set_pairs(self, pairs):
         self._check_pairs_type(pairs)
@@ -1498,15 +1504,10 @@ def _get_plotly_figs(data):
         figs.append(fig)
     
     return figs
-    
-
-def _save_train_plot(widget, plot_file):
-    figs = _get_plotly_figs(widget.data)
-    save_plot_file(plot_file, 'Train errors', figs[0])
 
 
 @contextmanager
-def plot_wrapper(plot, plot_file, train_dirs):
+def plot_wrapper(plot, plot_file, plot_title, train_dirs):
     if plot:
         widget = _get_catboost_widget(train_dirs)
         widget._run_update()
@@ -1515,8 +1516,8 @@ def plot_wrapper(plot, plot_file, train_dirs):
     finally:
         if plot:
             widget._stop_update()
-            if plot_file:
-                _save_train_plot(widget, plot_file)
+    if plot_file is not None:
+        OfflineMetricVisualizer(train_dirs).save_to_file(plot_title, plot_file)
 
 
 # the first element of the synonyms list is the canonical name
@@ -2177,6 +2178,24 @@ class CatBoost(_CatBoostBase):
         """
         super(CatBoost, self).__init__(params)
 
+
+    def _dataset_train_eval_split(self, train_pool, params, save_eval_pool):
+        """
+        returns:
+            train_pool, eval_pool
+                eval_pool will be uninitialized if save_eval_pool is false
+        """
+
+        is_classification = (getattr(self, '_estimator_type', None) == 'classifier') or _CatBoostBase._is_classification_objective(params.get('loss_function', 'RMSE'))
+
+        return train_pool.train_eval_split(
+            params.get('has_time', False),
+            is_classification,
+            params['eval_fraction'],
+            save_eval_pool
+        )
+
+
     def _prepare_train_params(self, X=None, y=None, cat_features=None, text_features=None, embedding_features=None,
                               pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None,
                               pairs_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
@@ -2245,6 +2264,11 @@ class CatBoost(_CatBoostBase):
         _check_param_types(params)
         params = _params_type_cast(params)
         _check_train_params(params)
+
+        if params.get('eval_fraction', 0.0) != 0.0:
+            if eval_set is not None:
+                raise CatBoostError("Both eval_fraction and eval_set specified")
+            train_pool, eval_set = self._dataset_train_eval_split(train_pool, params, save_eval_pool=True)
 
         eval_set_list = eval_set if isinstance(eval_set, list) else [eval_set]
         eval_sets = []
@@ -2327,7 +2351,7 @@ class CatBoost(_CatBoostBase):
         allow_clear_pool = train_params["allow_clear_pool"]
 
         with log_fixup(log_cout, log_cerr), \
-            plot_wrapper(plot, plot_file, [_get_train_dir(self.get_params())]):
+            plot_wrapper(plot, plot_file, 'Training plots', [_get_train_dir(self.get_params())]):
             self._train(
                 train_pool,
                 train_params["eval_sets"],
@@ -2346,6 +2370,9 @@ class CatBoost(_CatBoostBase):
             if not self._object._has_leaf_weights_in_model():
                 if allow_clear_pool:
                     train_pool = _build_train_pool(X, y, cat_features, text_features, embedding_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+                    if params.get('eval_fraction', 0.0) != 0.0:
+                        train_pool, _ = self._dataset_train_eval_split(train_pool, params, save_eval_pool=False)
+
                 self.get_feature_importance(data=train_pool, type=EFstrType.PredictionValuesChange)
             else:
                 self.get_feature_importance(type=EFstrType.PredictionValuesChange)
@@ -2808,7 +2835,7 @@ class CatBoost(_CatBoostBase):
         if isinstance(metrics, STRING_TYPES) or isinstance(metrics, BuiltinMetric):
             metrics = [metrics]
         metrics = stringify_builtin_metrics_list(metrics)
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [res_dir]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, 'Eval metrics plot', [res_dir]):
             metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, res_dir, tmp_dir)
 
         return dict(zip(metric_names, metrics_score))
@@ -2860,7 +2887,7 @@ class CatBoost(_CatBoostBase):
         """
         return self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir, plot, plot_file, log_cout, log_cerr)
 
-    def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, log_cout=sys.stdout, log_cerr=sys.stderr):
+    def compare(self, model, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot_file=None, log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Draw train and eval errors in Jupyter notebook for both models
 
@@ -2894,6 +2921,9 @@ class CatBoost(_CatBoostBase):
             The name of the temporary directory for intermediate results.
             If None, then the name will be generated.
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save eval error graphs to file
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -2918,7 +2948,7 @@ class CatBoost(_CatBoostBase):
         create_if_not_exist(first_dir)
         create_if_not_exist(second_dir)
 
-        with plot_wrapper(True, plot_file=None, train_dirs=[first_dir, second_dir]):
+        with plot_wrapper(True, plot_file=plot_file, plot_title='Compare models', train_dirs=[first_dir, second_dir]):
             self._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, first_dir, tmp_dir,
                                plot=False, plot_file=None, log_cout=log_cout, log_cerr=log_cerr)
             model._eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, second_dir, tmp_dir,
@@ -3982,7 +4012,7 @@ class CatBoost(_CatBoostBase):
             loss_function = params.get('loss_function', None)
             stratified = isinstance(loss_function, STRING_TYPES) and is_cv_stratified_objective(loss_function)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, [_get_train_dir(params)]):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file, 'Hyperparameters search plot', [_get_train_dir(params)]):
             cv_result = self._object._tune_hyperparams(
                 param_grid, train_params["train_pool"], params, n_iter,
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
@@ -3997,7 +4027,7 @@ class CatBoost(_CatBoostBase):
 
     def grid_search(self, param_grid, X, y=None, cv=3, partition_random_seed=0,
                     calc_cv_statistics=True, search_by_train_test_split=True,
-                    refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False,
+                    refit=True, shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None,
                     log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Exhaustive search over specified parameter values for a model.
@@ -4066,6 +4096,9 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, draw train and eval error for every set of parameters in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error for every set of parameters to file
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -4090,13 +4123,13 @@ class CatBoost(_CatBoostBase):
             param_grid=param_grid, X=X, y=y, cv=cv, n_iter=-1,
             partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
             search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
-            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot,
+            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot, plot_file=plot_file,
             log_cout=log_cout, log_cerr=log_cerr,
         )
 
     def randomized_search(self, param_distributions, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True, refit=True,
-                          shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False,
+                          shuffle=True, stratified=None, train_size=0.8, verbose=True, plot=False, plot_file=None,
                           log_cout=sys.stdout, log_cerr=sys.stderr):
         """
         Randomized search on hyper parameters.
@@ -4172,6 +4205,9 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, draw train and eval error for every set of parameters in Jupyter notebook
 
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error for every set of parameters to file
+
         log_cout: output stream or callback for logging
 
         log_cerr: error stream or callback for logging
@@ -4195,13 +4231,13 @@ class CatBoost(_CatBoostBase):
             param_grid=param_distributions, X=X, y=y, cv=cv, n_iter=n_iter,
             partition_random_seed=partition_random_seed, calc_cv_statistics=calc_cv_statistics,
             search_by_train_test_split=search_by_train_test_split, refit=refit, shuffle=shuffle,
-            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot,
+            stratified=stratified, train_size=train_size, verbose=verbose, plot=plot, plot_file=plot_file,
             log_cout=log_cout, log_cerr=log_cerr,
         )
 
     def select_features(self, X, y=None, eval_set=None, features_for_select=None, num_features_to_select=None,
                         algorithm=None, steps=None, shap_calc_type=None, train_final_model=True, verbose=None,
-                        logging_level=None, plot=False, log_cout=sys.stdout, log_cerr=sys.stderr,
+                        logging_level=None, plot=False, plot_file=None, log_cout=sys.stdout, log_cerr=sys.stderr,
                         grouping=None, features_tags_for_select=None, num_features_tags_to_select=None):
         """
         Select best features from pool according to loss value.
@@ -4273,6 +4309,9 @@ class CatBoost(_CatBoostBase):
 
         plot : bool, optional (default=False)
             If True, draw train and eval error in Jupyter notebook.
+
+        plot_file : file-like or str, optional (default=None)
+            If not None, save train and eval error graphs to file
 
         log_cout: output stream or callback for logging
 
@@ -4377,7 +4416,7 @@ class CatBoost(_CatBoostBase):
         for plot_dir in plot_dirs:
             create_if_not_exist(plot_dir)
 
-        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
+        with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Select features plot', train_dirs=plot_dirs):
             summary = self._object._select_features(train_pool, test_pool, params)
 
         if train_final_model:
@@ -6351,7 +6390,7 @@ def _convert_to_catboost(models):
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=None, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=None, as_pandas=True, metric_period=None,
-       verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
+       verbose=None, verbose_eval=None, plot=False, plot_file=None, early_stopping_rounds=None,
        save_snapshot=None, snapshot_file=None, snapshot_interval=None, metric_update_interval=0.5,
        folds=None, type='Classical', return_models=False, log_cout=sys.stdout, log_cerr=sys.stderr):
     """
@@ -6435,6 +6474,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     plot : bool, optional (default=False)
         If True, draw train and eval error in Jupyter notebook
+
+    plot_file : file-like or str, optional (default=None)
+        If not None, save train and eval error graphs to file
 
     early_stopping_rounds : int
         Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
@@ -6603,7 +6645,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     for plot_dir in plot_dirs:
         create_if_not_exist(plot_dir)
 
-    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=None, train_dirs=plot_dirs):
+    with log_fixup(log_cout, log_cerr), plot_wrapper(plot, plot_file=plot_file, plot_title='Cross-validation plot', train_dirs=plot_dirs):
         if not return_models:
             return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
                     metric_update_interval, as_pandas, folds, type, return_models)

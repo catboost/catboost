@@ -22,6 +22,7 @@ list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 enable_testing()
 include(cmake/archive.cmake)
 include(cmake/conan.cmake)
+include(cmake/cuda.cmake)
 include(cmake/cython.cmake)
 include(cmake/fat_object.cmake)
 include(cmake/fbs.cmake)
@@ -31,30 +32,31 @@ include(cmake/swig.cmake)
 include(cmake/yandex_common.cmake)
 include(cmake/global_vars.cmake)
 
-conan_cmake_configure(
-  GENERATORS cmake_find_package
-  REQUIRES
-    openssl/1.1.1l
-    ragel/6.10
-    swig/4.0.2
-    yasm/1.3.0
-    zlib/1.2.12
-  IMPORTS
-    "bin, *swig* -> ./bin"
-    "bin, *yasm* -> ./bin"
-    "bin, ragel* -> ./bin"
-    "bin, ytasm* -> ./bin"
-)
-conan_cmake_autodetect(settings)
-conan_cmake_install(
-  PATH_OR_REFERENCE .
-  BUILD missing
-  REMOTE conancenter
-  SETTINGS ${settings}
-)
+if (CMAKE_CROSSCOMPILING)
+  include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+else()
+  conan_cmake_autodetect(settings)
+  conan_cmake_install(
+    PATH_OR_REFERENCE ${CMAKE_SOURCE_DIR}
+    INSTALL_FOLDER ${CMAKE_BINARY_DIR}
+    BUILD missing
+    REMOTE conancenter
+    SETTINGS ${settings}
+  )
+endif()
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
   include(CMakeLists.linux.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
 elseif (APPLE)
   include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
 endif()

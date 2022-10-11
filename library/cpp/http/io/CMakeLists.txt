@@ -6,19 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-http-io)
-target_link_libraries(cpp-http-io PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-blockcodecs
-  cpp-streams-brotli
-  cpp-streams-bzip2
-  cpp-streams-lzma
-)
-target_sources(cpp-http-io PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/chunk.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/compression.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/headers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/http/io/stream.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

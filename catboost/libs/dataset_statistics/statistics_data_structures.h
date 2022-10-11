@@ -66,7 +66,7 @@ struct TFloatFeatureStatistics : public IStatistics {
 
     double MinValue;
     double MaxValue;
-    double Sum;
+    long double Sum;
     ui64 ObjectCount;
 private:
     TMutex Mutex;
@@ -120,7 +120,7 @@ struct TTargetsStatistics : public IStatistics {
 public:
     TTargetsStatistics() {};
 
-    void Init(const TDataMetaInfo& MetaInfo);
+    void Init(const TDataMetaInfo& metaInfo);
 
     NJson::TJsonValue ToJson() const override;
 
@@ -261,13 +261,11 @@ public:
 
     TVector<THashMap<ui32, TString>> CatFeaturesHashToString; // [catFeatureIdx]
 
-    TDataMetaInfo MetaInfo;
     TFeatureStatistics FeatureStatistics;
     TTargetsStatistics TargetsStatistics;
     // ToDo: maybe add GroupStatistics
 
     void Init(const TDataMetaInfo& metaInfo) {
-        MetaInfo = metaInfo;
 
         FeatureStatistics.Init(metaInfo);
         TargetsStatistics.Init(metaInfo);
@@ -285,9 +283,12 @@ public:
     }
 
     void Update(const TDatasetStatistics& update) {
-        CB_ENSURE_INTERNAL(MetaInfo == update.MetaInfo, "Inconsistent metainfo");
         FeatureStatistics.Update(update.FeatureStatistics);
         TargetsStatistics.Update(update.TargetsStatistics);
+    }
+
+    ui64 GetObjectCount() const {
+        return TargetsStatistics.GetObjectCount();
     }
 };
 }

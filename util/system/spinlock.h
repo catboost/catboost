@@ -82,6 +82,14 @@ public:
     }
 };
 
+/**
+ * TAdaptiveLock almost always should be used instead of TSpinLock.
+ * It also should be used instead of TMutex for short-term locks.
+ * This usually means that the locked code should not use syscalls,
+ * since almost every syscall:
+ *   - might run unpredictably long and the waiting thread will waste a lot of CPU
+ *   - takes considerable amount of time, so you should not care about the mutex performance
+ */
 class TAdaptiveLock: public TSpinLockBase {
 public:
     using TSpinLockBase::TSpinLockBase;

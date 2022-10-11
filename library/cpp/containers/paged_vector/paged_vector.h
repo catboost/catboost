@@ -7,7 +7,7 @@
 #include <iterator>
 
 namespace NPagedVector {
-    template <class T, ui32 PageSize = 1u << 20, class A = std::allocator<T>>
+    template <class T, ui32 PageSize = 1u << 20u, class A = std::allocator<T>>
     class TPagedVector;
 
     namespace NPrivate {
@@ -263,9 +263,10 @@ namespace NPagedVector {
             return !empty();
         }
 
-        void emplace_back() {
+        template<typename... Args>
+        reference emplace_back(Args&&... args) {
             PrepareAppend();
-            CurrentPage().emplace_back();
+            return CurrentPage().emplace_back(std::forward<Args>(args)...);
         }
 
         void push_back(const_reference t) {

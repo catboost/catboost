@@ -6,19 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(libs-brotli-common)
-target_compile_options(libs-brotli-common PRIVATE
-  -DBROTLI_BUILD_PORTABLE
-  -Wno-everything
-)
-target_include_directories(libs-brotli-common PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/include
-)
-target_link_libraries(libs-brotli-common PUBLIC
-  contrib-libs-cxxsupp
-)
-target_sources(libs-brotli-common PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/common/dictionary.c
-  ${CMAKE_SOURCE_DIR}/contrib/libs/brotli/common/transform.c
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

@@ -339,8 +339,6 @@ namespace NCB {
         }
 
         if (quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount()) {
-            CB_ENSURE(isClassification, "Computation of online text features is supported only for classification task");
-
             ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
 
             pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
@@ -372,15 +370,19 @@ namespace NCB {
                         estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                     }
 
-                    auto onlineEstimators = CreateTextEstimators(
-                        featureDescription.FeatureEstimators.Get(),
+                    if (isClassification) {
+                        // There're no online text estimators for regression for now
 
-                        learnClassificationTarget,
-                        learnTexts,
-                        testTexts
-                    );
-                    for (auto&& estimator : onlineEstimators) {
-                        estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                        auto onlineEstimators = CreateTextEstimators(
+                            featureDescription.FeatureEstimators.Get(),
+
+                            learnClassificationTarget,
+                            learnTexts,
+                            testTexts
+                        );
+                        for (auto&& estimator : onlineEstimators) {
+                            estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                        }
                     }
                 }
             );

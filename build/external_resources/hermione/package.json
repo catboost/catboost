@@ -1,0 +1,12 @@
+{
+    "name": "hermione",
+    "version": "5.2.0",
+    "description": "hermione bundle",
+    "dependencies": {
+        "hermione": "5.2.0",
+        "@yandex-int/hermione-cli": "1.2.4",
+        "html-reporter": "9.2.0",
+        "hermione-chunks": "0.2.1",
+        "hermione-passive-browsers": "0.1.1"
+    }
+}

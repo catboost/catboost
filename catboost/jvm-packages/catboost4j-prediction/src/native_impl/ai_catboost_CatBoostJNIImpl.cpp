@@ -6,6 +6,7 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
+#include <util/generic/noncopyable.h>
 #include <util/generic/scope.h>
 #include <util/generic/singleton.h>
 #include <util/generic/strbuf.h>
@@ -20,13 +21,6 @@
     #error "sorry, not expected to work on 32-bit platform"
 #endif
 
-// TODO(yazevnul): current implementation invokes `std::get<PrimitiveType>ArrayRegion` with `mode=0`
-// which which asks JRE to make a copy of array [1] and then we invoke
-// `Release<PrimitiveType>ArrayElements` with `mode=0` which asks JRE to copy elements back and free
-// the buffer. In most of the cases we have no need to copy elements back (because we don't change
-// them), and in some cases we can use that and avoid alocation of our own arrays.
-//
-// [1] https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/functions.html
 
 #define Y_BEGIN_JNI_API_CALL() \
     try {
@@ -122,7 +116,7 @@ static jbyteArray JavaToStringUTF8(JNIEnv* jenv, const jstring& str) {
     return bytes;
 }
 
-class TJVMFloatArrayAsArrayRef {
+class TJVMFloatArrayAsArrayRef : private TMoveOnly {
 public:
     TJVMFloatArrayAsArrayRef(JNIEnv* jenv, jfloatArray floatArray, size_t numElements)
         : JEnv(jenv)
@@ -138,8 +132,18 @@ public:
          : TJVMFloatArrayAsArrayRef(jenv, floatArray, jenv->GetArrayLength(floatArray))
     {}
 
+    TJVMFloatArrayAsArrayRef(TJVMFloatArrayAsArrayRef&& rhs)
+        : JEnv(rhs.JEnv)
+        , FloatArray(rhs.FloatArray)
+        , Data(rhs.Data)
+    {
+        rhs.JEnv = nullptr;
+    }
+
     ~TJVMFloatArrayAsArrayRef() {
-        JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), 0);
+        if (JEnv) {
+            JEnv->ReleaseFloatArrayElements(FloatArray, Data.data(), JNI_ABORT);
+        }
     }
 
     TArrayRef<float> Get() const {
@@ -147,16 +151,16 @@ public:
     }
 
 private:
-    JNIEnv* JEnv;
+    JNIEnv* JEnv;           // if null means this objects has been moved from
     jfloatArray FloatArray;
     TArrayRef<float> Data;
 };
 
-class TJVMStringAsStringBuf {
+class TJVMStringAsStringBuf : private TMoveOnly {
 public:
     TJVMStringAsStringBuf(JNIEnv* jenv, jstring string)
         : JEnv(jenv)
-        , Utf8Array(JavaToStringUTF8(jenv, string))
+        , Utf8Array((jbyteArray)jenv->NewGlobalRef(JavaToStringUTF8(jenv, string)))
     {
         jboolean isCopy = JNI_FALSE;
         jbyte* utf8 = jenv->GetByteArrayElements(Utf8Array, &isCopy);
@@ -164,10 +168,18 @@ public:
         Data = TStringBuf((const char*) utf8, jenv->GetArrayLength(Utf8Array));
     }
 
+    TJVMStringAsStringBuf(TJVMStringAsStringBuf&& rhs)
+        : JEnv(rhs.JEnv)
+        , Utf8Array(rhs.Utf8Array)
+        , Data(rhs.Data)
+    {
+        rhs.JEnv = nullptr;
+    }
+
     ~TJVMStringAsStringBuf() {
-        JEnv->DeleteLocalRef(Utf8Array);
-        if (Data.Data() != nullptr) {
+        if (JEnv) {
             JEnv->ReleaseByteArrayElements(Utf8Array, (signed char*)const_cast<char*>(Data.Data()), JNI_ABORT);
+            JEnv->DeleteGlobalRef(Utf8Array);
         }
     }
 
@@ -176,7 +188,7 @@ public:
     }
 
 private:
-    JNIEnv* JEnv;
+    JNIEnv* JEnv;          // if null means this objects has been moved from
     jbyteArray Utf8Array;
     TStringBuf Data;
 };
@@ -329,7 +341,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
     CB_ENSURE(data, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jdata, data) {
-        jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), 0);
+        jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), JNI_ABORT);
     };
     const size_t dataSize = jenv->GetArrayLength(jdata);
 
@@ -485,7 +497,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFloat
     jenv->SetObjectArrayElement(jhas_nans, 0, hasNans);
 
     auto nanValueTreatment = jenv->NewObjectArray(features.size(), jenv->FindClass("java/lang/String"), NULL);
-    CB_ENSURE(hasNans, "OutOfMemoryError");
+    CB_ENSURE(nanValueTreatment, "OutOfMemoryError");
     jenv->SetObjectArrayElement(jnan_value_treatment, 0, nanValueTreatment);
 
     int i = 0;
@@ -769,7 +781,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 jnumericFeatures,
                 const_cast<float*>(numericFeatures.data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -914,7 +926,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 numericFeatureMatrixRowObjects[i],
                 const_cast<float*>(numericFeatureMatrixRows[i].data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1065,7 +1077,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 jnumericFeatures,
                 const_cast<float*>(numericFeatures.data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1082,7 +1094,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseIntArrayElements(
                 jcatFeatures,
                 const_cast<jint*>(reinterpret_cast<const jint*>(catFeatures.data())),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1178,7 +1190,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseFloatArrayElements(
                 numericFeatureMatrixRowObjects[i],
                 const_cast<float*>(numericFeatureMatrixRows[i].data()),
-                0);
+                JNI_ABORT);
         }
     };
 
@@ -1206,7 +1218,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             jenv->ReleaseIntArrayElements(
                 catFeatureMatrixRowObjects[i],
                 const_cast<jint*>(reinterpret_cast<const jint*>(catFeatureMatrixRows[i].data())),
-                0);
+                JNI_ABORT);
         }
     };
 

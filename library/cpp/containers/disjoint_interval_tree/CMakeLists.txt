@@ -6,12 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-containers-disjoint_interval_tree)
-target_link_libraries(cpp-containers-disjoint_interval_tree PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(cpp-containers-disjoint_interval_tree PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/containers/disjoint_interval_tree/disjoint_interval_tree.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

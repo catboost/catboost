@@ -6,23 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(cpp-testing-unittest)
-target_link_libraries(cpp-testing-unittest PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  library-cpp-colorizer
-  library-cpp-dbg_output
-  library-cpp-diff
-  cpp-json-writer
-  cpp-testing-common
-  cpp-testing-hook
-)
-target_sources(cpp-testing-unittest PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/gtest.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/checks.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/plugin.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/registar.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/tests_data.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/testing/unittest/utmain.cpp
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

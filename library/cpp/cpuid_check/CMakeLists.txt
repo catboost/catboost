@@ -6,18 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(library-cpp-cpuid_check INTERFACE)
-target_link_libraries(library-cpp-cpuid_check INTERFACE
-  contrib-libs-cxxsupp
-  yutil
-)
-
-add_global_library_for(library-cpp-cpuid_check.global library-cpp-cpuid_check)
-target_link_libraries(library-cpp-cpuid_check.global PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(library-cpp-cpuid_check.global PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/cpuid_check/cpu_id_check.cpp
-)
+if (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

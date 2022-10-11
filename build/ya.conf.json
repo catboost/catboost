@@ -557,6 +557,9 @@
         },
         "rm": {
             "description": "ReleaseMachine cmd tool"
+        },
+        "grut": {
+            "description": "Run GrUT CLI"
         }
     },
     "toolchain": {
@@ -1810,7 +1813,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1820,7 +1823,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1830,7 +1833,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1840,7 +1843,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1850,7 +1853,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1860,7 +1863,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1870,7 +1873,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1880,7 +1883,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1890,7 +1893,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1900,7 +1903,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1910,7 +1913,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -1920,7 +1923,7 @@
                         "os": "YOCTO",
                         "arch": "armv7a"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2161,7 +2164,7 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2171,7 +2174,7 @@
                         "os": "LINUX",
                         "arch": "armv7a_cortex_a9"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2181,7 +2184,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a35"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2191,7 +2194,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a53"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2201,7 +2204,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2211,7 +2214,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a35"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2221,7 +2224,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a53"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2414,7 +2417,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2424,7 +2427,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2434,7 +2437,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2444,7 +2447,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2454,7 +2457,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2464,7 +2467,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2474,7 +2477,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2484,7 +2487,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2494,7 +2497,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2504,7 +2507,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2514,7 +2517,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2524,7 +2527,7 @@
                         "os": "YOCTO",
                         "arch": "armv7a"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2765,7 +2768,7 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2775,7 +2778,7 @@
                         "os": "LINUX",
                         "arch": "armv7a_cortex_a9"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2785,7 +2788,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a35"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2795,7 +2798,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf_cortex_a53"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2805,7 +2808,7 @@
                         "os": "LINUX",
                         "arch": "armv7ahf"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2815,7 +2818,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a35"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2825,7 +2828,7 @@
                         "os": "LINUX",
                         "arch": "armv8a_cortex_a53"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -3083,8 +3086,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3093,8 +3095,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3103,8 +3104,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3113,8 +3113,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3123,8 +3122,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3133,8 +3131,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3143,8 +3140,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3153,8 +3149,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3163,8 +3158,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    },
-                    "default": true
+                    }
                 },
                 {
                     "host": {
@@ -3173,8 +3167,7 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    },
-                    "default": true
+                    }
                 }
             ],
             "params": {
@@ -3188,151 +3181,6 @@
                 "werror_mode": "all",
                 "gcc_version": "12.0",
                 "android_ndk_version": 23
-            }
-        },
-        "android-ndk-r24": {
-            "name": "ndk24",
-            "tools": {
-                "cc": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "cc"
-                },
-                "c++": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "c++"
-                },
-                "gcov": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "llvm-cov"
-                },
-                "strip": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "strip"
-                },
-                "objcopy": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "objcopy"
-                },
-                "nm": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "nm"
-                },
-                "llvm-cov": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "llvm-cov"
-                },
-                "llvm-profdata": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "llvm-profdata"
-                },
-                "llvm-symbolizer": {
-                    "bottle": "android-ndk-r24",
-                    "executable": "llvm-symbolizer"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "i686"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "x86_64"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv7a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv7a_neon"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv8a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "i686"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "x86_64"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv7a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv7a_neon"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "target": {
-                        "os": "ANDROID",
-                        "arch": "armv8a"
-                    }
-                }
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "NDK",
-                "ar": "$(NDK)/llvm-toolchain/bin/llvm-ar",
-                "c_compiler": "$(NDK)/llvm-toolchain/bin/clang",
-                "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
-                "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
-                "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
-                "werror_mode": "all",
-                "gcc_version": "14.0",
-                "android_ndk_version": 24
             }
         },
         "android-ndk-r25": {
@@ -3383,7 +3231,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3392,7 +3241,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3401,7 +3251,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3410,7 +3261,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3419,7 +3271,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3428,7 +3281,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "i686"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3437,7 +3291,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "x86_64"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3446,7 +3301,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3455,7 +3311,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv7a_neon"
-                    }
+                    },
+                    "default": true
                 },
                 {
                     "host": {
@@ -3464,7 +3321,8 @@
                     "target": {
                         "os": "ANDROID",
                         "arch": "armv8a"
-                    }
+                    },
+                    "default": true
                 }
             ],
             "params": {
@@ -5707,18 +5565,14 @@
                 }
             ]
         },
-        "golang_1.18": {
+        "golang": {
             "tools": {
-                "golang": {
-                    "bottle": "golang_1.18",
-                    "executable": "golang"
-                },
                 "go": {
-                    "bottle": "golang_1.18",
+                    "bottle": "golang",
                     "executable": "go"
                 },
                 "gofmt": {
-                    "bottle": "golang_1.18",
+                    "bottle": "golang",
                     "executable": "gofmt"
                 }
             },
@@ -5751,7 +5605,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.18.4"
+                "version": "1.19.1"
             }
         },
         "godoc": {
@@ -6740,6 +6594,28 @@
                     "default": true
                 }
             ]
+        },
+        "grut": {
+            "tools": {
+                "grut": {
+                    "bottle": "grut",
+                    "executable": "grut"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -6758,12 +6634,7 @@
             }
         },
         "ymake": {
-            "formula": {
-                "sandbox_id": [
-                    1446610382
-                ],
-                "match": "ymake"
-            },
+            "formula": "build/external_resources/ymake/resources.json",
             "executable": {
                 "ymake": [
                     "ymake"
@@ -6794,9 +6665,9 @@
         "clang-tidy": {
             "formula": {
                 "sandbox_id": [
-                    1073581733,
-                    1073610805,
-                    1073627148
+                    1442267186,
+                    1442265985,
+                    1442264359
                 ],
                 "match": "CLANG_TIDY"
             },
@@ -6832,8 +6703,7 @@
                         },
                         "owner": "ARC"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -6855,7 +6725,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": 1411776426,
+                "sandbox_id": 1467412818,
                 "match": "yo"
             },
             "executable": {
@@ -6895,7 +6765,7 @@
         "delve": {
             "formula": {
                 "sandbox_id": [
-                    1313179369
+                    1468078368
                 ],
                 "platform_replacements": {},
                 "match": "delve"
@@ -6922,7 +6792,7 @@
         },
         "yoimports": {
             "formula": {
-                "sandbox_id": 1313057974,
+                "sandbox_id": 1467074895,
                 "match": "yoimports"
             },
             "executable": {
@@ -7327,67 +7197,11 @@
                 ]
             }
         },
-        "android-ndk-r24": {
-            "formula": {
-                "sandbox_id": [
-                    1253035950,
-                    1253036672
-                ],
-                "match": "NDK"
-            },
-            "executable": {
-                "c++": [
-                    "llvm-toolchain",
-                    "bin",
-                    "clang++"
-                ],
-                "cc": [
-                    "llvm-toolchain",
-                    "bin",
-                    "clang"
-                ],
-                "strip": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-strip"
-                ],
-                "c++filt": [
-                    "llvm-toolchain",
-                    "bin",
-                    "i686-linux-android-c++filt"
-                ],
-                "llvm-cov": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-cov"
-                ],
-                "llvm-profdata": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-profdata"
-                ],
-                "llvm-symbolizer": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-symbolizer"
-                ],
-                "nm": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-nm"
-                ],
-                "objcopy": [
-                    "llvm-toolchain",
-                    "bin",
-                    "llvm-objcopy"
-                ]
-            }
-        },
         "android-ndk-r25": {
             "formula": {
                 "sandbox_id": [
-                    1225179951,
-                    1225180393
+                    1467403166,
+                    1467403563
                 ],
                 "match": "NDK"
             },
@@ -7818,8 +7632,8 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1351234419,
-                    1351262215
+                    1467143446,
+                    1470108465
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -7924,8 +7738,7 @@
                         "owner": "YP"
                     }
                 },
-                "update_interval": 604800,
-                "ignore_platform": false
+                "update_interval": 604800
             },
             "executable": {
                 "yp-util": [
@@ -7941,8 +7754,7 @@
                         "owner": "YP"
                     }
                 },
-                "update_interval": 604800,
-                "ignore_platform": false
+                "update_interval": 604800
             },
             "executable": {
                 "yp": [
@@ -7986,8 +7798,7 @@
                         },
                         "owner": "DRUG-RELEASERS"
                     },
-                    "update_inteval": 43200,
-                    "ignore_platform": false
+                    "update_inteval": 43200
                 }
             },
             "executable": {
@@ -8058,10 +7869,16 @@
         },
         "optrace": {
             "formula": {
-                "sandbox_id": [
-                    894130496
-                ],
-                "match": "optrace"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "OPTRACE_BIN",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "YATOOL"
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "optrace": [
@@ -8079,8 +7896,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8099,8 +7915,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8278,8 +8093,7 @@
                         },
                         "owner": "STABILITY"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8400,7 +8214,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 1283355427,
+                "sandbox_id": 1437768899,
                 "match": "ya-tc"
             },
             "executable": {
@@ -8422,7 +8236,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1448984317,
+                "sandbox_id": 1478973072,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8436,6 +8250,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "REPORT_RENDERER_BUNDLE",
+                        "owner": "REPORT_RENDERER",
                         "attributes": {
                             "released": "stable"
                         }
@@ -8453,6 +8268,7 @@
                 "latest_matched": {
                     "query": {
                         "resource_type": "APPTEKA_BUNDLE",
+                        "owner": "REPORT_RENDERER",
                         "attributes": {
                             "released": "stable"
                         }
@@ -8495,13 +8311,13 @@
                 ]
             }
         },
-        "golang_1.18": {
+        "golang": {
             "formula": {
                 "sandbox_id": [
-                    1395387837,
-                    1395387835,
-                    1395387834,
-                    1397763416
+                    1455627161,
+                    1455627163,
+                    1455627162,
+                    1455627165
                 ],
                 "match": "GOLANG"
             },
@@ -8549,7 +8365,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1425401691
+                    1454282981
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -8855,8 +8671,7 @@
                             "released": "stable"
                         }
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8885,9 +8700,9 @@
         "ktlint_bundle": {
             "formula": {
                 "sandbox_id": [
-                    1037460929,
-                    1037467384,
-                    1038449502
+                    1459597978,
+                    1459598823,
+                    1459599001
                 ],
                 "match": "ktlint"
             },
@@ -8996,8 +8811,16 @@
         },
         "cs": {
             "formula": {
-                "sandbox_id": 1414486917,
-                "match": "cs"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "FAST_CODESEARCH_CS",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "CODESEARCH"
+                    },
+                    "update_interval": 86400
+                }
             },
             "executable": {
                 "cs": [
@@ -9078,7 +8901,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1448983481,
+                "sandbox_id": 1478972740,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9089,7 +8912,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1448983823,
+                "sandbox_id": 1478972635,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9111,8 +8934,14 @@
         },
         "bigb_bb_cluster_analyzer": {
             "formula": {
-                "sandbox_id": 1448983118,
-                "match": "bb_cluster_analyzer"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "BIGB_BB_CLUSTER_ANALYZER_TGZ",
+                        "owner": "BSYETI"
+                    }
+                },
+                "match": "bb_cluster_analyzer",
+                "sandbox_id": 1478973465
             },
             "executable": {
                 "bb_cluster_analyzer": [
@@ -9160,7 +8989,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1448984294,
+                "sandbox_id": 1478973378,
                 "match": "yt_sync"
             },
             "executable": {
@@ -9171,7 +9000,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1448983122,
+                "sandbox_id": 1478973396,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9182,7 +9011,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1448984328,
+                "sandbox_id": 1478973835,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9193,7 +9022,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1449764149,
+                "sandbox_id": 1466124753,
                 "match": "lama"
             },
             "executable": {
@@ -9209,8 +9038,7 @@
                         "resource_type": "MAPS_FRONT_TOOLKIT",
                         "owner": "MAPS_FRONT"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9242,8 +9070,7 @@
                         },
                         "owner": "MARKETSRE"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9259,8 +9086,7 @@
                         "resource_type": "DNS_CLIENT2_BINARY",
                         "owner": "MNT_TRAF"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9276,8 +9102,7 @@
                         "resource_type": "PUNCHER_CLI",
                         "owner": "NOCDEV"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9288,7 +9113,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1448983163,
+                "sandbox_id": 1478972904,
                 "match": "profile_size_analyzer"
             },
             "executable": {
@@ -9331,10 +9156,10 @@
                         "resource_type": "ABCD_CLI",
                         "attributes": {
                             "released": "stable"
-                        }
+                        },
+                        "owner": "CAPACITY-PLANNING"
                     },
-                    "update_interval": 86400,
-                    "ignore_platform": false
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -9363,6 +9188,25 @@
             "executable": {
                 "rm_tool": [
                     "rm_tool"
+                ]
+            }
+        },
+        "grut": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "GRUT_CLI_YA_TOOL",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "GRUT"
+                    },
+                    "update_interval": 86400
+                }
+            },
+            "executable": {
+                "grut": [
+                    "grut"
                 ]
             }
         }

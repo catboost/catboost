@@ -126,8 +126,11 @@ class PortManager(object):
                     # Can't find required number of ports without gap in the current range
                     drop_candidates()
 
-            raise PortManagerException("Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
-                start_port, count, self._valid_range, self._filelocks))
+            raise PortManagerException(
+                "Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
+                    start_port, count, self._valid_range, self._filelocks
+                )
+            )
 
     def _count_valid_ports(self):
         res = 0
@@ -157,7 +160,9 @@ class PortManager(object):
                 continue
             return probe_port
 
-        raise PortManagerException("Failed to find valid port (range: {} used: {})".format(self._valid_range, self._filelocks))
+        raise PortManagerException(
+            "Failed to find valid port (range: {} used: {})".format(self._valid_range, self._filelocks)
+        )
 
     def _capture_port(self, port, sock_type):
         with self._lock:

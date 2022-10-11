@@ -17,7 +17,7 @@ void TFloatFeatureStatistics::Update(float feature) {
     with_lock(Mutex) {
         MinValue = Min<float>(MinValue, feature);
         MaxValue = Max<float>(MaxValue, feature);
-        Sum += feature;
+        Sum += static_cast<long double>(feature);
         ObjectCount += 1;
     }
 }
@@ -26,14 +26,8 @@ NJson::TJsonValue TFloatFeatureStatistics::ToJson() const {
     NJson::TJsonValue result;
     result.InsertValue("MinValue", MinValue);
     result.InsertValue("MaxValue", MaxValue);
-    result.InsertValue("Sum", Sum);
+    result.InsertValue("Sum", ToString(Sum));
     result.InsertValue("ObjectCount", ObjectCount);
-    if (ObjectCount > 0) {
-        result.InsertValue("Mean", Sum / double(ObjectCount));
-    } else {
-        result.InsertValue("Mean", std::nan(""));
-    }
-
     return result;
 }
 

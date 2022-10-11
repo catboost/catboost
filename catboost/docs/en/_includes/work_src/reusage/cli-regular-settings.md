@@ -1663,7 +1663,7 @@ DictionaryId[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--feature-calcers` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -1708,7 +1708,7 @@ FeatureCalcerName[:option_name=option_value]
 
 This parameter works with `--tokenizers` and `--dictionaries` parameters.
 
-{% include [reusage-tokenizer-dictionaries-featrue-calcers__note_div](tokenizer-dictionaries-featrue-calcers__note_div.md) %}
+{% include [reusage-tokenizer-dictionaries-feature-calcers__note_div](tokenizer-dictionaries-feature-calcers__note_div.md) %}
 
 {% cut "Usage example" %}
 
@@ -2913,7 +2913,7 @@ The value of the `{{ ctr-types__TargetBorderCount }}` component overrides this p
 
 **{{ cli__params-table__title__default }}**
 
-{{ parameters__ctr-targer-border-count__default }}
+{{ parameters__ctr-target-border-count__default }}
 
 **{{ cli__params-table__title__processing-units-type }}**
 

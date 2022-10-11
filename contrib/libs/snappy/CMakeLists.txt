@@ -6,22 +6,10 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(contrib-libs-snappy)
-target_compile_options(contrib-libs-snappy PRIVATE
-  -DHAVE_CONFIG_H
-  -Wno-everything
-)
-target_include_directories(contrib-libs-snappy PUBLIC
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/include
-)
-target_link_libraries(contrib-libs-snappy PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-)
-target_sources(contrib-libs-snappy PRIVATE
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/snappy-c.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/snappy-sinksource.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/snappy-stubs-internal.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/snappy/snappy.cc
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

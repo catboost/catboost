@@ -971,6 +971,15 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         ILocalExecutor* localExecutor) nogil except +ProcessException
     cdef size_t GetNumPairs(const TDataProvider& dataProvider) except +ProcessException
     cdef TConstArrayRef[TPair] GetUngroupedPairs(const TDataProvider& dataProvider) except +ProcessException
+    cdef void TrainEvalSplit(
+        const TDataProvider& srcDataProvider,
+        TDataProviderPtr* trainDataProvider,
+        TDataProviderPtr* evalDataProvider,
+        const TTrainTestSplitParams& splitParams,
+        bool_t saveEvalDataset,
+        int threadCount,
+        ui64 cpuUsedRamLimit
+    ) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -4422,6 +4431,31 @@ cdef class _PoolBase:
             thread_count
         )
         self.target_type = pool.target_type
+        
+    cpdef _train_eval_split(self, _PoolBase train_pool, _PoolBase eval_pool, has_time, is_classification, eval_fraction, save_eval_pool):
+        cdef TTrainTestSplitParams split_params
+        split_params.Shuffle = not has_time
+        split_params.Stratified = is_classification
+        
+        if (eval_fraction <= 0.0) or (eval_fraction >= 1.0):
+            raise CatBoostError("eval_fraction must be in (0,1) range") 
+        
+        split_params.TrainPart = 1.0 - eval_fraction
+    
+        TrainEvalSplit(
+            self.__pool.Get()[0],
+            &train_pool.__pool,
+            &eval_pool.__pool,
+            split_params,
+            save_eval_pool,
+            UpdateThreadCount(-1),
+            TotalMemorySize()
+        )
+        train_pool.target_type = self.target_type
+        train_pool.__data_holders = self.__data_holders
+        if save_eval_pool:
+            eval_pool.target_type = self.target_type
+            eval_pool.__data_holders = self.__data_holders
 
 
     cpdef save_quantization_borders(self, output_file):
