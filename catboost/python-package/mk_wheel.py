@@ -50,7 +50,10 @@ class PythonTrait(object):
             sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
             '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO',
         ]
-        print(f'Running build command: {" ".join(cmd)}')
+
+        if 'aarch64' not in self.platform_tag_string:
+            cmd += '-DOS_SDK=local'
+
         if not self.python_version.from_sandbox:
             cmd += ['-DUSE_ARCADIA_PYTHON=no']
             cmd += extra_opts(self._on_win())
