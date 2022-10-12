@@ -1361,6 +1361,7 @@ class GnuCompiler(Compiler):
                 '-fcolor-diagnostics',
                 # Enable aligned allocation
                 '-faligned-allocation',
+                '-fdebug-default-version=4',
             ]
         elif self.tc.is_gcc:
             self.c_foptions += [
