@@ -1,6 +1,7 @@
 #pragma once
 
 #include "exception.h"
+#include <library/cpp/json/json_value.h>
 #include <library/cpp/json/json_writer.h>
 
 #include <util/stream/str.h>
@@ -11,9 +12,11 @@ using namespace NJson;
 template <typename T>
 static TJsonValue VectorToJson(const TVector<T>& values) {
     TJsonValue jsonValue;
+    jsonValue.SetType(EJsonValueType::JSON_ARRAY);
     for (const auto& value: values) {
-        jsonValue.AppendValue(value);
+        jsonValue.AppendValue(TJsonValue(value));
     }
+    CB_ENSURE(jsonValue.GetArray().size() == values.size());
     return jsonValue;
 }
 
