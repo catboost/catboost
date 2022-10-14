@@ -1,7 +1,7 @@
 # hermione bundle
 
-Для обновления зависимостей ресурса необходимо использовать команду `create-external-resource` из `tools/nots` -  https://a.yandex-team.ru/svn/trunk/arcadia/tools/nots.
-Для этого из текущей папки вызываем сборку nots командой - `ya make ../../../tools/nots` и удаляем `ya.make` (он перегенерится).
-После чего вызываем создание ресурса с помощью команды: `../../../tools/nots/nots create-external-resource --external-resources-meta "meta.json" --yamake-owner "g:hermione" --resource-owner "HERMIONE"`.
+Для обновления:
 
-В результате сгенерится ресурс с пакетами указанными в package.json.
+1. Измените `package.json`.
+2. Выполните `./build.sh --dry-run --yamake-owner "g:hermione" --resource-owner "HERMIONE"`.
+3. Выполните `./build.sh --verbose --yamake-owner "g:hermione" --resource-owner "HERMIONE"`.
