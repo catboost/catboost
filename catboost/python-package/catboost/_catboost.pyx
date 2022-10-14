@@ -2726,7 +2726,7 @@ cdef object _set_features_order_data_pd_data_frame(
     string_factor_data.reserve(doc_count)
 
     new_data_holders = []
-    for src_flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
+    for src_flat_feature_idx, (column_name, column_data) in enumerate(data_frame.items()):
         flat_feature_idx = main_data_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
         if isinstance(column_data.dtype, pd.SparseDtype):
             new_data_holders += _set_features_order_data_pd_data_frame_sparse_column(
