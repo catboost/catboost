@@ -106,6 +106,13 @@ void TCont::Cancel() noexcept {
     }
 }
 
+void TCont::Cancel(THolder<std::exception> exception) noexcept {
+    if (!Cancelled()) {
+        Exception_ = std::move(exception);
+        Cancel();
+    }
+}
+
 void TCont::ReSchedule() noexcept {
     if (Cancelled()) {
         // Legacy code may expect a Cancelled coroutine to be scheduled without delay.

@@ -86,6 +86,7 @@ public:
     bool IAmRunning() const noexcept;
 
     void Cancel() noexcept;
+    void Cancel(THolder<std::exception> exception) noexcept;
 
     bool Cancelled() const noexcept {
         return Cancelled_;
@@ -108,6 +109,10 @@ public:
         Trampoline_.SwitchTo(ctx);
     }
 
+    THolder<std::exception> TakeException() noexcept {
+        return std::move(Exception_);
+    }
+
 private:
     void Terminate();
 
@@ -122,6 +127,8 @@ private:
     TIntrusiveList<TJoinWait> Waiters_;
     bool Cancelled_ = false;
     bool Scheduled_ = false;
+
+    THolder<std::exception> Exception_;
 };
 
 TCont* RunningCont();
