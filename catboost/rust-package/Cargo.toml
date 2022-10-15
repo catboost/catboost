@@ -1,6 +1,6 @@
 [package]
 name = "catboost-rs"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Sergey Kiselev <kiselev.sg@gmail.com>", "Loh Jia Long <jlloh89@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/jlloh/catboost/tree/refactor-crate-avoid-build/catboost/rust-package"
