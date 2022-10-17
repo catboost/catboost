@@ -13,7 +13,7 @@ import itertools
 import posixpath
 import collections
 
-from . import _adapters, _meta
+from . import _adapters, _meta, _py39compat
 from ._collections import FreezableDefaultDict, Pair
 from ._compat import (
     NullFinder,
@@ -193,6 +193,10 @@ class EntryPoint(DeprecatedTuple):
     The expression is lenient about whitespace around the ':',
     following the attr, and following any extras.
     """
+
+    name: str
+    value: str
+    group: str
 
     dist: Optional['Distribution'] = None
 
@@ -383,7 +387,8 @@ class EntryPoints(DeprecatedList):
         Select entry points from self that match the
         given parameters (typically group and/or name).
         """
-        return EntryPoints(ep for ep in self if ep.matches(**params))
+        candidates = (_py39compat.ep_matches(ep, **params) for ep in self)
+        return EntryPoints(ep for ep, predicate in candidates if predicate)
 
     @property
     def names(self):
@@ -1079,7 +1084,7 @@ def version(distribution_name):
 
 _unique = functools.partial(
     unique_everseen,
-    key=operator.attrgetter('_normalized_name'),
+    key=_py39compat.normalized_name,
 )
 """
 Wrapper for ``distributions`` to return unique distributions by name.
