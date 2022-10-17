@@ -10,6 +10,7 @@ char* GetPyMain();
 int IsYaIdeVenv();
 
 static const char* env_entry_point = "Y_PYTHON_ENTRY_POINT";
+static const char* main_entry_point = ":main";
 static const char* env_bytes_warning = "Y_PYTHON_BYTES_WARNING";
 
 #ifdef _MSC_VER
@@ -132,12 +133,6 @@ static int pymain(int argc, char** argv) {
     if (argc >= 1)
         Py_SetProgramName(argv_copy[0]);
 
-    status = Py_InitializeFromConfig(&config);
-    PyConfig_Clear(&config);
-    if (PyStatus_Exception(status)) {
-        Py_ExitStatusException(status);
-    }
-
     const char* entry_point = getenv(env_entry_point);
     if (entry_point) {
         entry_point_copy = strdup(entry_point);
@@ -154,8 +149,19 @@ static int pymain(int argc, char** argv) {
         goto error;
     }
 
-    if (entry_point_copy && !strcmp(entry_point_copy, ":main")) {
+    if (entry_point_copy && !strcmp(entry_point_copy, main_entry_point)) {
         unsetenv(env_entry_point);
+        // Py_InitializeFromConfig freeze environ, so we need to finish all manipulations with environ before
+    }
+
+    status = Py_InitializeFromConfig(&config);
+
+    PyConfig_Clear(&config);
+    if (PyStatus_Exception(status)) {
+        Py_ExitStatusException(status);
+    }
+
+    if (entry_point_copy && !strcmp(entry_point_copy, main_entry_point)) {
         sts = Py_Main(argc, argv_copy);
         free(entry_point_copy);
         return sts;
