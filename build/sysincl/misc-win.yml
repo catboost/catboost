@@ -57,12 +57,6 @@
   - sys/wait.h:    contrib/tools/bison/gnulib/platform/win64/sys/wait.h
   - unistd.h:      contrib/tools/bison/gnulib/platform/win64/unistd.h
 
-- source_filter: "^contrib/tools/watchman"
-  includes:
-  - getopt.h:      contrib/tools/watchman/winbuild/getopt.h
-  - spawn.h:       contrib/tools/watchman/winbuild/spawn.h
-  - sys/time.h:    contrib/tools/watchman/winbuild/sys/time.h
-
 - source_filter: "^contrib/libs/libpq"
   includes:
   - dirent.h:      contrib/libs/libpq/src/include/port/win32_msvc/dirent.h

@@ -389,10 +389,6 @@
     - could_not_find_Perl_patchlevel.h
     - patchlevel.h
 
-- source_filter: "^contrib/tools/watchman"
-  includes:
-    - pcre.h
-
 - source_filter: "^contrib/libs/(freetype|leptonica-1.70|libtheora|zbar)"
   includes:
     - png.h
