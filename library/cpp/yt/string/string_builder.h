@@ -26,6 +26,8 @@ public:
 
     char* Preallocate(size_t size);
 
+    void Reserve(size_t size);
+
     size_t GetLength() const;
 
     TStringBuf GetBuffer() const;
@@ -51,7 +53,7 @@ protected:
     char* End_ = nullptr;
 
     virtual void DoReset() = 0;
-    virtual void DoPreallocate(size_t newLength) = 0;
+    virtual void DoReserve(size_t newLength) = 0;
 
     static constexpr size_t MinBufferLength = 128;
 };
@@ -68,7 +70,7 @@ protected:
     TString Buffer_;
 
     void DoReset() override;
-    void DoPreallocate(size_t size) override;
+    void DoReserve(size_t size) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
