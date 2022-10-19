@@ -6,7 +6,7 @@
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/__init__.py	(working tree)
 @@ -6,1 +6,0 @@ import re
 -import zipp
-@@ -984,6 +983,63 @@ class PathDistribution(Distribution):
+@@ -796,6 +795,63 @@ class PathDistribution(Distribution):
          return name
  
  
