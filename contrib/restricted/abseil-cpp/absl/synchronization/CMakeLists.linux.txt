@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-synchronization)
 target_compile_options(abseil-cpp-absl-synchronization PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-synchronization PUBLIC

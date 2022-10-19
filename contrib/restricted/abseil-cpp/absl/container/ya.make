@@ -28,10 +28,6 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -DNOMINMAX
-)
-
 SRCS(
     internal/hashtablez_sampler.cc
     internal/hashtablez_sampler_force_weak_definition.cc

@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-debugging)
 target_compile_options(abseil-cpp-absl-debugging PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-debugging PUBLIC

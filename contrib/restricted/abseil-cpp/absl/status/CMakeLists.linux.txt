@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-status)
 target_compile_options(abseil-cpp-absl-status PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-status PUBLIC

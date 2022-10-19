@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-time)
 target_compile_options(abseil-cpp-absl-time PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-time PUBLIC
