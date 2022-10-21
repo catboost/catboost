@@ -89,42 +89,6 @@ public:
     }
 
     /**
-     * Evaluate model on single object float features vector and vector of categorical features strings.
-     * Don't work on multiclass models (models with ApproxDimension > 1)
-     * @param[in] features
-     * @return double raw model prediction
-     */
-    double Calc(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) const {
-        double result;
-        const float* floatPtr = floatFeatures.data();
-        std::vector<const char*> catFeaturesPtrs;
-        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
-        const char** catFeaturesPtr = catFeaturesPtrs.data();
-        if (!CalcModelPrediction(CalcerHolder.get(), 1, &floatPtr, floatFeatures.size(), &catFeaturesPtr, catFeatures.size(), &result, 1)) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
-     * Evaluate model on single object float features vector and vector of categorical features strings.
-     * Work for models with any dimension count
-     * @param[in] features
-     * @return double raw model prediction
-     */
-    std::vector<double> CalcMulti(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures) const {
-        std::vector<double> result(DimensionsCount);
-        const float* floatPtr = floatFeatures.data();
-        std::vector<const char*> catFeaturesPtrs;
-        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
-        const char** catFeaturesPtr = catFeaturesPtrs.data();
-        if (!CalcModelPrediction(CalcerHolder.get(), 1, &floatPtr, floatFeatures.size(), &catFeaturesPtr, catFeatures.size(), result.data(), DimensionsCount)) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
      * Evaluate model on single object float features vector, vector of categorical features strings and
      * vector of text features strings.
      * Don't work on multiclass models (models with ApproxDimension > 1)
@@ -133,8 +97,8 @@ public:
      */
     double Calc(
         const std::vector<float>& floatFeatures,
-        const std::vector<std::string>& catFeatures,
-        const std::vector<std::string>& textFeatures
+        const std::vector<std::string>& catFeatures = {},
+        const std::vector<std::string>& textFeatures = {}
     ) const {
         double result;
         const float* floatPtr = floatFeatures.data();
@@ -167,8 +131,8 @@ public:
      */
     std::vector<double> CalcMulti(
         const std::vector<float>& floatFeatures,
-        const std::vector<std::string>& catFeatures,
-        const std::vector<std::string>& textFeatures
+        const std::vector<std::string>& catFeatures = {},
+        const std::vector<std::string>& textFeatures = {}
     ) const {
         std::vector<double> result(DimensionsCount);
         const float* floatPtr = floatFeatures.data();
@@ -215,44 +179,6 @@ public:
     }
 
     /**
-     * Evaluate model on float features vector and vector of categorical feature values.
-     * **WARNING** categorical features string values should not contain zero bytes in the middle of the string (latter this could be changed).
-     * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
-     * @param floatFeatures
-     * @param catFeature
-     * @return vector of raw prediction values
-     */
-    std::vector<double> Calc(const std::vector<std::vector<float>>& floatFeatures,
-                             const std::vector<std::vector<std::string>>& catFeatures) const {
-        std::vector<double> result(floatFeatures.size() * DimensionsCount);
-        std::vector<const float*> floatPtrsVector;
-        size_t floatFeatureCount = 0;
-
-        for (const auto& floatFeatureVec : floatFeatures) {
-            if (floatFeatureCount == 0) {
-                floatFeatureCount = floatFeatureVec.size();
-            }
-            floatPtrsVector.push_back(floatFeatureVec.data());
-        }
-
-        size_t catFeatureCount = 0;
-        std::vector<const char*> catFeaturesPtrsVector;
-        std::vector<const char**> charPtrPtrsVector;
-        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
-
-        if (!CalcModelPrediction(
-            CalcerHolder.get(),
-            result.size(),
-            floatPtrsVector.data(), floatFeatureCount,
-            charPtrPtrsVector.data(), catFeatureCount,
-            result.data(), result.size())
-        ) {
-            throw std::runtime_error(GetErrorString());
-        }
-        return result;
-    }
-
-    /**
      * Evaluate model on float features vector and vector of categorical and text feature values.
      * **WARNING** categorical and text features string values should not contain zero bytes in the middle of the string (latter this could be changed).
      * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
@@ -263,8 +189,8 @@ public:
      */
     std::vector<double> Calc(
         const std::vector<std::vector<float>>& floatFeatures,
-        const std::vector<std::vector<std::string>>& catFeatures,
-        const std::vector<std::vector<std::string>>& textFeatures
+        const std::vector<std::vector<std::string>>& catFeatures = {},
+        const std::vector<std::vector<std::string>>& textFeatures = {}
     ) const {
         std::vector<double> result(floatFeatures.size() * DimensionsCount);
         std::vector<const float*> floatPtrsVector;
