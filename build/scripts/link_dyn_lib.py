@@ -204,6 +204,8 @@ def parse_args():
     parser.add_option('--dynamic-cuda', action='store_true')
     parser.add_option('--whole-archive-peers', action='append')
     parser.add_option('--whole-archive-libs', action='append')
+    parser.add_option('--custom-step')
+    parser.add_option('--python')
     return parser.parse_args()
 
 
@@ -221,6 +223,10 @@ if __name__ == '__main__':
         cmd = fix_cmd_for_dynamic_cuda(cmd)
 
     cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
+
+    if opts.custom_step:
+        assert opts.python
+        subprocess.check_call([opts.python] + [opts.custom_step] + cmd)
 
     if opts.linker_output:
         stdout = open(opts.linker_output, 'w')
