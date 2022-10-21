@@ -227,13 +227,15 @@ public:
     }
 
     /**
-     * Evaluate model on float features vector and vector of hashed categorical feature values.
+     * Evaluate model on vectors of float, hashed categorical and text feature values.
      * @param floatFeatures
      * @param catFeatureHashes
+     * @param textFeatures
      * @return vector of raw prediction values
      */
     std::vector<double> CalcHashed(const std::vector<std::vector<float>>& floatFeatures,
-                                   const std::vector<std::vector<int>>& catFeatureHashes) const {
+                                   const std::vector<std::vector<int>>& catFeatureHashes,
+                                   const std::vector<std::vector<std::string>>& textFeatures = {}) const {
         std::vector<double> result(floatFeatures.size() * DimensionsCount);
         std::vector<const float*> floatPtrsVector;
         std::vector<const int*> hashPtrsVector;
@@ -249,11 +251,17 @@ public:
             hashPtrsVector.push_back(hashVec.data());
         }
 
-        if (!CalcModelPredictionWithHashedCatFeatures(
+        size_t textFeatureCount = 0;
+        std::vector<const char*> textFeaturesPtrsVector;
+        std::vector<const char**> charTextPtrPtrsVector;
+        FromStringToCharVectors(textFeatures, &textFeatureCount, &textFeaturesPtrsVector, &charTextPtrPtrsVector);
+
+        if (!CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
             CalcerHolder.get(),
             result.size(),
             floatPtrsVector.data(), floatFeatureCount,
             hashPtrsVector.data(), catFeatureCount,
+            charTextPtrPtrsVector.data(), textFeatureCount,
             result.data(), result.size())
             ) {
             throw std::runtime_error(GetErrorString());
