@@ -81,6 +81,7 @@ else:
 if hasattr(dis, "get_instructions"):
     # noinspection PyUnresolvedReferences
     _get_instructions = dis.get_instructions
+    from dis import Instruction
 
 else:
     class Instruction(namedtuple('Instruction', 'offset argval opname starts_line')):
@@ -332,7 +333,7 @@ class Source(object):
                     stmts = source.statements_at_line(lineno)
                     if stmts:
                         if is_ipython_cell_code(code):
-                            decorator, node = find_node_ipython(frame, lasti, stmts)
+                            decorator, node = find_node_ipython(frame, lasti, stmts, source)
                         else:
                             node_finder = NodeFinder(frame, stmts, tree, lasti, source)
                             node = node_finder.result
@@ -534,17 +535,20 @@ def compile_similar_to(source, matching_code):
 
 sentinel = 'io8urthglkjdghvljusketgIYRFYUVGHFRTBGVHKGF78678957647698'
 
+def is_rewritten_by_pytest(code):
+    return any(
+        bc.opname != "LOAD_CONST" and isinstance(bc.argval,str) and bc.argval.startswith("@py")
+        for bc in get_instructions(code)
+    )
+
+
 class SentinelNodeFinder(object):
     def __init__(self, frame, stmts, tree, lasti, source):
         assert_(stmts)
         self.frame = frame
         self.tree = tree
         self.code = code = frame.f_code
-        self.is_pytest = any(
-            'pytest' in name.lower()
-            for group in [code.co_names, code.co_varnames]
-            for name in group
-        )
+        self.is_pytest = is_rewritten_by_pytest(code)
 
         if self.is_pytest:
             self.ignore_linenos = frozenset(assert_linenos(tree))
