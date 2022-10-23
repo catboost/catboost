@@ -12,6 +12,8 @@ _lock = threading.Lock()
 
 _config = None
 
+_relaxed_runtime_allowed = False
+
 
 class NoRuntimeFormed(NotImplementedError):
     pass
@@ -60,6 +62,13 @@ def _is_binary():
     return getattr(sys, 'is_standalone_binary', False)
 
 
+def _is_relaxed_runtime_allowed():
+    global _relaxed_runtime_allowed
+    if _relaxed_runtime_allowed:
+        return True
+    return _is_binary()
+
+
 def default_arg0(func):
     return default_arg(func, 0)
 
@@ -77,7 +86,7 @@ def default_arg(func, narg):
         try:
             return func(*args, **kw)
         except NoRuntimeFormed:
-            if not _is_binary():
+            if not _is_relaxed_runtime_allowed():
                 if len(args) > narg:
                     return args[narg]
                 return None
@@ -93,7 +102,7 @@ def default_value(value):
             try:
                 return func(*args, **kw)
             except NoRuntimeFormed:
-                if not _is_binary():
+                if not _is_relaxed_runtime_allowed():
                     return value
                 raise
 
@@ -315,7 +324,7 @@ def gdb_path():
     """
     Get path to the gdb
     """
-    if not _is_binary():
+    if not _is_relaxed_runtime_allowed():
         return "gdb"
     return _get_ya_plugin_instance().gdb_path
 
