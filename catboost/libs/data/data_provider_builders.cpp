@@ -2352,9 +2352,10 @@ namespace NCB {
 
             auto& dataRef = GetDataRef();
             const auto& subsetIndexing = *dataRef.CommonObjectsData.SubsetIndexing;
+            CB_ENSURE(subsetIndexing.IsFullSubset(), "Subset indexing is not supported for lazy columns");
             const auto& featuresLayout = *dataRef.MetaInfo.FeaturesLayout;
 
-            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical Lazy columns are not supported");
+            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical lazy columns are not supported");
             dataRef.ObjectsData.CatFeatures.clear();
 
             const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(EFeatureType::Float);
@@ -2375,8 +2376,8 @@ namespace NCB {
                     lazyQuantizedColumns.push_back(
                         MakeHolder<TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>>(
                             flatFeatureIdx,
-                            &subsetIndexing,
-                            PoolLoader)
+                            PoolLoader->GetPoolPathWithScheme(),
+                            subsetIndexing.Size())
                     );
                 } else {
                     lazyQuantizedColumns.push_back(nullptr);

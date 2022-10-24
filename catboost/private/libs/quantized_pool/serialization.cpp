@@ -506,32 +506,32 @@ namespace {
         explicit TFileQuantizedPoolLoader(const NCB::TPathWithScheme& pathWithScheme)
             : PathWithScheme(pathWithScheme)
         {}
-        NCB::TQuantizedPool LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
+        void LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
+        NCB::TQuantizedPool ExtractQuantizedPool() override;
         TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) override;
         TVector<ui8> LoadQuantizedColumn(ui32 columnIdx, ui64 offset, ui64 count) override;
         NCB::TPathWithScheme GetPoolPathWithScheme() const override;
     private:
         NCB::TPathWithScheme PathWithScheme;
+        NCB::TQuantizedPool Pool;
     };
 }
 
-NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
+void TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) {
     CB_ENSURE_INTERNAL(
         params.DatasetSubset.Range == NCB::TDatasetSubset().Range,
         "Scheme quantized supports only default load subset range"
     );
 
-    NCB::TQuantizedPool pool;
-
-    pool.Blobs.push_back(params.LockMemory
+    Pool.Blobs.push_back(params.LockMemory
         ? TBlob::LockedFromFile(TString(PathWithScheme.Path))
         : TBlob::FromFile(TString(PathWithScheme.Path)));
 
     // TODO(yazevnul): optionally precharge pool
 
     const TConstArrayRef<ui8> blob{
-        pool.Blobs.back().AsUnsignedCharPtr(),
-        pool.Blobs.back().Size()};
+        Pool.Blobs.back().AsUnsignedCharPtr(),
+        Pool.Blobs.back().Size()};
 
     ValidatePoolPart(blob);
 
@@ -541,7 +541,7 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
         CB_ENSURE(poolMetainfoParsed);
     };
     auto parseSchema = [&] (TConstArrayRef<ui8> bytes) {
-        const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(bytes.data(), bytes.size());
+        const auto quantizationSchemaParsed = Pool.QuantizationSchema.ParseFromArray(bytes.data(), bytes.size());
         CB_ENSURE(quantizationSchemaParsed);
     };
 
@@ -550,7 +550,7 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
 
     TVector<NCB::TQuantizedPool::TChunkDescription>* currentChunksPointer = nullptr;
     auto parseColumn = [&] (ui32 columnIndex) -> bool {
-        CB_ENSURE(!pool.ColumnIndexToLocalIndex.contains(columnIndex),
+        CB_ENSURE(!Pool.ColumnIndexToLocalIndex.contains(columnIndex),
             "Quantized pool should have unique column indices, but " <<
             LabeledOutput(columnIndex) << " is repeated.");
 
@@ -563,10 +563,10 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
                 }
             }
 
-            const auto localFeatureIndex = pool.Chunks.size();
-            pool.ColumnIndexToLocalIndex.emplace(columnIndex, localFeatureIndex);
-            pool.Chunks.push_back({});
-            currentChunksPointer = &pool.Chunks.back();
+            const auto localFeatureIndex = Pool.Chunks.size();
+            Pool.ColumnIndexToLocalIndex.emplace(columnIndex, localFeatureIndex);
+            Pool.Chunks.push_back({});
+            currentChunksPointer = &Pool.Chunks.back();
         } else {
             EColumn columnType;
             if (columnIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
@@ -595,29 +595,31 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
         parseChunk,
         blob);
 
-    AddPoolMetainfo(poolMetainfo, &pool);
+    AddPoolMetainfo(poolMetainfo, &Pool);
 
-    // `pool.ColumnTypes` expected to have the same size as number of columns in pool,
-    // but `pool.Chunks` may also contain chunks with fake columns (with DocId, GroupId and SubgroupId),
-    // `AddPoolMetaInfo` works with assumption that `pool.Chunks` and `pool.ColumnTypes` have the same size,
+    // `Pool.ColumnTypes` expected to have the same size as number of columns in pool,
+    // but `Pool.Chunks` may also contain chunks with fake columns (with DocId, GroupId and SubgroupId),
+    // `AddPoolMetaInfo` works with assumption that `Pool.Chunks` and `Pool.ColumnTypes` have the same size,
     // so to keep this assumption true we add string chunks after `AddPoolMetainfo` invocation.
-    if (pool.HasStringColumns = !stringColumnChunks.empty()) {
+    if (Pool.HasStringColumns = !stringColumnChunks.empty()) {
         for (ui32 stringColumnId = 0; stringColumnId < stringColumnChunks.size(); ++stringColumnId) {
             const EColumn columnType = stringColumnIndexToColumnType[stringColumnId];
             if (columnType == EColumn::SampleId) {
-                pool.StringDocIdLocalIndex = pool.Chunks.size();
+                Pool.StringDocIdLocalIndex = Pool.Chunks.size();
             } else if (columnType == EColumn::GroupId) {
-                pool.StringGroupIdLocalIndex = pool.Chunks.size();
+                Pool.StringGroupIdLocalIndex = Pool.Chunks.size();
             } else if (columnType == EColumn::SubgroupId) {
-                pool.StringSubgroupIdLocalIndex = pool.Chunks.size();
+                Pool.StringSubgroupIdLocalIndex = Pool.Chunks.size();
             } else {
                 CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
             }
-            pool.Chunks.push_back(std::move(stringColumnChunks[stringColumnId]));
+            Pool.Chunks.push_back(std::move(stringColumnChunks[stringColumnId]));
         }
     }
+}
 
-    return pool;
+NCB::TQuantizedPool TFileQuantizedPoolLoader::ExtractQuantizedPool() {
+    return std::move(Pool);
 }
 
 TVector<ui8> TFileQuantizedPoolLoader::LoadQuantizedColumn(ui32 /*columnIdx*/) {
@@ -639,7 +641,8 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
     const TLoadQuantizedPoolParameters& params
 ) {
     const auto poolLoader = GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(pathWithScheme, pathWithScheme);
-    return poolLoader->LoadQuantizedPool(params);
+    poolLoader->LoadQuantizedPool(params);
+    return poolLoader->ExtractQuantizedPool();
 }
 
 NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(

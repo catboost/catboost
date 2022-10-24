@@ -255,8 +255,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                                                           builder,
                                                           *dataProvider,
                                                           id,
-                                                          /*skipExclusiveFeatureBundles*/false,
-                                                          &NPar::LocalExecutor());
+                                                          /*skipExclusiveFeatureBundles*/false);
             writer.Write(features);
             builder.Finish();
         }
