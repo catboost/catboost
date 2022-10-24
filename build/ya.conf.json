@@ -7683,8 +7683,8 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1467143446,
-                    1470108465
+                    1494385453,
+                    1494387618
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -9088,7 +9088,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1466124753,
+                "sandbox_id": 1494422690,
                 "match": "lama"
             },
             "executable": {
