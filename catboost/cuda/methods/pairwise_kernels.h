@@ -579,7 +579,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                                       ui32 stream) {
     using TKernel = NKernelHost::TComputePairwiseHistogramKernel;
 
-    LaunchKernels<TKernel>(gridBlock.NonEmptyDevices(),
+    LaunchKernels<TKernel>(pairs.NonEmptyDevices(),
                            stream,
                            policy,
                            gridBlock,
