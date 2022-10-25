@@ -40,6 +40,10 @@ CFLAGS(
     -DNPY_INTERNAL_BUILD=1
 )
 
+IF (ARCH_PPC64LE)
+    CFLAGS(-DNPY_DISABLE_OPTIMIZATION=1)
+ENDIF()
+
 IF (CLANG)
     CFLAGS(
         -ffp-exception-behavior=strict
