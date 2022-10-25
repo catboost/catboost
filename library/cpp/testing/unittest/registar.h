@@ -488,7 +488,7 @@ public:                       \
 //general
 #define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                                  \
     do {                                                                                                              \
-        if (!((A) == (B))) {                                                                                          \
+        if (!((A) == (B))) { /* NOLINT(readability-container-size-empty) */                                           \
             UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                             \
     } while (false)
@@ -497,7 +497,7 @@ public:                       \
 
 #define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                                 \
     do {                                                                                                               \
-        if ((A) == (B)) {                                                                                              \
+        if ((A) == (B)) {  /* NOLINT(readability-container-size-empty) */                                              \
             UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (::TStringBuilder() << C).data()));\
         }                                                                                                              \
     } while (false)
