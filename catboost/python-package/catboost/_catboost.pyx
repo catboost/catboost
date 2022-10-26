@@ -56,7 +56,7 @@ from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.hash_set cimport THashSet
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
+from util.generic.ptr cimport TAtomicSharedPtr, THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
@@ -411,13 +411,13 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
 
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef THolder[TTbbLocalExecutor] local_executor
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor    
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawObjectsOrderDataVisitor* builder_visitor
-    cdef const TFeaturesLayout* features_layout
+    cdef const TFeaturesLayout* features_layout    
 
-    def __cinit__(self, int thread_count):
-        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
+    def __cinit__(self, int thread_count):        
+        self.local_executor = GetCachedLocalExecutor(thread_count)        
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),
@@ -440,13 +440,13 @@ cdef class Py_ObjectsOrderBuilderVisitor:
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef THolder[TTbbLocalExecutor] local_executor
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor    
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
     def __cinit__(self, int thread_count):
-        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
+        self.local_executor = GetCachedLocalExecutor(thread_count)        
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),
@@ -980,6 +980,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":

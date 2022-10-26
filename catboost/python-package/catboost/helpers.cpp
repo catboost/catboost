@@ -295,3 +295,27 @@ void TrainEvalSplit(
         *evalDataProvider = getSubset(postShuffleTestIndices);
     }
 }
+
+#include <util/stream/output.h>
+
+TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount) {
+    static TMutex lock;
+    static TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> cachedExecutor;
+    
+    CB_ENSURE(threadsCount == -1 || 0 < threadsCount, "threadsCount should be positive or -1");    
+
+    if (threadsCount == -1) {
+        threadsCount = NSystemInfo::CachedNumberOfCpus();
+    }
+
+    with_lock(lock) {        
+        if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {               
+            return cachedExecutor;
+        }                
+
+        cachedExecutor.Reset();
+        cachedExecutor = MakeAtomicShared<NPar::TTbbLocalExecutor<false>>(threadsCount);                
+
+        return cachedExecutor;
+    }    
+}
