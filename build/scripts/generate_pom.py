@@ -66,6 +66,12 @@ def build_pom_and_export_to_maven(**kwargs):
     test_source_dirs = kwargs.get('test_source_dirs')
     test_resource_dirs = kwargs.get('test_resource_dirs')
 
+    if kwargs.get('vcs_info') is not None:
+        with open(kwargs.get('vcs_info'), 'r') as vcs_json:
+            vcs_revision = json.load(vcs_json).get('ARCADIA_SOURCE_REVISION')
+        target = target.format(vcs_revision=vcs_revision)
+        target_dependencies = [dep.format(vcs_revision=vcs_revision) for dep in target_dependencies]
+
     modules = []
 
     def _indent(elem, level=0):
@@ -280,6 +286,7 @@ if __name__ == '__main__':
     parser.add_argument('--property', action='append', default=[])
     parser.add_argument('--test-source-dirs', action='append', default=[])
     parser.add_argument('--test-resource-dirs', action='append', default=[])
+    parser.add_argument('--vcs-info', action='store', default=None)
     args = parser.parse_args()
 
     build_pom_and_export_to_maven(**vars(args))
