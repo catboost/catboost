@@ -306,7 +306,7 @@ TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int thre
         threadsCount = NSystemInfo::CachedNumberOfCpus();
     }
 
-    with_lock(lock) {        
+    with_lock (lock) {        
         if (cachedExecutor && cachedExecutor->GetThreadCount() + 1 == threadsCount) {               
             return cachedExecutor;
         }                
