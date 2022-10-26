@@ -411,13 +411,13 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
 
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor    
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawObjectsOrderDataVisitor* builder_visitor
-    cdef const TFeaturesLayout* features_layout    
+    cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self, int thread_count):        
-        self.local_executor = GetCachedLocalExecutor(thread_count)        
+    def __cinit__(self, int thread_count):
+        self.local_executor = GetCachedLocalExecutor(thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),
@@ -440,13 +440,13 @@ cdef class Py_ObjectsOrderBuilderVisitor:
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor    
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
     def __cinit__(self, int thread_count):
-        self.local_executor = GetCachedLocalExecutor(thread_count)        
+        self.local_executor = GetCachedLocalExecutor(thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),

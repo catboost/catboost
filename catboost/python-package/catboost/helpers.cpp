@@ -296,8 +296,6 @@ void TrainEvalSplit(
     }
 }
 
-#include <util/stream/output.h>
-
 TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount) {
     static TMutex lock;
     static TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> cachedExecutor;
