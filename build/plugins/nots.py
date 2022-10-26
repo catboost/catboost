@@ -58,7 +58,7 @@ def on_ts_configure(unit, tsconfig_path):
     root_dir = tsconfig.compiler_option("rootDir")
     out_dir = tsconfig.compiler_option("outDir")
     if unit.get("TS_TEST_FOR") == "yes":
-        # Use `TEST_FOR_PATH`-relative `rootDir`, since tsc will be runned with `TEST_FOR_PATH`'s as curdir.
+        # Use `TEST_FOR_PATH`-relative `rootDir`, since tsc will be run with `TEST_FOR_PATH`'s as curdir.
         rel_test_for_path = os.path.relpath(unit.get("TS_TEST_FOR_PATH"), strip_roots(unit.path()))
         root_dir = os.path.join(rel_test_for_path, root_dir)
 
@@ -79,7 +79,8 @@ def on_ts_test_configure(unit):
     test_runner = unit.get("TS_TEST_RUNNER")
 
     if test_runner not in test_runner_handlers:
-        raise Exception("Test runner: {} is not available, try to use one of these: {}".format(test_runner, ", ".join(test_runner_handlers.keys())))
+        raise Exception("Test runner: {} is not available, try to use one of these: {}"
+                        .format(test_runner, ", ".join(test_runner_handlers.keys())))
 
     if not test_runner:
         raise Exception("Test runner is not specified")
@@ -96,7 +97,8 @@ def on_ts_test_configure(unit):
     pm = _create_pm(unit)
     mod_dir = unit.get("MODDIR")
     test_files = _resolve_module_files(unit, mod_dir, test_files)
-    data_dirs = list(set([os.path.dirname(rootrel_arc_src(p, unit)) for p in (ytest.get_values_list(unit, "_TS_TEST_DATA_VALUE") or [])]))
+    data_dirs = list(set([os.path.dirname(rootrel_arc_src(p, unit))
+                          for p in (ytest.get_values_list(unit, "_TS_TEST_DATA_VALUE") or [])]))
 
     test_record_args = {
         "CUSTOM-DEPENDENCIES": " ".join(pm.get_peers_from_package_json()),
@@ -154,9 +156,10 @@ def _add_default_hermione_test_data(unit, test_record_args):
 
     abs_root_dir = os.path.normpath(os.path.join(unit.resolve(unit.path()), root_dir))
     file_paths = _find_file_paths(abs_root_dir, "**/screens/*/*/*.png")
-    file_dirs = [os.path.dirname(file) for file in file_paths]
+    file_dirs = [os.path.dirname(f) for f in file_paths]
 
-    rename_from, rename_to = [os.path.relpath(os.path.normpath(os.path.join(mod_dir, dir)), test_for_path) for dir in [root_dir, out_dir]]
+    rename_from, rename_to = [os.path.relpath(os.path.normpath(os.path.join(mod_dir, d)), test_for_path)
+                              for d in [root_dir, out_dir]]
 
     test_record_args.update({
         "TS-TEST-DATA-DIRS": ytest.serialize_list(_resolve_module_files(unit, mod_dir, file_dirs)),
@@ -172,10 +175,14 @@ def _setup_eslint(unit):
     if not lint_files:
         return
 
+    from lib.nots.package_manager import constants
+    pm = _create_pm(unit)
     mod_dir = unit.get("MODDIR")
     resolved_files = _resolve_module_files(unit, mod_dir, lint_files)
     test_record_args = {
+        "CUSTOM-DEPENDENCIES": " ".join(pm.get_peers_from_package_json()),
         "ESLINT_CONFIG_NAME": unit.get("ESLINT_CONFIG_NAME"),
+        "NODE-MODULES-BUNDLE-FILENAME": constants.NODE_MODULES_WORKSPACE_BUNDLE_FILENAME,
     }
 
     _add_test_type(unit, "eslint", resolved_files, test_record_args, mod_dir)

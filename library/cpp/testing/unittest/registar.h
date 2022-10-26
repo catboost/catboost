@@ -609,12 +609,12 @@ public:                       \
         UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E,                             \
             [&_substr](const E&){                                           \
                 if (!_substr.empty()) {                                     \
-                    UNIT_ASSERT_C(CurrentExceptionMessage()                 \
-                                      .Contains(_substr),                   \
+                    auto cure = CurrentExceptionMessage() ; \
+                    UNIT_ASSERT_C(cure.Contains(_substr),                   \
                                   "Exception message does not contain \""   \
                                       << _substr << "\".\n"                 \
                                       << "Exception message: "              \
-                                      << CurrentExceptionMessage());        \
+                                      << cure);        \
                 }                                                           \
                 return true;                                                \
             },                                                              \
