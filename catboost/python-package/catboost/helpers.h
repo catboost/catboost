@@ -23,7 +23,7 @@
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
-#include <util/generic/yexception.h>
+#include <util/system/guard.h>
 #include <util/system/info.h>
 #include <util/system/mutex.h>
 
