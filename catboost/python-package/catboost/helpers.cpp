@@ -10,6 +10,10 @@
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/private/libs/target/data_providers.h>
 
+#include <util/system/guard.h>
+#include <util/system/info.h>
+#include <util/system/mutex.h>
+
 
 extern "C" PyObject* PyCatboostExceptionType;
 
