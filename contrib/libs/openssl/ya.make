@@ -25,7 +25,7 @@ VERSION(1.1.1l)
 PEERDIR(
     contrib/libs/openssl/crypto
 )
-    
+
 ADDINCL(
     GLOBAL contrib/libs/openssl/include
     contrib/libs/openssl
@@ -184,6 +184,8 @@ IF (ARCH_TYPE_32)
 ENDIF()
 
 SRCS(
+    engines/e_capi.c
+    engines/e_padlock.c
     ssl/bio_ssl.c
     ssl/d1_lib.c
     ssl/d1_msg.c
@@ -233,13 +235,6 @@ SRCS(
 IF (NOT IOS_ARMV7 AND NOT LINUX_ARMV7)
     CFLAGS(
         -DVPAES_ASM
-    )
-ENDIF()
-
-IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
-    SRCS(
-        engines/e_capi.c
-        engines/e_padlock.c
     )
 ENDIF()
 
