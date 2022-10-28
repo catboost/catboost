@@ -96,6 +96,14 @@ TEST(TPreprocessorTest, IsSequence)
     EXPECT_STREQ("PP_FALSE", PP_STRINGIZE(PP_IS_SEQUENCE(PP_NIL)));
 }
 
+TEST(TPreprocessorTest, Deparen)
+{
+    EXPECT_STREQ("a", PP_STRINGIZE(PP_DEPAREN(a)));
+    EXPECT_STREQ("a", PP_STRINGIZE(PP_DEPAREN((a))));
+    EXPECT_STREQ("( a, b)", PP_STRINGIZE((PP_DEPAREN(a, b))));
+    EXPECT_STREQ("( a, b)", PP_STRINGIZE((PP_DEPAREN((a, b)))));
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 } // namespace
