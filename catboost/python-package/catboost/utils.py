@@ -96,7 +96,7 @@ def create_cd(
             for column_index, (title, _) in sorted(_column_description.items()):
                 if column_index > real_feature_index:
                     break
-                if title not in ('Num', 'Categ'):
+                if title not in ('Num', 'Categ', 'NumVector'):
                     real_feature_index += 1
             _column_description[real_feature_index][1] = name
     with open(fspath(output_path), 'w') as f:
