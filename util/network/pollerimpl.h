@@ -626,6 +626,7 @@ private:
         TCommand(SOCKET fd, int filter)
             : Fd_(fd)
             , Filter_(filter)
+            , Cookie_(nullptr)
         {
         }
     };
