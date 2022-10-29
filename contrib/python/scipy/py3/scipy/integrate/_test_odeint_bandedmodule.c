@@ -908,7 +908,7 @@ PyMODINIT_FUNC init_test_odeint_banded(void) {
 #else
   m = _test_odeint_banded_module = Py_InitModule("_test_odeint_banded", f2py_module_methods);
 #endif
-  Py_TYPE(&PyFortran_Type) = &PyType_Type;
+  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
   import_array();
   if (PyErr_Occurred())
     {PyErr_SetString(PyExc_ImportError, "can't initialize module _test_odeint_banded (failed to import numpy)"); return RETVAL;}
