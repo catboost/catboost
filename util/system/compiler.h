@@ -332,13 +332,6 @@ _YandexAbort();
     #define Y_CUDA_AT_LEAST(x, y) 0
 #endif
 
-// NVidia CUDA C++ Compiler did not know about noexcept keyword until version 9.0
-#if !Y_CUDA_AT_LEAST(9, 0)
-    #if defined(__CUDACC__) && !defined(noexcept)
-        #define noexcept throw()
-    #endif
-#endif
-
 #if defined(__GNUC__)
     #define Y_COLD __attribute__((cold))
     #define Y_LEAF __attribute__((leaf))
