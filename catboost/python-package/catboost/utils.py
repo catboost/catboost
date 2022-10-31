@@ -94,14 +94,10 @@ def create_cd(
                     raise CatBoostError('The index {} occurs more than once'.format(value))
                 _column_description[value] = [_from_param_to_cd[key], '']
     if feature_names is not None:
-        for feature_index, name in feature_names.items():
-            real_feature_index = feature_index
-            for column_index, (title, _) in sorted(_column_description.items()):
-                if column_index > real_feature_index:
-                    break
-                if title not in ('Num', 'Categ', 'Text', 'NumVector'):
-                    real_feature_index += 1
-            _column_description[real_feature_index][1] = name
+        for feature_column_index, name in feature_names.items():
+            if _column_description[feature_column_index][0] not in ('Num', 'Categ', 'Text', 'NumVector'):
+                raise CatBoostError('feature_names contains index {} that does not correspond to feature column'.format(feature_column_index))
+            _column_description[feature_column_index][1] = name
     with open(fspath(output_path), 'w') as f:
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
