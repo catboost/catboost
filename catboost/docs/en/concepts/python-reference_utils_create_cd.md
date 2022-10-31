@@ -8,6 +8,7 @@
 ```python
 create_cd(label=None,
           cat_features=None, 
+          text_features=None,
           embedding_features=None,
           weight=None,
           baseline=None,
@@ -41,6 +42,21 @@ None
 #### Description
 
 Zero-based indices of columns that define categorical features.
+
+**Possible types**
+
+- {{ python-type--int }}
+- {{ python-type__list_of_int }}
+
+**Default value**
+
+None
+
+### text_features
+
+#### Description
+
+Zero-based indices of columns that define text features.
 
 **Possible types**
 
