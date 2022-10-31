@@ -4239,7 +4239,7 @@ cdef class _PoolBase:
         feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
-        cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
+        cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor = GetCachedLocalExecutor(thread_count)
         cdef TFeaturesLayout* features_layout =self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()
         cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
@@ -5621,7 +5621,7 @@ cdef class _StagedPredictIterator:
     cdef TVector[TVector[double]] __approx
     cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef THolder[TTbbLocalExecutor] __executor
+    cdef TAtomicSharedPtr[TTbbLocalExecutor] __executor
     cdef TModelCalcerOnPool* __modelCalcerOnPool
     cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
@@ -5634,7 +5634,7 @@ cdef class _StagedPredictIterator:
         self.eval_period = eval_period
         self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
-        self.__executor = MakeHolder[TTbbLocalExecutor](thread_count)
+        self.__executor = GetCachedLocalExecutor(thread_count)
 
     cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
         self.__model = model
