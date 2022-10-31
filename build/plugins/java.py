@@ -388,3 +388,32 @@ def on_jdk_version_macro_check(unit, *args):
     available_versions = ('10', '11', '15', '16', '17', '18', '19',)
     if jdk_version not in available_versions:
         unit.message(["error", "Invalid jdk version: {}. {} are available".format(jdk_version, available_versions)])
+
+
+def on_setup_maven_export_coords_if_need(unit, *args):
+    if unit.get('MAVEN_EXPORT') != 'yes':
+        return
+
+    moddir = args[0]
+    parts = moddir.split('/')
+
+    g = '.'.join(parts[2:-2])
+    a = parts[-2]
+    v = parts[-1]
+    c = ''
+
+    pom_path = unit.resolve(os.path.join('$S', moddir, 'pom.xml'))
+    if os.path.exists(pom_path):
+        import xml.etree.ElementTree as et
+        with open(pom_path) as f:
+            root = et.fromstring(f.read())
+        for xpath in ('./{http://maven.apache.org/POM/4.0.0}artifactId', './artifactId'):
+            artifact = root.find(xpath)
+            if artifact is not None:
+                artifact = artifact.text
+                if a != artifact and a.startswith(artifact):
+                    c = a[len(artifact):].lstrip('-_')
+                    a = artifact
+                break
+
+    unit.set(['MAVEN_EXPORT_COORD_GLOBAL', '{}:{}:{}:{}'.format(g, a, v,c)])

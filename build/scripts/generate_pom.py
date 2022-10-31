@@ -68,7 +68,7 @@ def build_pom_and_export_to_maven(**kwargs):
 
     if kwargs.get('vcs_info') is not None:
         with open(kwargs.get('vcs_info'), 'r') as vcs_json:
-            vcs_revision = json.load(vcs_json).get('ARCADIA_SOURCE_REVISION')
+            vcs_revision = json.load(vcs_json).get('ARCADIA_SOURCE_LAST_CHANGE')
         target = target.format(vcs_revision=vcs_revision)
         target_dependencies = [dep.format(vcs_revision=vcs_revision) for dep in target_dependencies]
 
