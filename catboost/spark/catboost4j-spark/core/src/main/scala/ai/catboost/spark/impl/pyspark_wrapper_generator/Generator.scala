@@ -25,6 +25,7 @@ object Generator {
 import collections
 import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from py4j.java_gateway import JavaObject
 
@@ -66,6 +67,9 @@ import pyspark.ml.wrapper
 from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaWrapper
 from pyspark.sql import DataFrame, SparkSession
 
+
+if TYPE_CHECKING:
+    from pyspark.sql._typing import OptionalPrimitiveType
 
 "\""
     original JavaParams._from_java has to be replaced because of hardcoded class names transformation
@@ -431,7 +435,71 @@ ${generateParamsPart(params, paramsKeywordArgs)}
     }.mkString("\n")
   }
 
+
+  def generatePoolSerializationWrappers(out: PrintWriter) = {
+
+    out.println(
+      s"""
+class PoolReader(JavaWrapper):
+    "\""
+    This class is used to load a :class:`Pool` from external storage systems (it is analogous to PySpark's DataFrameReader).
+    Use Pool.read() to get it.
+    "\""
+    def __init__(self, sparkSession: "SparkSession"):
+        super(PoolReader, self).__init__(JavaWrapper._new_java_obj("ai.catboost.spark.PoolReader", sparkSession))
+
+    def dataFramesReaderFormat(self, source: str) -> "PoolReader":
+        self._java_obj = self._java_obj.dataFramesReaderFormat(source)
+        return self
+
+    def dataFramesReaderOption(self, key: str, value: "OptionalPrimitiveType") -> "PoolReader":
+        self._java_obj = self._java_obj.dataFramesReaderOption(key, to_str(value))
+        return self
+
+    def dataFramesReaderOptions(self, **options: "OptionalPrimitiveType") -> "PoolReader":
+        for k in options:
+            self._java_obj = self._java_obj.dataFramesReaderOption(key, to_str(options[k]))
+        return self
+
+    def load(self, path: str) -> "Pool":
+        return Pool(self._java_obj.load(path))
+
+
+class PoolWriter(JavaWrapper):
+    "\""
+    This class is used to save :class:`Pool` to external storage systems (it is analogous to PySpark's DataFrameWriter).
+      Use Pool.write() to get it.
+    "\""
+    def __init__(self, pool: "Pool"):
+        super(PoolWriter, self).__init__(pool._java_obj.write())
+
+    def dataFramesWriterFormat(self, source: str) -> "PoolWriter":
+        self._java_obj = self._java_obj.dataFramesWriterFormat(source)
+        return self
+
+    def dataFramesWriterOption(self, key: str, value: "OptionalPrimitiveType") -> "PoolWriter":
+        self._java_obj = self._java_obj.dataFramesWriterOption(key, to_str(value))
+        return self
+
+    def dataFramesWriterOptions(self, **options: "OptionalPrimitiveType") -> "PoolWriter":
+        for k in options:
+            self._java_obj = self._java_obj.dataFramesWriterOption(key, to_str(options[k]))
+        return self
+
+    def mode(self, saveModeArg: str) -> "PoolWriter":
+        self._java_obj = self._java_obj.mode(saveModeArg)
+        return self
+
+    def save(self, path: str) -> None:
+        self._java_obj.save(path)
+
+"""
+    )
+  }
+
   def generatePoolWrapper(out: PrintWriter) = {
+    generatePoolSerializationWrappers(out)
+
     val pool = new Pool(null)
 
     val paramsKeywordArgs = generateParamsKeywordArgs(pool)
@@ -549,6 +617,30 @@ ${generateForwardedAccessors(forwardedAccessors)}
             pairsDataPathWithScheme
         )
         return Pool(java_obj)
+
+    @staticmethod
+    def read(sparkSession) -> "PoolReader":
+        "\""
+        Interface for reading the content from external storage (API similar to PySpark's DataFrameReader)
+
+        Returns
+        -------
+            PoolReader
+                PoolReader helper class to read Pool data
+        "\""
+        return PoolReader(sparkSession)
+
+    @property
+    def write(self) -> "PoolWriter":
+        "\""
+        Interface for saving the content out into external storage (API similar to PySpark's DataFrameWriter)
+
+        Returns
+        -------
+            PoolWriter
+                PoolWriter helper class to save Pool data
+        "\""
+        return PoolWriter(self)
 
 """
     )
@@ -959,7 +1051,9 @@ s"""
     val exportList = Seq(
         "PoolLoadParams",
         "QuantizationParams",
-        "Pool", 
+        "PoolReader",
+        "PoolWriter",
+        "Pool",
         "CatBoostClassificationModel",
         "CatBoostClassifier",
         "CatBoostRegressionModel",
