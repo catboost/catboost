@@ -9,6 +9,7 @@
 
 #include <library/cpp/json/writer/json_value.h>
 
+#include <util/digest/numeric.h>
 #include <util/generic/vector.h>
 #include <util/stream/fwd.h>
 
@@ -27,7 +28,14 @@ public:
         , InProcess(false)
         , ResultTaken(false)
         , IsLocal(isLocal)
+        , FeatureCorrelationDocsToUse(1)
+        , DocsCount(1)
     {}
+
+    void SetTakenFraction(ui64 featureCorrelationDocsToUse, ui64 docsCount) {
+        FeatureCorrelationDocsToUse = featureCorrelationDocsToUse;
+        DocsCount = docsCount;
+    }
 
     void Start(
         bool inBlock, // subset processing - Start/Finish is called for each block
@@ -86,6 +94,7 @@ public:
 
     // TRawObjectsData
     void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) override {
+        Y_ASSERT(false);
         DatasetStatistics.FeatureStatistics
             .FloatFeatureStatistics[GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx)]
             .Update(feature);
@@ -97,7 +106,12 @@ public:
                 .FloatFeatureStatistics[TFloatFeatureIdx(perTypeFeatureIdx).Idx]
                 .Update(features[perTypeFeatureIdx]);
         }
-        Y_UNUSED(localObjectIdx);
+        ui64 hash = static_cast<ui64>(IntHash(localObjectIdx));
+        if (hash % DocsCount < FeatureCorrelationDocsToUse) {
+            DatasetStatistics.FeatureStatistics
+                .FloatFeaturePairwiseProduct
+                .Update(features);
+        }
     }
     void AddAllFloatFeatures(
         ui32 localObjectIdx,
@@ -271,6 +285,8 @@ private:
 
     TDatasetStatistics DatasetStatistics;
     TDataMetaInfo MetaInfo;
+    ui64 FeatureCorrelationDocsToUse;
+    ui64 DocsCount;
     ui32 CatFeatureCount;
 
 public:
