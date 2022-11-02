@@ -146,21 +146,21 @@ class Application(SingletonConfigurable):
 
     # The name of the application, will usually match the name of the command
     # line application
-    name = Unicode("application")
+    name: t.Union[str, Unicode] = Unicode("application")
 
     # The description of the application that is printed at the beginning
     # of the help.
-    description = Unicode("This is an application.")
+    description: t.Union[str, Unicode] = Unicode("This is an application.")
     # default section descriptions
-    option_description = Unicode(option_description)
-    keyvalue_description = Unicode(keyvalue_description)
-    subcommand_description = Unicode(subcommand_description)
+    option_description: t.Union[str, Unicode] = Unicode(option_description)
+    keyvalue_description: t.Union[str, Unicode] = Unicode(keyvalue_description)
+    subcommand_description: t.Union[str, Unicode] = Unicode(subcommand_description)
 
     python_config_loader_class = PyFileConfigLoader
     json_config_loader_class = JSONFileConfigLoader
 
     # The usage and example string that goes at the end of the help string.
-    examples = Unicode()
+    examples: t.Union[str, Unicode] = Unicode()
 
     # A sequence of Configurable subclasses whose config=True attributes will
     # be exposed at the command line.
@@ -187,16 +187,18 @@ class Application(SingletonConfigurable):
                     yield parent
 
     # The version string of this application.
-    version = Unicode("0.0")
+    version: t.Union[str, Unicode] = Unicode("0.0")
 
     # the argv used to initialize the application
-    argv = List()
+    argv: t.Union[t.List[str], List] = List()
 
     # Whether failing to load config files should prevent startup
-    raise_config_file_errors = Bool(TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR)
+    raise_config_file_errors: t.Union[bool, Bool] = Bool(
+        TRAITLETS_APPLICATION_RAISE_CONFIG_FILE_ERROR
+    )
 
     # The log level for the application
-    log_level = Enum(
+    log_level: t.Union[str, int, Enum] = Enum(
         (0, 10, 20, 30, 40, 50, "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"),
         default_value=logging.WARN,
         help="Set the log level by value or name.",
@@ -204,11 +206,11 @@ class Application(SingletonConfigurable):
 
     _log_formatter_cls = LevelFormatter
 
-    log_datefmt = Unicode(
+    log_datefmt: t.Union[str, Unicode] = Unicode(
         "%Y-%m-%d %H:%M:%S", help="The date format used by logging formatters for %(asctime)s"
     ).tag(config=True)
 
-    log_format = Unicode(
+    log_format: t.Union[str, Unicode] = Unicode(
         "[%(name)s]%(highlevel)s %(message)s",
         help="The Logging format template",
     ).tag(config=True)
@@ -351,7 +353,7 @@ class Application(SingletonConfigurable):
     #: the alias map for configurables
     #: Keys might strings or tuples for additional options; single-letter alias accessed like `-v`.
     #: Values might be like "Class.trait" strings of two-tuples: (Class.trait, help-text).
-    aliases: t.Dict[str, str] = {"log-level": "Application.log_level"}
+    aliases: t.Dict[str, t.Any] = {"log-level": "Application.log_level"}
 
     # flags for loading Configurables or store_const style flags
     # flags are loaded from this dict by '--key' flags
@@ -389,12 +391,12 @@ class Application(SingletonConfigurable):
     # this must be a dict of two-tuples,
     # the first element being the application class/import string
     # and the second being the help string for the subcommand
-    subcommands = Dict()
+    subcommands: t.Union[t.Dict[str, t.Tuple[str, str]], Dict] = Dict()
     # parse_command_line will initialize a subapp, if requested
     subapp = Instance("traitlets.config.application.Application", allow_none=True)
 
     # extra command-line arguments that don't set config values
-    extra_args = List(Unicode())
+    extra_args: t.Union[t.List[str], List] = List(Unicode())
 
     cli_config = Instance(
         Config,
@@ -409,11 +411,11 @@ class Application(SingletonConfigurable):
 
     _loaded_config_files = List()
 
-    show_config = Bool(
+    show_config: t.Union[bool, Bool] = Bool(
         help="Instead of starting the Application, dump configuration to stdout"
     ).tag(config=True)
 
-    show_config_json = Bool(
+    show_config_json: t.Union[bool, Bool] = Bool(
         help="Instead of starting the Application, dump configuration to stdout (as JSON)"
     ).tag(config=True)
 
@@ -690,7 +692,9 @@ class Application(SingletonConfigurable):
     @catch_config_error
     def initialize_subcommand(self, subc, argv=None):
         """Initialize a subcommand with argv."""
-        subapp, _ = self.subcommands.get(subc)
+        val = self.subcommands.get(subc)
+        assert val is not None
+        subapp, _ = val
 
         if isinstance(subapp, str):
             subapp = import_item(subapp)
@@ -737,7 +741,7 @@ class Application(SingletonConfigurable):
         for alias, longname in self.aliases.items():
             if isinstance(longname, tuple):
                 longname, _ = longname
-            cls, trait = longname.split(".", 1)  # type:ignore[assignment]
+            cls, trait = longname.split(".", 1)
             children = mro_tree[cls]  # type:ignore[index]
             if len(children) == 1:
                 # exactly one descendent, promote alias

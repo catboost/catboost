@@ -65,12 +65,16 @@ the pre-commit hook should take care of how it should look.
 
 To install `pre-commit` locally, run the following::
 
-    pip install pre-commit
-    pre-commit install
+```
+pip install pre-commit
+pre-commit install
+```
 
 You can invoke the pre-commit hook by hand at any time with::
 
-    pre-commit run
+```
+pre-commit run
+```
 
 which should run any autoformatting on your code
 and tell you about any errors it couldn't fix automatically.

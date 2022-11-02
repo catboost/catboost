@@ -58,5 +58,7 @@ change to one of the IPython repositories.
 With this in mind, the following banner should be used in any source code file
 to indicate the copyright and license terms:
 
-    # Copyright (c) IPython Development Team.
-    # Distributed under the terms of the Modified BSD License.
+```
+# Copyright (c) IPython Development Team.
+# Distributed under the terms of the Modified BSD License.
+```
