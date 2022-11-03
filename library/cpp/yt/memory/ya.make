@@ -12,7 +12,7 @@ SRCS(
 PEERDIR(
     library/cpp/yt/assert
     library/cpp/yt/misc
-    library/cpp/ytalloc/api
+    library/cpp/yt/malloc
 )
 
 CHECK_DEPENDENT_DIRS(

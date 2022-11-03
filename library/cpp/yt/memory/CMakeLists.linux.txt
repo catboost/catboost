@@ -13,7 +13,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
   yutil
   cpp-yt-assert
   cpp-yt-misc
-  cpp-ytalloc-api
+  cpp-yt-malloc
 )
 target_sources(cpp-yt-memory PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
