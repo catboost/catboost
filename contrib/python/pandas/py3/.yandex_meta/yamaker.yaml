@@ -1,17 +1,17 @@
 copy:
-- LICENSES/*
+  - LICENSES/*
 exclude:
-- pandas/*.pxi.in
+  - pandas/*.pxi.in
 exclude_from_macros:
-- LICENSES/*
-- symbols.cmake
-- pandas/_libs/src/headers/cmath
+  - LICENSES/*
+  - symbols.cmake
+  - pandas/_libs/src/headers/cmath
 keep:
-- symbols.cmake
+  - symbols.cmake
 cython_directive:
-- language_level=3
+  - language_level=3
 mark_as_cython_c:
-- pandas/_libs/[!w]*.pyx
-- pandas/_libs/window/indexers.pyx
-- pandas/_libs/writers.pyx
-- pandas/io/sas/sas.pyx
+  - pandas/_libs/[!w]*.pyx
+  - pandas/_libs/window/indexers.pyx
+  - pandas/_libs/writers.pyx
+  - pandas/io/sas/sas.pyx

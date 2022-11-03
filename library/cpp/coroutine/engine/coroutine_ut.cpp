@@ -32,8 +32,8 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestException);
     UNIT_TEST(TestJoinCancelExitRaceBug);
     UNIT_TEST(TestWaitWakeLivelockBug);
-    UNIT_TEST(TestFastPathWakeDefault)
-    // TODO (velavokr): BALANCER-1338 our epoll wrapper cannot handle pipe eofs
+// TODO (velavokr): BALANCER-1338 our epoll wrapper cannot handle pipe eofs
+//    UNIT_TEST(TestFastPathWakeDefault)
 //    UNIT_TEST(TestFastPathWakeEpoll)
     UNIT_TEST(TestFastPathWakeKqueue)
     UNIT_TEST(TestFastPathWakePoll)
@@ -936,7 +936,13 @@ void TCoroTest::TestPollEngines() {
 
         if (engine == EContPoller::Default) {
             defaultChecked = true;
-            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Combined);
+#if defined(HAVE_EPOLL_POLLER)
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Epoll);
+#elif defined(HAVE_KQUEUE_POLLER)
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Kqueue);
+#else
+            UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), EContPoller::Select);
+#endif
         } else {
             UNIT_ASSERT_VALUES_EQUAL(exec.Poller()->PollEngine(), engine);
         }
