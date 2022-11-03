@@ -29,8 +29,6 @@ from pandas.core.dtypes.cast import (
 )
 from pandas.core.dtypes.common import (
     is_1d_only_ea_dtype,
-    is_1d_only_ea_obj,
-    is_datetime64tz_dtype,
     is_dtype_equal,
     is_scalar,
     needs_i8_conversion,
@@ -39,7 +37,10 @@ from pandas.core.dtypes.concat import (
     cast_to_common_type,
     concat_compat,
 )
-from pandas.core.dtypes.dtypes import ExtensionDtype
+from pandas.core.dtypes.dtypes import (
+    DatetimeTZDtype,
+    ExtensionDtype,
+)
 from pandas.core.dtypes.missing import (
     is_valid_na_for_dtype,
     isna,
@@ -147,16 +148,6 @@ def concat_arrays(to_concat: list) -> ArrayLike:
         target_dtype = np.find_common_type(list(dtypes), [])
     else:
         target_dtype = find_common_type([arr.dtype for arr in to_concat_no_proxy])
-
-    if target_dtype.kind in ["m", "M"]:
-        # for datetimelike use DatetimeArray/TimedeltaArray concatenation
-        # don't use arr.astype(target_dtype, copy=False), because that doesn't
-        # work for DatetimeArray/TimedeltaArray (returns ndarray)
-        to_concat = [
-            arr.to_array(target_dtype) if isinstance(arr, NullArrayProxy) else arr
-            for arr in to_concat
-        ]
-        return type(to_concat_no_proxy[0])._concat_same_type(to_concat, axis=0)
 
     to_concat = [
         arr.to_array(target_dtype)
@@ -382,7 +373,7 @@ class JoinUnit:
         return False
 
     @cache_readonly
-    def dtype(self):
+    def dtype(self) -> DtypeObj:
         blk = self.block
         if blk.values.dtype.kind == "V":
             raise AssertionError("Block is None, no dtype")
@@ -472,7 +463,8 @@ class JoinUnit:
                     if len(values) and values[0] is None:
                         fill_value = None
 
-                if is_datetime64tz_dtype(empty_dtype):
+                if isinstance(empty_dtype, DatetimeTZDtype):
+                    # NB: exclude e.g. pyarrow[dt64tz] dtypes
                     i8values = np.full(self.shape, fill_value.value)
                     return DatetimeArray(i8values, dtype=empty_dtype)
 
@@ -564,7 +556,7 @@ def _concatenate_join_units(
             else:
                 concat_values = concat_values.copy()
 
-    elif any(is_1d_only_ea_obj(t) for t in to_concat):
+    elif any(is_1d_only_ea_dtype(t.dtype) for t in to_concat):
         # TODO(EA2D): special case not needed if all EAs used HybridBlocks
         # NB: we are still assuming here that Hybrid blocks have shape (1, N)
         # concatting with at least one EA means we are concatting a single column
@@ -573,7 +565,9 @@ def _concatenate_join_units(
         # error: No overload variant of "__getitem__" of "ExtensionArray" matches
         # argument type "Tuple[int, slice]"
         to_concat = [
-            t if is_1d_only_ea_obj(t) else t[0, :]  # type: ignore[call-overload]
+            t
+            if is_1d_only_ea_dtype(t.dtype)
+            else t[0, :]  # type: ignore[call-overload]
             for t in to_concat
         ]
         concat_values = concat_compat(to_concat, axis=0, ea_compat_axis=True)

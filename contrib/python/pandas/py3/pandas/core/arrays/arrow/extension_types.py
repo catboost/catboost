@@ -1,52 +1,16 @@
+from __future__ import annotations
+
 import json
 
-import numpy as np
 import pyarrow
+
+from pandas._typing import IntervalClosedType
 
 from pandas.core.arrays.interval import VALID_CLOSED
 
 
-def pyarrow_array_to_numpy_and_mask(arr, dtype):
-    """
-    Convert a primitive pyarrow.Array to a numpy array and boolean mask based
-    on the buffers of the Array.
-
-    At the moment pyarrow.BooleanArray is not supported.
-
-    Parameters
-    ----------
-    arr : pyarrow.Array
-    dtype : numpy.dtype
-
-    Returns
-    -------
-    (data, mask)
-        Tuple of two numpy arrays with the raw data (with specified dtype) and
-        a boolean mask (validity mask, so False means missing)
-    """
-    dtype = np.dtype(dtype)
-
-    buflist = arr.buffers()
-    # Since Arrow buffers might contain padding and the data might be offset,
-    # the buffer gets sliced here before handing it to numpy.
-    # See also https://github.com/pandas-dev/pandas/issues/40896
-    offset = arr.offset * dtype.itemsize
-    length = len(arr) * dtype.itemsize
-    data_buf = buflist[1][offset : offset + length]
-    data = np.frombuffer(data_buf, dtype=dtype)
-    bitmask = buflist[0]
-    if bitmask is not None:
-        mask = pyarrow.BooleanArray.from_buffers(
-            pyarrow.bool_(), len(arr), [None, bitmask], offset=arr.offset
-        )
-        mask = np.asarray(mask)
-    else:
-        mask = np.ones(len(arr), dtype=bool)
-    return data, mask
-
-
 class ArrowPeriodType(pyarrow.ExtensionType):
-    def __init__(self, freq):
+    def __init__(self, freq) -> None:
         # attributes need to be set first before calling
         # super init (as that calls serialize)
         self._freq = freq
@@ -56,12 +20,12 @@ class ArrowPeriodType(pyarrow.ExtensionType):
     def freq(self):
         return self._freq
 
-    def __arrow_ext_serialize__(self):
+    def __arrow_ext_serialize__(self) -> bytes:
         metadata = {"freq": self.freq}
         return json.dumps(metadata).encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(cls, storage_type, serialized):
+    def __arrow_ext_deserialize__(cls, storage_type, serialized) -> ArrowPeriodType:
         metadata = json.loads(serialized.decode())
         return ArrowPeriodType(metadata["freq"])
 
@@ -71,7 +35,7 @@ class ArrowPeriodType(pyarrow.ExtensionType):
         else:
             return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((str(self), self.freq))
 
     def to_pandas_dtype(self):
@@ -86,11 +50,11 @@ pyarrow.register_extension_type(_period_type)
 
 
 class ArrowIntervalType(pyarrow.ExtensionType):
-    def __init__(self, subtype, closed):
+    def __init__(self, subtype, closed: IntervalClosedType) -> None:
         # attributes need to be set first before calling
         # super init (as that calls serialize)
         assert closed in VALID_CLOSED
-        self._closed = closed
+        self._closed: IntervalClosedType = closed
         if not isinstance(subtype, pyarrow.DataType):
             subtype = pyarrow.type_for_alias(str(subtype))
         self._subtype = subtype
@@ -103,15 +67,15 @@ class ArrowIntervalType(pyarrow.ExtensionType):
         return self._subtype
 
     @property
-    def closed(self):
+    def closed(self) -> IntervalClosedType:
         return self._closed
 
-    def __arrow_ext_serialize__(self):
+    def __arrow_ext_serialize__(self) -> bytes:
         metadata = {"subtype": str(self.subtype), "closed": self.closed}
         return json.dumps(metadata).encode()
 
     @classmethod
-    def __arrow_ext_deserialize__(cls, storage_type, serialized):
+    def __arrow_ext_deserialize__(cls, storage_type, serialized) -> ArrowIntervalType:
         metadata = json.loads(serialized.decode())
         subtype = pyarrow.type_for_alias(metadata["subtype"])
         closed = metadata["closed"]
@@ -127,7 +91,7 @@ class ArrowIntervalType(pyarrow.ExtensionType):
         else:
             return NotImplemented
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((str(self), str(self.subtype), self.closed))
 
     def to_pandas_dtype(self):
