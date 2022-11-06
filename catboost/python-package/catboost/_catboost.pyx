@@ -55,7 +55,7 @@ from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.hash_set cimport THashSet
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
+from util.generic.ptr cimport TAtomicSharedPtr, THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
@@ -954,6 +954,8 @@ cdef inline float _FloatOrNanFromString(const TString& s) except *:
 cdef extern from "catboost/libs/gpu_config/interface/get_gpu_device_count.h" namespace "NCB":
     cdef int GetGpuDeviceCount() except +ProcessException
 
+ctypedef void (*task_callback_ptr) (int) nogil
+ctypedef void (*callback_ptr) (int, int) nogil
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
@@ -979,6 +981,10 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
+    cdef void CallInParallel(ILocalExecutor* executor, task_callback_ptr, int block_count) nogil
+    cdef size_t column_block_size
+    cdef size_t objects_in_column    
+    cdef callback_ptr CallbackForColumnProcessing
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -2689,6 +2695,46 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
         flat_feature_idx,
         TMaybeOwningConstArrayHolder[ui32].CreateOwningMovedFrom(hashed_cat_values)
     )
+
+
+class ColumnProcessor:
+    def __init__(self, callback, column_array, result):
+        self.callback = callback
+        self.column_array = column_array
+        self.result = result
+        
+    def __call__(self, start, end):
+        for idx in range(start, end):
+            self.result[idx] = self.callback(self.column_array[idx])
+
+
+cdef void call_python_code(int block_id) nogil :        
+        CallbackForColumnProcessing(
+            block_id * column_block_size, 
+            min(
+                (block_id + 1) * column_block_size, 
+                objects_in_column
+            )
+        )
+
+
+cdef parallel_process_features_column_to_vector(
+        TAtomicSharedPtr[TTbbLocalExecutor] executor, 
+        column_array,
+        TVector[TString]* result,
+        object object_process_callback,
+        size_t block_size = 1024 * 16
+    ) :
+        column_block_size = block_size        
+        CallbackForColumnProcessing = ColumnProcessor(object_process_callback, column_array)
+        objects_in_column = len(column_array)
+        cdef size_t block_count = (objects_in_column + block_size - 1) // block_size    
+        with nogil:
+            CallInParallel(
+                <ILocalExecutor*>executor.Get(),
+                call_python_code,
+                block_count
+            )  
 
 
 # returns new data holders array
