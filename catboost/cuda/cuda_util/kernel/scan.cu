@@ -3,6 +3,7 @@
 #include "fill.cuh"
 
 #include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
+#include <contrib/libs/nvidia/cub/cub/iterator/transform_input_iterator.cuh>
 
 namespace NKernel {
 
@@ -82,7 +83,45 @@ namespace NKernel {
     SCAN_VECTOR(ui32, ui32)
     SCAN_VECTOR(float, float)
     SCAN_VECTOR(double, double)
-    SCAN_VECTOR(ui32, ui64)
+
+    namespace {
+        struct TCastToUi64 {
+            template <typename InputT>
+            __host__ __device__
+            ui64 operator()(InputT v) const
+            {
+                return static_cast<ui64>(v);
+            }
+        };
+        using TUi32AsUi64 = cub::TransformInputIterator<ui64, TCastToUi64, ui32*>;
+    }
+
+    template <>
+    cudaError_t ScanVector<ui32, ui64>(const ui32* input, ui64* output, ui32 size, bool inclusive, TScanKernelContext<ui32, ui64>& context, TCudaStream stream) {
+        TUi32AsUi64 inputAsUi64(const_cast<ui32*>(input), TCastToUi64());
+        if (inclusive) {
+            return cub::DeviceScan::InclusiveSum(context.PartResults, context.NumParts, inputAsUi64, output, size, stream);
+        } else {
+            return cub::DeviceScan::ExclusiveSum(context.PartResults, context.NumParts, inputAsUi64, output, size, stream);
+        }
+    }
+
+    template <>
+    ui64 ScanVectorTempSize<ui32, ui64>(ui32 size, bool inclusive) {
+        ui64 sizeInBytes = 0;
+        if (inclusive) {
+            cub::DeviceScan::InclusiveSum<TUi32AsUi64, ui64*>(nullptr, sizeInBytes, TUi32AsUi64(nullptr, TCastToUi64()), nullptr, size);
+        } else {
+            cub::DeviceScan::ExclusiveSum<TUi32AsUi64, ui64*>(nullptr, sizeInBytes, TUi32AsUi64(nullptr, TCastToUi64()), nullptr, size);
+        }
+        return sizeInBytes;
+    }
+
+    template <>
+    cudaError_t SegmentedScanNonNegativeVector<ui32, ui64>(const ui32* input, ui64* output, ui32 size, bool inclusive, TScanKernelContext<ui32, ui64>& context, TCudaStream stream) {
+        CB_ENSURE_INTERNAL(false, "This function should never be called");
+        return cudaErrorUnknown;
+    }
 
     #define SEGMENTED_SCAN_VECTOR(Type) \
     template  cudaError_t SegmentedScanAndScatterNonNegativeVector<Type>(const Type *input, const ui32* indices, Type *output, ui32 size, bool inclusive, TScanKernelContext<Type, Type>& context, TCudaStream stream);

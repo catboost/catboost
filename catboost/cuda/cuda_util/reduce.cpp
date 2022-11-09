@@ -96,7 +96,8 @@ Y_MAP_ARGS(
     (int, TSingleMapping),
     (float, TStripeMapping),
     (ui32, TStripeMapping),
-    (int, TStripeMapping));
+    (int, TStripeMapping),
+    (ui64, TStripeMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY

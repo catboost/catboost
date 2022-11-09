@@ -118,7 +118,7 @@ namespace NCatboostCuda {
                 }
             }
 
-            TCudaBuffer<ui32, TMapping> nzWeightPairIndices;
+            TCudaBuffer<ui64, TMapping> nzWeightPairIndices;
 
             FilterZeroEntries(&weights,
                               &nzWeightPairIndices);

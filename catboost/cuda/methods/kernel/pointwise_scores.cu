@@ -601,10 +601,10 @@ namespace NKernel {
                                         const struct TDataPartition* parts,
                                         struct TPartitionStatistics* partStats)
     {
-        const int tid = threadIdx.x;
+        const ui32 tid = threadIdx.x;
         parts += blockIdx.x;
         partStats += blockIdx.x;
-        const int size = parts->Size;
+        const ui32 size = parts->Size;
 
         __shared__ volatile double localBuffer[BLOCK_SIZE];
 
