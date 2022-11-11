@@ -7915,18 +7915,20 @@
         },
         "kubectl": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "ARCADIA_PROJECT_TGZ",
-                        "attributes": {
-                            "released": "stable",
-                            "type": "kubectl"
-                        },
-                        "owner": "RTC_INFRA"
+                "by_platform": {
+                    "linux": {
+                        "uri": "sbr:3752131478"
                     },
-                    "update_interval": 86400
-                },
-                "match": "kubectl"
+                    "linux-arm64": {
+                        "uri": "sbr:3752131406"
+                    },
+                    "darwin": {
+                        "uri": "sbr:3752131455"
+                    },
+                    "darwin-arm64": {
+                        "uri": "sbr:3752131456"
+                    }
+                }
             },
             "executable": {
                 "kubectl": [
@@ -8380,7 +8382,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1511641839,
+                "sandbox_id": 1515570556,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9045,7 +9047,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1512970426,
+                "sandbox_id": 1515570326,
                 "match": "bb_requester"
             },
             "executable": {
