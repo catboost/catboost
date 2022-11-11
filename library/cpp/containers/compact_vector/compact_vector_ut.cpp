@@ -94,4 +94,35 @@ Y_UNIT_TEST_SUITE(TCompactVectorTest) {
         UNIT_ASSERT_VALUES_EQUAL(3u, vector2[3]);
         UNIT_ASSERT_VALUES_EQUAL(5u, vector2[4]);
     }
+
+    Y_UNIT_TEST(TestReverseIterators) {
+        TCompactVector<std::string> vector = {
+                "мама",
+                "мыла",
+                "раму"
+        };
+
+        TCompactVector<std::string> reverseVector(vector.rbegin(), vector.rend());
+        UNIT_ASSERT_VALUES_EQUAL(3u, reverseVector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL("раму", reverseVector[0]);
+        UNIT_ASSERT_VALUES_EQUAL("мыла", reverseVector[1]);
+        UNIT_ASSERT_VALUES_EQUAL("мама", reverseVector[2]);
+    }
+
+    Y_UNIT_TEST(TestErase) {
+        TCompactVector<std::string> vector = {
+                "мама",
+                "утром",
+                "мыла",
+                "раму"
+        };
+
+        vector.erase(vector.begin() + 1);
+        UNIT_ASSERT_VALUES_EQUAL(3u, vector.Size());
+
+        UNIT_ASSERT_VALUES_EQUAL("мама", vector[0]);
+        UNIT_ASSERT_VALUES_EQUAL("мыла", vector[1]);
+        UNIT_ASSERT_VALUES_EQUAL("раму", vector[2]);
+    }
 }
