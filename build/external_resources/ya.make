@@ -2,7 +2,6 @@
 
 RECURSE(
     antlr3
-    antlr4
     eslint
     gradle
     maven

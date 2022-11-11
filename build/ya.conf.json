@@ -8458,15 +8458,7 @@
             }
         },
         "golang": {
-            "formula": {
-                "sandbox_id": [
-                    1455627161,
-                    1455627163,
-                    1455627162,
-                    1455627165
-                ],
-                "match": "GOLANG"
-            },
+            "formula": "build/external_resources/go_tools/resources.json",
             "executable": {
                 "go": [
                     "bin",
@@ -8785,7 +8777,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1503822523,
+                "sandbox_id": 1513290950,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -9317,8 +9309,17 @@
         },
         "tasklet": {
             "formula": {
-                "sandbox_id": 1513634554,
-                "match": "tasklet-tool"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "TASKLET_TOOL_TGZ",
+                        "attributes": {
+                            "released": "stable"
+                        },
+                        "owner": "TASKLETS"
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "tasklet": [
