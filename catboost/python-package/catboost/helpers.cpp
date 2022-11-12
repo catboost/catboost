@@ -305,5 +305,5 @@ void CallInParallel(NPar::ILocalExecutor* executor, void(*callback) (int block_i
     auto task = [&](int id) {
         callback(id);
     };
-    executor->ExecRange(task, 0, block_count, 0);
+    executor->ExecRange(task, 0, block_count, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
