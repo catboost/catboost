@@ -279,6 +279,7 @@ void TrainEvalSplit(
 
 extern thread_local size_t objects_in_column;
 extern thread_local size_t column_block_size;
+extern thread_local TVector<TString>* processing_result;
 
 typedef void (*callback_ptr) (int, int);
 extern thread_local callback_ptr CallbackForColumnProcessing;

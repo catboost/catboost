@@ -985,6 +985,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef size_t column_block_size
     cdef size_t objects_in_column    
     cdef callback_ptr CallbackForColumnProcessing
+    cdef TVector[TString]* processing_result
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -2698,14 +2699,13 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
 
 
 class ColumnProcessor:
-    def __init__(self, callback, column_array, result):
+    def __init__(self, object callback, column_array):
         self.callback = callback
-        self.column_array = column_array
-        self.result = result
+        self.column_array = column_array        
         
     def __call__(self, start, end):
         for idx in range(start, end):
-            self.result[idx] = self.callback(self.column_array[idx])
+            processing_result[idx] = self.callback(self.column_array[idx])
 
 
 cdef void call_python_code(int block_id) nogil :        
@@ -2725,6 +2725,7 @@ cdef parallel_process_features_column_to_vector(
         object object_process_callback,
         size_t block_size = 1024 * 16
     ) :
+        processing_result = result;
         column_block_size = block_size        
         CallbackForColumnProcessing = ColumnProcessor(object_process_callback, column_array)
         objects_in_column = len(column_array)
