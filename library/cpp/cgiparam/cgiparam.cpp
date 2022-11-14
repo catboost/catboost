@@ -100,8 +100,8 @@ void TCgiParameters::JoinUnescaped(const TStringBuf key, char sep, TStringBuf va
 static inline TString DoUnescape(const TStringBuf s) {
     TString res;
 
-    res.reserve(CgiUnescapeBufLen(s.size()));
-    res.ReserveAndResize(CgiUnescape(res.begin(), s).size());
+    res.ReserveAndResize(CgiUnescapeBufLen(s.size()));
+    res.resize(CgiUnescape(res.begin(), s).size());
 
     return res;
 }

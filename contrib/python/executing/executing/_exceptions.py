@@ -15,7 +15,8 @@ class VerifierFailure(Exception):
     """
 
     def __init__(self, title, node, instruction):
+        # type: (object, object, object) -> None
         self.node = node
         self.instruction = instruction
 
-        super().__init__(title)
+        super().__init__(title) # type: ignore[call-arg]

@@ -17,6 +17,7 @@ target_link_libraries(cpp-yt-memory PUBLIC
 )
 target_sources(cpp-yt-memory PRIVATE
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/blob.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/chunked_output_stream.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/ref_tracked.cpp
   ${CMAKE_SOURCE_DIR}/library/cpp/yt/memory/shared_range.cpp
