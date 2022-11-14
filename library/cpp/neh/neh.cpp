@@ -43,12 +43,20 @@ namespace {
         };
 
     public:
+        ~TMultiRequester() {
+            for (auto& req : Reqs_) {
+                req->Register(nullptr);
+            }
+        }
+
         void Add(const THandleRef& req) override {
             Reqs_.insert(req);
+            req->Register(&WaitQueue_);
         }
 
         void Del(const THandleRef& req) override {
             Reqs_.erase(req);
+            req->Register(nullptr);
         }
 
         bool Wait(THandleRef& req, TInstant deadLine) override {
@@ -56,11 +64,8 @@ namespace {
                 if (Reqs_.empty()) {
                     return false;
                 }
-
                 TOnComplete cb(this);
-
-                WaitForMultipleObj(Reqs_.begin(), Reqs_.end(), deadLine, cb);
-
+                WaitForMultipleObj(WaitQueue_, deadLine, cb);
                 if (!cb.Signalled) {
                     return false;
                 }
@@ -78,12 +83,13 @@ namespace {
 
         inline void OnComplete(const THandleRef& req) {
             Complete_.push_back(req);
-            Reqs_.erase(req);
+            Del(req);
         }
 
     private:
         typedef THashSet<THandleRef, TOps, TOps> TReqs;
         typedef TList<THandleRef> TComplete;
+        TWaitQueue WaitQueue_;
         TReqs Reqs_;
         TComplete Complete_;
     };
