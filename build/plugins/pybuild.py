@@ -159,7 +159,7 @@ def add_python_lint_checks(unit, py_ver, files):
     if files and unit.get('STYLE_PYTHON_VALUE') == 'yes' and is_py3(unit):
         resolved_files = get_resolved_files()
         if resolved_files:
-            black_cfg = 'devtools/ya/handlers/style/python_style_config.toml'
+            black_cfg =  unit.get('STYLE_PYTHON_PYPROJECT_VALUE') or 'devtools/ya/handlers/style/python_style_config.toml'
             unit.onadd_check(['black', black_cfg] + resolved_files)
 
 
