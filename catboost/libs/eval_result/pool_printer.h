@@ -25,9 +25,6 @@ namespace NCB {
         virtual ~IPoolColumnsPrinter() = default;
         virtual std::type_index GetOutputFeatureType(ui32 featureId) = 0;
         bool HasDocIdColumn = false;
-    private:
-        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
-        THashMap<EColumn, ui32> FromColumnTypeToColumnId; // Only for DSV pools
     };
 
     // pass this struct to to IPoolColumnsPrinter constructor
