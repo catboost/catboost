@@ -1189,6 +1189,7 @@ def test_predict_and_predict_proba_on_single_object(problem):
             assert np.array_equal(pred_probabilities[test_object_idx], model.predict_proba(test_data.values[test_object_idx]))
 
 
+@fails_on_gpu(how='Model contains categorical features, gpu evaluation impossible')
 def test_predict_on_gpu(task_type):
     if task_type == 'CPU':
         return
