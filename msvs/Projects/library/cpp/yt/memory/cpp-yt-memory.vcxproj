@@ -79,12 +79,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\blob.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_output_stream.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\ref_tracked.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\cpp\yt\memory\shared_range.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\blob.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\chunked_output_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\intrusive_ptr.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\new-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\yt\memory\new.h"/>
@@ -121,11 +119,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\exception\cpp-yt-exception.vcxproj">
       <Project>{51217491-819C-DE27-161A-18D787542A3D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\malloc\cpp-yt-malloc.vcxproj">
-      <Project>{6B88D0D6-B2A2-0B5B-EB03-2EFBCE7B1CAB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\misc\cpp-yt-misc.vcxproj">
       <Project>{C6F036AA-9EA5-68E2-EAF2-CDEFE55C0DD5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\api\cpp-ytalloc-api.vcxproj">
+      <Project>{D0B26F3B-1FA2-DBBE-795F-70EF8DDE9BE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
