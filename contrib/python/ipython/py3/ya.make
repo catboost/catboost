@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(8.5.0)
+VERSION(8.6.0)
 
 LICENSE(BSD-3-Clause)
 
@@ -185,6 +185,7 @@ PY_SRCS(
     IPython/utils/data.py
     IPython/utils/decorators.py
     IPython/utils/dir2.py
+    IPython/utils/docs.py
     IPython/utils/encoding.py
     IPython/utils/eventful.py
     IPython/utils/frame.py
