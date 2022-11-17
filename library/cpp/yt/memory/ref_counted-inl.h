@@ -68,21 +68,21 @@ struct TMemoryReleaser<T, std::enable_if_t<T::EnableHazard>>
 
 Y_FORCE_INLINE int TRefCounter::GetRefCount() const noexcept
 {
-    return StrongCount_.load(std::memory_order_acquire);
+    return StrongCount_.load(std::memory_order::acquire);
 }
 
 Y_FORCE_INLINE void TRefCounter::Ref(int n) const noexcept
 {
     // It is safe to use relaxed here, since new reference is always created from another live reference.
-    StrongCount_.fetch_add(n, std::memory_order_relaxed);
+    StrongCount_.fetch_add(n, std::memory_order::relaxed);
 
-    YT_ASSERT(WeakCount_.load(std::memory_order_relaxed) > 0);
+    YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 }
 
 Y_FORCE_INLINE bool TRefCounter::TryRef() const noexcept
 {
-    auto value = StrongCount_.load(std::memory_order_relaxed);
-    YT_ASSERT(WeakCount_.load(std::memory_order_relaxed) > 0);
+    auto value = StrongCount_.load(std::memory_order::relaxed);
+    YT_ASSERT(WeakCount_.load(std::memory_order::relaxed) > 0);
 
     while (value != 0 && !StrongCount_.compare_exchange_weak(value, value + 1));
     return value != 0;
@@ -95,10 +95,10 @@ Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
     //
     // See http://www.boost.org/doc/libs/1_55_0/doc/html/atomic/usage_examples.html#boost_atomic.usage_examples.example_reference_counters
     //
-    auto oldStrongCount = StrongCount_.fetch_sub(n, std::memory_order_release);
+    auto oldStrongCount = StrongCount_.fetch_sub(n, std::memory_order::release);
     YT_ASSERT(oldStrongCount >= n);
     if (oldStrongCount == n) {
-        std::atomic_thread_fence(std::memory_order_acquire);
+        std::atomic_thread_fence(std::memory_order::acquire);
         NSan::Acquire(&StrongCount_);
         return true;
     } else {
@@ -108,21 +108,21 @@ Y_FORCE_INLINE bool TRefCounter::Unref(int n) const
 
 Y_FORCE_INLINE int TRefCounter::GetWeakRefCount() const noexcept
 {
-    return WeakCount_.load(std::memory_order_acquire);
+    return WeakCount_.load(std::memory_order::acquire);
 }
 
 Y_FORCE_INLINE void TRefCounter::WeakRef() const noexcept
 {
-    auto oldWeakCount = WeakCount_.fetch_add(1, std::memory_order_relaxed);
+    auto oldWeakCount = WeakCount_.fetch_add(1, std::memory_order::relaxed);
     YT_ASSERT(oldWeakCount > 0);
 }
 
 Y_FORCE_INLINE bool TRefCounter::WeakUnref() const
 {
-    auto oldWeakCount = WeakCount_.fetch_sub(1, std::memory_order_release);
+    auto oldWeakCount = WeakCount_.fetch_sub(1, std::memory_order::release);
     YT_ASSERT(oldWeakCount > 0);
     if (oldWeakCount == 1) {
-        std::atomic_thread_fence(std::memory_order_acquire);
+        std::atomic_thread_fence(std::memory_order::acquire);
         NSan::Acquire(&WeakCount_);
         return true;
     } else {
