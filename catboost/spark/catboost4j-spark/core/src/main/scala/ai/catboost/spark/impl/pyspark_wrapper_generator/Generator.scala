@@ -25,7 +25,6 @@ object Generator {
 import collections
 import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from py4j.java_gateway import JavaObject
 
@@ -39,7 +38,7 @@ from pyspark.ml.classification import JavaProbabilisticClassificationModel
 from pyspark.ml.regression import JavaRegressionModel
 """
         )
-      case "3.1" | "3.2" | "3.3" => out.println(s"""
+      case "3.1" | "3.2" => out.println(s"""
 from pyspark.ml.classification import _JavaProbabilisticClassificationModel
 from pyspark.ml.regression import _JavaRegressionModel
 """
@@ -67,9 +66,6 @@ import pyspark.ml.wrapper
 from pyspark.ml.wrapper import JavaParams, JavaEstimator, JavaWrapper
 from pyspark.sql import DataFrame, SparkSession
 
-
-if TYPE_CHECKING:
-    from pyspark.sql._typing import OptionalPrimitiveType
 
 "\""
     original JavaParams._from_java has to be replaced because of hardcoded class names transformation
@@ -130,7 +126,7 @@ def _py2java(sc, obj):
     if isinstance(obj, Enum):
         return getattr(
             getattr(
-                sc._jvm.ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl,
+                sc._jvm.ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl, 
                 obj.__class__.__name__
             ),
             'swigToEnum'
@@ -148,7 +144,7 @@ def _java2py(sc, r, encoding="bytes"):
         enumValues = r.getClass().getEnumConstants()
         if (enumValues is not None) and (len(enumValues) > 0):
             return globals()[r.getClass().getSimpleName()](r.swigValue())
-
+        
         clsName = r.getClass().getName()
         if clsName == 'java.time.Duration':
             return datetime.timedelta(milliseconds=r.toMillis())
@@ -183,7 +179,7 @@ class CatBoostMLReader(JavaMLReader):
 """
     )
   }
-
+  
   def jvmToPyValueAsString[T](obj: T) : String = {
     if (obj.isInstanceOf[java.time.Duration]) {
       val durationInMilliseconds = obj.asInstanceOf[java.time.Duration].toMillis()
@@ -194,7 +190,7 @@ class CatBoostMLReader(JavaMLReader):
       obj.toString()
     }
   }
-
+  
   /**
    * @return "param=value, ..."
    */
@@ -209,13 +205,13 @@ class CatBoostMLReader(JavaMLReader):
       }
     ).mkString(", ")
   }
-
+  
   def getParamNameToPythonTypeMap[Params : universe.TypeTag](obj: Params) : Map[String,String] = {
     val result = mutable.Map[String,String]()
-
+    
     val paramReg = """.*Param\[([\w\.]+)\]""".r
     val enumParamReg = """.*EnumParam\[([\w\.]+)\]""".r
-
+    
     for (member <- universe.typeOf[Params].members) {
       val pyType = member.typeSignature.typeSymbol.name.toString match {
         case "BooleanParam" => Some("bool")
@@ -240,23 +236,23 @@ class CatBoostMLReader(JavaMLReader):
           }
         }
         case _ => None
-      }
+      } 
       pyType match {
-        case Some(pyType) => {
-          result += (member.name.toString.trim -> pyType)
+        case Some(pyType) => { 
+          result += (member.name.toString.trim -> pyType) 
         }
         case None => ()
       }
     }
-
+    
     result.toMap
   }
-
+  
   def getEnumNamesUsedInParams[Params : universe.TypeTag](obj: Params) : Set[String] = {
     val result = new mutable.HashSet[String]()
-
+    
     val enumReg = """.*EnumParam\[([\w\.]+)\]""".r
-
+    
     for (member <- universe.typeOf[Params].members) {
       val pyType = member.typeSignature.typeSymbol.name.toString match {
         case "EnumParam" => {
@@ -270,22 +266,22 @@ class CatBoostMLReader(JavaMLReader):
         case _ => None
       }
     }
-
+    
     result.toSet
   }
-
+  
   def patchJvmToPyEnumValue(enumValue: Object) : String = {
     val valueAsString = enumValue.toString
     if (valueAsString.equals("None")) { "No" } else { valueAsString }
   }
 
-
+  
   def generateEnumDefinitions(enumNames: Set[String], out: PrintWriter) = {
     val sortedEnumNames = enumNames.toSeq.sorted
 
     for (enumName <- sortedEnumNames) {
       val enumClass = Class.forName(s"ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl.$enumName")
-
+      
       out.print(
         s"""
 class $enumName(Enum):
@@ -298,9 +294,9 @@ class $enumName(Enum):
       out.println("")
     }
   }
-
+  
   /**
-   * @return "param : type, default: <value>
+   * @return "param : type, default: <value> 
    *         "    <description>"
    *         ...
    */
@@ -318,7 +314,7 @@ class $enumName(Enum):
       }
     ).mkString("\n")
   }
-
+  
   /**
    * @return "       self.<param> = Param(...)"
    *         "       self._setDefault(<param>=<value>)" ...
@@ -368,7 +364,7 @@ class $enumName(Enum):
       }
     ).mkString("\n")
   }
-
+  
   /**
    * without __init__
    */
@@ -392,7 +388,7 @@ ${generateParamsDocStrings(params, tabShift=2)}
 ${generateParamsGettersAndSetters(params)}
 """
   }
-
+  
   def generateStandardParamsWrapper[ParamsClass: universe.TypeTag](params: ParamsClass, out: PrintWriter) = {
     val paramsAsParamsClass = params.asInstanceOf[Params]
     val paramsKeywordArgs = generateParamsKeywordArgs(paramsAsParamsClass)
@@ -422,7 +418,7 @@ ${generateParamsPart(params, paramsKeywordArgs)}
 """
     )
   }
-
+  
   def generateForwardedAccessors(accessors: Seq[(String, String)]) : String = {
     accessors.map{
       case (accessor, docString) => s"""
@@ -434,74 +430,10 @@ ${generateParamsPart(params, paramsKeywordArgs)}
 """
     }.mkString("\n")
   }
-
-
-  def generatePoolSerializationWrappers(out: PrintWriter) = {
-
-    out.println(
-      s"""
-class PoolReader(JavaWrapper):
-    "\""
-    This class is used to load a :class:`Pool` from external storage systems (it is analogous to PySpark's DataFrameReader).
-    Use Pool.read() to get it.
-    "\""
-    def __init__(self, sparkSession: "SparkSession"):
-        super(PoolReader, self).__init__(JavaWrapper._new_java_obj("ai.catboost.spark.PoolReader", sparkSession))
-
-    def dataFramesReaderFormat(self, source: str) -> "PoolReader":
-        self._java_obj = self._java_obj.dataFramesReaderFormat(source)
-        return self
-
-    def dataFramesReaderOption(self, key: str, value: "OptionalPrimitiveType") -> "PoolReader":
-        self._java_obj = self._java_obj.dataFramesReaderOption(key, to_str(value))
-        return self
-
-    def dataFramesReaderOptions(self, **options: "OptionalPrimitiveType") -> "PoolReader":
-        for k in options:
-            self._java_obj = self._java_obj.dataFramesReaderOption(key, to_str(options[k]))
-        return self
-
-    def load(self, path: str) -> "Pool":
-        return Pool(self._java_obj.load(path))
-
-
-class PoolWriter(JavaWrapper):
-    "\""
-    This class is used to save :class:`Pool` to external storage systems (it is analogous to PySpark's DataFrameWriter).
-      Use Pool.write() to get it.
-    "\""
-    def __init__(self, pool: "Pool"):
-        super(PoolWriter, self).__init__(pool._java_obj.write())
-
-    def dataFramesWriterFormat(self, source: str) -> "PoolWriter":
-        self._java_obj = self._java_obj.dataFramesWriterFormat(source)
-        return self
-
-    def dataFramesWriterOption(self, key: str, value: "OptionalPrimitiveType") -> "PoolWriter":
-        self._java_obj = self._java_obj.dataFramesWriterOption(key, to_str(value))
-        return self
-
-    def dataFramesWriterOptions(self, **options: "OptionalPrimitiveType") -> "PoolWriter":
-        for k in options:
-            self._java_obj = self._java_obj.dataFramesWriterOption(key, to_str(options[k]))
-        return self
-
-    def mode(self, saveModeArg: str) -> "PoolWriter":
-        self._java_obj = self._java_obj.mode(saveModeArg)
-        return self
-
-    def save(self, path: str) -> None:
-        self._java_obj.save(path)
-
-"""
-    )
-  }
-
+  
   def generatePoolWrapper(out: PrintWriter) = {
-    generatePoolSerializationWrappers(out)
-
     val pool = new Pool(null)
-
+    
     val paramsKeywordArgs = generateParamsKeywordArgs(pool)
     val forwardedAccessors = Seq(
       ("isQuantized","Returns whether the main `data` has already been quantized."),
@@ -511,7 +443,7 @@ class PoolWriter(JavaWrapper):
       ("pairsCount", "Returns the number of rows in the `pairsData` DataFrame."),
       ("getBaselineCount", "Returns the dimension of the baseline data (0 if not specified).")
     )
-
+    
     out.println(
       s"""
 class Pool(JavaParams):
@@ -537,7 +469,7 @@ class Pool(JavaParams):
 
         super(Pool, self).__init__(java_obj)
 ${generateParamsInitialization(pool)}
-
+      
 ${generateParamsPart(pool, paramsKeywordArgs)}
 
     def _call_java(self, name, *args):
@@ -581,7 +513,7 @@ ${generateForwardedAccessors(forwardedAccessors)}
         Load dataset in one of CatBoost's natively supported formats:
            * dsv - https://catboost.ai/docs/concepts/input-data_values-file.html
            * libsvm - https://catboost.ai/docs/concepts/input-data_libsvm.html
-
+        
         Parameters
         ----------
         sparkSession : SparkSession
@@ -590,14 +522,14 @@ ${generateForwardedAccessors(forwardedAccessors)}
             For example, `dsv:///home/user/datasets/my_dataset/train.dsv` or
             `libsvm:///home/user/datasets/my_dataset/train.libsvm`
         columnDescription : str, optional
-            Path to column description file. See https://catboost.ai/docs/concepts/input-data_column-descfile.html
+            Path to column description file. See https://catboost.ai/docs/concepts/input-data_column-descfile.html 
         params : PoolLoadParams, optional
             Additional params specifying data format.
         pairsDataPathWithScheme : str, optional
             Path with scheme to dataset pairs in CatBoost format.
             Only "dsv-grouped" format is supported for now.
             For example, `dsv-grouped:///home/user/datasets/my_dataset/train_pairs.dsv`
-
+        
         Returns
         -------
            Pool
@@ -618,34 +550,10 @@ ${generateForwardedAccessors(forwardedAccessors)}
         )
         return Pool(java_obj)
 
-    @staticmethod
-    def read(sparkSession) -> "PoolReader":
-        "\""
-        Interface for reading the content from external storage (API similar to PySpark's DataFrameReader)
-
-        Returns
-        -------
-            PoolReader
-                PoolReader helper class to read Pool data
-        "\""
-        return PoolReader(sparkSession)
-
-    @property
-    def write(self) -> "PoolWriter":
-        "\""
-        Interface for saving the content out into external storage (API similar to PySpark's DataFrameWriter)
-
-        Returns
-        -------
-            PoolWriter
-                PoolWriter helper class to save Pool data
-        "\""
-        return PoolWriter(self)
-
 """
     )
   }
-
+  
   def generateEstimatorAndModelWrapper[EstimatorClass: universe.TypeTag, ModelClass: universe.TypeTag](
     estimator: EstimatorClass,
     model: ModelClass,
@@ -663,7 +571,7 @@ ${generateForwardedAccessors(forwardedAccessors)}
     val modelAsParams = model.asInstanceOf[Params]
     val modelParamsKeywordArgs = generateParamsKeywordArgs(modelAsParams)
 
-
+    
     out.println(
       s"""
 
@@ -715,9 +623,9 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
         Extended variant of standard Estimator's fit method
         that accepts CatBoost's Pool s and allows to specify additional
         datasets for computing evaluation metrics and overfitting detection similarily to CatBoost's other APIs.
-
+        
         Parameters
-        ----------
+        ---------- 
         dataset : Pool or DataFrame
           The input training dataset.
         params : dict or list or tuple, optional
@@ -729,7 +637,7 @@ ${generateParamsPart(estimator, estimatorParamsKeywordArgs)}
            - overfitting detector
            - best iteration selection
            - monitoring metrics' changes
-
+        
         Returns
         -------
         trained model(s): $modelClassName or a list of trained $modelClassName
@@ -821,7 +729,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         return self._call_java("transformPool", pool)
 
 
-    def getFeatureImportance(self,
+    def getFeatureImportance(self, 
                              fstrType=EFstrType.FeatureImportance,
                              data=None,
                              calcType=ECalcTypeShapValues.Regular
@@ -837,7 +745,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
             with flag to store no leaf weights.
             otherwise it can be null
         calcType : ECalcTypeShapValues
-            Used only for PredictionValuesChange.
+            Used only for PredictionValuesChange. 
             Possible values:
               - Regular
                  Calculate regular SHAP values
@@ -853,7 +761,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         "\""
         return self._call_java("getFeatureImportance", fstrType, data, calcType)
 
-    def getFeatureImportancePrettified(self,
+    def getFeatureImportancePrettified(self, 
                                        fstrType=EFstrType.FeatureImportance,
                                        data=None,
                                        calcType=ECalcTypeShapValues.Regular
@@ -869,7 +777,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
             with flag to store no leaf weights.
             otherwise it can be null
         calcType : ECalcTypeShapValues
-            Used only for PredictionValuesChange.
+            Used only for PredictionValuesChange. 
             Possible values:
 
               - Regular
@@ -930,14 +838,14 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         Returns
         -------
         DataFrame
-            - for regression and binclass models:
+            - for regression and binclass models: 
               contains outputColumns and "shapValues" column with Vector of length (n_features + 1) with SHAP values
             - for multiclass models:
               contains outputColumns and "shapValues" column with Matrix of shape (n_classes x (n_features + 1)) with SHAP values
         "\""
         return self._call_java(
-            "getFeatureImportanceShapValues",
-            data,
+            "getFeatureImportanceShapValues", 
+            data, 
             preCalcMode,
             calcType,
             modelOutputType,
@@ -953,7 +861,7 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
                                                   calcType=ECalcTypeShapValues.Regular,
                                                   outputColumns=None):
         "\""
-        SHAP interaction values are calculated for all features pairs if nor featureIndices nor featureNames
+        SHAP interaction values are calculated for all features pairs if nor featureIndices nor featureNames 
           are specified.
 
         Parameters
@@ -993,17 +901,17 @@ ${generateParamsPart(model, modelParamsKeywordArgs)}
         Returns
         -------
         DataFrame
-            - for regression and binclass models:
+            - for regression and binclass models: 
               contains outputColumns and "featureIdx1", "featureIdx2", "shapInteractionValue" columns
             - for multiclass models:
               contains outputColumns and "classIdx", "featureIdx1", "featureIdx2", "shapInteractionValue" columns
         "\""
         return self._call_java(
-            "getFeatureImportanceShapInteractionValues",
+            "getFeatureImportanceShapInteractionValues", 
             data,
             featureIndices,
             featureNames,
-            preCalcMode,
+            preCalcMode, 
             calcType,
             outputColumns
         )
@@ -1037,7 +945,7 @@ s"""
       )
     }
   }
-
+  
   def generateVersionPy(modulePath: File, version: String) = {
     val versionPyWriter = new PrintWriter(new File(modulePath, "version.py"))
     try {
@@ -1046,20 +954,18 @@ s"""
       versionPyWriter.close
     }
   }
-
+  
   def generateInitPy(modulePath: File, enumsUsedInParams: Set[String]) = {
     val exportList = Seq(
         "PoolLoadParams",
         "QuantizationParams",
-        "PoolReader",
-        "PoolWriter",
-        "Pool",
+        "Pool", 
         "CatBoostClassificationModel",
         "CatBoostClassifier",
         "CatBoostRegressionModel",
         "CatBoostRegressor"
     ) ++ enumsUsedInParams.toSeq.sorted
-
+    
     val initPyWriter = new PrintWriter(new File(modulePath, "__init__.py"))
     try {
       initPyWriter.print("""
@@ -1083,9 +989,9 @@ __all__ = [
       initPyWriter.close
     }
   }
-
+  
   /**
-   * @param args expects 3 arguments:
+   * @param args expects 3 arguments: 
    *  1) package version
    *  2) output dir
    *  3) spark compat version (like '2.4')
@@ -1093,12 +999,12 @@ __all__ = [
   def main(args: Array[String]) : Unit = {
     try {
       val sparkCompatVersion = args(2)
-
+      
       val modulePath = new File(args(1))
       modulePath.mkdirs()
-
+      
       generateVersionPy(modulePath, args(0))
-
+      
       val enumsUsedInParams = (
           getEnumNamesUsedInParams(new params.QuantizationParams)
           ++ getEnumNamesUsedInParams(new Pool(null))
@@ -1107,9 +1013,9 @@ __all__ = [
           + "EModelType"
           ++ Set("EFstrType", "ECalcTypeShapValues", "EPreCalcShapValues", "EExplainableModelOutput")
       )
-
+      
       generateInitPy(modulePath, enumsUsedInParams)
-
+      
       val corePyWriter = new PrintWriter(new File(modulePath, "core.py"))
       try {
         generateCorePyPrologue(sparkCompatVersion, corePyWriter)
@@ -1118,11 +1024,11 @@ __all__ = [
         generatePoolWrapper(corePyWriter)
         generateEnumDefinitions(enumsUsedInParams, corePyWriter)
         generateEstimatorAndModelWrapper(
-          new CatBoostRegressor,
-          new CatBoostRegressionModel(new native_impl.TFullModel()),
+          new CatBoostRegressor, 
+          new CatBoostRegressionModel(new native_impl.TFullModel()), 
           sparkCompatVersion match {
             case "3.0" => "JavaRegressionModel"
-            case "3.1" | "3.2" | "3.3" => "_JavaRegressionModel"
+            case "3.1" | "3.2" => "_JavaRegressionModel"
             case _ => "JavaPredictionModel"
           },
           "Class to train CatBoostRegressionModel",
@@ -1131,11 +1037,11 @@ __all__ = [
           corePyWriter
         )
         generateEstimatorAndModelWrapper(
-          new CatBoostClassifier,
+          new CatBoostClassifier, 
           new CatBoostClassificationModel(new native_impl.TFullModel()),
           sparkCompatVersion match {
             case "3.0" => "JavaProbabilisticClassificationModel"
-            case "3.1" | "3.2" | "3.3" => "_JavaProbabilisticClassificationModel"
+            case "3.1" | "3.2" => "_JavaProbabilisticClassificationModel"
             case _ => "JavaClassificationModel"
           },
           "Class to train CatBoostClassificationModel",

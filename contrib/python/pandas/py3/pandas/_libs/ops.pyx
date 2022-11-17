@@ -1,6 +1,5 @@
 import operator
 
-cimport cython
 from cpython.object cimport (
     Py_EQ,
     Py_GE,
@@ -10,8 +9,9 @@ from cpython.object cimport (
     Py_NE,
     PyObject_RichCompareBool,
 )
-from cython cimport Py_ssize_t
 
+import cython
+from cython import Py_ssize_t
 import numpy as np
 
 from numpy cimport (
@@ -194,7 +194,7 @@ def scalar_binop(object[:] values, object val, object op) -> ndarray:
     """
     cdef:
         Py_ssize_t i, n = len(values)
-        object[::1] result
+        object[:] result
         object x
 
     result = np.empty(n, dtype=object)
@@ -231,7 +231,7 @@ def vec_binop(object[:] left, object[:] right, object op) -> ndarray:
     """
     cdef:
         Py_ssize_t i, n = len(left)
-        object[::1] result
+        object[:] result
 
     if n != <Py_ssize_t>len(right):
         raise ValueError(f'Arrays were different lengths: {n} vs {len(right)}')

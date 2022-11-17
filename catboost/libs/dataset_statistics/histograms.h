@@ -2,31 +2,26 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/json_helpers.h>
-#include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
-#include <util/generic/map.h>
 #include <util/ysaveload.h>
 
 namespace  NCB {
 enum class EHistogramType {
     Uniform,   // (-inf, MinValue], (MinValue, MinValue + step], ... , (MaxValue - step, MaxValue]
-    Exact,
-    Borders
+    Borders,
+    Undefined
 };
-constexpr ui32 MAX_EXACT_HIST_SIZE = 1 << 8;
 
 struct TBorders {
 public:
     TBorders()
-        : HistogramType(EHistogramType::Exact)
+        : HistogramType(EHistogramType::Undefined)
     {}
 
     TVector<float> GetBorders() const;
-    TVector<float> GetBins() const;
-    TVector<ui64> GetExactHistogram() const;
 
     bool operator==(const TBorders& rhs);
 
@@ -36,7 +31,7 @@ public:
     {}
 
     TBorders(ui32 maxBorderCount, float minValue, float maxValue)
-        : HistogramType(EHistogramType::Exact)
+        : HistogramType(EHistogramType::Uniform)
         , MaxBorderCount(maxBorderCount)
         , MinValue(minValue)
         , MaxValue(maxValue)
@@ -49,8 +44,7 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue,
-        BitHistogram
+        MaxValue
     );
 
     SAVELOAD(
@@ -58,8 +52,7 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue,
-        BitHistogram
+        MaxValue
     );
 
     NJson::TJsonValue ToJson() const;
@@ -96,7 +89,6 @@ public:
     ui32 MaxBorderCount;
     float MinValue;
     float MaxValue;
-    TMap<float, ui64> BitHistogram;
 };
 
 struct TFloatFeatureHistogram {
@@ -109,16 +101,14 @@ public:
         : Borders(borders), Nans(0), MinusInf(0), PlusInf(0)
     {}
 
-    void Update(TFloatFeatureHistogram &histograms);
+    void Update(const TFloatFeatureHistogram &histograms);
 
-    void CalcUniformHistogram(const TVector<float>& features, const TVector<ui64>& count={});
+    void CalcUniformHistogram(const TVector<float>& features);
 
     void CalcHistogramWithBorders(const TVector<float>& featureColumn);
 
     // featuresColumn will be shuffled after call
     void CalcHistogramWithBorders(TVector<float>* featureColumnPtr);
-
-    TVector<ui64> GetHistogram() const;
 
     Y_SAVELOAD_DEFINE(
         Histogram,
@@ -141,10 +131,6 @@ public:
 private:
     bool ProcessNotNummeric(float f);
 
-    void ConvertBitToUniformIfNeeded();
-
-    void ConvertBitToUniform();
-
 public:
     TVector<ui64> Histogram;
     TBorders Borders;
@@ -158,42 +144,28 @@ struct THistograms {
 public:
     THistograms() = default;
 
-    THistograms(const TVector<TBorders>& floatFeatureBorders, ERawTargetType targetType, const TVector<TBorders>& targetBorders) {
+    THistograms(const TVector<TBorders>& floatFeatureBorders) {
         FloatFeatureHistogram.reserve(floatFeatureBorders.size());
         for (const auto& borders: floatFeatureBorders) {
             FloatFeatureHistogram.emplace_back(TFloatFeatureHistogram(borders));
-        }
-        if (targetType == ERawTargetType::Float) {
-            TargetHistogram = TVector<TFloatFeatureHistogram>();
-            for (const auto& borders: targetBorders) {
-                TargetHistogram->emplace_back(TFloatFeatureHistogram(borders));
-            }
         }
     }
 
     NJson::TJsonValue ToJson() const;
 
-    void Update(THistograms& histograms);
+    void Update(const THistograms& histograms);
 
     void AddFloatFeatureUniformHistogram(
         ui32 featureId,
         TVector<float>* features
     );
 
-    void AddTargetHistogram(
-        ui32 featureId,
-        TVector<float>* features
-    );
-
-
     Y_SAVELOAD_DEFINE(
-        FloatFeatureHistogram,
-        TargetHistogram
+        FloatFeatureHistogram
     );
 
     SAVELOAD(
-        FloatFeatureHistogram,
-        TargetHistogram
+        FloatFeatureHistogram
     );
 
     ui64 GetObjectCount() const {
@@ -209,6 +181,5 @@ public:
 
 public:
     TVector<TFloatFeatureHistogram> FloatFeatureHistogram;
-    TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
 };
 }

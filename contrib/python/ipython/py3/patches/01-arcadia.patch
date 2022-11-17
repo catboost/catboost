@@ -1,6 +1,6 @@
 --- contrib/python/ipython/py3/IPython/core/completer.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/completer.py	(working tree)
-@@ -1362,6 +1362,7 @@ def _make_signature(completion)-> str:
+@@ -1029,6 +1029,7 @@ def _make_signature(completion)-> str:
  
      """
  
@@ -8,25 +8,43 @@
      # it looks like this might work on jedi 0.17
      if hasattr(completion, 'get_signatures'):
          signatures = completion.get_signatures()
-@@ -1921,1 +1922,1 @@ class IPCompleter(Completer):
+@@ -1442,7 +1443,7 @@ class IPCompleter(Completer):
+                 else:
+                     raise ValueError("Don't understand self.omit__names == {}".format(self.omit__names))
+ 
 -        interpreter = jedi.Interpreter(text[:offset], namespaces)
 +        interpreter = jedi.Interpreter(text[:offset], namespaces, column=cursor_column, line=cursor_line + 1)
-@@ -1948,1 +1949,1 @@ class IPCompleter(Completer):
+         try_jedi = True
+ 
+         try:
+@@ -1469,7 +1470,7 @@ class IPCompleter(Completer):
+         if not try_jedi:
+             return []
+         try:
 -            return filter(completion_filter, interpreter.complete(column=cursor_column, line=cursor_line + 1))
 +            return filter(completion_filter, interpreter.completions())
+         except Exception as e:
+             if self.debug:
+                 return [_FakeJediCompletion('Oops Jedi has crashed, please report a bug with the following:\n"""\n%s\ns"""' % (e))]
 --- contrib/python/ipython/py3/IPython/core/completerlib.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/completerlib.py	(working tree)
-@@ -20,2 +20,3 @@ These are all loaded by default by IPython.
+@@ -18,6 +18,7 @@ These are all loaded by default by IPython.
+ # Stdlib imports
+ import glob
  import inspect
 +import itertools
  import os
-@@ -40,4 +41,6 @@ from IPython import get_ipython
+ import re
+ import sys
+@@ -39,6 +40,8 @@ from IPython import get_ipython
+ 
  from typing import List
  
 +from __res import importer
 +
  #-----------------------------------------------------------------------------
  # Globals and constants
+ #-----------------------------------------------------------------------------
 @@ -64,6 +67,50 @@ magic_run_re = re.compile(r'.*(\.ipy|\.ipynb|\.py[w]?)$')
  # Local utilities
  #-----------------------------------------------------------------------------
@@ -114,6 +132,23 @@
          completion_list = try_import('.'.join(mod[:-1]), True)
          return ['.'.join(mod[:-1] + [el]) for el in completion_list]
  
+--- contrib/python/ipython/py3/IPython/core/extensions.py	(index)
++++ contrib/python/ipython/py3/IPython/core/extensions.py	(working tree)
+@@ -84,11 +84,11 @@ class ExtensionManager(Configurable):
+         if module_str in self.loaded:
+             return "already loaded"
+ 
+-        from IPython.utils.syspathcontext import prepended_to_syspath
+-
+         with self.shell.builtin_trap:
+             if module_str not in sys.modules:
+-                with prepended_to_syspath(self.ipython_extension_dir):
++                try:
++                    sys.modules[module_str] = __import__('IPython.extensions.' + module_str)
++                except ImportError:
+                     mod = import_module(module_str)
+                     if mod.__file__.startswith(self.ipython_extension_dir):
+                         print(("Loading extensions from {dir} is deprecated. "
 --- contrib/python/ipython/py3/IPython/core/profiledir.py	(index)
 +++ contrib/python/ipython/py3/IPython/core/profiledir.py	(working tree)
 @@ -112,13 +112,11 @@ class ProfileDir(LoggingConfigurable):

@@ -1319,8 +1319,6 @@ _PyObject_GenericGetAttrWithDict(PyObject *obj, PyObject *name,
         PyErr_Format(PyExc_AttributeError,
                      "'%.50s' object has no attribute '%U'",
                      tp->tp_name, name);
-
-        set_attribute_error_context(obj, name);
     }
   done:
     Py_XDECREF(descr);

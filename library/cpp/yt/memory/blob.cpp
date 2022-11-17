@@ -1,8 +1,8 @@
 #include "blob.h"
 
-#include "ref.h"
+#include <library/cpp/yt/memory/ref.h>
 
-#include <library/cpp/yt/malloc/malloc.h>
+#include <library/cpp/ytalloc/api/ytalloc.h>
 
 namespace NYT {
 
@@ -148,8 +148,8 @@ void TBlob::Reset()
 char* TBlob::DoAllocate(size_t size)
 {
     return static_cast<char*>(PageAligned_
-        ? ::aligned_malloc(size, GetPageSize())
-        : ::malloc(size));
+        ? NYTAlloc::AllocatePageAligned(size)
+        : NYTAlloc::Allocate(size));
 }
 
 void TBlob::Allocate(size_t newCapacity)

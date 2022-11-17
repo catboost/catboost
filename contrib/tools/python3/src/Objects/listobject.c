@@ -77,14 +77,8 @@ list_resize(PyListObject *self, Py_ssize_t newsize)
 
     if (newsize == 0)
         new_allocated = 0;
-    if (new_allocated <= (size_t)PY_SSIZE_T_MAX / sizeof(PyObject *)) {
-        num_allocated_bytes = new_allocated * sizeof(PyObject *);
-        items = (PyObject **)PyMem_Realloc(self->ob_item, num_allocated_bytes);
-    }
-    else {
-        // integer overflow
-        items = NULL;
-    }
+    num_allocated_bytes = new_allocated * sizeof(PyObject *);
+    items = (PyObject **)PyMem_Realloc(self->ob_item, num_allocated_bytes);
     if (items == NULL) {
         PyErr_NoMemory();
         return -1;

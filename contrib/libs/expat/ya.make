@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(2.5.0)
+VERSION(2.4.9)
 
-ORIGINAL_SOURCE(https://github.com/libexpat/libexpat/releases/download/R_2_5_0/expat-2.5.0.tar.xz)
+ORIGINAL_SOURCE(https://github.com/libexpat/libexpat/releases/download/R_2_4_9/expat-2.4.9.tar.xz)
 
 LICENSE(
     CC0-1.0 AND
@@ -25,13 +25,13 @@ NO_COMPILER_WARNINGS()
 
 NO_RUNTIME()
 
-CFLAGS(
-    -DHAVE_CONFIG_H
-)
-
 IF (OS_WINDOWS)
     CFLAGS(
         GLOBAL -DXML_STATIC
+    )
+ELSE()
+    CFLAGS(
+        -DHAVE_EXPAT_CONFIG_H
     )
 ENDIF()
 

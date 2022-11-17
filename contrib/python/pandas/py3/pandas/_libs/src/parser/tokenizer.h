@@ -19,7 +19,7 @@ See LICENSE for the license
 #define ERROR_OVERFLOW 2
 #define ERROR_INVALID_CHARS 3
 
-#include <stdint.h>
+#include "../headers/stdint.h"
 #include "../inline_helper.h"
 #include "../headers/portable.h"
 

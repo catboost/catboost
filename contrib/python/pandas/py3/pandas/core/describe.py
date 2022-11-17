@@ -22,24 +22,17 @@ import warnings
 import numpy as np
 
 from pandas._libs.tslibs import Timestamp
-from pandas._typing import (
-    DtypeObj,
-    NDFrameT,
-    npt,
-)
+from pandas._typing import NDFrameT
 from pandas.util._exceptions import find_stack_level
 from pandas.util._validators import validate_percentile
 
 from pandas.core.dtypes.common import (
     is_bool_dtype,
-    is_complex_dtype,
     is_datetime64_any_dtype,
-    is_extension_array_dtype,
     is_numeric_dtype,
     is_timedelta64_dtype,
 )
 
-import pandas as pd
 from pandas.core.reshape.concat import concat
 
 from pandas.io.formats.format import format_percentiles
@@ -113,7 +106,7 @@ class NDFrameDescriberAbstract(ABC):
         Whether to treat datetime dtypes as numeric.
     """
 
-    def __init__(self, obj: DataFrame | Series, datetime_is_numeric: bool) -> None:
+    def __init__(self, obj: DataFrame | Series, datetime_is_numeric: bool):
         self.obj = obj
         self.datetime_is_numeric = datetime_is_numeric
 
@@ -163,7 +156,7 @@ class DataFrameDescriber(NDFrameDescriberAbstract):
         include: str | Sequence[str] | None,
         exclude: str | Sequence[str] | None,
         datetime_is_numeric: bool,
-    ) -> None:
+    ):
         self.include = include
         self.exclude = exclude
 
@@ -193,9 +186,11 @@ class DataFrameDescriber(NDFrameDescriberAbstract):
         """Select columns to be described."""
         if (self.include is None) and (self.exclude is None):
             # when some numerics are found, keep only numerics
-            default_include: list[npt.DTypeLike] = [np.number]
+            default_include = [np.number]
             if self.datetime_is_numeric:
-                default_include.append("datetime")
+                # error: Argument 1 to "append" of "list" has incompatible type "str";
+                # expected "Type[number[Any]]"
+                default_include.append("datetime")  # type: ignore[arg-type]
             data = self.obj.select_dtypes(include=default_include)
             if len(data.columns) == 0:
                 data = self.obj
@@ -235,7 +230,10 @@ def describe_numeric_1d(series: Series, percentiles: Sequence[float]) -> Series:
     """
     from pandas import Series
 
-    formatted_percentiles = format_percentiles(percentiles)
+    # error: Argument 1 to "format_percentiles" has incompatible type "Sequence[float]";
+    # expected "Union[ndarray, List[Union[int, float]], List[float], List[Union[str,
+    # float]]]"
+    formatted_percentiles = format_percentiles(percentiles)  # type: ignore[arg-type]
 
     stat_index = ["count", "mean", "std", "min"] + formatted_percentiles + ["max"]
     d = (
@@ -243,15 +241,7 @@ def describe_numeric_1d(series: Series, percentiles: Sequence[float]) -> Series:
         + series.quantile(percentiles).tolist()
         + [series.max()]
     )
-    # GH#48340 - always return float on non-complex numeric data
-    dtype: DtypeObj | None
-    if is_extension_array_dtype(series):
-        dtype = pd.Float64Dtype()
-    elif is_numeric_dtype(series) and not is_complex_dtype(series):
-        dtype = np.dtype("float")
-    else:
-        dtype = None
-    return Series(d, index=stat_index, name=series.name, dtype=dtype)
+    return Series(d, index=stat_index, name=series.name)
 
 
 def describe_categorical_1d(
@@ -347,7 +337,10 @@ def describe_timestamp_1d(data: Series, percentiles: Sequence[float]) -> Series:
     # GH-30164
     from pandas import Series
 
-    formatted_percentiles = format_percentiles(percentiles)
+    # error: Argument 1 to "format_percentiles" has incompatible type "Sequence[float]";
+    # expected "Union[ndarray, List[Union[int, float]], List[float], List[Union[str,
+    # float]]]"
+    formatted_percentiles = format_percentiles(percentiles)  # type: ignore[arg-type]
 
     stat_index = ["count", "mean", "min"] + formatted_percentiles + ["max"]
     d = (

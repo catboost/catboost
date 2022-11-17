@@ -9,7 +9,6 @@ import textwrap
 from typing import (
     Any,
     Hashable,
-    Literal,
 )
 
 import numpy as np
@@ -29,7 +28,6 @@ from pandas._libs.tslibs import (
 from pandas._typing import (
     Dtype,
     DtypeObj,
-    IntervalClosedType,
     npt,
 )
 from pandas.errors import InvalidIndexError
@@ -193,12 +191,10 @@ class IntervalIndex(ExtensionIndex):
     _typ = "intervalindex"
 
     # annotate properties pinned via inherit_names
-    closed: IntervalClosedType
+    closed: str
     is_non_overlapping_monotonic: bool
     closed_left: bool
     closed_right: bool
-    open_left: bool
-    open_right: bool
 
     _data: IntervalArray
     _values: IntervalArray
@@ -250,7 +246,7 @@ class IntervalIndex(ExtensionIndex):
     def from_breaks(
         cls,
         breaks,
-        closed: IntervalClosedType | None = "right",
+        closed: str = "right",
         name: Hashable = None,
         copy: bool = False,
         dtype: Dtype | None = None,
@@ -281,7 +277,7 @@ class IntervalIndex(ExtensionIndex):
         cls,
         left,
         right,
-        closed: IntervalClosedType = "right",
+        closed: str = "right",
         name: Hashable = None,
         copy: bool = False,
         dtype: Dtype | None = None,
@@ -321,10 +317,9 @@ class IntervalIndex(ExtensionIndex):
         return cls._simple_new(arr, name=name)
 
     # --------------------------------------------------------------------
-    # error: Return type "IntervalTree" of "_engine" incompatible with return type
-    # "Union[IndexEngine, ExtensionEngine]" in supertype "Index"
+
     @cache_readonly
-    def _engine(self) -> IntervalTree:  # type: ignore[override]
+    def _engine(self) -> IntervalTree:
         left = self._maybe_convert_i8(self.left)
         right = self._maybe_convert_i8(self.right)
         return IntervalTree(left, right, closed=self.closed)
@@ -516,10 +511,7 @@ class IntervalIndex(ExtensionIndex):
             left = self._maybe_convert_i8(key.left)
             right = self._maybe_convert_i8(key.right)
             constructor = Interval if scalar else IntervalIndex.from_arrays
-            # error: "object" not callable
-            return constructor(
-                left, right, closed=self.closed
-            )  # type: ignore[operator]
+            return constructor(left, right, closed=self.closed)
 
         if scalar:
             # Timestamp/Timedelta
@@ -551,7 +543,7 @@ class IntervalIndex(ExtensionIndex):
 
         return key_i8
 
-    def _searchsorted_monotonic(self, label, side: Literal["left", "right"] = "left"):
+    def _searchsorted_monotonic(self, label, side: str = "left"):
         if not self.is_non_overlapping_monotonic:
             raise KeyError(
                 "can only get slices from an IntervalIndex if bounds are "
@@ -591,8 +583,6 @@ class IntervalIndex(ExtensionIndex):
         key : label
         method : {None}, optional
             * default: matches where the label is within an interval only.
-
-            .. deprecated:: 1.4
 
         Returns
         -------
@@ -764,7 +754,7 @@ class IntervalIndex(ExtensionIndex):
         "cannot handle overlapping indices; use IntervalIndex.get_indexer_non_unique"
     )
 
-    def _convert_slice_indexer(self, key: slice, kind: str, is_frame: bool = False):
+    def _convert_slice_indexer(self, key: slice, kind: str):
         if not (key.step is None or key.step == 1):
             # GH#31658 if label-based, we require step == 1,
             #  if positional, we disallow float start/stop
@@ -776,7 +766,7 @@ class IntervalIndex(ExtensionIndex):
                     # i.e. this cannot be interpreted as a positional slice
                     raise ValueError(msg)
 
-        return super()._convert_slice_indexer(key, kind, is_frame=is_frame)
+        return super()._convert_slice_indexer(key, kind)
 
     @cache_readonly
     def _should_fallback_to_positional(self) -> bool:
@@ -822,9 +812,7 @@ class IntervalIndex(ExtensionIndex):
         # matches base class except for whitespace padding
         return header + list(self._format_native_types(na_rep=na_rep))
 
-    def _format_native_types(
-        self, *, na_rep="NaN", quoting=None, **kwargs
-    ) -> npt.NDArray[np.object_]:
+    def _format_native_types(self, *, na_rep="NaN", quoting=None, **kwargs):
         # GH 28210: use base method but with different default na_rep
         return super()._format_native_types(na_rep=na_rep, quoting=quoting, **kwargs)
 
@@ -909,6 +897,14 @@ class IntervalIndex(ExtensionIndex):
 
     # --------------------------------------------------------------------
 
+    @property
+    def _is_all_dates(self) -> bool:
+        """
+        This is False even when left/right contain datetime-like objects,
+        as the check is done on the Interval itself
+        """
+        return False
+
     def _get_engine_target(self) -> np.ndarray:
         # Note: we _could_ use libjoin functions by either casting to object
         #  dtype or constructing tuples (faster than constructing Intervals)
@@ -953,12 +949,7 @@ def _is_type_compatible(a, b) -> bool:
 
 
 def interval_range(
-    start=None,
-    end=None,
-    periods=None,
-    freq=None,
-    name: Hashable = None,
-    closed: IntervalClosedType = "right",
+    start=None, end=None, periods=None, freq=None, name: Hashable = None, closed="right"
 ) -> IntervalIndex:
     """
     Return a fixed frequency IntervalIndex.
@@ -1110,12 +1101,10 @@ def interval_range(
         if all(is_integer(x) for x in com.not_none(start, end, freq)):
             # np.linspace always produces float output
 
-            # error: Argument 1 to "maybe_downcast_numeric" has incompatible type
-            # "Union[ndarray[Any, Any], TimedeltaIndex, DatetimeIndex]";
-            # expected "ndarray[Any, Any]"  [
-            breaks = maybe_downcast_numeric(
-                breaks,  # type: ignore[arg-type]
-                np.dtype("int64"),
+            # error: Incompatible types in assignment (expression has type
+            # "Union[ExtensionArray, ndarray]", variable has type "ndarray")
+            breaks = maybe_downcast_numeric(  # type: ignore[assignment]
+                breaks, np.dtype("int64")
             )
     else:
         # delegate to the appropriate range function

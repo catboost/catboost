@@ -1,6 +1,5 @@
-import argparse
+import optparse
 import contextlib
-from distutils import dir_util
 import os
 import shutil
 import subprocess as sp
@@ -10,18 +9,14 @@ import sys
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser(description='Wrapper to invoke Java compilation from ya make build')
-    parser.add_argument('--javac-bin', help='path to javac')
-    parser.add_argument('--jar-bin', help='path to jar tool')
-    parser.add_argument('--java-bin', help='path to java binary')
-    parser.add_argument('--kotlin-compiler', help='path to kotlin compiler jar file')
-    parser.add_argument('--vcs-mf', help='path to VCS info manifest snippet')
-    parser.add_argument('--package-prefix', help='package prefix for resource files')
-    parser.add_argument('--jar-output', help='jar file with compiled classes destination path')
-    parser.add_argument('--srcs-jar-output', help='jar file with sources destination path')
-    parser.add_argument('srcs', nargs="*")
-    args = parser.parse_args(args)
-    return args, args.srcs
+    parser = optparse.OptionParser()
+    parser.add_option('--javac-bin')
+    parser.add_option('--jar-bin')
+    parser.add_option('--vcs-mf')
+    parser.add_option('--package-prefix')
+    parser.add_option('--jar-output')
+    parser.add_option('--srcs-jar-output')
+    return parser.parse_args(args)
 
 
 def mkdir_p(directory):
@@ -40,9 +35,9 @@ def split_cmd_by_delim(cmd, delim='DELIM'):
 
 
 def main():
-    cmd_parts = split_cmd_by_delim(sys.argv[1:])
-    assert len(cmd_parts) == 4
-    args, javac_opts, peers, ktc_opts = cmd_parts
+    cmd_parts = split_cmd_by_delim(sys.argv)
+    assert len(cmd_parts) == 3
+    args, javac_opts, peers = cmd_parts
     opts, jsrcs = parse_args(args)
 
     jsrcs += list(filter(lambda x: x.endswith('.jsrc'), peers))
@@ -60,7 +55,6 @@ def main():
         for f in files:
             srcs.append(os.path.join(r, f))
     srcs += jsrcs
-    ktsrcs = list(filter(lambda x: x.endswith('.kt'), srcs))
     srcs = list(filter(lambda x: x.endswith('.java'), srcs))
 
     classes_dir = 'cls'
@@ -71,17 +65,6 @@ def main():
         temp_sources_file = 'temp.sources.list'
         with open(temp_sources_file, 'w') as ts:
             ts.write(' '.join(srcs))
-
-    if ktsrcs:
-        temp_kt_sources_file = 'temp.kt.sources.list'
-        with open(temp_kt_sources_file, 'w') as ts:
-            ts.write(' '.join(ktsrcs + srcs))
-        kt_classes_dir = 'kt_cls'
-        mkdir_p(kt_classes_dir)
-        sp.check_call([opts.java_bin, '-jar', opts.kotlin_compiler, '-classpath', classpath, '-d', kt_classes_dir] + ktc_opts + ['@' + temp_kt_sources_file])
-        classpath = os.pathsep.join([kt_classes_dir, classpath])
-
-    if srcs:
         sp.check_call([opts.javac_bin, '-nowarn', '-g', '-classpath', classpath, '-encoding', 'UTF-8', '-d', classes_dir] + javac_opts + ['@' + temp_sources_file])
 
     for s in jsrcs:
@@ -92,9 +75,6 @@ def main():
         elif s.endswith('.jar'):
             with zipfile.ZipFile(s) as zf:
                 zf.extractall(classes_dir)
-
-    if ktsrcs:
-        dir_util.copy_tree(kt_classes_dir, classes_dir)
 
     if opts.vcs_mf:
         sp.check_call([opts.jar_bin, 'cfm', opts.jar_output, opts.vcs_mf, os.curdir], cwd=classes_dir)

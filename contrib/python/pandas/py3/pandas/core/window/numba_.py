@@ -12,15 +12,18 @@ import numpy as np
 from pandas._typing import Scalar
 from pandas.compat._optional import import_optional_dependency
 
-from pandas.core.util.numba_ import jit_user_function
+from pandas.core.util.numba_ import (
+    NUMBA_FUNC_CACHE,
+    get_jit_arguments,
+    jit_user_function,
+)
 
 
-@functools.lru_cache(maxsize=None)
 def generate_numba_apply_func(
+    kwargs: dict[str, Any],
     func: Callable[..., Scalar],
-    nopython: bool,
-    nogil: bool,
-    parallel: bool,
+    engine_kwargs: dict[str, bool] | None,
+    name: str,
 ):
     """
     Generate a numba jitted apply function specified by values from engine_kwargs.
@@ -33,19 +36,25 @@ def generate_numba_apply_func(
 
     Parameters
     ----------
+    kwargs : dict
+        **kwargs to be passed into the function
     func : function
         function to be applied to each window and will be JITed
-    nopython : bool
-        nopython to be passed into numba.jit
-    nogil : bool
-        nogil to be passed into numba.jit
-    parallel : bool
-        parallel to be passed into numba.jit
+    engine_kwargs : dict
+        dictionary of arguments to be passed into numba.jit
+    name: str
+        name of the caller (Rolling/Expanding)
 
     Returns
     -------
     Numba function
     """
+    nopython, nogil, parallel = get_jit_arguments(engine_kwargs, kwargs)
+
+    cache_key = (func, f"{name}_apply_single")
+    if cache_key in NUMBA_FUNC_CACHE:
+        return NUMBA_FUNC_CACHE[cache_key]
+
     numba_func = jit_user_function(func, nopython, nogil, parallel)
     if TYPE_CHECKING:
         import numba
@@ -75,15 +84,12 @@ def generate_numba_apply_func(
     return roll_apply
 
 
-@functools.lru_cache(maxsize=None)
 def generate_numba_ewm_func(
-    nopython: bool,
-    nogil: bool,
-    parallel: bool,
+    engine_kwargs: dict[str, bool] | None,
     com: float,
     adjust: bool,
     ignore_na: bool,
-    deltas: tuple,
+    deltas: np.ndarray,
     normalize: bool,
 ):
     """
@@ -92,22 +98,25 @@ def generate_numba_ewm_func(
 
     Parameters
     ----------
-    nopython : bool
-        nopython to be passed into numba.jit
-    nogil : bool
-        nogil to be passed into numba.jit
-    parallel : bool
-        parallel to be passed into numba.jit
+    engine_kwargs : dict
+        dictionary of arguments to be passed into numba.jit
     com : float
     adjust : bool
     ignore_na : bool
-    deltas : tuple
+    deltas : numpy.ndarray
     normalize : bool
 
     Returns
     -------
     Numba function
     """
+    nopython, nogil, parallel = get_jit_arguments(engine_kwargs)
+
+    str_key = "ewm_mean" if normalize else "ewm_sum"
+    cache_key = (lambda x: x, str_key)
+    if cache_key in NUMBA_FUNC_CACHE:
+        return NUMBA_FUNC_CACHE[cache_key]
+
     if TYPE_CHECKING:
         import numba
     else:
@@ -174,12 +183,11 @@ def generate_numba_ewm_func(
     return ewm
 
 
-@functools.lru_cache(maxsize=None)
 def generate_numba_table_func(
+    kwargs: dict[str, Any],
     func: Callable[..., np.ndarray],
-    nopython: bool,
-    nogil: bool,
-    parallel: bool,
+    engine_kwargs: dict[str, bool] | None,
+    name: str,
 ):
     """
     Generate a numba jitted function to apply window calculations table-wise.
@@ -193,19 +201,25 @@ def generate_numba_table_func(
 
     Parameters
     ----------
+    kwargs : dict
+        **kwargs to be passed into the function
     func : function
         function to be applied to each window and will be JITed
-    nopython : bool
-        nopython to be passed into numba.jit
-    nogil : bool
-        nogil to be passed into numba.jit
-    parallel : bool
-        parallel to be passed into numba.jit
+    engine_kwargs : dict
+        dictionary of arguments to be passed into numba.jit
+    name : str
+        caller (Rolling/Expanding) and original method name for numba cache key
 
     Returns
     -------
     Numba function
     """
+    nopython, nogil, parallel = get_jit_arguments(engine_kwargs, kwargs)
+
+    cache_key = (func, f"{name}_table")
+    if cache_key in NUMBA_FUNC_CACHE:
+        return NUMBA_FUNC_CACHE[cache_key]
+
     numba_func = jit_user_function(func, nopython, nogil, parallel)
     if TYPE_CHECKING:
         import numba
@@ -220,8 +234,8 @@ def generate_numba_table_func(
         minimum_periods: int,
         *args: Any,
     ):
-        result = np.empty((len(begin), values.shape[1]))
-        min_periods_mask = np.empty(result.shape)
+        result = np.empty(values.shape)
+        min_periods_mask = np.empty(values.shape)
         for i in numba.prange(len(result)):
             start = begin[i]
             stop = end[i]
@@ -258,15 +272,12 @@ def generate_manual_numpy_nan_agg_with_axis(nan_func):
     return nan_agg_with_axis
 
 
-@functools.lru_cache(maxsize=None)
 def generate_numba_ewm_table_func(
-    nopython: bool,
-    nogil: bool,
-    parallel: bool,
+    engine_kwargs: dict[str, bool] | None,
     com: float,
     adjust: bool,
     ignore_na: bool,
-    deltas: tuple,
+    deltas: np.ndarray,
     normalize: bool,
 ):
     """
@@ -275,22 +286,25 @@ def generate_numba_ewm_table_func(
 
     Parameters
     ----------
-    nopython : bool
-        nopython to be passed into numba.jit
-    nogil : bool
-        nogil to be passed into numba.jit
-    parallel : bool
-        parallel to be passed into numba.jit
+    engine_kwargs : dict
+        dictionary of arguments to be passed into numba.jit
     com : float
     adjust : bool
     ignore_na : bool
-    deltas : tuple
+    deltas : numpy.ndarray
     normalize: bool
 
     Returns
     -------
     Numba function
     """
+    nopython, nogil, parallel = get_jit_arguments(engine_kwargs)
+
+    str_key = "ewm_mean_table" if normalize else "ewm_sum_table"
+    cache_key = (lambda x: x, str_key)
+    if cache_key in NUMBA_FUNC_CACHE:
+        return NUMBA_FUNC_CACHE[cache_key]
+
     if TYPE_CHECKING:
         import numba
     else:

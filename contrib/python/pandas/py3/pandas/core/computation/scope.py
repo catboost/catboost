@@ -15,7 +15,6 @@ import numpy as np
 
 from pandas._libs.tslibs import Timestamp
 from pandas.compat.chainmap import DeepChainMap
-from pandas.errors import UndefinedVariableError
 
 
 def ensure_scope(
@@ -114,7 +113,7 @@ class Scope:
 
     def __init__(
         self, level: int, global_dict=None, local_dict=None, resolvers=(), target=None
-    ) -> None:
+    ):
         self.level = level + 1
 
         # shallow copy because we don't want to keep filling this up with what
@@ -208,6 +207,9 @@ class Scope:
                 # e.g., df[df > 0]
                 return self.temps[key]
             except KeyError as err:
+                # runtime import because ops imports from scope
+                from pandas.core.computation.ops import UndefinedVariableError
+
                 raise UndefinedVariableError(key, is_local) from err
 
     def swapkey(self, old_key: str, new_key: str, new_value=None) -> None:

@@ -12,8 +12,6 @@ _lock = threading.Lock()
 
 _config = None
 
-_relaxed_runtime_allowed = False
-
 
 class NoRuntimeFormed(NotImplementedError):
     pass
@@ -62,13 +60,6 @@ def _is_binary():
     return getattr(sys, 'is_standalone_binary', False)
 
 
-def _is_relaxed_runtime_allowed():
-    global _relaxed_runtime_allowed
-    if _relaxed_runtime_allowed:
-        return True
-    return not _is_binary()
-
-
 def default_arg0(func):
     return default_arg(func, 0)
 
@@ -86,7 +77,7 @@ def default_arg(func, narg):
         try:
             return func(*args, **kw)
         except NoRuntimeFormed:
-            if _is_relaxed_runtime_allowed():
+            if not _is_binary():
                 if len(args) > narg:
                     return args[narg]
                 return None
@@ -102,7 +93,7 @@ def default_value(value):
             try:
                 return func(*args, **kw)
             except NoRuntimeFormed:
-                if _is_relaxed_runtime_allowed():
+                if not _is_binary():
                     return value
                 raise
 
@@ -324,7 +315,7 @@ def gdb_path():
     """
     Get path to the gdb
     """
-    if _is_relaxed_runtime_allowed():
+    if not _is_binary():
         return "gdb"
     return _get_ya_plugin_instance().gdb_path
 
@@ -422,11 +413,6 @@ class Context(object):
     @default_value("test_tool")
     def test_tool_path(self):
         return _get_ya_plugin_instance().get_context("test_tool_path")
-
-    @property
-    @default_value(None)
-    def retry_index(self):
-        return _get_ya_plugin_instance().get_context("retry_index")
 
     @property
     @default_value(False)

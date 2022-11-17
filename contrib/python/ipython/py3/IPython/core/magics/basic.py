@@ -1,6 +1,7 @@
 """Implementation of basic magic functions."""
 
 
+import argparse
 from logging import error
 import io
 import os

@@ -1232,7 +1232,6 @@ cdef class Complex128HashTable(HashTable):
         }
 
     cpdef get_item(self, complex128_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             khcomplex128_t cval
@@ -1244,7 +1243,6 @@ cdef class Complex128HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, complex128_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -1256,10 +1254,22 @@ cdef class Complex128HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const complex128_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            khcomplex128_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = to_khcomplex128_t(keys[i])
+                k = kh_put_complex128(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const complex128_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -1275,13 +1285,12 @@ cdef class Complex128HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const complex128_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             khcomplex128_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -1299,7 +1308,7 @@ cdef class Complex128HashTable(HashTable):
     def _unique(self, const complex128_t[:] values, Complex128Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1329,9 +1338,6 @@ cdef class Complex128HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -1339,19 +1345,15 @@ cdef class Complex128HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             khcomplex128_t val, na_value2
             khiter_t k
             Complex128VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -1359,14 +1361,6 @@ cdef class Complex128HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -1398,27 +1392,6 @@ cdef class Complex128HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_complex128(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_complex128(self.table, val)
 
@@ -1433,16 +1406,7 @@ cdef class Complex128HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_complex128(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -1455,11 +1419,9 @@ cdef class Complex128HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const complex128_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const complex128_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1470,9 +1432,6 @@ cdef class Complex128HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -1480,16 +1439,13 @@ cdef class Complex128HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Complex128Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const complex128_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1521,7 +1477,7 @@ cdef class Complex128HashTable(HashTable):
         """
         uniques_vector = Complex128Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const complex128_t[:] values, Complex128Vector uniques,
@@ -1575,7 +1531,6 @@ cdef class Float64HashTable(HashTable):
         }
 
     cpdef get_item(self, float64_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             float64_t cval
@@ -1587,7 +1542,6 @@ cdef class Float64HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, float64_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -1599,10 +1553,22 @@ cdef class Float64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const float64_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            float64_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_float64(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const float64_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -1618,13 +1584,12 @@ cdef class Float64HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const float64_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             float64_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -1642,7 +1607,7 @@ cdef class Float64HashTable(HashTable):
     def _unique(self, const float64_t[:] values, Float64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1672,9 +1637,6 @@ cdef class Float64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -1682,19 +1644,15 @@ cdef class Float64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             float64_t val, na_value2
             khiter_t k
             Float64VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -1702,14 +1660,6 @@ cdef class Float64HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -1741,27 +1691,6 @@ cdef class Float64HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_float64(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_float64(self.table, val)
 
@@ -1776,16 +1705,7 @@ cdef class Float64HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_float64(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -1798,11 +1718,9 @@ cdef class Float64HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const float64_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const float64_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1813,9 +1731,6 @@ cdef class Float64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -1823,16 +1738,13 @@ cdef class Float64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Float64Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const float64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -1864,7 +1776,7 @@ cdef class Float64HashTable(HashTable):
         """
         uniques_vector = Float64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const float64_t[:] values, Float64Vector uniques,
@@ -1918,7 +1830,6 @@ cdef class UInt64HashTable(HashTable):
         }
 
     cpdef get_item(self, uint64_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             uint64_t cval
@@ -1930,7 +1841,6 @@ cdef class UInt64HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, uint64_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -1942,10 +1852,22 @@ cdef class UInt64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const uint64_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            uint64_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_uint64(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const uint64_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -1961,13 +1883,12 @@ cdef class UInt64HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const uint64_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint64_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -1985,7 +1906,7 @@ cdef class UInt64HashTable(HashTable):
     def _unique(self, const uint64_t[:] values, UInt64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2015,9 +1936,6 @@ cdef class UInt64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -2025,19 +1943,15 @@ cdef class UInt64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             uint64_t val, na_value2
             khiter_t k
             UInt64VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -2045,14 +1959,6 @@ cdef class UInt64HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -2084,27 +1990,6 @@ cdef class UInt64HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_uint64(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_uint64(self.table, val)
 
@@ -2119,16 +2004,7 @@ cdef class UInt64HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_uint64(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -2141,11 +2017,9 @@ cdef class UInt64HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const uint64_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const uint64_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2156,9 +2030,6 @@ cdef class UInt64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -2166,16 +2037,13 @@ cdef class UInt64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = UInt64Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const uint64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2207,7 +2075,7 @@ cdef class UInt64HashTable(HashTable):
         """
         uniques_vector = UInt64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const uint64_t[:] values, UInt64Vector uniques,
@@ -2261,7 +2129,6 @@ cdef class Int64HashTable(HashTable):
         }
 
     cpdef get_item(self, int64_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             int64_t cval
@@ -2273,7 +2140,6 @@ cdef class Int64HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, int64_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -2285,12 +2151,8 @@ cdef class Int64HashTable(HashTable):
         else:
             raise KeyError(key)
 
-    # We only use this for int64, can reduce build size and make .pyi
-    #  more accurate by only implementing it for int64
     @cython.boundscheck(False)
-    def map_keys_to_values(
-        self, const int64_t[:] keys, const int64_t[:] values
-    ) -> None:
+    def map(self, const int64_t[:] keys, const int64_t[:] values) -> None:
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -2305,7 +2167,6 @@ cdef class Int64HashTable(HashTable):
 
     @cython.boundscheck(False)
     def map_locations(self, const int64_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -2321,13 +2182,12 @@ cdef class Int64HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const int64_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int64_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -2345,7 +2205,7 @@ cdef class Int64HashTable(HashTable):
     def _unique(self, const int64_t[:] values, Int64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2375,9 +2235,6 @@ cdef class Int64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -2385,19 +2242,15 @@ cdef class Int64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             int64_t val, na_value2
             khiter_t k
             Int64VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -2405,14 +2258,6 @@ cdef class Int64HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -2444,27 +2289,6 @@ cdef class Int64HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_int64(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_int64(self.table, val)
 
@@ -2479,16 +2303,7 @@ cdef class Int64HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_int64(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -2501,11 +2316,9 @@ cdef class Int64HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const int64_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const int64_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2516,9 +2329,6 @@ cdef class Int64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -2526,16 +2336,13 @@ cdef class Int64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Int64Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const int64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2567,7 +2374,7 @@ cdef class Int64HashTable(HashTable):
         """
         uniques_vector = Int64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const int64_t[:] values, Int64Vector uniques,
@@ -2586,7 +2393,7 @@ cdef class Int64HashTable(HashTable):
         # tuple[np.ndarray[np.intp], np.ndarray[int64]]
         cdef:
             Py_ssize_t i, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             Py_ssize_t idx, count = 0
             int ret = 0
             int64_t val
@@ -2666,7 +2473,6 @@ cdef class Complex64HashTable(HashTable):
         }
 
     cpdef get_item(self, complex64_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             khcomplex64_t cval
@@ -2678,7 +2484,6 @@ cdef class Complex64HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, complex64_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -2690,10 +2495,22 @@ cdef class Complex64HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const complex64_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            khcomplex64_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = to_khcomplex64_t(keys[i])
+                k = kh_put_complex64(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const complex64_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -2709,13 +2526,12 @@ cdef class Complex64HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const complex64_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             khcomplex64_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -2733,7 +2549,7 @@ cdef class Complex64HashTable(HashTable):
     def _unique(self, const complex64_t[:] values, Complex64Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2763,9 +2579,6 @@ cdef class Complex64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -2773,19 +2586,15 @@ cdef class Complex64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             khcomplex64_t val, na_value2
             khiter_t k
             Complex64VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -2793,14 +2602,6 @@ cdef class Complex64HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -2832,27 +2633,6 @@ cdef class Complex64HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_complex64(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_complex64(self.table, val)
 
@@ -2867,16 +2647,7 @@ cdef class Complex64HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_complex64(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -2889,11 +2660,9 @@ cdef class Complex64HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const complex64_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const complex64_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2904,9 +2673,6 @@ cdef class Complex64HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -2914,16 +2680,13 @@ cdef class Complex64HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Complex64Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const complex64_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -2955,7 +2718,7 @@ cdef class Complex64HashTable(HashTable):
         """
         uniques_vector = Complex64Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const complex64_t[:] values, Complex64Vector uniques,
@@ -3009,7 +2772,6 @@ cdef class Float32HashTable(HashTable):
         }
 
     cpdef get_item(self, float32_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             float32_t cval
@@ -3021,7 +2783,6 @@ cdef class Float32HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, float32_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -3033,10 +2794,22 @@ cdef class Float32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const float32_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            float32_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_float32(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const float32_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -3052,13 +2825,12 @@ cdef class Float32HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const float32_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             float32_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -3076,7 +2848,7 @@ cdef class Float32HashTable(HashTable):
     def _unique(self, const float32_t[:] values, Float32Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3106,9 +2878,6 @@ cdef class Float32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -3116,19 +2885,15 @@ cdef class Float32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             float32_t val, na_value2
             khiter_t k
             Float32VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -3136,14 +2901,6 @@ cdef class Float32HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -3175,27 +2932,6 @@ cdef class Float32HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_float32(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_float32(self.table, val)
 
@@ -3210,16 +2946,7 @@ cdef class Float32HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_float32(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -3232,11 +2959,9 @@ cdef class Float32HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const float32_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const float32_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3247,9 +2972,6 @@ cdef class Float32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -3257,16 +2979,13 @@ cdef class Float32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Float32Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const float32_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3298,7 +3017,7 @@ cdef class Float32HashTable(HashTable):
         """
         uniques_vector = Float32Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const float32_t[:] values, Float32Vector uniques,
@@ -3352,7 +3071,6 @@ cdef class UInt32HashTable(HashTable):
         }
 
     cpdef get_item(self, uint32_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             uint32_t cval
@@ -3364,7 +3082,6 @@ cdef class UInt32HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, uint32_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -3376,10 +3093,22 @@ cdef class UInt32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const uint32_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            uint32_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_uint32(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const uint32_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -3395,13 +3124,12 @@ cdef class UInt32HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const uint32_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint32_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -3419,7 +3147,7 @@ cdef class UInt32HashTable(HashTable):
     def _unique(self, const uint32_t[:] values, UInt32Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3449,9 +3177,6 @@ cdef class UInt32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -3459,19 +3184,15 @@ cdef class UInt32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             uint32_t val, na_value2
             khiter_t k
             UInt32VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -3479,14 +3200,6 @@ cdef class UInt32HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -3518,27 +3231,6 @@ cdef class UInt32HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_uint32(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_uint32(self.table, val)
 
@@ -3553,16 +3245,7 @@ cdef class UInt32HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_uint32(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -3575,11 +3258,9 @@ cdef class UInt32HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const uint32_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const uint32_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3590,9 +3271,6 @@ cdef class UInt32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -3600,16 +3278,13 @@ cdef class UInt32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = UInt32Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const uint32_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3641,7 +3316,7 @@ cdef class UInt32HashTable(HashTable):
         """
         uniques_vector = UInt32Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const uint32_t[:] values, UInt32Vector uniques,
@@ -3695,7 +3370,6 @@ cdef class Int32HashTable(HashTable):
         }
 
     cpdef get_item(self, int32_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             int32_t cval
@@ -3707,7 +3381,6 @@ cdef class Int32HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, int32_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -3719,10 +3392,22 @@ cdef class Int32HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const int32_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            int32_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_int32(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const int32_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -3738,13 +3423,12 @@ cdef class Int32HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const int32_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int32_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -3762,7 +3446,7 @@ cdef class Int32HashTable(HashTable):
     def _unique(self, const int32_t[:] values, Int32Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3792,9 +3476,6 @@ cdef class Int32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -3802,19 +3483,15 @@ cdef class Int32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             int32_t val, na_value2
             khiter_t k
             Int32VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -3822,14 +3499,6 @@ cdef class Int32HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -3861,27 +3530,6 @@ cdef class Int32HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_int32(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_int32(self.table, val)
 
@@ -3896,16 +3544,7 @@ cdef class Int32HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_int32(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -3918,11 +3557,9 @@ cdef class Int32HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const int32_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const int32_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3933,9 +3570,6 @@ cdef class Int32HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -3943,16 +3577,13 @@ cdef class Int32HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Int32Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const int32_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -3984,7 +3615,7 @@ cdef class Int32HashTable(HashTable):
         """
         uniques_vector = Int32Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const int32_t[:] values, Int32Vector uniques,
@@ -4038,7 +3669,6 @@ cdef class UInt16HashTable(HashTable):
         }
 
     cpdef get_item(self, uint16_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             uint16_t cval
@@ -4050,7 +3680,6 @@ cdef class UInt16HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, uint16_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -4062,10 +3691,22 @@ cdef class UInt16HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const uint16_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            uint16_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_uint16(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const uint16_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -4081,13 +3722,12 @@ cdef class UInt16HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const uint16_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint16_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -4105,7 +3745,7 @@ cdef class UInt16HashTable(HashTable):
     def _unique(self, const uint16_t[:] values, UInt16Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4135,9 +3775,6 @@ cdef class UInt16HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -4145,19 +3782,15 @@ cdef class UInt16HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             uint16_t val, na_value2
             khiter_t k
             UInt16VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -4165,14 +3798,6 @@ cdef class UInt16HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -4204,27 +3829,6 @@ cdef class UInt16HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_uint16(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_uint16(self.table, val)
 
@@ -4239,16 +3843,7 @@ cdef class UInt16HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_uint16(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -4261,11 +3856,9 @@ cdef class UInt16HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const uint16_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const uint16_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4276,9 +3869,6 @@ cdef class UInt16HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -4286,16 +3876,13 @@ cdef class UInt16HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = UInt16Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const uint16_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4327,7 +3914,7 @@ cdef class UInt16HashTable(HashTable):
         """
         uniques_vector = UInt16Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const uint16_t[:] values, UInt16Vector uniques,
@@ -4381,7 +3968,6 @@ cdef class Int16HashTable(HashTable):
         }
 
     cpdef get_item(self, int16_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             int16_t cval
@@ -4393,7 +3979,6 @@ cdef class Int16HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, int16_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -4405,10 +3990,22 @@ cdef class Int16HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const int16_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            int16_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_int16(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const int16_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -4424,13 +4021,12 @@ cdef class Int16HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const int16_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int16_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -4448,7 +4044,7 @@ cdef class Int16HashTable(HashTable):
     def _unique(self, const int16_t[:] values, Int16Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4478,9 +4074,6 @@ cdef class Int16HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -4488,19 +4081,15 @@ cdef class Int16HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             int16_t val, na_value2
             khiter_t k
             Int16VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -4508,14 +4097,6 @@ cdef class Int16HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -4547,27 +4128,6 @@ cdef class Int16HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_int16(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_int16(self.table, val)
 
@@ -4582,16 +4142,7 @@ cdef class Int16HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_int16(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -4604,11 +4155,9 @@ cdef class Int16HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const int16_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const int16_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4619,9 +4168,6 @@ cdef class Int16HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -4629,16 +4175,13 @@ cdef class Int16HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Int16Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const int16_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4670,7 +4213,7 @@ cdef class Int16HashTable(HashTable):
         """
         uniques_vector = Int16Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const int16_t[:] values, Int16Vector uniques,
@@ -4724,7 +4267,6 @@ cdef class UInt8HashTable(HashTable):
         }
 
     cpdef get_item(self, uint8_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             uint8_t cval
@@ -4736,7 +4278,6 @@ cdef class UInt8HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, uint8_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -4748,10 +4289,22 @@ cdef class UInt8HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const uint8_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            uint8_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_uint8(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const uint8_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -4767,13 +4320,12 @@ cdef class UInt8HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const uint8_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             uint8_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -4791,7 +4343,7 @@ cdef class UInt8HashTable(HashTable):
     def _unique(self, const uint8_t[:] values, UInt8Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4821,9 +4373,6 @@ cdef class UInt8HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -4831,19 +4380,15 @@ cdef class UInt8HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             uint8_t val, na_value2
             khiter_t k
             UInt8VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -4851,14 +4396,6 @@ cdef class UInt8HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -4890,27 +4427,6 @@ cdef class UInt8HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_uint8(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_uint8(self.table, val)
 
@@ -4925,16 +4441,7 @@ cdef class UInt8HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_uint8(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -4947,11 +4454,9 @@ cdef class UInt8HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const uint8_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const uint8_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -4962,9 +4467,6 @@ cdef class UInt8HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -4972,16 +4474,13 @@ cdef class UInt8HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = UInt8Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const uint8_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5013,7 +4512,7 @@ cdef class UInt8HashTable(HashTable):
         """
         uniques_vector = UInt8Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const uint8_t[:] values, UInt8Vector uniques,
@@ -5067,7 +4566,6 @@ cdef class Int8HashTable(HashTable):
         }
 
     cpdef get_item(self, int8_t val):
-        # Used in core.sorting, IndexEngine.get_loc
         cdef:
             khiter_t k
             int8_t cval
@@ -5079,7 +4577,6 @@ cdef class Int8HashTable(HashTable):
             raise KeyError(val)
 
     cpdef set_item(self, int8_t key, Py_ssize_t val):
-        # Used in libjoin
         cdef:
             khiter_t k
             int ret = 0
@@ -5091,10 +4588,22 @@ cdef class Int8HashTable(HashTable):
         else:
             raise KeyError(key)
 
+    @cython.boundscheck(False)
+    def map(self, const int8_t[:] keys, const int64_t[:] values) -> None:
+        cdef:
+            Py_ssize_t i, n = len(values)
+            int ret = 0
+            int8_t key
+            khiter_t k
+
+        with nogil:
+            for i in range(n):
+                key = (keys[i])
+                k = kh_put_int8(self.table, key, &ret)
+                self.table.vals[k] = <Py_ssize_t>values[i]
 
     @cython.boundscheck(False)
     def map_locations(self, const int8_t[:] values) -> None:
-        # Used in libindex, safe_sort
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
@@ -5110,13 +4619,12 @@ cdef class Int8HashTable(HashTable):
     @cython.boundscheck(False)
     def lookup(self, const int8_t[:] values) -> ndarray:
         # -> np.ndarray[np.intp]
-        # Used in safe_sort, IndexEngine.get_indexer
         cdef:
             Py_ssize_t i, n = len(values)
             int ret = 0
             int8_t val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         with nogil:
             for i in range(n):
@@ -5134,7 +4642,7 @@ cdef class Int8HashTable(HashTable):
     def _unique(self, const int8_t[:] values, Int8Vector uniques,
                 Py_ssize_t count_prior=0, Py_ssize_t na_sentinel=-1,
                 object na_value=None, bint ignore_na=False,
-                object mask=None, bint return_inverse=False, bint use_result_mask=False):
+                object mask=None, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5164,9 +4672,6 @@ cdef class Int8HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        use_result_mask: bool, default False
-            Whether to create a result mask for the unique values. Not supported
-            with return_inverse=True.
 
         Returns
         -------
@@ -5174,19 +4679,15 @@ cdef class Int8HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse=True)
             The labels from values to uniques
-        result_mask: ndarray[bool], if use_result_mask is true
-            The mask for the result values.
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             int8_t val, na_value2
             khiter_t k
             Int8VectorData *ud
-            UInt8Vector result_mask
-            UInt8VectorData *rmd
-            bint use_na_value, use_mask, seen_na = False
+            bint use_na_value, use_mask
             uint8_t[:] mask_values
 
         if return_inverse:
@@ -5194,14 +4695,6 @@ cdef class Int8HashTable(HashTable):
         ud = uniques.data
         use_na_value = na_value is not None
         use_mask = mask is not None
-        if not use_mask and use_result_mask:
-            raise NotImplementedError  # pragma: no cover
-
-        if use_result_mask and return_inverse:
-            raise NotImplementedError  # pragma: no cover
-
-        result_mask = UInt8Vector()
-        rmd = result_mask.data
 
         if use_mask:
             mask_values = mask.view("uint8")
@@ -5233,27 +4726,6 @@ cdef class Int8HashTable(HashTable):
                     # and replace the corresponding label with na_sentinel
                     labels[i] = na_sentinel
                     continue
-                elif not ignore_na and use_result_mask:
-                    if mask_values[i]:
-                        if seen_na:
-                            continue
-
-                        seen_na = True
-                        if needs_resize(ud):
-                            with gil:
-                                if uniques.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "uniques held, but "
-                                                     "Vector.resize() needed")
-                                uniques.resize()
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
-                        append_data_int8(ud, val)
-                        append_data_uint8(rmd, 1)
-                        continue
 
                 k = kh_get_int8(self.table, val)
 
@@ -5268,16 +4740,7 @@ cdef class Int8HashTable(HashTable):
                                                  "uniques held, but "
                                                  "Vector.resize() needed")
                             uniques.resize()
-                            if use_result_mask:
-                                if result_mask.external_view_exists:
-                                    raise ValueError("external reference to "
-                                                     "result_mask held, but "
-                                                     "Vector.resize() needed")
-                                result_mask.resize()
                     append_data_int8(ud, val)
-                    if use_result_mask:
-                        append_data_uint8(rmd, 0)
-
                     if return_inverse:
                         self.table.vals[k] = count
                         labels[i] = count
@@ -5290,11 +4753,9 @@ cdef class Int8HashTable(HashTable):
 
         if return_inverse:
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
-        if use_result_mask:
-            return uniques.to_array(), result_mask.to_array()
         return uniques.to_array()
 
-    def unique(self, const int8_t[:] values, bint return_inverse=False, object mask=None):
+    def unique(self, const int8_t[:] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5305,9 +4766,6 @@ cdef class Int8HashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            If not None, the mask is used as indicator for missing values
-            (True = missing, False = valid) instead of `na_value` or
 
         Returns
         -------
@@ -5315,16 +4773,13 @@ cdef class Int8HashTable(HashTable):
             Unique values of input, not sorted
         labels : ndarray[intp_t] (if return_inverse)
             The labels from values to uniques
-        result_mask: ndarray[bool], if mask is given as input
-            The mask for the result values.
         """
         uniques = Int8Vector()
-        use_result_mask = True if mask is not None else False
         return self._unique(values, uniques, ignore_na=False,
-                            return_inverse=return_inverse, mask=mask, use_result_mask=use_result_mask)
+                            return_inverse=return_inverse)
 
     def factorize(self, const int8_t[:] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5356,7 +4811,7 @@ cdef class Int8HashTable(HashTable):
         """
         uniques_vector = Int8Vector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na, mask=mask,
+                            na_value=na_value, ignore_na=True, mask=mask,
                             return_inverse=True)
 
     def get_labels(self, const int8_t[:] values, Int8Vector uniques,
@@ -5465,7 +4920,7 @@ cdef class StringHashTable(HashTable):
             object val
             const char *v
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         # these by-definition *must* be strings
         vecs = <const char **>malloc(n * sizeof(char *))
@@ -5563,8 +5018,8 @@ cdef class StringHashTable(HashTable):
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
-            int64_t[::1] uindexer
+            intp_t[:] labels
+            int64_t[:] uindexer
             int ret = 0
             object val
             const char *v
@@ -5630,7 +5085,7 @@ cdef class StringHashTable(HashTable):
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
         return uniques.to_array()
 
-    def unique(self, ndarray[object] values, bint return_inverse=False, object mask=None):
+    def unique(self, ndarray[object] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5641,8 +5096,6 @@ cdef class StringHashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            Not yet implemented for StringHashTable
 
         Returns
         -------
@@ -5656,7 +5109,7 @@ cdef class StringHashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, ndarray[object] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5686,7 +5139,7 @@ cdef class StringHashTable(HashTable):
         """
         uniques_vector = ObjectVector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na,
+                            na_value=na_value, ignore_na=True,
                             return_inverse=True)
 
     def get_labels(self, ndarray[object] values, ObjectVector uniques,
@@ -5787,7 +5240,7 @@ cdef class PyObjectHashTable(HashTable):
             int ret = 0
             object val
             khiter_t k
-            intp_t[::1] locs = np.empty(n, dtype=np.intp)
+            intp_t[:] locs = np.empty(n, dtype=np.intp)
 
         for i in range(n):
             val = values[i]
@@ -5842,7 +5295,7 @@ cdef class PyObjectHashTable(HashTable):
         """
         cdef:
             Py_ssize_t i, idx, count = count_prior, n = len(values)
-            intp_t[::1] labels
+            intp_t[:] labels
             int ret = 0
             object val
             khiter_t k
@@ -5885,7 +5338,7 @@ cdef class PyObjectHashTable(HashTable):
             return uniques.to_array(), labels.base  # .base -> underlying ndarray
         return uniques.to_array()
 
-    def unique(self, ndarray[object] values, bint return_inverse=False, object mask=None):
+    def unique(self, ndarray[object] values, bint return_inverse=False):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5896,8 +5349,6 @@ cdef class PyObjectHashTable(HashTable):
         return_inverse : bool, default False
             Whether the mapping of the original array values to their location
             in the vector of uniques should be returned.
-        mask : ndarray[bool], optional
-            Not yet implemented for PyObjectHashTable
 
         Returns
         -------
@@ -5911,7 +5362,7 @@ cdef class PyObjectHashTable(HashTable):
                             return_inverse=return_inverse)
 
     def factorize(self, ndarray[object] values, Py_ssize_t na_sentinel=-1,
-                  object na_value=None, object mask=None, ignore_na=True):
+                  object na_value=None, object mask=None):
         """
         Calculate unique values and labels (no sorting!)
 
@@ -5941,7 +5392,7 @@ cdef class PyObjectHashTable(HashTable):
         """
         uniques_vector = ObjectVector()
         return self._unique(values, uniques_vector, na_sentinel=na_sentinel,
-                            na_value=na_value, ignore_na=ignore_na,
+                            na_value=na_value, ignore_na=True,
                             return_inverse=True)
 
     def get_labels(self, ndarray[object] values, ObjectVector uniques,

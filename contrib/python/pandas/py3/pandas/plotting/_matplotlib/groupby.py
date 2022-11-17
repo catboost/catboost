@@ -16,8 +16,6 @@ from pandas import (
     concat,
 )
 
-from pandas.plotting._matplotlib.misc import unpack_single_str_list
-
 
 def create_iter_data_given_by(
     data: DataFrame, kind: str = "hist"
@@ -110,14 +108,11 @@ def reconstruct_data_with_by(
     1  3.0   4.0   NaN   NaN
     2  NaN   NaN   5.0   6.0
     """
-    by_modified = unpack_single_str_list(by)
-    grouped = data.groupby(by_modified)
+    grouped = data.groupby(by)
 
     data_list = []
     for key, group in grouped:
-        # error: List item 1 has incompatible type "Union[Hashable,
-        # Sequence[Hashable]]"; expected "Iterable[Hashable]"
-        columns = MultiIndex.from_product([[key], cols])  # type: ignore[list-item]
+        columns = MultiIndex.from_product([[key], cols])
         sub_group = group[cols]
         sub_group.columns = columns
         data_list.append(sub_group)

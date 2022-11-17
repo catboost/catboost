@@ -33,7 +33,6 @@ add_custom_command(
   OUTPUT
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/SpecialTokens.rodata
   DEPENDS
-  ${TOOLS_ROOT}/tools/archiver/archiver
   ${CMAKE_BINARY_DIR}/library/cpp/tokenizer/special_tokens.trie
   COMMAND
   ${TOOLS_ROOT}/tools/archiver/archiver
