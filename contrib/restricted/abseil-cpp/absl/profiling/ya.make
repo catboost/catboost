@@ -16,10 +16,6 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -DNOMINMAX
-)
-
 SRCS(
     internal/exponential_biased.cc
     internal/periodic_sampler.cc

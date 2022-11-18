@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-profiling)
 target_compile_options(abseil-cpp-absl-profiling PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-profiling PUBLIC

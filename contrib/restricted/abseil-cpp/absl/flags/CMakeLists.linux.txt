@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-flags)
 target_compile_options(abseil-cpp-absl-flags PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-flags PUBLIC
