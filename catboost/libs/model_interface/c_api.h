@@ -369,6 +369,12 @@ CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
+ * Get expected text feature count for model
+ * @param calcer model handle
+ */
+CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
+
+/**
  * Get expected embedding feature count for model
  * @param calcer model handle
  */
