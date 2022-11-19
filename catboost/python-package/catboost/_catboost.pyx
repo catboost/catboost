@@ -981,7 +981,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
-    cdef void CallInParallel(ILocalExecutor* executor, task_callback_ptr, int block_count) nogil
+    cdef void CallInParallel(ILocalExecutor* executor, task_callback_ptr callback, int block_count) nogil
     cdef size_t column_block_size
     cdef size_t objects_in_column    
     cdef callback_ptr CallbackForColumnProcessing
@@ -2698,44 +2698,56 @@ cdef _set_features_order_data_pd_data_frame_categorical_column(
     )
 
 
-class ColumnProcessor:
-    def __init__(self, object callback, column_array):
+cdef class ColumnProcessor:
+
+    def __cinit__(self, object callback, object column_array):
         self.callback = callback
-        self.column_array = column_array        
-        
-    def __call__(self, start, end):
-        for idx in range(start, end):
-            processing_result[idx] = self.callback(self.column_array[idx])
+        self.column_array = column_array
+        print(f"processing_result[0][0] = {processing_result[0][0]}")   
+    
+    def __call__(self, start, end):        
+        for idx in range(start, end):                
+            self.callback(idx, self.column_array[idx], processing_result[0][idx])        
 
 
-cdef void call_python_code(int block_id) nogil :        
-        CallbackForColumnProcessing(
-            block_id * column_block_size, 
-            min(
-                (block_id + 1) * column_block_size, 
-                objects_in_column
-            )
+cdef void call_python_code(int block_id) nogil :            
+    CallbackForColumnProcessing(
+        block_id * column_block_size, 
+        min(
+            (block_id + 1) * column_block_size, 
+            objects_in_column
         )
+    )
 
 
 cdef parallel_process_features_column_to_vector(
-        TAtomicSharedPtr[TTbbLocalExecutor] executor, 
-        column_array,
+        # TAtomicSharedPtr[TTbbLocalExecutor] executor,         
+        # ILocalExecutor* executor,
+        int thread_count,
+        object column_array,
         TVector[TString]* result,
         object object_process_callback,
         size_t block_size = 1024 * 16
     ) :
-        processing_result = result;
-        column_block_size = block_size        
+        global processing_result, column_block_size, CallbackForColumnProcessing, objects_in_column
+        processing_result = result
+        column_block_size = block_size
         CallbackForColumnProcessing = ColumnProcessor(object_process_callback, column_array)
         objects_in_column = len(column_array)
-        cdef size_t block_count = (objects_in_column + block_size - 1) // block_size    
-        with nogil:
-            CallInParallel(
-                <ILocalExecutor*>executor.Get(),
-                call_python_code,
-                block_count
-            )  
+        cdef size_t block_count = (objects_in_column + block_size - 1) // block_size                            
+        cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
+        cdef ILocalExecutor* executor_ptr = <ILocalExecutor*>local_executor.Get()        
+        
+        #with nogil:     
+        call_python_code(0)       
+        print("after call_python_code(0)");
+        CallInParallel(executor_ptr, call_python_code, 1) 
+        #CallInParallel(
+        #    executor_ptr,
+        #    executor,
+        #    call_python_code,
+        #    block_count
+        #)
 
 
 # returns new data holders array
@@ -2743,7 +2755,8 @@ cdef object _set_features_order_data_pd_data_frame(
     data_frame,
     bool_t has_separate_embedding_features_data,
     const TFeaturesLayout* features_layout,
-    IRawFeaturesOrderDataVisitor* builder_visitor
+    IRawFeaturesOrderDataVisitor* builder_visitor,
+    int thread_count
 ):
     cdef TVector[ui32] main_data_feature_idx_to_dst_feature_idx = _get_main_data_feature_idx_to_dst_feature_idx(features_layout, has_separate_embedding_features_data)
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
@@ -2771,7 +2784,8 @@ cdef object _set_features_order_data_pd_data_frame(
 
     string_factor_data.reserve(doc_count)
 
-    new_data_holders = []
+    new_data_holders = []    
+
     for src_flat_feature_idx, (column_name, column_data) in enumerate(data_frame.items()):
         flat_feature_idx = main_data_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
         if isinstance(column_data.dtype, pd.SparseDtype):
@@ -2801,15 +2815,47 @@ cdef object _set_features_order_data_pd_data_frame(
         else:
             column_values = column_data.to_numpy()
             if is_cat_feature_mask[flat_feature_idx]:
-                string_factor_data.clear()
-                for doc_idx in range(doc_count):
+                string_factor_data.clear()                
+                string_factor_data.resize(doc_count)
+
+                # cdef get_cat_factor_bytes_representation(
+                #    int non_default_doc_idx, # can be -1 - that means default value for sparse data
+                #    ui32 feature_idx,
+                #    object factor,
+                #    TString* factor_strbuf
+                #):
+
+                def call_back(
+                    int non_default_doc_idx,
+                    object factor,
+                    TString& factor_strbuf
+                ):
                     get_cat_factor_bytes_representation(
-                        doc_idx,
+                        non_default_doc_idx,
                         flat_feature_idx,
-                        column_values[doc_idx],
-                        &factor_string
+                        factor,
+                        &factor_strbuf
                     )
-                    string_factor_data.push_back(factor_string)
+
+                parallel_process_features_column_to_vector(
+                    thread_count, 
+                    column_values,                      # column_array,
+                    &string_factor_data,                # TVector[TString]* result,
+                    call_back # object object_process_callback,                    
+                )
+                
+                #for doc_idx in range(doc_count):
+                #    call_back(
+                #        doc_idx,
+                #        column_values[doc_idx],
+                #        string_factor_data[doc_idx]
+                #    )
+                    #get_cat_factor_bytes_representation(
+                    #    doc_idx,
+                    #    flat_feature_idx,
+                    #    column_values[doc_idx],
+                    #    &string_factor_data[doc_idx]
+                    #)
                 builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
             elif is_text_feature_mask[flat_feature_idx]:
                 string_factor_data.clear()
@@ -3868,7 +3914,8 @@ cdef class _PoolBase:
                 data,
                 embedding_features_data is not None,
                 features_layout,
-                builder_visitor
+                builder_visitor,
+                thread_count
             )
         elif isinstance(data, scipy.sparse.spmatrix):
             new_data_holders = _set_features_order_data_scipy_sparse_matrix(
