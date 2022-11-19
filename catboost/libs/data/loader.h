@@ -43,6 +43,18 @@ namespace NCB {
         static TDatasetSubset MakeColumns(bool hasFeatures = true) {
             return {hasFeatures, {0u, Max<ui64>()}};
         }
+
+        size_t GetHash() const {
+            return MultiHash(HasFeatures, Range.Begin, Range.End);
+        }
+
+        bool operator==(const TDatasetSubset& rhs) const {
+            return std::tie(HasFeatures, Range) == std::tie(rhs.HasFeatures, rhs.Range);
+        }
+
+        bool operator!=(const TDatasetSubset& rhs) const {
+            return !(rhs == *this);
+        }
     };
 
     struct TDatasetLoaderCommonArgs {
@@ -303,3 +315,10 @@ namespace NCB {
 
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
 }
+
+template <>
+struct THash<NCB::TDatasetSubset> {
+    inline size_t operator()(const NCB::TDatasetSubset& value) const {
+        return value.GetHash();
+    }
+};
