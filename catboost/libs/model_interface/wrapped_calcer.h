@@ -251,7 +251,7 @@ public:
 
         if (!CalcModelPredictionTextAndEmbeddings(
             CalcerHolder.get(),
-            result.size(),
+            floatFeatures.size(),
             floatPtrsVector.data(), floatFeatureCount,
             charPtrPtrsVector.data(), catFeatureCount,
             charTextPtrPtrsVector.data(), textFeatureCount,
@@ -310,7 +310,7 @@ public:
 
         if (!CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
             CalcerHolder.get(),
-            result.size(),
+            floatFeatures.size(),
             floatPtrsVector.data(), floatFeatureCount,
             hashPtrsVector.data(), catFeatureCount,
             charTextPtrPtrsVector.data(), textFeatureCount,
