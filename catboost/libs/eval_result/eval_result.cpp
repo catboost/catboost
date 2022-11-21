@@ -145,33 +145,6 @@ namespace NCB {
         CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
     }
 
-    TIntrusivePtr<IPoolColumnsPrinter> CreatePoolColumnPrinter(
-        const TPathWithScheme& testSetPath,
-        const TDsvFormatOptions& testSetFormat,
-        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
-    ) {
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-        if (testSetPath.Inited()) {
-            if (testSetPath.Scheme.Contains("quantized")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-            } else if (testSetPath.Scheme.Contains("dsv")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, columnsMetaInfo));
-            } else if (testSetPath.Scheme.Contains("proto")) {
-                poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(GetProcessor<IPoolColumnsPrinter>(
-                    testSetPath,
-                    TPoolColumnsPrinterPushArgs{
-                        GetProcessor<ILineDataReader>(
-                            testSetPath,
-                            TLineDataReaderArgs{testSetPath, testSetFormat}
-                        ),
-                        testSetFormat,
-                        columnsMetaInfo
-                    }).Release());
-            }
-        }
-        return poolColumnsPrinter;
-    }
-
     TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
         const TEvalResult& evalResult,
         NPar::ILocalExecutor* executor,
@@ -419,11 +392,12 @@ namespace NCB {
         ui64 docIdOffset,
         double binClassLogitThreshold) {
 
-        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter = CreatePoolColumnPrinter(
-            testSetPath,
-            testSetFormat,
-            pool.MetaInfo.ColumnsInfo);
-
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
+        if (testSetPath.Inited()) {
+            poolColumnsPrinter = GetProcessor<IPoolColumnsPrinter>(
+                testSetPath,
+                TPoolColumnsPrinterPullArgs{testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo}).Release();
+        }
         OutputEvalResultToFile(
             evalResult,
             executor,
