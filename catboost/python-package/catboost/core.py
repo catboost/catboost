@@ -6228,7 +6228,7 @@ class CatBoostRanker(CatBoost):
             raise CatBoostError("group_id must be initialized. If groups are not expected, pass an array of zeros")
 
         predictions = self.predict(X)
-        return _eval_metric_util([y], [predictions], get_ndcg_metric_name(), None, group_id, group_weight, None, None, thread_count)[0]
+        return _eval_metric_util([y], [predictions], get_ndcg_metric_name([top, type, denominator], ['top', 'type', 'denominator']), None, group_id, group_weight, None, None, thread_count)[0]
 
 
     @staticmethod
