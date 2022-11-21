@@ -4453,6 +4453,11 @@
                     "executable": "kubectl"
                 }
             },
+            "env": {
+                "PATH": [
+                    "$(ROOT)"
+                ]
+            },
             "platforms": [
                 {
                     "host": {
@@ -7888,9 +7893,17 @@
         },
         "kubectl": {
             "formula": {
-                "sandbox_id": [
-                    1254092637
-                ],
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ARCADIA_PROJECT_TGZ",
+                        "attributes": {
+                            "released": "stable",
+                           	"type": "kubectl"
+                        },
+                        "owner": "RTC_INFRA"
+                    },
+                    "update_interval": 86400
+                },
                 "match": "kubectl"
             },
             "executable": {
