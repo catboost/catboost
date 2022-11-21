@@ -6210,7 +6210,7 @@ class CatBoostRanker(CatBoost):
                    higher is better
         """
         def get_ndcg_metric_name(values, names):
-            if not np.any(np.array(values) == None):
+            if np.all(np.array(values) == None):
                 return 'NDCG'
             return 'NDCG:' + ';'.join(['{}={}'.format(n, v) for v, n in zip(values, names) if v is not None])
 
