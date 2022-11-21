@@ -296,6 +296,7 @@ class _Execution(object):
             pbt_filename = None
 
             if os.path.exists(runtime.gdb_path()):
+                yatest_logger.debug("Getting full backtrace from core file")
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
                 bt_filename = path.get_unique_file_path(
                     runtime.output_path(),
@@ -307,6 +308,7 @@ class _Execution(object):
                 pbt_filename = bt_filename + ".html"
                 backtrace_to_html(bt_filename, pbt_filename)
 
+            yatest_logger.debug("Register coredump")
             if store_cores:
                 runtime._register_core(
                     os.path.basename(self.command[0]), self.command[0], core_path, bt_filename, pbt_filename
