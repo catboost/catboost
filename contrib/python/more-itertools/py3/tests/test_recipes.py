@@ -1,6 +1,5 @@
-import warnings
-
 from doctest import DocTestSuite
+from functools import reduce
 from itertools import combinations, count, permutations
 from math import factorial
 from unittest import TestCase
@@ -334,16 +333,6 @@ class GrouperTests(TestCase):
             with self.subTest(n=n):
                 with self.assertRaises(ValueError):
                     list(mi.grouper(iter(seq), n, incomplete='strict'))
-
-    def test_legacy_order(self):
-        with warnings.catch_warnings(record=True) as caught:
-            warnings.simplefilter('always')
-            self.assertEqual(
-                list(mi.grouper(3, 'ABCDEF')),
-                [('A', 'B', 'C'), ('D', 'E', 'F')],
-            )
-
-        self.assertEqual(caught[0].category, DeprecationWarning)
 
     def test_invalid_incomplete(self):
         with self.assertRaises(ValueError):
@@ -783,6 +772,39 @@ class BeforeAndAfterTests(TestCase):
         self.assertEqual(list(before), [1, True])
         self.assertEqual(list(after), [0, False])
 
+    @staticmethod
+    def _group_events(events):
+        events = iter(events)
+
+        while True:
+            try:
+                operation = next(events)
+            except StopIteration:
+                break
+            assert operation in ["SUM", "MULTIPLY"]
+
+            # Here, the remainder `events` is passed into `before_and_after`
+            # again, which would be problematic if the remainder is a
+            # generator function (as in Python 3.10 itertools recipes), since
+            # that creates recursion. `itertools.chain` solves this problem.
+            numbers, events = mi.before_and_after(
+                lambda e: isinstance(e, int), events
+            )
+
+            yield (operation, numbers)
+
+    def test_nested_remainder(self):
+        events = ["SUM", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] * 1000
+        events += ["MULTIPLY", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] * 1000
+
+        for operation, numbers in self._group_events(events):
+            if operation == "SUM":
+                res = sum(numbers)
+                self.assertEqual(res, 55)
+            elif operation == "MULTIPLY":
+                res = reduce(lambda a, b: a * b, numbers)
+                self.assertEqual(res, 3628800)
+
 
 class TriplewiseTests(TestCase):
     def test_basic(self):
@@ -842,4 +864,81 @@ class SubslicesTests(TestCase):
         ]:
             with self.subTest(expected=expected):
                 actual = list(mi.subslices(iterable))
+                self.assertEqual(actual, expected)
+
+
+class PolynomialFromRootsTests(TestCase):
+    def test_basic(self):
+        for roots, expected in [
+            ((2, 1, -1), [1, -2, -1, 2]),
+            ((2, 3), [1, -5, 6]),
+            ((1, 2, 3), [1, -6, 11, -6]),
+            ((2, 4, 1), [1, -7, 14, -8]),
+        ]:
+            with self.subTest(roots=roots):
+                actual = mi.polynomial_from_roots(roots)
+                self.assertEqual(actual, expected)
+
+
+class SieveTests(TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            list(mi.sieve(67)),
+            [
+                2,
+                3,
+                5,
+                7,
+                11,
+                13,
+                17,
+                19,
+                23,
+                29,
+                31,
+                37,
+                41,
+                43,
+                47,
+                53,
+                59,
+                61,
+            ],
+        )
+        self.assertEqual(list(mi.sieve(68))[-1], 67)
+
+    def test_prime_counts(self):
+        for n, expected in (
+            (100, 25),
+            (1_000, 168),
+            (10_000, 1229),
+            (100_000, 9592),
+            (1_000_000, 78498),
+        ):
+            with self.subTest(n=n):
+                self.assertEqual(mi.ilen(mi.sieve(n)), expected)
+
+    def test_small_numbers(self):
+        with self.assertRaises(ValueError):
+            list(mi.sieve(-1))
+
+        for n in (0, 1, 2):
+            with self.subTest(n=n):
+                self.assertEqual(list(mi.sieve(n)), [])
+
+
+class BatchedTests(TestCase):
+    def test_basic(self):
+        iterable = range(1, 5 + 1)
+        for n, expected in (
+            (0, []),
+            (1, [[1], [2], [3], [4], [5]]),
+            (2, [[1, 2], [3, 4], [5]]),
+            (3, [[1, 2, 3], [4, 5]]),
+            (4, [[1, 2, 3, 4], [5]]),
+            (5, [[1, 2, 3, 4, 5]]),
+            (6, [[1, 2, 3, 4, 5]]),
+        ):
+            with self.subTest(n=n):
+                actual = list(mi.batched(iterable, n))
                 self.assertEqual(actual, expected)
