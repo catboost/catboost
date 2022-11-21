@@ -3,8 +3,9 @@
 
 namespace NKernel {
 
+    template <typename TResult>
     void Filter(const float* weights,
-                const ui32 size,
-                ui32* result,
+                const ui64 size,
+                TResult* result,
                 TCudaStream stream);
 }
