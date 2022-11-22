@@ -416,4 +416,4 @@ def on_setup_maven_export_coords_if_need(unit, *args):
                     a = artifact
                 break
 
-    unit.set(['MAVEN_EXPORT_COORD_GLOBAL', '{}:{}:{}:{}'.format(g, a, v,c)])
+    unit.set(['MAVEN_EXPORT_COORDS_GLOBAL', '{}:{}:{}:{}'.format(g, a, v,c)])
