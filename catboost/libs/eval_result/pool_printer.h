@@ -49,7 +49,7 @@ namespace NCB {
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) override;
         void UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) override;
-        std::type_index GetOutputFeatureType(ui32 columnId) override;
+        std::type_index GetOutputFeatureType(ui32 featureId) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);
