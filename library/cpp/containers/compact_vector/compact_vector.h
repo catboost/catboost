@@ -1,12 +1,7 @@
 #pragma once
 
 #include <util/generic/yexception.h>
-#include <util/generic/utility.h>
-#include <util/memory/alloc.h>
-#include <util/stream/output.h>
-#include <util/system/yassert.h>
-
-#include <cstdlib>
+#include <util/system/sys_alloc.h>
 
 // vector that is 8 bytes when empty (TVector is 24 bytes)
 
@@ -95,7 +90,7 @@ public:
             }
         }
         if (Ptr)
-            free(Header());
+            y_deallocate(Header());
     }
 
     TThis& operator = (TThis&& that) noexcept {
@@ -175,9 +170,7 @@ public:
             const size_t realNewCapacity = (memSizePowOf2 - sizeof(THeader)) / sizeof(T);
             Y_ASSERT(realNewCapacity >= newCapacity);
 
-            void* mem = ::malloc(memSizePowOf2);
-            if (mem == nullptr)
-                ythrow yexception() << "out of memory";
+            void* mem = ::y_allocate(memSizePowOf2);
             Ptr = (T*)(((THeader*)mem) + 1);
             Header()->Size = 0;
             Header()->Capacity = realNewCapacity;
