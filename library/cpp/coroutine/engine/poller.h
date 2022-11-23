@@ -8,6 +8,7 @@
 
 enum class EContPoller {
     Default /* "default" */,
+    Combined /* "combined" */,
     Select /* "select" */,
     Poll /* "poll" */,
     Epoll /* "epoll" */,

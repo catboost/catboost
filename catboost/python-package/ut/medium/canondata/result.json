@@ -1001,23 +1001,5 @@
     },
     "test.test_zero_baseline[CPU]": {
         "uri": "file://test.test_zero_baseline_CPU_/model.bin"
-    },
-    "test_catboost_utils.test_create_cd_label_and_cat_features": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_and_cat_features/column_description"
-    },
-    "test_catboost_utils.test_create_cd_label_and_feature_names": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_and_feature_names/column_description"
-    },
-    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features/column_description"
-    },
-    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_names": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_names/column_description"
-    },
-    "test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_partial_names": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_cat_text_and_emb_features_with_partial_names/column_description"
-    },
-    "test_catboost_utils.test_create_cd_label_only": {
-        "uri": "file://test_catboost_utils.test_create_cd_label_only/column_description"
     }
 }

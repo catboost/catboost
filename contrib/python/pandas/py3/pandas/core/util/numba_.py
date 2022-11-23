@@ -13,6 +13,7 @@ from pandas.compat._optional import import_optional_dependency
 from pandas.errors import NumbaUtilError
 
 GLOBAL_USE_NUMBA: bool = False
+NUMBA_FUNC_CACHE: dict[tuple[Callable, str], Callable] = {}
 
 
 def maybe_use_numba(engine: str | None) -> bool:
@@ -29,7 +30,7 @@ def set_use_numba(enable: bool = False) -> None:
 
 def get_jit_arguments(
     engine_kwargs: dict[str, bool] | None = None, kwargs: dict | None = None
-) -> dict[str, bool]:
+) -> tuple[bool, bool, bool]:
     """
     Return arguments to pass to numba.JIT, falling back on pandas default JIT settings.
 
@@ -42,7 +43,7 @@ def get_jit_arguments(
 
     Returns
     -------
-    dict[str, bool]
+    (bool, bool, bool)
         nopython, nogil, parallel
 
     Raises
@@ -60,7 +61,7 @@ def get_jit_arguments(
         )
     nogil = engine_kwargs.get("nogil", False)
     parallel = engine_kwargs.get("parallel", False)
-    return {"nopython": nopython, "nogil": nogil, "parallel": parallel}
+    return nopython, nogil, parallel
 
 
 def jit_user_function(

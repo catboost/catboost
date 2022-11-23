@@ -9,7 +9,6 @@ cdef tzinfo utc_pytz
 
 cpdef bint is_utc(tzinfo tz)
 cdef bint is_tzlocal(tzinfo tz)
-cdef bint is_zoneinfo(tzinfo tz)
 
 cdef bint treat_tz_as_pytz(tzinfo tz)
 

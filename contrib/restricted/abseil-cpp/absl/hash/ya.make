@@ -23,6 +23,10 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
+CFLAGS(
+    -DNOMINMAX
+)
+
 SRCS(
     internal/city.cc
     internal/hash.cc

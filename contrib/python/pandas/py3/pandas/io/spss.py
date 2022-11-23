@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Sequence,
-)
+from typing import Sequence
 
 from pandas.compat._optional import import_optional_dependency
 
 from pandas.core.dtypes.inference import is_list_like
 
-from pandas.io.common import stringify_path
+from pandas.core.api import DataFrame
 
-if TYPE_CHECKING:
-    from pandas import DataFrame
+from pandas.io.common import stringify_path
 
 
 def read_spss(

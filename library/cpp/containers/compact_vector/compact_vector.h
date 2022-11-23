@@ -1,7 +1,12 @@
 #pragma once
 
 #include <util/generic/yexception.h>
-#include <util/system/sys_alloc.h>
+#include <util/generic/utility.h>
+#include <util/memory/alloc.h>
+#include <util/stream/output.h>
+#include <util/system/yassert.h>
+
+#include <cstdlib>
 
 // vector that is 8 bytes when empty (TVector is 24 bytes)
 
@@ -26,21 +31,12 @@ private:
         return ((THeader*)Ptr) - 1;
     }
 
-    void destruct_at(size_t pos) {
-        (*this)[pos].~T();
-    }
-
 public:
-    using value_type = T;
+    typedef T* TIterator;
+    typedef const T* TConstIterator;
 
-    using TIterator = T*;
-    using TConstIterator = const T*;
-
-    using iterator = TIterator ;
-    using const_iterator = TConstIterator;
-
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    typedef TIterator iterator;
+    typedef TConstIterator const_iterator;
 
     TCompactVector()
         : Ptr(nullptr)
@@ -56,60 +52,15 @@ public:
         }
     }
 
-    TCompactVector(TThis&& that) noexcept
-        : Ptr(nullptr)
-    {
-        Swap(that);
-    }
-
-    TCompactVector(std::initializer_list<T> init)
-        : Ptr(nullptr)
-    {
-        Reserve(init.size());
-        for (const T& val : init) {
-            PushBack(val);
-        }
-    }
-
-    template <class InputIterator>
-    TCompactVector(InputIterator begin, InputIterator end)
-        : Ptr(nullptr)
-    {
-        Reserve(std::distance(begin, end));
-
-        for (auto it = begin; it != end; ++it) {
-            push_back(*it);
-        }
-    }
-
     ~TCompactVector() {
         for (size_t i = 0; i < Size(); ++i) {
             try {
-                destruct_at(i);
+                (*this)[i].~T();
             } catch (...) {
             }
         }
         if (Ptr)
-            y_deallocate(Header());
-    }
-
-    TThis& operator = (TThis&& that) noexcept {
-        Swap(that);
-        return *this;
-    }
-
-    TThis& operator = (const TThis& that) {
-        if (Y_LIKELY(this != &that)) {
-            TThis tmp(that);
-            Swap(tmp);
-        }
-        return *this;
-    }
-
-    TThis& operator = (std::initializer_list<T> init) {
-        TThis data(init);
-        Swap(data);
-        return *this;
+            free(Header());
     }
 
     TIterator Begin() {
@@ -144,56 +95,28 @@ public:
         return End();
     }
 
-    reverse_iterator rbegin() {
-        return std::make_reverse_iterator(end());
-    }
-
-    const_reverse_iterator rbegin() const {
-        return std::make_reverse_iterator(end());
-    }
-
-    reverse_iterator rend() {
-        return std::make_reverse_iterator(begin());
-    }
-
-    const_reverse_iterator rend() const {
-        return std::make_reverse_iterator(begin());
-    }
-
-    void Swap(TThis& that) noexcept {
+    void Swap(TThis& that) {
         DoSwap(Ptr, that.Ptr);
     }
 
     void Reserve(size_t newCapacity) {
         if (newCapacity <= Capacity()) {
         } else if (Ptr == nullptr) {
-            constexpr size_t maxBlockSize = static_cast<size_t>(1) << (sizeof(size_t) * 8 - 1);
-            constexpr size_t maxCapacity = (maxBlockSize - sizeof(THeader)) / sizeof(T);
-            Y_ENSURE(newCapacity <= maxCapacity);
-
-            const size_t requiredMemSize = sizeof(THeader) + newCapacity * sizeof(T);
-            // most allocators operates pow-of-two memory blocks,
-            // so we try to allocate such memory block to fully utilize its capacity
-            const size_t memSizePowOf2 = FastClp2(requiredMemSize);
-            const size_t realNewCapacity = (memSizePowOf2 - sizeof(THeader)) / sizeof(T);
-            Y_ASSERT(realNewCapacity >= newCapacity);
-
-            void* mem = ::y_allocate(memSizePowOf2);
+            void* mem = ::malloc(sizeof(THeader) + newCapacity * sizeof(T));
+            if (mem == nullptr)
+                ythrow yexception() << "out of memory";
             Ptr = (T*)(((THeader*)mem) + 1);
             Header()->Size = 0;
-            Header()->Capacity = realNewCapacity;
+            Header()->Capacity = newCapacity;
         } else {
             TThis copy;
-            copy.Reserve(newCapacity);
+            size_t realNewCapacity = Max(Capacity() * 2, newCapacity);
+            copy.Reserve(realNewCapacity);
             for (TConstIterator it = Begin(); it != End(); ++it) {
                 copy.PushBack(*it);
             }
             Swap(copy);
         }
-    }
-
-    void reserve(size_t newCapacity) {
-        Reserve(newCapacity);
     }
 
     size_t Size() const {
@@ -220,10 +143,6 @@ public:
         Reserve(Size() + 1);
         new (Ptr + Size()) T(elem);
         ++(Header()->Size);
-    }
-
-    void push_back(const T& elem) {
-        PushBack(elem);
     }
 
     T& Back() {
@@ -276,13 +195,6 @@ public:
 
     void clear() {
         Clear();
-    }
-
-    void erase(iterator position) {
-        Y_ENSURE(position >= begin() && position < end());
-        std::move(position + 1, end(), position);
-        destruct_at(Size() - 1);
-        Header()->Size -= 1;
     }
 
     T& operator[](size_t index) {

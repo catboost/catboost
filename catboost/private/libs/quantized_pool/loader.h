@@ -62,8 +62,7 @@ namespace NCB {
 
     struct IQuantizedPoolLoader {
         virtual ~IQuantizedPoolLoader() = default;
-        virtual void LoadQuantizedPool(TLoadQuantizedPoolParameters params) = 0;
-        virtual TQuantizedPool ExtractQuantizedPool() = 0;
+        virtual TQuantizedPool LoadQuantizedPool(TLoadQuantizedPoolParameters params) = 0;
         virtual TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) = 0;
         virtual TVector<ui8> LoadQuantizedColumn(ui32 columnIdx, ui64 offset, ui64 count) = 0;
         virtual TPathWithScheme GetPoolPathWithScheme() const = 0;
@@ -74,15 +73,13 @@ namespace NCB {
 
     class TQuantizedPoolLoadersCache {
     public:
-        static TAtomicSharedPtr<IQuantizedPoolLoader> GetLoader(
-            const TPathWithScheme& pathWithScheme,
-            TDatasetSubset loadSubset);
-        static bool HaveLoader(const TPathWithScheme& pathWithScheme, TDatasetSubset loadSubset);
+        static TAtomicSharedPtr<IQuantizedPoolLoader> GetLoader(const TPathWithScheme& pathWithScheme);
+        static bool HaveLoader(const TPathWithScheme& pathWithScheme);
         static void DropAllLoaders();
         static bool IsEmpty();
 
     private:
-        THashMap<std::pair<TPathWithScheme, TDatasetSubset>, TAtomicSharedPtr<IQuantizedPoolLoader>> Cache;
+        THashMap<TPathWithScheme, TAtomicSharedPtr<IQuantizedPoolLoader>> Cache;
         TAdaptiveLock Lock;
         inline static TQuantizedPoolLoadersCache& GetRef() {
             return *Singleton<TQuantizedPoolLoadersCache>();

@@ -46,7 +46,7 @@ struct TFloatFeatureStatistics : public IStatistics {
     TFloatFeatureStatistics();
 
     TFloatFeatureStatistics(const TFloatFeatureStatistics& a)
-        : MinValue(a.MinValue), MaxValue(a.MaxValue), Sum(a.Sum), SumSqr(a.SumSqr), ObjectCount(a.ObjectCount) {}
+        : MinValue(a.MinValue), MaxValue(a.MaxValue), Sum(a.Sum), ObjectCount(a.ObjectCount) {}
 
     void Update(float feature);
 
@@ -60,45 +60,14 @@ struct TFloatFeatureStatistics : public IStatistics {
         return ObjectCount;
     }
 
-    Y_SAVELOAD_DEFINE(MinValue, MaxValue, Sum, SumSqr, ObjectCount);
+    Y_SAVELOAD_DEFINE(MinValue, MaxValue, Sum, ObjectCount);
 
-    SAVELOAD(MinValue, MaxValue, Sum, SumSqr, ObjectCount);
+    SAVELOAD(MinValue, MaxValue, Sum, ObjectCount);
 
     double MinValue;
     double MaxValue;
     long double Sum;
-    long double SumSqr;
     ui64 ObjectCount;
-private:
-    TMutex Mutex;
-};
-
-struct TFloatFeaturePairwiseProduct {
-    TFloatFeaturePairwiseProduct() = default;
-    TFloatFeaturePairwiseProduct(TFloatFeaturePairwiseProduct&&) noexcept = default;
-
-    TFloatFeaturePairwiseProduct(const TFloatFeaturePairwiseProduct& a)
-        : PairwiseProduct(a.PairwiseProduct)
-        , PairwiseProductDocsUsed(a.PairwiseProductDocsUsed)
-        , FeatureCount(a.FeatureCount)
-    {}
-
-    void Init(ui32 featureCount);
-
-    void Update(TConstArrayRef<float> features);
-    void Update(const TFloatFeaturePairwiseProduct& update);
-
-    bool operator==(const TFloatFeaturePairwiseProduct& rhs) const;
-
-    NJson::TJsonValue ToJson(const TVector<TFloatFeatureStatistics>& featureStats) const;
-
-    TVector<long double> PairwiseProduct;
-    ui64 PairwiseProductDocsUsed;
-    ui32 FeatureCount;
-
-    Y_SAVELOAD_DEFINE(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount);
-
-    SAVELOAD(PairwiseProduct, PairwiseProductDocsUsed, FeatureCount);
 private:
     TMutex Mutex;
 };
@@ -302,6 +271,7 @@ public:
         TargetCount
     );
 
+private:
     TVector<TFloatTargetStatistic> FloatTargetStatistics;
     TVector<TStringTargetStatistic> StringTargetStatistics;
     ERawTargetType TargetType;
@@ -313,21 +283,18 @@ public:
     Y_SAVELOAD_DEFINE(
         FloatFeatureStatistics,
         CatFeatureStatistics,
-        TextFeatureStatistics,
-        FloatFeaturePairwiseProduct
+        TextFeatureStatistics
     );
 
     SAVELOAD(
         FloatFeatureStatistics,
         CatFeatureStatistics,
-        TextFeatureStatistics,
-        FloatFeaturePairwiseProduct
+        TextFeatureStatistics
     );
 
     TVector<TFloatFeatureStatistics> FloatFeatureStatistics;
     TVector<TCatFeatureStatistics> CatFeatureStatistics;
     TVector<TTextFeatureStatistics> TextFeatureStatistics;
-    TFloatFeaturePairwiseProduct FloatFeaturePairwiseProduct;
 
     void Init(const TDataMetaInfo& metaInfo);
 

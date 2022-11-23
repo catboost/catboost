@@ -1,2 +1,2 @@
 keep:
-  - tests/test_six.py
+- tests/test_six.py

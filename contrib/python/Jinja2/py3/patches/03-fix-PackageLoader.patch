@@ -1,14 +1,14 @@
 --- contrib/python/Jinja2/py3/jinja2/loaders.py	(index)
 +++ contrib/python/Jinja2/py3/jinja2/loaders.py	(working tree)
-@@ -5,6 +5,7 @@ sources.
+@@ -4,6 +4,7 @@ sources.
+ import importlib.util
  import os
- import posixpath
  import sys
 +import pkgutil
  import typing as t
  import weakref
  import zipimport
-@@ -21,6 +22,8 @@ if t.TYPE_CHECKING:
+@@ -20,6 +21,8 @@ if t.TYPE_CHECKING:
      from .environment import Environment
      from .environment import Template
  
@@ -17,7 +17,7 @@
  
  def split_template_path(template: str) -> t.List[str]:
      """Split a path into segments and perform a sanity check.  If it detects
-@@ -288,19 +291,22 @@ class PackageLoader(BaseLoader):
+@@ -284,19 +287,22 @@ class PackageLoader(BaseLoader):
  
          # Make sure the package exists. This also makes namespace
          # packages work, otherwise get_loader returns None.
@@ -35,14 +35,14 @@
          if isinstance(loader, zipimport.zipimporter):
              self._archive = loader.archive
              pkgdir = next(iter(spec.submodule_search_locations))  # type: ignore
-             template_root = os.path.join(pkgdir, package_path).rstrip(os.path.sep)
+             template_root = os.path.join(pkgdir, package_path)
 +        elif hasattr(loader, "arcadia_source_finder"):
-+            template_root = os.path.dirname(package.__file__).rstrip(os.path.sep)
++            template_root = os.path.dirname(package.__file__)
          else:
              roots: t.List[str] = []
  
-@@ -338,7 +341,16 @@ class PackageLoader(BaseLoader):
-         p = posixpath.join(self._template_root, *split_template_path(template))
+@@ -329,7 +335,16 @@ class PackageLoader(BaseLoader):
+         p = os.path.join(self._template_root, *split_template_path(template))
          up_to_date: t.Optional[t.Callable[[], bool]]
  
 -        if self._archive is None:
@@ -59,7 +59,7 @@
              # Package is a directory.
              if not os.path.isfile(p):
                  raise TemplateNotFound(template)
-@@ -368,7 +380,12 @@ class PackageLoader(BaseLoader):
+@@ -359,7 +374,12 @@ class PackageLoader(BaseLoader):
      def list_templates(self) -> t.List[str]:
          results: t.List[str] = []
  

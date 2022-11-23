@@ -11,7 +11,10 @@ import warnings
 
 import numpy as np
 
-from pandas._typing import AnyArrayLike
+from pandas._typing import (
+    AnyArrayLike,
+    ArrayLike,
+)
 from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
@@ -101,13 +104,14 @@ def is_scalar_indexer(indexer, ndim: int) -> bool:
     return False
 
 
-def is_empty_indexer(indexer) -> bool:
+def is_empty_indexer(indexer, arr_value: ArrayLike) -> bool:
     """
     Check if we have an empty indexer.
 
     Parameters
     ----------
     indexer : object
+    arr_value : np.ndarray or ExtensionArray
 
     Returns
     -------
@@ -115,9 +119,11 @@ def is_empty_indexer(indexer) -> bool:
     """
     if is_list_like(indexer) and not len(indexer):
         return True
-    if not isinstance(indexer, tuple):
-        indexer = (indexer,)
-    return any(isinstance(idx, np.ndarray) and len(idx) == 0 for idx in indexer)
+    if arr_value.ndim == 1:
+        if not isinstance(indexer, tuple):
+            indexer = (indexer,)
+        return any(isinstance(idx, np.ndarray) and len(idx) == 0 for idx in indexer)
+    return False
 
 
 # -----------------------------------------------------------
@@ -240,7 +246,7 @@ def validate_indices(indices: np.ndarray, n: int) -> None:
 # Indexer Conversion
 
 
-def maybe_convert_indices(indices, n: int, verify: bool = True) -> np.ndarray:
+def maybe_convert_indices(indices, n: int, verify: bool = True):
     """
     Attempt to convert indices into valid, positive indices.
 
@@ -289,6 +295,27 @@ def maybe_convert_indices(indices, n: int, verify: bool = True) -> np.ndarray:
 
 # -----------------------------------------------------------
 # Unsorted
+
+
+def is_exact_shape_match(target: ArrayLike, value: ArrayLike) -> bool:
+    """
+    Is setting this value into this target overwriting the entire column?
+
+    Parameters
+    ----------
+    target : np.ndarray or ExtensionArray
+    value : np.ndarray or ExtensionArray
+
+    Returns
+    -------
+    bool
+    """
+    return (
+        len(value.shape) > 0
+        and len(target.shape) > 0
+        and value.shape[0] == target.shape[0]
+        and value.size == target.size
+    )
 
 
 def length_of_indexer(indexer, target=None) -> int:

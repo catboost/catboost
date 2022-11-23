@@ -294,13 +294,6 @@ cdef class Float64ClosedLeftIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(float64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -446,13 +439,6 @@ cdef class Float64ClosedRightIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(float64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -598,13 +584,6 @@ cdef class Float64ClosedBothIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(float64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -750,13 +729,6 @@ cdef class Float64ClosedNeitherIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(float64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -902,13 +874,6 @@ cdef class Int64ClosedLeftIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(int64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1054,13 +1019,6 @@ cdef class Int64ClosedRightIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(int64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1206,13 +1164,6 @@ cdef class Int64ClosedBothIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(int64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1358,13 +1309,6 @@ cdef class Int64ClosedNeitherIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(int64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1510,13 +1454,6 @@ cdef class Uint64ClosedLeftIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(uint64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1662,13 +1599,6 @@ cdef class Uint64ClosedRightIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(uint64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1814,13 +1744,6 @@ cdef class Uint64ClosedBothIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(uint64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 
@@ -1966,13 +1889,6 @@ cdef class Uint64ClosedNeitherIntervalNode(IntervalNode):
             # calculate a pivot so we can create child nodes
             self.is_leaf_node = False
             self.pivot = np.median(left / 2 + right / 2)
-            if np.isinf(self.pivot):
-                self.pivot = cython.cast(uint64_t, 0)
-                if self.pivot > np.max(right):
-                    self.pivot = np.max(left)
-                if self.pivot < np.min(left):
-                    self.pivot = np.min(right)
-
             left_set, right_set, center_set = self.classify_intervals(
                 left, right)
 

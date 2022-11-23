@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: traitlets
-Version: 5.5.0
+Version: 5.4.0
 Project-URL: Homepage, https://github.com/ipython/traitlets
 Author-email: IPython Development Team <ipython-dev@python.org>
 License: # Licensing terms
@@ -63,10 +63,8 @@ License: # Licensing terms
         With this in mind, the following banner should be used in any source code file
         to indicate the copyright and license terms:
         
-        ```
-        # Copyright (c) IPython Development Team.
-        # Distributed under the terms of the Modified BSD License.
-        ```
+            # Copyright (c) IPython Development Team.
+            # Distributed under the terms of the Modified BSD License.
 License-File: COPYING.md
 Keywords: Interactive,Interpreter,Shell,Web
 Classifier: Intended Audience :: Developers
@@ -76,10 +74,6 @@ Classifier: License :: OSI Approved :: BSD License
 Classifier: Programming Language :: Python
 Classifier: Programming Language :: Python :: 3
 Requires-Python: >=3.7
-Provides-Extra: docs
-Requires-Dist: myst-parser; extra == 'docs'
-Requires-Dist: pydata-sphinx-theme; extra == 'docs'
-Requires-Dist: sphinx; extra == 'docs'
 Provides-Extra: test
 Requires-Dist: pre-commit; extra == 'test'
 Requires-Dist: pytest; extra == 'test'
@@ -152,16 +146,12 @@ the pre-commit hook should take care of how it should look.
 
 To install `pre-commit` locally, run the following::
 
-```
-pip install pre-commit
-pre-commit install
-```
+    pip install pre-commit
+    pre-commit install
 
 You can invoke the pre-commit hook by hand at any time with::
 
-```
-pre-commit run
-```
+    pre-commit run
 
 which should run any autoformatting on your code
 and tell you about any errors it couldn't fix automatically.
