@@ -1851,7 +1851,7 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, PATH_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str() or pathlib.Path().".format(type(model_file)))
-
+        self._init_params = {}
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params()):
