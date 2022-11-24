@@ -1,6 +1,7 @@
 # build/platform/cuda (include/ and extras/CUPTI/include/)
 - includes:
   - cooperative_groups.h
+  - cooperative_groups/reduce.h
   - cuComplex.h
   # Though cub is provided as a part of CUDA HPC SDK,
   # we would like to be updatable independently.
@@ -15,6 +16,7 @@
   - cuda_fp16.h
   - cuda_gl_interop.h
   - cuda_occupancy.h
+  - cuda_profiler_api.h
   - cuda_runtime.h
   - cuda_runtime_api.h
   - cufft.h
@@ -25,6 +27,7 @@
   - curand_mtgp32dc_p_11213.h
   - cusolverDn.h
   - cusparse.h
+  - cusparseLt.h
   - driver_types.h
   - host_defines.h
   - library_types.h
