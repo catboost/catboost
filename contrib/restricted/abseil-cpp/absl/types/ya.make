@@ -20,10 +20,6 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -DNOMINMAX
-)
-
 SRCS(
     bad_any_cast.cc
     bad_optional_access.cc

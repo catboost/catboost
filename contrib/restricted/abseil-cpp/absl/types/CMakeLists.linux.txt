@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-types)
 target_compile_options(abseil-cpp-absl-types PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-types PUBLIC
