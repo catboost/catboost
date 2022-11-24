@@ -2722,8 +2722,9 @@ cdef void call_python_code(int block_id) nogil :
 g_column_array = None
 g_object_process_callback = None
 
-cdef void processor(int start, int end) :    
-    for idx in range(start, end):                        
+cdef void processor(int start, int end) :
+    global g_object_process_callback, g_column_array, processing_result
+    for idx in range(start, end):        
         g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])
 
 cdef parallel_process_features_column_to_vector(
@@ -2749,17 +2750,18 @@ cdef parallel_process_features_column_to_vector(
         
         #print(f"objects_in_column = {objects_in_column}, block_size = {block_size}, block_count = {block_count}")
 
-        #for block_id in range(block_count):
-        #    call_python_code(block_id)            
+        for block_id in range(block_count):
+            call_python_code(block_id)            
         #for idx in range(objects_in_column):                            
         #    g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])
 
-        CallInParallel(
-                        executor_ptr,
-                #        # executor,
-                        call_python_code,
-                        block_count
-                    )
+        with nogil:
+            CallInParallel(
+                            executor_ptr,
+                    #        # executor,
+                            call_python_code,
+                            block_count
+                        )
 
         #with nogil:     
         #call_python_code(0)       
