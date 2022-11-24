@@ -2710,7 +2710,7 @@ cdef class ColumnProcessor:
             self.callback(idx, self.column_array[idx], processing_result[0][idx])        
 
 
-cdef void call_python_code(int block_id) nogil :            
+cdef void call_python_code(int block_id) nogil :    
     CallbackForColumnProcessing(
         block_id * column_block_size, 
         min(
@@ -2719,35 +2719,58 @@ cdef void call_python_code(int block_id) nogil :
         )
     )
 
+g_column_array = None
+g_object_process_callback = None
+
+cdef void processor(int start, int end) :    
+    for idx in range(start, end):                        
+        g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])
 
 cdef parallel_process_features_column_to_vector(
         # TAtomicSharedPtr[TTbbLocalExecutor] executor,         
         # ILocalExecutor* executor,
         int thread_count,
-        object column_array,
+        column_array,
         TVector[TString]* result,
         object object_process_callback,
         size_t block_size = 1024 * 16
     ) :
-        global processing_result, column_block_size, CallbackForColumnProcessing, objects_in_column
+        global processing_result, column_block_size, CallbackForColumnProcessing, objects_in_column, g_column_array, g_object_process_callback
         processing_result = result
         column_block_size = block_size
-        CallbackForColumnProcessing = ColumnProcessor(object_process_callback, column_array)
+        CallbackForColumnProcessing = <callback_ptr>(&processor)
         objects_in_column = len(column_array)
+        g_column_array = column_array
+        g_object_process_callback = object_process_callback                        
+        
         cdef size_t block_count = (objects_in_column + block_size - 1) // block_size                            
         cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         cdef ILocalExecutor* executor_ptr = <ILocalExecutor*>local_executor.Get()        
         
+        #print(f"objects_in_column = {objects_in_column}, block_size = {block_size}, block_count = {block_count}")
+
+        #for block_id in range(block_count):
+        #    call_python_code(block_id)            
+        #for idx in range(objects_in_column):                            
+        #    g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])
+
+        CallInParallel(
+                        executor_ptr,
+                #        # executor,
+                        call_python_code,
+                        block_count
+                    )
+
         #with nogil:     
-        call_python_code(0)       
-        print("after call_python_code(0)");
-        CallInParallel(executor_ptr, call_python_code, 1) 
-        #CallInParallel(
-        #    executor_ptr,
-        #    executor,
-        #    call_python_code,
-        #    block_count
-        #)
+        #call_python_code(0)       
+        #print("after call_python_code(0)");
+        #    CallInParallel(executor_ptr, call_python_code, 1)
+        #    CallInParallel(
+        #        executor_ptr,
+        #        # executor,
+        #        call_python_code,
+        #        block_count
+        #    )
 
 
 # returns new data holders array
@@ -2843,7 +2866,7 @@ cdef object _set_features_order_data_pd_data_frame(
                     &string_factor_data,                # TVector[TString]* result,
                     call_back # object object_process_callback,                    
                 )
-                
+                                
                 #for doc_idx in range(doc_count):
                 #    call_back(
                 #        doc_idx,

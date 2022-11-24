@@ -296,12 +296,15 @@ void TrainEvalSplit(
     }
 }
 
-thread_local size_t objects_in_column;
-thread_local size_t column_block_size;
-thread_local callback_ptr CallbackForColumnProcessing;
-thread_local TVector<TString>* processing_result;
+size_t objects_in_column;
+size_t column_block_size;
+callback_ptr CallbackForColumnProcessing;
+TVector<TString>* processing_result;
+
+#include <iostream>
 
 void CallInParallel(NPar::ILocalExecutor* executor, void(*callback) (int block_id), size_t block_count) {
+    std::cout << "CallInParallel" << std::endl;
     auto task = [&](int id) {
         callback(id);
     };
