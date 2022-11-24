@@ -30,19 +30,15 @@ namespace NJson {
 
         static void TestEncoding(const TValues& values) {
             for (const auto& [serializedValue, value] : values) {
-                {
-                    const auto encodedValue = TConverter<T>::Encode(value);
-                    AssertJsonsEqual(encodedValue, serializedValue);
-                }
+                const auto encodedValue = TConverter<T>::Encode(value);
+                AssertJsonsEqual(encodedValue, serializedValue);
             }
         }
 
         static void TestDecoding(const TValues& values) {
             for (const auto& [serializedValue, value] : values) {
-                {
-                    const auto decodedValue = TConverter<T>::Decode(ReadJsonFastTree(serializedValue));
-                    UNIT_ASSERT_EQUAL(decodedValue, value);
-                }
+                const auto decodedValue = TConverter<T>::Decode(ReadJsonFastTree(serializedValue));
+                UNIT_ASSERT_EQUAL(decodedValue, value);
             }
         }
 
@@ -59,11 +55,9 @@ namespace NJson {
             TestDecoding(values);
 
             for (const auto& [serializedValue, value] : values) {
-                {
-                    const auto encodedValue = TConverter<T>::Encode(value);
-                    const auto decodedValue = TConverter<T>::Decode(encodedValue);
-                    UNIT_ASSERT_EQUAL(value, decodedValue);
-                }
+                const auto encodedValue = TConverter<T>::Encode(value);
+                const auto decodedValue = TConverter<T>::Decode(encodedValue);
+                UNIT_ASSERT_EQUAL(value, decodedValue);
             }
         }
     };
