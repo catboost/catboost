@@ -52,14 +52,14 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
    cat_features = [0,1,2]
 
    train_data = [["a", "b", 1, 4, 5, 6],
-   ["a", "b", 4, 5, 6, 7],
-   ["c", "d", 30, 40, 50, 60]]
+       ["a", "b", 4, 5, 6, 7],
+       ["c", "d", 30, 40, 50, 60]]
 
    train_labels = [1,1,0]
 
    model = CatBoostClassifier(iterations=20,
-   loss_function = "CrossEntropy",
-   train_dir = "crossentropy")
+       loss_function = "CrossEntropy",
+       train_dir = "crossentropy")
 
    model.fit(train_data, train_labels, cat_features)
    predictions = model.predict(train_data)
@@ -101,8 +101,8 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
     cat_features = [0,1,2]
 
     train_data = [["a", "b", 1, 4, 5, 6],
-    ["a", "b", 4, 5, 6, 7],
-    ["c", "d", 30, 40, 50, 60]]
+        ["a", "b", 4, 5, 6, 7],
+        ["c", "d", 30, 40, 50, 60]]
 
     train_labels = [1,1,0]
 
@@ -119,8 +119,8 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
     cat_features = [0,1,2]
 
     train_data = [["a", "b", 1, 4, 5, 6],
-    ["a", "b", 4, 5, 6, 7],
-    ["c", "d", 30, 40, 50, 60]]
+        ["a", "b", 4, 5, 6, 7],
+        ["c", "d", 30, 40, 50, 60]]
 
     train_labels = [1,1,0]
 
@@ -134,10 +134,10 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
 1. Plot charts using the information from all subdirectories (`crossentropy` and `logloss`) of the root of the file system:
 
     ```python
-       import catboost
+    import catboost
 
-       w = catboost.MetricVisualizer('/', subdirs=True)
-       w.start()
+    w = catboost.MetricVisualizer('/', subdirs=True)
+    w.start()
     ```
 
 {% include [reusage-code-examples-graph-plotted-with-jupyter-notebook](../_includes/work_src/reusage-code-examples/graph-plotted-with-jupyter-     notebook.md) %}
