@@ -813,4 +813,27 @@ CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).c_str();
 }
 
+CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char*** featureNames, size_t* featureCount) {
+    auto modelUsedFeatureNames = GetModelUsedFeaturesNames(*FULL_MODEL_PTR(modelHandle));
+    *featureNames = (char**)malloc(sizeof(const char*)*modelUsedFeatureNames.size());
+    if (!*featureNames) {
+        return false;
+    }
+    *featureCount = modelUsedFeatureNames.size();
+    for (size_t i = 0; i < modelUsedFeatureNames.size(); ++i) {
+        (*featureNames)[i] = (char*)malloc(modelUsedFeatureNames[i].size() + 1);
+        if (!((*featureNames)[i])) {
+            for (size_t j = 0; j < i; ++j) {
+                free((*featureNames)[j]);
+            }
+            free(*featureNames);
+            return false;
+        }
+        strcpy((*featureNames)[i], modelUsedFeatureNames[i].c_str());
+    }
+
+    return true;
+}
+
+
 }
