@@ -4,6 +4,8 @@ LIBRARY()
 
 LICENSE(
     BSD-2-Clause AND
+    BSD-2-Clause-Views AND
+    BSD-3-Clause AND
     Public-Domain
 )
 
