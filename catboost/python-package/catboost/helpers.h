@@ -277,3 +277,11 @@ void TrainEvalSplit(
 );
 
 
+extern size_t objects_in_column;
+extern size_t column_block_size;
+extern TVector<TString>* processing_result;
+
+typedef void (*callback_ptr) (int, int);
+extern callback_ptr CallbackForColumnProcessing;
+
+void CallInParallel(NPar::ILocalExecutor* executor, void(*callback) (int block_id), size_t block_count);

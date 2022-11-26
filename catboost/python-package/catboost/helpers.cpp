@@ -295,3 +295,18 @@ void TrainEvalSplit(
         *evalDataProvider = getSubset(postShuffleTestIndices);
     }
 }
+
+size_t objects_in_column;
+size_t column_block_size;
+callback_ptr CallbackForColumnProcessing;
+TVector<TString>* processing_result;
+
+#include <iostream>
+
+void CallInParallel(NPar::ILocalExecutor* executor, void(*callback) (int block_id), size_t block_count) {
+    std::cout << "CallInParallel" << std::endl;
+    auto task = [&](int id) {
+        callback(id);
+    };
+    executor->ExecRange(task, 0, block_count, NPar::TLocalExecutor::WAIT_COMPLETE);
+}
