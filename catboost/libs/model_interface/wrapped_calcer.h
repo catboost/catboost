@@ -2,6 +2,7 @@
 
 #include "c_api.h"
 
+#include <cstdlib>
 #include <string>
 #include <array>
 #include <vector>
@@ -370,6 +371,36 @@ public:
         size_t value_size = GetModelInfoValueSize(CalcerHolder.get(), key.c_str(), key.size());
         const char* value_ptr = GetModelInfoValue(CalcerHolder.get(), key.c_str(), key.size());
         return std::string(value_ptr, value_size);
+    }
+
+    std::vector<std::string> GetUsedFeaturesNames() const {
+        char** featureNames = nullptr;
+        size_t featureCount = 0;
+        if (!GetModelUsedFeaturesNames(CalcerHolder.get(), &featureNames, &featureCount)) {
+            throw std::runtime_error(GetErrorString());
+        }
+        std::vector<std::string> result;
+        try {
+            result.reserve(featureCount);
+            for (size_t i = 0; i < featureCount; ++i) {
+                result.push_back(std::string(featureNames[i]));
+            }
+        } catch (...) {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+            throw;
+        }
+
+        {
+            for (size_t i = 0; i < featureCount; ++i) {
+                std::free(featureNames[i]);
+            }
+            std::free(featureNames);
+        }
+
+        return result;
     }
 
 private:
