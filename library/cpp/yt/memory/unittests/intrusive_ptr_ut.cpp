@@ -2,6 +2,11 @@
 
 #include <library/cpp/yt/memory/new.h>
 #include <library/cpp/yt/memory/ref_counted.h>
+#include <library/cpp/yt/memory/serialize.h>
+
+#include <util/generic/buffer.h>
+#include <util/stream/buffer.h>
+#include <util/ysaveload.h>
 
 namespace NYT {
 namespace {
@@ -554,6 +559,61 @@ TEST(TIntrusivePtrTest, InitStruct)
 
     New<TObj6>();
     New<TObj6>(1, 2);
+}
+
+TEST(TIntrusivePtrTest, Serialize)
+{
+    TBufferStream stream;
+
+    struct TObject
+        : public TRefCounted
+    {
+        ui64 Data;
+
+        TObject()
+            : Data(0)
+        { }
+        TObject(ui64 value)
+            : Data(value)
+        { }
+
+        inline void Save(IOutputStream* out) const
+        {
+            ::Save(out, Data);
+        }
+
+        inline void Load(IInputStream* in)
+        {
+            ::Load(in, Data);
+        }
+    };
+
+    ::Save(&stream, TIntrusivePtr<TObject>(nullptr));
+
+    bool hasValue = true;
+    ::Load(&stream, hasValue);
+    EXPECT_FALSE(hasValue);
+    EXPECT_EQ(stream.Buffer().Size(), 1ull);
+
+    auto data = New<TObject>(42ull);
+    ::Save(&stream, data);
+
+    ::Load(&stream, hasValue);
+    EXPECT_TRUE(hasValue);
+    data->Data = 0;
+    ::Load(&stream, data->Data);
+    EXPECT_EQ(data->Data, 42ull);
+
+    ::Save(&stream, data);
+    TIntrusivePtr<TObject> ptr;
+    ::Load(&stream, ptr);
+    EXPECT_TRUE(ptr);
+    EXPECT_EQ(data->Data, ptr->Data);
+
+    ptr = nullptr;
+    ::Save(&stream, TIntrusivePtr<TObject>(nullptr));
+    ::Load(&stream, ptr);
+    EXPECT_FALSE(ptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
