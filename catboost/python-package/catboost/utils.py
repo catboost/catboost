@@ -47,6 +47,7 @@ def _draw(plt, x, y, x_label, y_label, title):
 def create_cd(
     label=None,
     cat_features=None,
+    text_features=None,
     embedding_features=None,
     weight=None,
     baseline=None,
@@ -70,7 +71,7 @@ def create_cd(
     _column_description = defaultdict(lambda: ['Num', ''])
     for key, value in locals().copy().items():
         if not (key.startswith('_') or value is None):
-            if key in ('cat_features', 'embedding_features', 'auxiliary_columns'):
+            if key in ('cat_features', 'text_features', 'embedding_features', 'auxiliary_columns'):
                 if isinstance(value, int):
                     value = [value]
                 for index in value:
@@ -80,6 +81,8 @@ def create_cd(
                         raise CatBoostError('The index {} occurs more than once'.format(index))
                     if key == 'cat_features':
                         _column_description[index] = ['Categ', '']
+                    elif key == 'text_features':
+                        _column_description[index] = ['Text', '']
                     elif key == 'embedding_features':
                         _column_description[index] = ['NumVector', '']
                     else:
@@ -96,7 +99,7 @@ def create_cd(
             for column_index, (title, _) in sorted(_column_description.items()):
                 if column_index > real_feature_index:
                     break
-                if title not in ('Num', 'Categ', 'NumVector'):
+                if title not in ('Num', 'Categ', 'Text', 'NumVector'):
                     real_feature_index += 1
             _column_description[real_feature_index][1] = name
     with open(fspath(output_path), 'w') as f:
