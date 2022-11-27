@@ -140,7 +140,7 @@ Refer to the [MetricVisualizer](../concepts/python-reference_catboostipythonwid
     w.start()
     ```
 
-{% include [reusage-code-examples-graph-plotted-with-jupyter-notebook](../_includes/work_src/reusage-code-examples/graph-plotted-with-jupyter-     notebook.md) %}
+{% include [reusage-code-examples-graph-plotted-with-jupyter-notebook](../_includes/work_src/reusage-code-examples/graph-plotted-with-jupyter-notebook.md) %}  
 
 ![](../images/interface__visualization-tools__jupyter__cross-entropy_and_logloss.png)
 
