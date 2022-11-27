@@ -41,6 +41,11 @@ static int getloadavg(double* loadavg, int nelem) {
 #include <util/generic/yexception.h>
 
 #if defined(_linux_)
+/*
+This function olny works properly if you apply correct setting to your nanny/deploy project
+
+In nanny - Runtime -> Instance spec -> Advanced settings -> Cgroupfs settings: Mount mode = Read only
+*/
 static inline size_t CgroupCpus() {
     try {
         auto q = FromString<ssize_t>(StripString(TFileInput("/sys/fs/cgroup/cpu/cpu.cfs_quota_us").ReadAll()));
