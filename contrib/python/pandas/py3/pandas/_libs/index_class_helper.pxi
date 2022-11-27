@@ -18,6 +18,8 @@ cdef class Float64Engine(IndexEngine):
         if not util.is_integer_object(val) and not util.is_float_object(val):
             # in particular catch bool and avoid casting True -> 1.0
             raise KeyError(val)
+        return val
+
 
 
 cdef class Float32Engine(IndexEngine):
@@ -29,6 +31,8 @@ cdef class Float32Engine(IndexEngine):
         if not util.is_integer_object(val) and not util.is_float_object(val):
             # in particular catch bool and avoid casting True -> 1.0
             raise KeyError(val)
+        return val
+
 
 
 cdef class Int64Engine(IndexEngine):
@@ -38,7 +42,13 @@ cdef class Int64Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
+        return val
+
 
 
 cdef class Int32Engine(IndexEngine):
@@ -48,7 +58,13 @@ cdef class Int32Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
+        return val
+
 
 
 cdef class Int16Engine(IndexEngine):
@@ -58,7 +74,13 @@ cdef class Int16Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
+        return val
+
 
 
 cdef class Int8Engine(IndexEngine):
@@ -68,7 +90,13 @@ cdef class Int8Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
+        return val
+
 
 
 cdef class UInt64Engine(IndexEngine):
@@ -78,10 +106,16 @@ cdef class UInt64Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
         if val < 0:
             # cannot have negative values with unsigned int dtype
             raise KeyError(val)
+        return val
+
 
 
 cdef class UInt32Engine(IndexEngine):
@@ -91,10 +125,16 @@ cdef class UInt32Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
         if val < 0:
             # cannot have negative values with unsigned int dtype
             raise KeyError(val)
+        return val
+
 
 
 cdef class UInt16Engine(IndexEngine):
@@ -104,10 +144,16 @@ cdef class UInt16Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
         if val < 0:
             # cannot have negative values with unsigned int dtype
             raise KeyError(val)
+        return val
+
 
 
 cdef class UInt8Engine(IndexEngine):
@@ -117,7 +163,45 @@ cdef class UInt8Engine(IndexEngine):
 
     cdef _check_type(self, object val):
         if not util.is_integer_object(val):
+            if util.is_float_object(val):
+                # Make sure Int64Index.get_loc(2.0) works
+                if val.is_integer():
+                    return int(val)
             raise KeyError(val)
         if val < 0:
             # cannot have negative values with unsigned int dtype
             raise KeyError(val)
+        return val
+
+
+
+cdef class Complex64Engine(IndexEngine):
+
+    cdef _make_hash_table(self, Py_ssize_t n):
+        return _hash.Complex64HashTable(n)
+
+    cdef _check_type(self, object val):
+        if (not util.is_integer_object(val)
+            and not util.is_float_object(val)
+            and not util.is_complex_object(val)
+        ):
+            # in particular catch bool and avoid casting True -> 1.0
+            raise KeyError(val)
+        return val
+
+
+
+cdef class Complex128Engine(IndexEngine):
+
+    cdef _make_hash_table(self, Py_ssize_t n):
+        return _hash.Complex128HashTable(n)
+
+    cdef _check_type(self, object val):
+        if (not util.is_integer_object(val)
+            and not util.is_float_object(val)
+            and not util.is_complex_object(val)
+        ):
+            # in particular catch bool and avoid casting True -> 1.0
+            raise KeyError(val)
+        return val
+
