@@ -37,11 +37,8 @@ namespace {
         Y_SAVELOAD_DEFINE(Parts, SortedBins);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(Parts.Size() < (1ULL << 32));
-            CB_ENSURE(SortedBins.Size() < (1ULL << 32));
-
-            NKernel::UpdatePartitionDimensions(Parts.Get(), (ui32)Parts.Size(), SortedBins.Get(),
-                                               (ui32)SortedBins.Size(), stream.GetStream());
+            NKernel::UpdatePartitionDimensions(Parts.Get(), SafeIntegerCast<ui32>(Parts.Size()), SortedBins.Get(),
+                                               SafeIntegerCast<ui32>(SortedBins.Size()), stream.GetStream());
         }
     };
 }

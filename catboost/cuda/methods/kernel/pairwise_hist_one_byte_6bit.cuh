@@ -272,7 +272,7 @@ namespace NKernel {
 
         __shared__ float localHist[64 * BlockSize];
 
-        const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &localHist[0]);
+        const ui32 maxBinCount = GetMaxBinCount(feature, fCount, (ui32*) &localHist[0]);
 
         if (maxBinCount > 64  || (maxBinCount <= 32)) {
             return;
