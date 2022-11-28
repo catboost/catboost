@@ -202,9 +202,16 @@ void NCB::CalcModelSingleHost(
 
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
-    auto poolColumnsPrinter = CreatePoolColumnPrinter(
-        params.DatasetReadingParams.PoolPath,
-        params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat);
+    auto poolColumnsPrinter = TIntrusivePtr<NCB::IPoolColumnsPrinter>(
+        GetProcessor<NCB::IPoolColumnsPrinter>(
+            params.DatasetReadingParams.PoolPath,
+            NCB::TPoolColumnsPrinterPullArgs{
+                params.DatasetReadingParams.PoolPath,
+                params.DatasetReadingParams.ColumnarPoolFormatParams.DsvFormat,
+                /*columnsMetaInfo*/ Nothing()
+            }
+        ).Release()
+    );
     const int blockSize = Max<int>(
         32,
         static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.GetDimensionsCount())
