@@ -226,7 +226,7 @@
 #define NPY_RELAXED_STRIDES_DEBUG 0
 #if defined(_x86_64_)
 #define HAVE_LDOUBLE_INTEL_EXTENDED_16_BYTES_LE 1
-#elif defined(_arm64_)
+#elif defined(_arm64_) || defined(__PPC64__)
 #define HAVE_LDOUBLE_IEEE_QUAD_LE 1
 #endif
 #ifndef __cplusplus

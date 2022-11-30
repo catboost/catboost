@@ -488,7 +488,7 @@ public:                       \
 //general
 #define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                                  \
     do {                                                                                                              \
-        if (!((A) == (B))) {                                                                                          \
+        if (!((A) == (B))) { /* NOLINT(readability-container-size-empty) */                                           \
             UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (::TStringBuilder() << C).data())); \
         }                                                                                                             \
     } while (false)
@@ -497,7 +497,7 @@ public:                       \
 
 #define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                                 \
     do {                                                                                                               \
-        if ((A) == (B)) {                                                                                              \
+        if ((A) == (B)) {  /* NOLINT(readability-container-size-empty) */                                              \
             UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (::TStringBuilder() << C).data()));\
         }                                                                                                              \
     } while (false)
@@ -609,12 +609,12 @@ public:                       \
         UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E,                             \
             [&_substr](const E&){                                           \
                 if (!_substr.empty()) {                                     \
-                    UNIT_ASSERT_C(CurrentExceptionMessage()                 \
-                                      .Contains(_substr),                   \
+                    auto cure = CurrentExceptionMessage() ; \
+                    UNIT_ASSERT_C(cure.Contains(_substr),                   \
                                   "Exception message does not contain \""   \
                                       << _substr << "\".\n"                 \
                                       << "Exception message: "              \
-                                      << CurrentExceptionMessage());        \
+                                      << cure);        \
                 }                                                           \
                 return true;                                                \
             },                                                              \

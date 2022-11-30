@@ -12,13 +12,18 @@ namespace NYT {
 
 inline char* TStringBuilderBase::Preallocate(size_t size)
 {
-    if (Y_UNLIKELY(End_ - Current_ < static_cast<ssize_t>(size))) {
+    Reserve(size + GetLength());
+    return Current_;
+}
+
+inline void TStringBuilderBase::Reserve(size_t size)
+{
+    if (Y_UNLIKELY(End_ - Begin_ < static_cast<ssize_t>(size))) {
         size_t length = GetLength();
-        auto newLength = std::max(length + size, MinBufferLength);
-        DoPreallocate(newLength);
+        auto newLength = std::max(size, MinBufferLength);
+        DoReserve(newLength);
         Current_ = Begin_ + length;
     }
-    return Current_;
 }
 
 inline size_t TStringBuilderBase::GetLength() const
@@ -100,7 +105,7 @@ inline void TStringBuilder::DoReset()
     Buffer_ = {};
 }
 
-inline void TStringBuilder::DoPreallocate(size_t newLength)
+inline void TStringBuilder::DoReserve(size_t newLength)
 {
     Buffer_.ReserveAndResize(newLength);
     auto capacity = Buffer_.capacity();

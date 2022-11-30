@@ -1,6 +1,42 @@
 {
   "FeatureStatistics":
     {
+      "CatFeaturesStatistics":
+        [
+          {
+            "CatFeatureCount":1
+          },
+          {
+            "CatFeatureCount":1
+          },
+          {
+            "CatFeatureCount":1
+          },
+          {
+            "CatFeatureCount":7
+          },
+          {
+            "CatFeatureCount":12
+          },
+          {
+            "CatFeatureCount":6
+          },
+          {
+            "CatFeatureCount":13
+          },
+          {
+            "CatFeatureCount":6
+          },
+          {
+            "CatFeatureCount":4
+          },
+          {
+            "CatFeatureCount":2
+          },
+          {
+            "CatFeatureCount":7
+          }
+        ],
       "FloatFeatureStatistics":
         [
           {
@@ -39,9 +75,17 @@
             "ObjectCount":101,
             "Sum":"3932"
           }
+        ],
+      "TextFeaturesStatistics":
+        [
         ]
     },
   "ObjectCount":101,
+  "SampleIdStatistics":
+    {
+      "ObjectCount":0,
+      "SumLen":"0"
+    },
   "TargetsStatistics":
     {
       "TargetCount":1,

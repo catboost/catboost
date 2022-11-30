@@ -1,8 +1,7 @@
 --- contrib/python/importlib-metadata/py3/importlib_metadata/__init__.py	(index)
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/__init__.py	(working tree)
-@@ -30,6 +30,12 @@ from importlib.abc import MetaPathFinder
- from itertools import starmap
- from typing import List, Mapping, Optional, Union
+@@ -31,4 +31,10 @@ from importlib.abc import MetaPathFinder
+ from typing import List, Mapping, Optional
  
 +try:
 +    import library.python.resource
@@ -12,31 +11,19 @@
 +
  
  __all__ = [
-     'Distribution',
-@@ -869,7 +875,7 @@ class Prepared:
-         return bool(self.name)
+@@ -712,3 +718,3 @@ class Prepared:
  
- 
--#@install
+-@install
 +@install(ARCADIA == False)
  class MetadataPathFinder(NullFinder, DistributionFinder):
-     """A degenerate finder for distribution packages on the file system.
- 
-@@ -957,7 +963,7 @@ class ArcadiaDistribution(Distribution):
-         return '{}{}'.format(self.prefix, path)
- 
+@@ -813,3 +819,3 @@ class ArcadiaDistribution(Distribution):
  
 -@install
 +@install(ARCADIA == True)
  class ArcadiaMetadataFinder(NullFinder, DistributionFinder):
- 
-     prefixes = {}
 --- contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(index)
 +++ contrib/python/importlib-metadata/py3/importlib_metadata/_compat.py	(working tree)
-@@ -11,17 +11,20 @@ except ImportError:  # pragma: no cover
-     from typing_extensions import Protocol  # type: ignore
- 
- 
+@@ -15,11 +15,14 @@ except ImportError:  # pragma: no cover
 -def install(cls):
 -    """
 -    Class decorator for installation on sys.meta_path.
@@ -62,6 +49,3 @@
 +            disable_stdlib_finder()
 +        return cls
 +    return dec_install
- 
- 
- def disable_stdlib_finder():

@@ -24,10 +24,6 @@ NO_COMPILER_WARNINGS()
 
 NO_UTIL()
 
-CFLAGS(
-    -DNOMINMAX
-)
-
 SRCS(
     barrier.cc
     blocking_counter.cc

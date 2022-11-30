@@ -1153,9 +1153,16 @@ class GnuToolchain(Toolchain):
         macos_version_min = '10.12'
         macos_arm64_version_min = '11.0'
         ios_version_min = '11.0'
-        if preset('MAPSMOBI_BUILD_TARGET'):
+        # min ios simulator version for Metal App is 13.0
+        # https://developer.apple.com/documentation/metal/supporting_simulator_in_a_metal_app
+        # Mapkit (MAPSMOBI_BUILD_TARGET) uses Metal Framework
+        if preset('MAPSMOBI_BUILD_TARGET') and target.is_iossim and target.is_armv8:
             macos_version_min = '10.14'
             ios_version_min = '13.0'
+        # Mapkit uses SecTrustEvaluateWithError function and these are min versions for it
+        elif preset('MAPSMOBI_BUILD_TARGET'):
+            macos_version_min = '10.14'
+            ios_version_min = '12.0'
 
         swift_target = select(default=None, selectors=[
             (target.is_iossim and target.is_x86_64, 'x86_64-apple-ios{}-simulator'.format(ios_version_min)),
@@ -1361,6 +1368,7 @@ class GnuCompiler(Compiler):
                 '-fcolor-diagnostics',
                 # Enable aligned allocation
                 '-faligned-allocation',
+                '-fdebug-default-version=4',
             ]
         elif self.tc.is_gcc:
             self.c_foptions += [
@@ -2007,6 +2015,9 @@ class MSVCCompiler(MSVC, Compiler):
                 #
                 # We override this value to match current value of the actual MSVC being used.
                 '-fms-compatibility-version=19.21',
+                # for msvc compatibility
+                # https://clang.llvm.org/docs/UsersManual.html#microsoft-extensions
+                '-fdelayed-template-parsing',
             ]
             if target.is_x86:
                 flags.append('-m32')

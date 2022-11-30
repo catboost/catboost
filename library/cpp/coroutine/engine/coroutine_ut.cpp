@@ -47,6 +47,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestUserEvent);
     UNIT_TEST(TestPause);
     UNIT_TEST(TestOverrideTime);
+    UNIT_TEST(TestCancelWithException);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -79,6 +80,7 @@ public:
     void TestUserEvent();
     void TestPause();
     void TestOverrideTime();
+    void TestCancelWithException();
 };
 
 void TCoroTest::TestException() {
@@ -1004,5 +1006,39 @@ void TCoroTest::TestOverrideTime() {
     }, "coro");
 
     executor.Execute();
+}
+
+void TCoroTest::TestCancelWithException() {
+    TContExecutor exec(32000);
+
+    TString excText = "test exception";
+    THolder<std::exception> excep = MakeHolder<yexception>(yexception() << excText);
+    std::exception* excPtr = excep.Get();
+
+    exec.CreateOwned([&](TCont* cont){
+        TCont *cont1 = cont->Executor()->CreateOwned([&](TCont* c) {
+            int result = c->SleepD(TDuration::MilliSeconds(200).ToDeadLine());
+            UNIT_ASSERT_EQUAL(result, ECANCELED);
+            UNIT_ASSERT_EQUAL(c->Cancelled(), true);
+            THolder<std::exception> exc = c->TakeException();
+            UNIT_ASSERT_EQUAL(exc.Get(), excPtr);
+            UNIT_ASSERT_EQUAL(exc->what(), excText);
+            UNIT_ASSERT(dynamic_cast<yexception*>(exc.Get()) != nullptr);
+        }, "cancelExc");
+        cont1->Cancel(std::move(excep));
+
+        TCont* cont2 = cont->Executor()->CreateOwned([&](TCont* c) {
+            int result = c->SleepD(TDuration::MilliSeconds(200).ToDeadLine());
+            UNIT_ASSERT_EQUAL(result, ECANCELED);
+            UNIT_ASSERT_EQUAL(c->Cancelled(), true);
+            THolder<std::exception> exc = c->TakeException();
+            UNIT_ASSERT_EQUAL(exc.Get(), nullptr);
+        }, "cancelTwice");
+        cont2->Cancel();
+        THolder<std::exception> e = MakeHolder<yexception>(yexception() << "another exception");
+        cont2->Cancel(std::move(e));
+    }, "coro");
+
+    exec.Execute();
 }
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

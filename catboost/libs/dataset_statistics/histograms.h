@@ -6,22 +6,26 @@
 #include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
+#include <util/generic/map.h>
 #include <util/ysaveload.h>
 
 namespace  NCB {
 enum class EHistogramType {
     Uniform,   // (-inf, MinValue], (MinValue, MinValue + step], ... , (MaxValue - step, MaxValue]
-    Borders,
-    Undefined
+    Exact,
+    Borders
 };
+constexpr ui32 MAX_EXACT_HIST_SIZE = 1 << 8;
 
 struct TBorders {
 public:
     TBorders()
-        : HistogramType(EHistogramType::Undefined)
+        : HistogramType(EHistogramType::Exact)
     {}
 
     TVector<float> GetBorders() const;
+    TVector<float> GetBins() const;
+    TVector<ui64> GetExactHistogram() const;
 
     bool operator==(const TBorders& rhs);
 
@@ -31,7 +35,7 @@ public:
     {}
 
     TBorders(ui32 maxBorderCount, float minValue, float maxValue)
-        : HistogramType(EHistogramType::Uniform)
+        : HistogramType(EHistogramType::Exact)
         , MaxBorderCount(maxBorderCount)
         , MinValue(minValue)
         , MaxValue(maxValue)
@@ -44,7 +48,8 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue
+        MaxValue,
+        BitHistogram
     );
 
     SAVELOAD(
@@ -52,7 +57,8 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue
+        MaxValue,
+        BitHistogram
     );
 
     NJson::TJsonValue ToJson() const;
@@ -89,6 +95,7 @@ public:
     ui32 MaxBorderCount;
     float MinValue;
     float MaxValue;
+    TMap<float, ui64> BitHistogram;
 };
 
 struct TFloatFeatureHistogram {
@@ -101,14 +108,16 @@ public:
         : Borders(borders), Nans(0), MinusInf(0), PlusInf(0)
     {}
 
-    void Update(const TFloatFeatureHistogram &histograms);
+    void Update(TFloatFeatureHistogram &histograms);
 
-    void CalcUniformHistogram(const TVector<float>& features);
+    void CalcUniformHistogram(const TVector<float>& features, const TVector<ui64>& count={});
 
     void CalcHistogramWithBorders(const TVector<float>& featureColumn);
 
     // featuresColumn will be shuffled after call
     void CalcHistogramWithBorders(TVector<float>* featureColumnPtr);
+
+    TVector<ui64> GetHistogram() const;
 
     Y_SAVELOAD_DEFINE(
         Histogram,
@@ -130,6 +139,10 @@ public:
 
 private:
     bool ProcessNotNummeric(float f);
+
+    void ConvertBitToUniformIfNeeded();
+
+    void ConvertBitToUniform();
 
 public:
     TVector<ui64> Histogram;
@@ -153,7 +166,7 @@ public:
 
     NJson::TJsonValue ToJson() const;
 
-    void Update(const THistograms& histograms);
+    void Update(THistograms& histograms);
 
     void AddFloatFeatureUniformHistogram(
         ui32 featureId,

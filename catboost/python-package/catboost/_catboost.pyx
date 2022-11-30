@@ -18,7 +18,6 @@ from copy import deepcopy
 from collections import defaultdict
 import functools
 import inspect
-import numbers
 import os
 import traceback
 import types
@@ -2726,7 +2725,7 @@ cdef object _set_features_order_data_pd_data_frame(
     string_factor_data.reserve(doc_count)
 
     new_data_holders = []
-    for src_flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
+    for src_flat_feature_idx, (column_name, column_data) in enumerate(data_frame.items()):
         flat_feature_idx = main_data_feature_idx_to_dst_feature_idx[src_flat_feature_idx]
         if isinstance(column_data.dtype, pd.SparseDtype):
             new_data_holders += _set_features_order_data_pd_data_frame_sparse_column(
@@ -3646,7 +3645,8 @@ cdef class _PoolBase:
         cdef ui32 object_idx
 
         self.target_type = type(label[0][0])
-        if isinstance(label[0][0], numbers.Number):
+        raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
+        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
             if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
                 _set_label_from_num_nparray_objects_order(label, py_builder_visitor)
             else:
@@ -3677,7 +3677,8 @@ cdef class _PoolBase:
         cdef ui32 object_idx
 
         self.target_type = type(label[0][0])
-        if isinstance(label[0][0], numbers.Number):
+        raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
+        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
             self.__target_data_holders = []
             for target_idx in range(target_count):
                 if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):

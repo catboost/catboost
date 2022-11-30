@@ -137,5 +137,5 @@ class BasePackageManager(object):
         try:
             with open(log_path) as f:
                 sys.stderr.write("Package manager log {}:\n{}\n".format(log_path, f.read()))
-        except:
+        except Exception:
             sys.stderr.write("Failed to dump package manager log {}.\n".format(log_path))

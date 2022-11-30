@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(4.12.0)
+VERSION(5.0.0)
 
 LICENSE(Apache-2.0)
 
@@ -23,6 +23,7 @@ PY_SRCS(
     importlib_metadata/_functools.py
     importlib_metadata/_itertools.py
     importlib_metadata/_meta.py
+    importlib_metadata/_py39compat.py
     importlib_metadata/_text.py
 )
 

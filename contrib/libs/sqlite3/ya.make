@@ -11,9 +11,9 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
-VERSION(3.39.3)
+VERSION(3.39.4)
 
-ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.39.3.tar.gz)
+ORIGINAL_SOURCE(https://github.com/sqlite/sqlite/archive/version-3.39.4.tar.gz)
 
 ADDINCL(
     contrib/libs/sqlite3

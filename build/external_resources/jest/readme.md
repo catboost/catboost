@@ -1,3 +1,7 @@
 # jest bundle
 
-Для обновления ресурса используйте `tools/nots create-external-resource`.
+Для обновления:
+
+1. Измените `package.json`.
+2. Выполните `./build.sh --dry-run`.
+3. Выполните `./build.sh --verbose`.

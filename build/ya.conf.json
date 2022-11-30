@@ -312,6 +312,9 @@
         "news": {
             "description": "Run news team tools"
         },
+        "taxi-format": {
+            "description": "Run taxi formatters utility"
+        },
         "saas2": {
             "description": "Run saas2 cli"
         },
@@ -560,6 +563,9 @@
         },
         "grut": {
             "description": "Run GrUT CLI"
+        },
+        "nots": {
+            "description": "Run nots CLI"
         }
     },
     "toolchain": {
@@ -2356,6 +2362,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang-cl",
                 "cxx_compiler": "$(CLANG)/bin/clang-cl",
+                "cxx_std": "c++20",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "wine": "yes",
                 "version": "2019"
@@ -5455,6 +5462,28 @@
                 }
             ]
         },
+        "taxi-format": {
+            "tools": {
+                "taxi-format": {
+                    "bottle": "taxi-format",
+                    "executable": "taxi-format"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "apphost": {
             "tools": {
                 "apphost": {
@@ -6616,6 +6645,28 @@
                     "default": true
                 }
             ]
+        },
+        "nots": {
+            "tools": {
+                "nots": {
+                    "bottle": "nots",
+                    "executable": "nots"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -6752,7 +6803,7 @@
         "swagger": {
             "formula": {
                 "sandbox_id": [
-                    1325945221
+                    1488214649
                 ],
                 "match": "swagger"
             },
@@ -7418,7 +7469,7 @@
         },
         "yndexer": {
             "formula": {
-                "sandbox_id": 992600186,
+                "sandbox_id": 1488038654,
                 "match": "YNDEXER"
             },
             "executable": {
@@ -7632,8 +7683,8 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1467143446,
-                    1470108465
+                    1494385453,
+                    1494387618
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -7723,8 +7774,8 @@
         "rtmr-deploy": {
             "formula": {
                 "sandbox_id": [
-                    1210829227,
-                    1210811623
+                    1499116508,
+                    1499106904
                 ],
                 "match": "rtmr-deploy"
             },
@@ -8234,9 +8285,24 @@
                 ]
             }
         },
+        "taxi-format": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "TAXI_FORMAT_BINARY",
+                        "owner": "TAXI-AUTOMATIZATION"
+                    }
+                }
+            },
+            "executable": {
+                "taxi-format": [
+                    "bin_taxi_format/taxi-format"
+                ]
+            }
+        },
         "apphost": {
             "formula": {
-                "sandbox_id": 1478973072,
+                "sandbox_id": 1499491443,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8365,7 +8431,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1454282981
+                    1497641770
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -8538,7 +8604,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1403602183
+                    1480926804
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8742,7 +8808,7 @@
         "black": {
             "formula": {
                 "sandbox_id": [
-                    1432126614
+                    1491465120
                 ],
                 "match": "black"
             },
@@ -8901,7 +8967,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1478972740,
+                "sandbox_id": 1499491175,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8912,7 +8978,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1478972635,
+                "sandbox_id": 1499491861,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -8941,7 +9007,7 @@
                     }
                 },
                 "match": "bb_cluster_analyzer",
-                "sandbox_id": 1478973465
+                "sandbox_id": 1499491467
             },
             "executable": {
                 "bb_cluster_analyzer": [
@@ -8989,7 +9055,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1478973378,
+                "sandbox_id": 1499490365,
                 "match": "yt_sync"
             },
             "executable": {
@@ -9000,7 +9066,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1478973396,
+                "sandbox_id": 1499490776,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9011,7 +9077,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1478973835,
+                "sandbox_id": 1499491444,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9022,7 +9088,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1466124753,
+                "sandbox_id": 1494422690,
                 "match": "lama"
             },
             "executable": {
@@ -9113,7 +9179,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1478972904,
+                "sandbox_id": 1499490662,
                 "match": "profile_size_analyzer"
             },
             "executable": {
@@ -9182,7 +9248,7 @@
         },
         "rm": {
             "formula": {
-                "sandbox_id": 1411851575,
+                "sandbox_id": 1467056045,
                 "match": "rm_tool"
             },
             "executable": {
@@ -9209,11 +9275,29 @@
                     "grut"
                 ]
             }
+        },
+        "nots": {
+            "formula": {
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "NOTS_TOOL_BINARY",
+                        "owner": "FRONTEND_BUILD_PLATFORM",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    }
+                }
+            },
+            "executable": {
+                "nots": [
+                    "bootstrap"
+                ]
+            }
         }
     },
     "toolchain_aliases": {
-        "clang-win-x86_64": "clang12-win-x86_64",
-        "clang-win-i686": "clang12-win-i686",
+        "clang-win-x86_64": "clang14-win-x86_64",
+        "clang-win-i686": "clang14-win-i686",
         "gcc-linux-x86_64": "gcc82-linux-x86_64"
     }
 }

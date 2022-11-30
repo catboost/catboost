@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-random)
 target_compile_options(abseil-cpp-absl-random PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-random PUBLIC

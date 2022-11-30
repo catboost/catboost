@@ -9,7 +9,6 @@
 
 add_library(abseil-cpp-absl-hash)
 target_compile_options(abseil-cpp-absl-hash PRIVATE
-  -DNOMINMAX
   -Wno-everything
 )
 target_include_directories(abseil-cpp-absl-hash PUBLIC
