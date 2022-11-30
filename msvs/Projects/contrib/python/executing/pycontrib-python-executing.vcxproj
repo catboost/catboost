@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\executing\_01a2883f1ecf83325cd3046f3d.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\executing\_3a676328758a6c66e444115377.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.obj" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.obj" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.obj" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.obj" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,9 +101,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_01a2883f1ecf83325cd3046f3d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_01a2883f1ecf83325cd3046f3d.obj;</Outputs>
+      <Message>$B/contrib/python/executing/_3a676328758a6c66e444115377.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_3a676328758a6c66e444115377.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_3a676328758a6c66e444115377.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\executing\_b26995377e80c9d7258ebcbc9e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.yasm" "-" "contrib/python/executing/.dist-info/METADATA" "_768590531d480917f1898fe562.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/executing/_59ff306e4f0260c8f54b1fffbf.rodata" "-" "contrib/python/executing/.dist-info/top_level.txt" "_6a92653845bda56fc4d94ba46e.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/executing/_e1ca35aded3c561b882b379dd5.rodata" "-" "contrib/python/executing/executing/py.typed" "_dbe4864fad370abfdf9cc31a10.rodata" "$(SolutionDir)../contrib/python/executing/executing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/executing/_48486e851c4f7d9ceb3ca3e74f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.yasm" "-" "contrib/python/executing/.dist-info/METADATA" "_768590531d480917f1898fe562.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/executing/_59ff306e4f0260c8f54b1fffbf.rodata" "-" "contrib/python/executing/.dist-info/top_level.txt" "_6a92653845bda56fc4d94ba46e.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/executing/_e1ca35aded3c561b882b379dd5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\executing
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.yasm" "-" "contrib/python/executing/.dist-info/METADATA" "_768590531d480917f1898fe562.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/executing/_59ff306e4f0260c8f54b1fffbf.rodata" "-" "contrib/python/executing/.dist-info/top_level.txt" "_6a92653845bda56fc4d94ba46e.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/executing/_e1ca35aded3c561b882b379dd5.rodata" "-" "contrib/python/executing/executing/py.typed" "_dbe4864fad370abfdf9cc31a10.rodata" "$(SolutionDir)../contrib/python/executing/executing/py.typed" "$(SolutionDir)$(Configuration)/contrib/python/executing/_48486e851c4f7d9ceb3ca3e74f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/executing/_3a676328758a6c66e444115377.yasm" "-" "contrib/python/executing/.dist-info/METADATA" "_768590531d480917f1898fe562.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/executing/_59ff306e4f0260c8f54b1fffbf.rodata" "-" "contrib/python/executing/.dist-info/top_level.txt" "_6a92653845bda56fc4d94ba46e.rodata" "$(SolutionDir)../contrib/python/executing/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/executing/_e1ca35aded3c561b882b379dd5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/executing/_01a2883f1ecf83325cd3046f3d.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\executing\.dist-info\METADATA;$(SolutionDir)..\contrib\python\executing\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\executing\executing\py.typed;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_01a2883f1ecf83325cd3046f3d.yasm;$(SolutionDir)$(Configuration)\contrib\python\executing\_59ff306e4f0260c8f54b1fffbf.rodata;$(SolutionDir)$(Configuration)\contrib\python\executing\_e1ca35aded3c561b882b379dd5.rodata;$(SolutionDir)$(Configuration)\contrib\python\executing\_48486e851c4f7d9ceb3ca3e74f.rodata;</Outputs>
+      <Message>$B/contrib/python/executing/_3a676328758a6c66e444115377.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\executing\.dist-info\METADATA;$(SolutionDir)..\contrib\python\executing\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\executing\_3a676328758a6c66e444115377.yasm;$(SolutionDir)$(Configuration)\contrib\python\executing\_59ff306e4f0260c8f54b1fffbf.rodata;$(SolutionDir)$(Configuration)\contrib\python\executing\_e1ca35aded3c561b882b379dd5.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\executing\executing\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

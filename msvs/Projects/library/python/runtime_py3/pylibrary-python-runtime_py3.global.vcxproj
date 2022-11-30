@@ -165,6 +165,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
