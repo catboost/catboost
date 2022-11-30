@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     blob.cpp
+    chunked_output_stream.cpp
     ref.cpp
     ref_tracked.cpp
     shared_range.cpp

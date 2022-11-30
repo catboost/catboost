@@ -1,6 +1,8 @@
 import ast
 import dis
-from .executing import NotOneValueFound, only, function_node_types, assert_
+from types import CodeType, FrameType
+from typing import Any, Callable, Iterator, Optional, Sequence, Set, Tuple, Type, Union, cast
+from .executing import EnhancedAST, NotOneValueFound, Source, only, function_node_types, assert_
 from ._exceptions import KnownIssue, VerifierFailure
 
 from functools import lru_cache
@@ -8,7 +10,7 @@ from functools import lru_cache
 # the code in this module can use all python>=3.11 features
 
 
-def parents(node):
+def parents(node: EnhancedAST) -> Iterator[EnhancedAST]:
     while True:
         if hasattr(node, "parent"):
             node = node.parent
@@ -16,13 +18,12 @@ def parents(node):
         else:
             break
 
-
-def node_and_parents(node):
+def node_and_parents(node: EnhancedAST) -> Iterator[EnhancedAST]:
     yield node
     yield from parents(node)
 
 
-def mangled_name(node):
+def mangled_name(node: EnhancedAST) -> str:
     """
 
     Parameters:
@@ -64,7 +65,7 @@ def mangled_name(node):
 
 
 @lru_cache(128)
-def get_instructions(code):
+def get_instructions(code: CodeType) -> list[dis.Instruction]:
     return list(dis.get_instructions(code, show_caches=True))
 
 
@@ -106,11 +107,11 @@ class PositionNodeFinder(object):
     There are only some exceptions for methods and attributes.
     """
 
-    def __init__(self, frame, stmts, tree, lasti, source):
+    def __init__(self, frame: FrameType, stmts: Set[EnhancedAST], tree: ast.Module, lasti: int, source: Source):
         self.bc_list = get_instructions(frame.f_code)
 
         self.source = source
-        self.decorator = None
+        self.decorator: Optional[EnhancedAST] = None
 
         # work around for https://github.com/python/cpython/issues/96970
         while self.opname(lasti) == "CACHE":
@@ -120,6 +121,7 @@ class PositionNodeFinder(object):
             # try to map with all match_positions
             self.result = self.find_node(lasti)
         except NotOneValueFound:
+            typ: tuple[Type]
             # LOAD_METHOD could load "".join for long "..."%(...) BinOps
             # this can only be associated by using all positions
             if self.opname(lasti) in (
@@ -155,10 +157,10 @@ class PositionNodeFinder(object):
         if self.decorator is None:
             self.verify(self.result, self.instruction(lasti))
 
-    def test_for_decorator(self, node, index):
+    def test_for_decorator(self, node: EnhancedAST, index: int) -> None:
         if (
             isinstance(node.parent, (ast.ClassDef, function_node_types))
-            and node in node.parent.decorator_list
+            and node in node.parent.decorator_list # type: ignore[attr-defined]
         ):
             node_func = node.parent
 
@@ -198,7 +200,7 @@ class PositionNodeFinder(object):
 
                 index += 4
 
-    def known_issues(self, node, instruction):
+    def known_issues(self, node: EnhancedAST, instruction: dis.Instruction) -> None:
         if instruction.opname in ("COMPARE_OP", "IS_OP", "CONTAINS_OP") and isinstance(
             node, types_cmp_issue
         ):
@@ -213,14 +215,14 @@ class PositionNodeFinder(object):
 
                 comparisons = [
                     n
-                    for n in ast.walk(node.test)
+                    for n in ast.walk(node.test) # type: ignore[attr-defined]
                     if isinstance(n, ast.Compare) and len(n.ops) > 1
                 ]
 
                 assert_(comparisons, "expected at least one comparison")
 
                 if len(comparisons) == 1:
-                    node = self.result = comparisons[0]
+                    node = self.result = cast(EnhancedAST, comparisons[0])
                 else:
                     raise KnownIssue(
                         "multiple chain comparison inside %s can not be fixed" % (node)
@@ -258,7 +260,7 @@ class PositionNodeFinder(object):
             raise KnownIssue("store __classcell__")
 
     @staticmethod
-    def is_except_cleanup(inst, node):
+    def is_except_cleanup(inst: dis.Instruction, node: EnhancedAST) -> bool:
         if inst.opname not in (
             "STORE_NAME",
             "STORE_FAST",
@@ -294,16 +296,16 @@ class PositionNodeFinder(object):
             for n in parents(node)
         )
 
-    def verify(self, node, instruction):
+    def verify(self, node: EnhancedAST, instruction: dis.Instruction) -> None:
         """
         checks if this node could gererate this instruction
         """
 
         op_name = instruction.opname
-        extra_filter = lambda e: True
-        ctx = type(None)
+        extra_filter: Callable[[EnhancedAST], bool] = lambda e: True
+        ctx: Type = type(None)
 
-        def inst_match(opnames, **kwargs):
+        def inst_match(opnames: Union[str, Sequence[str]], **kwargs: Any) -> bool:
             """
             match instruction
 
@@ -322,7 +324,7 @@ class PositionNodeFinder(object):
                 k: getattr(instruction, k) for k in kwargs
             }
 
-        def node_match(node_type, **kwargs):
+        def node_match(node_type: Union[Type, Tuple[Type, ...]], **kwargs: Any) -> bool:
             """
             match the ast-node
 
@@ -372,7 +374,7 @@ class PositionNodeFinder(object):
                 or inst_match(("CALL", "BUILD_STRING"))
             )
             and node_match(ast.BinOp, left=ast.Constant, op=ast.Mod)
-            and isinstance(node.left.value, str)
+            and isinstance(cast(ast.Constant, cast(ast.BinOp, node).left).value, str)
         ):
             # "..."%(...) uses "".join
             return
@@ -414,7 +416,7 @@ class PositionNodeFinder(object):
         if (
             inst_match(("STORE_NAME", "STORE_FAST", "STORE_DEREF", "STORE_GLOBAL"))
             and node_match((ast.Import, ast.ImportFrom))
-            and any(mangled_name(alias) == instruction.argval for alias in node.names)
+            and any(mangled_name(cast(EnhancedAST, alias)) == instruction.argval for alias in cast(ast.Import, node).names)
         ):
             # store imported module in variable
             return
@@ -477,7 +479,8 @@ class PositionNodeFinder(object):
 
         # old verifier
 
-        typ = type(None)
+        typ: Type = type(None)
+        op_type: Type = type(None)
 
         if op_name.startswith(("BINARY_SUBSCR", "SLICE+")):
             typ = ast.Subscript
@@ -485,7 +488,7 @@ class PositionNodeFinder(object):
         elif op_name.startswith("BINARY_"):
             typ = ast.BinOp
             op_type = op_type_map[instruction.argrepr]
-            extra_filter = lambda e: isinstance(e.op, op_type)
+            extra_filter = lambda e: isinstance(cast(ast.BinOp, e).op, op_type)
         elif op_name.startswith("UNARY_"):
             typ = ast.UnaryOp
             op_type = dict(
@@ -494,7 +497,7 @@ class PositionNodeFinder(object):
                 UNARY_NOT=ast.Not,
                 UNARY_INVERT=ast.Invert,
             )[op_name]
-            extra_filter = lambda e: isinstance(e.op, op_type)
+            extra_filter = lambda e: isinstance(cast(ast.UnaryOp, e).op, op_type)
         elif op_name in ("LOAD_ATTR", "LOAD_METHOD", "LOOKUP_METHOD"):
             typ = ast.Attribute
             ctx = ast.Load
@@ -508,10 +511,10 @@ class PositionNodeFinder(object):
         ):
             typ = ast.Name
             ctx = ast.Load
-            extra_filter = lambda e: e.id == instruction.argval
+            extra_filter = lambda e: cast(ast.Name, e).id == instruction.argval
         elif op_name in ("COMPARE_OP", "IS_OP", "CONTAINS_OP"):
             typ = ast.Compare
-            extra_filter = lambda e: len(e.ops) == 1
+            extra_filter = lambda e: len(cast(ast.Compare, e).ops) == 1
         elif op_name.startswith(("STORE_SLICE", "STORE_SUBSCR")):
             ctx = ast.Store
             typ = ast.Subscript
@@ -541,22 +544,23 @@ class PositionNodeFinder(object):
 
         raise VerifierFailure(title, node, instruction)
 
-    def instruction(self, index):
+    def instruction(self, index: int) -> dis.Instruction:
         return self.bc_list[index // 2]
 
-    def opname(self, index):
+    def opname(self, index: int) -> str:
         return self.instruction(index).opname
 
     def find_node(
         self,
-        index,
-        match_positions=("lineno", "end_lineno", "col_offset", "end_col_offset"),
-        typ=(ast.expr, ast.stmt, ast.excepthandler, ast.pattern),
-    ):
+        index: int,
+        match_positions: Sequence[str]=("lineno", "end_lineno", "col_offset", "end_col_offset"),
+        typ: tuple[Type, ...]=(ast.expr, ast.stmt, ast.excepthandler, ast.pattern),
+    ) -> EnhancedAST:
         position = self.instruction(index).positions
+        assert position is not None and position.lineno is not None
 
         return only(
-            node
+            cast(EnhancedAST, node)
             for node in self.source._nodes_by_line[position.lineno]
             if isinstance(node, typ)
             if not isinstance(node, ast.Expr)
