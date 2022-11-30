@@ -6210,7 +6210,7 @@ class CatBoostRanker(CatBoost):
                    higher is better
         """
         def get_ndcg_metric_name(values, names):
-            if not np.any(np.array(values) == None):
+            if np.all(np.array(values) == None):
                 return 'NDCG'
             return 'NDCG:' + ';'.join(['{}={}'.format(n, v) for v, n in zip(values, names) if v is not None])
 
@@ -6228,7 +6228,7 @@ class CatBoostRanker(CatBoost):
             raise CatBoostError("group_id must be initialized. If groups are not expected, pass an array of zeros")
 
         predictions = self.predict(X)
-        return _eval_metric_util([y], [predictions], get_ndcg_metric_name(), None, group_id, group_weight, None, None, thread_count)[0]
+        return _eval_metric_util([y], [predictions], get_ndcg_metric_name([top, type, denominator], ['top', 'type', 'denominator']), None, group_id, group_weight, None, None, thread_count)[0]
 
 
     @staticmethod
