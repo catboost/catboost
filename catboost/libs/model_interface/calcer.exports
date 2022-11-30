@@ -38,6 +38,7 @@ C GetStringCatFeatureHash
 C GetIntegerCatFeatureHash
 C GetFloatFeaturesCount
 C GetCatFeaturesCount
+C GetTextFeaturesCount
 C GetEmbeddingFeaturesCount
 C GetTreeCount
 C GetDimensionsCount
