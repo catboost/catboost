@@ -6,7 +6,6 @@ import json
 from .tools import to_str
 from .external import ExternalDataInfo
 
-
 TESTING_OUT_DIR_NAME = "testing_out_stuff"  # XXX import from test.const
 
 yatest_logger = logging.getLogger("ya.test")
@@ -227,22 +226,17 @@ class Ya(object):
         assert self._test_item_node_id
         return self._test_item_node_id
 
-    @property
-    def pytest_config(self):
-        if not hasattr(self, "_pytest_config"):
-            import library.python.pytest.plugins.ya as ya_plugin
-            self._pytest_config = ya_plugin.pytest_config
-        return self._pytest_config
-
     def set_metric_value(self, name, val):
+        from library.python.pytest.plugins.metrics import test_metrics
         node_id = self.get_test_item_node_id()
-        if node_id not in self.pytest_config.test_metrics:
-            self.pytest_config.test_metrics[node_id] = {}
+        if node_id not in test_metrics.metrics:
+            test_metrics[node_id] = {}
 
-        self.pytest_config.test_metrics[node_id][name] = val
+        test_metrics[node_id][name] = val
 
     def get_metric_value(self, name, default=None):
-        res = self.pytest_config.test_metrics.get(self.get_test_item_node_id(), {}).get(name)
+        from library.python.pytest.plugins.metrics import test_metrics
+        res = test_metrics.get(self.get_test_item_node_id(), {}).get(name)
         if res is None:
             return default
         return res

@@ -32,6 +32,8 @@ from _pytest.warning_types import PytestUnhandledCoroutineWarning
 from yatest_lib import test_splitter
 import yatest.common as yatest_common
 
+from library.python.pytest.plugins.metrics import test_metrics
+
 try:
     import resource
 except ImportError:
@@ -65,7 +67,6 @@ _pytest.main.EXIT_NOTESTSCOLLECTED = 0
 SHUTDOWN_REQUESTED = False
 
 pytest_config = None
-
 
 def configure_pdb_on_demand():
     import signal
@@ -184,7 +185,6 @@ def pytest_addoption(parser):
 def from_ya_test():
     return "YA_TEST_RUNNER" in os.environ
 
-
 @pytest.hookimpl(tryfirst=True)
 def pytest_configure(config):
     global pytest_config
@@ -194,7 +194,7 @@ def pytest_configure(config):
 
     config.from_ya_test = from_ya_test()
     config.test_logs = collections.defaultdict(dict)
-    config.test_metrics = {}
+    test_metrics.metrics = {}
     config.suite_metrics = {}
     config.configure_timestamp = time.time()
     context = {
@@ -283,7 +283,6 @@ def pytest_configure(config):
         configure_pdb_on_demand()
 
     yatest_common.runtime._set_ya_config(config=config)
-
     # Dump python backtrace in case of any errors
     faulthandler.enable()
     if hasattr(signal, "SIGQUIT"):
@@ -292,7 +291,6 @@ def pytest_configure(config):
 
     if hasattr(signal, "SIGUSR2"):
         signal.signal(signal.SIGUSR2, _graceful_shutdown)
-
 
 session_should_exit = False
 
@@ -850,7 +848,7 @@ class TraceReportGenerator(object):
                 'status': test_item.status,
                 'comment': comment,
                 'result': result,
-                'metrics': pytest_config.test_metrics.get(test_item.nodeid),
+                'metrics': test_metrics.get(test_item.nodeid),
                 'is_diff_test': 'diff_test' in test_item.keywords,
                 'tags': _get_item_tags(test_item),
             }
