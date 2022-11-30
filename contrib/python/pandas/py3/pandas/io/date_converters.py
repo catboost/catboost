@@ -1,16 +1,13 @@
 """This module is designed for community supported date conversion functions"""
-from __future__ import annotations
-
 import warnings
 
 import numpy as np
 
 from pandas._libs.tslibs import parsing
-from pandas._typing import npt
 from pandas.util._exceptions import find_stack_level
 
 
-def parse_date_time(date_col, time_col) -> npt.NDArray[np.object_]:
+def parse_date_time(date_col, time_col):
     """
     Parse columns with dates and times into a single datetime column.
 
@@ -29,7 +26,7 @@ def parse_date_time(date_col, time_col) -> npt.NDArray[np.object_]:
     return parsing.try_parse_date_and_time(date_col, time_col)
 
 
-def parse_date_fields(year_col, month_col, day_col) -> npt.NDArray[np.object_]:
+def parse_date_fields(year_col, month_col, day_col):
     """
     Parse columns with years, months and days into a single date column.
 
@@ -51,9 +48,7 @@ def parse_date_fields(year_col, month_col, day_col) -> npt.NDArray[np.object_]:
     return parsing.try_parse_year_month_day(year_col, month_col, day_col)
 
 
-def parse_all_fields(
-    year_col, month_col, day_col, hour_col, minute_col, second_col
-) -> npt.NDArray[np.object_]:
+def parse_all_fields(year_col, month_col, day_col, hour_col, minute_col, second_col):
     """
     Parse columns with datetime information into a single datetime column.
 
@@ -83,7 +78,7 @@ def parse_all_fields(
     )
 
 
-def generic_parser(parse_func, *cols) -> np.ndarray:
+def generic_parser(parse_func, *cols):
     """
     Use dateparser to parse columns with data information into a single datetime column.
 

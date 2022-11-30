@@ -25,6 +25,7 @@ PEERDIR(
 NO_LINT()
 
 NO_CHECK_IMPORTS(
+    __tests__.*
     _pytest.*
 )
 

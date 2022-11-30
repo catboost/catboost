@@ -21,6 +21,7 @@ Limitations:
 # From the standard library
 import doctest
 import logging
+import os
 import re
 
 from testpath import modified_env

@@ -72,6 +72,4 @@ namespace NCB {
             const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription,
             ui32 threadCount) const override;
     };
-
-    void CheckColumnIndices(int columnCount, const THashMap<int, EColumn>& nonAuxiliaryColumnsDescription);
 }

@@ -1,5 +1,6 @@
-cimport cython
-from cython cimport Py_ssize_t
+import cython
+from cython import Py_ssize_t
+
 from numpy cimport (
     int64_t,
     ndarray,

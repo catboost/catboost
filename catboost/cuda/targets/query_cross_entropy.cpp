@@ -170,8 +170,8 @@ namespace NCatboostCuda {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
         auto& sampledDocs = target->Docs;
-        auto& pairDer2 = target->PairDer2OrWeights; // size can exceed 32-bits
-        auto& pairs = target->Pairs; // size can exceed 32-bits
+        auto& pairDer2 = target->PairDer2OrWeights;
+        auto& pairs = target->Pairs;
 
         double queriesSampleRate = 1.0;
         if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bernoulli) {

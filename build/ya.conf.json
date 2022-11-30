@@ -315,9 +315,6 @@
         "taxi-format": {
             "description": "Run taxi formatters utility"
         },
-        "taxi-linter": {
-            "description": "Run taxi linters utility"
-        },
         "saas2": {
             "description": "Run saas2 cli"
         },
@@ -1942,7 +1939,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1952,7 +1949,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1962,7 +1959,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1972,7 +1969,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1982,7 +1979,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -1992,7 +1989,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2002,7 +1999,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2012,7 +2009,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2022,7 +2019,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2032,7 +2029,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2042,7 +2039,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2053,7 +2050,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2064,7 +2061,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2075,7 +2072,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2086,7 +2083,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2097,7 +2094,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2108,7 +2105,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2119,7 +2116,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2130,7 +2127,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2141,7 +2138,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2152,7 +2149,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2163,7 +2160,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": false
+                    "default": true
                 },
                 {
                     "host": {
@@ -2255,7 +2252,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": false
+                    "default": true
                 }
             ],
             "params": {
@@ -2270,17 +2267,6 @@
                 "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "strip": "$(CLANG)/bin/llvm-strip",
                 "gcc_version": "12.0"
-            },
-            "env": {
-                "SDKROOT": [
-                    ""
-                ],
-                "CPATH": [
-                    ""
-                ],
-                "LIBRARY_PATH": [
-                    ""
-                ]
             }
         },
         "clang14-windows": {
@@ -2558,7 +2544,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2568,7 +2554,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2578,7 +2564,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2588,7 +2574,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2598,7 +2584,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2608,7 +2594,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2618,7 +2604,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2628,7 +2614,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2638,7 +2624,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2648,7 +2634,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2658,7 +2644,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2669,7 +2655,7 @@
                         "os": "LINUX",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2680,7 +2666,7 @@
                         "os": "LINUX",
                         "arch": "aarch64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2691,7 +2677,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2702,7 +2688,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2713,7 +2699,7 @@
                         "os": "DARWIN",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2724,7 +2710,7 @@
                         "os": "DARWIN",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2735,7 +2721,7 @@
                         "os": "IOS",
                         "arch": "i386"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2746,7 +2732,7 @@
                         "os": "IOS",
                         "arch": "x86_64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2757,7 +2743,7 @@
                         "os": "IOS",
                         "arch": "armv7"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2768,7 +2754,7 @@
                         "os": "IOS",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2779,7 +2765,7 @@
                         "os": "IOSSIM",
                         "arch": "arm64"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2860,7 +2846,7 @@
                         "os": "LINUX",
                         "arch": "ppc64le"
                     },
-                    "default": true
+                    "default": false
                 },
                 {
                     "host": {
@@ -2871,7 +2857,7 @@
                         "os": "LINUX",
                         "arch": "power9le"
                     },
-                    "default": true
+                    "default": false
                 }
             ],
             "params": {
@@ -2886,17 +2872,6 @@
                 "profiles": "$(XCODE_TOOLS_ROOT-sbr:799017771)/Xcode/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/CoreSimulator/Profiles",
                 "strip": "$(CLANG)/bin/llvm-strip",
                 "gcc_version": "14.0"
-            },
-            "env": {
-                "SDKROOT": [
-                    ""
-                ],
-                "CPATH": [
-                    ""
-                ],
-                "LIBRARY_PATH": [
-                    ""
-                ]
             }
         },
         "local": {
@@ -4475,11 +4450,6 @@
                     "executable": "kubectl"
                 }
             },
-            "env": {
-                "TOOLDIR": [
-                    "$(ROOT)"
-                ]
-            },
             "platforms": [
                 {
                     "host": {
@@ -5497,28 +5467,6 @@
                 "taxi-format": {
                     "bottle": "taxi-format",
                     "executable": "taxi-format"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
-        "taxi-linter": {
-            "tools": {
-                "taxi-linter": {
-                    "bottle": "taxi-linter",
-                    "executable": "taxi-linter"
                 }
             },
             "platforms": [
@@ -6942,7 +6890,10 @@
             }
         },
         "python": {
-            "formula": "build/platform/python/ymake_python2/resources.json",
+            "formula": {
+                "sandbox_id": 1277485811,
+                "match": "Python"
+            },
             "executable": {
                 "python": [
                     "python"
@@ -7144,7 +7095,16 @@
             }
         },
         "clang14": {
-            "formula": "build/platform/clang/clang14.json",
+            "formula": {
+                "sandbox_id": [
+                    1441176665,
+                    1432506119,
+                    1445478860,
+                    1445454611,
+                    1445513330
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7496,13 +7456,10 @@
         },
         "yt": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "YT_CLI",
-                        "owner": "YT"
-                    }
-                },
-                "update_interval": 604800
+                "sandbox_id": [
+                    1277508845
+                ],
+                "match": "YT"
             },
             "executable": {
                 "yt": [
@@ -7523,7 +7480,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1528873774,
+                "sandbox_id": 1051903185,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -7817,8 +7774,8 @@
         "rtmr-deploy": {
             "formula": {
                 "sandbox_id": [
-                    1499116508,
-                    1499106904
+                    1210829227,
+                    1210811623
                 ],
                 "match": "rtmr-deploy"
             },
@@ -7903,20 +7860,10 @@
         },
         "kubectl": {
             "formula": {
-                "by_platform": {
-                    "linux": {
-                        "uri": "sbr:3752131478"
-                    },
-                    "linux-arm64": {
-                        "uri": "sbr:3752131406"
-                    },
-                    "darwin": {
-                        "uri": "sbr:3752131455"
-                    },
-                    "darwin-arm64": {
-                        "uri": "sbr:3752131456"
-                    }
-                }
+                "sandbox_id": [
+                    1254092637
+                ],
+                "match": "kubectl"
             },
             "executable": {
                 "kubectl": [
@@ -8317,7 +8264,10 @@
             }
         },
         "ya-tc": {
-            "formula": "build/external_resources/ya-tc/resources.json",
+            "formula": {
+                "sandbox_id": 1437768899,
+                "match": "ya-tc"
+            },
             "executable": {
                 "ya-tc": [
                     "ya-tc"
@@ -8350,24 +8300,9 @@
                 ]
             }
         },
-        "taxi-linter": {
-            "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TAXI_LINTER_BINARY",
-                        "owner": "TAXI-AUTOMATIZATION"
-                    }
-                }
-            },
-            "executable": {
-                "taxi-linter": [
-                    "bin_taxi_linter/taxi-linter"
-                ]
-            }
-        },
         "apphost": {
             "formula": {
-                "sandbox_id": 1529765349,
+                "sandbox_id": 1495442280,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8443,7 +8378,15 @@
             }
         },
         "golang": {
-            "formula": "build/external_resources/go_tools/resources.json",
+            "formula": {
+                "sandbox_id": [
+                    1455627161,
+                    1455627163,
+                    1455627162,
+                    1455627165
+                ],
+                "match": "GOLANG"
+            },
             "executable": {
                 "go": [
                     "bin",
@@ -8488,7 +8431,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    1497641770
+                    1454282981
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -8661,7 +8604,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1520884213
+                    1480926804
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8762,7 +8705,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1513290950,
+                "sandbox_id": 1438634718,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -9024,7 +8967,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1522655739,
+                "sandbox_id": 1495443274,
                 "match": "bb_requester"
             },
             "executable": {
@@ -9035,7 +8978,7 @@
         },
         "bigb_hitlog_analyser": {
             "formula": {
-                "sandbox_id": 1505213895,
+                "sandbox_id": 1495443436,
                 "match": "hitlog_analyser"
             },
             "executable": {
@@ -9064,7 +9007,7 @@
                     }
                 },
                 "match": "bb_cluster_analyzer",
-                "sandbox_id": 1502578849
+                "sandbox_id": 1495443443
             },
             "executable": {
                 "bb_cluster_analyzer": [
@@ -9112,7 +9055,7 @@
         },
         "caesar_yt_sync": {
             "formula": {
-                "sandbox_id": 1505213655,
+                "sandbox_id": 1495443648,
                 "match": "yt_sync"
             },
             "executable": {
@@ -9123,7 +9066,7 @@
         },
         "caesar_lookup_profile": {
             "formula": {
-                "sandbox_id": 1502579275,
+                "sandbox_id": 1495442629,
                 "match": "lookup_profile"
             },
             "executable": {
@@ -9134,7 +9077,7 @@
         },
         "exp_stats": {
             "formula": {
-                "sandbox_id": 1505215029,
+                "sandbox_id": 1495443575,
                 "match": "exp_stats"
             },
             "executable": {
@@ -9145,7 +9088,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1527296954,
+                "sandbox_id": 1494422690,
                 "match": "lama"
             },
             "executable": {
@@ -9236,7 +9179,7 @@
         },
         "caesar_profile_size_analyzer": {
             "formula": {
-                "sandbox_id": 1511642247,
+                "sandbox_id": 1495444995,
                 "match": "profile_size_analyzer"
             },
             "executable": {
@@ -9294,17 +9237,8 @@
         },
         "tasklet": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TASKLET_TOOL_TGZ",
-                        "attributes": {
-                            "released": "stable"
-                        },
-                        "owner": "TASKLETS"
-                    },
-                    "update_interval": 86400,
-                    "ignore_platform": false
-                }
+                "sandbox_id": 1417351261,
+                "match": "tasklet-tool"
             },
             "executable": {
                 "tasklet": [

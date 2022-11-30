@@ -1,4 +1,3 @@
-from datetime import timedelta
 from typing import Literal
 
 import numpy as np
@@ -34,7 +33,7 @@ def get_period_field_arr(
 ) -> npt.NDArray[np.int64]: ...
 def from_ordinals(
     values: npt.NDArray[np.int64],  # const int64_t[:]
-    freq: timedelta | BaseOffset | str,
+    freq: Frequency,
 ) -> npt.NDArray[np.int64]: ...
 def extract_ordinals(
     values: npt.NDArray[np.object_],
@@ -52,14 +51,7 @@ def period_ordinal(
 def freq_to_dtype_code(freq: BaseOffset) -> int: ...
 def validate_end_alias(how: str) -> Literal["E", "S"]: ...
 
-class PeriodMixin:
-    @property
-    def end_time(self) -> Timestamp: ...
-    @property
-    def start_time(self) -> Timestamp: ...
-    def _require_matching_freq(self, other, base: bool = ...) -> None: ...
-
-class Period(PeriodMixin):
+class Period:
     ordinal: int  # int64_t
     freq: BaseOffset
 
@@ -67,7 +59,7 @@ class Period(PeriodMixin):
     def __new__(  # type: ignore[misc]
         cls,
         value=...,
-        freq: int | str | BaseOffset | None = ...,
+        freq: int | str | None = ...,
         ordinal: int | None = ...,
         year: int | None = ...,
         month: int | None = ...,
@@ -90,7 +82,7 @@ class Period(PeriodMixin):
         how: str = ...,
         tz: Timezone | None = ...,
     ) -> Timestamp: ...
-    def asfreq(self, freq: str | BaseOffset, how: str = ...) -> Period: ...
+    def asfreq(self, freq: str, how: str = ...) -> Period: ...
     @property
     def freqstr(self) -> str: ...
     @property
@@ -125,5 +117,9 @@ class Period(PeriodMixin):
     def month(self) -> int: ...
     @property
     def year(self) -> int: ...
+    @property
+    def end_time(self) -> Timestamp: ...
+    @property
+    def start_time(self) -> Timestamp: ...
     def __sub__(self, other) -> Period | BaseOffset: ...
     def __add__(self, other) -> Period: ...

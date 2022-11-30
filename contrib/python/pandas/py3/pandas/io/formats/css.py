@@ -4,117 +4,25 @@ Utilities for interpreting CSS from Stylers for formatting non-HTML outputs.
 from __future__ import annotations
 
 import re
-from typing import (
-    Callable,
-    Generator,
-    Iterable,
-    Iterator,
-)
 import warnings
 
-from pandas.errors import CSSWarning
-from pandas.util._exceptions import find_stack_level
 
-
-def _side_expander(prop_fmt: str) -> Callable:
+class CSSWarning(UserWarning):
     """
-    Wrapper to expand shorthand property into top, right, bottom, left properties
-
-    Parameters
-    ----------
-    side : str
-        The border side to expand into properties
-
-    Returns
-    -------
-        function: Return to call when a 'border(-{side}): {value}' string is encountered
+    This CSS syntax cannot currently be parsed.
     """
 
-    def expand(self, prop, value: str) -> Generator[tuple[str, str], None, None]:
-        """
-        Expand shorthand property into side-specific property (top, right, bottom, left)
 
-        Parameters
-        ----------
-            prop (str): CSS property name
-            value (str): String token for property
-
-        Yields
-        ------
-            Tuple (str, str): Expanded property, value
-        """
+def _side_expander(prop_fmt: str):
+    def expand(self, prop, value: str):
         tokens = value.split()
         try:
             mapping = self.SIDE_SHORTHANDS[len(tokens)]
         except KeyError:
-            warnings.warn(
-                f'Could not expand "{prop}: {value}"',
-                CSSWarning,
-                stacklevel=find_stack_level(),
-            )
+            warnings.warn(f'Could not expand "{prop}: {value}"', CSSWarning)
             return
         for key, idx in zip(self.SIDES, mapping):
             yield prop_fmt.format(key), tokens[idx]
-
-    return expand
-
-
-def _border_expander(side: str = "") -> Callable:
-    """
-    Wrapper to expand 'border' property into border color, style, and width properties
-
-    Parameters
-    ----------
-    side : str
-        The border side to expand into properties
-
-    Returns
-    -------
-        function: Return to call when a 'border(-{side}): {value}' string is encountered
-    """
-    if side != "":
-        side = f"-{side}"
-
-    def expand(self, prop, value: str) -> Generator[tuple[str, str], None, None]:
-        """
-        Expand border into color, style, and width tuples
-
-        Parameters
-        ----------
-            prop : str
-                CSS property name passed to styler
-            value : str
-                Value passed to styler for property
-
-        Yields
-        ------
-            Tuple (str, str): Expanded property, value
-        """
-        tokens = value.split()
-        if len(tokens) == 0 or len(tokens) > 3:
-            warnings.warn(
-                f'Too many tokens provided to "{prop}" (expected 1-3)',
-                CSSWarning,
-                stacklevel=find_stack_level(),
-            )
-
-        # TODO: Can we use current color as initial value to comply with CSS standards?
-        border_declarations = {
-            f"border{side}-color": "black",
-            f"border{side}-style": "none",
-            f"border{side}-width": "medium",
-        }
-        for token in tokens:
-            if token in self.BORDER_STYLES:
-                border_declarations[f"border{side}-style"] = token
-            elif any([ratio in token for ratio in self.BORDER_WIDTH_RATIOS]):
-                border_declarations[f"border{side}-width"] = token
-            else:
-                border_declarations[f"border{side}-color"] = token
-            # TODO: Warn user if item entered more than once (e.g. "border: red green")
-
-        # Per CSS, "border" will reset previous "border-*" definitions
-        yield from self.atomize(border_declarations.items())
 
     return expand
 
@@ -125,8 +33,6 @@ class CSSResolver:
     """
 
     UNIT_RATIOS = {
-        "pt": ("pt", 1),
-        "em": ("em", 1),
         "rem": ("pt", 12),
         "ex": ("em", 0.5),
         # 'ch':
@@ -170,19 +76,6 @@ class CSSResolver:
         }
     )
 
-    BORDER_STYLES = [
-        "none",
-        "hidden",
-        "dotted",
-        "dashed",
-        "solid",
-        "double",
-        "groove",
-        "ridge",
-        "inset",
-        "outset",
-    ]
-
     SIDE_SHORTHANDS = {
         1: [0, 0, 0, 0],
         2: [0, 1, 0, 1],
@@ -192,24 +85,9 @@ class CSSResolver:
 
     SIDES = ("top", "right", "bottom", "left")
 
-    CSS_EXPANSIONS = {
-        **{
-            "-".join(["border", prop] if prop else ["border"]): _border_expander(prop)
-            for prop in ["", "top", "right", "bottom", "left"]
-        },
-        **{
-            "-".join(["border", prop]): _side_expander("border-{:s}-" + prop)
-            for prop in ["color", "style", "width"]
-        },
-        **{
-            "margin": _side_expander("margin-{:s}"),
-            "padding": _side_expander("padding-{:s}"),
-        },
-    }
-
     def __call__(
         self,
-        declarations: str | Iterable[tuple[str, str]],
+        declarations_str: str,
         inherited: dict[str, str] | None = None,
     ) -> dict[str, str]:
         """
@@ -217,10 +95,8 @@ class CSSResolver:
 
         Parameters
         ----------
-        declarations_str : str | Iterable[tuple[str, str]]
-            A CSS string or set of CSS declaration tuples
-            e.g. "font-weight: bold; background: blue" or
-            {("font-weight", "bold"), ("background", "blue")}
+        declarations_str : str
+            A list of CSS declarations
         inherited : dict, optional
             Atomic properties indicating the inherited style context in which
             declarations_str is to be resolved. ``inherited`` should already
@@ -251,9 +127,7 @@ class CSSResolver:
          ('font-size', '24pt'),
          ('font-weight', 'bold')]
         """
-        if isinstance(declarations, str):
-            declarations = self.parse(declarations)
-        props = dict(self.atomize(declarations))
+        props = dict(self.atomize(self.parse(declarations_str)))
         if inherited is None:
             inherited = {}
 
@@ -331,11 +205,7 @@ class CSSResolver:
 
     def size_to_pt(self, in_val, em_pt=None, conversions=UNIT_RATIOS):
         def _error():
-            warnings.warn(
-                f"Unhandled size: {repr(in_val)}",
-                CSSWarning,
-                stacklevel=find_stack_level(),
-            )
+            warnings.warn(f"Unhandled size: {repr(in_val)}", CSSWarning)
             return self.size_to_pt("1!!default", conversions=conversions)
 
         match = re.match(r"^(\S*?)([a-zA-Z%!].*)", in_val)
@@ -374,17 +244,24 @@ class CSSResolver:
             size_fmt = f"{val:f}pt"
         return size_fmt
 
-    def atomize(self, declarations: Iterable) -> Generator[tuple[str, str], None, None]:
+    def atomize(self, declarations):
         for prop, value in declarations:
-            prop = prop.lower()
-            value = value.lower()
-            if prop in self.CSS_EXPANSIONS:
-                expand = self.CSS_EXPANSIONS[prop]
-                yield from expand(self, prop, value)
-            else:
+            attr = "expand_" + prop.replace("-", "_")
+            try:
+                expand = getattr(self, attr)
+            except AttributeError:
                 yield prop, value
+            else:
+                for prop, value in expand(prop, value):
+                    yield prop, value
 
-    def parse(self, declarations_str: str) -> Iterator[tuple[str, str]]:
+    expand_border_color = _side_expander("border-{:s}-color")
+    expand_border_style = _side_expander("border-{:s}-style")
+    expand_border_width = _side_expander("border-{:s}-width")
+    expand_margin = _side_expander("margin-{:s}")
+    expand_padding = _side_expander("padding-{:s}")
+
+    def parse(self, declarations_str: str):
         """
         Generates (prop, value) pairs from declarations.
 
@@ -407,5 +284,4 @@ class CSSResolver:
                 warnings.warn(
                     f"Ill-formatted attribute: expected a colon in {repr(decl)}",
                     CSSWarning,
-                    stacklevel=find_stack_level(),
                 )

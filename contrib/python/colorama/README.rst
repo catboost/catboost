@@ -26,10 +26,11 @@ cursor positioning) work under MS Windows.
 
 If you find Colorama useful, please |donate| to the authors. Thank you!
 
+
 Installation
 ------------
 
-Tested on CPython 2.7, 3.7, 3.8, 3.9 and 3.10 and Pypy 2.7 and 3.8.
+Tested on CPython 2.7, 3.5, 3.6, 3.7, 3.8, 3.9 and 3.10 and Pypy 2.7 and 3.6.
 
 No requirements other than the standard library.
 
@@ -38,6 +39,7 @@ No requirements other than the standard library.
     pip install colorama
     # or
     conda install -c anaconda colorama
+
 
 Description
 -----------
@@ -53,8 +55,7 @@ This has the upshot of providing a simple cross-platform API for printing
 colored terminal text from Python, and has the happy side-effect that existing
 applications or libraries which use ANSI sequences to produce colored output on
 Linux or Macs can now also work on Windows, simply by calling
-``colorama.just_fix_windows_console()`` (since v0.4.6) or ``colorama.init()``
-(all versions, but may have other side-effects – see below).
+``colorama.init()``.
 
 An alternative approach is to install ``ansi.sys`` on Windows machines, which
 provides the same behaviour for all applications running in terminals. Colorama
@@ -84,65 +85,30 @@ Usage
 Initialisation
 ..............
 
-If the only thing you want from Colorama is to get ANSI escapes to work on
-Windows, then run:
-
-.. code-block:: python
-
-    from colorama import just_fix_windows_console
-    just_fix_windows_console()
-
-If you're on a recent version of Windows 10 or better, and your stdout/stderr
-are pointing to a Windows console, then this will flip the magic configuration
-switch to enable Windows' built-in ANSI support.
-
-If you're on an older version of Windows, and your stdout/stderr are pointing to
-a Windows console, then this will wrap ``sys.stdout`` and/or ``sys.stderr`` in a
-magic file object that intercepts ANSI escape sequences and issues the
-appropriate Win32 calls to emulate them.
-
-In all other circumstances, it does nothing whatsoever. Basically the idea is
-that this makes Windows act like Unix with respect to ANSI escape handling.
-
-It's safe to call this function multiple times. It's safe to call this function
-on non-Windows platforms, but it won't do anything. It's safe to call this
-function when one or both of your stdout/stderr are redirected to a file – it
-won't do anything to those streams.
-
-Alternatively, you can use the older interface with more features (but also more
-potential footguns):
+Applications should initialise Colorama using:
 
 .. code-block:: python
 
     from colorama import init
     init()
 
-This does the same thing as ``just_fix_windows_console``, except for the
-following differences:
+On Windows, calling ``init()`` will filter ANSI escape sequences out of any
+text sent to ``stdout`` or ``stderr``, and replace them with equivalent Win32
+calls.
 
-- It's not safe to call ``init`` multiple times; you can end up with multiple
-  layers of wrapping and broken ANSI support.
+On other platforms, calling ``init()`` has no effect (unless you request other
+optional functionality, see "Init Keyword Args" below; or if output
+is redirected). By design, this permits applications to call ``init()``
+unconditionally on all platforms, after which ANSI output should just work.
 
-- Colorama will apply a heuristic to guess whether stdout/stderr support ANSI,
-  and if it thinks they don't, then it will wrap ``sys.stdout`` and
-  ``sys.stderr`` in a magic file object that strips out ANSI escape sequences
-  before printing them. This happens on all platforms, and can be convenient if
-  you want to write your code to emit ANSI escape sequences unconditionally, and
-  let Colorama decide whether they should actually be output. But note that
-  Colorama's heuristic is not particularly clever.
-
-- ``init`` also accepts explicit keyword args to enable/disable various
-  functionality – see below.
+On all platforms, if output is redirected, ANSI escape sequences are completely
+stripped out.
 
 To stop using Colorama before your program exits, simply call ``deinit()``.
 This will restore ``stdout`` and ``stderr`` to their original values, so that
 Colorama is disabled. To resume using Colorama again, call ``reinit()``; it is
 cheaper than calling ``init()`` again (but does the same thing).
 
-Most users should depend on ``colorama >= 0.4.6``, and use
-``just_fix_windows_console``. The old ``init`` interface will be supported
-indefinitely for backwards compatibility, but we don't plan to fix any issues
-with it, also for backwards compatibility.
 
 Colored Output
 ..............
@@ -177,17 +143,13 @@ then consider using one of the above highly capable libraries to generate
 colors, etc, and use Colorama just for its primary purpose: to convert
 those ANSI sequences to also work on Windows:
 
-SIMILARLY, do not send PRs adding the generation of new ANSI types to Colorama.
-We are only interested in converting ANSI codes to win32 API calls, not
-shortcuts like the above to generate ANSI characters.
-
 .. code-block:: python
 
-    from colorama import just_fix_windows_console
+    from colorama import init
     from termcolor import colored
 
     # use Colorama to make Termcolor work on Windows too
-    just_fix_windows_console()
+    init()
 
     # then use Termcolor for all colored text output
     print(colored('Hello, World!', 'green', 'on_red'))
@@ -206,11 +168,13 @@ These are fairly well supported, but not part of the standard::
     Fore: LIGHTBLACK_EX, LIGHTRED_EX, LIGHTGREEN_EX, LIGHTYELLOW_EX, LIGHTBLUE_EX, LIGHTMAGENTA_EX, LIGHTCYAN_EX, LIGHTWHITE_EX
     Back: LIGHTBLACK_EX, LIGHTRED_EX, LIGHTGREEN_EX, LIGHTYELLOW_EX, LIGHTBLUE_EX, LIGHTMAGENTA_EX, LIGHTCYAN_EX, LIGHTWHITE_EX
 
+
 Cursor Positioning
 ..................
 
 ANSI codes to reposition the cursor are supported. See ``demos/demo06.py`` for
 an example of how to generate them.
+
 
 Init Keyword Args
 .................
@@ -262,6 +226,7 @@ init(wrap=True):
 
         # Python 3
         print(Fore.BLUE + 'blue text on stderr', file=stream)
+
 
 Recognised ANSI Sequences
 .........................
@@ -331,17 +296,15 @@ initial characters, are not recognised or stripped. It would be cool to add
 them though. Let me know if it would be useful for you, via the Issues on
 GitHub.
 
+
 Status & Known Problems
 -----------------------
 
 I've personally only tested it on Windows XP (CMD, Console2), Ubuntu
 (gnome-terminal, xterm), and OS X.
 
-Some valid ANSI sequences aren't recognised.
-
-If you're hacking on the code, see `README-hacking.md`_. ESPECIALLY, see the
-explanation there of why we do not want PRs that allow Colorama to generate new
-types of ANSI codes.
+Some presumably valid ANSI sequences aren't recognised (see details below),
+but to my knowledge nobody has yet complained about this. Puzzling.
 
 See outstanding issues and wish-list:
 https://github.com/tartley/colorama/issues
@@ -351,13 +314,17 @@ I'd love to hear about it on that issues list, would be delighted by patches,
 and would be happy to grant commit access to anyone who submits a working patch
 or two.
 
+If you're hacking on the code, see `README-hacking.md`_.
+
 .. _README-hacking.md: README-hacking.md
+
 
 License
 -------
 
 Copyright Jonathan Hartley & Arnon Yaari, 2013-2020. BSD 3-Clause license; see
 LICENSE file.
+
 
 Professional support
 --------------------
@@ -379,10 +346,9 @@ Professional support
 
 .. _Tidelift Subscription: https://tidelift.com/subscription/pkg/pypi-colorama?utm_source=pypi-colorama&utm_medium=referral&utm_campaign=readme
 
+
 Thanks
 ------
-
-See the CHANGELOG for more thanks!
 
 * Marc Schlaich (schlamar) for a ``setup.py`` fix for Python2.5.
 * Marc Abramowitz, reported & fixed a crash on exit with closed ``stdout``,

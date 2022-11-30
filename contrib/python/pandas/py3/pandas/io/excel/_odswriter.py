@@ -3,48 +3,37 @@ from __future__ import annotations
 from collections import defaultdict
 import datetime
 from typing import (
-    TYPE_CHECKING,
     Any,
     DefaultDict,
-    Tuple,
-    cast,
 )
 
 import pandas._libs.json as json
-from pandas._typing import (
-    FilePath,
-    StorageOptions,
-    WriteExcelBuffer,
-)
+from pandas._typing import StorageOptions
 
 from pandas.io.excel._base import ExcelWriter
 from pandas.io.excel._util import (
     combine_kwargs,
     validate_freeze_panes,
 )
-
-if TYPE_CHECKING:
-    from odf.opendocument import OpenDocumentSpreadsheet
-
-    from pandas.io.formats.excel import ExcelCell
+from pandas.io.formats.excel import ExcelCell
 
 
 class ODSWriter(ExcelWriter):
-    _engine = "odf"
-    _supported_extensions = (".ods",)
+    engine = "odf"
+    supported_extensions = (".ods",)
 
     def __init__(
         self,
-        path: FilePath | WriteExcelBuffer | ExcelWriter,
+        path: str,
         engine: str | None = None,
-        date_format: str | None = None,
+        date_format=None,
         datetime_format=None,
         mode: str = "w",
         storage_options: StorageOptions = None,
         if_sheet_exists: str | None = None,
         engine_kwargs: dict[str, Any] | None = None,
         **kwargs,
-    ) -> None:
+    ):
         from odf.opendocument import OpenDocumentSpreadsheet
 
         if mode == "a":
@@ -60,46 +49,18 @@ class ODSWriter(ExcelWriter):
 
         engine_kwargs = combine_kwargs(engine_kwargs, kwargs)
 
-        self._book = OpenDocumentSpreadsheet(**engine_kwargs)
+        self.book = OpenDocumentSpreadsheet(**engine_kwargs)
         self._style_dict: dict[str, str] = {}
 
-    @property
-    def book(self):
-        """
-        Book instance of class odf.opendocument.OpenDocumentSpreadsheet.
-
-        This attribute can be used to access engine-specific features.
-        """
-        return self._book
-
-    @book.setter
-    def book(self, other: OpenDocumentSpreadsheet) -> None:
-        """
-        Set book instance. Class type will depend on the engine used.
-        """
-        self._deprecate_set_book()
-        self._book = other
-
-    @property
-    def sheets(self) -> dict[str, Any]:
-        """Mapping of sheet names to sheet objects."""
-        from odf.table import Table
-
-        result = {
-            sheet.getAttribute("name"): sheet
-            for sheet in self.book.getElementsByType(Table)
-        }
-        return result
-
-    def _save(self) -> None:
+    def save(self) -> None:
         """
         Save workbook to disk.
         """
         for sheet in self.sheets.values():
             self.book.spreadsheet.addElement(sheet)
-        self.book.save(self._handles.handle)
+        self.book.save(self.handles.handle)
 
-    def _write_cells(
+    def write_cells(
         self,
         cells: list[ExcelCell],
         sheet_name: str | None = None,
@@ -124,10 +85,10 @@ class ODSWriter(ExcelWriter):
             wks = self.sheets[sheet_name]
         else:
             wks = Table(name=sheet_name)
-            self.book.spreadsheet.addElement(wks)
+            self.sheets[sheet_name] = wks
 
         if validate_freeze_panes(freeze_panes):
-            freeze_panes = cast(Tuple[int, int], freeze_panes)
+            assert freeze_panes is not None
             self._create_freeze_panes(sheet_name, freeze_panes)
 
         for _ in range(startrow):
@@ -154,9 +115,8 @@ class ODSWriter(ExcelWriter):
             tc.addElement(p)
 
         # add all rows to the sheet
-        if len(rows) > 0:
-            for row_nr in range(max(rows.keys()) + 1):
-                wks.addElement(rows[row_nr])
+        for row_nr in range(max(rows.keys()) + 1):
+            wks.addElement(rows[row_nr])
 
     def _make_table_cell_attributes(self, cell) -> dict[str, int | str]:
         """Convert cell attributes to OpenDocument attributes
@@ -202,18 +162,14 @@ class ODSWriter(ExcelWriter):
             value = str(val).lower()
             pvalue = str(val).upper()
         if isinstance(val, datetime.datetime):
-            # Fast formatting
             value = val.isoformat()
-            # Slow but locale-dependent
             pvalue = val.strftime("%c")
             return (
                 pvalue,
                 TableCell(valuetype="date", datevalue=value, attributes=attributes),
             )
         elif isinstance(val, datetime.date):
-            # Fast formatting
-            value = f"{val.year}-{val.month:02d}-{val.day:02d}"
-            # Slow but locale-dependent
+            value = val.strftime("%Y-%m-%d")
             pvalue = val.strftime("%x")
             return (
                 pvalue,

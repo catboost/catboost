@@ -5,8 +5,8 @@
 
 
 #define CATBOOST_APPLIER_MAJOR 1
-#define CATBOOST_APPLIER_MINOR 1
-#define CATBOOST_APPLIER_FIX 1
+#define CATBOOST_APPLIER_MINOR 0
+#define CATBOOST_APPLIER_FIX 4
 
 #if defined(__cplusplus)
 extern "C" {
@@ -369,12 +369,6 @@ CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
- * Get expected text feature count for model
- * @param calcer model handle
- */
-CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
-
-/**
  * Get expected embedding feature count for model
  * @param calcer model handle
  */
@@ -418,16 +412,6 @@ CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const 
  * @param calcer model handle
  */
 CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
-
-
-/**
- * Get names of features used in the model.
- * individual strings in featureNames array and featureNames array itself must be deallocated using free() after use.
- *
- * @return true on success, false on error
- */
-CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char*** featureNames, size_t* featureCount);
-
 
 #if defined(__cplusplus)
 }

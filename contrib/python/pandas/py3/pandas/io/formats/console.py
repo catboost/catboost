@@ -1,12 +1,11 @@
 """
 Internal module for console introspection
 """
-from __future__ import annotations
 
 from shutil import get_terminal_size
 
 
-def get_console_size() -> tuple[int | None, int | None]:
+def get_console_size():
     """
     Return console size as tuple = (width, height).
 
@@ -44,14 +43,14 @@ def get_console_size() -> tuple[int | None, int | None]:
     # Note if the User sets width/Height to None (auto-detection)
     # and we're in a script (non-inter), this will return (None,None)
     # caller needs to deal.
-    return display_width or terminal_width, display_height or terminal_height
+    return (display_width or terminal_width, display_height or terminal_height)
 
 
 # ----------------------------------------------------------------------
 # Detect our environment
 
 
-def in_interactive_session() -> bool:
+def in_interactive_session():
     """
     Check if we're running in an interactive shell.
 
@@ -76,7 +75,7 @@ def in_interactive_session() -> bool:
         return check_main()
 
 
-def in_ipython_frontend() -> bool:
+def in_ipython_frontend():
     """
     Check if we're inside an IPython zmq frontend.
 

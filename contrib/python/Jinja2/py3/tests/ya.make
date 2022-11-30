@@ -28,13 +28,13 @@ RESOURCE_FILES(
 TEST_SRCS(
     conftest.py
     test_api.py
-    test_async.py
     test_async_filters.py
+    test_async.py
     test_bytecode_cache.py
-    test_compile.py
     test_core_tags.py
     test_debug.py
     test_ext.py
+    test_features.py
     test_filters.py
     test_idtracking.py
     test_imports.py
@@ -42,8 +42,6 @@ TEST_SRCS(
     test_lexnparse.py
     test_loader.py
     test_nativetypes.py
-    test_nodes.py
-    test_pickle.py
     test_regression.py
     test_runtime.py
     test_security.py

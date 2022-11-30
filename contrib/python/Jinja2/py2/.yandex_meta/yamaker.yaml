@@ -1,8 +1,8 @@
 exclude:
-  - examples/basic/test.py
-  - jinja2/asyncfilters.py
-  - jinja2/asyncsupport.py
+- examples/basic/test.py
+- jinja2/asyncfilters.py
+- jinja2/asyncsupport.py
 additional_requirements:
-  - setuptools
+- setuptools
 mark_as_sources:
-  - jinja2/tests.py
+- jinja2/tests.py

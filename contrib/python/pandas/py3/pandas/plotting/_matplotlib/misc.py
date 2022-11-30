@@ -27,22 +27,21 @@ if TYPE_CHECKING:
 
     from pandas import (
         DataFrame,
-        Index,
         Series,
     )
 
 
 def scatter_matrix(
     frame: DataFrame,
-    alpha: float = 0.5,
+    alpha=0.5,
     figsize=None,
     ax=None,
-    grid: bool = False,
-    diagonal: str = "hist",
-    marker: str = ".",
+    grid=False,
+    diagonal="hist",
+    marker=".",
     density_kwds=None,
     hist_kwds=None,
-    range_padding: float = 0.05,
+    range_padding=0.05,
     **kwds,
 ):
     df = frame._get_numeric_data()
@@ -352,7 +351,7 @@ def parallel_coordinates(
     cols=None,
     ax: Axes | None = None,
     color=None,
-    use_columns: bool = False,
+    use_columns=False,
     xticks=None,
     colormap=None,
     axvlines: bool = True,
@@ -379,7 +378,6 @@ def parallel_coordinates(
     ncols = len(df.columns)
 
     # determine values to use for xticks
-    x: list[int] | Index
     if use_columns is True:
         if not np.all(np.isreal(list(df.columns))):
             raise ValueError("Columns must be numeric to be used as xticks")
@@ -475,10 +473,3 @@ def autocorrelation_plot(series: Series, ax: Axes | None = None, **kwds) -> Axes
         ax.legend()
     ax.grid()
     return ax
-
-
-def unpack_single_str_list(keys):
-    # GH 42795
-    if isinstance(keys, list) and len(keys) == 1:
-        keys = keys[0]
-    return keys

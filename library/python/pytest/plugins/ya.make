@@ -7,7 +7,6 @@ PY_SRCS(
     collection.py
     conftests.py
     fixtures.py
-    metrics.py
 )
 
 PEERDIR(

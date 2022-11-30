@@ -38,7 +38,6 @@ C GetStringCatFeatureHash
 C GetIntegerCatFeatureHash
 C GetFloatFeaturesCount
 C GetCatFeaturesCount
-C GetTextFeaturesCount
 C GetEmbeddingFeaturesCount
 C GetTreeCount
 C GetDimensionsCount
@@ -46,4 +45,3 @@ C GetPredictionDimensionsCount
 C CheckModelMetadataHasKey
 C GetModelInfoValueSize
 C GetModelInfoValue
-C GetModelUsedFeaturesNames

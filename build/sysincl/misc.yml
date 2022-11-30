@@ -481,7 +481,3 @@
 - source_filter: "^contrib/libs/util-linux"
   includes:
     - procfs.h: contrib/libs/util-linux/include/procfs.h
-
-- source_filter: "^contrib/libs/gdal"
-  includes:
-    - io.h: contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h

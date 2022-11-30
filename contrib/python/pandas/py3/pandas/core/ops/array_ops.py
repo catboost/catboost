@@ -2,8 +2,6 @@
 Functions for arithmetic and comparison operations on NumPy arrays and
 ExtensionArrays.
 """
-from __future__ import annotations
-
 import datetime
 from functools import partial
 import operator
@@ -221,9 +219,7 @@ def arithmetic_op(left: ArrayLike, right: Any, op):
         # (https://github.com/pandas-dev/pandas/issues/41165)
         _bool_arith_check(op, left, right)
 
-        # error: Argument 1 to "_na_arithmetic_op" has incompatible type
-        # "Union[ExtensionArray, ndarray[Any, Any]]"; expected "ndarray[Any, Any]"
-        res_values = _na_arithmetic_op(left, right, op)  # type: ignore[arg-type]
+        res_values = _na_arithmetic_op(left, right, op)
 
     return res_values
 
