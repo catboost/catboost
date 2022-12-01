@@ -124,7 +124,7 @@ feature_names = dict()
 for column, name in enumerate(train_df):
     if column == 0:
         continue
-    feature_names[column - 1] = name
+    feature_names[column] = name
 create_cd(
     label=0,
     cat_features=list(range(1, train_df.columns.shape[0])),
