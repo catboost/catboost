@@ -507,19 +507,17 @@ class Lexer:
         # block suffix if trimming is enabled
         block_suffix_re = "\\n?" if environment.trim_blocks else ""
 
-        # If lstrip is enabled, it should not be applied if there is any
-        # non-whitespace between the newline and block.
-        self.lstrip_unless_re = c(r"[^ \t]") if environment.lstrip_blocks else None
+        self.lstrip_blocks = environment.lstrip_blocks
 
         self.newline_sequence = environment.newline_sequence
         self.keep_trailing_newline = environment.keep_trailing_newline
 
         root_raw_re = (
-            fr"(?P<raw_begin>{block_start_re}(\-|\+|)\s*raw\s*"
-            fr"(?:\-{block_end_re}\s*|{block_end_re}))"
+            rf"(?P<raw_begin>{block_start_re}(\-|\+|)\s*raw\s*"
+            rf"(?:\-{block_end_re}\s*|{block_end_re}))"
         )
         root_parts_re = "|".join(
-            [root_raw_re] + [fr"(?P<{n}>{r}(\-|\+|))" for n, r in root_tag_rules]
+            [root_raw_re] + [rf"(?P<{n}>{r}(\-|\+|))" for n, r in root_tag_rules]
         )
 
         # global lexing rules
@@ -527,7 +525,7 @@ class Lexer:
             "root": [
                 # directives
                 _Rule(
-                    c(fr"(.*?)(?:{root_parts_re})"),
+                    c(rf"(.*?)(?:{root_parts_re})"),
                     OptionalLStrip(TOKEN_DATA, "#bygroup"),  # type: ignore
                     "#bygroup",
                 ),
@@ -538,8 +536,8 @@ class Lexer:
             TOKEN_COMMENT_BEGIN: [
                 _Rule(
                     c(
-                        fr"(.*?)((?:\+{comment_end_re}|\-{comment_end_re}\s*"
-                        fr"|{comment_end_re}{block_suffix_re}))"
+                        rf"(.*?)((?:\+{comment_end_re}|\-{comment_end_re}\s*"
+                        rf"|{comment_end_re}{block_suffix_re}))"
                     ),
                     (TOKEN_COMMENT, TOKEN_COMMENT_END),
                     "#pop",
@@ -550,8 +548,8 @@ class Lexer:
             TOKEN_BLOCK_BEGIN: [
                 _Rule(
                     c(
-                        fr"(?:\+{block_end_re}|\-{block_end_re}\s*"
-                        fr"|{block_end_re}{block_suffix_re})"
+                        rf"(?:\+{block_end_re}|\-{block_end_re}\s*"
+                        rf"|{block_end_re}{block_suffix_re})"
                     ),
                     TOKEN_BLOCK_END,
                     "#pop",
@@ -561,7 +559,7 @@ class Lexer:
             # variables
             TOKEN_VARIABLE_BEGIN: [
                 _Rule(
-                    c(fr"\-{variable_end_re}\s*|{variable_end_re}"),
+                    c(rf"\-{variable_end_re}\s*|{variable_end_re}"),
                     TOKEN_VARIABLE_END,
                     "#pop",
                 )
@@ -571,9 +569,9 @@ class Lexer:
             TOKEN_RAW_BEGIN: [
                 _Rule(
                     c(
-                        fr"(.*?)((?:{block_start_re}(\-|\+|))\s*endraw\s*"
-                        fr"(?:\+{block_end_re}|\-{block_end_re}\s*"
-                        fr"|{block_end_re}{block_suffix_re}))"
+                        rf"(.*?)((?:{block_start_re}(\-|\+|))\s*endraw\s*"
+                        rf"(?:\+{block_end_re}|\-{block_end_re}\s*"
+                        rf"|{block_end_re}{block_suffix_re}))"
                     ),
                     OptionalLStrip(TOKEN_DATA, TOKEN_RAW_END),  # type: ignore
                     "#pop",
@@ -697,7 +695,6 @@ class Lexer:
         statetokens = self.rules[stack[-1]]
         source_length = len(source)
         balancing_stack: t.List[str] = []
-        lstrip_unless_re = self.lstrip_unless_re
         newlines_stripped = 0
         line_starting = True
 
@@ -723,7 +720,7 @@ class Lexer:
 
                 # tuples support more options
                 if isinstance(tokens, tuple):
-                    groups = m.groups()
+                    groups: t.Sequence[str] = m.groups()
 
                     if isinstance(tokens, OptionalLStrip):
                         # Rule supports lstrip. Match will look like
@@ -743,7 +740,7 @@ class Lexer:
                             # Not marked for preserving whitespace.
                             strip_sign != "+"
                             # lstrip is enabled.
-                            and lstrip_unless_re is not None
+                            and self.lstrip_blocks
                             # Not a variable expression.
                             and not m.groupdict().get(TOKEN_VARIABLE_BEGIN)
                         ):
@@ -753,7 +750,7 @@ class Lexer:
                             if l_pos > 0 or line_starting:
                                 # If there's only whitespace between the newline and the
                                 # tag, strip it.
-                                if not lstrip_unless_re.search(text, l_pos):
+                                if whitespace_re.fullmatch(text, l_pos):
                                     groups = [text[:l_pos], *groups[1:]]
 
                     for idx, token in enumerate(tokens):
