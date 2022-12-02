@@ -169,7 +169,7 @@ namespace NKernel {
         fCount = min(fCount - (blockIdx.x / M) * 4, 4);
 
         __shared__ float counters[32 * BLOCK_SIZE];
-        const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &counters[0]);
+        const ui32 maxBinCount = GetMaxBinCount(feature, fCount, (ui32*) &counters[0]);
         __syncthreads();
 
         static_assert(BITS >= 5, "Error: this specialization for 5-8 bit histograms");
