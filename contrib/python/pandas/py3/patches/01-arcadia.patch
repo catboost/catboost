@@ -62,12 +62,13 @@
      """
 --- contrib/python/pandas/py3/pandas/compat/_optional.py	(index)
 +++ contrib/python/pandas/py3/pandas/compat/_optional.py	(working tree)
-@@ -36,7 +36,7 @@ VERSIONS = {
-     "s3fs": "0.4.0",
-     "scipy": "1.4.1",
-     "snappy": "0.6.0",
--    "sqlalchemy": "1.4.0",
+@@ -41,1 +41,1 @@ VERSIONS = {
+-    "sqlalchemy": "1.4.16",
 +    "sqlalchemy": "1.2.0",
-     "tables": "3.6.1",
-     "tabulate": "0.8.7",
-     "xarray": "0.15.1",
+--- contrib/python/pandas/py3/ya.make	(index)
++++ contrib/python/pandas/py3/ya.make	(working tree)
+@@ -44,2 +44,4 @@ CFLAGS(
+ 
++INCLUDE(symbols.cmake)
++
+ SRCS(
