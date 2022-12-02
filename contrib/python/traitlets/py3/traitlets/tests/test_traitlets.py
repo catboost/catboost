@@ -1910,7 +1910,7 @@ def test_dict_assignment():
 
 class UniformlyValueValidatedDictTrait(HasTraits):
 
-    value = Dict(trait=Unicode(), default_value={"foo": "1"})
+    value = Dict(value_trait=Unicode(), default_value={"foo": "1"})
 
 
 class TestInstanceUniformlyValueValidatedDict(TraitTestBase):
@@ -1924,7 +1924,7 @@ class TestInstanceUniformlyValueValidatedDict(TraitTestBase):
 
 class NonuniformlyValueValidatedDictTrait(HasTraits):
 
-    value = Dict(traits={"foo": Int()}, default_value={"foo": 1})
+    value = Dict(per_key_traits={"foo": Int()}, default_value={"foo": 1})
 
 
 class TestInstanceNonuniformlyValueValidatedDict(TraitTestBase):
@@ -1953,7 +1953,10 @@ class TestInstanceKeyValidatedDict(TraitTestBase):
 class FullyValidatedDictTrait(HasTraits):
 
     value = Dict(
-        trait=Unicode(), key_trait=Unicode(), traits={"foo": Int()}, default_value={"foo": 1}
+        value_trait=Unicode(),
+        key_trait=Unicode(),
+        per_key_traits={"foo": Int()},
+        default_value={"foo": 1},
     )
 
 
