@@ -16,10 +16,12 @@
 #include <catboost/libs/train_lib/options_helper.h>
 
 #include <library/cpp/json/json_value.h>
+#include <library/cpp/threading/local_executor/tbb_local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
+#include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
 
 #include <type_traits>
@@ -277,3 +279,4 @@ void TrainEvalSplit(
 );
 
 
+TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount);
