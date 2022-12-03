@@ -304,9 +304,12 @@ TVector<TString>* processing_result;
 #include <iostream>
 
 void CallInParallel(NPar::ILocalExecutor* executor, void(*callback) (int block_id), size_t block_count) {
-    std::cout << "CallInParallel" << std::endl;
+    // std::cout << "CallInParallel" << std::endl;
     auto task = [&](int id) {
         callback(id);
     };
-    executor->ExecRange(task, 0, block_count, NPar::TLocalExecutor::WAIT_COMPLETE);
+    //executor->ExecRange(task, 0, block_count, NPar::TLocalExecutor::WAIT_COMPLETE);
+    for  (size_t id = 0; id != block_count; ++id) {
+        task(id);
+    }
 }

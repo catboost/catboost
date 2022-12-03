@@ -2748,31 +2748,19 @@ cdef parallel_process_features_column_to_vector(
         cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         cdef ILocalExecutor* executor_ptr = <ILocalExecutor*>local_executor.Get()        
         
+        
         #print(f"objects_in_column = {objects_in_column}, block_size = {block_size}, block_count = {block_count}")
-
-        for block_id in range(block_count):
-            call_python_code(block_id)            
+        #for block_id in range(block_count):
+        #    call_python_code(block_id)            
         #for idx in range(objects_in_column):                            
-        #    g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])
+        #    g_object_process_callback(idx, g_column_array[idx], processing_result[0][idx])        
 
-        with nogil:
-            CallInParallel(
-                            executor_ptr,
-                    #        # executor,
-                            call_python_code,
-                            block_count
-                        )
-
-        #with nogil:     
-        #call_python_code(0)       
-        #print("after call_python_code(0)");
-        #    CallInParallel(executor_ptr, call_python_code, 1)
-        #    CallInParallel(
-        #        executor_ptr,
-        #        # executor,
-        #        call_python_code,
-        #        block_count
-        #    )
+        #with nogil:                               
+        CallInParallel(
+            executor_ptr,                
+            call_python_code,
+            block_count
+        )
 
 
 # returns new data holders array
