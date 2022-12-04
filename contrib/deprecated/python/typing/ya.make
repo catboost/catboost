@@ -1,7 +1,7 @@
 # NOTE: please do not change to PY23_LIBRARY()
 # instead, use
 # IF (PYTHON2)
-#     PEERDIR(contrib/python/typing)
+#     PEERDIR(contrib/deprecated/python/typing)
 # ENDIF()
 # for code compatible with both Py2 and Py3
 PY2_LIBRARY()  # backport
@@ -20,7 +20,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/typing/
+    PREFIX contrib/deprecated/python/typing/
     .dist-info/METADATA
     .dist-info/top_level.txt
 )

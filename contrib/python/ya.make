@@ -56,7 +56,6 @@ RECURSE(
     tornado
     traitlets
     types-protobuf
-    typing
     wcwidth
 )
 
