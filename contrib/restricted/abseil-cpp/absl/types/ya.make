@@ -10,6 +10,7 @@ LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 PEERDIR(
     contrib/restricted/abseil-cpp/absl/base
+    contrib/restricted/abseil-cpp/absl/memory
 )
 
 ADDINCL(
