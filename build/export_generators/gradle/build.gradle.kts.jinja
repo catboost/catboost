@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
 {% for library in targets[0].consumer_classpath -%}
-    api({{ library }})
+    implementation({{ library }})
 {% endfor -%}
 
 {% if targets[0].proto_namespace is defined -%}
@@ -61,6 +61,14 @@ plugins {
 repositories {
     mavenCentral()
 }
+
+{% for jdk_ver in targets|selectattr("required_jdk")|map(attribute="required_jdk")|sum(start=[])|unique -%}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of({{ jdk_ver }}))
+    }
+}
+{% endfor -%}
 
 dependencies{
 {% for target in targets -%}
