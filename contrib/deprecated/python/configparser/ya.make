@@ -18,7 +18,7 @@ PY_SRCS(
 )
 
 RESOURCE_FILES(
-    PREFIX contrib/python/configparser/
+    PREFIX contrib/deprecated/python/configparser/
     .dist-info/METADATA
     .dist-info/top_level.txt
 )
