@@ -84,9 +84,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\sqlite3\test_multiplex.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\sqlite3\config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\sqlite3\sqlite3.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\sqlite3\sqlite3ext.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\sqlite3\sqlite_cfg.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\sqlite3\test_multiplex.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
