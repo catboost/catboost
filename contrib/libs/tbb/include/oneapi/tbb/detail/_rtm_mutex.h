@@ -108,11 +108,11 @@ private:
 namespace r1 {
     //! Internal acquire lock.
     // only_speculate == true if we're doing a try_lock, else false.
-    void __TBB_EXPORTED_FUNC acquire(d1::rtm_mutex&, d1::rtm_mutex::scoped_lock&, bool only_speculate = false);
+    TBB_EXPORT void __TBB_EXPORTED_FUNC acquire(d1::rtm_mutex&, d1::rtm_mutex::scoped_lock&, bool only_speculate = false);
     //! Internal try_acquire lock.
-    bool __TBB_EXPORTED_FUNC try_acquire(d1::rtm_mutex&, d1::rtm_mutex::scoped_lock&);
+    TBB_EXPORT bool __TBB_EXPORTED_FUNC try_acquire(d1::rtm_mutex&, d1::rtm_mutex::scoped_lock&);
     //! Internal release lock.
-    void __TBB_EXPORTED_FUNC release(d1::rtm_mutex::scoped_lock&);
+    TBB_EXPORT void __TBB_EXPORTED_FUNC release(d1::rtm_mutex::scoped_lock&);
 } // namespace r1
 
 namespace d1 {
@@ -143,14 +143,14 @@ inline void rtm_mutex::scoped_lock::release() {
 inline void set_name(rtm_mutex& obj, const char* name) {
     itt_set_sync_name(&obj, name);
 }
-#if (_WIN32||_WIN64) && !__MINGW32__
+#if (_WIN32||_WIN64)
 inline void set_name(rtm_mutex& obj, const wchar_t* name) {
     itt_set_sync_name(&obj, name);
 }
 #endif // WIN
 #else
 inline void set_name(rtm_mutex&, const char*) {}
-#if (_WIN32||_WIN64) && !__MINGW32__
+#if (_WIN32||_WIN64)
 inline void set_name(rtm_mutex&, const wchar_t*) {}
 #endif // WIN
 #endif

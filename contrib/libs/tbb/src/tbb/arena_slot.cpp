@@ -145,7 +145,7 @@ d1::task* arena_slot::get_task(execution_data_ext& ed, isolation_type isolation)
     return result;
 }
 
-d1::task* arena_slot::steal_task(arena& a, isolation_type isolation) {
+d1::task* arena_slot::steal_task(arena& a, isolation_type isolation, std::size_t slot_index) {
     d1::task** victim_pool = lock_task_pool();
     if (!victim_pool) {
         return nullptr;
@@ -175,7 +175,7 @@ d1::task* arena_slot::steal_task(arena& a, isolation_type isolation) {
                 }
                 task_proxy& tp = *static_cast<task_proxy*>(result);
                 // If mailed task is likely to be grabbed by its destination thread, skip it.
-                if ( !(task_proxy::is_shared( tp.task_and_tag ) && tp.outbox->recipient_is_idle()) ) {
+                if (!task_proxy::is_shared(tp.task_and_tag) || !tp.outbox->recipient_is_idle() || a.mailbox(slot_index).recipient_is_idle()) {
                     break;
                 }
             }
@@ -216,4 +216,3 @@ unlock:
 } // namespace r1
 } // namespace detail
 } // namespace tbb
-

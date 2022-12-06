@@ -37,7 +37,7 @@ public:
     //! Inform server of adjustments in the number of workers that the client can profitably use.
     virtual void adjust_job_count_estimate( int delta ) = 0;
 
-#if _WIN32||_WIN64
+#if _WIN32 || _WIN64
     //! Inform server of a oneTBB external thread.
     virtual void register_external_thread( execution_resource_t& v ) = 0;
 
