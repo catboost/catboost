@@ -6855,7 +6855,7 @@
         "swagger": {
             "formula": {
                 "sandbox_id": [
-                    1488214649
+                    1547247865
                 ],
                 "match": "swagger"
             },
@@ -9145,7 +9145,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1544396795,
+                "sandbox_id": 1547241343,
                 "match": "lama"
             },
             "executable": {
