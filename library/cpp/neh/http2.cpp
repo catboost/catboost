@@ -964,8 +964,8 @@ namespace {
         inline bool Get(THttpConnRef& conn, size_t addrId) {
 #ifdef DEBUG_STAT
             TDebugStat::ConnTotal.store(TotalConn.Val(), std::memory_order_release);
-            TDebugStat::ConnActive(Active(), std::memory_order_release);
-            TDebugStat::ConnCached(Cache_.Size(), std::memory_order_release);
+            TDebugStat::ConnActive.store(Active(), std::memory_order_release);
+            TDebugStat::ConnCached.store(Cache_.Size(), std::memory_order_release);
 #endif
             return Cache_.Get(conn, addrId);
         }
