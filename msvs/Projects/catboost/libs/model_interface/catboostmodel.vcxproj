@@ -300,8 +300,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.global.vcxproj">
       <Project>{ADB613B0-8D3A-4DFE-77B5-B78F8208C333}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
-      <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
+      <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
