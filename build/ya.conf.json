@@ -7544,7 +7544,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1549377398,
+                "sandbox_id": 1551629582,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -8388,7 +8388,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1550948925,
+                "sandbox_id": 1551867713,
                 "match": "app_host_launcher"
             },
             "executable": {
