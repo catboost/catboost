@@ -78,10 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\dataset_statistics_data_provider_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics\histograms.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\statistics_data_structures.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\dataset_statistics\visitors.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics
@@ -109,8 +109,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\dataset_statistics\histograms.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\dataset_statistics\histograms.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\dataset_statistics\dataset_statistics_data_provider_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\dataset_statistics\statistics_data_structures.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\dataset_statistics\visitors.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
