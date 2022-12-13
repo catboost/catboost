@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: stack-data
-Version: 0.6.1
+Version: 0.6.2
 Summary: Extract data from python stack frames and tracebacks for informative displays
 Home-page: http://github.com/alexmojaki/stack_data
 Author: Alex Hall
