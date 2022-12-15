@@ -260,7 +260,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,7 +280,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\py\e15a7667dc5c83b08cf288e8fb.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\1b6cba8cb4763b9d255d398b80.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\ae38c01ef9846d55546473da3d.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\c4e2fe27734a17506c3fad2e98.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\py\e15a7667dc5c83b08cf288e8fb.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\1b6cba8cb4763b9d255d398b80.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\ae38c01ef9846d55546473da3d.cpp;$(SolutionDir)$(Configuration)\contrib\python\py\c4e2fe27734a17506c3fad2e98.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\join_44a4da21e9344bfd60a584133d.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
@@ -648,6 +648,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
