@@ -452,6 +452,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\py3contrib-python-decorator.vcxproj">
       <Project>{45DD0FCB-695D-6F82-16DE-881C23E1603F}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
+      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.vcxproj">
       <Project>{7A0B528B-88E3-623E-3118-1B9D82415CF5}</Project>
     </ProjectReference>
