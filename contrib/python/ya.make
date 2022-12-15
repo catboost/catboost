@@ -9,6 +9,7 @@ RECURSE(
     contextlib2
     dateutil
     decorator
+    exceptiongroup
     executing
     filelock
     funcsigs

@@ -59,6 +59,7 @@ from _pytest.config.argparsing import Parser
 from _pytest.deprecated import check_ispytest
 from _pytest.deprecated import FSCOLLECTOR_GETHOOKPROXY_ISINITPATH
 from _pytest.deprecated import INSTANCE_COLLECTOR
+from _pytest.deprecated import NOSE_SUPPORT_METHOD
 from _pytest.fixtures import FuncFixtureInfo
 from _pytest.main import Session
 from _pytest.mark import MARK_GEN
@@ -77,10 +78,12 @@ from _pytest.pathlib import parts
 from _pytest.pathlib import visit
 from _pytest.scope import Scope
 from _pytest.warning_types import PytestCollectionWarning
+from _pytest.warning_types import PytestReturnNotNoneWarning
 from _pytest.warning_types import PytestUnhandledCoroutineWarning
 
 if TYPE_CHECKING:
     from typing_extensions import Literal
+
     from _pytest.scope import _ScopeName
 
 
@@ -95,7 +98,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store_true",
         dest="showfixtures",
         default=False,
-        help="show available fixtures, sorted by plugin appearance "
+        help="Show available fixtures, sorted by plugin appearance "
         "(fixtures with leading '_' are only shown with '-v')",
     )
     group.addoption(
@@ -103,32 +106,32 @@ def pytest_addoption(parser: Parser) -> None:
         action="store_true",
         dest="show_fixtures_per_test",
         default=False,
-        help="show fixtures per test",
+        help="Show fixtures per test",
     )
     parser.addini(
         "python_files",
         type="args",
         # NOTE: default is also used in AssertionRewritingHook.
         default=["test_*.py", "*_test.py"],
-        help="glob-style file patterns for Python test module discovery",
+        help="Glob-style file patterns for Python test module discovery",
     )
     parser.addini(
         "python_classes",
         type="args",
         default=["Test"],
-        help="prefixes or glob names for Python test class discovery",
+        help="Prefixes or glob names for Python test class discovery",
     )
     parser.addini(
         "python_functions",
         type="args",
         default=["test"],
-        help="prefixes or glob names for Python test function and method discovery",
+        help="Prefixes or glob names for Python test function and method discovery",
     )
     parser.addini(
         "disable_test_id_escaping_and_forfeit_all_rights_to_community_support",
         type="bool",
         default=False,
-        help="disable string escape non-ascii characters, might cause unwanted "
+        help="Disable string escape non-ASCII characters, might cause unwanted "
         "side effects(use at your own risk)",
     )
 
@@ -192,6 +195,13 @@ def pytest_pyfunc_call(pyfuncitem: "Function") -> Optional[object]:
     result = testfunction(**testargs)
     if hasattr(result, "__await__") or hasattr(result, "__aiter__"):
         async_warn_and_skip(pyfuncitem.nodeid)
+    elif result is not None:
+        warnings.warn(
+            PytestReturnNotNoneWarning(
+                f"Expected None, but {pyfuncitem.nodeid} returned {result!r}, which will be an error in a "
+                "future version of pytest.  Did you mean to use `assert` instead of `return`?"
+            )
+        )
     return True
 
 
@@ -863,19 +873,23 @@ class Class(PyCollector):
         """Inject a hidden autouse, function scoped fixture into the collected class object
         that invokes setup_method/teardown_method if either or both are available.
 
-        Using a fixture to invoke this methods ensures we play nicely and unsurprisingly with
+        Using a fixture to invoke these methods ensures we play nicely and unsurprisingly with
         other fixtures (#517).
         """
         has_nose = self.config.pluginmanager.has_plugin("nose")
         setup_name = "setup_method"
         setup_method = _get_first_non_fixture_func(self.obj, (setup_name,))
+        emit_nose_setup_warning = False
         if setup_method is None and has_nose:
             setup_name = "setup"
+            emit_nose_setup_warning = True
             setup_method = _get_first_non_fixture_func(self.obj, (setup_name,))
         teardown_name = "teardown_method"
         teardown_method = getattr(self.obj, teardown_name, None)
+        emit_nose_teardown_warning = False
         if teardown_method is None and has_nose:
             teardown_name = "teardown"
+            emit_nose_teardown_warning = True
             teardown_method = getattr(self.obj, teardown_name, None)
         if setup_method is None and teardown_method is None:
             return
@@ -891,10 +905,24 @@ class Class(PyCollector):
             if setup_method is not None:
                 func = getattr(self, setup_name)
                 _call_with_optional_argument(func, method)
+                if emit_nose_setup_warning:
+                    warnings.warn(
+                        NOSE_SUPPORT_METHOD.format(
+                            nodeid=request.node.nodeid, method="setup"
+                        ),
+                        stacklevel=2,
+                    )
             yield
             if teardown_method is not None:
                 func = getattr(self, teardown_name)
                 _call_with_optional_argument(func, method)
+                if emit_nose_teardown_warning:
+                    warnings.warn(
+                        NOSE_SUPPORT_METHOD.format(
+                            nodeid=request.node.nodeid, method="teardown"
+                        ),
+                        stacklevel=2,
+                    )
 
         self.obj.__pytest_setup_method = xunit_setup_method_fixture
 
@@ -1211,7 +1239,7 @@ class Metafunc:
 
     def parametrize(
         self,
-        argnames: Union[str, List[str], Tuple[str, ...]],
+        argnames: Union[str, Sequence[str]],
         argvalues: Iterable[Union[ParameterSet, Sequence[object], object]],
         indirect: Union[bool, Sequence[str]] = False,
         ids: Optional[
