@@ -9,6 +9,7 @@
 
 add_library(cpp-binsaver-ut_util)
 target_link_libraries(cpp-binsaver-ut_util PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-binsaver

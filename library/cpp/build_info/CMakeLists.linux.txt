@@ -13,6 +13,7 @@ target_include_directories(library-cpp-build_info PUBLIC
   ${CMAKE_BINARY_DIR}/library/cpp/build_info
 )
 target_link_libraries(library-cpp-build_info PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-string_utils-base64

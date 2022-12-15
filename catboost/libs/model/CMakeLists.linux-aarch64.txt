@@ -12,6 +12,7 @@ add_subdirectory(ut)
 
 add_library(catboost-libs-model)
 target_link_libraries(catboost-libs-model PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-cat_feature
@@ -71,6 +72,7 @@ generate_enum_serilization(catboost-libs-model
 
 add_global_library_for(catboost-libs-model.global catboost-libs-model)
 target_link_libraries(catboost-libs-model.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-cat_feature

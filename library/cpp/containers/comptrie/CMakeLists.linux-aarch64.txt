@@ -1,0 +1,32 @@
+
+# This file was gererated by the build system used internally in the Yandex monorepo.
+# Only simple modifications are allowed (adding source-files to targets, adding simple properties
+# like target_include_directories). These modifications will be ported to original
+# ya.make files by maintainers. Any complex modifications which can't be ported back to the
+# original buildsystem will not be accepted.
+
+
+
+add_library(cpp-containers-comptrie)
+target_link_libraries(cpp-containers-comptrie PUBLIC
+  contrib-libs-linux-headers
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-packers
+  cpp-containers-compact_vector
+  cpp-on_disk-chunks
+  util-draft
+)
+target_sources(cpp-containers-comptrie PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_builder.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/comptrie_impl.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/make_fast_layout.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/minimize.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/node.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/opaque_trie_iterator.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/prefix_iterator.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/search_iterator.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/write_trie_backwards.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/containers/comptrie/writeable_node.cpp
+)

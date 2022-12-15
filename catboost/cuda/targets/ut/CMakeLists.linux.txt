@@ -9,6 +9,7 @@
 
 add_executable(catboost-cuda-targets-ut)
 target_link_libraries(catboost-cuda-targets-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

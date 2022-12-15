@@ -13,6 +13,7 @@ target_compile_options(contrib-libs-crcutil PRIVATE
   -Wno-everything
 )
 target_link_libraries(contrib-libs-crcutil PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-crcutil PRIVATE

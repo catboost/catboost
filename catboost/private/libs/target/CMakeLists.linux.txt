@@ -9,6 +9,7 @@
 
 add_library(private-libs-target)
 target_link_libraries(private-libs-target PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-data

@@ -19,6 +19,7 @@ target_cython_sources(_catboost_no_cuda PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/python-package/catboost/_catboost.pyx
 )
 target_link_libraries(_catboost_no_cuda PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-mimalloc
