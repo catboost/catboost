@@ -1,8 +1,12 @@
 #include "mode_dataset_statistics_helpers.h"
 
+#include <catboost/libs/helpers/array_subset.h>
+
 #include <library/cpp/getopt/small/last_getopt.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/ptr.h>
+#include <util/generic/ymath.h>
 
 using namespace NCB;
 
@@ -18,6 +22,10 @@ void TCalculateStatisticsParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .Handler1T<TString>([&](const TString& param) {
             OnlyGroupStatistics = FromString<bool>(param);
         });
+    parser.AddLongOption("spot-size", "size of the single spot part (default: process the whole dataset)")
+        .StoreResult(&SpotSize);
+    parser.AddLongOption("spot-count", "number of spot parts (default: process the whole dataset)")
+        .StoreResult(&SpotCount);
 }
 
 void TCalculateStatisticsParams::ProcessParams(int argc, const char* argv[], NLastGetopt::TOpts* parserPtr) {
@@ -32,7 +40,54 @@ void TCalculateStatisticsParams::ProcessParams(int argc, const char* argv[], NLa
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
     params.DatasetReadingParams.ValidatePoolParams();
+
+    CB_ENSURE((SpotSize == 0) == (SpotCount == 0), "spot size and spot count must be specified together");
 }
+
+TVector<TIndexRange<ui64>> NCB::GetSpots(ui64 datasetSize, ui64 spotSize, ui64 spotCount) {
+    TVector<TIndexRange<ui64>> spots;
+    ui64 partSize = datasetSize / spotCount;
+    ui64 spotShift = partSize / spotCount;
+    for (auto spotNumber : xrange(spotCount)) {
+        auto partBegin = spotNumber * partSize;
+        auto partEnd = Min(partBegin + partSize, datasetSize);
+        auto spotBegin = Min(partBegin + spotNumber * spotShift, partEnd);
+        auto spotEnd = Min(spotBegin + spotSize, partEnd);
+        spots.emplace_back(spotBegin, spotEnd);
+    }
+    return spots;
+}
+
+
+// can return empty holder if no spots are used
+static THolder<ILineDataReader> GetSpotsLineDataReader(
+    const TPathWithScheme& poolPath,
+    const NCB::TDsvFormatOptions& dsvFormat,
+    ui32 spotSize,
+    ui32 spotCount
+) {
+    if (spotSize == 0) {
+        return THolder<ILineDataReader>();
+    }
+
+    auto lineDataReaderPtr = TLineDataReaderFactory::Construct(poolPath.Scheme, TLineDataReaderArgs{poolPath, dsvFormat});
+    if (!lineDataReaderPtr) {
+        CATBOOST_INFO_LOG << "There's no line data reader for scheme '" << poolPath.Scheme << "', the whole dataset will be processed instead of spots\n";
+        return THolder<ILineDataReader>();
+    }
+    THolder<ILineDataReader> lineDataReader(lineDataReaderPtr);
+
+    auto dataLineCount = lineDataReader->GetDataLineCount();
+    if (dataLineCount > ui64(spotCount) * ui64(spotSize)) {
+        return MakeHolder<TBlocksSubsetLineDataReader>(
+            std::move(lineDataReader),
+            GetSpots(dataLineCount, spotSize, spotCount)
+        );
+    } else {
+        return lineDataReader;
+    }
+}
+
 
 void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& calculateStatisticsParams) {
     NPar::TLocalExecutor localExecutor;
@@ -44,30 +99,52 @@ void NCB::CalculateDatasetStaticsSingleHost(const TCalculateStatisticsParams& ca
 
     const NCatboostOptions::TDatasetReadingParams& params = calculateStatisticsParams.DatasetReadingParams;
 
-    auto datasetLoader = NCB::GetProcessor<NCB::IDatasetLoader>(
-        params.PoolPath, // for choosing processor
+    THolder<IDatasetLoader> datasetLoader;
 
-        // processor args
-        NCB::TDatasetLoaderPullArgs{
-            params.PoolPath,
+    auto getDatasetLoaderCommonArgs = [&] () {
+        return TDatasetLoaderCommonArgs{
+            params.PairsFilePath,
+            /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
+            /*BaselineFilePath=*/NCB::TPathWithScheme(),
+            /*TimestampsFilePath*/ NCB::TPathWithScheme(),
+            params.FeatureNamesPath,
+            params.PoolMetaInfoPath,
+            params.ClassLabels,
+            params.ColumnarPoolFormatParams.DsvFormat,
+            MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
+            params.IgnoredFeatures,
+            NCB::EObjectsOrder::Undefined,
+            blockSize,
+            NCB::TDatasetSubset::MakeColumns(),
+            /*LoadColumnsAsString*/ false,
+            params.ForceUnitAutoPairWeights,
+            &localExecutor};
+    };
 
-            NCB::TDatasetLoaderCommonArgs{
-                params.PairsFilePath,
-                /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
-                /*BaselineFilePath=*/NCB::TPathWithScheme(),
-                /*TimestampsFilePath*/ NCB::TPathWithScheme(),
-                params.FeatureNamesPath,
-                params.PoolMetaInfoPath,
-                params.ClassLabels,
-                params.ColumnarPoolFormatParams.DsvFormat,
-                MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
-                params.IgnoredFeatures,
-                NCB::EObjectsOrder::Undefined,
-                blockSize,
-                NCB::TDatasetSubset::MakeColumns(),
-                /*LoadColumnsAsString*/ false,
-                params.ForceUnitAutoPairWeights,
-                &localExecutor}});
+    auto spotsLineDataReader = GetSpotsLineDataReader(
+        params.PoolPath,
+        params.ColumnarPoolFormatParams.DsvFormat,
+        calculateStatisticsParams.SpotSize,
+        calculateStatisticsParams.SpotCount);
+
+    if (spotsLineDataReader) {
+        auto datasetLoaderPtr = TDatasetLineDataLoaderFactory::Construct(
+            params.PoolPath.Scheme,
+            TLineDataLoaderPushArgs{std::move(spotsLineDataReader), getDatasetLoaderCommonArgs()});
+        if (datasetLoaderPtr) {
+            datasetLoader.Reset(datasetLoaderPtr);
+        } else {
+            CATBOOST_INFO_LOG << "There's no dataset line data loader for scheme '" << params.PoolPath.Scheme
+                << "', the whole dataset will be processed instead of spots\n";
+        }
+    }
+
+    if (!datasetLoader) {
+        datasetLoader = GetProcessor<IDatasetLoader>(
+            params.PoolPath, // for choosing processor
+            // processor args
+            NCB::TDatasetLoaderPullArgs{params.PoolPath, getDatasetLoaderCommonArgs()});
+    }
 
     if (calculateStatisticsParams.OnlyGroupStatistics) {
         auto visitor = MakeHolder<TDatasetStatisticsOnlyGroupVisitor>(/*isLocal*/ true);
