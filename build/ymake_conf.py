@@ -728,10 +728,7 @@ class YMake(object):
     def print_presets(self):
         presets = opts().presets
         if presets and 'YMAKE_JAVA_MODULES' not in presets:
-            if 'YA_IDE_IDEA' in presets or 'MAVEN_EXPORT' in presets:
-                presets['YMAKE_JAVA_MODULES'] = 'no'
-            else:
-                presets['YMAKE_JAVA_MODULES'] = 'yes'
+            presets['YMAKE_JAVA_MODULES'] = 'yes'
         if presets and 'YMAKE_JAVA_MODULES' in presets and presets['YMAKE_JAVA_MODULES'] == "yes":
             print('@import "${CONF_ROOT}/conf/java.ymake.conf"')
         else:
