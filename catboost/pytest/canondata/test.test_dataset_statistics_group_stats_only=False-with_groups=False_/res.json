@@ -108,12 +108,12 @@
             "TargetsDistributionInSample":
               [
                 {
-                  "Count":79,
-                  "Value":"1"
-                },
-                {
                   "Count":22,
                   "Value":"0"
+                },
+                {
+                  "Count":79,
+                  "Value":"1"
                 }
               ]
           }
