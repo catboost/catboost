@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import sys
 import warnings
+from typing import TYPE_CHECKING
 
 from ._api import AcquireReturnProxy, BaseFileLock
 from ._error import Timeout
@@ -33,7 +34,10 @@ else:  # pragma: win32 no cover
 
 #: Alias for the lock, which should be used for the current platform. On Windows, this is an alias for
 # :class:`WindowsFileLock`, on Unix for :class:`UnixFileLock` and otherwise for :class:`SoftFileLock`.
-FileLock: type[BaseFileLock] = _FileLock
+if TYPE_CHECKING:
+    FileLock = SoftFileLock
+else:
+    FileLock = _FileLock
 
 
 __all__ = [
