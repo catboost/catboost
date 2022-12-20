@@ -4,14 +4,14 @@ LIBRARY()
 
 
 
-VERSION(1.1.1l)
+VERSION(1.1.1s)
 
 ORIGINAL_SOURCE(https://github.com/openssl/openssl/archive/OpenSSL_1_1_1l.tar.gz)
 
 OPENSOURCE_EXPORT_REPLACEMENT(
     CMAKE OpenSSL
     CMAKE_TARGET OpenSSL::OpenSSL
-    CONAN openssl/1.1.1l
+    CONAN openssl/1.1.1s
 )
 
 LICENSE(

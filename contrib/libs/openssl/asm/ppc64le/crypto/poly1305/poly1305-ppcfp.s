@@ -1,15 +1,13 @@
 .machine	"any"
+.abiversion	2
 .text
 
 .globl	poly1305_init_fpu
 .type	poly1305_init_fpu,@function
-.section	".opd","aw"
-.align	3
-poly1305_init_fpu:
-.quad	.poly1305_init_fpu,.TOC.@tocbase,0
-.previous
 .align	6
-.poly1305_init_fpu:
+poly1305_init_fpu:
+.localentry	poly1305_init_fpu,0
+
 	stdu	1,-48(1)
 	mflr	6
 	std	6,64(1)
@@ -45,10 +43,10 @@ poly1305_init_fpu:
 	li	8,4
 	li	9,8
 	li	10,12
-	lwbrx	7,0,4
-	lwbrx	8,8,4
-	lwbrx	9,9,4
-	lwbrx	10,10,4
+	lwzx	7,0,4
+	lwzx	8,8,4
+	lwzx	9,9,4
+	lwzx	10,10,4
 
 	lis	11,0xf000
 	ori	12,11,3
@@ -57,10 +55,10 @@ poly1305_init_fpu:
 	andc	9,9,12
 	andc	10,10,12
 
-	stw	7,36(3)
-	stw	8,44(3)
-	stw	9,52(3)
-	stw	10,60(3)
+	stw	7,32(3)
+	stw	8,40(3)
+	stw	9,48(3)
+	stw	10,56(3)
 
 	mtfsf	255,6
 	stfd	8,8*18(3)
@@ -154,18 +152,14 @@ poly1305_init_fpu:
 	blr	
 .long	0
 .byte	0,12,4,1,0x80,0,2,0
-.size	.poly1305_init_fpu,.-.poly1305_init_fpu
-.size	poly1305_init_fpu,.-.poly1305_init_fpu
+.size	poly1305_init_fpu,.-poly1305_init_fpu
 
 .globl	poly1305_blocks_fpu
 .type	poly1305_blocks_fpu,@function
-.section	".opd","aw"
-.align	3
-poly1305_blocks_fpu:
-.quad	.poly1305_blocks_fpu,.TOC.@tocbase,0
-.previous
 .align	4
-.poly1305_blocks_fpu:
+poly1305_blocks_fpu:
+.localentry	poly1305_blocks_fpu,0
+
 	srwi.	5,5,4
 	beq-	.Labort
 
@@ -195,8 +189,8 @@ poly1305_blocks_fpu:
 	li	10,1
 	mtctr	5
 	neg	5,5
-	stw	0,80(1)
-	stw	10,84(1)
+	stw	0,84(1)
+	stw	10,80(1)
 
 	lfd	8,8*18(3)
 	lfd	9,8*19(3)
@@ -214,21 +208,21 @@ poly1305_blocks_fpu:
 	oris	10,6,18736
 	stfd	9,56(1)
 	stfd	10,64(1)
-	stw	10,72(1)
+	stw	10,76(1)
 
 	li	11,4
 	li	12,8
 	li	6,12
-	lwbrx	7,0,4
-	lwbrx	8,11,4
-	lwbrx	9,12,4
-	lwbrx	10,6,4
+	lwzx	7,0,4
+	lwzx	8,11,4
+	lwzx	9,12,4
+	lwzx	10,6,4
 	addi	4,4,16
 
-	stw	7,52(1)
-	stw	8,60(1)
-	stw	9,68(1)
-	stw	10,76(1)
+	stw	7,48(1)
+	stw	8,56(1)
+	stw	9,64(1)
+	stw	10,72(1)
 
 	mffs	28
 	lfd	29,80(1)
@@ -261,13 +255,13 @@ poly1305_blocks_fpu:
 	lfd	31,72(1)
 
 	fsub	0,0,8
-	lwbrx	7,0,4
+	lwzx	7,0,4
 	fsub	2,2,9
-	lwbrx	8,11,4
+	lwzx	8,11,4
 	fsub	4,4,10
-	lwbrx	9,12,4
+	lwzx	9,12,4
 	fsub	6,6,11
-	lwbrx	10,6,4
+	lwzx	10,6,4
 
 	fsub	28,28,8
 	addi	4,4,16
@@ -276,13 +270,13 @@ poly1305_blocks_fpu:
 	fsub	31,31,11
 
 	fadd	28,28,0
-	stw	7,52(1)
+	stw	7,48(1)
 	fadd	29,29,2
-	stw	8,60(1)
+	stw	8,56(1)
 	fadd	30,30,4
-	stw	9,68(1)
+	stw	9,64(1)
 	fadd	31,31,6
-	stw	10,76(1)
+	stw	10,72(1)
 
 	b	.Lentry
 
@@ -304,13 +298,13 @@ poly1305_blocks_fpu:
 
 
 	fadd	26,2,10
-	lwbrx	7,0,4
+	lwzx	7,0,4
 	fadd	27,3,10
-	lwbrx	8,11,4
+	lwzx	8,11,4
 	fadd	30,6,12
-	lwbrx	9,12,4
+	lwzx	9,12,4
 	fadd	31,7,12
-	lwbrx	10,6,4
+	lwzx	10,6,4
 	fadd	24,0,9
 	addi	4,4,16
 	fadd	25,1,9
@@ -318,13 +312,13 @@ poly1305_blocks_fpu:
 	fadd	29,5,11
 
 	fsub	26,26,10
-	stw	7,52(1)
+	stw	7,48(1)
 	fsub	27,27,10
-	stw	8,60(1)
+	stw	8,56(1)
 	fsub	30,30,12
-	stw	9,68(1)
+	stw	9,64(1)
 	fsub	31,31,12
-	stw	10,76(1)
+	stw	10,72(1)
 	fsub	24,24,9
 	fsub	25,25,9
 	fsub	28,28,11
@@ -476,17 +470,13 @@ poly1305_blocks_fpu:
 	blr	
 .long	0
 .byte	0,12,4,1,0x80,0,4,0
-.size	.poly1305_blocks_fpu,.-.poly1305_blocks_fpu
-.size	poly1305_blocks_fpu,.-.poly1305_blocks_fpu
+.size	poly1305_blocks_fpu,.-poly1305_blocks_fpu
 .globl	poly1305_emit_fpu
 .type	poly1305_emit_fpu,@function
-.section	".opd","aw"
-.align	3
-poly1305_emit_fpu:
-.quad	.poly1305_emit_fpu,.TOC.@tocbase,0
-.previous
 .align	4
-.poly1305_emit_fpu:
+poly1305_emit_fpu:
+.localentry	poly1305_emit_fpu,0
+
 	stdu	1,-80(1)
 	mflr	0
 	std	28,48(1)
@@ -495,14 +485,14 @@ poly1305_emit_fpu:
 	std	31,72(1)
 	std	0,96(1)
 
-	lwz	28,0(3)
-	lwz	7,4(3)
-	lwz	29,8(3)
-	lwz	8,12(3)
-	lwz	30,16(3)
-	lwz	9,20(3)
-	lwz	31,24(3)
-	lwz	10,28(3)
+	lwz	28,4(3)
+	lwz	7,0(3)
+	lwz	29,12(3)
+	lwz	8,8(3)
+	lwz	30,20(3)
+	lwz	9,16(3)
+	lwz	31,28(3)
+	lwz	10,24(3)
 
 	lis	0,0xfff0
 	andc	28,28,0
@@ -548,20 +538,15 @@ poly1305_emit_fpu:
 	and	29,29,0
 	or	7,7,28
 	or	9,9,29
-	rotldi	30,30,32
-	rotldi	31,31,32
 	addc	7,7,30
 	adde	9,9,31
 
 	srdi	8,7,32
 	srdi	10,9,32
-	li	29,4
-	stwbrx	7,0,4
-	li	30,8
-	stwbrx	8,29,4
-	li	31,12
-	stwbrx	9,30,4
-	stwbrx	10,31,4
+	stw	7,0(4)
+	stw	8,4(4)
+	stw	9,8(4)
+	stw	10,12(4)
 	ld	28,48(1)
 	ld	29,56(1)
 	ld	30,64(1)
@@ -570,8 +555,7 @@ poly1305_emit_fpu:
 	blr	
 .long	0
 .byte	0,12,4,1,0x80,4,3,0
-.size	.poly1305_emit_fpu,.-.poly1305_emit_fpu
-.size	poly1305_emit_fpu,.-.poly1305_emit_fpu
+.size	poly1305_emit_fpu,.-poly1305_emit_fpu
 .align	6
 .LPICmeup:
 	mflr	0
@@ -584,23 +568,23 @@ poly1305_emit_fpu:
 .byte	0,12,0x14,0,0,0,0,0
 .space	28
 
-.long	0x43300000,0x00000000
-.long	0x45300000,0x00000000
-.long	0x47300000,0x00000000
-.long	0x49300000,0x00000000
-.long	0x4b500000,0x00000000
+.long	0x00000000,0x43300000
+.long	0x00000000,0x45300000
+.long	0x00000000,0x47300000
+.long	0x00000000,0x49300000
+.long	0x00000000,0x4b500000
 
-.long	0x37f40000,0x00000000
+.long	0x00000000,0x37f40000
 
-.long	0x44300000,0x00000000
-.long	0x46300000,0x00000000
-.long	0x48300000,0x00000000
-.long	0x4a300000,0x00000000
-.long	0x3e300000,0x00000000
-.long	0x40300000,0x00000000
-.long	0x42300000,0x00000000
+.long	0x00000000,0x44300000
+.long	0x00000000,0x46300000
+.long	0x00000000,0x48300000
+.long	0x00000000,0x4a300000
+.long	0x00000000,0x3e300000
+.long	0x00000000,0x40300000
+.long	0x00000000,0x42300000
 
-.long	0x00000000,0x00000001
+.long	0x00000001,0x00000000
 .byte	80,111,108,121,49,51,48,53,32,102,111,114,32,80,80,67,32,70,80,85,44,67,82,89,80,84,79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111,114,103,62,0
 .align	2
 .align	4
