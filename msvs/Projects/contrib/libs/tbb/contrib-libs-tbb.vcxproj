@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\address_waiter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\allocator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\arena_slot.cpp"/>
@@ -111,29 +112,38 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_aligned_space.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_allocator_traits.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_assert.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_attach.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_concurrent_queue_base.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_config.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_containers_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_exception.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_export.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_intrusive_list_node.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_machine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_mutex_common.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_namespace_injection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_pipeline_filters.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_pipeline_filters_deduction.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_range_common.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_rtm_mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_rtm_rw_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_scoped_lock.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_small_object_pool.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_string_resource.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_task.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_task_handle.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_template_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_utils.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\detail\_waitable_atomic.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\global_control.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\info.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\parallel_for.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\parallel_pipeline.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\partitioner.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\profiling.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\queuing_rw_mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\rw_mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\spin_mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\spin_rw_mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\include\oneapi\tbb\task.h"/>
@@ -151,6 +161,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\assert_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\co_context.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_monitor.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\concurrent_monitor_mutex.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\dynamic_link.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\environment.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\governor.h"/>
@@ -159,6 +170,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\mailbox.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\main.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\market.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\market_concurrent_monitor.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\misc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\observer_proxy.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\tbb\src\tbb\rml_base.h"/>
@@ -182,6 +194,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>

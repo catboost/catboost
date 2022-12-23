@@ -10,6 +10,7 @@ add_subdirectory(ut)
 
 add_library(private-libs-data_util)
 target_link_libraries(private-libs-data_util PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-index_range
@@ -22,6 +23,7 @@ target_sources(private-libs-data_util PRIVATE
 
 add_global_library_for(private-libs-data_util.global private-libs-data_util)
 target_link_libraries(private-libs-data_util.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-index_range

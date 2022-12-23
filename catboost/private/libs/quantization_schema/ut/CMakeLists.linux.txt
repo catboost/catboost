@@ -12,6 +12,7 @@ target_include_directories(catboost-private-libs-quantization_schema-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/private/libs/quantization_schema
 )
 target_link_libraries(catboost-private-libs-quantization_schema-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

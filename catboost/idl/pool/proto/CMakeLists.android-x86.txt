@@ -1,0 +1,32 @@
+
+# This file was gererated by the build system used internally in the Yandex monorepo.
+# Only simple modifications are allowed (adding source-files to targets, adding simple properties
+# like target_include_directories). These modifications will be ported to original
+# ya.make files by maintainers. Any complex modifications which can't be ported back to the
+# original buildsystem will not be accepted.
+
+
+
+add_library(idl-pool-proto)
+target_link_libraries(idl-pool-proto PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  contrib-libs-protobuf
+)
+target_proto_messages(idl-pool-proto PRIVATE
+  ${CMAKE_SOURCE_DIR}/catboost/idl/pool/proto/metainfo.proto
+  ${CMAKE_SOURCE_DIR}/catboost/idl/pool/proto/quantization_schema.proto
+)
+target_proto_addincls(idl-pool-proto
+  ./
+  ${CMAKE_SOURCE_DIR}/
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_SOURCE_DIR}/contrib/libs/protobuf/src
+)
+target_proto_outs(idl-pool-proto
+  --cpp_out=${CMAKE_BINARY_DIR}/
+  --cpp_styleguide_out=${CMAKE_BINARY_DIR}/
+)

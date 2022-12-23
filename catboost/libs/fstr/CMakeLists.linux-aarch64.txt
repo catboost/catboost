@@ -9,6 +9,7 @@
 
 add_library(catboost-libs-fstr)
 target_link_libraries(catboost-libs-fstr PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo

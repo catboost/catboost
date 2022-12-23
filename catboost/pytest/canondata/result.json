@@ -741,11 +741,6 @@
     "test.test_calc_prediction_type[Plain]": {
         "uri": "file://test.test_calc_prediction_type_Plain_/test.eval"
     },
-    "test.test_calculate_statistics": [
-        {
-            "uri": "file://test.test_calculate_statistics/res.json"
-        }
-    ],
     "test.test_class_names_logloss[Ordered]": [
         {
             "uri": "file://test.test_class_names_logloss_Ordered_/test.eval"
@@ -1492,6 +1487,46 @@
     "test.test_cv_multiregression[Plain-inverted]": [
         {
             "uri": "file://test.test_cv_multiregression_Plain-inverted_/test.eval"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=False-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=False-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=False-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=False-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=True-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=True-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=False-group_stats_only=True-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=False-group_stats_only=True-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=False-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=False-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=False-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=False-with_groups=True_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=True-with_groups=False]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=True-with_groups=False_/res.json"
+        }
+    ],
+    "test.test_dataset_statistics[use_spots=True-group_stats_only=True-with_groups=True]": [
+        {
+            "uri": "file://test.test_dataset_statistics_use_spots=True-group_stats_only=True-with_groups=True_/res.json"
         }
     ],
     "test.test_deep_tree_classification[Ordered-4]": [

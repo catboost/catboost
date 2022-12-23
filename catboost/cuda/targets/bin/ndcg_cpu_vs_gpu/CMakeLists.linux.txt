@@ -9,6 +9,7 @@
 
 add_executable(ndcg_cpu_vs_gpu)
 target_link_libraries(ndcg_cpu_vs_gpu PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

@@ -27129,7 +27129,7 @@ PyMODINIT_FUNC init_fblas(void) {
 #else
   m = _fblas_module = Py_InitModule("_fblas", f2py_module_methods);
 #endif
-  Py_TYPE(&PyFortran_Type) = &PyType_Type;
+  Py_SET_TYPE(&PyFortran_Type, &PyType_Type);
   import_array();
   if (PyErr_Occurred())
     {PyErr_SetString(PyExc_ImportError, "can't initialize module _fblas (failed to import numpy)"); return RETVAL;}

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: Jinja2
-Version: 3.0.3
+Version: 3.1.2
 Summary: A very fast and expressive template engine.
 Home-page: https://palletsprojects.com/p/jinja/
 Author: Armin Ronacher
@@ -24,7 +24,7 @@ Classifier: Operating System :: OS Independent
 Classifier: Programming Language :: Python
 Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
 Classifier: Topic :: Text Processing :: Markup :: HTML
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 Description-Content-Type: text/x-rst
 License-File: LICENSE.rst
 Requires-Dist: MarkupSafe (>=2.0)

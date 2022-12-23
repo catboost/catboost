@@ -35,7 +35,6 @@ from pandas.core.dtypes.cast import (
 )
 from pandas.core.dtypes.common import (
     is_1d_only_ea_dtype,
-    is_datetime64tz_dtype,
     is_datetime_or_timedelta_dtype,
     is_dtype_equal,
     is_extension_array_dtype,
@@ -44,7 +43,6 @@ from pandas.core.dtypes.common import (
     is_named_tuple,
     is_object_dtype,
 )
-from pandas.core.dtypes.dtypes import ExtensionDtype
 from pandas.core.dtypes.generic import (
     ABCDataFrame,
     ABCSeries,
@@ -169,7 +167,7 @@ def rec_array_to_mgr(
     dtype: DtypeObj | None,
     copy: bool,
     typ: str,
-):
+) -> Manager:
     """
     Extract from a masked rec array and create the manager.
     """
@@ -328,22 +326,22 @@ def ndarray_to_mgr(
     else:
         # by definition an array here
         # the dtypes will be coerced to a single dtype
-        values = _prep_ndarray(values, copy=copy_on_sanitize)
+        values = _prep_ndarraylike(values, copy=copy_on_sanitize)
 
     if dtype is not None and not is_dtype_equal(values.dtype, dtype):
-        shape = values.shape
-        flat = values.ravel()
-
         # GH#40110 see similar check inside sanitize_array
         rcf = not (is_integer_dtype(dtype) and values.dtype.kind == "f")
 
         values = sanitize_array(
-            flat, None, dtype=dtype, copy=copy_on_sanitize, raise_cast_failure=rcf
+            values,
+            None,
+            dtype=dtype,
+            copy=copy_on_sanitize,
+            raise_cast_failure=rcf,
+            allow_2d=True,
         )
 
-        values = values.reshape(shape)
-
-    # _prep_ndarray ensures that values.ndim == 2 at this point
+    # _prep_ndarraylike ensures that values.ndim == 2 at this point
     index, columns = _get_axes(
         values.shape[0], values.shape[1], index=index, columns=columns
     )
@@ -481,23 +479,16 @@ def dict_to_mgr(
         keys = list(data.keys())
         columns = Index(keys)
         arrays = [com.maybe_iterable_to_list(data[k]) for k in keys]
-        # GH#24096 need copy to be deep for datetime64tz case
-        # TODO: See if we can avoid these copies
         arrays = [arr if not isinstance(arr, Index) else arr._data for arr in arrays]
-        arrays = [
-            arr if not is_datetime64tz_dtype(arr) else arr.copy() for arr in arrays
-        ]
 
     if copy:
-        # arrays_to_mgr (via form_blocks) won't make copies for EAs
-        # dtype attr check to exclude EADtype-castable strs
-        arrays = [
-            x
-            if not hasattr(x, "dtype") or not isinstance(x.dtype, ExtensionDtype)
-            else x.copy()
-            for x in arrays
-        ]
-        # TODO: can we get rid of the dt64tz special case above?
+        if typ == "block":
+            # We only need to copy arrays that will not get consolidated, i.e.
+            #  only EA arrays
+            arrays = [x.copy() if isinstance(x, ExtensionArray) else x for x in arrays]
+        else:
+            # dtype check to exclude e.g. range objects, scalars
+            arrays = [x.copy() if hasattr(x, "dtype") else x for x in arrays]
 
     return arrays_to_mgr(arrays, columns, index, dtype=dtype, typ=typ, consolidate=copy)
 
@@ -546,15 +537,16 @@ def treat_as_nested(data) -> bool:
 # ---------------------------------------------------------------------
 
 
-def _prep_ndarray(values, copy: bool = True) -> np.ndarray:
+def _prep_ndarraylike(
+    values, copy: bool = True
+) -> np.ndarray | DatetimeArray | TimedeltaArray:
     if isinstance(values, TimedeltaArray) or (
         isinstance(values, DatetimeArray) and values.tz is None
     ):
-        # On older numpy, np.asarray below apparently does not call __array__,
-        #  so nanoseconds get dropped.
-        values = values._ndarray
+        # By retaining DTA/TDA instead of unpacking, we end up retaining non-nano
+        pass
 
-    if not isinstance(values, (np.ndarray, ABCSeries, Index)):
+    elif not isinstance(values, (np.ndarray, ABCSeries, Index)):
         if len(values) == 0:
             return np.empty((0, 0), dtype=object)
         elif isinstance(values, range):
@@ -922,12 +914,7 @@ def _list_of_series_to_arrays(
         values = extract_array(s, extract_numpy=True)
         aligned_values.append(algorithms.take_nd(values, indexer))
 
-    # error: Argument 1 to "vstack" has incompatible type "List[ExtensionArray]";
-    # expected "Sequence[Union[Union[int, float, complex, str, bytes, generic],
-    # Sequence[Union[int, float, complex, str, bytes, generic]],
-    # Sequence[Sequence[Any]], _SupportsArray]]"
-    content = np.vstack(aligned_values)  # type: ignore[arg-type]
-
+    content = np.vstack(aligned_values)
     return content, columns
 
 

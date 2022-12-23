@@ -12,6 +12,7 @@ set_property(TARGET catboost_train_interface PROPERTY
   OUTPUT_NAME catboost
 )
 target_link_libraries(catboost_train_interface PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-jemalloc

@@ -9,6 +9,7 @@
 
 add_library(catboost-libs-features_selection)
 target_link_libraries(catboost-libs-features_selection PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-data

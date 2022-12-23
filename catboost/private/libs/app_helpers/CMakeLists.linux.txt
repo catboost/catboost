@@ -9,6 +9,7 @@
 
 add_library(private-libs-app_helpers)
 target_link_libraries(private-libs-app_helpers PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo
@@ -18,6 +19,7 @@ target_link_libraries(private-libs-app_helpers PUBLIC
   catboost-libs-eval_result
   catboost-libs-fstr
   catboost-libs-helpers
+  private-libs-index_range
   private-libs-labels
   catboost-libs-logging
   catboost-libs-model

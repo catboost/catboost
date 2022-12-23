@@ -237,7 +237,7 @@ class Configurable(HasTraits):
     def class_get_help(cls, inst=None):
         """Get the help string for this class in ReST format.
 
-        If `inst` is given, it's current trait values will be used in place of
+        If `inst` is given, its current trait values will be used in place of
         class defaults.
         """
         assert inst is None or isinstance(inst, cls)
@@ -255,7 +255,7 @@ class Configurable(HasTraits):
         """Get the helptext string for a single trait.
 
         :param inst:
-            If given, it's current trait values will be used in place of
+            If given, its current trait values will be used in place of
             the class default.
         :param helptext:
             If not given, uses the `help` attribute of the current trait.

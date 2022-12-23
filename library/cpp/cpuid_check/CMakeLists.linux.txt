@@ -9,12 +9,14 @@
 
 add_library(library-cpp-cpuid_check INTERFACE)
 target_link_libraries(library-cpp-cpuid_check INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
 
 add_global_library_for(library-cpp-cpuid_check.global library-cpp-cpuid_check)
 target_link_libraries(library-cpp-cpuid_check.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

@@ -245,7 +245,7 @@ class GroupByIndexingMixin:
 
 @doc(GroupByIndexingMixin._positional_selector)
 class GroupByPositionalSelector:
-    def __init__(self, groupby_object: groupby.GroupBy):
+    def __init__(self, groupby_object: groupby.GroupBy) -> None:
         self.groupby_object = groupby_object
 
     def __getitem__(self, arg: PositionalIndexer | tuple) -> DataFrame | Series:
@@ -289,7 +289,7 @@ class GroupByNthSelector:
     Dynamically substituted for GroupBy.nth to enable both call and index
     """
 
-    def __init__(self, groupby_object: groupby.GroupBy):
+    def __init__(self, groupby_object: groupby.GroupBy) -> None:
         self.groupby_object = groupby_object
 
     def __call__(
@@ -297,7 +297,7 @@ class GroupByNthSelector:
         n: PositionalIndexer | tuple,
         dropna: Literal["any", "all", None] = None,
     ) -> DataFrame | Series:
-        return self.groupby_object.nth_actual(n, dropna)
+        return self.groupby_object._nth(n, dropna)
 
     def __getitem__(self, n: PositionalIndexer | tuple) -> DataFrame | Series:
-        return self.groupby_object.nth_actual(n)
+        return self.groupby_object._nth(n)

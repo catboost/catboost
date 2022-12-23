@@ -86,6 +86,9 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
@@ -134,11 +137,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.global.vcxproj">
       <Project>{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.global.vcxproj">
+      <Project>{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.global.vcxproj">
+      <Project>{D8925BEF-D579-18C5-FE7E-08030154A670}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.global.vcxproj">
       <Project>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.global.vcxproj">
+      <Project>{87348AFB-273E-11AA-F496-31B32B8D1BE4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
       <Project>{9C2DB381-F799-1815-9F76-851209B5D6DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.global.vcxproj">
+      <Project>{1513F9B1-F45F-6E25-2628-5D3B5FC981FE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.global.vcxproj">
       <Project>{692892C2-46FA-0173-23C7-F26800D6F0A9}</Project>
@@ -224,17 +239,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.global.vcxproj">
       <Project>{ADB613B0-8D3A-4DFE-77B5-B78F8208C333}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
-      <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
+      <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.global.vcxproj">
       <Project>{21E27DCE-4565-540C-28B0-36F1347995D4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.global.vcxproj">
-      <Project>{3E7B969E-B752-449E-A2E1-BF1ECE38850D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\py2\pypython-contextlib2-py2.global.vcxproj">
       <Project>{0C87376C-3858-BEF0-771C-05C9396F34EB}</Project>
@@ -251,8 +263,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.global.vcxproj">
       <Project>{6527DE75-3D64-75BC-A55F-253CC0F272DA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.global.vcxproj">
-      <Project>{AD4A4B13-2D84-78DE-A26F-CB7E85542D3F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.global.vcxproj">
+      <Project>{8FAD9AA3-4FA6-3820-A99E-D95B5F36573F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
       <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
@@ -365,9 +377,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\py3contrib-python-pytz.global.vcxproj">
       <Project>{B28B657D-BD66-D54A-B775-7F7800C63E1C}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
-      <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py3\pypython-scipy-py3.global.vcxproj">
       <Project>{AD428720-FAAE-13AE-4552-33E4A951BCCA}</Project>
     </ProjectReference>
@@ -403,9 +412,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.global.vcxproj">
-      <Project>{4E507DA8-7440-F9EE-B41C-1180E1585413}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>

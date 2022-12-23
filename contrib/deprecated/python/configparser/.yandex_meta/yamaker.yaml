@@ -1,0 +1,2 @@
+exclude:
+  - backports/__init__.py # Для избежания коллизий с другими backports пакетами

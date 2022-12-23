@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2021 Intel Corporation
+    Copyright (c) 2020-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -47,21 +47,21 @@ struct execution_data;
 
 namespace r1 {
 //! Task spawn/wait entry points
-void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& ctx);
-void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& ctx, d1::slot_id id);
-void __TBB_EXPORTED_FUNC execute_and_wait(d1::task& t, d1::task_group_context& t_ctx, d1::wait_context&, d1::task_group_context& w_ctx);
-void __TBB_EXPORTED_FUNC wait(d1::wait_context&, d1::task_group_context& ctx);
-d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::execution_data*);
-d1::task_group_context* __TBB_EXPORTED_FUNC current_context();
+TBB_EXPORT void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& ctx);
+TBB_EXPORT void __TBB_EXPORTED_FUNC spawn(d1::task& t, d1::task_group_context& ctx, d1::slot_id id);
+TBB_EXPORT void __TBB_EXPORTED_FUNC execute_and_wait(d1::task& t, d1::task_group_context& t_ctx, d1::wait_context&, d1::task_group_context& w_ctx);
+TBB_EXPORT void __TBB_EXPORTED_FUNC wait(d1::wait_context&, d1::task_group_context& ctx);
+TBB_EXPORT d1::slot_id __TBB_EXPORTED_FUNC execution_slot(const d1::execution_data*);
+TBB_EXPORT d1::task_group_context* __TBB_EXPORTED_FUNC current_context();
 
 // Do not place under __TBB_RESUMABLE_TASKS. It is a stub for unsupported platforms.
 struct suspend_point_type;
 using suspend_callback_type = void(*)(void*, suspend_point_type*);
 //! The resumable tasks entry points
-void __TBB_EXPORTED_FUNC suspend(suspend_callback_type suspend_callback, void* user_callback);
-void __TBB_EXPORTED_FUNC resume(suspend_point_type* tag);
-suspend_point_type* __TBB_EXPORTED_FUNC current_suspend_point();
-void __TBB_EXPORTED_FUNC notify_waiters(std::uintptr_t wait_ctx_addr);
+TBB_EXPORT void __TBB_EXPORTED_FUNC suspend(suspend_callback_type suspend_callback, void* user_callback);
+TBB_EXPORT void __TBB_EXPORTED_FUNC resume(suspend_point_type* tag);
+TBB_EXPORT suspend_point_type* __TBB_EXPORTED_FUNC current_suspend_point();
+TBB_EXPORT void __TBB_EXPORTED_FUNC notify_waiters(std::uintptr_t wait_ctx_addr);
 
 class thread_data;
 class task_dispatcher;
@@ -135,7 +135,7 @@ public:
     wait_context(const wait_context&) = delete;
 
     ~wait_context() {
-        __TBB_ASSERT(!continue_execution(), NULL);
+        __TBB_ASSERT(!continue_execution(), nullptr);
     }
 
     void reserve(std::uint32_t delta = 1) {
@@ -145,11 +145,6 @@ public:
     void release(std::uint32_t delta = 1) {
         add_reference(-std::int64_t(delta));
     }
-#if __TBB_EXTRA_DEBUG
-    unsigned reference_count() const {
-        return unsigned(m_ref_count.load(std::memory_order_acquire));
-    }
-#endif
 };
 
 struct execution_data {
@@ -216,12 +211,7 @@ static constexpr std::size_t task_alignment = 64;
 
 //! Base class for user-defined tasks.
 /** @ingroup task_scheduling */
-
-class
-#if __TBB_ALIGNAS_AVAILABLE
-alignas(task_alignment)
-#endif
-task : public task_traits {
+class alignas(task_alignment) task : public task_traits {
 protected:
     virtual ~task() = default;
 
@@ -233,9 +223,8 @@ private:
     std::uint64_t m_reserved[6]{};
     friend struct r1::task_accessor;
 };
-#if __TBB_ALIGNAS_AVAILABLE
 static_assert(sizeof(task) == task_alignment, "task size is broken");
-#endif
+
 } // namespace d1
 } // namespace detail
 } // namespace tbb

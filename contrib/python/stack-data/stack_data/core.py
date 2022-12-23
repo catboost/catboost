@@ -91,11 +91,6 @@ class Source(executing.Source):
     Don't construct this class. Get an instance from frame_info.source.
     """
 
-    def __init__(self, *args, **kwargs):
-        super(Source, self).__init__(*args, **kwargs)
-        if self.tree:
-            self.asttokens()
-
     @cached_property
     def pieces(self) -> List[range]:
         if not self.tree:
@@ -121,6 +116,20 @@ class Source(executing.Source):
             for (start, end) in pieces
             if end > start
         ]
+
+        # Combine overlapping pieces, i.e. consecutive pieces where the end of the first
+        # is greater than the start of the second.
+        # This can happen when two statements are on the same line separated by a semicolon.
+        new_pieces = pieces[:1]
+        for (start, end) in pieces[1:]:
+            (last_start, last_end) = new_pieces[-1]
+            if start < last_end:
+                assert start == last_end - 1
+                assert ';' in self.lines[start - 1]
+                new_pieces[-1] = (last_start, end)
+            else:
+                new_pieces.append((start, end))
+        pieces = new_pieces
 
         starts = [start for start, end in pieces[1:]]
         ends = [end for start, end in pieces[:-1]]
@@ -149,14 +158,12 @@ class Source(executing.Source):
             start: int,
             end: int,
     ) -> Iterator[Tuple[int, int]]:
-        self.asttokens()
-
         for name, body in ast.iter_fields(stmt):
             if (
                     isinstance(body, list) and body and
                     isinstance(body[0], (ast.stmt, ast.ExceptHandler, getattr(ast, 'match_case', ())))
             ):
-                for rang, group in sorted(group_by_key_func(body, line_range).items()):
+                for rang, group in sorted(group_by_key_func(body, self.line_range).items()):
                     sub_stmt = group[0]
                     for inner_start, inner_end in self._raw_split_into_pieces(sub_stmt, *rang):
                         if start < inner_start:
@@ -166,6 +173,9 @@ class Source(executing.Source):
                         start = inner_end
 
         yield start, end
+
+    def line_range(self, node: ast.AST) -> Tuple[int, int]:
+        return line_range(self.asttext(), node)
 
 
 class Options:
@@ -342,28 +352,18 @@ class Line(object):
         with the correct start and end and the given data.
         Otherwise, return None.
         """
-        start, end = line_range(node)
-        end -= 1
+        atext = self.frame_info.source.asttext()
+        (start, range_start), (end, range_end) = atext.get_text_positions(node, padded=False)
+
         if not (start <= self.lineno <= end):
             return None
-        if start == self.lineno:
-            try:
-                range_start = node.first_token.start[1]
-            except AttributeError:
-                range_start = node.col_offset
-        else:
+
+        if start != self.lineno:
             range_start = common_indent
 
-        if end == self.lineno:
-            try:
-                range_end = node.last_token.end[1]
-            except AttributeError:
-                try:
-                    range_end = node.end_col_offset
-                except AttributeError:
-                    return None
-        else:
+        if end != self.lineno:
             range_end = len(self.text)
+
         if range_start == range_end == 0:
             # This is an empty line. If it were included, it would result
             # in a value of zero for the common indentation assigned to
@@ -611,7 +611,7 @@ class FrameInfo(object):
         if not self.scope:
             return self.source.pieces
 
-        scope_start, scope_end = line_range(self.scope)
+        scope_start, scope_end = self.source.line_range(self.scope)
         return [
             piece
             for piece in self.source.pieces
@@ -809,21 +809,21 @@ class FrameInfo(object):
         if isinstance(formatter, HtmlFormatter):
             formatter.nowrap = True
 
-        atok = self.source.asttokens()
+        atext = self.source.asttext()
         node = self.executing.node
         if node and getattr(formatter.style, "for_executing_node", False):
-            scope_start = atok.get_text_range(scope)[0]
-            start, end = atok.get_text_range(node)
+            scope_start = atext.get_text_range(scope)[0]
+            start, end = atext.get_text_range(node)
             start -= scope_start
             end -= scope_start
             ranges = [(start, end)]
         else:
             ranges = []
 
-        code = atok.get_text(scope)
+        code = atext.get_text(scope)
         lines = _pygmented_with_ranges(formatter, code, ranges)
 
-        start_line = line_range(scope)[0]
+        start_line = self.source.line_range(scope)[0]
 
         return start_line, lines
 
@@ -861,7 +861,7 @@ class FrameInfo(object):
             if isinstance(n, ast.arg):
                 return n.arg
             else:
-                return self.source.asttokens().get_text(n)
+                return self.source.asttext().get_text(n)
 
         def normalise_node(n):
             try:
@@ -897,7 +897,7 @@ class FrameInfo(object):
         result = defaultdict(list)
         for var in self.variables:
             for node in var.nodes:
-                for lineno in range(*line_range(node)):
+                for lineno in range(*self.source.line_range(node)):
                     result[lineno].append((var, node))
         return result
 

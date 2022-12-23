@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\0a431e73edcb95df3af4f8b07a.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\68fb6b6f642bd8462619c70da7.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\e73c4c1526ad5a05543e12a11e.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/0a431e73edcb95df3af4f8b07a.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools" "_7bd8374be834c0e4f83b929da5=/py_modules/library.python.pytest.context" "_6b7f4f87a69d9af6e5c222bf83=resfs/src//py_modules/library.python.pytest.context" "_1f14f10adc03798a9f1dbae14c=/py_code/library.python.pytest.context"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/68fb6b6f642bd8462619c70da7.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_b2480ebb500fb651a38abeb4f2=/py_modules/library.python.pytest.config" "_7816eaa6fa5c03460594bbcb3b=resfs/src//py_modules/library.python.pytest.config" "_3185b1a73f331b49fe4d28fe8a=/py_code/library.python.pytest.config" "_7bd8374be834c0e4f83b929da5=/py_modules/library.python.pytest.context" "_6b7f4f87a69d9af6e5c222bf83=resfs/src//py_modules/library.python.pytest.context" "_1f14f10adc03798a9f1dbae14c=/py_code/library.python.pytest.context" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
@@ -99,7 +99,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/0a431e73edcb95df3af4f8b07a.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools" "_7bd8374be834c0e4f83b929da5=/py_modules/library.python.pytest.context" "_6b7f4f87a69d9af6e5c222bf83=resfs/src//py_modules/library.python.pytest.context" "_1f14f10adc03798a9f1dbae14c=/py_code/library.python.pytest.context"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/68fb6b6f642bd8462619c70da7.cpp" "_05973bb626e0d4e5fb14156e26=/py_modules/library.python.pytest.__init__" "_53225955ed5024f7e47d2ea7fd=resfs/src//py_modules/library.python.pytest.__init__" "_72ba9d4ce2a492b4521c1fbde6=/py_code/library.python.pytest.__init__" "_b2480ebb500fb651a38abeb4f2=/py_modules/library.python.pytest.config" "_7816eaa6fa5c03460594bbcb3b=resfs/src//py_modules/library.python.pytest.config" "_3185b1a73f331b49fe4d28fe8a=/py_code/library.python.pytest.config" "_7bd8374be834c0e4f83b929da5=/py_modules/library.python.pytest.context" "_6b7f4f87a69d9af6e5c222bf83=resfs/src//py_modules/library.python.pytest.context" "_1f14f10adc03798a9f1dbae14c=/py_code/library.python.pytest.context" "_732bcd53ef841a03b0c511ab10=/py_modules/library.python.pytest.main" "_0603f4ce736dab2f84dc4f1d1f=resfs/src//py_modules/library.python.pytest.main" "_b2ebbd393c2b2506f63809ef15=/py_code/library.python.pytest.main" "_6472a1e8998f0dc8fa37060b99=/py_modules/library.python.pytest.rewrite" "_8cb46f4aebbdb3a03f023c4cdb=resfs/src//py_modules/library.python.pytest.rewrite" "_6964ae8d068d4e9e4e85986c2e=/py_code/library.python.pytest.rewrite" "_9156e12bd3e475c88b85368306=/py_modules/library.python.pytest.yatest_tools" "_2b778d7c1f59fd979e45758b8e=resfs/src//py_modules/library.python.pytest.yatest_tools" "_0792a32b898f8e1c318da46ebd=/py_code/library.python.pytest.yatest_tools"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
@@ -111,14 +111,17 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/0a431e73edcb95df3af4f8b07a.cpp	$B/library/python/pytest/e73c4c1526ad5a05543e12a11e.cpp	</Message>
+      <Message>$B/library/python/pytest/68fb6b6f642bd8462619c70da7.cpp	$B/library/python/pytest/e73c4c1526ad5a05543e12a11e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\0a431e73edcb95df3af4f8b07a.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\e73c4c1526ad5a05543e12a11e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\68fb6b6f642bd8462619c70da7.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\e73c4c1526ad5a05543e12a11e.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
@@ -128,8 +131,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.vcxproj">
       <Project>{B1908B71-AB54-E981-2D53-A2B8C8086C94}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.vcxproj">
+      <Project>{52A3F326-0888-51A0-F663-74EC96E2970B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.vcxproj">
+      <Project>{DAC01015-4A7E-39B7-6C6C-6D8121B7840C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.vcxproj">
       <Project>{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
+      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
+      <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.vcxproj">
       <Project>{74C19432-1A4D-B2CC-4E7B-CF48FEE610A8}</Project>
@@ -191,9 +206,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.vcxproj">
       <Project>{A57B9434-ED18-2180-9A04-9087641653EF}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj">
-      <Project>{6DF26701-68E9-E05A-808F-1840FF373955}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\py2\pypython-contextlib2-py2.vcxproj">
       <Project>{C73FE68A-A501-4B46-F074-0D16416E9647}</Project>
     </ProjectReference>
@@ -205,9 +217,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
       <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
-      <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>{7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF}</Project>
@@ -275,9 +284,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\pycontrib-python-pytest.vcxproj">
       <Project>{FA513E53-9CE5-854C-5402-D210B2FFD326}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
-      <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
     </ProjectReference>
@@ -295,9 +301,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
       <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.vcxproj">
-      <Project>{A4C550F8-D8F4-B21E-6CAB-1A3939D42D78}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
       <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>

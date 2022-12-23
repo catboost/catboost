@@ -4,8 +4,6 @@
 #include "new.h"
 #endif
 
-#include <library/cpp/ytalloc/api/ytalloc.h>
-
 #include <library/cpp/yt/malloc//malloc.h>
 
 namespace NYT {
@@ -94,17 +92,6 @@ struct TRefCountedWrapperWithCookie final
 
 namespace NDetail {
 
-Y_FORCE_INLINE void* AllignedMalloc(size_t size, size_t allignment)
-{
-#ifdef _win_
-    return ::_aligned_malloc(size, allignment);
-#else
-    void* ptr = nullptr;
-    ::posix_memalign(&ptr, allignment, size);
-    return ptr;
-#endif
-}
-
 template <class... Args>
 Y_FORCE_INLINE void CustomInitialize(Args... args)
 {
@@ -189,12 +176,12 @@ template <size_t Size, size_t Alignment>
 void* AllocateConstSizeAligned()
 {
 #ifdef _win_
-        return AllignedMalloc(Size, Alignment);
+    return ::aligned_malloc(Size, Alignment);
 #else
-    if (Alignment <= 16) {
-        return NYTAlloc::AllocateConstSize<Size>();
+    if (Alignment <= alignof(std::max_align_t)) {
+        return ::malloc(Size);
     } else {
-        return AllignedMalloc(Size, Alignment);
+        return ::aligned_malloc(Size, Alignment);
     }
 #endif
 }
@@ -237,12 +224,12 @@ Y_FORCE_INLINE TIntrusivePtr<T> NewWithExtraSpace(
     void* ptr = nullptr;
 
 #ifdef _win_
-    ptr = NYT::NDetail::AllignedMalloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
+    ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
 #else
-    if (NYT::NDetail::TConstructHelper<T>::Alignment <= 16) {
-        ptr = NYTAlloc::Allocate(totalSize);
+    if (NYT::NDetail::TConstructHelper<T>::Alignment <= alignof(std::max_align_t)) {
+        ptr = ::malloc(totalSize);
     } else {
-        ptr = NYT::NDetail::AllignedMalloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
+        ptr = ::aligned_malloc(totalSize, NYT::NDetail::TConstructHelper<T>::Alignment);
     }
 #endif
 

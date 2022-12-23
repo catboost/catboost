@@ -21,6 +21,7 @@ target_include_directories(contrib-libs-zstd06 PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/zstd06/legacy
 )
 target_link_libraries(contrib-libs-zstd06 PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(contrib-libs-zstd06 PRIVATE

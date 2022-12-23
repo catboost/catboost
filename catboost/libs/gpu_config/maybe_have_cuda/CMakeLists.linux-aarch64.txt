@@ -9,6 +9,7 @@
 
 add_library(libs-gpu_config-maybe_have_cuda)
 target_link_libraries(libs-gpu_config-maybe_have_cuda PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-logging

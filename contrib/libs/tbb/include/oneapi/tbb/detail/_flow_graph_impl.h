@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 // #include "../config.h"
 #include "_task.h"
-#include "tbb/task_group.h"
+#include "../task_group.h"
 #include "../task_arena.h"
 #include "../flow_graph_abstractions.h"
 
@@ -135,9 +135,10 @@ public:
     graph& my_graph; // graph instance the task belongs to
     // TODO revamp: rename to my_priority
     node_priority_t priority;
+    template <typename DerivedType>
     void destruct_and_deallocate(const execution_data& ed);
-    task* cancel(execution_data& ed) override;
 protected:
+    template <typename DerivedType>
     void finalize(const execution_data& ed);
 private:
     // To organize task_list
@@ -238,12 +239,12 @@ class graph : no_copy, public graph_proxy {
 
     void prepare_task_arena(bool reinit = false) {
         if (reinit) {
-            __TBB_ASSERT(my_task_arena, "task arena is NULL");
+            __TBB_ASSERT(my_task_arena, "task arena is nullptr");
             my_task_arena->terminate();
             my_task_arena->initialize(task_arena::attach());
         }
         else {
-            __TBB_ASSERT(my_task_arena == NULL, "task arena is not NULL");
+            __TBB_ASSERT(my_task_arena == nullptr, "task arena is not nullptr");
             my_task_arena = new task_arena(task_arena::attach());
         }
         if (!my_task_arena->is_active()) // failed to attach
@@ -295,16 +296,6 @@ public:
             my_context->reset();  // consistent with behavior in catch()
         }
     }
-
-#if TODO_REVAMP
-#error Decide on ref_count() presence.
-    Its only use is in the template<typename T, typename BufferType> void test_resets()
-#endif
-
-#if __TBB_EXTRA_DEBUG
-    unsigned ref_count() const { return my_wait_context.reference_count(); }
-#endif
-
 
     // TODO revamp: consider adding getter for task_group_context.
 
@@ -369,22 +360,19 @@ private:
 
 };  // class graph
 
+template<typename DerivedType>
 inline void graph_task::destruct_and_deallocate(const execution_data& ed) {
     auto allocator = my_allocator;
     // TODO: investigate if direct call of derived destructor gives any benefits.
     this->~graph_task();
-    allocator.deallocate(this, ed);
+    allocator.deallocate(static_cast<DerivedType*>(this), ed);
 }
 
+template<typename DerivedType>
 inline void graph_task::finalize(const execution_data& ed) {
     graph& g = my_graph;
-    destruct_and_deallocate(ed);
+    destruct_and_deallocate<DerivedType>(ed);
     g.release_wait();
-}
-
-inline task* graph_task::cancel(execution_data& ed) {
-    finalize(ed);
-    return nullptr;
 }
 
 //********************************************************************************
@@ -459,7 +447,7 @@ inline void spawn_in_graph_arena(graph& g, graph_task& arena_task) {
         if( !gt )
             return;
 
-        __TBB_ASSERT(g.my_task_arena && g.my_task_arena->is_active(), NULL);
+        __TBB_ASSERT(g.my_task_arena && g.my_task_arena->is_active(), nullptr);
         submit( *gt, *g.my_task_arena, *g.my_context
 #if __TBB_PREVIEW_CRITICAL_TASKS
                 , /*as_critical=*/false

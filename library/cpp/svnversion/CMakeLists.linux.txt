@@ -9,6 +9,7 @@
 
 add_library(library-cpp-svnversion)
 target_link_libraries(library-cpp-svnversion PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

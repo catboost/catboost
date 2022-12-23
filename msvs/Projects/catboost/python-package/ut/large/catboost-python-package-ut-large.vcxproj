@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/lzma/liblzma/api;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\pypython-Pygments-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\asttokens\pycontrib-python-asttokens.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\pypython-attrs-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\backcall\py3contrib-python-backcall.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\colorama\py3contrib-python-colorama.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\dateutil\py3contrib-python-dateutil.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\decorator\py3contrib-python-decorator.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\executing\pycontrib-python-executing.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\pypython-filelock-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\iniconfig\pycontrib-python-iniconfig.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\ipdb\py3contrib-python-ipdb.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\pypython-ipython-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\jedi\py3contrib-python-jedi.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\pypython-packaging-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\parso\py3\pypython-parso-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pickleshare\py3contrib-python-pickleshare.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pypython-pluggy-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pycontrib-python-pure-eval.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\py\py3contrib-python-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\pypython-pyparsing-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\pypython-pytest-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\pypython-setuptools-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\six\py3contrib-python-six.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\stack-data\pycontrib-python-stack-data.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\tomli\pycontrib-python-tomli.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\pypython-traitlets-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\wcwidth\py3contrib-python-wcwidth.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\pypython3-lib-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\pypython3-src-Lib.global.lib;$(SolutionDir)$(Configuration)\MSVS\792075FE-4B44-7067-1903-46389DB92BE8\_sqlite3.reg3.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\cores\py3library-python-cores.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\filelock\py3library-python-filelock.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\find_root\py3library-python-find_root.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\fs\py3library-python-fs.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\func\py3library-python-func.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\pytest\plugins\py3python-pytest-plugins.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\pytest\py3library-python-pytest.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\py3library-python-reservoir_sampling.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\resource\py3library-python-resource.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\runtime_py3\pylibrary-python-runtime_py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\strings\py3library-python-strings.global.lib;$(SolutionDir)$(Configuration)\MSVS\8E374D9B-CDBD-993F-45A3-F459C9A9C508\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\symbols\module\py3python-symbols-module.global.lib;$(SolutionDir)$(Configuration)\MSVS\652F51EE-85DE-3688-41FA-4C2CDAC4C75A\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\filter\py3python-testing-filter.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\py3python-testing-yatest_common.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\py3python-testing-yatest_lib.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\windows\py3library-python-windows.global.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\Pygments\py3\pypython-Pygments-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\asttokens\pycontrib-python-asttokens.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\attrs\py3\pypython-attrs-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\backcall\pycontrib-python-backcall.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\colorama\py3contrib-python-colorama.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\dateutil\py3contrib-python-dateutil.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\decorator\py3contrib-python-decorator.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\executing\pycontrib-python-executing.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\filelock\py3\pypython-filelock-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\iniconfig\pycontrib-python-iniconfig.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\ipdb\py3contrib-python-ipdb.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\ipython\py3\pypython-ipython-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\jedi\py3contrib-python-jedi.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\packaging\py3\pypython-packaging-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\parso\py3\pypython-parso-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pickleshare\py3contrib-python-pickleshare.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pluggy\py3\pypython-pluggy-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\prompt-toolkit\py3\pypython-prompt-toolkit-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pure-eval\pycontrib-python-pure-eval.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\py\py3contrib-python-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pyparsing\py3\pypython-pyparsing-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\pytest\py3\pypython-pytest-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\setuptools\py3\pypython-setuptools-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\six\py3contrib-python-six.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\stack-data\pycontrib-python-stack-data.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\tomli\pycontrib-python-tomli.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\pypython-traitlets-py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\python\wcwidth\py3contrib-python-wcwidth.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\lib\py\pypython3-lib-py.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\contrib\tools\python3\src\Lib\pypython3-src-Lib.global.lib;$(SolutionDir)$(Configuration)\MSVS\792075FE-4B44-7067-1903-46389DB92BE8\_sqlite3.reg3.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\cores\py3library-python-cores.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\filelock\py3library-python-filelock.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\find_root\py3library-python-find_root.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\fs\py3library-python-fs.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\func\py3library-python-func.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\pytest\plugins\py3python-pytest-plugins.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\pytest\py3library-python-pytest.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\py3library-python-reservoir_sampling.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\resource\py3library-python-resource.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\runtime_py3\pylibrary-python-runtime_py3.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\strings\py3library-python-strings.global.lib;$(SolutionDir)$(Configuration)\MSVS\8E374D9B-CDBD-993F-45A3-F459C9A9C508\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\symbols\module\py3python-symbols-module.global.lib;$(SolutionDir)$(Configuration)\MSVS\652F51EE-85DE-3688-41FA-4C2CDAC4C75A\syms.obj;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\filter\py3python-testing-filter.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\py3python-testing-yatest_common.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\py3python-testing-yatest_lib.global.lib;/WHOLEARCHIVE:$(SolutionDir)$(Configuration)\library\python\windows\py3library-python-windows.global.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL      Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     Mincore.lib Shlwapi.lib Winmm.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -345,6 +345,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
     </ProjectReference>
@@ -375,11 +378,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.global.vcxproj">
       <Project>{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.global.vcxproj">
+      <Project>{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.global.vcxproj">
+      <Project>{D8925BEF-D579-18C5-FE7E-08030154A670}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.global.vcxproj">
       <Project>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.global.vcxproj">
+      <Project>{87348AFB-273E-11AA-F496-31B32B8D1BE4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
       <Project>{9C2DB381-F799-1815-9F76-851209B5D6DB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.global.vcxproj">
+      <Project>{1513F9B1-F45F-6E25-2628-5D3B5FC981FE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.global.vcxproj">
       <Project>{692892C2-46FA-0173-23C7-F26800D6F0A9}</Project>
@@ -480,11 +495,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3contrib-python-attrs.vcxproj">
       <Project>{87CA5CA6-1C23-2B8C-87B3-81C77768D493}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
-      <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
+      <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.vcxproj">
-      <Project>{92F5AA60-9CDF-33B0-F665-B6E0CDDFE5D5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.vcxproj">
+      <Project>{08E0D479-9BF5-BB2D-C13E-B4FE2A73AA24}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
@@ -494,9 +509,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.global.vcxproj">
       <Project>{21E27DCE-4565-540C-28B0-36F1347995D4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.global.vcxproj">
-      <Project>{3E7B969E-B752-449E-A2E1-BF1ECE38850D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\py2\pypython-contextlib2-py2.global.vcxproj">
       <Project>{0C87376C-3858-BEF0-771C-05C9396F34EB}</Project>
@@ -519,8 +531,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.global.vcxproj">
       <Project>{6527DE75-3D64-75BC-A55F-253CC0F272DA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.global.vcxproj">
-      <Project>{AD4A4B13-2D84-78DE-A26F-CB7E85542D3F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.global.vcxproj">
+      <Project>{8FAD9AA3-4FA6-3820-A99E-D95B5F36573F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.vcxproj">
+      <Project>{222DCE03-FC37-31E2-263D-AC44A696AEBF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
       <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
@@ -738,9 +753,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.global.vcxproj">
       <Project>{4E3822AF-7C35-47DE-C3FA-71E83FE8D544}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
-      <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.global.vcxproj">
       <Project>{669C2627-23FB-2A20-C7CA-1F8E8FE99062}</Project>
     </ProjectReference>
@@ -786,6 +798,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3\pypython-testpath-py3.global.vcxproj">
       <Project>{E5A6EE52-50CD-931D-9D8A-C8B015BE40C9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\threadpoolctl\pycontrib-python-threadpoolctl.global.vcxproj">
+      <Project>{20B12814-1813-D716-B2E4-DCC6F5214A6E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.global.vcxproj">
       <Project>{70890371-9EE9-6276-10EC-6B93A7DBFB6C}</Project>
     </ProjectReference>
@@ -809,9 +824,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.global.vcxproj">
-      <Project>{4E507DA8-7440-F9EE-B41C-1180E1585413}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>

@@ -1,7 +1,7 @@
 #include "ref.h"
 #include "blob.h"
 
-#include <library/cpp/ytalloc/api/ytalloc.h>
+#include <library/cpp/yt/malloc/malloc.h>
 
 #include <util/system/info.h>
 #include <util/system/align.h>
@@ -140,14 +140,14 @@ class TPageAlignedAllocationHolder
 {
 public:
     TPageAlignedAllocationHolder(size_t size, TSharedMutableRefAllocateOptions options, TRefCountedTypeCookie cookie)
-        : Begin_(static_cast<char*>(NYTAlloc::AllocatePageAligned(size)))
+        : Begin_(static_cast<char*>(::aligned_malloc(size, GetPageSize())))
     {
         Initialize(size, options, cookie);
     }
 
     ~TPageAlignedAllocationHolder()
     {
-        NYTAlloc::Free(Begin_);
+        ::free(Begin_);
     }
 
     char* GetBegin()
@@ -330,6 +330,27 @@ std::vector<TSharedRef> TSharedRefArray::ToVector() const
     }
 
     return std::vector<TSharedRef>(Begin(), End());
+}
+
+TString TSharedRefArray::ToString() const
+{
+    if (!Impl_) {
+        return {};
+    }
+
+    TString result;
+    size_t size = 0;
+    for (const auto& part : *this) {
+        size += part.size();
+    }
+    result.ReserveAndResize(size);
+    char* ptr = result.begin();
+    for (const auto& part : *this) {
+        size += part.size();
+        ::memcpy(ptr, part.begin(), part.size());
+        ptr += part.size();
+    }
+    return result;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

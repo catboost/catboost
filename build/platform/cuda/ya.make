@@ -25,10 +25,9 @@ IF (USE_ARCADIA_CUDA)
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
         ELSEIF(OS_LINUX AND ARCH_AARCH64)
-            IF (CUDA_VERSION == "11.3")
-                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2227720086) # CUDA Toolkit 11.3.20210513 (11.3.1) for Linux x86-64 with linux-aarch64 support
-                # host tools installer https://sandbox.yandex-team.ru/resource/2227828799/view
-                # cross compile parts installer https://sandbox.yandex-team.ru/resource/2227885870/view
+            IF (CUDA_VERSION == "11.4")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2410761119) # CUDA Toolkit 11.4.2 for linux-x64_64 (host part only)
+                DECLARE_EXTERNAL_RESOURCE(CUDA_TARGET sbr:3840142733) # CUDA Toolkit 11.4.2 for linux-aarch64 (target part only)
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
@@ -59,8 +58,12 @@ IF (USE_ARCADIA_CUDA)
         ENDIF()
 
     ELSEIF (HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
+        # CUDA on Windows does not support cross-compilation,
+        # hence there is no need to divide it into HOST and TARGET resources.
         IF (OS_WINDOWS AND ARCH_X86_64)
-            IF (CUDA_VERSION == "11.3")
+            IF (CUDA_VERSION == "11.4")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:3866867639) # CDUA Toolkit 11.4.2 for windows-x86_64
+            ELSEIF (CUDA_VERSION == "11.3")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:2215101513) # CUDA Toolkit 11.3.1 for Windows x86-64
             ELSEIF (CUDA_VERSION == "11.1")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:1896564605) # CUDA Toolkit 11.1.1 for Windows x86-64
@@ -69,7 +72,6 @@ IF (USE_ARCADIA_CUDA)
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
-
         ELSE()
             ENABLE(CUDA_NOT_FOUND)
         ENDIF()
@@ -159,25 +161,31 @@ ADDINCL(
     GLOBAL contrib/libs/nvidia/cub
 )
 
-IF (HOST_OS_WINDOWS)
+IF (OS_WINDOWS)
+    # Not using CFLAGS / LDFLAGS on Windows, as these macros do not allow spaces in variables
+    # (and paths containing spaces are quite common on Windows)
     SET_APPEND_WITH_GLOBAL(USER_CFLAGS GLOBAL "\"-I${CUDA_ROOT}/include\"")
-ELSE()
-    CFLAGS(GLOBAL "-I${CUDA_ROOT}/include")
-ENDIF()
-
-IF (HOST_OS_WINDOWS)
     SET_APPEND(LDFLAGS_GLOBAL "\"/LIBPATH:${CUDA_ROOT}/lib/x64\"")
-ELSEIF(HOST_OS_LINUX AND OS_LINUX AND ARCH_AARCH64)
-    LDFLAGS("-L${CUDA_ROOT}/targets/sbsa-linux/lib")
-ELSEIF(HOST_OS_LINUX)
-    LDFLAGS("-L${CUDA_ROOT}/lib64")
-ELSE()
+ELSEIF (OS_LINUX AND ARCH_AARCH64)
+    CFLAGS(GLOBAL "-I${CUDA_TARGET_RESOURCE_GLOBAL}/include")
+    LDFLAGS(
+        "-L${CUDA_TARGET_RESOURCE_GLOBAL}/lib"
+        "-L${CUDA_TARGET_RESOURCE_GLOBAL}/lib/stubs"
+    )
+ELSEIF (OS_LINUX AND ARCH_X86_64)
+    CFLAGS(GLOBAL "-I${CUDA_ROOT}/include")
+    LDFLAGS(
+        "-L${CUDA_ROOT}/lib64"
+        "-L${CUDA_ROOT}/lib64/stubs"
+    )
+ELSEIF (OS_DARWIN)
     LDFLAGS("-L${CUDA_ROOT}/lib")
+ELSE()
+    MESSAGE(FATAL_ERROR "Unsupported target platform")
 ENDIF()
 
 IF (CUDA_REQUIRED)
     IF(HOST_OS_LINUX)
-        LDFLAGS("-L${CUDA_ROOT}/lib64/stubs")
         EXTRALIBS(-lcuda)
     ELSEIF(HOST_OS_DARWIN)
         LDFLAGS("-F${CUDA_ROOT}/lib/stubs -framework CUDA")

@@ -6,13 +6,14 @@
 # original buildsystem will not be accepted.
 
 
-find_package(Python2 REQUIRED)
+find_package(Python3 REQUIRED)
 
 add_library(library-cpp-build_info)
 target_include_directories(library-cpp-build_info PUBLIC
   ${CMAKE_BINARY_DIR}/library/cpp/build_info
 )
 target_link_libraries(library-cpp-build_info PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-string_utils-base64
@@ -29,7 +30,7 @@ add_custom_command(
   DEPENDS
   ${CMAKE_SOURCE_DIR}/build/scripts/build_info_gen.py
   COMMAND
-  Python2::Interpreter
+  Python3::Interpreter
   ${CMAKE_SOURCE_DIR}/build/scripts/build_info_gen.py
   ${CMAKE_BINARY_DIR}/library/cpp/build_info/buildinfo_data.h
   \"${CMAKE_CXX_COMPILER}\"

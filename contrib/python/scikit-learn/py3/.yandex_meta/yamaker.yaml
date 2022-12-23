@@ -1,0 +1,51 @@
+additional_requirements:
+  - contrib/libs/cblas
+mark_as_cython_c:
+  - sklearn/__check_build/*.pyx
+  - sklearn/_isotonic.pyx
+  # C++ - sklearn/cluster/_dbscan_inner.pyx
+  # C++ - sklearn/cluster/_hierarchical_fast.pyx
+  - sklearn/cluster/_k_means_common.pyx
+  - sklearn/cluster/_k_means_elkan.pyx
+  - sklearn/cluster/_k_means_fast.pyx
+  - sklearn/cluster/_k_means_lloyd.pyx
+  - sklearn/cluster/_k_means_minibatch.pyx
+  - sklearn/datasets/*.pyx
+  - sklearn/decomposition/*.pyx
+  - sklearn/ensemble/*.pyx
+  - sklearn/feature_extraction/*.pyx
+  - sklearn/linear_model/*.pyx
+  - sklearn/manifold/*.pyx
+  - sklearn/metrics/*.pyx
+  - sklearn/neighbors/_ball_tree.pyx
+  - sklearn/neighbors/_kd_tree.pyx
+  # C++ - sklearn/neighbors/_partition_nodes.pyx
+  - sklearn/neighbors/_quad_tree.pyx
+  - sklearn/preprocessing/*.pyx
+  - sklearn/svm/_liblinear.pyx
+  - sklearn/svm/_libsvm.pyx
+  - sklearn/svm/_libsvm_sparse.pyx
+  # C++ - sklearn/svm/_newrand.pyx
+  - sklearn/tree/*.pyx
+  - sklearn/utils/_cython_blas.pyx
+  # C++ - sklearn/utils/_fast_dict.pyx
+  - sklearn/utils/_logistic_sigmoid.pyx
+  - sklearn/utils/_openmp_helpers.pyx
+  - sklearn/utils/_random.pyx
+  - sklearn/utils/_readonly_array_wrapper.pyx
+  - sklearn/utils/_seq_dataset.pyx
+  - sklearn/utils/_typedefs.pyx
+  - sklearn/utils/_weight_vector.pyx
+  - sklearn/utils/arrayfuncs.pyx
+  - sklearn/utils/graph_shortest_path.pyx
+  - sklearn/utils/murmurhash.pyx
+  - sklearn/utils/sparsefuncs_fast.pyx
+exclude_from_macros:
+  - sklearn/svm/src/libsvm/svm.cpp
+  - sklearn/svm/src/liblinear/liblinear_helper.c
+  - sklearn/svm/src/libsvm/libsvm_helper.c
+  - sklearn/svm/src/libsvm/libsvm_sparse_helper.c
+  - sklearn/svm/src/libsvm/LIBSVM_CHANGES
+  - sklearn/svm/src/liblinear/COPYRIGHT
+exclude:
+  - sklearn/*setup.py

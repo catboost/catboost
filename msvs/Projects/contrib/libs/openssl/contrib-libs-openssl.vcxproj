@@ -258,10 +258,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-i686.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-armv7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-i386.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-osx-linux_aarch64-osx_arm64-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-win-i686.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-win-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf.h"/>
@@ -271,10 +271,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\cryptlib.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ctype.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-android.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-osx-linux_aarch64-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-ios-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-linux-aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\dso_conf_darwin_arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\ec.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\engine.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\err.h"/>
@@ -373,9 +375,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-android-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-ios-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-ios-x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux-aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux-arm.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_aarch64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_arm.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win-i686.h"/>
@@ -435,6 +437,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\crypto\libs-openssl-crypto.vcxproj">
       <Project>{0EED471E-D91D-9917-D1A8-550D2EBE46DB}</Project>
     </ProjectReference>

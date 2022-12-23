@@ -218,7 +218,7 @@ class Frame:
 
     def copy(self) -> "Frame":
         """Create a copy of the current one."""
-        rv = t.cast(Frame, object.__new__(self.__class__))
+        rv = object.__new__(self.__class__)
         rv.__dict__.update(self.__dict__)
         rv.symbols = self.symbols.copy()
         return rv
@@ -724,6 +724,7 @@ class CodeGenerator(NodeVisitor):
         """
         self.writeline("resolve = context.resolve_or_missing")
         self.writeline("undefined = environment.undefined")
+        self.writeline("concat = environment.concat")
         # always use the standard Undefined class for the implicit else of
         # conditional expressions
         self.writeline("cond_expr_undefined = Undefined")
@@ -835,7 +836,6 @@ class CodeGenerator(NodeVisitor):
         else:
             exported_names = sorted(exported)
 
-        self.writeline("from __future__ import generator_stop")  # Python < 3.7
         self.writeline("from jinja2.runtime import " + ", ".join(exported_names))
 
         # if we want a deferred initialization we cannot move the
@@ -1755,7 +1755,7 @@ class CodeGenerator(NodeVisitor):
         self, node: t.Union[nodes.Filter, nodes.Test], frame: Frame, is_filter: bool
     ) -> t.Iterator[None]:
         if self.environment.is_async:
-            self.write("await auto_await(")
+            self.write("(await auto_await(")
 
         if is_filter:
             self.write(f"{self.filters[node.name]}(")
@@ -1790,7 +1790,7 @@ class CodeGenerator(NodeVisitor):
         self.write(")")
 
         if self.environment.is_async:
-            self.write(")")
+            self.write("))")
 
     @optimizeconst
     def visit_Filter(self, node: nodes.Filter, frame: Frame) -> None:
@@ -1842,7 +1842,7 @@ class CodeGenerator(NodeVisitor):
         self, node: nodes.Call, frame: Frame, forward_caller: bool = False
     ) -> None:
         if self.environment.is_async:
-            self.write("await auto_await(")
+            self.write("(await auto_await(")
         if self.environment.sandboxed:
             self.write("environment.call(context, ")
         else:
@@ -1858,7 +1858,7 @@ class CodeGenerator(NodeVisitor):
         self.signature(node, frame, extra_kwargs)
         self.write(")")
         if self.environment.is_async:
-            self.write(")")
+            self.write("))")
 
     def visit_Keyword(self, node: nodes.Keyword, frame: Frame) -> None:
         self.write(node.key + "=")

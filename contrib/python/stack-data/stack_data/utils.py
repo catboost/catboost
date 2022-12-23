@@ -8,6 +8,8 @@ from typing import (
     TypeVar, Mapping,
 )
 
+from asttokens import ASTText
+
 T = TypeVar('T')
 R = TypeVar('R')
 
@@ -24,22 +26,19 @@ def unique_in_order(it: Iterable[T]) -> List[T]:
     return list(OrderedDict.fromkeys(it))
 
 
-def line_range(node: ast.AST) -> Tuple[int, int]:
+def line_range(atok: ASTText, node: ast.AST) -> Tuple[int, int]:
     """
     Returns a pair of numbers representing a half open range
     (i.e. suitable as arguments to the `range()` builtin)
     of line numbers of the given AST nodes.
     """
-    try:
-        return (
-            node.first_token.start[0],
-            node.last_token.end[0] + 1,
-        )
-    except AttributeError:
-        return (
-            node.lineno,
-            getattr(node, "end_lineno", node.lineno) + 1,
-        )
+    if isinstance(node, getattr(ast, "match_case", ())):
+        start, _end = line_range(atok, node.pattern)
+        _start, end = line_range(atok, node.body[-1])
+        return start, end
+    else:
+        (start, _), (end, _) = atok.get_text_positions(node, padded=False)
+        return start, end + 1
 
 
 def highlight_unique(lst: List[T]) -> Iterator[Tuple[T, bool]]:
@@ -162,7 +161,12 @@ def _pygmented_with_ranges(formatter, code, ranges):
                 yield ttype, value
 
     lexer = MyLexer(stripnl=False)
-    return pygments.highlight(code, lexer, formatter).splitlines()
+    try:
+        highlighted = pygments.highlight(code, lexer, formatter)
+    except Exception:
+        # When pygments fails, prefer code without highlighting over crashing
+        highlighted = code
+    return highlighted.splitlines()
 
 
 def assert_(condition, error=""):

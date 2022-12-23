@@ -14,17 +14,19 @@
 
 import ast
 import collections
+import io
 import sys
 import token
 import tokenize
 from abc import ABCMeta
 from ast import Module, expr, AST
-from typing import Callable, Dict, Iterator, List, Optional, Tuple, Union, cast, Any, TYPE_CHECKING
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union, cast, Any, TYPE_CHECKING
 
 from six import iteritems
 
-if TYPE_CHECKING:
-  from astroid.node_classes import NodeNG
+
+if TYPE_CHECKING:  # pragma: no cover
+  from .astroid_compat import NodeNG
 
   # Type class used to expand out the definition of AST to include fields added by this library
   # It's not actually used for anything other than type checking though!
@@ -35,6 +37,11 @@ if TYPE_CHECKING:
     lineno = 0  # type: int
 
   AstNode = Union[EnhancedAST, NodeNG]
+
+  if sys.version_info[0] == 2:
+    TokenInfo = Tuple[int, str, Tuple[int, int], Tuple[int, int], str]
+  else:
+    TokenInfo = tokenize.TokenInfo
 
 
 def token_repr(tok_type, string):
@@ -105,8 +112,19 @@ else:
     return token_type >= token.N_TOKENS
 
 
+def generate_tokens(text):
+  # type: (str) -> Iterator[TokenInfo]
+  """
+  Generates standard library tokens for the given code.
+  """
+  # tokenize.generate_tokens is technically an undocumented API for Python3, but allows us to use the same API as for
+  # Python2. See http://stackoverflow.com/a/4952291/328565.
+  # FIXME: Remove cast once https://github.com/python/typeshed/issues/7003 gets fixed
+  return tokenize.generate_tokens(cast(Callable[[], str], io.StringIO(text).readline))
+
+
 def iter_children_func(node):
-  # type: (Module) -> Callable
+  # type: (AST) -> Callable
   """
   Returns a function which yields all direct children of a AST node,
   skipping children that are singleton nodes.
@@ -201,6 +219,15 @@ def is_slice(node):
   )
 
 
+def is_empty_astroid_slice(node):
+  # type: (AstNode) -> bool
+  return (
+      node.__class__.__name__ == "Slice"
+      and not isinstance(node, ast.AST)
+      and node.lower is node.upper is node.step is None
+  )
+
+
 # Sentinel value used by visit_tree().
 _PREVISIT = object()
 
@@ -249,7 +276,7 @@ def visit_tree(node, previsit, postvisit):
 
 
 def walk(node):
-  # type: (Module) -> Iterator[Union[Module, AstNode]]
+  # type: (AST) -> Iterator[Union[Module, AstNode]]
   """
   Recursively yield all descendant nodes in the tree starting at ``node`` (including ``node``
   itself), using depth-first pre-order traversal (yieling parents before their children).
@@ -320,11 +347,11 @@ if sys.version_info[0] == 2:
   # Python 2 doesn't support non-ASCII identifiers, and making the real patched_generate_tokens support Python 2
   # means working with raw tuples instead of tokenize.TokenInfo namedtuples.
   def patched_generate_tokens(original_tokens):
-    # type: (Any) -> Any
-    return original_tokens
+    # type: (Iterable[TokenInfo]) -> Iterator[TokenInfo]
+    return iter(original_tokens)
 else:
   def patched_generate_tokens(original_tokens):
-    # type: (Iterator[tokenize.TokenInfo]) -> Iterator[tokenize.TokenInfo]
+    # type: (Iterable[TokenInfo]) -> Iterator[TokenInfo]
     """
     Fixes tokens yielded by `tokenize.generate_tokens` to handle more non-ASCII characters in identifiers.
     Workaround for https://github.com/python/cpython/issues/68382.
@@ -361,3 +388,83 @@ else:
         line=group[0].line,
       )
     ]
+
+
+def last_stmt(node):
+  # type: (ast.AST) -> ast.AST
+  """
+  If the given AST node contains multiple statements, return the last one.
+  Otherwise, just return the node.
+  """
+  child_stmts = [
+    child for child in ast.iter_child_nodes(node)
+    if isinstance(child, (ast.stmt, ast.excepthandler, getattr(ast, "match_case", ())))
+  ]
+  if child_stmts:
+    return last_stmt(child_stmts[-1])
+  return node
+
+
+if sys.version_info[:2] >= (3, 8):
+  from functools import lru_cache
+
+  @lru_cache(maxsize=None)
+  def fstring_positions_work():
+    # type: () -> bool
+    """
+    The positions attached to nodes inside f-string FormattedValues have some bugs
+    that were fixed in Python 3.9.7 in https://github.com/python/cpython/pull/27729.
+    This checks for those bugs more concretely without relying on the Python version.
+    Specifically this checks:
+     - Values with a format spec or conversion
+     - Repeated (i.e. identical-looking) expressions
+     - Multiline f-strings implicitly concatenated.
+    """
+    source = """(
+      f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
+      f"a {b}{b} c {d!r} e {f:g} h {i:{j}} k {l:{m:n}}"
+      f"{x + y + z} {x} {y} {z} {z} {z!a} {z:z}"
+    )"""
+    tree = ast.parse(source)
+    name_nodes = [node for node in ast.walk(tree) if isinstance(node, ast.Name)]
+    name_positions = [(node.lineno, node.col_offset) for node in name_nodes]
+    positions_are_unique = len(set(name_positions)) == len(name_positions)
+    correct_source_segments = all(
+      ast.get_source_segment(source, node) == node.id
+      for node in name_nodes
+    )
+    return positions_are_unique and correct_source_segments
+
+  def annotate_fstring_nodes(tree):
+    # type: (ast.AST) -> None
+    """
+    Add a special attribute `_broken_positions` to nodes inside f-strings
+    if the lineno/col_offset cannot be trusted.
+    """
+    for joinedstr in walk(tree):
+      if not isinstance(joinedstr, ast.JoinedStr):
+        continue
+      for part in joinedstr.values:
+        # The ast positions of the FormattedValues/Constant nodes span the full f-string, which is weird.
+        setattr(part, '_broken_positions', True)  # use setattr for mypy
+
+        if isinstance(part, ast.FormattedValue):
+          if not fstring_positions_work():
+            for child in walk(part.value):
+              setattr(child, '_broken_positions', True)
+
+          if part.format_spec:  # this is another JoinedStr
+            # Again, the standard positions span the full f-string.
+            setattr(part.format_spec, '_broken_positions', True)
+            # Recursively handle this inner JoinedStr in the same way.
+            # While this is usually automatic for other nodes,
+            # the children of f-strings are explicitly excluded in iter_children_ast.
+            annotate_fstring_nodes(part.format_spec)
+else:
+  def fstring_positions_work():
+    # type: () -> bool
+    return False
+
+  def annotate_fstring_nodes(_tree):
+    # type: (ast.AST) -> None
+    pass

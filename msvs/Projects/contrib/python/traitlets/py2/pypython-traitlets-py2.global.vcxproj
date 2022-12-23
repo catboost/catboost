@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_2ff45ed3a5d4b2b498957b8909.cpp" "--ya-start-command-file" "contrib/python/traitlets/py2/f6d5e17f1f0c850492e0569759.cpp" "contrib/python/traitlets/py2/7cc59f2fd701bf1ec09ecea8e6.cpp" "--ya-end-command-file"
+"/tmp/tmp.XMQLTmPJAt/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_2ff45ed3a5d4b2b498957b8909.cpp" "--ya-start-command-file" "contrib/python/traitlets/py2/f6d5e17f1f0c850492e0569759.cpp" "contrib/python/traitlets/py2/7cc59f2fd701bf1ec09ecea8e6.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py2
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_2ff45ed3a5d4b2b498957b8909.cpp" "--ya-start-command-file" "contrib/python/traitlets/py2/f6d5e17f1f0c850492e0569759.cpp" "contrib/python/traitlets/py2/7cc59f2fd701bf1ec09ecea8e6.cpp" "--ya-end-command-file"
+"/tmp/tmp.XMQLTmPJAt/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py2/join_2ff45ed3a5d4b2b498957b8909.cpp" "--ya-start-command-file" "contrib/python/traitlets/py2/f6d5e17f1f0c850492e0569759.cpp" "contrib/python/traitlets/py2/7cc59f2fd701bf1ec09ecea8e6.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -393,8 +393,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.vcxproj">
+      <Project>{DAC01015-4A7E-39B7-6C6C-6D8121B7840C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
@@ -437,9 +443,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
       <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
-      <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.vcxproj">
       <Project>{8AC6D0DA-E9CE-8CC5-04B0-B0313A92FE5E}</Project>

@@ -237,6 +237,7 @@
 
 - source_filter: "^contrib/libs/nvidia/nccl"
   includes:
+    - alloc.h:       contrib/libs/nvidia/nccl/src/include/alloc.h
     - socket.h:      contrib/libs/nvidia/nccl/src/include/socket.h
 
 - source_filter: "^contrib/libs/tf/tensorflow"
@@ -481,3 +482,7 @@
 - source_filter: "^contrib/libs/util-linux"
   includes:
     - procfs.h: contrib/libs/util-linux/include/procfs.h
+
+- source_filter: "^contrib/libs/gdal"
+  includes:
+    - io.h: contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h

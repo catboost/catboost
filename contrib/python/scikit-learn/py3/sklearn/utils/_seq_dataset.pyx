@@ -1,6 +1,3 @@
-# cython: cdivision=True
-# cython: boundscheck=False
-# cython: wraparound=False
 
 #------------------------------------------------------------------------------
 
@@ -233,7 +230,7 @@ cdef class ArrayDataset64(SequentialDataset64):
         self.feature_indices_ptr = <int *> feature_indices.data
 
         self.current_index = -1
-        self.X_stride = X.strides[0] / X.itemsize
+        self.X_stride = X.strides[0] // X.itemsize
         self.X_data_ptr = <double *>X.data
         self.Y_data_ptr = <double *>Y.data
         self.sample_weight_data = <double *>sample_weights.data
@@ -558,7 +555,7 @@ cdef class ArrayDataset32(SequentialDataset32):
         self.feature_indices_ptr = <int *> feature_indices.data
 
         self.current_index = -1
-        self.X_stride = X.strides[0] / X.itemsize
+        self.X_stride = X.strides[0] // X.itemsize
         self.X_data_ptr = <float *>X.data
         self.Y_data_ptr = <float *>Y.data
         self.sample_weight_data = <float *>sample_weights.data

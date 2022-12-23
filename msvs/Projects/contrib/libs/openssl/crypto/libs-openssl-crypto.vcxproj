@@ -2883,18 +2883,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\bn_local.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\bn_prime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\rsaz_exp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android_arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android_arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android_x86.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android_x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-i686.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-i386.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-linux_aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx-arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx_arm64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\camellia\cmll_local.h"/>
@@ -2959,6 +2956,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
