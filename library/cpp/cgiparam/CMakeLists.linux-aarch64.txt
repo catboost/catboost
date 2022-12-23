@@ -9,7 +9,6 @@
 
 add_library(library-cpp-cgiparam)
 target_link_libraries(library-cpp-cgiparam PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-iterator

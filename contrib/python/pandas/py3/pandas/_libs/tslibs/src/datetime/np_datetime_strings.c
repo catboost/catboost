@@ -68,13 +68,11 @@ This file implements string parsing and creation for NumPy datetime.
  */
 int parse_iso_8601_datetime(const char *str, int len, int want_exc,
                             npy_datetimestruct *out,
-                            NPY_DATETIMEUNIT *out_bestunit,
                             int *out_local, int *out_tzoffset) {
     int year_leap = 0;
     int i, numdigits;
     const char *substr;
     int sublen;
-    NPY_DATETIMEUNIT bestunit = NPY_FR_GENERIC;
 
     /* If year-month-day are separated by a valid separator,
      * months/days without leading zeroes will be parsed
@@ -139,7 +137,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
         if (out_local != NULL) {
             *out_local = 0;
         }
-        bestunit = NPY_FR_Y;
         goto finish;
     }
 
@@ -185,7 +182,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
 
     /* Next character must be the separator, start of day, or end of string */
     if (sublen == 0) {
-        bestunit = NPY_FR_M;
         /* Forbid YYYYMM. Parsed instead as YYMMDD by someone else. */
         if (!has_ymd_sep) {
             goto parse_error;
@@ -235,7 +231,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
         if (out_local != NULL) {
             *out_local = 0;
         }
-        bestunit = NPY_FR_D;
         goto finish;
     }
 
@@ -274,7 +269,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
         if (!hour_was_2_digits) {
             goto parse_error;
         }
-        bestunit = NPY_FR_h;
         goto finish;
     }
 
@@ -316,7 +310,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
     }
 
     if (sublen == 0) {
-        bestunit = NPY_FR_m;
         goto finish;
     }
 
@@ -361,7 +354,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
         ++substr;
         --sublen;
     } else {
-        bestunit = NPY_FR_s;
         goto parse_timezone;
     }
 
@@ -378,11 +370,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
     }
 
     if (sublen == 0 || !isdigit(*substr)) {
-        if (numdigits > 3) {
-            bestunit = NPY_FR_us;
-        } else {
-            bestunit = NPY_FR_ms;
-        }
         goto parse_timezone;
     }
 
@@ -399,11 +386,6 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
     }
 
     if (sublen == 0 || !isdigit(*substr)) {
-        if (numdigits > 3) {
-            bestunit = NPY_FR_ps;
-        } else {
-            bestunit = NPY_FR_ns;
-        }
         goto parse_timezone;
     }
 
@@ -419,14 +401,8 @@ int parse_iso_8601_datetime(const char *str, int len, int want_exc,
         }
     }
 
-    if (numdigits > 3) {
-        bestunit = NPY_FR_as;
-    } else {
-        bestunit = NPY_FR_fs;
-    }
-
 parse_timezone:
-    /* trim any whitespace between time/timezone */
+    /* trim any whitespace between time/timeezone */
     while (sublen > 0 && isspace(*substr)) {
         ++substr;
         --sublen;
@@ -545,9 +521,6 @@ parse_timezone:
     }
 
 finish:
-    if (out_bestunit != NULL) {
-        *out_bestunit = bestunit;
-    }
     return 0;
 
 parse_error:
@@ -632,7 +605,7 @@ int get_datetime_iso_8601_strlen(int local, NPY_DATETIMEUNIT base) {
  *  string was too short).
  */
 int make_iso_8601_datetime(npy_datetimestruct *dts, char *outstr, int outlen,
-                           int utc, NPY_DATETIMEUNIT base) {
+                           NPY_DATETIMEUNIT base) {
     char *substr = outstr;
     int sublen = outlen;
     int tmplen;
@@ -911,14 +884,13 @@ int make_iso_8601_datetime(npy_datetimestruct *dts, char *outstr, int outlen,
 
 add_time_zone:
     /* UTC "Zulu" time */
-    if (utc) {
-        if (sublen < 1) {
-            goto string_too_short;
-        }
-        substr[0] = 'Z';
-        substr += 1;
-        sublen -= 1;
+    if (sublen < 1) {
+        goto string_too_short;
     }
+    substr[0] = 'Z';
+    substr += 1;
+    sublen -= 1;
+
     /* Add a NULL terminator, and return */
     if (sublen > 0) {
         substr[0] = '\0';

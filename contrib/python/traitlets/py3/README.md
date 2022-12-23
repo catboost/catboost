@@ -1,9 +1,9 @@
 # Traitlets
 
 [![Tests](https://github.com/ipython/traitlets/actions/workflows/tests.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/tests.yml)
+[![Test downstream projects](https://github.com/ipython/traitlets/actions/workflows/downstream.yml/badge.svg)](https://github.com/ipython/traitlets/actions/workflows/downstream.yml)
 [![Documentation Status](https://readthedocs.org/projects/traitlets/badge/?version=latest)](https://traitlets.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/ipython/traitlets/branch/main/graph/badge.svg?token=HcsbLGEmI1)](https://codecov.io/gh/ipython/traitlets)
-[![Tidelift](https://tidelift.com/subscription/pkg/pypi-traitlets)](https://tidelift.com/badges/package/pypi/traitlets)
+[![Tidelift](https://tidelift.com/subscription/pkg/pypi-traitlets)](https://tidelift.com/badges/package/pypi/traitlets?style=flat)
 
 |               |                                      |
 | ------------- | ------------------------------------ |
@@ -65,16 +65,12 @@ the pre-commit hook should take care of how it should look.
 
 To install `pre-commit` locally, run the following::
 
-```
-pip install pre-commit
-pre-commit install
-```
+    pip install pre-commit
+    pre-commit install
 
 You can invoke the pre-commit hook by hand at any time with::
 
-```
-pre-commit run
-```
+    pre-commit run
 
 which should run any autoformatting on your code
 and tell you about any errors it couldn't fix automatically.
@@ -188,3 +184,12 @@ with parity_check.hold_trait_notifications():
 
 However, we **recommend** that custom cross-validators don't modify the state
 of the HasTraits instance.
+
+### Release build:
+
+Releases should be automatically build and pushed to Pypi when a tag is marked and pushed to GitHub.
+
+```bash
+$ pip install build
+$ python -m build .
+```

@@ -1,29 +1,17 @@
 from __future__ import annotations
 
-from abc import (
-    ABC,
-    abstractmethod,
-)
 from typing import (
     TYPE_CHECKING,
     Hashable,
-    Iterable,
-    Literal,
-    Sequence,
 )
 import warnings
 
-import matplotlib as mpl
 from matplotlib.artist import Artist
 import numpy as np
 
-from pandas._typing import (
-    IndexLabel,
-    PlottingOrientation,
-)
+from pandas._typing import IndexLabel
 from pandas.errors import AbstractMethodError
 from pandas.util._decorators import cache_readonly
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     is_categorical_dtype,
@@ -54,10 +42,9 @@ import pandas.core.common as com
 from pandas.core.frame import DataFrame
 
 from pandas.io.formats.printing import pprint_thing
-from pandas.plotting._matplotlib.compat import mpl_ge_3_6_0
+from pandas.plotting._matplotlib.compat import mpl_ge_3_0_0
 from pandas.plotting._matplotlib.converter import register_pandas_matplotlib_converters
 from pandas.plotting._matplotlib.groupby import reconstruct_data_with_by
-from pandas.plotting._matplotlib.misc import unpack_single_str_list
 from pandas.plotting._matplotlib.style import get_standard_colors
 from pandas.plotting._matplotlib.timeseries import (
     decorate_axes,
@@ -90,7 +77,7 @@ def _color_in_style(style: str) -> bool:
     return not set(BASE_COLORS).isdisjoint(style)
 
 
-class MPLPlot(ABC):
+class MPLPlot:
     """
     Base class for assembling a pandas plot using matplotlib
 
@@ -101,17 +88,13 @@ class MPLPlot(ABC):
     """
 
     @property
-    @abstractmethod
-    def _kind(self) -> str:
+    def _kind(self):
         """Specify kind str. Must be overridden in child class"""
         raise NotImplementedError
 
     _layout_type = "vertical"
     _default_rot = 0
-
-    @property
-    def orientation(self) -> str | None:
-        return None
+    orientation: str | None = None
 
     axes: np.ndarray  # of Axes objects
 
@@ -120,13 +103,13 @@ class MPLPlot(ABC):
         data,
         kind=None,
         by: IndexLabel | None = None,
-        subplots: bool | Sequence[Sequence[str]] = False,
+        subplots=False,
         sharex=None,
-        sharey: bool = False,
-        use_index: bool = True,
+        sharey=False,
+        use_index=True,
         figsize=None,
         grid=None,
-        legend: bool | str = True,
+        legend=True,
         rot=None,
         ax=None,
         fig=None,
@@ -137,16 +120,16 @@ class MPLPlot(ABC):
         yticks=None,
         xlabel: Hashable | None = None,
         ylabel: Hashable | None = None,
-        sort_columns: bool = False,
+        sort_columns=False,
         fontsize=None,
-        secondary_y: bool | tuple | list | np.ndarray = False,
+        secondary_y=False,
         colormap=None,
-        table: bool = False,
+        table=False,
         layout=None,
-        include_bool: bool = False,
+        include_bool=False,
         column: IndexLabel | None = None,
         **kwds,
-    ) -> None:
+    ):
 
         import matplotlib.pyplot as plt
 
@@ -179,12 +162,13 @@ class MPLPlot(ABC):
         # For `hist` plot, need to get grouped original data before `self.data` is
         # updated later
         if self.by is not None and self._kind == "hist":
-            self._grouped = data.groupby(unpack_single_str_list(self.by))
+            self._grouped = data.groupby(self.by)
 
         self.kind = kind
 
         self.sort_columns = sort_columns
-        self.subplots = self._validate_subplots_kwarg(subplots)
+
+        self.subplots = subplots
 
         if sharex is None:
 
@@ -270,112 +254,6 @@ class MPLPlot(ABC):
 
         self._validate_color_args()
 
-    def _validate_subplots_kwarg(
-        self, subplots: bool | Sequence[Sequence[str]]
-    ) -> bool | list[tuple[int, ...]]:
-        """
-        Validate the subplots parameter
-
-        - check type and content
-        - check for duplicate columns
-        - check for invalid column names
-        - convert column names into indices
-        - add missing columns in a group of their own
-        See comments in code below for more details.
-
-        Parameters
-        ----------
-        subplots : subplots parameters as passed to PlotAccessor
-
-        Returns
-        -------
-        validated subplots : a bool or a list of tuples of column indices. Columns
-        in the same tuple will be grouped together in the resulting plot.
-        """
-
-        if isinstance(subplots, bool):
-            return subplots
-        elif not isinstance(subplots, Iterable):
-            raise ValueError("subplots should be a bool or an iterable")
-
-        supported_kinds = (
-            "line",
-            "bar",
-            "barh",
-            "hist",
-            "kde",
-            "density",
-            "area",
-            "pie",
-        )
-        if self._kind not in supported_kinds:
-            raise ValueError(
-                "When subplots is an iterable, kind must be "
-                f"one of {', '.join(supported_kinds)}. Got {self._kind}."
-            )
-
-        if isinstance(self.data, ABCSeries):
-            raise NotImplementedError(
-                "An iterable subplots for a Series is not supported."
-            )
-
-        columns = self.data.columns
-        if isinstance(columns, ABCMultiIndex):
-            raise NotImplementedError(
-                "An iterable subplots for a DataFrame with a MultiIndex column "
-                "is not supported."
-            )
-
-        if columns.nunique() != len(columns):
-            raise NotImplementedError(
-                "An iterable subplots for a DataFrame with non-unique column "
-                "labels is not supported."
-            )
-
-        # subplots is a list of tuples where each tuple is a group of
-        # columns to be grouped together (one ax per group).
-        # we consolidate the subplots list such that:
-        # - the tuples contain indices instead of column names
-        # - the columns that aren't yet in the list are added in a group
-        #   of their own.
-        # For example with columns from a to g, and
-        # subplots = [(a, c), (b, f, e)],
-        # we end up with [(ai, ci), (bi, fi, ei), (di,), (gi,)]
-        # This way, we can handle self.subplots in a homogeneous manner
-        # later.
-        # TODO: also accept indices instead of just names?
-
-        out = []
-        seen_columns: set[Hashable] = set()
-        for group in subplots:
-            if not is_list_like(group):
-                raise ValueError(
-                    "When subplots is an iterable, each entry "
-                    "should be a list/tuple of column names."
-                )
-            idx_locs = columns.get_indexer_for(group)
-            if (idx_locs == -1).any():
-                bad_labels = np.extract(idx_locs == -1, group)
-                raise ValueError(
-                    f"Column label(s) {list(bad_labels)} not found in the DataFrame."
-                )
-            else:
-                unique_columns = set(group)
-                duplicates = seen_columns.intersection(unique_columns)
-                if duplicates:
-                    raise ValueError(
-                        "Each column should be in only one subplot. "
-                        f"Columns {duplicates} were found in multiple subplots."
-                    )
-                seen_columns = seen_columns.union(unique_columns)
-                out.append(tuple(idx_locs))
-
-        unseen_columns = columns.difference(seen_columns)
-        for column in unseen_columns:
-            idx_loc = columns.get_loc(column)
-            out.append((idx_loc,))
-        return out
-
     def _validate_color_args(self):
         if (
             "color" in self.kwds
@@ -398,8 +276,7 @@ class MPLPlot(ABC):
             "color" in self.kwds or "colors" in self.kwds
         ) and self.colormap is not None:
             warnings.warn(
-                "'color' and 'colormap' cannot be used simultaneously. Using 'color'",
-                stacklevel=find_stack_level(),
+                "'color' and 'colormap' cannot be used simultaneously. Using 'color'"
             )
 
         if "color" in self.kwds and self.style is not None:
@@ -442,10 +319,10 @@ class MPLPlot(ABC):
         else:
             return self.data.shape[1]
 
-    def draw(self) -> None:
+    def draw(self):
         self.plt.draw_if_interactive()
 
-    def generate(self) -> None:
+    def generate(self):
         self._args_adjust()
         self._compute_plot_data()
         self._setup_subplots()
@@ -495,11 +372,8 @@ class MPLPlot(ABC):
 
     def _setup_subplots(self):
         if self.subplots:
-            naxes = (
-                self.nseries if isinstance(self.subplots, bool) else len(self.subplots)
-            )
             fig, axes = create_subplots(
-                naxes=naxes,
+                naxes=self.nseries,
                 sharex=self.sharex,
                 sharey=self.sharey,
                 figsize=self.figsize,
@@ -552,11 +426,8 @@ class MPLPlot(ABC):
                 return self.axes
         else:
             sec_true = isinstance(self.secondary_y, bool) and self.secondary_y
-            # error: Argument 1 to "len" has incompatible type "Union[bool,
-            # Tuple[Any, ...], List[Any], ndarray[Any, Any]]"; expected "Sized"
             all_sec = (
-                is_list_like(self.secondary_y)
-                and len(self.secondary_y) == self.nseries  # type: ignore[arg-type]
+                is_list_like(self.secondary_y) and len(self.secondary_y) == self.nseries
             )
             if sec_true or all_sec:
                 # if all data is plotted on secondary, return right axes
@@ -588,7 +459,7 @@ class MPLPlot(ABC):
         if isinstance(data, ABCSeries):
             label = self.label
             if label is None and data.name is None:
-                label = ""
+                label = "None"
             if label is None:
                 # We'll end up with columns of [0] instead of [None]
                 data = data.to_frame()
@@ -687,7 +558,6 @@ class MPLPlot(ABC):
             )
 
         for ax in self.axes:
-            ax = getattr(ax, "right_ax", ax)
             if self.yticks is not None:
                 ax.set_yticks(self.yticks)
 
@@ -864,9 +734,7 @@ class MPLPlot(ABC):
 
     @classmethod
     @register_pandas_matplotlib_converters
-    def _plot(
-        cls, ax: Axes, x, y: np.ndarray, style=None, is_errorbar: bool = False, **kwds
-    ):
+    def _plot(cls, ax: Axes, x, y, style=None, is_errorbar: bool = False, **kwds):
         mask = isna(y)
         if mask.any():
             y = np.ma.array(y)
@@ -886,10 +754,6 @@ class MPLPlot(ABC):
             args = (x, y, style) if style is not None else (x, y)
             return ax.plot(*args, **kwds)
 
-    def _get_custom_index_name(self):
-        """Specify whether xlabel/ylabel should be used to override index name"""
-        return self.xlabel
-
     def _get_index_name(self) -> str | None:
         if isinstance(self.data.index, ABCMultiIndex):
             name = self.data.index.names
@@ -902,10 +766,9 @@ class MPLPlot(ABC):
             if name is not None:
                 name = pprint_thing(name)
 
-        # GH 45145, override the default axis label if one is provided.
-        index_name = self._get_custom_index_name()
-        if index_name is not None:
-            name = pprint_thing(index_name)
+        # GH 9093, override the default xlabel if xlabel is provided.
+        if self.xlabel is not None:
+            name = pprint_thing(self.xlabel)
 
         return name
 
@@ -917,23 +780,9 @@ class MPLPlot(ABC):
         else:
             return getattr(ax, "right_ax", ax)
 
-    def _col_idx_to_axis_idx(self, col_idx: int) -> int:
-        """Return the index of the axis where the column at col_idx should be plotted"""
-        if isinstance(self.subplots, list):
-            # Subplots is a list: some columns will be grouped together in the same ax
-            return next(
-                group_idx
-                for (group_idx, group) in enumerate(self.subplots)
-                if col_idx in group
-            )
-        else:
-            # subplots is True: one ax per column
-            return col_idx
-
     def _get_ax(self, i: int):
         # get the twinx ax if appropriate
         if self.subplots:
-            i = self._col_idx_to_axis_idx(i)
             ax = self.axes[i]
             ax = self._maybe_right_yaxis(ax, i)
             self.axes[i] = ax
@@ -945,7 +794,7 @@ class MPLPlot(ABC):
         return ax
 
     @classmethod
-    def get_default_ax(cls, ax) -> None:
+    def get_default_ax(cls, ax):
         import matplotlib.pyplot as plt
 
         if ax is None and len(plt.get_fignums()) > 0:
@@ -1124,14 +973,14 @@ class MPLPlot(ABC):
         return (len(y_set), len(x_set))
 
 
-class PlanePlot(MPLPlot, ABC):
+class PlanePlot(MPLPlot):
     """
     Abstract class for plotting on plane, currently scatter and hexbin.
     """
 
     _layout_type = "single"
 
-    def __init__(self, data, x, y, **kwargs) -> None:
+    def __init__(self, data, x, y, **kwargs):
         MPLPlot.__init__(self, data, **kwargs)
         if x is None or y is None:
             raise ValueError(self._kind + " requires an x and y column")
@@ -1178,15 +1027,35 @@ class PlanePlot(MPLPlot, ABC):
         # use the last one which contains the latest information
         # about the ax
         img = ax.collections[-1]
-        return self.fig.colorbar(img, ax=ax, **kwds)
+        cbar = self.fig.colorbar(img, ax=ax, **kwds)
+
+        if mpl_ge_3_0_0():
+            # The workaround below is no longer necessary.
+            return cbar
+
+        points = ax.get_position().get_points()
+        cbar_points = cbar.ax.get_position().get_points()
+
+        cbar.ax.set_position(
+            [
+                cbar_points[0, 0],
+                points[0, 1],
+                cbar_points[1, 0] - cbar_points[0, 0],
+                points[1, 1] - points[0, 1],
+            ]
+        )
+        # To see the discrepancy in axis heights uncomment
+        # the following two lines:
+        # print(points[1, 1] - points[0, 1])
+        # print(cbar_points[1, 1] - cbar_points[0, 1])
+
+        return cbar
 
 
 class ScatterPlot(PlanePlot):
-    @property
-    def _kind(self) -> Literal["scatter"]:
-        return "scatter"
+    _kind = "scatter"
 
-    def __init__(self, data, x, y, s=None, c=None, **kwargs) -> None:
+    def __init__(self, data, x, y, s=None, c=None, **kwargs):
         if s is None:
             # hide the matplotlib default for size, in case we want to change
             # the handling of this argument later
@@ -1206,6 +1075,9 @@ class ScatterPlot(PlanePlot):
 
         color_by_categorical = c_is_column and is_categorical_dtype(self.data[c])
 
+        # pandas uses colormap, matplotlib uses cmap.
+        cmap = self.colormap or "Greys"
+        cmap = self.plt.cm.get_cmap(cmap)
         color = self.kwds.pop("color", None)
         if c is not None and color is not None:
             raise TypeError("Specify exactly one of `c` and `color`")
@@ -1220,23 +1092,6 @@ class ScatterPlot(PlanePlot):
         else:
             c_values = c
 
-        if self.colormap is not None:
-            if mpl_ge_3_6_0():
-                cmap = mpl.colormaps.get_cmap(self.colormap)
-            else:
-                cmap = self.plt.cm.get_cmap(self.colormap)
-        else:
-            # cmap is only used if c_values are integers, otherwise UserWarning
-            if is_integer_dtype(c_values):
-                # pandas uses colormap, matplotlib uses cmap.
-                cmap = "Greys"
-                if mpl_ge_3_6_0():
-                    cmap = mpl.colormaps[cmap]
-                else:
-                    cmap = self.plt.cm.get_cmap(cmap)
-            else:
-                cmap = None
-
         if color_by_categorical:
             from matplotlib import colors
 
@@ -1245,7 +1100,7 @@ class ScatterPlot(PlanePlot):
             bounds = np.linspace(0, n_cats, n_cats + 1)
             norm = colors.BoundaryNorm(bounds, cmap.N)
         else:
-            norm = self.kwds.pop("norm", None)
+            norm = None
         # plot colorbar if
         # 1. colormap is assigned, and
         # 2.`c` is a column containing only numeric values
@@ -1286,11 +1141,9 @@ class ScatterPlot(PlanePlot):
 
 
 class HexBinPlot(PlanePlot):
-    @property
-    def _kind(self) -> Literal["hexbin"]:
-        return "hexbin"
+    _kind = "hexbin"
 
-    def __init__(self, data, x, y, C=None, **kwargs) -> None:
+    def __init__(self, data, x, y, C=None, **kwargs):
         super().__init__(data, x, y, **kwargs)
         if is_integer(C) and not self.data.columns.holds_integer():
             C = self.data.columns[C]
@@ -1301,10 +1154,7 @@ class HexBinPlot(PlanePlot):
         ax = self.axes[0]
         # pandas uses colormap, matplotlib uses cmap.
         cmap = self.colormap or "BuGn"
-        if mpl_ge_3_6_0():
-            cmap = mpl.colormaps.get_cmap(cmap)
-        else:
-            cmap = self.plt.cm.get_cmap(cmap)
+        cmap = self.plt.cm.get_cmap(cmap)
         cb = self.kwds.pop("colorbar", True)
 
         if C is None:
@@ -1321,17 +1171,11 @@ class HexBinPlot(PlanePlot):
 
 
 class LinePlot(MPLPlot):
+    _kind = "line"
     _default_rot = 0
+    orientation = "vertical"
 
-    @property
-    def orientation(self) -> PlottingOrientation:
-        return "vertical"
-
-    @property
-    def _kind(self) -> Literal["line", "area", "hist", "kde", "box"]:
-        return "line"
-
-    def __init__(self, data, **kwargs) -> None:
+    def __init__(self, data, **kwargs):
         from pandas.plotting import plot_params
 
         MPLPlot.__init__(self, data, **kwargs)
@@ -1413,7 +1257,8 @@ class LinePlot(MPLPlot):
         cls._update_stacker(ax, stacking_id, y)
         return lines
 
-    def _ts_plot(self, ax: Axes, x, data, style=None, **kwds):
+    @classmethod
+    def _ts_plot(cls, ax: Axes, x, data, style=None, **kwds):
         # accept x to be consistent with normal plot func,
         # x is not passed to tsplot as it uses data.index as x coordinate
         # column_num must be in kwds for stacking purpose
@@ -1426,9 +1271,9 @@ class LinePlot(MPLPlot):
             decorate_axes(ax.left_ax, freq, kwds)
         if hasattr(ax, "right_ax"):
             decorate_axes(ax.right_ax, freq, kwds)
-        ax._plot_data.append((data, self._kind, kwds))
+        ax._plot_data.append((data, cls._kind, kwds))
 
-        lines = self._plot(ax, data.index, data.values, style=style, **kwds)
+        lines = cls._plot(ax, data.index, data.values, style=style, **kwds)
         # set date formatter, locators and rescale limits
         format_dateaxis(ax, ax.freq, data.index)
         return lines
@@ -1520,11 +1365,9 @@ class LinePlot(MPLPlot):
 
 
 class AreaPlot(LinePlot):
-    @property
-    def _kind(self) -> Literal["area"]:
-        return "area"
+    _kind = "area"
 
-    def __init__(self, data, **kwargs) -> None:
+    def __init__(self, data, **kwargs):
         kwargs.setdefault("stacked", True)
         data = data.fillna(value=0)
         LinePlot.__init__(self, data, **kwargs)
@@ -1595,17 +1438,11 @@ class AreaPlot(LinePlot):
 
 
 class BarPlot(MPLPlot):
-    @property
-    def _kind(self) -> Literal["bar", "barh"]:
-        return "bar"
-
+    _kind = "bar"
     _default_rot = 90
+    orientation = "vertical"
 
-    @property
-    def orientation(self) -> PlottingOrientation:
-        return "vertical"
-
-    def __init__(self, data, **kwargs) -> None:
+    def __init__(self, data, **kwargs):
         # we have to treat a series differently than a
         # 1-column DataFrame w.r.t. color handling
         self._is_series = isinstance(data, ABCSeries)
@@ -1735,11 +1572,12 @@ class BarPlot(MPLPlot):
             str_index = [pprint_thing(key) for key in data.index]
         else:
             str_index = [pprint_thing(key) for key in range(data.shape[0])]
+        name = self._get_index_name()
 
         s_edge = self.ax_pos[0] - 0.25 + self.lim_offset
         e_edge = self.ax_pos[-1] + 0.25 + self.bar_width + self.lim_offset
 
-        self._decorate_ticks(ax, self._get_index_name(), str_index, s_edge, e_edge)
+        self._decorate_ticks(ax, name, str_index, s_edge, e_edge)
 
     def _decorate_ticks(self, ax: Axes, name, ticklabels, start_edge, end_edge):
         ax.set_xlim((start_edge, end_edge))
@@ -1755,15 +1593,9 @@ class BarPlot(MPLPlot):
 
 
 class BarhPlot(BarPlot):
-    @property
-    def _kind(self) -> Literal["barh"]:
-        return "barh"
-
+    _kind = "barh"
     _default_rot = 0
-
-    @property
-    def orientation(self) -> Literal["horizontal"]:
-        return "horizontal"
+    orientation = "horizontal"
 
     @property
     def _start_base(self):
@@ -1776,9 +1608,6 @@ class BarhPlot(BarPlot):
     ):
         return ax.barh(x, y, w, left=start, log=log, **kwds)
 
-    def _get_custom_index_name(self):
-        return self.ylabel
-
     def _decorate_ticks(self, ax: Axes, name, ticklabels, start_edge, end_edge):
         # horizontal bars
         ax.set_ylim((start_edge, end_edge))
@@ -1786,17 +1615,13 @@ class BarhPlot(BarPlot):
         ax.set_yticklabels(ticklabels)
         if name is not None and self.use_index:
             ax.set_ylabel(name)
-        ax.set_xlabel(self.xlabel)
 
 
 class PiePlot(MPLPlot):
-    @property
-    def _kind(self) -> Literal["pie"]:
-        return "pie"
-
+    _kind = "pie"
     _layout_type = "horizontal"
 
-    def __init__(self, data, kind=None, **kwargs) -> None:
+    def __init__(self, data, kind=None, **kwargs):
         data = data.fillna(value=0)
         if (data < 0).any().any():
             raise ValueError(f"{self._kind} plot doesn't allow negative values")

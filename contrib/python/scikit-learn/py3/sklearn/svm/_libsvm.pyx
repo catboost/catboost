@@ -18,7 +18,10 @@ where no sort of memory checks are done.
 
 Notes
 -----
-The signature mode='c' is somewhat superficial, since we already
+Maybe we could speed it a bit further by decorating functions with
+@cython.boundscheck(False), but probably it is not worth since all
+work is done in lisvm_helper.c
+Also, the signature mode='c' is somewhat superficial, since we already
 check that arrays are C-contiguous in svm.py
 
 Authors
@@ -31,7 +34,6 @@ import warnings
 import  numpy as np
 cimport numpy as np
 from libc.stdlib cimport free
-from ..utils._cython_blas cimport _dot
 
 include "_libsvm.pxi"
 
@@ -187,12 +189,11 @@ def fit(
         # for SVR: epsilon is called p in libsvm
         error_repl = error_msg.decode('utf-8').replace("p < 0", "epsilon < 0")
         raise ValueError(error_repl)
-    cdef BlasFunctions blas_functions
-    blas_functions.dot = _dot[double]
+
     # this does the real work
     cdef int fit_status = 0
     with nogil:
-        model = svm_train(&problem, &param, &fit_status, &blas_functions)
+        model = svm_train(&problem, &param, &fit_status)
 
     # from here until the end, we just copy the data returned by
     # svm_train
@@ -351,13 +352,12 @@ def predict(np.ndarray[np.float64_t, ndim=2, mode='c'] X,
     model = set_model(&param, <int> nSV.shape[0], SV.data, SV.shape,
                       support.data, support.shape, sv_coef.strides,
                       sv_coef.data, intercept.data, nSV.data, probA.data, probB.data)
-    cdef BlasFunctions blas_functions
-    blas_functions.dot = _dot[double]
+
     #TODO: use check_model
     try:
         dec_values = np.empty(X.shape[0])
         with nogil:
-            rv = copy_predict(X.data, model, X.shape, dec_values.data, &blas_functions)
+            rv = copy_predict(X.data, model, X.shape, dec_values.data)
         if rv < 0:
             raise MemoryError("We've run out of memory")
     finally:
@@ -457,12 +457,10 @@ def predict_proba(
                       probA.data, probB.data)
 
     cdef np.npy_intp n_class = get_nr(model)
-    cdef BlasFunctions blas_functions
-    blas_functions.dot = _dot[double]
     try:
         dec_values = np.empty((X.shape[0], n_class), dtype=np.float64)
         with nogil:
-            rv = copy_predict_proba(X.data, model, X.shape, dec_values.data, &blas_functions)
+            rv = copy_predict_proba(X.data, model, X.shape, dec_values.data)
         if rv < 0:
             raise MemoryError("We've run out of memory")
     finally:
@@ -563,12 +561,11 @@ def decision_function(
     else:
         n_class = get_nr(model)
         n_class = n_class * (n_class - 1) // 2
-    cdef BlasFunctions blas_functions
-    blas_functions.dot = _dot[double]
+
     try:
         dec_values = np.empty((X.shape[0], n_class), dtype=np.float64)
         with nogil:
-            rv = copy_predict_values(X.data, model, X.shape, dec_values.data, n_class, &blas_functions)
+            rv = copy_predict_values(X.data, model, X.shape, dec_values.data, n_class)
         if rv < 0:
             raise MemoryError("We've run out of memory")
     finally:
@@ -707,12 +704,10 @@ def cross_validation(
         raise ValueError(error_msg)
 
     cdef np.ndarray[np.float64_t, ndim=1, mode='c'] target
-    cdef BlasFunctions blas_functions
-    blas_functions.dot = _dot[double]
     try:
         target = np.empty((X.shape[0]), dtype=np.float64)
         with nogil:
-            svm_cross_validation(&problem, &param, n_fold, <double *> target.data, &blas_functions)
+            svm_cross_validation(&problem, &param, n_fold, <double *> target.data)
     finally:
         free(problem.x)
 

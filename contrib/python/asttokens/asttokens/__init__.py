@@ -19,6 +19,6 @@ transformations.
 """
 
 from .line_numbers import LineNumbers
-from .asttokens import ASTText, ASTTokens, supports_tokenless
+from .asttokens import ASTTokens
 
-__all__ = ['ASTText', 'ASTTokens', 'LineNumbers', 'supports_tokenless']
+__all__ = ['ASTTokens', 'LineNumbers']

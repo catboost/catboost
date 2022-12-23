@@ -5,48 +5,45 @@ import sys
 import types
 import warnings
 
-from pandas.util._exceptions import find_stack_level
-
 from pandas.util.version import Version
 
 # Update install.rst when updating versions!
 
 VERSIONS = {
-    "bs4": "4.9.3",
-    "blosc": "1.21.0",
-    "bottleneck": "1.3.2",
+    "bs4": "4.8.2",
+    "blosc": "1.20.1",
+    "bottleneck": "1.3.1",
     "brotli": "0.7.0",
     "fastparquet": "0.4.0",
-    "fsspec": "2021.07.0",
+    "fsspec": "0.7.4",
     "html5lib": "1.1",
-    "hypothesis": "6.13.0",
-    "gcsfs": "2021.07.0",
-    "jinja2": "3.0.0",
-    "lxml.etree": "4.6.3",
+    "gcsfs": "0.6.0",
+    "jinja2": "2.11",
+    "lxml.etree": "4.5.0",
+    "markupsafe": "2.0.1",
     "matplotlib": "3.3.2",
-    "numba": "0.53.1",
-    "numexpr": "2.7.3",
+    "numba": "0.50.1",
+    "numexpr": "2.7.1",
     "odfpy": "1.4.1",
-    "openpyxl": "3.0.7",
-    "pandas_gbq": "0.15.0",
-    "psycopg2": "2.8.6",  # (dt dec pq3 ext lo64)
-    "pymysql": "1.0.2",
+    "openpyxl": "3.0.3",
+    "pandas_gbq": "0.14.0",
+    "psycopg2": "2.8.4",  # (dt dec pq3 ext lo64)
+    "pymysql": "0.10.1",
     "pyarrow": "1.0.1",
-    "pyreadstat": "1.1.2",
+    "pyreadstat": "1.1.0",
     "pytest": "6.0",
-    "pyxlsb": "1.0.8",
-    "s3fs": "2021.08.0",
-    "scipy": "1.7.1",
+    "pyxlsb": "1.0.6",
+    "s3fs": "0.4.0",
+    "scipy": "1.4.1",
     "snappy": "0.6.0",
     "sqlalchemy": "1.2.0",
     "tables": "3.6.1",
-    "tabulate": "0.8.9",
-    "xarray": "0.19.0",
+    "tabulate": "0.8.7",
+    "xarray": "0.15.1",
     "xlrd": "2.0.1",
     "xlwt": "1.3.0",
-    "xlsxwriter": "1.4.3",
+    "xlsxwriter": "1.2.2",
     "zstandard": "0.15.2",
-    "tzdata": "2022.1",
 }
 
 # A mapping from import name to package name (on PyPI) for packages where
@@ -161,11 +158,7 @@ def import_optional_dependency(
                 f"(version '{version}' currently installed)."
             )
             if errors == "warn":
-                warnings.warn(
-                    msg,
-                    UserWarning,
-                    stacklevel=find_stack_level(),
-                )
+                warnings.warn(msg, UserWarning)
                 return None
             elif errors == "raise":
                 raise ImportError(msg)

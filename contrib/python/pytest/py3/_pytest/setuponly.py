@@ -18,13 +18,13 @@ def pytest_addoption(parser: Parser) -> None:
         "--setuponly",
         "--setup-only",
         action="store_true",
-        help="Only setup fixtures, do not execute tests",
+        help="only setup fixtures, do not execute tests.",
     )
     group.addoption(
         "--setupshow",
         "--setup-show",
         action="store_true",
-        help="Show setup of fixtures while executing tests",
+        help="show setup of fixtures while executing tests.",
     )
 
 

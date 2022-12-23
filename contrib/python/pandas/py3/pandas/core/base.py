@@ -16,7 +16,6 @@ from typing import (
     final,
     overload,
 )
-import warnings
 
 import numpy as np
 
@@ -36,7 +35,6 @@ from pandas.util._decorators import (
     cache_readonly,
     doc,
 )
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.common import (
     is_categorical_dtype,
@@ -79,13 +77,9 @@ if TYPE_CHECKING:
     from pandas._typing import (
         NumpySorter,
         NumpyValueArrayLike,
-        ScalarLike_co,
     )
 
-    from pandas import (
-        Categorical,
-        Series,
-    )
+    from pandas import Categorical
 
 
 _shared_docs: dict[str, str] = {}
@@ -165,7 +159,7 @@ class NoNewAttributesMixin:
         object.__setattr__(self, "__frozen", True)
 
     # prevent adding any attribute via s.xxx.new_attribute = ...
-    def __setattr__(self, key: str, value) -> None:
+    def __setattr__(self, key: str, value):
         # _cache is used by a decorator
         # We need to check both 1.) cls.__dict__ and 2.) getattr(self, key)
         # because
@@ -178,6 +172,14 @@ class NoNewAttributesMixin:
         ):
             raise AttributeError(f"You cannot add any new attribute '{key}'")
         object.__setattr__(self, key, value)
+
+
+class DataError(Exception):
+    pass
+
+
+class SpecificationError(Exception):
+    pass
 
 
 class SelectionMixin(Generic[NDFrameT]):
@@ -222,9 +224,9 @@ class SelectionMixin(Generic[NDFrameT]):
         if len(self.exclusions) > 0:
             # equivalent to `self.obj.drop(self.exclusions, axis=1)
             #  but this avoids consolidating and making a copy
-            # TODO: following GH#45287 can we now use .drop directly without
-            #  making a copy?
-            return self.obj._drop_axis(self.exclusions, axis=1, only_slice=True)
+            return self.obj._drop_axis(
+                self.exclusions, axis=1, consolidate=False, only_slice=True
+            )
         else:
             return self.obj
 
@@ -322,7 +324,7 @@ class IndexOpsMixin(OpsMixin):
         raise AbstractMethodError(self)
 
     @property
-    def ndim(self) -> Literal[1]:
+    def ndim(self) -> int:
         """
         Number of dimensions of the underlying data, by definition 1.
         """
@@ -429,7 +431,7 @@ class IndexOpsMixin(OpsMixin):
         self,
         dtype: npt.DTypeLike | None = None,
         copy: bool = False,
-        na_value: object = lib.no_default,
+        na_value=lib.no_default,
         **kwargs,
     ) -> np.ndarray:
         """
@@ -537,7 +539,7 @@ class IndexOpsMixin(OpsMixin):
         if copy or na_value is not lib.no_default:
             result = result.copy()
             if na_value is not lib.no_default:
-                result[np.asanyarray(self.isna())] = na_value
+                result[self.isna()] = na_value
         return result
 
     @property
@@ -599,7 +601,7 @@ class IndexOpsMixin(OpsMixin):
         Parameters
         ----------
         axis : {{None}}
-            Unused. Parameter needed for compatibility with DataFrame.
+            Dummy argument for consistency with Series.
         skipna : bool, default True
             Exclude NA/null values when showing the result.
         *args, **kwargs
@@ -765,11 +767,9 @@ class IndexOpsMixin(OpsMixin):
 
         Enables various performance speedups.
         """
-        # error: Item "bool" of "Union[bool, ndarray[Any, dtype[bool_]], NDFrame]"
-        # has no attribute "any"
-        return bool(isna(self).any())  # type: ignore[union-attr]
+        return bool(isna(self).any())
 
-    def isna(self) -> npt.NDArray[np.bool_]:
+    def isna(self):
         return isna(self._values)
 
     def _reduce(
@@ -838,16 +838,6 @@ class IndexOpsMixin(OpsMixin):
                 )
 
         if isinstance(mapper, ABCSeries):
-            if na_action not in (None, "ignore"):
-                msg = (
-                    "na_action must either be 'ignore' or None, "
-                    f"{na_action} was passed"
-                )
-                raise ValueError(msg)
-
-            if na_action == "ignore":
-                mapper = mapper[mapper.index.notna()]
-
             # Since values were input this means we came from either
             # a dict or a series and mapper should be an index
             if is_categorical_dtype(self.dtype):
@@ -898,7 +888,7 @@ class IndexOpsMixin(OpsMixin):
         ascending: bool = False,
         bins=None,
         dropna: bool = True,
-    ) -> Series:
+    ):
         """
         Return a Series containing counts of unique values.
 
@@ -991,12 +981,10 @@ class IndexOpsMixin(OpsMixin):
 
         if not isinstance(values, np.ndarray):
             result: ArrayLike = values.unique()
-            if (
-                isinstance(self.dtype, np.dtype) and self.dtype.kind in ["m", "M"]
-            ) and isinstance(self, ABCSeries):
-                # GH#31182 Series._values returns EA
-                # unpack numpy datetime for backward-compat
-                result = np.asarray(result)
+            if self.dtype.kind in ["m", "M"] and isinstance(self, ABCSeries):
+                # GH#31182 Series._values returns EA, unpack for backward-compat
+                if getattr(self.dtype, "tz", None) is None:
+                    result = np.asarray(result)
         else:
             result = unique1d(values)
 
@@ -1055,28 +1043,8 @@ class IndexOpsMixin(OpsMixin):
     @property
     def is_monotonic(self) -> bool:
         """
-        Return boolean if values in the object are monotonically increasing.
-
-        .. deprecated:: 1.5.0
-            is_monotonic is deprecated and will be removed in a future version.
-            Use is_monotonic_increasing instead.
-
-        Returns
-        -------
-        bool
-        """
-        warnings.warn(
-            "is_monotonic is deprecated and will be removed in a future version. "
-            "Use is_monotonic_increasing instead.",
-            FutureWarning,
-            stacklevel=find_stack_level(),
-        )
-        return self.is_monotonic_increasing
-
-    @property
-    def is_monotonic_increasing(self) -> bool:
-        """
-        Return boolean if values in the object are monotonically increasing.
+        Return boolean if values in the object are
+        monotonic_increasing.
 
         Returns
         -------
@@ -1084,12 +1052,21 @@ class IndexOpsMixin(OpsMixin):
         """
         from pandas import Index
 
-        return Index(self).is_monotonic_increasing
+        return Index(self).is_monotonic
+
+    @property
+    def is_monotonic_increasing(self) -> bool:
+        """
+        Alias for is_monotonic.
+        """
+        # mypy complains if we alias directly
+        return self.is_monotonic
 
     @property
     def is_monotonic_decreasing(self) -> bool:
         """
-        Return boolean if values in the object are monotonically decreasing.
+        Return boolean if values in the object are
+        monotonic_decreasing.
 
         Returns
         -------
@@ -1147,15 +1124,8 @@ class IndexOpsMixin(OpsMixin):
             """
         ),
     )
-    def factorize(
-        self,
-        sort: bool = False,
-        na_sentinel: int | lib.NoDefault = lib.no_default,
-        use_na_sentinel: bool | lib.NoDefault = lib.no_default,
-    ):
-        return algorithms.factorize(
-            self, sort=sort, na_sentinel=na_sentinel, use_na_sentinel=use_na_sentinel
-        )
+    def factorize(self, sort: bool = False, na_sentinel: int | None = -1):
+        return algorithms.factorize(self, sort=sort, na_sentinel=na_sentinel)
 
     _shared_docs[
         "searchsorted"
@@ -1267,7 +1237,7 @@ class IndexOpsMixin(OpsMixin):
     # return types  [misc]
     def searchsorted(  # type: ignore[misc]
         self,
-        value: ScalarLike_co,
+        value: npt._ScalarLike_co,
         side: Literal["left", "right"] = ...,
         sorter: NumpySorter = ...,
     ) -> np.intp:

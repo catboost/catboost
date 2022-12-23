@@ -9,7 +9,6 @@
 
 add_library(data-ut-lib)
 target_link_libraries(data-ut-lib PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-testing-unittest

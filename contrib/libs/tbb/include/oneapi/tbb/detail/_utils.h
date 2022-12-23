@@ -37,8 +37,6 @@ template<typename... T> void suppress_unused_warning(T&&...) {}
   bound is more useful than a run-time exact answer.
   @ingroup memory_allocation */
 constexpr size_t max_nfs_size = 128;
-constexpr std::size_t max_nfs_size_exp = 7;
-static_assert(1 << max_nfs_size_exp == max_nfs_size, "max_nfs_size_exp must be a log2(max_nfs_size)");
 
 //! Class that implements exponential backoff.
 class atomic_backoff {
@@ -92,43 +90,25 @@ public:
 //! Spin WHILE the condition is true.
 /** T and U should be comparable types. */
 template <typename T, typename C>
-T spin_wait_while(const std::atomic<T>& location, C comp, std::memory_order order) {
+void spin_wait_while_condition(const std::atomic<T>& location, C comp) {
     atomic_backoff backoff;
-    T snapshot = location.load(order);
-    while (comp(snapshot)) {
+    while (comp(location.load(std::memory_order_acquire))) {
         backoff.pause();
-        snapshot = location.load(order);
     }
-    return snapshot;
 }
 
 //! Spin WHILE the value of the variable is equal to a given value
 /** T and U should be comparable types. */
 template <typename T, typename U>
-T spin_wait_while_eq(const std::atomic<T>& location, const U value, std::memory_order order = std::memory_order_acquire) {
-    return spin_wait_while(location, [&value](T t) { return t == value; }, order);
+void spin_wait_while_eq(const std::atomic<T>& location, const U value) {
+    spin_wait_while_condition(location, [&value](T t) { return t == value; });
 }
 
 //! Spin UNTIL the value of the variable is equal to a given value
 /** T and U should be comparable types. */
 template<typename T, typename U>
-T spin_wait_until_eq(const std::atomic<T>& location, const U value, std::memory_order order = std::memory_order_acquire) {
-    return spin_wait_while(location, [&value](T t) { return t != value; }, order);
-}
-
-//! Spin UNTIL the condition returns true or spinning time is up.
-/** Returns what the passed functor returned last time it was invoked. */
-template <typename Condition>
-bool timed_spin_wait_until(Condition condition) {
-    // 32 pauses + 32 yields are meausered as balanced spin time before sleep.
-    bool finish = condition();
-    for (int i = 1; !finish && i < 32; finish = condition(), i *= 2) {
-        machine_pause(i);
-    }
-    for (int i = 32; !finish && i < 64; finish = condition(), ++i) {
-        yield();
-    }
-    return finish;
+void spin_wait_until_eq(const std::atomic<T>& location, const U value) {
+    spin_wait_while_condition(location, [&value](T t) { return t != value; });
 }
 
 template <typename T>
@@ -198,7 +178,10 @@ template<typename T>
 inline bool is_poisoned(const std::atomic<T*>& p) { return is_poisoned(p.load(std::memory_order_relaxed)); }
 #else
 template<typename T>
-inline void poison_pointer(T&) {/*do nothing*/}
+inline void poison_pointer(T* &) {/*do nothing*/}
+
+template<typename T>
+inline void poison_pointer(std::atomic<T*>&) { /* do nothing */}
 #endif /* !TBB_USE_ASSERT */
 
 template <std::size_t alignment = 0, typename T>
@@ -326,18 +309,6 @@ using synthesized_three_way_result = decltype(synthesized_three_way_comparator{}
                                                                                  std::declval<T2&>()));
 
 #endif // __TBB_CPP20_COMPARISONS_PRESENT
-
-// Check if the type T is implicitly OR explicitly convertible to U
-template <typename T, typename U>
-concept relaxed_convertible_to = std::constructible_from<U, T>;
-
-template <typename T, typename U>
-concept adaptive_same_as =
-#if __TBB_STRICT_CONSTRAINTS
-    std::same_as<T, U>;
-#else
-    std::convertible_to<T, U>;
-#endif
 #endif // __TBB_CPP20_CONCEPTS_PRESENT
 
 } // namespace d0
@@ -348,21 +319,9 @@ class delegate_base {
 public:
     virtual bool operator()() const = 0;
     virtual ~delegate_base() {}
-};
+}; // class delegate_base
 
-template <typename FuncType>
-class delegated_function : public delegate_base {
-public:
-    delegated_function(FuncType& f) : my_func(f) {}
-
-    bool operator()() const override {
-        return my_func();
-    }
-
-private:
-    FuncType &my_func;
-};
-} // namespace d1
+}  // namespace d1
 
 } // namespace detail
 } // namespace tbb

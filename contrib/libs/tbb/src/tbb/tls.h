@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class basic_tls {
 #if __TBB_USE_POSIX
     typedef pthread_key_t tls_key_t;
 public:
-    int  create( tls_dtor_t dtor = nullptr ) {
+    int  create( tls_dtor_t dtor = NULL ) {
         return pthread_key_create(&my_key, dtor);
     }
     int  destroy()      { return pthread_key_delete(my_key); }
@@ -59,7 +59,7 @@ public:
     T    get()          { return (T)TlsGetValue(my_key); }
 #else /*!__TBB_WIN8UI_SUPPORT*/
     int create() {
-        tls_key_t tmp = FlsAlloc(nullptr);
+        tls_key_t tmp = FlsAlloc(NULL);
         if( tmp== (DWORD)0xFFFFFFFF )
             return (DWORD)0xFFFFFFFF;
         my_key = tmp;
@@ -72,6 +72,18 @@ public:
 #endif /* __TBB_USE_WINAPI */
 private:
     tls_key_t my_key;
+};
+
+//! More advanced TLS support template class.
+/** It supports RAII and to some extent mimic __declspec(thread) variables. */
+template <typename T>
+class tls : public basic_tls<T> {
+    typedef basic_tls<T> base;
+public:
+    tls()  { base::create();  }
+    ~tls() { base::destroy(); }
+    T operator=(T value) { base::set(value); return value; }
+    operator T() { return base::get(); }
 };
 
 } // namespace r1

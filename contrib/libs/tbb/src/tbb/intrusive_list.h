@@ -17,13 +17,22 @@
 #ifndef _TBB_intrusive_list_H
 #define _TBB_intrusive_list_H
 
-#include "oneapi/tbb/detail/_intrusive_list_node.h"
-
 namespace tbb {
 namespace detail {
 namespace r1 {
 
-using d1::intrusive_list_node;
+//! Data structure to be inherited by the types that can form intrusive lists.
+/** Intrusive list is formed by means of the member_intrusive_list<T> template class.
+    Note that type T must derive from intrusive_list_node either publicly or
+    declare instantiation member_intrusive_list<T> as a friend.
+    This class implements a limited subset of std::list interface. **/
+struct intrusive_list_node {
+    intrusive_list_node* my_prev_node{};
+    intrusive_list_node* my_next_node{};
+#if TBB_USE_ASSERT
+    intrusive_list_node() { my_prev_node = my_next_node = this; }
+#endif /* TBB_USE_ASSERT */
+};
 
 //! List of element of type T, where T is derived from intrusive_list_node
 /** The class is not thread safe. **/

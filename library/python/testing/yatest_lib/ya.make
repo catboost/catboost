@@ -17,7 +17,7 @@ PEERDIR(
 
 IF(PYTHON2)
     PEERDIR(
-        contrib/deprecated/python/enum34
+        contrib/python/enum34
     )
 ENDIF()
 

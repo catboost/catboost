@@ -9,7 +9,6 @@
 
 add_library(library-cpp-dot_product)
 target_link_libraries(library-cpp-dot_product PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-sse

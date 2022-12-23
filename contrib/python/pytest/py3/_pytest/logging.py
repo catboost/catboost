@@ -37,10 +37,9 @@ from _pytest.terminal import TerminalReporter
 
 if TYPE_CHECKING:
     logging_StreamHandler = logging.StreamHandler[StringIO]
-
-    from typing_extensions import Literal
 else:
     logging_StreamHandler = logging.StreamHandler
+
 
 DEFAULT_LOG_FORMAT = "%(levelname)-8s %(name)s:%(filename)s:%(lineno)d %(message)s"
 DEFAULT_LOG_DATE_FORMAT = "%H:%M:%S"
@@ -219,7 +218,7 @@ def pytest_addoption(parser: Parser) -> None:
 
     def add_option_ini(option, dest, default=None, type=None, **kwargs):
         parser.addini(
-            dest, default=default, type=type, help="Default value for " + option
+            dest, default=default, type=type, help="default value for " + option
         )
         group.addoption(option, dest=dest, **kwargs)
 
@@ -229,8 +228,8 @@ def pytest_addoption(parser: Parser) -> None:
         default=None,
         metavar="LEVEL",
         help=(
-            "Level of messages to catch/display."
-            " Not set by default, so it depends on the root/parent log handler's"
+            "level of messages to catch/display.\n"
+            "Not set by default, so it depends on the root/parent log handler's"
             ' effective level, where it is "WARNING" by default.'
         ),
     )
@@ -238,58 +237,58 @@ def pytest_addoption(parser: Parser) -> None:
         "--log-format",
         dest="log_format",
         default=DEFAULT_LOG_FORMAT,
-        help="Log format used by the logging module",
+        help="log format as used by the logging module.",
     )
     add_option_ini(
         "--log-date-format",
         dest="log_date_format",
         default=DEFAULT_LOG_DATE_FORMAT,
-        help="Log date format used by the logging module",
+        help="log date format as used by the logging module.",
     )
     parser.addini(
         "log_cli",
         default=False,
         type="bool",
-        help='Enable log display during test run (also known as "live logging")',
+        help='enable log display during test run (also known as "live logging").',
     )
     add_option_ini(
-        "--log-cli-level", dest="log_cli_level", default=None, help="CLI logging level"
+        "--log-cli-level", dest="log_cli_level", default=None, help="cli logging level."
     )
     add_option_ini(
         "--log-cli-format",
         dest="log_cli_format",
         default=None,
-        help="Log format used by the logging module",
+        help="log format as used by the logging module.",
     )
     add_option_ini(
         "--log-cli-date-format",
         dest="log_cli_date_format",
         default=None,
-        help="Log date format used by the logging module",
+        help="log date format as used by the logging module.",
     )
     add_option_ini(
         "--log-file",
         dest="log_file",
         default=None,
-        help="Path to a file when logging will be written to",
+        help="path to a file when logging will be written to.",
     )
     add_option_ini(
         "--log-file-level",
         dest="log_file_level",
         default=None,
-        help="Log file logging level",
+        help="log file logging level.",
     )
     add_option_ini(
         "--log-file-format",
         dest="log_file_format",
         default=DEFAULT_LOG_FORMAT,
-        help="Log format used by the logging module",
+        help="log format as used by the logging module.",
     )
     add_option_ini(
         "--log-file-date-format",
         dest="log_file_date_format",
         default=DEFAULT_LOG_DATE_FORMAT,
-        help="Log date format used by the logging module",
+        help="log date format as used by the logging module.",
     )
     add_option_ini(
         "--log-auto-indent",
@@ -346,10 +345,6 @@ class LogCaptureHandler(logging_StreamHandler):
         self.records = []
         self.stream = StringIO()
 
-    def clear(self) -> None:
-        self.records.clear()
-        self.stream = StringIO()
-
     def handleError(self, record: logging.LogRecord) -> None:
         if logging.raiseExceptions:
             # Fail the test if the log message is bad (emit failed).
@@ -384,19 +379,20 @@ class LogCaptureFixture:
 
     @property
     def handler(self) -> LogCaptureHandler:
-        """Get the logging handler used by the fixture."""
+        """Get the logging handler used by the fixture.
+
+        :rtype: LogCaptureHandler
+        """
         return self._item.stash[caplog_handler_key]
 
-    def get_records(
-        self, when: "Literal['setup', 'call', 'teardown']"
-    ) -> List[logging.LogRecord]:
+    def get_records(self, when: str) -> List[logging.LogRecord]:
         """Get the logging records for one of the possible test phases.
 
-        :param when:
-            Which test phase to obtain the records from.
-            Valid values are: "setup", "call" and "teardown".
+        :param str when:
+            Which test phase to obtain the records from. Valid values are: "setup", "call" and "teardown".
 
         :returns: The list of captured records at the given stage.
+        :rtype: List[logging.LogRecord]
 
         .. versionadded:: 3.4
         """
@@ -444,7 +440,7 @@ class LogCaptureFixture:
 
     def clear(self) -> None:
         """Reset the list of log records and the captured log text."""
-        self.handler.clear()
+        self.handler.reset()
 
     def set_level(self, level: Union[int, str], logger: Optional[str] = None) -> None:
         """Set the level of a logger for the duration of a test.
@@ -453,8 +449,8 @@ class LogCaptureFixture:
             The levels of the loggers changed by this function will be
             restored to their initial values at the end of the test.
 
-        :param level: The level.
-        :param logger: The logger to update. If not given, the root logger.
+        :param int level: The level.
+        :param str logger: The logger to update. If not given, the root logger.
         """
         logger_obj = logging.getLogger(logger)
         # Save the original log-level to restore it during teardown.
@@ -472,8 +468,8 @@ class LogCaptureFixture:
         the end of the 'with' statement the level is restored to its original
         value.
 
-        :param level: The level.
-        :param logger: The logger to update. If not given, the root logger.
+        :param int level: The level.
+        :param str logger: The logger to update. If not given, the root logger.
         """
         logger_obj = logging.getLogger(logger)
         orig_level = logger_obj.level

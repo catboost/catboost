@@ -9,7 +9,6 @@
 
 add_library(private-libs-documents_importance)
 target_link_libraries(private-libs-documents_importance PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo

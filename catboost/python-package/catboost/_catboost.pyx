@@ -18,6 +18,7 @@ from copy import deepcopy
 from collections import defaultdict
 import functools
 import inspect
+import numbers
 import os
 import traceback
 import types
@@ -55,7 +56,7 @@ from util.generic.array_ref cimport TArrayRef, TConstArrayRef
 from util.generic.hash cimport THashMap
 from util.generic.hash_set cimport THashSet
 from util.generic.maybe cimport TMaybe
-from util.generic.ptr cimport TAtomicSharedPtr, THolder, TIntrusivePtr, MakeHolder
+from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
@@ -410,13 +411,13 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
 
 cdef class Py_ObjectsOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawObjectsOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
     def __cinit__(self, int thread_count):
-        self.local_executor = GetCachedLocalExecutor(thread_count)
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),
@@ -439,13 +440,13 @@ cdef class Py_ObjectsOrderBuilderVisitor:
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor
+    cdef THolder[TTbbLocalExecutor] local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
     def __cinit__(self, int thread_count):
-        self.local_executor = GetCachedLocalExecutor(thread_count)
+        self.local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         CreateDataProviderBuilderAndVisitor(
             self.options,
             <ILocalExecutor*>self.local_executor.Get(),
@@ -979,8 +980,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         int threadCount,
         ui64 cpuUsedRamLimit
     ) except +ProcessException
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] GetCachedLocalExecutor(int threadsCount)
-    cdef size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) except +ProcessException
 
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
@@ -2840,7 +2839,7 @@ cdef _set_cat_features_default_values_for_scipy_sparse(
     const TFeaturesLayout * features_layout,
     IRawObjectsOrderDataVisitor * builder_visitor
 ):
-    cdef TString default_value = b"0"
+    cdef TString default_value = "0"
     cdef TConstArrayRef[ui32] cat_features_flat_indices = features_layout[0].GetCatFeatureInternalIdxToExternalIdx()
 
     for flat_feature_idx in cat_features_flat_indices:
@@ -3244,7 +3243,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
 
     cdef np.float32_t float_default_value = 0.0
-    cdef TString cat_default_value = b"0"
+    cdef TString cat_default_value = "0"
 
     cdef ui32 src_feature_count = indptr.shape[0] - 1
     cdef ui32 src_feature_idx
@@ -3647,8 +3646,7 @@ cdef class _PoolBase:
         cdef ui32 object_idx
 
         self.target_type = type(label[0][0])
-        raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
-        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
+        if isinstance(label[0][0], numbers.Number):
             if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
                 _set_label_from_num_nparray_objects_order(label, py_builder_visitor)
             else:
@@ -3679,8 +3677,7 @@ cdef class _PoolBase:
         cdef ui32 object_idx
 
         self.target_type = type(label[0][0])
-        raw_target_type = _py_target_type_to_raw_target_data(self.target_type)
-        if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
+        if isinstance(label[0][0], numbers.Number):
             self.__target_data_holders = []
             for target_idx in range(target_count):
                 if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
@@ -4241,7 +4238,7 @@ cdef class _PoolBase:
         feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
-        cdef TAtomicSharedPtr[TTbbLocalExecutor] local_executor = GetCachedLocalExecutor(thread_count)
+        cdef THolder[TTbbLocalExecutor] local_executor = MakeHolder[TTbbLocalExecutor](thread_count)
         cdef TFeaturesLayout* features_layout =self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()
         cdef TRawObjectsDataProvider* raw_objects_data_provider = dynamic_cast_to_TRawObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
@@ -4434,17 +4431,17 @@ cdef class _PoolBase:
             thread_count
         )
         self.target_type = pool.target_type
-
+        
     cpdef _train_eval_split(self, _PoolBase train_pool, _PoolBase eval_pool, has_time, is_classification, eval_fraction, save_eval_pool):
         cdef TTrainTestSplitParams split_params
         split_params.Shuffle = not has_time
         split_params.Stratified = is_classification
-
+        
         if (eval_fraction <= 0.0) or (eval_fraction >= 1.0):
-            raise CatBoostError("eval_fraction must be in (0,1) range")
-
+            raise CatBoostError("eval_fraction must be in (0,1) range") 
+        
         split_params.TrainPart = 1.0 - eval_fraction
-
+    
         TrainEvalSplit(
             self.__pool.Get()[0],
             &train_pool.__pool,
@@ -5032,7 +5029,7 @@ cdef class _CatBoost:
 
     cpdef _get_params(self):
         try:
-            params_json = to_native_str(self.__model.ModelInfo[b"params"])
+            params_json = to_native_str(self.__model.ModelInfo["params"])
             params_dict = loads(params_json)
             flat_params = params_dict["flat_params"]
             params = {str(key): value for key, value in iteritems(flat_params)}
@@ -5047,9 +5044,9 @@ cdef class _CatBoost:
         return self.__model.GetTreeCount()
 
     def _get_random_seed(self):
-        if not self.__model.ModelInfo.contains(b"params"):
+        if not self.__model.ModelInfo.contains("params"):
             return 0
-        cdef const char* c_params_json = self.__model.ModelInfo[b"params"].c_str()
+        cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
         if params_json:
@@ -5057,9 +5054,9 @@ cdef class _CatBoost:
         return 0
 
     def _get_learning_rate(self):
-        if not self.__model.ModelInfo.contains(b"params"):
+        if not self.__model.ModelInfo.contains("params"):
             return {}
-        cdef const char* c_params_json = self.__model.ModelInfo[b"params"].c_str()
+        cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
         if params_json:
@@ -5623,7 +5620,7 @@ cdef class _StagedPredictIterator:
     cdef TVector[TVector[double]] __approx
     cdef TVector[TVector[double]] __pred
     cdef TFullModel* __model
-    cdef TAtomicSharedPtr[TTbbLocalExecutor] __executor
+    cdef THolder[TTbbLocalExecutor] __executor
     cdef TModelCalcerOnPool* __modelCalcerOnPool
     cdef EPredictionType predictionType
     cdef int ntree_start, ntree_end, eval_period, thread_count
@@ -5636,7 +5633,7 @@ cdef class _StagedPredictIterator:
         self.eval_period = eval_period
         self.thread_count = UpdateThreadCount(thread_count)
         self.verbose = verbose
-        self.__executor = GetCachedLocalExecutor(thread_count)
+        self.__executor = MakeHolder[TTbbLocalExecutor](thread_count)
 
     cdef _initialize_model_calcer(self, TFullModel* model, _PoolBase pool):
         self.__model = model
@@ -6052,9 +6049,6 @@ cpdef is_user_defined_metric(metric_name):
 
 cpdef has_gpu_implementation_metric(metric_name):
     return HasGpuImplementation(to_arcadia_string(metric_name))
-
-cpdef get_multi_quantile_approx_size(loss_function_description):
-    return GetMultiQuantileApproxSize(to_arcadia_string(loss_function_description))
 
 
 cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):

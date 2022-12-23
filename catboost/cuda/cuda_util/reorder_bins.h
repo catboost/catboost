@@ -2,10 +2,10 @@
 
 #include <catboost/cuda/cuda_lib/fwd.h>
 
-template <class TMapping, class TIndex>
+template <class TMapping>
 void ReorderBins(
     NCudaLib::TCudaBuffer<ui32, TMapping>& bins,
-    NCudaLib::TCudaBuffer<TIndex, TMapping>& indices,
+    NCudaLib::TCudaBuffer<ui32, TMapping>& indices,
     ui32 offset,
     ui32 bits,
     ui64 stream = 0);

@@ -9,7 +9,6 @@
 
 add_library(cpp-coroutine-engine)
 target_link_libraries(cpp-coroutine-engine PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   tools-enum_parser-enum_serialization_runtime

@@ -280,11 +280,6 @@ struct fsxattr {
 
 typedef int __bitwise __kernel_rwf_t;
 
-#undef RWF_HIPRI
-#undef RWF_DSYNC
-#undef RWF_SYNC
-#undef RWF_NOWAIT
-
 /* high priority request, poll if possible */
 #define RWF_HIPRI	((__kernel_rwf_t)0x00000001)
 

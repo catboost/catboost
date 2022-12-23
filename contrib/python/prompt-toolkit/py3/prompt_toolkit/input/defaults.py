@@ -1,4 +1,3 @@
-import io
 import sys
 from typing import ContextManager, Optional, TextIO
 
@@ -39,19 +38,10 @@ def create_input(
             stdin = sys.stdin
 
             if always_prefer_tty:
-                for obj in [sys.stdin, sys.stdout, sys.stderr]:
-                    if obj.isatty():
-                        stdin = obj
+                for io in [sys.stdin, sys.stdout, sys.stderr]:
+                    if io.isatty():
+                        stdin = io
                         break
-
-        # If we can't access the file descriptor for the selected stdin, return
-        # a `DummyInput` instead. This can happen for instance in unit tests,
-        # when `sys.stdin` is patched by something that's not an actual file.
-        # (Instantiating `Vt100Input` would fail in this case.)
-        try:
-            stdin.fileno()
-        except io.UnsupportedOperation:
-            return DummyInput()
 
         return Vt100Input(stdin)
 

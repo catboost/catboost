@@ -2,9 +2,8 @@
 
 import copy
 from inspect import Parameter, Signature, signature
-from typing import Type, TypeVar
 
-from ..traitlets import HasTraits, Undefined
+from ..traitlets import Undefined
 
 
 def _get_default(value):
@@ -12,10 +11,7 @@ def _get_default(value):
     return Parameter.empty if value == Undefined else value
 
 
-T = TypeVar("T", bound=HasTraits)
-
-
-def signature_has_traits(cls: Type[T]) -> Type[T]:
+def signature_has_traits(cls):
     """Return a decorated class with a constructor signature that contain Trait names as kwargs."""
     traits = [
         (name, _get_default(value.default_value))
@@ -82,6 +78,6 @@ def signature_has_traits(cls: Type[T]) -> Type[T]:
     # Append **kwargs
     new_parameters.append(old_var_keyword_parameter)
 
-    cls.__signature__ = Signature(new_parameters)  # type:ignore[attr-defined]
+    cls.__signature__ = Signature(new_parameters)
 
     return cls

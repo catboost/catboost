@@ -2,10 +2,6 @@
 
 PROGRAM(grpc_java)
 
-INCLUDE(ya.version)
-
-VERSION(${GRPC_JAVA_VERSION})
-
 NO_COMPILER_WARNINGS()
 
 PEERDIR(

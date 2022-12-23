@@ -5,9 +5,6 @@ from typing import (
     TYPE_CHECKING,
     Hashable,
     Sequence,
-    TypeVar,
-    cast,
-    final,
 )
 import warnings
 
@@ -17,20 +14,14 @@ from pandas._libs.indexing import NDFrameIndexerBase
 from pandas._libs.lib import item_from_zerodim
 from pandas.errors import (
     AbstractMethodError,
-    IndexingError,
     InvalidIndexError,
 )
 from pandas.util._decorators import doc
 from pandas.util._exceptions import find_stack_level
 
-from pandas.core.dtypes.cast import (
-    can_hold_element,
-    maybe_promote,
-)
 from pandas.core.dtypes.common import (
     is_array_like,
     is_bool_dtype,
-    is_extension_array_dtype,
     is_hashable,
     is_integer,
     is_iterator,
@@ -47,9 +38,7 @@ from pandas.core.dtypes.generic import (
 )
 from pandas.core.dtypes.missing import (
     infer_fill_value,
-    is_valid_na_for_dtype,
     isna,
-    na_value_for_dtype,
 )
 
 from pandas.core import algorithms as algos
@@ -61,8 +50,8 @@ from pandas.core.construction import (
 from pandas.core.indexers import (
     check_array_indexer,
     is_empty_indexer,
+    is_exact_shape_match,
     is_list_like_indexer,
-    is_scalar_indexer,
     length_of_indexer,
 )
 from pandas.core.indexes.api import (
@@ -75,8 +64,6 @@ if TYPE_CHECKING:
         DataFrame,
         Series,
     )
-
-_LocationIndexerT = TypeVar("_LocationIndexerT", bound="_LocationIndexer")
 
 # "null slice"
 _NS = slice(None, None)
@@ -131,6 +118,10 @@ class _IndexSlice:
 IndexSlice = _IndexSlice()
 
 
+class IndexingError(Exception):
+    pass
+
+
 class IndexingMixin:
     """
     Mixin for adding .loc/.iloc/.at/.iat to Dataframes and Series.
@@ -155,8 +146,6 @@ class IndexingMixin:
           DataFrame) and that returns valid output for indexing (one of the above).
           This is useful in method chains, when you don't have a reference to the
           calling object, but would like to base your selection on some value.
-        - A tuple of row and column indexes. The tuple elements consist of one of the
-          above inputs, e.g. ``(0, 1)``.
 
         ``.iloc`` will raise ``IndexError`` if a requested indexer is
         out-of-bounds, except *slice* indexers which allow out-of-bounds
@@ -532,9 +521,6 @@ class IndexingMixin:
         sidewinder mark i          10      20
                    mark ii          1       4
         viper      mark ii          7       1
-
-        Please see the :ref:`user guide<advanced.advanced_hierarchical>`
-        for more details and explanations of advanced indexing.
         """
         return _LocIndexer("loc", self)
 
@@ -550,30 +536,14 @@ class IndexingMixin:
         Raises
         ------
         KeyError
-            * If getting a value and 'label' does not exist in a DataFrame or
-                Series.
-        ValueError
-            * If row/column label pair is not a tuple or if any label from
-                the pair is not a scalar for DataFrame.
-            * If label is list-like (*excluding* NamedTuple) for Series.
+            If 'label' does not exist in DataFrame.
 
         See Also
         --------
-        DataFrame.at : Access a single value for a row/column pair by label.
         DataFrame.iat : Access a single value for a row/column pair by integer
             position.
         DataFrame.loc : Access a group of rows and columns by label(s).
-        DataFrame.iloc : Access a group of rows and columns by integer
-            position(s).
-        Series.at : Access a single value by label.
-        Series.iat : Access a single value by integer position.
-        Series.loc : Access a group of rows by label(s).
-        Series.iloc : Access a group of rows by integer position(s).
-
-        Notes
-        -----
-        See :ref:`Fast scalar value getting and setting <indexing.basics.get_value>`
-        for more details.
+        Series.at : Access a single value using a label.
 
         Examples
         --------
@@ -654,13 +624,9 @@ class IndexingMixin:
 
 class _LocationIndexer(NDFrameIndexerBase):
     _valid_types: str
-    axis: int | None = None
+    axis = None
 
-    # sub-classes need to set _takeable
-    _takeable: bool
-
-    @final
-    def __call__(self: _LocationIndexerT, axis=None) -> _LocationIndexerT:
+    def __call__(self, axis=None):
         # we need to return a copy of ourselves
         new_self = type(self)(self.name, self.obj)
 
@@ -674,7 +640,6 @@ class _LocationIndexer(NDFrameIndexerBase):
         Convert a potentially-label-based key into a positional indexer.
         """
         if self.name == "loc":
-            # always holds here bc iloc overrides _get_setitem_indexer
             self._ensure_listlike_indexer(key)
 
         if isinstance(key, tuple):
@@ -682,7 +647,7 @@ class _LocationIndexer(NDFrameIndexerBase):
                 check_deprecated_indexers(x)
 
         if self.axis is not None:
-            key = _tupleize_axis_indexer(self.ndim, self.axis, key)
+            return self._convert_tuple(key)
 
         ax = self.obj._get_axis(0)
 
@@ -693,81 +658,13 @@ class _LocationIndexer(NDFrameIndexerBase):
 
         if isinstance(key, tuple):
             with suppress(IndexingError):
-                # suppress "Too many indexers"
                 return self._convert_tuple(key)
 
         if isinstance(key, range):
-            # GH#45479 test_loc_setitem_range_key
-            key = list(key)
+            return list(key)
 
         return self._convert_to_indexer(key, axis=0)
 
-    @final
-    def _maybe_mask_setitem_value(self, indexer, value):
-        """
-        If we have obj.iloc[mask] = series_or_frame and series_or_frame has the
-        same length as obj, we treat this as obj.iloc[mask] = series_or_frame[mask],
-        similar to Series.__setitem__.
-
-        Note this is only for loc, not iloc.
-        """
-
-        if (
-            isinstance(indexer, tuple)
-            and len(indexer) == 2
-            and isinstance(value, (ABCSeries, ABCDataFrame))
-        ):
-            pi, icols = indexer
-            ndim = value.ndim
-            if com.is_bool_indexer(pi) and len(value) == len(pi):
-                newkey = pi.nonzero()[0]
-
-                if is_scalar_indexer(icols, self.ndim - 1) and ndim == 1:
-                    # e.g. test_loc_setitem_boolean_mask_allfalse
-                    if len(newkey) == 0:
-                        # FIXME: kludge for test_loc_setitem_boolean_mask_allfalse
-                        # TODO(GH#45333): may be fixed when deprecation is enforced
-
-                        value = value.iloc[:0]
-                    else:
-                        # test_loc_setitem_ndframe_values_alignment
-                        value = self.obj.iloc._align_series(indexer, value)
-                    indexer = (newkey, icols)
-
-                elif (
-                    isinstance(icols, np.ndarray)
-                    and icols.dtype.kind == "i"
-                    and len(icols) == 1
-                ):
-                    if ndim == 1:
-                        # We implicitly broadcast, though numpy does not, see
-                        # github.com/pandas-dev/pandas/pull/45501#discussion_r789071825
-                        if len(newkey) == 0:
-                            # FIXME: kludge for
-                            #  test_setitem_loc_only_false_indexer_dtype_changed
-                            #  TODO(GH#45333): may be fixed when deprecation is enforced
-                            value = value.iloc[:0]
-                        else:
-                            # test_loc_setitem_ndframe_values_alignment
-                            value = self.obj.iloc._align_series(indexer, value)
-                        indexer = (newkey, icols)
-
-                    elif ndim == 2 and value.shape[1] == 1:
-                        if len(newkey) == 0:
-                            # FIXME: kludge for
-                            #  test_loc_setitem_all_false_boolean_two_blocks
-                            #  TODO(GH#45333): may be fixed when deprecation is enforced
-                            value = value.iloc[:0]
-                        else:
-                            # test_loc_setitem_ndframe_values_alignment
-                            value = self.obj.iloc._align_frame(indexer, value)
-                        indexer = (newkey, icols)
-        elif com.is_bool_indexer(indexer):
-            indexer = indexer.nonzero()[0]
-
-        return indexer, value
-
-    @final
     def _ensure_listlike_indexer(self, key, axis=None, value=None):
         """
         Ensure that a list-like of column labels are all present by adding them if
@@ -801,10 +698,11 @@ class _LocationIndexer(NDFrameIndexerBase):
             # GH#38148
             keys = self.obj.columns.union(key, sort=False)
 
-            self.obj._mgr = self.obj._mgr.reindex_axis(keys, axis=0, only_slice=True)
+            self.obj._mgr = self.obj._mgr.reindex_axis(
+                keys, axis=0, consolidate=False, only_slice=True
+            )
 
-    @final
-    def __setitem__(self, key, value) -> None:
+    def __setitem__(self, key, value):
         check_deprecated_indexers(key)
         if isinstance(key, tuple):
             key = tuple(list(x) if is_iterator(x) else x for x in key)
@@ -839,7 +737,6 @@ class _LocationIndexer(NDFrameIndexerBase):
         """
         raise AbstractMethodError(self)
 
-    @final
     def _expand_ellipsis(self, tup: tuple) -> tuple:
         """
         If a tuple key includes an Ellipsis, replace it with an appropriate
@@ -861,7 +758,6 @@ class _LocationIndexer(NDFrameIndexerBase):
             #  by _validate_key_length
         return tup
 
-    @final
     def _validate_tuple_indexer(self, key: tuple) -> tuple:
         """
         Check the key for valid keys across my indexer.
@@ -878,7 +774,6 @@ class _LocationIndexer(NDFrameIndexerBase):
                 ) from err
         return key
 
-    @final
     def _is_nested_tuple_indexer(self, tup: tuple) -> bool:
         """
         Returns
@@ -889,14 +784,23 @@ class _LocationIndexer(NDFrameIndexerBase):
             return any(is_nested_tuple(tup, ax) for ax in self.obj.axes)
         return False
 
-    @final
-    def _convert_tuple(self, key: tuple) -> tuple:
-        # Note: we assume _tupleize_axis_indexer has been called, if necessary.
-        self._validate_key_length(key)
-        keyidx = [self._convert_to_indexer(k, axis=i) for i, k in enumerate(key)]
+    def _convert_tuple(self, key):
+        keyidx = []
+        if self.axis is not None:
+            axis = self.obj._get_axis_number(self.axis)
+            for i in range(self.ndim):
+                if i == axis:
+                    keyidx.append(self._convert_to_indexer(key, axis=axis))
+                else:
+                    keyidx.append(slice(None))
+        else:
+            self._validate_key_length(key)
+            for i, k in enumerate(key):
+                idx = self._convert_to_indexer(k, axis=i)
+                keyidx.append(idx)
+
         return tuple(keyidx)
 
-    @final
     def _validate_key_length(self, key: tuple) -> tuple:
         if len(key) > self.ndim:
             if key[0] is Ellipsis:
@@ -908,7 +812,6 @@ class _LocationIndexer(NDFrameIndexerBase):
             raise IndexingError("Too many indexers")
         return key
 
-    @final
     def _getitem_tuple_same_dim(self, tup: tuple):
         """
         Index with indexers that should return an object of the same dimension
@@ -928,7 +831,6 @@ class _LocationIndexer(NDFrameIndexerBase):
 
         return retval
 
-    @final
     def _getitem_lowerdim(self, tup: tuple):
 
         # we can directly get the axis result since the axis is specified
@@ -954,9 +856,7 @@ class _LocationIndexer(NDFrameIndexerBase):
             #  is equivalent.
             #  (see the other place where we call _handle_lowerdim_multi_index_axis0)
             with suppress(IndexingError):
-                # error "_LocationIndexer" has no attribute
-                # "_handle_lowerdim_multi_index_axis0"
-                return cast(_LocIndexer, self)._handle_lowerdim_multi_index_axis0(tup)
+                return self._handle_lowerdim_multi_index_axis0(tup)
 
         tup = self._validate_key_length(tup)
 
@@ -992,7 +892,6 @@ class _LocationIndexer(NDFrameIndexerBase):
 
         raise IndexingError("not applicable")
 
-    @final
     def _getitem_nested_tuple(self, tup: tuple):
         # we have a nested tuple so have at least 1 multi-index level
         # we should be able to match up the dimensionality here
@@ -1012,11 +911,7 @@ class _LocationIndexer(NDFrameIndexerBase):
                 #  DataFrame, IndexingError is not raised when slice(None,None,None)
                 #  with one row.
                 with suppress(IndexingError):
-                    # error "_LocationIndexer" has no attribute
-                    # "_handle_lowerdim_multi_index_axis0"
-                    return cast(_LocIndexer, self)._handle_lowerdim_multi_index_axis0(
-                        tup
-                    )
+                    return self._handle_lowerdim_multi_index_axis0(tup)
             elif isinstance(self.obj, ABCSeries) and any(
                 isinstance(k, tuple) for k in tup
             ):
@@ -1025,7 +920,7 @@ class _LocationIndexer(NDFrameIndexerBase):
                 #  we are only getting non-hashable tuples, in particular ones
                 #  that themselves contain a slice entry
                 # See test_loc_series_getitem_too_many_dimensions
-                raise IndexingError("Too many indexers")
+                raise ValueError("Too many indices")
 
             # this is a series with a multi-index specified a tuple of
             # selectors
@@ -1056,7 +951,6 @@ class _LocationIndexer(NDFrameIndexerBase):
     def _convert_to_indexer(self, key, axis: int):
         raise AbstractMethodError(self)
 
-    @final
     def __getitem__(self, key):
         check_deprecated_indexers(key)
         if type(key) is tuple:
@@ -1084,7 +978,6 @@ class _LocationIndexer(NDFrameIndexerBase):
     def _has_valid_setitem_indexer(self, indexer) -> bool:
         raise AbstractMethodError(self)
 
-    @final
     def _getbool_axis(self, key, axis: int):
         # caller is responsible for ensuring non-None axis
         labels = self.obj._get_axis(axis)
@@ -1256,7 +1149,7 @@ class _LocIndexer(_LocationIndexer):
         return self._getitem_tuple_same_dim(tup)
 
     def _get_label(self, label, axis: int):
-        # GH#5567 this will fail if the label is not present in the axis.
+        # GH#5667 this will fail if the label is not present in the axis.
         return self.obj.xs(label, axis=axis)
 
     def _handle_lowerdim_multi_index_axis0(self, tup: tuple):
@@ -1350,13 +1243,9 @@ class _LocIndexer(_LocationIndexer):
         if isinstance(key, slice):
             return labels._convert_slice_indexer(key, kind="loc")
 
-        if (
-            isinstance(key, tuple)
-            and not isinstance(labels, MultiIndex)
-            and self.ndim < 2
-            and len(key) > 1
-        ):
-            raise IndexingError("Too many indexers")
+        # see if we are positional in nature
+        is_int_index = labels.is_integer()
+        is_int_positional = is_integer(key) and not is_int_index
 
         if is_scalar(key) or (isinstance(labels, MultiIndex) and is_hashable(key)):
             # Otherwise get_loc will raise InvalidIndexError
@@ -1374,14 +1263,22 @@ class _LocIndexer(_LocationIndexer):
                 if not isinstance(labels, MultiIndex):
                     raise
             except ValueError:
-                if not is_integer(key):
+                if not is_int_positional:
                     raise
-                return {"key": key}
+
+        # a positional
+        if is_int_positional:
+
+            # if we are setting and its not a valid location
+            # its an insert which fails by definition
+
+            # always valid
+            return {"key": key}
 
         if is_nested_tuple(key, labels):
             if self.ndim == 1 and any(isinstance(k, tuple) for k in key):
                 # GH#35349 Raise if tuple in tuple for series
-                raise IndexingError("Too many indexers")
+                raise ValueError("Too many indices")
             return labels.get_locs(key)
 
         elif is_list_like_indexer(key):
@@ -1391,7 +1288,8 @@ class _LocIndexer(_LocationIndexer):
 
             if com.is_bool_indexer(key):
                 key = check_bool_indexer(labels, key)
-                return key
+                (inds,) = key.nonzero()
+                return inds
             else:
                 return self._get_listlike_indexer(key, axis)[1]
         else:
@@ -1649,7 +1547,7 @@ class _iLocIndexer(_LocationIndexer):
             key = list(key)
 
         if self.axis is not None:
-            key = _tupleize_axis_indexer(self.ndim, self.axis, key)
+            return self._convert_tuple(key)
 
         return key
 
@@ -1674,13 +1572,15 @@ class _iLocIndexer(_LocationIndexer):
 
         # if there is only one block/type, still have to take split path
         # unless the block is one-dimensional or it can hold the value
-        if not take_split_path and len(self.obj._mgr.arrays) and self.ndim > 1:
+        if (
+            not take_split_path
+            and getattr(self.obj._mgr, "blocks", False)
+            and self.ndim > 1
+        ):
             # in case of dict, keys are indices
             val = list(value.values()) if isinstance(value, dict) else value
-            arr = self.obj._mgr.arrays[0]
-            take_split_path = not can_hold_element(
-                arr, extract_array(val, extract_numpy=True)
-            )
+            blk = self.obj._mgr.blocks[0]
+            take_split_path = not blk._can_hold_element(val)
 
         # if we have any multi-indexes that have non-trivial slices
         # (not null slices) then we must take the split path, xref
@@ -1784,10 +1684,6 @@ class _iLocIndexer(_LocationIndexer):
             if missing:
                 self._setitem_with_indexer_missing(indexer, value)
                 return
-
-        if name == "loc":
-            # must come after setting of missing
-            indexer, value = self._maybe_mask_setitem_value(indexer, value)
 
         # align and set the values
         if take_split_path:
@@ -1966,7 +1862,7 @@ class _iLocIndexer(_LocationIndexer):
         """
         pi = plane_indexer
 
-        orig_values = self.obj._get_column_array(loc)
+        ser = self.obj._ixs(loc, axis=1)
 
         # perform the equivalent of a setitem on the info axis
         # as we have a null slice or a slice with full bounds
@@ -1974,64 +1870,34 @@ class _iLocIndexer(_LocationIndexer):
         # multi-dim object
         # GH#6149 (null slice), GH#10408 (full bounds)
         if com.is_null_slice(pi) or com.is_full_slice(pi, len(self.obj)):
-            pass
+            ser = value
         elif (
             is_array_like(value)
-            and len(value.shape) > 0
-            and self.obj.shape[0] == value.shape[0]
-            and not is_empty_indexer(pi)
+            and is_exact_shape_match(ser, value)
+            and not is_empty_indexer(pi, value)
         ):
-            if is_list_like(pi) and not is_bool_dtype(pi):
-                value = value[np.argsort(pi)]
+            if is_list_like(pi):
+                ser = value[np.argsort(pi)]
             else:
                 # in case of slice
-                value = value[pi]
+                ser = value[pi]
         else:
-            # set value into the column (first attempting to operate inplace, then
-            #  falling back to casting if necessary)
-            self.obj._mgr.column_setitem(loc, plane_indexer, value)
-            self.obj._clear_item_cache()
+            # set the item, first attempting to operate inplace, then
+            #  falling back to casting if necessary; see
+            #  _whatsnew_130.notable_bug_fixes.setitem_column_try_inplace
+
+            orig_values = ser._values
+            ser._mgr = ser._mgr.setitem((pi,), value)
+
+            if ser._values is orig_values:
+                # The setitem happened inplace, so the DataFrame's values
+                #  were modified inplace.
+                return
+            self.obj._iset_item(loc, ser)
             return
 
-        self.obj._iset_item(loc, value)
-
-        # We will not operate in-place, but will attempt to in the future.
-        #  To determine whether we need to issue a FutureWarning, see if the
-        #  setting in-place would work, i.e. behavior will change.
-
-        new_values = self.obj._get_column_array(loc)
-
-        if can_hold_element(orig_values, new_values) and not len(new_values) == 0:
-            # Don't issue the warning yet, as we can still trim a few cases where
-            #  behavior will not change.
-
-            if (
-                isinstance(new_values, np.ndarray)
-                and isinstance(orig_values, np.ndarray)
-                and (
-                    np.shares_memory(new_values, orig_values)
-                    or new_values.shape != orig_values.shape
-                )
-            ):
-                # TODO: get something like tm.shares_memory working?
-                # The values were set inplace after all, no need to warn,
-                #  e.g. test_rename_nocopy
-                # In case of enlarging we can not set inplace, so need to
-                # warn either
-                pass
-            else:
-                warnings.warn(
-                    "In a future version, `df.iloc[:, i] = newvals` will attempt "
-                    "to set the values inplace instead of always setting a new "
-                    "array. To retain the old behavior, use either "
-                    "`df[df.columns[i]] = newvals` or, if columns are non-unique, "
-                    "`df.isetitem(i, newvals)`",
-                    FutureWarning,
-                    stacklevel=find_stack_level(),
-                )
-                # TODO: how to get future behavior?
-                # TODO: what if we got here indirectly via loc?
-        return
+        # reset the sliced object if unique
+        self.obj._iset_item(loc, ser)
 
     def _setitem_single_block(self, indexer, value, name: str):
         """
@@ -2041,6 +1907,7 @@ class _iLocIndexer(_LocationIndexer):
 
         info_axis = self.obj._info_axis_number
         item_labels = self.obj._get_axis(info_axis)
+
         if isinstance(indexer, tuple):
 
             # if we are setting on the info axis ONLY
@@ -2055,9 +1922,7 @@ class _iLocIndexer(_LocationIndexer):
                 if len(item_labels.get_indexer_for([col])) == 1:
                     # e.g. test_loc_setitem_empty_append_expands_rows
                     loc = item_labels.get_loc(col)
-                    # Go through _setitem_single_column to get
-                    #  FutureWarning if relevant.
-                    self._setitem_single_column(loc, value, indexer[0])
+                    self.obj._iset_item(loc, value)
                     return
 
             indexer = maybe_convert_ix(*indexer)  # e.g. test_setitem_frame_align
@@ -2104,30 +1969,8 @@ class _iLocIndexer(_LocationIndexer):
                     # We get only here with loc, so can hard code
                     return self._setitem_with_indexer(new_indexer, value, "loc")
 
-            # this preserves dtype of the value and of the object
-            if not is_scalar(value):
-                new_dtype = None
-
-            elif is_valid_na_for_dtype(value, self.obj.dtype):
-                if not is_object_dtype(self.obj.dtype):
-                    # Every NA value is suitable for object, no conversion needed
-                    value = na_value_for_dtype(self.obj.dtype, compat=False)
-
-                new_dtype = maybe_promote(self.obj.dtype, value)[0]
-
-            elif isna(value):
-                new_dtype = None
-            elif not self.obj.empty and not is_object_dtype(self.obj.dtype):
-                # We should not cast, if we have object dtype because we can
-                # set timedeltas into object series
-                curr_dtype = self.obj.dtype
-                curr_dtype = getattr(curr_dtype, "numpy_dtype", curr_dtype)
-                new_dtype = maybe_promote(curr_dtype, value)[0]
-            else:
-                new_dtype = None
-
-            new_values = Series([value], dtype=new_dtype)._values
-
+            # this preserves dtype of the value
+            new_values = Series([value])._values
             if len(self.obj._values):
                 # GH#22717 handle casting compatibility that np.concatenate
                 #  does incorrectly
@@ -2186,11 +2029,13 @@ class _iLocIndexer(_LocationIndexer):
         """
         Ensure that our column indexer is something that can be iterated over.
         """
-        ilocs: Sequence[int] | np.ndarray
+        ilocs: Sequence[int]
         if is_integer(column_indexer):
             ilocs = [column_indexer]
         elif isinstance(column_indexer, slice):
-            ilocs = np.arange(len(self.obj.columns))[column_indexer]
+            ilocs = np.arange(len(self.obj.columns))[  # type: ignore[assignment]
+                column_indexer
+            ]
         elif isinstance(column_indexer, np.ndarray) and is_bool_dtype(
             column_indexer.dtype
         ):
@@ -2246,18 +2091,20 @@ class _iLocIndexer(_LocationIndexer):
             # series, so need to broadcast (see GH5206)
             if sum_aligners == self.ndim and all(is_sequence(_) for _ in indexer):
                 # TODO: This is hacky, align Series and DataFrame behavior GH#45778
-                if obj.ndim == 2 and is_empty_indexer(indexer[0]):
+                if obj.ndim == 2 and is_empty_indexer(indexer[0], ser._values):
                     return ser._values.copy()
-                ser_values = ser.reindex(obj.axes[0][indexer[0]], copy=True)._values
+                ser = ser.reindex(obj.axes[0][indexer[0]], copy=True)._values
 
                 # single indexer
                 if len(indexer) > 1 and not multiindex_indexer:
                     len_indexer = len(indexer[1])
-                    ser_values = (
-                        np.tile(ser_values, len_indexer).reshape(len_indexer, -1).T
+                    ser = (
+                        np.tile(ser, len_indexer)  # type: ignore[assignment]
+                        .reshape(len_indexer, -1)
+                        .T
                     )
 
-                return ser_values
+                return ser
 
             for i, idx in enumerate(indexer):
                 ax = obj.axes[i]
@@ -2363,9 +2210,6 @@ class _ScalarAccessIndexer(NDFrameIndexerBase):
     Access scalars quickly.
     """
 
-    # sub-classes need to set _takeable
-    _takeable: bool
-
     def _convert_key(self, key):
         raise AbstractMethodError(self)
 
@@ -2381,7 +2225,7 @@ class _ScalarAccessIndexer(NDFrameIndexerBase):
         key = self._convert_key(key)
         return self.obj._get_value(*key, takeable=self._takeable)
 
-    def __setitem__(self, key, value) -> None:
+    def __setitem__(self, key, value):
         if isinstance(key, tuple):
             key = tuple(com.apply_if_callable(x, self.obj) for x in key)
         else:
@@ -2476,22 +2320,13 @@ def _tuplify(ndim: int, loc: Hashable) -> tuple[Hashable | slice, ...]:
     return tuple(_tup)
 
 
-def _tupleize_axis_indexer(ndim: int, axis: int, key) -> tuple:
-    """
-    If we have an axis, adapt the given key to be axis-independent.
-    """
-    new_key = [slice(None)] * ndim
-    new_key[axis] = key
-    return tuple(new_key)
-
-
 def convert_to_index_sliceable(obj: DataFrame, key):
     """
     If we are index sliceable, then return my slicer, otherwise return None.
     """
     idx = obj.index
     if isinstance(key, slice):
-        return idx._convert_slice_indexer(key, kind="getitem", is_frame=True)
+        return idx._convert_slice_indexer(key, kind="getitem")
 
     elif isinstance(key, str):
 
@@ -2547,20 +2382,15 @@ def check_bool_indexer(index: Index, key) -> np.ndarray:
     """
     result = key
     if isinstance(key, ABCSeries) and not key.index.equals(index):
-        indexer = result.index.get_indexer_for(index)
-        if -1 in indexer:
+        result = result.reindex(index)
+        mask = isna(result._values)
+        if mask.any():
             raise IndexingError(
                 "Unalignable boolean Series provided as "
                 "indexer (index of the boolean Series and of "
                 "the indexed object do not match)."
             )
-
-        result = result.take(indexer)
-
-        # fall through for boolean
-        if not is_extension_array_dtype(result.dtype):
-            return result.astype(bool)._values
-
+        return result.astype(bool)._values
     if is_object_dtype(key):
         # key might be object-dtype bool, check_array_indexer needs bool array
         result = np.asarray(result, dtype=bool)

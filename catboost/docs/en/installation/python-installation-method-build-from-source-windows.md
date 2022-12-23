@@ -10,13 +10,12 @@
 
 {% include [installation-nvidia-driver-reqs](../_includes/work_src/reusage-code-examples/nvidia-driver-reqs.md) %}
 
-## Building steps
 
 To build the {{ python-package }} from source on Windows:
 
+
 {% include [windows-build-setup](../_includes/work_src/reusage-installation/windows-build-setup.md) %}
 
-After that, do the following:
 
 1. Open the `catboost/catboost/python-package/catboost` directory from the local copy of the {{ product }} repository.
 

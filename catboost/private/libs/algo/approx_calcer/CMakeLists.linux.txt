@@ -9,7 +9,6 @@
 
 add_library(libs-algo-approx_calcer)
 target_link_libraries(libs-algo-approx_calcer PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers

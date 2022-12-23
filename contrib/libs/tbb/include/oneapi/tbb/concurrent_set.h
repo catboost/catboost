@@ -25,7 +25,7 @@
 
 namespace tbb {
 namespace detail {
-namespace d2 {
+namespace d1 {
 
 template<typename Key, typename KeyCompare, typename RandomGenerator, typename Allocator, bool AllowMultimapping>
 struct set_traits {
@@ -75,6 +75,7 @@ public:
 
     // Include constructors of base_type
     using base_type::base_type;
+    using base_type::operator=;
 
     // Required for implicit deduction guides
     concurrent_set() = default;
@@ -85,11 +86,6 @@ public:
     // Required to respect the rule of 5
     concurrent_set& operator=( const concurrent_set& ) = default;
     concurrent_set& operator=( concurrent_set&& ) = default;
-
-    concurrent_set& operator=( std::initializer_list<value_type> il ) {
-        base_type::operator= (il);
-        return *this;
-    }
 
     template<typename OtherCompare>
     void merge(concurrent_set<key_type, OtherCompare, Allocator>& source) {
@@ -176,6 +172,7 @@ public:
 
     // Include constructors of base_type;
     using base_type::base_type;
+    using base_type::operator=;
 
     // Required for implicit deduction guides
     concurrent_multiset() = default;
@@ -186,11 +183,6 @@ public:
     // Required to respect the rule of 5
     concurrent_multiset& operator=( const concurrent_multiset& ) = default;
     concurrent_multiset& operator=( concurrent_multiset&& ) = default;
-
-    concurrent_multiset& operator=( std::initializer_list<value_type> il ) {
-        base_type::operator= (il);
-        return *this;
-    }
 
     template<typename OtherCompare>
     void merge(concurrent_set<key_type, OtherCompare, Allocator>& source) {
@@ -252,13 +244,13 @@ void swap( concurrent_multiset<Key, Compare, Allocator>& lhs,
     lhs.swap(rhs);
 }
 
-} // namespace d2
+} // namespace d1
 } // namespace detail
 
 inline namespace v1 {
 
-using detail::d2::concurrent_set;
-using detail::d2::concurrent_multiset;
+using detail::d1::concurrent_set;
+using detail::d1::concurrent_multiset;
 using detail::split;
 
 } // inline namespace v1

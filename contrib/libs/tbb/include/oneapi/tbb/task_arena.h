@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,16 +17,11 @@
 #ifndef __TBB_task_arena_H
 #define __TBB_task_arena_H
 
-#include "detail/_config.h"
-
-#include "detail/_aligned_space.h"
-#include "detail/_attach.h"
-#include "detail/_exception.h"
 #include "detail/_namespace_injection.h"
-#include "detail/_small_object_pool.h"
 #include "detail/_task.h"
-
-#include "detail/_task_handle.h"
+#include "detail/_exception.h"
+#include "detail/_aligned_space.h"
+#include "detail/_small_object_pool.h"
 
 #if __TBB_ARENA_BINDING
 #include "info.h"
@@ -83,30 +78,18 @@ namespace r1 {
 class arena;
 struct task_arena_impl;
 
-TBB_EXPORT void __TBB_EXPORTED_FUNC observe(d1::task_scheduler_observer&, bool);
-TBB_EXPORT void __TBB_EXPORTED_FUNC initialize(d1::task_arena_base&);
-TBB_EXPORT void __TBB_EXPORTED_FUNC terminate(d1::task_arena_base&);
-TBB_EXPORT bool __TBB_EXPORTED_FUNC attach(d1::task_arena_base&);
-TBB_EXPORT void __TBB_EXPORTED_FUNC execute(d1::task_arena_base&, d1::delegate_base&);
-TBB_EXPORT void __TBB_EXPORTED_FUNC wait(d1::task_arena_base&);
-TBB_EXPORT int  __TBB_EXPORTED_FUNC max_concurrency(const d1::task_arena_base*);
-TBB_EXPORT void __TBB_EXPORTED_FUNC isolate_within_arena(d1::delegate_base& d, std::intptr_t);
+void __TBB_EXPORTED_FUNC observe(d1::task_scheduler_observer&, bool);
+void __TBB_EXPORTED_FUNC initialize(d1::task_arena_base&);
+void __TBB_EXPORTED_FUNC terminate(d1::task_arena_base&);
+bool __TBB_EXPORTED_FUNC attach(d1::task_arena_base&);
+void __TBB_EXPORTED_FUNC execute(d1::task_arena_base&, d1::delegate_base&);
+void __TBB_EXPORTED_FUNC wait(d1::task_arena_base&);
+int __TBB_EXPORTED_FUNC max_concurrency(const d1::task_arena_base*);
+void __TBB_EXPORTED_FUNC isolate_within_arena(d1::delegate_base& d, std::intptr_t);
 
-TBB_EXPORT void __TBB_EXPORTED_FUNC enqueue(d1::task&, d1::task_arena_base*);
-TBB_EXPORT void __TBB_EXPORTED_FUNC enqueue(d1::task&, d1::task_group_context&, d1::task_arena_base*);
-TBB_EXPORT void __TBB_EXPORTED_FUNC submit(d1::task&, d1::task_group_context&, arena*, std::uintptr_t);
+void __TBB_EXPORTED_FUNC enqueue(d1::task&, d1::task_arena_base*);
+void __TBB_EXPORTED_FUNC submit(d1::task&, d1::task_group_context&, arena*, std::uintptr_t);
 } // namespace r1
-
-namespace d2 {
-inline void enqueue_impl(task_handle&& th, d1::task_arena_base* ta) {
-    __TBB_ASSERT(th != nullptr, "Attempt to schedule empty task_handle");
-
-    auto& ctx = task_handle_accessor::ctx_of(th);
-
-    // Do not access th after release
-    r1::enqueue(*task_handle_accessor::release(th), ctx, ta);
-}
-} //namespace d2
 
 namespace d1 {
 
@@ -130,9 +113,9 @@ protected:
 
     std::atomic<do_once_state> my_initialization_state;
 
-    //! nullptr if not currently initialized.
+    //! NULL if not currently initialized.
     std::atomic<r1::arena*> my_arena;
-    static_assert(sizeof(std::atomic<r1::arena*>) == sizeof(r1::arena*),
+    static_assert(sizeof(std::atomic<r1::arena*>) == sizeof(r1::arena*), 
         "To preserve backward compatibility we need the equal size of an atomic pointer and a pointer");
 
     //! Concurrency level for deferred initialization
@@ -209,33 +192,6 @@ R isolate_impl(F& f) {
     return func.consume_result();
 }
 
-template <typename F>
-class enqueue_task : public task {
-    small_object_allocator m_allocator;
-    const F m_func;
-
-    void finalize(const execution_data& ed) {
-        m_allocator.delete_object(this, ed);
-    }
-    task* execute(execution_data& ed) override {
-        m_func();
-        finalize(ed);
-        return nullptr;
-    }
-    task* cancel(execution_data&) override {
-        __TBB_ASSERT_RELEASE(false, "Unhandled exception from enqueue task is caught");
-        return nullptr;
-    }
-public:
-    enqueue_task(const F& f, small_object_allocator& alloc) : m_allocator(alloc), m_func(f) {}
-    enqueue_task(F&& f, small_object_allocator& alloc) : m_allocator(alloc), m_func(std::move(f)) {}
-};
-
-template<typename F>
-void enqueue_impl(F&& f, task_arena_base* ta) {
-    small_object_allocator alloc{};
-    r1::enqueue(*alloc.new_object<enqueue_task<typename std::decay<F>::type>>(std::forward<F>(f), alloc), ta);
-}
 /** 1-to-1 proxy representation class of scheduler's arena
  * Constructors set up settings only, real construction is deferred till the first method invocation
  * Destructor only removes one of the references to the inner arena representation.
@@ -243,9 +199,38 @@ void enqueue_impl(F&& f, task_arena_base* ta) {
  */
 class task_arena : public task_arena_base {
 
+    template <typename F>
+    class enqueue_task : public task {
+        small_object_allocator m_allocator;
+        const F m_func;
+
+        void finalize(const execution_data& ed) {
+            m_allocator.delete_object(this, ed);
+        }
+        task* execute(execution_data& ed) override {
+            m_func();
+            finalize(ed);
+            return nullptr;
+        }
+        task* cancel(execution_data&) override {
+            __TBB_ASSERT_RELEASE(false, "Unhandled exception from enqueue task is caught");
+            return nullptr;
+        }
+    public:
+        enqueue_task(const F& f, small_object_allocator& alloc) : m_allocator(alloc), m_func(f) {}
+        enqueue_task(F&& f, small_object_allocator& alloc) : m_allocator(alloc), m_func(std::move(f)) {}
+    };
+
     void mark_initialized() {
         __TBB_ASSERT( my_arena.load(std::memory_order_relaxed), "task_arena initialization is incomplete" );
         my_initialization_state.store(do_once_state::initialized, std::memory_order_release);
+    }
+
+    template<typename F>
+    void enqueue_impl(F&& f) {
+        initialize();
+        small_object_allocator alloc{};
+        r1::enqueue(*alloc.new_object<enqueue_task<typename std::decay<F>::type>>(std::forward<F>(f), alloc), this);
     }
 
     template<typename R, typename F>
@@ -305,11 +290,6 @@ public:
         }
     }
 
-    //! Creates an instance of task_arena attached to the current arena of the thread
-    explicit task_arena(d1::attach)
-        : task_arena(attach{})
-    {}
-
     //! Forces allocation of the resources for the task_arena as specified in constructor arguments
     void initialize() {
         atomic_do_once([this]{ r1::initialize(*this); }, my_initialization_state);
@@ -361,11 +341,6 @@ public:
         }
     }
 
-    //! Attaches this instance to the current arena of the thread
-    void initialize(d1::attach) {
-        initialize(attach{});
-    }
-
     //! Removes the reference to the internal arena representation.
     //! Not thread safe wrt concurrent invocations of other methods.
     void terminate() {
@@ -392,15 +367,7 @@ public:
 
     template<typename F>
     void enqueue(F&& f) {
-        initialize();
-        enqueue_impl(std::forward<F>(f), this);
-    }
-
-    //! Enqueues a task into the arena to process a functor wrapped in task_handle, and immediately returns.
-    //! Does not require the calling thread to join the arena
-    void enqueue(d2::task_handle&& th) {
-        initialize();
-        d2::enqueue_impl(std::move(th), this);
+        enqueue_impl(std::forward<F>(f));
     }
 
     //! Joins the arena and executes a mutable functor, then returns
@@ -456,28 +423,13 @@ inline auto isolate(F&& f) -> decltype(f()) {
 
 //! Returns the index, aka slot number, of the calling thread in its current arena
 inline int current_thread_index() {
-    slot_id idx = r1::execution_slot(nullptr);
-    return idx == slot_id(-1) ? task_arena_base::not_initialized : int(idx);
+    int idx = r1::execution_slot(nullptr);
+    return idx == -1 ? task_arena_base::not_initialized : idx;
 }
-
-#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
-inline bool is_inside_task() {
-    return nullptr != current_context();
-}
-#endif //__TBB_PREVIEW_TASK_GROUP_EXTENSIONS
 
 //! Returns the maximal number of threads that can work inside the arena
 inline int max_concurrency() {
     return r1::max_concurrency(nullptr);
-}
-
-inline void enqueue(d2::task_handle&& th) {
-    d2::enqueue_impl(std::move(th), nullptr);
-}
-
-template<typename F>
-inline void enqueue(F&& f) {
-    enqueue_impl(std::forward<F>(f), nullptr);
 }
 
 using r1::submit;
@@ -487,18 +439,11 @@ using r1::submit;
 
 inline namespace v1 {
 using detail::d1::task_arena;
-using detail::d1::attach;
-
-#if __TBB_PREVIEW_TASK_GROUP_EXTENSIONS
-using detail::d1::is_inside_task;
-#endif
 
 namespace this_task_arena {
 using detail::d1::current_thread_index;
 using detail::d1::max_concurrency;
 using detail::d1::isolate;
-
-using detail::d1::enqueue;
 } // namespace this_task_arena
 
 } // inline namespace v1

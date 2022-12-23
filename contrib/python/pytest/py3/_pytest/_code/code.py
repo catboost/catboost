@@ -56,9 +56,6 @@ if TYPE_CHECKING:
 
     _TracebackStyle = Literal["long", "short", "line", "no", "native", "value", "auto"]
 
-if sys.version_info[:2] < (3, 11):
-    from exceptiongroup import BaseExceptionGroup
-
 
 class Code:
     """Wrapper around Python code objects."""
@@ -675,11 +672,10 @@ class ExceptionInfo(Generic[E]):
         If it matches `True` is returned, otherwise an `AssertionError` is raised.
         """
         __tracebackhide__ = True
-        value = str(self.value)
-        msg = f"Regex pattern did not match.\n Regex: {regexp!r}\n Input: {value!r}"
-        if regexp == value:
-            msg += "\n Did you mean to `re.escape()` the regex?"
-        assert re.search(regexp, value), msg
+        msg = "Regex pattern {!r} does not match {!r}."
+        if regexp == str(self.value):
+            msg += " Did you mean to `re.escape()` the regex?"
+        assert re.search(regexp, str(self.value)), msg.format(regexp, str(self.value))
         # Return True to allow for "assert excinfo.match()".
         return True
 
@@ -927,21 +923,7 @@ class FormattedExcinfo:
         while e is not None and id(e) not in seen:
             seen.add(id(e))
             if excinfo_:
-                # Fall back to native traceback as a temporary workaround until
-                # full support for exception groups added to ExceptionInfo.
-                # See https://github.com/pytest-dev/pytest/issues/9159
-                if isinstance(e, BaseExceptionGroup):
-                    reprtraceback: Union[
-                        ReprTracebackNative, ReprTraceback
-                    ] = ReprTracebackNative(
-                        traceback.format_exception(
-                            type(excinfo_.value),
-                            excinfo_.value,
-                            excinfo_.traceback[0]._rawentry,
-                        )
-                    )
-                else:
-                    reprtraceback = self.repr_traceback(excinfo_)
+                reprtraceback = self.repr_traceback(excinfo_)
                 reprcrash: Optional[ReprFileLocation] = (
                     excinfo_._getreprcrash() if self.style != "value" else None
                 )

@@ -18,11 +18,7 @@ IF (USE_PREVIOUS_LLD_VERSION)
 ELSE()
     # Use LLD 14
     IF (HOST_OS_LINUX)
-        IF (HOST_ARCH_AARCH64)
-            DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:3883901910)
-        ELSE()
-            DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:3570346597)
-        ENDIF()
+        DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:3570346597)
     ELSEIF (HOST_OS_DARWIN)
         IF (HOST_ARCH_ARM64)
             DECLARE_EXTERNAL_RESOURCE(LLD_ROOT sbr:3570338715)
@@ -63,8 +59,6 @@ ELSEIF (OS_LINUX)
 
         # dynlinker on auld ubuntu versions can not handle .rodata stored in standalone segment [citation needed]
         -Wl,--no-rosegment
-        # add build-id to binaries to allow external tools check equality of binaries
-        -Wl,--build-id=sha1
     )
 ENDIF()
 

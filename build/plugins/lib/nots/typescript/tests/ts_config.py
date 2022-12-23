@@ -68,6 +68,7 @@ def test_ts_config_validate_invalid_subdirs():
         cfg.validate()
 
     assert e.value.errors == [
+        "'rootDir' should be a subdirectory of the module",
         "'outDir' should be a subdirectory of the module",
     ]
 

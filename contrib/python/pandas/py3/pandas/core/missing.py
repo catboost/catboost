@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     from pandas import Index
 
 
-def check_value_size(value, mask: npt.NDArray[np.bool_], length: int):
+def check_value_size(value, mask: np.ndarray, length: int):
     """
     Validate the size of the values passed to ExtensionArray.fillna.
     """
@@ -104,7 +104,7 @@ def mask_missing(arr: ArrayLike, values_to_mask) -> npt.NDArray[np.bool_]:
     return mask
 
 
-def clean_fill_method(method: str | None, allow_nearest: bool = False):
+def clean_fill_method(method, allow_nearest: bool = False):
     # asfreq is compat for resampling
     if method in [None, "asfreq"]:
         return None
@@ -161,7 +161,7 @@ def clean_interp_method(method: str, index: Index, **kwargs) -> str:
         raise ValueError(f"method must be one of {valid}. Got '{method}' instead.")
 
     if method in ("krogh", "piecewise_polynomial", "pchip"):
-        if not index.is_monotonic_increasing:
+        if not index.is_monotonic:
             raise ValueError(
                 f"{method} interpolation requires that the index be monotonic."
             )
@@ -191,7 +191,7 @@ def find_valid_index(values, *, how: str) -> int | None:
     is_valid = ~isna(values)
 
     if values.ndim == 2:
-        is_valid = is_valid.any(axis=1)  # reduce axis 1
+        is_valid = is_valid.any(1)  # reduce axis 1
 
     if how == "first":
         idxpos = is_valid[::].argmax()
@@ -333,12 +333,14 @@ def _interpolate_2d_with_fill(
             **kwargs,
         )
 
-    # error: Argument 1 to "apply_along_axis" has incompatible type
-    # "Callable[[ndarray[Any, Any]], None]"; expected "Callable[...,
-    # Union[_SupportsArray[dtype[<nothing>]], Sequence[_SupportsArray
-    # [dtype[<nothing>]]], Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]],
+    # Argument 1 to "apply_along_axis" has incompatible type
+    # "Callable[[ndarray[Any, Any]], None]"; expected
+    # "Callable[..., Union[_SupportsArray[dtype[<nothing>]],
+    # Sequence[_SupportsArray[dtype[<nothing>
+    # ]]], Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]],
     # Sequence[Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]]],
     # Sequence[Sequence[Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]]]]]]"
+    # interp each column independently
     np.apply_along_axis(func, axis, data)  # type: ignore[arg-type]
     return
 
@@ -777,23 +779,22 @@ def interpolate_2d(
     Modifies values in-place.
     """
     if limit_area is not None:
+        # Argument 1 to "apply_along_axis" has incompatible type "partial[None]";
+        # expected "Callable[..., Union[_SupportsArray[dtype[<nothing>]],
+        # Sequence[_SupportsArray[dtype[<nothing>]]], Sequence[Sequence
+        # [_SupportsArray[dtype[<nothing>]]]],
+        # Sequence[Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]]],
+        # Sequence[Sequence[Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]]]]]]"
+
+        #  Argument 2 to "apply_along_axis" has incompatible type "Union[str, int]";
+        #  expected "SupportsIndex"  [arg-type]
         np.apply_along_axis(
-            # error: Argument 1 to "apply_along_axis" has incompatible type
-            # "partial[None]"; expected
-            # "Callable[..., Union[_SupportsArray[dtype[<nothing>]],
-            # Sequence[_SupportsArray[dtype[<nothing>]]],
-            # Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]],
-            # Sequence[Sequence[Sequence[_SupportsArray[dtype[<nothing>]]]]],
-            # Sequence[Sequence[Sequence[Sequence[_
-            # SupportsArray[dtype[<nothing>]]]]]]]]"
-            partial(  # type: ignore[arg-type]
+            partial(
                 _interpolate_with_limit_area,
                 method=method,
                 limit=limit,
                 limit_area=limit_area,
-            ),
-            # error: Argument 2 to "apply_along_axis" has incompatible type
-            # "Union[str, int]"; expected "SupportsIndex"
+            ),  # type: ignore[arg-type]
             axis,  # type: ignore[arg-type]
             values,
         )
@@ -907,7 +908,7 @@ def get_fill_func(method, ndim: int = 1):
     return {"pad": _pad_2d, "backfill": _backfill_2d}[method]
 
 
-def clean_reindex_fill_method(method) -> str | None:
+def clean_reindex_fill_method(method):
     return clean_fill_method(method, allow_nearest=True)
 
 

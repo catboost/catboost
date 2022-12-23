@@ -26,7 +26,7 @@
 
 namespace tbb {
 namespace detail {
-namespace d2 {
+namespace d1 {
 
 template<typename Key, typename Value, typename KeyCompare, typename RandomGenerator,
          typename Allocator, bool AllowMultimapping>
@@ -92,6 +92,7 @@ public:
 
     // Include constructors of base type
     using base_type::base_type;
+    using base_type::operator=;
 
     // Required for implicit deduction guides
     concurrent_map() = default;
@@ -102,11 +103,6 @@ public:
     // Required to respect the rule of 5
     concurrent_map& operator=( const concurrent_map& ) = default;
     concurrent_map& operator=( concurrent_map&& ) = default;
-
-    concurrent_map& operator=( std::initializer_list<value_type> il ) {
-        base_type::operator= (il);
-        return *this;
-    }
 
     // Observers
     mapped_type& at(const key_type& key) {
@@ -243,6 +239,7 @@ public:
     // Include constructors of base_type
     using base_type::base_type;
     using base_type::insert;
+    using base_type::operator=;
 
     // Required for implicit deduction guides
     concurrent_multimap() = default;
@@ -253,11 +250,6 @@ public:
     // Required to respect the rule of 5
     concurrent_multimap& operator=( const concurrent_multimap& ) = default;
     concurrent_multimap& operator=( concurrent_multimap&& ) = default;
-
-    concurrent_multimap& operator=( std::initializer_list<value_type> il ) {
-        base_type::operator= (il);
-        return *this;
-    }
 
     template <typename P>
     typename std::enable_if<std::is_constructible<value_type, P&&>::value,
@@ -335,13 +327,13 @@ void swap( concurrent_multimap<Key, Value, Compare, Allocator>& lhs,
     lhs.swap(rhs);
 }
 
-} // namespace d2
+} // namespace d1
 } // namespace detail
 
 inline namespace v1 {
 
-using detail::d2::concurrent_map;
-using detail::d2::concurrent_multimap;
+using detail::d1::concurrent_map;
+using detail::d1::concurrent_multimap;
 using detail::split;
 
 } // inline namespace v1

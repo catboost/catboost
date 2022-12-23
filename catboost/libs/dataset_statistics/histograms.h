@@ -2,51 +2,39 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/json_helpers.h>
-#include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
-#include <util/generic/map.h>
 #include <util/ysaveload.h>
-
-#include <limits>
-
 
 namespace  NCB {
 enum class EHistogramType {
     Uniform,   // (-inf, MinValue], (MinValue, MinValue + step], ... , (MaxValue - step, MaxValue]
-    Exact,
-    Borders
+    Borders,
+    Undefined
 };
-
-constexpr ui32 MAX_EXACT_HIST_SIZE = 1 << 8;
 
 struct TBorders {
 public:
     TBorders()
-        : HistogramType(EHistogramType::Exact)
-        , OutOfDomainValuesCount(0)
+        : HistogramType(EHistogramType::Undefined)
     {}
 
     TVector<float> GetBorders() const;
-    TVector<float> GetBins() const;
-    TVector<ui64> GetExactHistogram() const;
 
-    bool operator==(const TBorders& rhs) const;
+    bool operator==(const TBorders& rhs);
 
     TBorders(const TVector<float>& borders)
         : HistogramType(EHistogramType::Borders)
         , Borders(borders)
-        , OutOfDomainValuesCount(0)
     {}
 
     TBorders(ui32 maxBorderCount, float minValue, float maxValue)
-        : HistogramType(EHistogramType::Exact)
+        : HistogramType(EHistogramType::Uniform)
         , MaxBorderCount(maxBorderCount)
         , MinValue(minValue)
         , MaxValue(maxValue)
-        , OutOfDomainValuesCount(0)
     {}
 
     ui32 Size() const;
@@ -56,9 +44,7 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue,
-        BitHistogram,
-        OutOfDomainValuesCount
+        MaxValue
     );
 
     SAVELOAD(
@@ -66,9 +52,7 @@ public:
         Borders,
         MaxBorderCount,
         MinValue,
-        MaxValue,
-        BitHistogram,
-        OutOfDomainValuesCount
+        MaxValue
     );
 
     NJson::TJsonValue ToJson() const;
@@ -81,7 +65,7 @@ public:
     }
 
 private:
-    bool EqualBorders(const TVector<float>& borders) const {
+    bool EqualBorders(const TVector<float>& borders) {
         CB_ENSURE(HistogramType == EHistogramType::Borders, "Inconsistent type");
         if (Borders.size() != borders.size()) {
             return false;
@@ -101,12 +85,10 @@ private:
 
 public:
     EHistogramType HistogramType;
-    TVector<float> Borders;         // valid only if HistogramType == EHistogramType::Borders
-    ui32 MaxBorderCount = 0;
-    float MinValue = std::numeric_limits<float>::quiet_NaN();
-    float MaxValue = std::numeric_limits<float>::quiet_NaN();
-    TMap<float, ui64> BitHistogram; // valid only if HistogramType == EHistogramType::Exact
-    ui64 OutOfDomainValuesCount = 0;
+    TVector<float> Borders;
+    ui32 MaxBorderCount;
+    float MinValue;
+    float MaxValue;
 };
 
 struct TFloatFeatureHistogram {
@@ -119,21 +101,14 @@ public:
         : Borders(borders), Nans(0), MinusInf(0), PlusInf(0)
     {}
 
-    void Update(TFloatFeatureHistogram &histograms);
+    void Update(const TFloatFeatureHistogram &histograms);
 
-    void CalcUniformHistogram(const TVector<float>& features, const TVector<ui64>& count={});
+    void CalcUniformHistogram(const TVector<float>& features);
 
     void CalcHistogramWithBorders(const TVector<float>& featureColumn);
 
     // featuresColumn will be shuffled after call
     void CalcHistogramWithBorders(TVector<float>* featureColumnPtr);
-
-    TVector<ui64> GetHistogram() const;
-
-    bool operator==(const TFloatFeatureHistogram& a) const {
-        return std::tie(Histogram, Borders, Nans, MinusInf, PlusInf) ==
-               std::tie(a.Histogram, a.Borders, a.Nans, a.MinusInf, a.PlusInf);
-    }
 
     Y_SAVELOAD_DEFINE(
         Histogram,
@@ -155,10 +130,6 @@ public:
 
 private:
     bool ProcessNotNummeric(float f);
-
-    void ConvertBitToUniformIfNeeded();
-
-    void ConvertBitToUniform();
 
 public:
     TVector<ui64> Histogram;
@@ -182,7 +153,7 @@ public:
 
     NJson::TJsonValue ToJson() const;
 
-    void Update(THistograms& histograms);
+    void Update(const THistograms& histograms);
 
     void AddFloatFeatureUniformHistogram(
         ui32 featureId,

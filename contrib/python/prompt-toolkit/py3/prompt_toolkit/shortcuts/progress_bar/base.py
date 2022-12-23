@@ -15,7 +15,6 @@ import threading
 import traceback
 from asyncio import new_event_loop, set_event_loop
 from typing import (
-    Callable,
     Generic,
     Iterable,
     Iterator,
@@ -70,7 +69,7 @@ E = KeyPressEvent
 _SIGWINCH = getattr(signal, "SIGWINCH", None)
 
 
-def create_key_bindings(cancel_callback: Optional[Callable[[], None]]) -> KeyBindings:
+def create_key_bindings() -> KeyBindings:
     """
     Key bindings handled by the progress bar.
     (The main thread is not supposed to handle any key bindings.)
@@ -81,13 +80,10 @@ def create_key_bindings(cancel_callback: Optional[Callable[[], None]]) -> KeyBin
     def _clear(event: E) -> None:
         event.app.renderer.clear()
 
-    if cancel_callback is not None:
-
-        @kb.add("c-c")
-        def _interrupt(event: E) -> None:
-            "Kill the 'body' of the progress bar, but only if we run from the main thread."
-            assert cancel_callback is not None
-            cancel_callback()
+    @kb.add("c-c")
+    def _interrupt(event: E) -> None:
+        # Send KeyboardInterrupt to the main thread.
+        os.kill(os.getpid(), signal.SIGINT)
 
     return kb
 
@@ -112,9 +108,6 @@ class ProgressBar:
         can be a callable or formatted text.
     :param style: :class:`prompt_toolkit.styles.BaseStyle` instance.
     :param key_bindings: :class:`.KeyBindings` instance.
-    :param cancel_callback: Callback function that's called when control-c is
-        pressed by the user. This can be used for instance to start "proper"
-        cancellation if the wrapped code supports it.
     :param file: The file object used for rendering, by default `sys.stderr` is used.
 
     :param color_depth: `prompt_toolkit` `ColorDepth` instance.
@@ -129,7 +122,6 @@ class ProgressBar:
         bottom_toolbar: AnyFormattedText = None,
         style: Optional[BaseStyle] = None,
         key_bindings: Optional[KeyBindings] = None,
-        cancel_callback: Optional[Callable[[], None]] = None,
         file: Optional[TextIO] = None,
         color_depth: Optional[ColorDepth] = None,
         output: Optional[Output] = None,
@@ -142,20 +134,6 @@ class ProgressBar:
         self.counters: List[ProgressBarCounter[object]] = []
         self.style = style
         self.key_bindings = key_bindings
-        self.cancel_callback = cancel_callback
-
-        # If no `cancel_callback` was given, and we're creating the progress
-        # bar from the main thread. Cancel by sending a `KeyboardInterrupt` to
-        # the main thread.
-        if (
-            self.cancel_callback is None
-            and threading.currentThread() == threading.main_thread()
-        ):
-
-            def keyboard_interrupt_to_main_thread() -> None:
-                os.kill(os.getpid(), signal.SIGINT)
-
-            self.cancel_callback = keyboard_interrupt_to_main_thread
 
         # Note that we use __stderr__ as default error output, because that
         # works best with `patch_stdout`.
@@ -165,6 +143,7 @@ class ProgressBar:
 
         self._thread: Optional[threading.Thread] = None
 
+        self._loop = get_event_loop()
         self._app_loop = new_event_loop()
         self._has_sigwinch = False
         self._app_started = threading.Event()
@@ -200,7 +179,7 @@ class ProgressBar:
 
         progress_controls = [
             Window(
-                content=_ProgressControl(self, f, self.cancel_callback),
+                content=_ProgressControl(self, f),
                 width=functools.partial(width_for_formatter, f),
             )
             for f in self.formatters
@@ -292,15 +271,10 @@ class _ProgressControl(UIControl):
     User control for the progress bar.
     """
 
-    def __init__(
-        self,
-        progress_bar: ProgressBar,
-        formatter: Formatter,
-        cancel_callback: Optional[Callable[[], None]],
-    ) -> None:
+    def __init__(self, progress_bar: ProgressBar, formatter: Formatter) -> None:
         self.progress_bar = progress_bar
         self.formatter = formatter
-        self._key_bindings = create_key_bindings(cancel_callback)
+        self._key_bindings = create_key_bindings()
 
     def create_content(self, width: int, height: int) -> UIContent:
         items: List[StyleAndTextTuples] = []

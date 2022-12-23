@@ -3,7 +3,8 @@
 Cython implementations of functions resembling the stdlib calendar module
 """
 
-cimport cython
+import cython
+
 from numpy cimport (
     int32_t,
     int64_t,
@@ -47,6 +48,11 @@ DAYS_FULL = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
 int_to_weekday = {num: name for num, name in enumerate(DAYS)}
 weekday_to_int = {int_to_weekday[key]: key for key in int_to_weekday}
 
+DAY_SECONDS = 86400
+HOUR_SECONDS = 3600
+
+cdef int64_t DAY_NANOS = DAY_SECONDS * 1_000_000_000
+cdef int64_t HOUR_NANOS = HOUR_SECONDS * 1_000_000_000
 
 # ----------------------------------------------------------------------
 

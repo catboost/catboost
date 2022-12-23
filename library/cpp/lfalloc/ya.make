@@ -8,7 +8,7 @@ NO_COMPILER_WARNINGS()
 
 IF (ARCH_AARCH64)
     PEERDIR(
-        library/cpp/malloc/jemalloc
+        contrib/libs/jemalloc
     )
 ELSE()
     SRCS(

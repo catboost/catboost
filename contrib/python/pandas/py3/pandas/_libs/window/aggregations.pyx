@@ -1,11 +1,8 @@
 # cython: boundscheck=False, wraparound=False, cdivision=True
 
-cimport cython
-from libc.math cimport (
-    round,
-    signbit,
-    sqrt,
-)
+import cython
+
+from libc.math cimport round
 from libcpp.deque cimport deque
 
 from pandas._libs.algos cimport TiebreakEnumType
@@ -22,8 +19,14 @@ from numpy cimport (
 
 cnp.import_array()
 
-from pandas._libs.algos import is_monotonic
 
+cdef extern from "../src/headers/cmath" namespace "std":
+    bint isnan(float64_t) nogil
+    bint notnan(float64_t) nogil
+    int signbit(float64_t) nogil
+    float64_t sqrt(float64_t x) nogil
+
+from pandas._libs.algos import is_monotonic
 from pandas._libs.dtypes cimport numeric_t
 
 
@@ -69,19 +72,14 @@ cdef bint is_monotonic_increasing_start_end_bounds(
 # Rolling sum
 
 
-cdef inline float64_t calc_sum(int64_t minp, int64_t nobs, float64_t sum_x,
-                               int64_t num_consecutive_same_value, float64_t prev_value
-                               ) nogil:
+cdef inline float64_t calc_sum(int64_t minp, int64_t nobs, float64_t sum_x) nogil:
     cdef:
         float64_t result
 
     if nobs == 0 == minp:
         result = 0
     elif nobs >= minp:
-        if num_consecutive_same_value >= nobs:
-            result = prev_value * nobs
-        else:
-            result = sum_x
+        result = sum_x
     else:
         result = NaN
 
@@ -89,28 +87,19 @@ cdef inline float64_t calc_sum(int64_t minp, int64_t nobs, float64_t sum_x,
 
 
 cdef inline void add_sum(float64_t val, int64_t *nobs, float64_t *sum_x,
-                         float64_t *compensation, int64_t *num_consecutive_same_value,
-                         float64_t *prev_value) nogil:
+                         float64_t *compensation) nogil:
     """ add a value from the sum calc using Kahan summation """
 
     cdef:
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] + 1
         y = val - compensation[0]
         t = sum_x[0] + y
         compensation[0] = t - sum_x[0] - y
         sum_x[0] = t
-
-        # GH#42064, record num of same values to remove floating point artifacts
-        if val == prev_value[0]:
-            num_consecutive_same_value[0] += 1
-        else:
-            # reset to 1 (include current value itself)
-            num_consecutive_same_value[0] = 1
-        prev_value[0] = val
 
 
 cdef inline void remove_sum(float64_t val, int64_t *nobs, float64_t *sum_x,
@@ -121,7 +110,7 @@ cdef inline void remove_sum(float64_t val, int64_t *nobs, float64_t *sum_x,
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
         y = - val - compensation[0]
         t = sum_x[0] + y
@@ -133,8 +122,8 @@ def roll_sum(const float64_t[:] values, ndarray[int64_t] start,
              ndarray[int64_t] end, int64_t minp) -> np.ndarray:
     cdef:
         Py_ssize_t i, j
-        float64_t sum_x, compensation_add, compensation_remove, prev_value
-        int64_t s, e, num_consecutive_same_value
+        float64_t sum_x, compensation_add, compensation_remove
+        int64_t s, e
         int64_t nobs = 0, N = len(start)
         ndarray[float64_t] output
         bint is_monotonic_increasing_bounds
@@ -153,13 +142,11 @@ def roll_sum(const float64_t[:] values, ndarray[int64_t] start,
             if i == 0 or not is_monotonic_increasing_bounds or s >= end[i - 1]:
 
                 # setup
-                prev_value = values[s]
-                num_consecutive_same_value = 0
+
                 sum_x = compensation_add = compensation_remove = 0
                 nobs = 0
                 for j in range(s, e):
-                    add_sum(values[j], &nobs, &sum_x, &compensation_add,
-                            &num_consecutive_same_value, &prev_value)
+                    add_sum(values[j], &nobs, &sum_x, &compensation_add)
 
             else:
 
@@ -169,10 +156,9 @@ def roll_sum(const float64_t[:] values, ndarray[int64_t] start,
 
                 # calculate adds
                 for j in range(end[i - 1], e):
-                    add_sum(values[j], &nobs, &sum_x, &compensation_add,
-                            &num_consecutive_same_value, &prev_value)
+                    add_sum(values[j], &nobs, &sum_x, &compensation_add)
 
-            output[i] = calc_sum(minp, nobs, sum_x, num_consecutive_same_value, prev_value)
+            output[i] = calc_sum(minp, nobs, sum_x)
 
             if not is_monotonic_increasing_bounds:
                 nobs = 0
@@ -186,17 +172,14 @@ def roll_sum(const float64_t[:] values, ndarray[int64_t] start,
 # Rolling mean
 
 
-cdef inline float64_t calc_mean(int64_t minp, Py_ssize_t nobs, Py_ssize_t neg_ct,
-                                float64_t sum_x, int64_t num_consecutive_same_value,
-                                float64_t prev_value) nogil:
+cdef inline float64_t calc_mean(int64_t minp, Py_ssize_t nobs,
+                                Py_ssize_t neg_ct, float64_t sum_x) nogil:
     cdef:
         float64_t result
 
     if nobs >= minp and nobs > 0:
         result = sum_x / <float64_t>nobs
-        if num_consecutive_same_value >= nobs:
-            result = prev_value
-        elif neg_ct == 0 and result < 0:
+        if neg_ct == 0 and result < 0:
             # all positive
             result = 0
         elif neg_ct == nobs and result > 0:
@@ -210,14 +193,13 @@ cdef inline float64_t calc_mean(int64_t minp, Py_ssize_t nobs, Py_ssize_t neg_ct
 
 
 cdef inline void add_mean(float64_t val, Py_ssize_t *nobs, float64_t *sum_x,
-                          Py_ssize_t *neg_ct, float64_t *compensation,
-                          int64_t *num_consecutive_same_value, float64_t *prev_value) nogil:
+                          Py_ssize_t *neg_ct, float64_t *compensation) nogil:
     """ add a value from the mean calc using Kahan summation """
     cdef:
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] + 1
         y = val - compensation[0]
         t = sum_x[0] + y
@@ -226,14 +208,6 @@ cdef inline void add_mean(float64_t val, Py_ssize_t *nobs, float64_t *sum_x,
         if signbit(val):
             neg_ct[0] = neg_ct[0] + 1
 
-        # GH#42064, record num of same values to remove floating point artifacts
-        if val == prev_value[0]:
-            num_consecutive_same_value[0] += 1
-        else:
-            # reset to 1 (include current value itself)
-            num_consecutive_same_value[0] = 1
-        prev_value[0] = val
-
 
 cdef inline void remove_mean(float64_t val, Py_ssize_t *nobs, float64_t *sum_x,
                              Py_ssize_t *neg_ct, float64_t *compensation) nogil:
@@ -241,7 +215,7 @@ cdef inline void remove_mean(float64_t val, Py_ssize_t *nobs, float64_t *sum_x,
     cdef:
         float64_t y, t
 
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
         y = - val - compensation[0]
         t = sum_x[0] + y
@@ -254,8 +228,8 @@ cdef inline void remove_mean(float64_t val, Py_ssize_t *nobs, float64_t *sum_x,
 def roll_mean(const float64_t[:] values, ndarray[int64_t] start,
               ndarray[int64_t] end, int64_t minp) -> np.ndarray:
     cdef:
-        float64_t val, compensation_add, compensation_remove, sum_x, prev_value
-        int64_t s, e, num_consecutive_same_value
+        float64_t val, compensation_add, compensation_remove, sum_x
+        int64_t s, e
         Py_ssize_t nobs, i, j, neg_ct, N = len(start)
         ndarray[float64_t] output
         bint is_monotonic_increasing_bounds
@@ -273,15 +247,12 @@ def roll_mean(const float64_t[:] values, ndarray[int64_t] start,
 
             if i == 0 or not is_monotonic_increasing_bounds or s >= end[i - 1]:
 
-                # setup
                 compensation_add = compensation_remove = sum_x = 0
                 nobs = neg_ct = 0
-                prev_value = values[s]
-                num_consecutive_same_value = 0
+                # setup
                 for j in range(s, e):
                     val = values[j]
-                    add_mean(val, &nobs, &sum_x, &neg_ct, &compensation_add,
-                             &num_consecutive_same_value, &prev_value)
+                    add_mean(val, &nobs, &sum_x, &neg_ct, &compensation_add)
 
             else:
 
@@ -293,10 +264,9 @@ def roll_mean(const float64_t[:] values, ndarray[int64_t] start,
                 # calculate adds
                 for j in range(end[i - 1], e):
                     val = values[j]
-                    add_mean(val, &nobs, &sum_x, &neg_ct, &compensation_add,
-                             &num_consecutive_same_value, &prev_value)
+                    add_mean(val, &nobs, &sum_x, &neg_ct, &compensation_add)
 
-            output[i] = calc_mean(minp, nobs, neg_ct, sum_x, num_consecutive_same_value, prev_value)
+            output[i] = calc_mean(minp, nobs, neg_ct, sum_x)
 
             if not is_monotonic_increasing_bounds:
                 nobs = 0
@@ -310,15 +280,15 @@ def roll_mean(const float64_t[:] values, ndarray[int64_t] start,
 
 
 cdef inline float64_t calc_var(int64_t minp, int ddof, float64_t nobs,
-                               float64_t ssqdm_x, int64_t num_consecutive_same_value) nogil:
+                               float64_t ssqdm_x) nogil:
     cdef:
         float64_t result
 
     # Variance is unchanged if no observation is added or removed
     if (nobs >= minp) and (nobs > ddof):
 
-        # pathological case & repeatedly same values case
-        if nobs == 1 or num_consecutive_same_value >= nobs:
+        # pathological case
+        if nobs == 1:
             result = 0
         else:
             result = ssqdm_x / (nobs - <float64_t>ddof)
@@ -329,26 +299,16 @@ cdef inline float64_t calc_var(int64_t minp, int ddof, float64_t nobs,
 
 
 cdef inline void add_var(float64_t val, float64_t *nobs, float64_t *mean_x,
-                         float64_t *ssqdm_x, float64_t *compensation,
-                         int64_t *num_consecutive_same_value, float64_t *prev_value) nogil:
+                         float64_t *ssqdm_x, float64_t *compensation) nogil:
     """ add a value from the var calc """
     cdef:
         float64_t delta, prev_mean, y, t
 
-    # GH#21813, if msvc 2017 bug is resolved, we should be OK with != instead of `isnan`
-    if val != val:
+    # `isnan` instead of equality as fix for GH-21813, msvc 2017 bug
+    if isnan(val):
         return
 
     nobs[0] = nobs[0] + 1
-
-    # GH#42064, record num of same values to remove floating point artifacts
-    if val == prev_value[0]:
-        num_consecutive_same_value[0] += 1
-    else:
-        # reset to 1 (include current value itself)
-        num_consecutive_same_value[0] = 1
-    prev_value[0] = val
-
     # Welford's method for the online variance-calculation
     # using Kahan summation
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -369,7 +329,7 @@ cdef inline void remove_var(float64_t val, float64_t *nobs, float64_t *mean_x,
     """ remove a value from the var calc """
     cdef:
         float64_t delta, prev_mean, y, t
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
         if nobs[0]:
             # Welford's method for the online variance-calculation
@@ -394,8 +354,9 @@ def roll_var(const float64_t[:] values, ndarray[int64_t] start,
     """
     cdef:
         float64_t mean_x, ssqdm_x, nobs, compensation_add,
-        float64_t compensation_remove, prev_value
-        int64_t s, e, num_consecutive_same_value
+        float64_t compensation_remove,
+        float64_t val, prev, delta, mean_x_old
+        int64_t s, e
         Py_ssize_t i, j, N = len(start)
         ndarray[float64_t] output
         bint is_monotonic_increasing_bounds
@@ -417,13 +378,9 @@ def roll_var(const float64_t[:] values, ndarray[int64_t] start,
             # never removed
             if i == 0 or not is_monotonic_increasing_bounds or s >= end[i - 1]:
 
-                prev_value = values[s]
-                num_consecutive_same_value = 0
-
                 mean_x = ssqdm_x = nobs = compensation_add = compensation_remove = 0
                 for j in range(s, e):
-                    add_var(values[j], &nobs, &mean_x, &ssqdm_x, &compensation_add,
-                            &num_consecutive_same_value, &prev_value)
+                    add_var(values[j], &nobs, &mean_x, &ssqdm_x, &compensation_add)
 
             else:
 
@@ -437,10 +394,9 @@ def roll_var(const float64_t[:] values, ndarray[int64_t] start,
 
                 # calculate adds
                 for j in range(end[i - 1], e):
-                    add_var(values[j], &nobs, &mean_x, &ssqdm_x, &compensation_add,
-                            &num_consecutive_same_value, &prev_value)
+                    add_var(values[j], &nobs, &mean_x, &ssqdm_x, &compensation_add)
 
-            output[i] = calc_var(minp, ddof, nobs, ssqdm_x, num_consecutive_same_value)
+            output[i] = calc_var(minp, ddof, nobs, ssqdm_x)
 
             if not is_monotonic_increasing_bounds:
                 nobs = 0.0
@@ -455,9 +411,8 @@ def roll_var(const float64_t[:] values, ndarray[int64_t] start,
 
 
 cdef inline float64_t calc_skew(int64_t minp, int64_t nobs,
-                                float64_t x, float64_t xx, float64_t xxx,
-                                int64_t num_consecutive_same_value
-                                ) nogil:
+                                float64_t x, float64_t xx,
+                                float64_t xxx) nogil:
     cdef:
         float64_t result, dnobs
         float64_t A, B, C, R
@@ -468,12 +423,6 @@ cdef inline float64_t calc_skew(int64_t minp, int64_t nobs,
         B = xx / dnobs - A * A
         C = xxx / dnobs - A * A * A - 3 * A * B
 
-        if nobs < 3:
-            result = NaN
-        # GH 42064 46431
-        # uniform case, force result to be 0
-        elif num_consecutive_same_value >= nobs:
-            result = 0.0
         # #18044: with uniform distribution, floating issue will
         #         cause B != 0. and cause the result is a very
         #         large number.
@@ -483,7 +432,7 @@ cdef inline float64_t calc_skew(int64_t minp, int64_t nobs,
         #         if the variance is less than 1e-14, it could be
         #         treat as zero, here we follow the original
         #         skew/kurt behaviour to check B <= 1e-14
-        elif B <= 1e-14:
+        if B <= 1e-14 or nobs < 3:
             result = NaN
         else:
             R = sqrt(B)
@@ -500,16 +449,13 @@ cdef inline void add_skew(float64_t val, int64_t *nobs,
                           float64_t *xxx,
                           float64_t *compensation_x,
                           float64_t *compensation_xx,
-                          float64_t *compensation_xxx,
-                          int64_t *num_consecutive_same_value,
-                          float64_t *prev_value,
-                          ) nogil:
+                          float64_t *compensation_xxx) nogil:
     """ add a value from the skew calc """
     cdef:
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] + 1
 
         y = val - compensation_x[0]
@@ -525,14 +471,6 @@ cdef inline void add_skew(float64_t val, int64_t *nobs,
         compensation_xxx[0] = t - xxx[0] - y
         xxx[0] = t
 
-        # GH#42064, record num of same values to remove floating point artifacts
-        if val == prev_value[0]:
-            num_consecutive_same_value[0] += 1
-        else:
-            # reset to 1 (include current value itself)
-            num_consecutive_same_value[0] = 1
-        prev_value[0] = val
-
 
 cdef inline void remove_skew(float64_t val, int64_t *nobs,
                              float64_t *x, float64_t *xx,
@@ -545,7 +483,7 @@ cdef inline void remove_skew(float64_t val, int64_t *nobs,
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
 
         y = - val - compensation_x[0]
@@ -571,9 +509,8 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
         float64_t compensation_xx_add, compensation_xx_remove
         float64_t compensation_x_add, compensation_x_remove
         float64_t x, xx, xxx
-        float64_t prev_value
         int64_t nobs = 0, N = len(start), V = len(values), nobs_mean = 0
-        int64_t s, e, num_consecutive_same_value
+        int64_t s, e
         ndarray[float64_t] output, mean_array, values_copy
         bint is_monotonic_increasing_bounds
 
@@ -588,7 +525,7 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
     with nogil:
         for i in range(0, V):
             val = values_copy[i]
-            if val == val:
+            if notnan(val):
                 nobs_mean += 1
                 sum_val += val
         mean_val = sum_val / nobs_mean
@@ -607,9 +544,6 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
             # never removed
             if i == 0 or not is_monotonic_increasing_bounds or s >= end[i - 1]:
 
-                prev_value = values[s]
-                num_consecutive_same_value = 0
-
                 compensation_xxx_add = compensation_xxx_remove = 0
                 compensation_xx_add = compensation_xx_remove = 0
                 compensation_x_add = compensation_x_remove = 0
@@ -618,8 +552,7 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
                 for j in range(s, e):
                     val = values_copy[j]
                     add_skew(val, &nobs, &x, &xx, &xxx, &compensation_x_add,
-                             &compensation_xx_add, &compensation_xxx_add,
-                             &num_consecutive_same_value, &prev_value)
+                             &compensation_xx_add, &compensation_xxx_add)
 
             else:
 
@@ -635,10 +568,9 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
                 for j in range(end[i - 1], e):
                     val = values_copy[j]
                     add_skew(val, &nobs, &x, &xx, &xxx, &compensation_x_add,
-                             &compensation_xx_add, &compensation_xxx_add,
-                             &num_consecutive_same_value, &prev_value)
+                             &compensation_xx_add, &compensation_xxx_add)
 
-            output[i] = calc_skew(minp, nobs, x, xx, xxx, num_consecutive_same_value)
+            output[i] = calc_skew(minp, nobs, x, xx, xxx)
 
             if not is_monotonic_increasing_bounds:
                 nobs = 0
@@ -654,44 +586,35 @@ def roll_skew(ndarray[float64_t] values, ndarray[int64_t] start,
 
 cdef inline float64_t calc_kurt(int64_t minp, int64_t nobs,
                                 float64_t x, float64_t xx,
-                                float64_t xxx, float64_t xxxx,
-                                int64_t num_consecutive_same_value,
-                                ) nogil:
+                                float64_t xxx, float64_t xxxx) nogil:
     cdef:
         float64_t result, dnobs
         float64_t A, B, C, D, R, K
 
     if nobs >= minp:
-        if nobs < 4:
-            result = NaN
-        # GH 42064 46431
-        # uniform case, force result to be -3.
-        elif num_consecutive_same_value >= nobs:
-            result = -3.
-        else:
-            dnobs = <float64_t>nobs
-            A = x / dnobs
-            R = A * A
-            B = xx / dnobs - R
-            R = R * A
-            C = xxx / dnobs - R - 3 * A * B
-            R = R * A
-            D = xxxx / dnobs - R - 6 * B * A * A - 4 * C * A
+        dnobs = <float64_t>nobs
+        A = x / dnobs
+        R = A * A
+        B = xx / dnobs - R
+        R = R * A
+        C = xxx / dnobs - R - 3 * A * B
+        R = R * A
+        D = xxxx / dnobs - R - 6 * B * A * A - 4 * C * A
 
-            # #18044: with uniform distribution, floating issue will
-            #         cause B != 0. and cause the result is a very
-            #         large number.
-            #
-            #         in core/nanops.py nanskew/nankurt call the function
-            #         _zero_out_fperr(m2) to fix floating error.
-            #         if the variance is less than 1e-14, it could be
-            #         treat as zero, here we follow the original
-            #         skew/kurt behaviour to check B <= 1e-14
-            if B <= 1e-14:
-                result = NaN
-            else:
-                K = (dnobs * dnobs - 1.) * D / (B * B) - 3 * ((dnobs - 1.) ** 2)
-                result = K / ((dnobs - 2.) * (dnobs - 3.))
+        # #18044: with uniform distribution, floating issue will
+        #         cause B != 0. and cause the result is a very
+        #         large number.
+        #
+        #         in core/nanops.py nanskew/nankurt call the function
+        #         _zero_out_fperr(m2) to fix floating error.
+        #         if the variance is less than 1e-14, it could be
+        #         treat as zero, here we follow the original
+        #         skew/kurt behaviour to check B <= 1e-14
+        if B <= 1e-14 or nobs < 4:
+            result = NaN
+        else:
+            K = (dnobs * dnobs - 1.) * D / (B * B) - 3 * ((dnobs - 1.) ** 2)
+            result = K / ((dnobs - 2.) * (dnobs - 3.))
     else:
         result = NaN
 
@@ -704,16 +627,13 @@ cdef inline void add_kurt(float64_t val, int64_t *nobs,
                           float64_t *compensation_x,
                           float64_t *compensation_xx,
                           float64_t *compensation_xxx,
-                          float64_t *compensation_xxxx,
-                          int64_t *num_consecutive_same_value,
-                          float64_t *prev_value
-                          ) nogil:
+                          float64_t *compensation_xxxx) nogil:
     """ add a value from the kurotic calc """
     cdef:
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] + 1
 
         y = val - compensation_x[0]
@@ -733,14 +653,6 @@ cdef inline void add_kurt(float64_t val, int64_t *nobs,
         compensation_xxxx[0] = t - xxxx[0] - y
         xxxx[0] = t
 
-        # GH#42064, record num of same values to remove floating point artifacts
-        if val == prev_value[0]:
-            num_consecutive_same_value[0] += 1
-        else:
-            # reset to 1 (include current value itself)
-            num_consecutive_same_value[0] = 1
-        prev_value[0] = val
-
 
 cdef inline void remove_kurt(float64_t val, int64_t *nobs,
                              float64_t *x, float64_t *xx,
@@ -754,7 +666,7 @@ cdef inline void remove_kurt(float64_t val, int64_t *nobs,
         float64_t y, t
 
     # Not NaN
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
 
         y = - val - compensation_x[0]
@@ -785,9 +697,7 @@ def roll_kurt(ndarray[float64_t] values, ndarray[int64_t] start,
         float64_t compensation_xx_remove, compensation_xx_add
         float64_t compensation_x_remove, compensation_x_add
         float64_t x, xx, xxx, xxxx
-        float64_t prev_value
-        int64_t nobs, s, e, num_consecutive_same_value
-        int64_t N = len(start), V = len(values), nobs_mean = 0
+        int64_t nobs, s, e, N = len(start), V = len(values), nobs_mean = 0
         ndarray[float64_t] output, values_copy
         bint is_monotonic_increasing_bounds
 
@@ -802,7 +712,7 @@ def roll_kurt(ndarray[float64_t] values, ndarray[int64_t] start,
     with nogil:
         for i in range(0, V):
             val = values_copy[i]
-            if val == val:
+            if notnan(val):
                 nobs_mean += 1
                 sum_val += val
         mean_val = sum_val / nobs_mean
@@ -821,9 +731,6 @@ def roll_kurt(ndarray[float64_t] values, ndarray[int64_t] start,
             # never removed
             if i == 0 or not is_monotonic_increasing_bounds or s >= end[i - 1]:
 
-                prev_value = values[s]
-                num_consecutive_same_value = 0
-
                 compensation_xxxx_add = compensation_xxxx_remove = 0
                 compensation_xxx_remove = compensation_xxx_add = 0
                 compensation_xx_remove = compensation_xx_add = 0
@@ -833,8 +740,7 @@ def roll_kurt(ndarray[float64_t] values, ndarray[int64_t] start,
                 for j in range(s, e):
                     add_kurt(values_copy[j], &nobs, &x, &xx, &xxx, &xxxx,
                              &compensation_x_add, &compensation_xx_add,
-                             &compensation_xxx_add, &compensation_xxxx_add,
-                             &num_consecutive_same_value, &prev_value)
+                             &compensation_xxx_add, &compensation_xxxx_add)
 
             else:
 
@@ -850,10 +756,9 @@ def roll_kurt(ndarray[float64_t] values, ndarray[int64_t] start,
                 for j in range(end[i - 1], e):
                     add_kurt(values_copy[j], &nobs, &x, &xx, &xxx, &xxxx,
                              &compensation_x_add, &compensation_xx_add,
-                             &compensation_xxx_add, &compensation_xxxx_add,
-                             &num_consecutive_same_value, &prev_value)
+                             &compensation_xxx_add, &compensation_xxxx_add)
 
-            output[i] = calc_kurt(minp, nobs, x, xx, xxx, xxxx, num_consecutive_same_value)
+            output[i] = calc_kurt(minp, nobs, x, xx, xxx, xxxx)
 
             if not is_monotonic_increasing_bounds:
                 nobs = 0
@@ -911,7 +816,7 @@ def roll_median_c(const float64_t[:] values, ndarray[int64_t] start,
                 # setup
                 for j in range(s, e):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         err = skiplist_insert(sl, val) == -1
                         if err:
@@ -922,7 +827,7 @@ def roll_median_c(const float64_t[:] values, ndarray[int64_t] start,
                 # calculate adds
                 for j in range(end[i - 1], e):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         err = skiplist_insert(sl, val) == -1
                         if err:
@@ -931,7 +836,7 @@ def roll_median_c(const float64_t[:] values, ndarray[int64_t] start,
                 # calculate deletes
                 for j in range(start[i - 1], s):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         skiplist_remove(sl, val)
                         nobs -= 1
             if nobs >= minp:
@@ -1192,7 +1097,7 @@ def roll_quantile(const float64_t[:] values, ndarray[int64_t] start,
                 # setup
                 for j in range(s, e):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         skiplist_insert(skiplist, val)
 
@@ -1200,14 +1105,14 @@ def roll_quantile(const float64_t[:] values, ndarray[int64_t] start,
                 # calculate adds
                 for j in range(end[i - 1], e):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         skiplist_insert(skiplist, val)
 
                 # calculate deletes
                 for j in range(start[i - 1], s):
                     val = values[j]
-                    if val == val:
+                    if notnan(val):
                         skiplist_remove(skiplist, val)
                         nobs -= 1
             if nobs >= minp:
@@ -1317,7 +1222,7 @@ def roll_rank(const float64_t[:] values, ndarray[int64_t] start,
                 # setup
                 for j in range(s, e):
                     val = values[j] if ascending else -values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         rank = skiplist_insert(skiplist, val)
                         if rank == -1:
@@ -1344,14 +1249,14 @@ def roll_rank(const float64_t[:] values, ndarray[int64_t] start,
                 # calculate deletes
                 for j in range(start[i - 1], s):
                     val = values[j] if ascending else -values[j]
-                    if val == val:
+                    if notnan(val):
                         skiplist_remove(skiplist, val)
                         nobs -= 1
 
                 # calculate adds
                 for j in range(end[i - 1], e):
                     val = values[j] if ascending else -values[j]
-                    if val == val:
+                    if notnan(val):
                         nobs += 1
                         rank = skiplist_insert(skiplist, val)
                         if rank == -1:
@@ -1420,13 +1325,13 @@ def roll_apply(object obj,
 
 def roll_weighted_sum(
     const float64_t[:] values, const float64_t[:] weights, int minp
-) -> np.ndarray:
+) -> np.ndaray:
     return _roll_weighted_sum_mean(values, weights, minp, avg=0)
 
 
 def roll_weighted_mean(
     const float64_t[:] values, const float64_t[:] weights, int minp
-) -> np.ndarray:
+) -> np.ndaray:
     return _roll_weighted_sum_mean(values, weights, minp, avg=1)
 
 
@@ -1587,7 +1492,7 @@ cdef inline void add_weighted_var(float64_t val,
     cdef:
         float64_t temp, q, r
 
-    if val != val:
+    if isnan(val):
         return
 
     nobs[0] = nobs[0] + 1
@@ -1633,7 +1538,7 @@ cdef inline void remove_weighted_var(float64_t val,
     cdef:
         float64_t temp, q, r
 
-    if val == val:
+    if notnan(val):
         nobs[0] = nobs[0] - 1
 
         if nobs[0]:
@@ -1689,7 +1594,7 @@ def roll_weighted_var(const float64_t[:] values, const float64_t[:] weights,
 
     with nogil:
 
-        for i in range(min(win_n, n)):
+        for i in range(win_n):
             add_weighted_var(values[i], weights[i], &t,
                              &sum_w, &mean, &nobs)
 
@@ -1703,7 +1608,7 @@ def roll_weighted_var(const float64_t[:] values, const float64_t[:] weights,
             w = weights[i % win_n]
             pre_w = weights[(i - win_n) % win_n]
 
-            if val == val:
+            if notnan(val):
                 if pre_val == pre_val:
                     remove_weighted_var(pre_val, pre_w, &t,
                                         &sum_w, &mean, &nobs)

@@ -1,4 +1,4 @@
-PY3TEST()
+PY23_TEST()
 
 
 

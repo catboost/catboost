@@ -10,7 +10,6 @@ add_subdirectory(ut)
 
 add_library(private-libs-quantization_schema)
 target_link_libraries(private-libs-quantization_schema PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   idl-pool-proto

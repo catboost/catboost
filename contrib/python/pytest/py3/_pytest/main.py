@@ -12,6 +12,7 @@ from typing import FrozenSet
 from typing import Iterator
 from typing import List
 from typing import Optional
+from typing import overload
 from typing import Sequence
 from typing import Set
 from typing import Tuple
@@ -24,7 +25,6 @@ import attr
 import _pytest._code
 from _pytest import nodes
 from _pytest.compat import final
-from _pytest.compat import overload
 from _pytest.config import Config
 from _pytest.config import directory_arg
 from _pytest.config import ExitCode
@@ -51,7 +51,7 @@ if TYPE_CHECKING:
 def pytest_addoption(parser: Parser) -> None:
     parser.addini(
         "norecursedirs",
-        "Directory patterns to avoid for recursion",
+        "directory patterns to avoid for recursion",
         type="args",
         default=[
             "*.egg",
@@ -67,26 +67,26 @@ def pytest_addoption(parser: Parser) -> None:
     )
     parser.addini(
         "testpaths",
-        "Directories to search for tests when no files or directories are given on the "
-        "command line",
+        "directories to search for tests when no files or directories are given in the "
+        "command line.",
         type="args",
         default=[],
     )
-    group = parser.getgroup("general", "Running and selection options")
+    group = parser.getgroup("general", "running and selection options")
     group._addoption(
         "-x",
         "--exitfirst",
         action="store_const",
         dest="maxfail",
         const=1,
-        help="Exit instantly on first error or failed test",
+        help="exit instantly on first error or failed test.",
     )
     group = parser.getgroup("pytest-warnings")
     group.addoption(
         "-W",
         "--pythonwarnings",
         action="append",
-        help="Set which warnings to report, see -W option of Python itself",
+        help="set which warnings to report, see -W option of python itself.",
     )
     parser.addini(
         "filterwarnings",
@@ -102,39 +102,37 @@ def pytest_addoption(parser: Parser) -> None:
         type=int,
         dest="maxfail",
         default=0,
-        help="Exit after first num failures or errors",
+        help="exit after first num failures or errors.",
     )
     group._addoption(
         "--strict-config",
         action="store_true",
-        help="Any warnings encountered while parsing the `pytest` section of the "
-        "configuration file raise errors",
+        help="any warnings encountered while parsing the `pytest` section of the configuration file raise errors.",
     )
     group._addoption(
         "--strict-markers",
         action="store_true",
-        help="Markers not registered in the `markers` section of the configuration "
-        "file raise errors",
+        help="markers not registered in the `markers` section of the configuration file raise errors.",
     )
     group._addoption(
         "--strict",
         action="store_true",
-        help="(Deprecated) alias to --strict-markers",
+        help="(deprecated) alias to --strict-markers.",
     )
     group._addoption(
         "-c",
         metavar="file",
         type=str,
         dest="inifilename",
-        help="Load configuration from `file` instead of trying to locate one of the "
-        "implicit configuration files",
+        help="load configuration from `file` instead of trying to locate one of the implicit "
+        "configuration files.",
     )
     group._addoption(
         "--continue-on-collection-errors",
         action="store_true",
         default=False,
         dest="continue_on_collection_errors",
-        help="Force test execution even if collection errors occur",
+        help="Force test execution even if collection errors occur.",
     )
     group._addoption(
         "--rootdir",
@@ -151,30 +149,30 @@ def pytest_addoption(parser: Parser) -> None:
         "--collect-only",
         "--co",
         action="store_true",
-        help="Only collect tests, don't execute them",
+        help="only collect tests, don't execute them.",
     )
     group.addoption(
         "--pyargs",
         action="store_true",
-        help="Try to interpret all arguments as Python packages",
+        help="try to interpret all arguments as python packages.",
     )
     group.addoption(
         "--ignore",
         action="append",
         metavar="path",
-        help="Ignore path during collection (multi-allowed)",
+        help="ignore path during collection (multi-allowed).",
     )
     group.addoption(
         "--ignore-glob",
         action="append",
         metavar="path",
-        help="Ignore path pattern during collection (multi-allowed)",
+        help="ignore path pattern during collection (multi-allowed).",
     )
     group.addoption(
         "--deselect",
         action="append",
         metavar="nodeid_prefix",
-        help="Deselect item (via node id prefix) during collection (multi-allowed)",
+        help="deselect item (via node id prefix) during collection (multi-allowed).",
     )
     group.addoption(
         "--confcutdir",
@@ -182,14 +180,14 @@ def pytest_addoption(parser: Parser) -> None:
         default=None,
         metavar="dir",
         type=functools.partial(directory_arg, optname="--confcutdir"),
-        help="Only load conftest.py's relative to specified dir",
+        help="only load conftest.py's relative to specified dir.",
     )
     group.addoption(
         "--noconftest",
         action="store_true",
         dest="noconftest",
         default=False,
-        help="Don't load any conftest.py files",
+        help="Don't load any conftest.py files.",
     )
     group.addoption(
         "--keepduplicates",
@@ -197,7 +195,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store_true",
         dest="keepduplicates",
         default=False,
-        help="Keep duplicate tests",
+        help="Keep duplicate tests.",
     )
     group.addoption(
         "--collect-in-virtualenv",
@@ -211,8 +209,8 @@ def pytest_addoption(parser: Parser) -> None:
         default="prepend",
         choices=["prepend", "append", "importlib"],
         dest="importmode",
-        help="Prepend/append to sys.path when importing test modules and conftest "
-        "files. Default: prepend.",
+        help="prepend/append to sys.path when importing test modules and conftest files, "
+        "default is to prepend.",
     )
 
     group = parser.getgroup("debugconfig", "test session debugging and configuration")
@@ -223,8 +221,8 @@ def pytest_addoption(parser: Parser) -> None:
         type=validate_basetemp,
         metavar="dir",
         help=(
-            "Base temporary directory for this test run. "
-            "(Warning: this directory is removed if it exists.)"
+            "base temporary directory for this test run."
+            "(warning: this directory is removed if it exists)"
         ),
     )
 
@@ -597,12 +595,12 @@ class Session(nodes.FSCollector):
         ...
 
     @overload
-    def perform_collect(  # noqa: F811
+    def perform_collect(
         self, args: Optional[Sequence[str]] = ..., genitems: bool = ...
     ) -> Sequence[Union[nodes.Item, nodes.Collector]]:
         ...
 
-    def perform_collect(  # noqa: F811
+    def perform_collect(
         self, args: Optional[Sequence[str]] = None, genitems: bool = True
     ) -> Sequence[Union[nodes.Item, nodes.Collector]]:
         """Perform the collection phase for this session.
@@ -647,14 +645,9 @@ class Session(nodes.FSCollector):
             self.trace.root.indent -= 1
             if self._notfound:
                 errors = []
-                for arg, collectors in self._notfound:
-                    if collectors:
-                        errors.append(
-                            f"not found: {arg}\n(no name {arg!r} in any of {collectors!r})"
-                        )
-                    else:
-                        errors.append(f"found no collectors for {arg}")
-
+                for arg, cols in self._notfound:
+                    line = f"(no name {arg!r} in any of {cols!r})"
+                    errors.append(f"not found: {arg}\n{line}")
                 raise UsageError(*errors)
             if not genitems:
                 items = rep.result

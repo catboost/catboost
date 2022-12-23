@@ -4,11 +4,10 @@ PY23_LIBRARY()
 
 PY_SRCS(
     __init__.py
-    config.py
-    context.py
     main.py
     rewrite.py
     yatest_tools.py
+    context.py
 )
 
 PEERDIR(
@@ -31,7 +30,3 @@ RESOURCE_FILES(
 )
 
 END()
-
-RECURSE_FOR_TESTS(
-    ut
-)

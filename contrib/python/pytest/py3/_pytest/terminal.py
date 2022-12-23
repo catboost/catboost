@@ -35,9 +35,7 @@ from _pytest import nodes
 from _pytest import timing
 from _pytest._code import ExceptionInfo
 from _pytest._code.code import ExceptionRepr
-from _pytest._io import TerminalWriter
 from _pytest._io.wcwidth import wcswidth
-from _pytest.assertion.util import running_on_ci
 from _pytest.compat import final
 from _pytest.config import _PluggyPlugin
 from _pytest.config import Config
@@ -112,28 +110,28 @@ class MoreQuietAction(argparse.Action):
 
 
 def pytest_addoption(parser: Parser) -> None:
-    group = parser.getgroup("terminal reporting", "Reporting", after="general")
+    group = parser.getgroup("terminal reporting", "reporting", after="general")
     group._addoption(
         "-v",
         "--verbose",
         action="count",
         default=0,
         dest="verbose",
-        help="Increase verbosity",
+        help="increase verbosity.",
     )
     group._addoption(
         "--no-header",
         action="store_true",
         default=False,
         dest="no_header",
-        help="Disable header",
+        help="disable header",
     )
     group._addoption(
         "--no-summary",
         action="store_true",
         default=False,
         dest="no_summary",
-        help="Disable summary",
+        help="disable summary",
     )
     group._addoption(
         "-q",
@@ -141,14 +139,14 @@ def pytest_addoption(parser: Parser) -> None:
         action=MoreQuietAction,
         default=0,
         dest="verbose",
-        help="Decrease verbosity",
+        help="decrease verbosity.",
     )
     group._addoption(
         "--verbosity",
         dest="verbose",
         type=int,
         default=0,
-        help="Set verbosity. Default: 0.",
+        help="set verbosity. Default is 0.",
     )
     group._addoption(
         "-r",
@@ -156,7 +154,7 @@ def pytest_addoption(parser: Parser) -> None:
         dest="reportchars",
         default=_REPORTCHARS_DEFAULT,
         metavar="chars",
-        help="Show extra test summary info as specified by chars: (f)ailed, "
+        help="show extra test summary info as specified by chars: (f)ailed, "
         "(E)rror, (s)kipped, (x)failed, (X)passed, "
         "(p)assed, (P)assed with output, (a)ll except passed (p/P), or (A)ll. "
         "(w)arnings are enabled by default (see --disable-warnings), "
@@ -168,7 +166,7 @@ def pytest_addoption(parser: Parser) -> None:
         default=False,
         dest="disable_warnings",
         action="store_true",
-        help="Disable warnings summary",
+        help="disable warnings summary",
     )
     group._addoption(
         "-l",
@@ -176,13 +174,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store_true",
         dest="showlocals",
         default=False,
-        help="Show locals in tracebacks (disabled by default)",
-    )
-    group._addoption(
-        "--no-showlocals",
-        action="store_false",
-        dest="showlocals",
-        help="Hide locals in tracebacks (negate --showlocals passed through addopts)",
+        help="show locals in tracebacks (disabled by default).",
     )
     group._addoption(
         "--tb",
@@ -191,7 +183,7 @@ def pytest_addoption(parser: Parser) -> None:
         dest="tbstyle",
         default="auto",
         choices=["auto", "long", "short", "no", "line", "native"],
-        help="Traceback print mode (auto/long/short/line/native/no)",
+        help="traceback print mode (auto/long/short/line/native/no).",
     )
     group._addoption(
         "--show-capture",
@@ -200,14 +192,14 @@ def pytest_addoption(parser: Parser) -> None:
         choices=["no", "stdout", "stderr", "log", "all"],
         default="all",
         help="Controls how captured stdout/stderr/log is shown on failed tests. "
-        "Default: all.",
+        "Default is 'all'.",
     )
     group._addoption(
         "--fulltrace",
         "--full-trace",
         action="store_true",
         default=False,
-        help="Don't cut any tracebacks (default is to cut)",
+        help="don't cut any tracebacks (default is to cut).",
     )
     group._addoption(
         "--color",
@@ -216,20 +208,18 @@ def pytest_addoption(parser: Parser) -> None:
         dest="color",
         default="auto",
         choices=["yes", "no", "auto"],
-        help="Color terminal output (yes/no/auto)",
+        help="color terminal output (yes/no/auto).",
     )
     group._addoption(
         "--code-highlight",
         default="yes",
         choices=["yes", "no"],
-        help="Whether code should be highlighted (only if --color is also enabled). "
-        "Default: yes.",
+        help="Whether code should be highlighted (only if --color is also enabled)",
     )
 
     parser.addini(
         "console_output_style",
-        help='Console output: "classic", or with additional progress information '
-        '("progress" (percentage) | "count")',
+        help='console output: "classic", or with additional progress information ("progress" (percentage) | "count").',
         default="progress",
     )
 
@@ -738,8 +728,8 @@ class TerminalReporter:
         if config.inipath:
             line += ", configfile: " + bestrelpath(config.rootpath, config.inipath)
 
-        if config.args_source == Config.ArgsSource.TESTPATHS:
-            testpaths: List[str] = config.getini("testpaths")
+        testpaths: List[str] = config.getini("testpaths")
+        if config.invocation_params.dir == config.rootpath and config.args == testpaths:
             line += ", testpaths: {}".format(", ".join(testpaths))
 
         result = [line]
@@ -1084,43 +1074,33 @@ class TerminalReporter:
         if not self.reportchars:
             return
 
-        def show_simple(lines: List[str], *, stat: str) -> None:
+        def show_simple(stat, lines: List[str]) -> None:
             failed = self.stats.get(stat, [])
             if not failed:
                 return
+            termwidth = self._tw.fullwidth
             config = self.config
             for rep in failed:
-                color = _color_for_type.get(stat, _color_for_type_default)
-                line = _get_line_with_reprcrash_message(
-                    config, rep, self._tw, {color: True}
-                )
+                line = _get_line_with_reprcrash_message(config, rep, termwidth)
                 lines.append(line)
 
         def show_xfailed(lines: List[str]) -> None:
             xfailed = self.stats.get("xfailed", [])
             for rep in xfailed:
                 verbose_word = rep._get_verbose_word(self.config)
-                markup_word = self._tw.markup(
-                    verbose_word, **{_color_for_type["warnings"]: True}
-                )
-                nodeid = _get_node_id_with_markup(self._tw, self.config, rep)
-                line = f"{markup_word} {nodeid}"
+                pos = _get_pos(self.config, rep)
+                lines.append(f"{verbose_word} {pos}")
                 reason = rep.wasxfail
                 if reason:
-                    line += " - " + str(reason)
-
-                lines.append(line)
+                    lines.append("  " + str(reason))
 
         def show_xpassed(lines: List[str]) -> None:
             xpassed = self.stats.get("xpassed", [])
             for rep in xpassed:
                 verbose_word = rep._get_verbose_word(self.config)
-                markup_word = self._tw.markup(
-                    verbose_word, **{_color_for_type["warnings"]: True}
-                )
-                nodeid = _get_node_id_with_markup(self._tw, self.config, rep)
+                pos = _get_pos(self.config, rep)
                 reason = rep.wasxfail
-                lines.append(f"{markup_word} {nodeid} {reason}")
+                lines.append(f"{verbose_word} {pos} {reason}")
 
         def show_skipped(lines: List[str]) -> None:
             skipped: List[CollectReport] = self.stats.get("skipped", [])
@@ -1128,27 +1108,24 @@ class TerminalReporter:
             if not fskips:
                 return
             verbose_word = skipped[0]._get_verbose_word(self.config)
-            markup_word = self._tw.markup(
-                verbose_word, **{_color_for_type["warnings"]: True}
-            )
-            prefix = "Skipped: "
             for num, fspath, lineno, reason in fskips:
-                if reason.startswith(prefix):
-                    reason = reason[len(prefix) :]
+                if reason.startswith("Skipped: "):
+                    reason = reason[9:]
                 if lineno is not None:
                     lines.append(
-                        "%s [%d] %s:%d: %s" % (markup_word, num, fspath, lineno, reason)
+                        "%s [%d] %s:%d: %s"
+                        % (verbose_word, num, fspath, lineno, reason)
                     )
                 else:
-                    lines.append("%s [%d] %s: %s" % (markup_word, num, fspath, reason))
+                    lines.append("%s [%d] %s: %s" % (verbose_word, num, fspath, reason))
 
         REPORTCHAR_ACTIONS: Mapping[str, Callable[[List[str]], None]] = {
             "x": show_xfailed,
             "X": show_xpassed,
-            "f": partial(show_simple, stat="failed"),
+            "f": partial(show_simple, "failed"),
             "s": show_skipped,
-            "p": partial(show_simple, stat="passed"),
-            "E": partial(show_simple, stat="error"),
+            "p": partial(show_simple, "passed"),
+            "E": partial(show_simple, "error"),
         }
 
         lines: List[str] = []
@@ -1158,7 +1135,7 @@ class TerminalReporter:
                 action(lines)
 
         if lines:
-            self.write_sep("=", "short test summary info", cyan=True, bold=True)
+            self.write_sep("=", "short test summary info")
             for line in lines:
                 self.write_line(line)
 
@@ -1272,14 +1249,9 @@ class TerminalReporter:
         return parts, main_color
 
 
-def _get_node_id_with_markup(tw: TerminalWriter, config: Config, rep: BaseReport):
+def _get_pos(config: Config, rep: BaseReport):
     nodeid = config.cwd_relative_nodeid(rep.nodeid)
-    path, *parts = nodeid.split("::")
-    if parts:
-        parts_markup = tw.markup("::".join(parts), bold=True)
-        return path + "::" + parts_markup
-    else:
-        return path
+    return nodeid
 
 
 def _format_trimmed(format: str, msg: str, available_width: int) -> Optional[str]:
@@ -1308,14 +1280,13 @@ def _format_trimmed(format: str, msg: str, available_width: int) -> Optional[str
 
 
 def _get_line_with_reprcrash_message(
-    config: Config, rep: BaseReport, tw: TerminalWriter, word_markup: Dict[str, bool]
+    config: Config, rep: BaseReport, termwidth: int
 ) -> str:
     """Get summary line for a report, trying to add reprcrash message."""
     verbose_word = rep._get_verbose_word(config)
-    word = tw.markup(verbose_word, **word_markup)
-    node = _get_node_id_with_markup(tw, config, rep)
+    pos = _get_pos(config, rep)
 
-    line = f"{word} {node}"
+    line = f"{verbose_word} {pos}"
     line_width = wcswidth(line)
 
     try:
@@ -1324,11 +1295,8 @@ def _get_line_with_reprcrash_message(
     except AttributeError:
         pass
     else:
-        if not running_on_ci():
-            available_width = tw.fullwidth - line_width
-            msg = _format_trimmed(" - {}", msg, available_width)
-        else:
-            msg = f" - {msg}"
+        available_width = termwidth - line_width
+        msg = _format_trimmed(" - {}", msg, available_width)
         if msg is not None:
             line += msg
 

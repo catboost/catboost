@@ -247,7 +247,7 @@
   - BaseTsd.h
   - iphlpapi.h
 
-- source_filter: "^(?!contrib/python/line-profiler/)"
+- source_filter: "^(?!contrib/python/line_profiler/)"
   includes:
   - timers.h
 

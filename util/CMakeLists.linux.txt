@@ -15,7 +15,6 @@ target_compile_options(yutil PRIVATE
   -Wnarrowing
 )
 target_link_libraries(yutil PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   util-charset
   ZLIB::ZLIB

@@ -25,7 +25,6 @@
   - AvailabilityMacros.h
   - Block.h
   - CommonCrypto/CommonCrypto.h
-  - CommonCrypto/CommonCryptoError.h
   - CommonCrypto/CommonCryptor.h
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h
@@ -85,7 +84,6 @@
   - mach/thread_info.h
   - mach/thread_policy.h
   - mach/vm_map.h
-  - mach/vm_page_size.h
   - mach/vm_param.h
   - mach/vm_statistics.h
   - machine/_limits.h

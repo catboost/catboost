@@ -12,7 +12,6 @@ target_cuda_sources(libs-model-cuda PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/model/cuda/evaluator.cu
 )
 target_link_libraries(libs-model-cuda PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-model
@@ -45,7 +44,6 @@ target_cuda_flags(libs-model-cuda
 
 add_global_library_for(libs-model-cuda.global libs-model-cuda)
 target_link_libraries(libs-model-cuda.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-model

@@ -30,12 +30,6 @@ namespace NCoro::NStack {
 }
 
 class TCont : private TIntrusiveListItem<TCont> {
-    friend class TContExecutor;
-    friend class TIntrusiveListItem<TCont>;
-    friend class NCoro::TEventWaitQueue;
-    friend class NCoro::TTrampoline;
-
-public:
     struct TJoinWait: public TIntrusiveListItem<TJoinWait> {
         TJoinWait(TCont& c) noexcept;
 
@@ -44,6 +38,11 @@ public:
     public:
         TCont& Cont_;
     };
+
+    friend class TContExecutor;
+    friend class TIntrusiveListItem<TCont>;
+    friend class NCoro::TEventWaitQueue;
+    friend class NCoro::TTrampoline;
 
 private:
     TCont(
@@ -100,9 +99,7 @@ public:
     /// \param this корутина, которая будет ждать
     /// \param c корутина, которую будем ждать
     /// \param deadLine максимальное время ожидания
-    /// \param forceStop кастомный обработчик ситуации, когда завершается время ожидания или отменяется ожидающая корутина (this)
-    /// дефолтное поведение - отменить ожидаемую корутину (c->Cancel())
-    bool Join(TCont* c, TInstant deadLine = TInstant::Max(), std::function<void(TJoinWait&, TCont*)> forceStop = {}) noexcept;
+    bool Join(TCont* c, TInstant deadLine = TInstant::Max()) noexcept;
 
     void ReSchedule() noexcept;
 
@@ -114,10 +111,6 @@ public:
 
     THolder<std::exception> TakeException() noexcept {
         return std::move(Exception_);
-    }
-
-    void SetException(THolder<std::exception> exception) noexcept {
-        Exception_ = std::move(exception);
     }
 
 private:

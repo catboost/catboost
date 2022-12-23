@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from functools import reduce
 
 import numpy as np
@@ -7,7 +5,7 @@ import numpy as np
 from pandas._config import get_option
 
 
-def ensure_decoded(s) -> str:
+def ensure_decoded(s):
     """
     If we have bytes, decode them to unicode.
     """

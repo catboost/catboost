@@ -11,7 +11,7 @@ import warnings
 
 import numpy as np
 
-from pandas._libs.ops_dispatch import maybe_dispatch_ufunc_to_dunder_op
+from pandas._libs.ops_dispatch import maybe_dispatch_ufunc_to_dunder_op  # noqa:F401
 from pandas._typing import Level
 from pandas.util._decorators import Appender
 from pandas.util._exceptions import find_stack_level
@@ -30,7 +30,7 @@ from pandas.core import (
     algorithms,
     roperator,
 )
-from pandas.core.ops.array_ops import (
+from pandas.core.ops.array_ops import (  # noqa:F401
     arithmetic_op,
     comp_method_OBJECT_ARRAY,
     comparison_op,
@@ -38,7 +38,7 @@ from pandas.core.ops.array_ops import (
     logical_op,
     maybe_prepare_scalar_for_op,
 )
-from pandas.core.ops.common import (
+from pandas.core.ops.common import (  # noqa:F401
     get_op_result_name,
     unpack_zerodim_and_defer,
 )
@@ -47,14 +47,14 @@ from pandas.core.ops.docstrings import (
     _op_descriptions,
     make_flex_doc,
 )
-from pandas.core.ops.invalid import invalid_comparison
-from pandas.core.ops.mask_ops import (
+from pandas.core.ops.invalid import invalid_comparison  # noqa:F401
+from pandas.core.ops.mask_ops import (  # noqa: F401
     kleene_and,
     kleene_or,
     kleene_xor,
 )
-from pandas.core.ops.methods import add_flex_arithmetic_methods
-from pandas.core.roperator import (
+from pandas.core.ops.methods import add_flex_arithmetic_methods  # noqa:F401
+from pandas.core.roperator import (  # noqa:F401
     radd,
     rand_,
     rdiv,
@@ -334,9 +334,7 @@ def should_reindex_frame_op(
         left_uniques = left.columns.unique()
         right_uniques = right.columns.unique()
         cols = left_uniques.intersection(right_uniques)
-        if len(cols) and not (
-            len(cols) == len(left_uniques) and len(cols) == len(right_uniques)
-        ):
+        if len(cols) and not (cols.equals(left_uniques) and cols.equals(right_uniques)):
             # TODO: is there a shortcut available when len(cols) == 0?
             return True
 
@@ -475,40 +473,3 @@ def flex_comp_method_FRAME(op):
     f.__name__ = op_name
 
     return f
-
-
-__all__ = [
-    "add_flex_arithmetic_methods",
-    "align_method_FRAME",
-    "align_method_SERIES",
-    "ARITHMETIC_BINOPS",
-    "arithmetic_op",
-    "COMPARISON_BINOPS",
-    "comparison_op",
-    "comp_method_OBJECT_ARRAY",
-    "fill_binop",
-    "flex_arith_method_FRAME",
-    "flex_comp_method_FRAME",
-    "flex_method_SERIES",
-    "frame_arith_method_with_reindex",
-    "invalid_comparison",
-    "kleene_and",
-    "kleene_or",
-    "kleene_xor",
-    "logical_op",
-    "maybe_dispatch_ufunc_to_dunder_op",
-    "radd",
-    "rand_",
-    "rdiv",
-    "rdivmod",
-    "rfloordiv",
-    "rmod",
-    "rmul",
-    "ror_",
-    "rpow",
-    "rsub",
-    "rtruediv",
-    "rxor",
-    "should_reindex_frame_op",
-    "unpack_zerodim_and_defer",
-]

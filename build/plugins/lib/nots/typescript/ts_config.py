@@ -31,10 +31,6 @@ class TsConfig(object):
         except Exception as e:
             raise TsError("Failed to read tsconfig {}: {}".format(self.path, e))
 
-    def get_extended_paths(self):
-        ext_path = self.data.get("extends")
-        return [ext_path] if ext_path else []
-
     def get_or_create_compiler_options(self):
         """
         Returns ref to the "compilerOptions" dict.
@@ -76,12 +72,12 @@ class TsConfig(object):
         root_dir = opts.get("rootDir")
         out_dir = opts.get("outDir")
         config_dir = os.path.dirname(self.path)
-
-        def is_mod_subdir(p):
-            return not os.path.isabs(p) and os.path.normpath(os.path.join(config_dir, p)).startswith(config_dir)
+        is_mod_subdir = lambda p: not os.path.isabs(p) and os.path.normpath(os.path.join(config_dir, p)).startswith(config_dir)
 
         if root_dir is None:
             errors.append("'rootDir' option is required")
+        elif not is_mod_subdir(root_dir):
+            errors.append("'rootDir' should be a subdirectory of the module")
 
         if out_dir is None:
             errors.append("'outDir' option is required")
@@ -105,48 +101,6 @@ class TsConfig(object):
 
         if len(errors):
             raise TsValidationError(self.path, errors)
-
-    def transform_paths(self, build_path, sources_path):
-        """
-        Updates config with correct abs paths.
-        All source files/dirs will be mapped to `sources_path`, output files/dirs will be mapped to `build_path`.
-        :param build_path: module's build root
-        :type build_path: str
-        :param sources_path: module's source root
-        :type sources_path: str
-        """
-        opts = self.get_or_create_compiler_options()
-
-        def sources_path_rel(x):
-            return os.path.normpath(os.path.join(sources_path, x))
-
-        def build_path_rel(x):
-            return os.path.normpath(os.path.join(build_path, x))
-
-        root_dir = opts["rootDir"]
-        out_dir = opts["outDir"]
-
-        opts["rootDir"] = sources_path_rel(root_dir)
-        opts["outDir"] = build_path_rel(out_dir)
-
-        if opts.get("typeRoots"):
-            opts["typeRoots"] = list(map(sources_path_rel, opts["typeRoots"])) + list(map(build_path_rel, opts["typeRoots"]))
-
-        if opts.get("paths") is None:
-            opts["paths"] = {}
-
-        # See: https://st.yandex-team.ru/FBP-47#62b4750775525b18f08205c7
-        opts["paths"]["*"] = ["*", "./@types/*"]
-
-        opts["baseUrl"] = "./node_modules"
-
-        self.data["include"] = list(map(sources_path_rel, self.data.get("include", [])))
-        self.data["exclude"] = list(map(sources_path_rel, self.data.get("exclude", [])))
-
-        if opts.get("sourceMap"):
-            opts["sourceRoot"] = os.path.relpath(root_dir, out_dir)
-
-        opts["skipLibCheck"] = True
 
     def write(self, path=None):
         """

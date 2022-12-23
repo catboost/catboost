@@ -2,6 +2,7 @@
 The :mod:`sklearn.ensemble` module includes ensemble-based methods for
 classification, regression and anomaly detection.
 """
+
 from ._base import BaseEnsemble
 from ._forest import RandomForestClassifier
 from ._forest import RandomForestRegressor
@@ -19,29 +20,15 @@ from ._voting import VotingClassifier
 from ._voting import VotingRegressor
 from ._stacking import StackingClassifier
 from ._stacking import StackingRegressor
-from ._hist_gradient_boosting.gradient_boosting import (
-    HistGradientBoostingRegressor,
-    HistGradientBoostingClassifier,
-)
 
-__all__ = [
-    "BaseEnsemble",
-    "RandomForestClassifier",
-    "RandomForestRegressor",
-    "RandomTreesEmbedding",
-    "ExtraTreesClassifier",
-    "ExtraTreesRegressor",
-    "BaggingClassifier",
-    "BaggingRegressor",
-    "IsolationForest",
-    "GradientBoostingClassifier",
-    "GradientBoostingRegressor",
-    "AdaBoostClassifier",
-    "AdaBoostRegressor",
-    "VotingClassifier",
-    "VotingRegressor",
-    "StackingClassifier",
-    "StackingRegressor",
-    "HistGradientBoostingClassifier",
-    "HistGradientBoostingRegressor",
-]
+from . import partial_dependence
+
+__all__ = ["BaseEnsemble",
+           "RandomForestClassifier", "RandomForestRegressor",
+           "RandomTreesEmbedding", "ExtraTreesClassifier",
+           "ExtraTreesRegressor", "BaggingClassifier",
+           "BaggingRegressor", "IsolationForest", "GradientBoostingClassifier",
+           "GradientBoostingRegressor", "AdaBoostClassifier",
+           "AdaBoostRegressor", "VotingClassifier", "VotingRegressor",
+           "StackingClassifier", "StackingRegressor",
+           "partial_dependence"]

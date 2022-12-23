@@ -17,7 +17,6 @@ from pandas._typing import (
     DtypeObj,
     JSONSerializable,
 )
-from pandas.util._exceptions import find_stack_level
 
 from pandas.core.dtypes.base import _registry as registry
 from pandas.core.dtypes.common import (
@@ -101,14 +100,10 @@ def set_default_names(data):
     if com.all_not_none(*data.index.names):
         nms = data.index.names
         if len(nms) == 1 and data.index.name == "index":
-            warnings.warn(
-                "Index name of 'index' is not round-trippable.",
-                stacklevel=find_stack_level(),
-            )
+            warnings.warn("Index name of 'index' is not round-trippable.")
         elif len(nms) > 1 and any(x.startswith("level_") for x in nms):
             warnings.warn(
-                "Index names beginning with 'level_' are not round-trippable.",
-                stacklevel=find_stack_level(),
+                "Index names beginning with 'level_' are not round-trippable."
             )
         return data
 
@@ -120,9 +115,8 @@ def set_default_names(data):
     return data
 
 
-def convert_pandas_type_to_json_field(arr) -> dict[str, JSONSerializable]:
+def convert_pandas_type_to_json_field(arr):
     dtype = arr.dtype
-    name: JSONSerializable
     if arr.name is None:
         name = "values"
     else:
@@ -147,7 +141,7 @@ def convert_pandas_type_to_json_field(arr) -> dict[str, JSONSerializable]:
     return field
 
 
-def convert_json_field_to_pandas_type(field) -> str | CategoricalDtype:
+def convert_json_field_to_pandas_type(field):
     """
     Converts a JSON field descriptor into its corresponding NumPy / pandas type
 
@@ -202,9 +196,6 @@ def convert_json_field_to_pandas_type(field) -> str | CategoricalDtype:
     elif typ == "datetime":
         if field.get("tz"):
             return f"datetime64[ns, {field['tz']}]"
-        elif field.get("freq"):
-            # GH#47747 using datetime over period to minimize the change surface
-            return f"period[{field['freq']}]"
         else:
             return "datetime64[ns]"
     elif typ == "any":

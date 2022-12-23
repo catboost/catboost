@@ -9,7 +9,6 @@
 
 add_library(cpp-string_utils-quote)
 target_link_libraries(cpp-string_utils-quote PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

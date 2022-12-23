@@ -216,30 +216,7 @@
 
 
 ====================Apache-2.0====================
-## License
-oneAPI Threading Building Blocks is licensed under [Apache License, Version 2.0](LICENSE.txt).
-
-
-====================Apache-2.0====================
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-
-
-====================Apache-2.0====================
-Licensing is very important to open source projects. It helps ensure the software continues to be available under the terms that the author desired. The oneTBB project uses the [Apache 2.0 License](https://github.com/oneapi-src/oneTBB/blob/master/LICENSE.txt), a permissive open source license that allows you to freely use, modify, and distribute your own products that include Apache 2.0 licensed software. By contributing to the oneTBB project, you agree to the license and copyright terms therein and release your own contributions under these terms. 
-
-
-====================Apache-2.0 AND Apache-2.0====================
-[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE.txt) [![oneTBB CI](https://github.com/oneapi-src/oneTBB/actions/workflows/ci.yml/badge.svg)](https://github.com/oneapi-src/oneTBB/actions/workflows/ci.yml?query=branch%3Amaster)
+[![Apache License Version 2.0](https://img.shields.io/badge/license-Apache_2.0-green.svg)](LICENSE.txt)
 
 
 ====================COPYRIGHT====================
@@ -247,15 +224,11 @@ Licensing is very important to open source projects. It helps ensure the softwar
 
 
 ====================COPYRIGHT====================
-    Copyright (c) 2005-2022 Intel Corporation
-
-
-====================COPYRIGHT====================
     Copyright (c) 2017-2021 Intel Corporation
 
 
 ====================COPYRIGHT====================
-    Copyright (c) 2018-2022 Intel Corporation
+    Copyright (c) 2018-2021 Intel Corporation
 
 
 ====================COPYRIGHT====================
@@ -263,16 +236,4 @@ Licensing is very important to open source projects. It helps ensure the softwar
 
 
 ====================COPYRIGHT====================
-    Copyright (c) 2019-2022 Intel Corporation
-
-
-====================COPYRIGHT====================
     Copyright (c) 2020-2021 Intel Corporation
-
-
-====================COPYRIGHT====================
-    Copyright (c) 2020-2022 Intel Corporation
-
-
-====================COPYRIGHT====================
-    Copyright (c) 2021 Intel Corporation

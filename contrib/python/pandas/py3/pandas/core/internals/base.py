@@ -5,7 +5,6 @@ inherit from this class.
 from __future__ import annotations
 
 from typing import (
-    Literal,
     TypeVar,
     final,
 )
@@ -80,6 +79,7 @@ class DataManager(PandasObject):
         fill_value=None,
         allow_dups: bool = False,
         copy: bool = True,
+        consolidate: bool = True,
         only_slice: bool = False,
     ) -> T:
         raise AbstractMethodError(self)
@@ -90,6 +90,7 @@ class DataManager(PandasObject):
         new_index: Index,
         axis: int,
         fill_value=None,
+        consolidate: bool = True,
         only_slice: bool = False,
     ) -> T:
         """
@@ -103,6 +104,7 @@ class DataManager(PandasObject):
             axis=axis,
             fill_value=fill_value,
             copy=False,
+            consolidate=consolidate,
             only_slice=only_slice,
         )
 
@@ -156,9 +158,7 @@ class DataManager(PandasObject):
 
 
 class SingleDataManager(DataManager):
-    @property
-    def ndim(self) -> Literal[1]:
-        return 1
+    ndim = 1
 
     @final
     @property
