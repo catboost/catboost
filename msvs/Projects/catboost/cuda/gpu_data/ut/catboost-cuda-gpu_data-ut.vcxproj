@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/tbb/include;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/snappy/include;$(SolutionDir)../contrib/libs/nvidia/cub;$(SolutionDir)../contrib/libs/nvidia/thrust;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf/src;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)$(Configuration)/contrib/libs/onnx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\pairs_data_loaders.obj;$(SolutionDir)$(Configuration)\MSVS\4721D1FD-2700-CA2E-7C39-1340CCD203BE\pool_printer.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\3B03C733-2186-8088-C630-809F047C70CD\evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\knn.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\lda.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\18399176-5408-8102-7C5F-8DA029B8F78E\generated_message_util.obj;$(SolutionDir)$(Configuration)\MSVS\7F05579D-8DC8-3A03-111E-51A122F7DF49\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\0EAB33D5-061B-7954-9CB4-AEBC1B9E2FD6\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\703DDBE5-9178-5CDF-A4D9-EE2FFC35CF17\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\6D8B717D-159B-60B6-8FBD-FE804113F8DE\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\DE6462E1-F12D-9D2B-131A-B78829620FB0\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\AD22147F-DD78-0908-90F4-CC49295C7943\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\741EC9BF-73D7-4DAB-DF15-CC76DACB7403\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\8A475196-8BD5-46EF-43BF-6714C75D0766\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\composite_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\null_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\rotating_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\stream_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\sync_page_cache_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\system_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\uninitialized_creator.obj;$(SolutionDir)$(Configuration)\MSVS\8776CDC6-8FD3-11B1-5A42-EAE93F81174A\terminate_handler.obj;$(SolutionDir)$(Configuration)\MSVS\800E8F90-0E45-1435-7ACC-B0DA06C3FAC7\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\pairs_data_loaders.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\3B03C733-2186-8088-C630-809F047C70CD\evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\knn.obj;$(SolutionDir)$(Configuration)\MSVS\4EA54851-CD2B-B921-B7AC-E028819A1089\lda.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\18399176-5408-8102-7C5F-8DA029B8F78E\generated_message_util.obj;$(SolutionDir)$(Configuration)\MSVS\7F05579D-8DC8-3A03-111E-51A122F7DF49\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\0EAB33D5-061B-7954-9CB4-AEBC1B9E2FD6\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\703DDBE5-9178-5CDF-A4D9-EE2FFC35CF17\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\6D8B717D-159B-60B6-8FBD-FE804113F8DE\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\DE6462E1-F12D-9D2B-131A-B78829620FB0\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\AD22147F-DD78-0908-90F4-CC49295C7943\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\741EC9BF-73D7-4DAB-DF15-CC76DACB7403\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\8A475196-8BD5-46EF-43BF-6714C75D0766\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\99480F9B-8814-368A-8A11-C9595B291CEC\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\composite_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\null_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\rotating_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\stream_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\sync_page_cache_file_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\system_creator.obj;$(SolutionDir)$(Configuration)\MSVS\9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41\uninitialized_creator.obj;$(SolutionDir)$(Configuration)\MSVS\8776CDC6-8FD3-11B1-5A42-EAE93F81174A\terminate_handler.obj;$(SolutionDir)$(Configuration)\MSVS\800E8F90-0E45-1435-7ACC-B0DA06C3FAC7\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL      "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     "/LIBPATH:$(CUDA_PATH)/lib/x64" cudadevrt.lib cudart_static.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -87,9 +87,6 @@
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\build\scripts\c_templates\dummy-vcs.vcxproj">
       <Project>{C7161B5C-139D-1AE8-3502-FC9B47248265}</Project>
@@ -265,23 +262,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.global.vcxproj">
       <Project>{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.global.vcxproj">
-      <Project>{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.global.vcxproj">
-      <Project>{D8925BEF-D579-18C5-FE7E-08030154A670}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.global.vcxproj">
       <Project>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.global.vcxproj">
-      <Project>{87348AFB-273E-11AA-F496-31B32B8D1BE4}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
       <Project>{9C2DB381-F799-1815-9F76-851209B5D6DB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.global.vcxproj">
-      <Project>{1513F9B1-F45F-6E25-2628-5D3B5FC981FE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.global.vcxproj">
       <Project>{692892C2-46FA-0173-23C7-F26800D6F0A9}</Project>
@@ -448,14 +433,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\py3\pypython-attrs-py3.global.vcxproj">
       <Project>{ADB613B0-8D3A-4DFE-77B5-B78F8208C333}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\pycontrib-python-backcall.global.vcxproj">
-      <Project>{C05157A0-7771-F262-8E14-B98F127FF6B6}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backcall\py3contrib-python-backcall.global.vcxproj">
+      <Project>{473BBBA7-56F6-21FD-E4E7-833A72D068E1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\py3contrib-python-colorama.global.vcxproj">
       <Project>{0E0E70FC-148C-4937-1103-230DC41150C2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\colorama\pycontrib-python-colorama.global.vcxproj">
       <Project>{21E27DCE-4565-540C-28B0-36F1347995D4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\configparser\pycontrib-python-configparser.global.vcxproj">
+      <Project>{3E7B969E-B752-449E-A2E1-BF1ECE38850D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\contextlib2\py2\pypython-contextlib2-py2.global.vcxproj">
       <Project>{0C87376C-3858-BEF0-771C-05C9396F34EB}</Project>
@@ -472,8 +460,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.global.vcxproj">
       <Project>{6527DE75-3D64-75BC-A55F-253CC0F272DA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\exceptiongroup\pycontrib-python-exceptiongroup.global.vcxproj">
-      <Project>{8FAD9AA3-4FA6-3820-A99E-D95B5F36573F}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.global.vcxproj">
+      <Project>{AD4A4B13-2D84-78DE-A26F-CB7E85542D3F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\executing\pycontrib-python-executing.global.vcxproj">
       <Project>{C6896F31-8B91-4391-9F1C-0EB8F10B43B7}</Project>
@@ -619,6 +607,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.global.vcxproj">
       <Project>{4E3822AF-7C35-47DE-C3FA-71E83FE8D544}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
+      <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scikit-learn\py3\pypython-scikit-learn-py3.global.vcxproj">
       <Project>{669C2627-23FB-2A20-C7CA-1F8E8FE99062}</Project>
     </ProjectReference>
@@ -652,9 +643,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\py3\pypython-testpath-py3.global.vcxproj">
       <Project>{E5A6EE52-50CD-931D-9D8A-C8B015BE40C9}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\threadpoolctl\pycontrib-python-threadpoolctl.global.vcxproj">
-      <Project>{20B12814-1813-D716-B2E4-DCC6F5214A6E}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\tomli\pycontrib-python-tomli.global.vcxproj">
       <Project>{70890371-9EE9-6276-10EC-6B93A7DBFB6C}</Project>
     </ProjectReference>
@@ -669,6 +657,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\types-protobuf\pycontrib-python-types-protobuf.global.vcxproj">
       <Project>{EA6763B1-F55C-7DAE-A23C-44726828545D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.global.vcxproj">
+      <Project>{4E507DA8-7440-F9EE-B41C-1180E1585413}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\py3contrib-python-wcwidth.global.vcxproj">
       <Project>{D9E60A5B-06FF-5A6D-A001-7A0ACCD3118C}</Project>
@@ -1047,6 +1038,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\yson_string\cpp-yt-yson_string.vcxproj">
       <Project>{941A9342-350F-D87A-1E89-C724B0F1F66C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\api\cpp-ytalloc-api.vcxproj">
+      <Project>{D0B26F3B-1FA2-DBBE-795F-70EF8DDE9BE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\py3library-python-cores.global.vcxproj">
       <Project>{51093023-B70B-7F20-53A9-6AA58A8CECDB}</Project>

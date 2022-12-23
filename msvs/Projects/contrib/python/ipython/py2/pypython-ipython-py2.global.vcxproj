@@ -771,7 +771,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.I6SYd0GWdm/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py2/join_bd3218309ae32543f8cd616910.cpp" "--ya-start-command-file" "contrib/python/ipython/py2/39cbb7f9c53c1012d54c216cc3.cpp" "contrib/python/ipython/py2/cfe5c35bfd973d09795327fb69.cpp" "contrib/python/ipython/py2/543ef75cc9334bb0121ebea0bc.cpp" "contrib/python/ipython/py2/c2d30e3abba52fb9ee79929587.cpp" "contrib/python/ipython/py2/c23803a4421d5f5af0d79e0f0e.cpp" "contrib/python/ipython/py2/5c6f0e72dd924d91eb47db44f4.cpp" "contrib/python/ipython/py2/b6485760bc4ac8aa2ed2dc6f63.cpp" "contrib/python/ipython/py2/88595a2d9d5323824ead5947c5.cpp" "contrib/python/ipython/py2/52e7eda34c94892975eab89b4c.cpp" "contrib/python/ipython/py2/b991754ed703964469aba13bf9.cpp" "contrib/python/ipython/py2/d1129e0613c0c640720a7c4487.cpp" "contrib/python/ipython/py2/4443c16b63ae67ded28aff1086.cpp" "contrib/python/ipython/py2/0789f05c95fc577c162be2e446.cpp" "contrib/python/ipython/py2/7f8714980c4a3961c1d3bb8605.cpp" "contrib/python/ipython/py2/7df0027e14c164f3d15db2144e.cpp" "contrib/python/ipython/py2/79f4c59337deb509771f9266e4.cpp" "contrib/python/ipython/py2/f881119ab593c903b8637e0522.cpp" "contrib/python/ipython/py2/a508462b155f10b9b850e9771e.cpp" "contrib/python/ipython/py2/b69c988bbc376130bc37f0aec6.cpp" "contrib/python/ipython/py2/4ad1fa533427da974b44375e72.cpp" "contrib/python/ipython/py2/4f8cbb313b6b7c6ec1ae5c8080.cpp" "contrib/python/ipython/py2/f986733d995462d3fd1b8e9bf4.cpp" "contrib/python/ipython/py2/7311c3a93e0bce3c54b7d3787a.cpp" "contrib/python/ipython/py2/b4d55631c67659439093d46afb.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py2/join_bd3218309ae32543f8cd616910.cpp" "--ya-start-command-file" "contrib/python/ipython/py2/39cbb7f9c53c1012d54c216cc3.cpp" "contrib/python/ipython/py2/cfe5c35bfd973d09795327fb69.cpp" "contrib/python/ipython/py2/543ef75cc9334bb0121ebea0bc.cpp" "contrib/python/ipython/py2/c2d30e3abba52fb9ee79929587.cpp" "contrib/python/ipython/py2/c23803a4421d5f5af0d79e0f0e.cpp" "contrib/python/ipython/py2/5c6f0e72dd924d91eb47db44f4.cpp" "contrib/python/ipython/py2/b6485760bc4ac8aa2ed2dc6f63.cpp" "contrib/python/ipython/py2/88595a2d9d5323824ead5947c5.cpp" "contrib/python/ipython/py2/52e7eda34c94892975eab89b4c.cpp" "contrib/python/ipython/py2/b991754ed703964469aba13bf9.cpp" "contrib/python/ipython/py2/d1129e0613c0c640720a7c4487.cpp" "contrib/python/ipython/py2/4443c16b63ae67ded28aff1086.cpp" "contrib/python/ipython/py2/0789f05c95fc577c162be2e446.cpp" "contrib/python/ipython/py2/7f8714980c4a3961c1d3bb8605.cpp" "contrib/python/ipython/py2/7df0027e14c164f3d15db2144e.cpp" "contrib/python/ipython/py2/79f4c59337deb509771f9266e4.cpp" "contrib/python/ipython/py2/f881119ab593c903b8637e0522.cpp" "contrib/python/ipython/py2/a508462b155f10b9b850e9771e.cpp" "contrib/python/ipython/py2/b69c988bbc376130bc37f0aec6.cpp" "contrib/python/ipython/py2/4ad1fa533427da974b44375e72.cpp" "contrib/python/ipython/py2/4f8cbb313b6b7c6ec1ae5c8080.cpp" "contrib/python/ipython/py2/f986733d995462d3fd1b8e9bf4.cpp" "contrib/python/ipython/py2/7311c3a93e0bce3c54b7d3787a.cpp" "contrib/python/ipython/py2/b4d55631c67659439093d46afb.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -782,7 +782,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.I6SYd0GWdm/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py2/join_bd3218309ae32543f8cd616910.cpp" "--ya-start-command-file" "contrib/python/ipython/py2/39cbb7f9c53c1012d54c216cc3.cpp" "contrib/python/ipython/py2/cfe5c35bfd973d09795327fb69.cpp" "contrib/python/ipython/py2/543ef75cc9334bb0121ebea0bc.cpp" "contrib/python/ipython/py2/c2d30e3abba52fb9ee79929587.cpp" "contrib/python/ipython/py2/c23803a4421d5f5af0d79e0f0e.cpp" "contrib/python/ipython/py2/5c6f0e72dd924d91eb47db44f4.cpp" "contrib/python/ipython/py2/b6485760bc4ac8aa2ed2dc6f63.cpp" "contrib/python/ipython/py2/88595a2d9d5323824ead5947c5.cpp" "contrib/python/ipython/py2/52e7eda34c94892975eab89b4c.cpp" "contrib/python/ipython/py2/b991754ed703964469aba13bf9.cpp" "contrib/python/ipython/py2/d1129e0613c0c640720a7c4487.cpp" "contrib/python/ipython/py2/4443c16b63ae67ded28aff1086.cpp" "contrib/python/ipython/py2/0789f05c95fc577c162be2e446.cpp" "contrib/python/ipython/py2/7f8714980c4a3961c1d3bb8605.cpp" "contrib/python/ipython/py2/7df0027e14c164f3d15db2144e.cpp" "contrib/python/ipython/py2/79f4c59337deb509771f9266e4.cpp" "contrib/python/ipython/py2/f881119ab593c903b8637e0522.cpp" "contrib/python/ipython/py2/a508462b155f10b9b850e9771e.cpp" "contrib/python/ipython/py2/b69c988bbc376130bc37f0aec6.cpp" "contrib/python/ipython/py2/4ad1fa533427da974b44375e72.cpp" "contrib/python/ipython/py2/4f8cbb313b6b7c6ec1ae5c8080.cpp" "contrib/python/ipython/py2/f986733d995462d3fd1b8e9bf4.cpp" "contrib/python/ipython/py2/7311c3a93e0bce3c54b7d3787a.cpp" "contrib/python/ipython/py2/b4d55631c67659439093d46afb.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython/py2/join_bd3218309ae32543f8cd616910.cpp" "--ya-start-command-file" "contrib/python/ipython/py2/39cbb7f9c53c1012d54c216cc3.cpp" "contrib/python/ipython/py2/cfe5c35bfd973d09795327fb69.cpp" "contrib/python/ipython/py2/543ef75cc9334bb0121ebea0bc.cpp" "contrib/python/ipython/py2/c2d30e3abba52fb9ee79929587.cpp" "contrib/python/ipython/py2/c23803a4421d5f5af0d79e0f0e.cpp" "contrib/python/ipython/py2/5c6f0e72dd924d91eb47db44f4.cpp" "contrib/python/ipython/py2/b6485760bc4ac8aa2ed2dc6f63.cpp" "contrib/python/ipython/py2/88595a2d9d5323824ead5947c5.cpp" "contrib/python/ipython/py2/52e7eda34c94892975eab89b4c.cpp" "contrib/python/ipython/py2/b991754ed703964469aba13bf9.cpp" "contrib/python/ipython/py2/d1129e0613c0c640720a7c4487.cpp" "contrib/python/ipython/py2/4443c16b63ae67ded28aff1086.cpp" "contrib/python/ipython/py2/0789f05c95fc577c162be2e446.cpp" "contrib/python/ipython/py2/7f8714980c4a3961c1d3bb8605.cpp" "contrib/python/ipython/py2/7df0027e14c164f3d15db2144e.cpp" "contrib/python/ipython/py2/79f4c59337deb509771f9266e4.cpp" "contrib/python/ipython/py2/f881119ab593c903b8637e0522.cpp" "contrib/python/ipython/py2/a508462b155f10b9b850e9771e.cpp" "contrib/python/ipython/py2/b69c988bbc376130bc37f0aec6.cpp" "contrib/python/ipython/py2/4ad1fa533427da974b44375e72.cpp" "contrib/python/ipython/py2/4f8cbb313b6b7c6ec1ae5c8080.cpp" "contrib/python/ipython/py2/f986733d995462d3fd1b8e9bf4.cpp" "contrib/python/ipython/py2/7311c3a93e0bce3c54b7d3787a.cpp" "contrib/python/ipython/py2/b4d55631c67659439093d46afb.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2820,9 +2820,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
@@ -2831,15 +2828,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.vcxproj">
       <Project>{B1908B71-AB54-E981-2D53-A2B8C8086C94}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\enum34\pydeprecated-python-enum34.vcxproj">
-      <Project>{DAC01015-4A7E-39B7-6C6C-6D8121B7840C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
-      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
-      <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.vcxproj">
       <Project>{74C19432-1A4D-B2CC-4E7B-CF48FEE610A8}</Project>
@@ -2895,6 +2883,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\decorator\pycontrib-python-decorator.vcxproj">
       <Project>{6EA24443-979F-2752-E4D4-FAB10E178335}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
+      <Project>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\ipython-genutils\pycontrib-python-ipython-genutils.vcxproj">
       <Project>{8AC6D0DA-E9CE-8CC5-04B0-B0313A92FE5E}</Project>
     </ProjectReference>
@@ -2909,6 +2900,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\pycontrib-python-prompt-toolkit.vcxproj">
       <Project>{047EB5F9-148B-0639-CD34-387A52108769}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
+      <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>
@@ -2927,6 +2921,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
       <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.vcxproj">
+      <Project>{A4C550F8-D8F4-B21E-6CAB-1A3939D42D78}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
       <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
