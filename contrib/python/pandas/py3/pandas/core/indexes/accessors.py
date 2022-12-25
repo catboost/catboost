@@ -38,7 +38,10 @@ from pandas.core.indexes.datetimes import DatetimeIndex
 from pandas.core.indexes.timedeltas import TimedeltaIndex
 
 if TYPE_CHECKING:
-    from pandas import Series
+    from pandas import (
+        DataFrame,
+        Series,
+    )
 
 
 class Properties(PandasDelegate, PandasObject, NoNewAttributesMixin):
@@ -47,7 +50,7 @@ class Properties(PandasDelegate, PandasObject, NoNewAttributesMixin):
         "name",
     }
 
-    def __init__(self, data: Series, orig):
+    def __init__(self, data: Series, orig) -> None:
         if not isinstance(data, ABCSeries):
             raise TypeError(
                 f"cannot convert an object of type {type(data)} to a datetimelike index"
@@ -241,7 +244,7 @@ class DatetimeProperties(Properties):
     def freq(self):
         return self._get_values().inferred_freq
 
-    def isocalendar(self):
+    def isocalendar(self) -> DataFrame:
         """
         Calculate year, week, and day according to the ISO 8601 standard.
 

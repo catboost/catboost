@@ -2,7 +2,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(1.4.4)
+VERSION(1.5.1)
 
 LICENSE(BSD-3-Clause)
 
@@ -28,7 +28,7 @@ NO_LINT()
 NO_CHECK_IMPORTS(
     pandas._testing._hypothesis
     pandas.core._numba.*
-    pandas.core.arrays._arrow_utils
+    pandas.core.arrays.arrow.*
     pandas.io.*
     pandas.plotting.*
     pandas.tseries.*
@@ -74,14 +74,18 @@ PY_SRCS(
     pandas/_libs/hashing.pyi
     pandas/_libs/hashtable.pyi
     pandas/_libs/index.pyi
+    pandas/_libs/indexing.pyi
     pandas/_libs/internals.pyi
+    pandas/_libs/interval.pyi
     pandas/_libs/join.pyi
+    pandas/_libs/json.pyi
     pandas/_libs/lib.pyi
     pandas/_libs/missing.pyi
     pandas/_libs/ops.pyi
     pandas/_libs/ops_dispatch.pyi
     pandas/_libs/parsers.pyi
     pandas/_libs/properties.pyi
+    pandas/_libs/reduction.pyi
     pandas/_libs/reshape.pyi
     pandas/_libs/sparse.pyi
     pandas/_libs/testing.pyi
@@ -93,6 +97,7 @@ PY_SRCS(
     pandas/_libs/tslibs/fields.pyi
     pandas/_libs/tslibs/nattype.pyi
     pandas/_libs/tslibs/np_datetime.pyi
+    pandas/_libs/tslibs/offsets.pyi
     pandas/_libs/tslibs/parsing.pyi
     pandas/_libs/tslibs/period.pyi
     pandas/_libs/tslibs/strptime.pyi
@@ -118,6 +123,7 @@ PY_SRCS(
     pandas/api/__init__.py
     pandas/api/extensions/__init__.py
     pandas/api/indexers/__init__.py
+    pandas/api/interchange/__init__.py
     pandas/api/types/__init__.py
     pandas/arrays/__init__.py
     pandas/compat/__init__.py
@@ -149,9 +155,13 @@ PY_SRCS(
     pandas/core/array_algos/transforms.py
     pandas/core/arraylike.py
     pandas/core/arrays/__init__.py
-    pandas/core/arrays/_arrow_utils.py
     pandas/core/arrays/_mixins.py
     pandas/core/arrays/_ranges.py
+    pandas/core/arrays/arrow/__init__.py
+    pandas/core/arrays/arrow/_arrow_utils.py
+    pandas/core/arrays/arrow/array.py
+    pandas/core/arrays/arrow/dtype.py
+    pandas/core/arrays/arrow/extension_types.py
     pandas/core/arrays/base.py
     pandas/core/arrays/boolean.py
     pandas/core/arrays/categorical.py
@@ -192,6 +202,7 @@ PY_SRCS(
     pandas/core/describe.py
     pandas/core/dtypes/__init__.py
     pandas/core/dtypes/api.py
+    pandas/core/dtypes/astype.py
     pandas/core/dtypes/base.py
     pandas/core/dtypes/cast.py
     pandas/core/dtypes/common.py
@@ -232,6 +243,13 @@ PY_SRCS(
     pandas/core/indexes/range.py
     pandas/core/indexes/timedeltas.py
     pandas/core/indexing.py
+    pandas/core/interchange/__init__.py
+    pandas/core/interchange/buffer.py
+    pandas/core/interchange/column.py
+    pandas/core/interchange/dataframe.py
+    pandas/core/interchange/dataframe_protocol.py
+    pandas/core/interchange/from_dataframe.py
+    pandas/core/interchange/utils.py
     pandas/core/internals/__init__.py
     pandas/core/internals/api.py
     pandas/core/internals/array_manager.py
@@ -256,6 +274,7 @@ PY_SRCS(
     pandas/core/reshape/__init__.py
     pandas/core/reshape/api.py
     pandas/core/reshape/concat.py
+    pandas/core/reshape/encoding.py
     pandas/core/reshape/melt.py
     pandas/core/reshape/merge.py
     pandas/core/reshape/pivot.py
@@ -339,6 +358,7 @@ PY_SRCS(
     pandas/io/pickle.py
     pandas/io/pytables.py
     pandas/io/sas/__init__.py
+    pandas/io/sas/_sas.pyi
     pandas/io/sas/sas7bdat.py
     pandas/io/sas/sas_constants.py
     pandas/io/sas/sas_xport.py
@@ -435,6 +455,7 @@ RESOURCE_FILES(
     pandas/io/formats/templates/latex.tpl
     pandas/io/formats/templates/latex_longtable.tpl
     pandas/io/formats/templates/latex_table.tpl
+    pandas/io/formats/templates/string.tpl
 )
 
 END()
