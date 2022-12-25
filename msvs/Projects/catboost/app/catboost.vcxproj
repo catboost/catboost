@@ -878,9 +878,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yt\yson_string\cpp-yt-yson_string.vcxproj">
       <Project>{941A9342-350F-D87A-1E89-C724B0F1F66C}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\ytalloc\api\cpp-ytalloc-api.vcxproj">
-      <Project>{D0B26F3B-1FA2-DBBE-795F-70EF8DDE9BE1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.global.vcxproj">
       <Project>{9FBD9FD4-4AF9-3094-CBE3-425FF7B7FFE5}</Project>
     </ProjectReference>
