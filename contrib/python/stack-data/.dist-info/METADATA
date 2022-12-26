@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: stack-data
-Version: 0.5.1
+Version: 0.6.0
 Summary: Extract data from python stack frames and tracebacks for informative displays
 Home-page: http://github.com/alexmojaki/stack_data
 Author: Alex Hall
@@ -19,8 +19,8 @@ Classifier: Operating System :: OS Independent
 Classifier: Topic :: Software Development :: Debuggers
 Description-Content-Type: text/markdown
 License-File: LICENSE.txt
-Requires-Dist: executing
-Requires-Dist: asttokens
+Requires-Dist: executing (>=1.2.0)
+Requires-Dist: asttokens (>=2.1.0)
 Requires-Dist: pure-eval
 Provides-Extra: tests
 Requires-Dist: pytest ; extra == 'tests'

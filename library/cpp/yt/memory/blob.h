@@ -21,57 +21,17 @@ class TBlob
 {
 public:
     //! Constructs a blob with a given size.
-    TBlob(
-        TRefCountedTypeCookie tagCookie,
-        size_t size,
-        bool initiailizeStorage = true,
-        bool pageAligned = false);
-
-    //! Copies a chunk of memory into a new instance.
-    TBlob(
-        TRefCountedTypeCookie tagCookie,
-        TRef data,
-        bool pageAligned = false);
-
-    //! Constructs an empty blob.
-    template <class TTag = TDefaultBlobTag>
-    explicit TBlob(TTag tag = {})
-        : TBlob(tag, 0, true, false)
-    { }
-
-    //! Constructs a blob with a given size.
-    template <class TTag>
     explicit TBlob(
-        TTag,
-        size_t size,
+        TRefCountedTypeCookie tagCookie = GetRefCountedTypeCookie<TDefaultBlobTag>(),
+        size_t size = 0,
         bool initiailizeStorage = true,
-        bool pageAligned = false)
-        : TBlob(
-            GetRefCountedTypeCookie<TTag>(),
-            size,
-            initiailizeStorage,
-            pageAligned)
-    { }
+        bool pageAligned = false);
 
     //! Copies a chunk of memory into a new instance.
-    template <class TTag>
     TBlob(
-        TTag,
+        TRefCountedTypeCookie tagCookie,
         TRef data,
-        bool pageAligned = false)
-        : TBlob(
-            GetRefCountedTypeCookie<TTag>(),
-            data,
-            pageAligned)
-    { }
-
-    //! Remind user about the tag argument.
-    TBlob(i32 size, bool initiailizeStorage = true) = delete;
-    TBlob(i64 size, bool initiailizeStorage = true) = delete;
-    TBlob(ui32 size, bool initiailizeStorage = true) = delete;
-    TBlob(ui64 size, bool initiailizeStorage = true) = delete;
-    template <typename T, typename U>
-    TBlob(const T*, U) = delete;
+        bool pageAligned = false);
 
     //! Copies the data.
     TBlob(const TBlob& other);
