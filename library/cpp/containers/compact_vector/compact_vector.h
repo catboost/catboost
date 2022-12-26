@@ -31,12 +31,21 @@ private:
         return ((THeader*)Ptr) - 1;
     }
 
-public:
-    typedef T* TIterator;
-    typedef const T* TConstIterator;
+    void destruct_at(size_t pos) {
+        (*this)[pos].~T();
+    }
 
-    typedef TIterator iterator;
-    typedef TConstIterator const_iterator;
+public:
+    using value_type = T;
+
+    using TIterator = T*;
+    using TConstIterator = const T*;
+
+    using iterator = TIterator ;
+    using const_iterator = TConstIterator;
+
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     TCompactVector()
         : Ptr(nullptr)
@@ -81,7 +90,7 @@ public:
     ~TCompactVector() {
         for (size_t i = 0; i < Size(); ++i) {
             try {
-                (*this)[i].~T();
+                destruct_at(i);
             } catch (...) {
             }
         }
@@ -132,6 +141,22 @@ public:
         return End();
     }
 
+    reverse_iterator rbegin() {
+        return std::make_reverse_iterator(end());
+    }
+
+    const_reverse_iterator rbegin() const {
+        return std::make_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() {
+        return std::make_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator rend() const {
+        return std::make_reverse_iterator(begin());
+    }
+
     void Swap(TThis& that) noexcept {
         DoSwap(Ptr, that.Ptr);
     }
@@ -164,6 +189,10 @@ public:
             }
             Swap(copy);
         }
+    }
+
+    void reserve(size_t newCapacity) {
+        Reserve(newCapacity);
     }
 
     size_t Size() const {
@@ -246,6 +275,13 @@ public:
 
     void clear() {
         Clear();
+    }
+
+    void erase(iterator position) {
+        Y_ENSURE(position >= begin() && position < end());
+        std::move(position + 1, end(), position);
+        destruct_at(Size() - 1);
+        Header()->Size -= 1;
     }
 
     T& operator[](size_t index) {
