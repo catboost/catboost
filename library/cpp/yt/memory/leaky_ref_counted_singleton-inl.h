@@ -20,7 +20,7 @@ template <class T, class... TArgs>
 TIntrusivePtr<T> LeakyRefCountedSingleton(TArgs&&... args)
 {
     static std::atomic<T*> Ptr;
-    auto* ptr = Ptr.load(std::memory_order_acquire);
+    auto* ptr = Ptr.load(std::memory_order::acquire);
     if (Y_LIKELY(ptr)) {
         return ptr;
     }
