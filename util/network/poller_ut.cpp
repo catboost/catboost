@@ -232,5 +232,12 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
         UNIT_ASSERT_EQUAL(TPoller::ExtractFilter(&e), CONT_POLL_RDHUP);
         UNIT_ASSERT_EQUAL(TPoller::ExtractEvent(&e), (void*)17);
     }
+
+    Y_UNIT_TEST(TestSetSocketErrors) {
+        TGenericPoller<TEpollPoller<TWithoutLocking>> poller;
+
+        UNIT_ASSERT_EXCEPTION_CONTAINS(poller.Set(nullptr, Max<int>(), CONT_POLL_READ), TSystemError, "epoll add failed");
+        UNIT_ASSERT_EXCEPTION_CONTAINS(poller.Set(nullptr, Max<int>(), CONT_POLL_READ | CONT_POLL_MODIFY), TSystemError, "epoll modify failed");
+    }
 #endif
 }
