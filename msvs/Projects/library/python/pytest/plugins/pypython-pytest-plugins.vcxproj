@@ -78,33 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.py2.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
@@ -132,6 +105,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_6107e88de3aa89bfbc8dd5f237.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_6107e88de3aa89bfbc8dd5f237.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_6107e88de3aa89bfbc8dd5f237.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
@@ -149,6 +149,10 @@ if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/metrics.py-" "$(SolutionDir)../library/python/pytest/plugins/metrics.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/metrics.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
@@ -179,6 +183,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/metrics.py-" "$(SolutionDir)../library/python/pytest/plugins/metrics.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/metrics.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/ya.py-" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -187,9 +195,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/collection.py.yapyc	$B/library/python/pytest/plugins/conftests.py.yapyc	$B/library/python/pytest/plugins/fakeid_py2.py.yapyc	$B/library/python/pytest/plugins/fixtures.py.yapyc	$B/library/python/pytest/plugins/ya.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)..\library\python\pytest\plugins\ya.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fakeid_py2.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;</Outputs>
+      <Message>$B/library/python/pytest/plugins/collection.py.yapyc	$B/library/python/pytest/plugins/conftests.py.yapyc	$B/library/python/pytest/plugins/fakeid_py2.py.yapyc	$B/library/python/pytest/plugins/fixtures.py.yapyc	$B/library/python/pytest/plugins/metrics.py.yapyc	$B/library/python/pytest/plugins/ya.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)..\library\python\pytest\plugins\metrics.py;$(SolutionDir)..\library\python\pytest\plugins\ya.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fakeid_py2.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\metrics.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -222,7 +230,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.yasm" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fd72a8184d92c531434d4551a8.rodata" "-" "library/python/pytest/plugins/ya.py" "_b8479bcaeb1b45f4cad175e553.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ad6d60851308115b653f469c32.rodata" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_c0077441eb0357fa55ef503efb.rodata" "-" "library/python/pytest/plugins/collection.py" "_d08dcd9bd6dca4f1d2aae84364.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ceae7cf57737e8d55aa3a1e410.rodata" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fa57f8ce0bc8eead660f198dc4.rodata" "-" "library/python/pytest/plugins/conftests.py" "_fffad94ff68f0477bf3ee83cdd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_4f5a4b4b3f23db2fc66009d63e.rodata" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_37007870ff05db7fbe64672586.rodata" "-" "library/python/pytest/plugins/fixtures.py" "_b6e8dcafc666843f9dcc267b66.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_635ddd9846f1ec4ec484f8641e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.yasm" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fd72a8184d92c531434d4551a8.rodata" "-" "library/python/pytest/plugins/ya.py" "_b8479bcaeb1b45f4cad175e553.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ad6d60851308115b653f469c32.rodata" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_c0077441eb0357fa55ef503efb.rodata" "-" "library/python/pytest/plugins/collection.py" "_d08dcd9bd6dca4f1d2aae84364.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ceae7cf57737e8d55aa3a1e410.rodata" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fa57f8ce0bc8eead660f198dc4.rodata" "-" "library/python/pytest/plugins/conftests.py" "_fffad94ff68f0477bf3ee83cdd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_4f5a4b4b3f23db2fc66009d63e.rodata" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_37007870ff05db7fbe64672586.rodata" "-" "library/python/pytest/plugins/fixtures.py" "_b6e8dcafc666843f9dcc267b66.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_635ddd9846f1ec4ec484f8641e.rodata" "$(SolutionDir)../library/python/pytest/plugins/metrics.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_8077128e59eaddc845822b1153.rodata" "-" "library/python/pytest/plugins/metrics.py" "_4378b19830aa5c03895a15893d.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/metrics.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_008303a6b372fab49da7edbacc.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -233,7 +241,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.yasm" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fd72a8184d92c531434d4551a8.rodata" "-" "library/python/pytest/plugins/ya.py" "_b8479bcaeb1b45f4cad175e553.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ad6d60851308115b653f469c32.rodata" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_c0077441eb0357fa55ef503efb.rodata" "-" "library/python/pytest/plugins/collection.py" "_d08dcd9bd6dca4f1d2aae84364.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ceae7cf57737e8d55aa3a1e410.rodata" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fa57f8ce0bc8eead660f198dc4.rodata" "-" "library/python/pytest/plugins/conftests.py" "_fffad94ff68f0477bf3ee83cdd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_4f5a4b4b3f23db2fc66009d63e.rodata" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_37007870ff05db7fbe64672586.rodata" "-" "library/python/pytest/plugins/fixtures.py" "_b6e8dcafc666843f9dcc267b66.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_635ddd9846f1ec4ec484f8641e.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.yasm" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fd72a8184d92c531434d4551a8.rodata" "-" "library/python/pytest/plugins/ya.py" "_b8479bcaeb1b45f4cad175e553.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ad6d60851308115b653f469c32.rodata" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_c0077441eb0357fa55ef503efb.rodata" "-" "library/python/pytest/plugins/collection.py" "_d08dcd9bd6dca4f1d2aae84364.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_ceae7cf57737e8d55aa3a1e410.rodata" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_fa57f8ce0bc8eead660f198dc4.rodata" "-" "library/python/pytest/plugins/conftests.py" "_fffad94ff68f0477bf3ee83cdd.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_4f5a4b4b3f23db2fc66009d63e.rodata" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_37007870ff05db7fbe64672586.rodata" "-" "library/python/pytest/plugins/fixtures.py" "_b6e8dcafc666843f9dcc267b66.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_635ddd9846f1ec4ec484f8641e.rodata" "$(SolutionDir)../library/python/pytest/plugins/metrics.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_8077128e59eaddc845822b1153.rodata" "-" "library/python/pytest/plugins/metrics.py" "_4378b19830aa5c03895a15893d.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/metrics.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_008303a6b372fab49da7edbacc.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -241,9 +249,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/_0d2532d03412f1cba2c3b05e2e.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\plugins\ya.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_fd72a8184d92c531434d4551a8.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_ad6d60851308115b653f469c32.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_c0077441eb0357fa55ef503efb.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_ceae7cf57737e8d55aa3a1e410.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_fa57f8ce0bc8eead660f198dc4.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_4f5a4b4b3f23db2fc66009d63e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_37007870ff05db7fbe64672586.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_635ddd9846f1ec4ec484f8641e.rodata;</Outputs>
+      <Message>$B/library/python/pytest/plugins/_6107e88de3aa89bfbc8dd5f237.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\plugins\ya.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)..\library\python\pytest\plugins\metrics.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\metrics.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_6107e88de3aa89bfbc8dd5f237.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_fd72a8184d92c531434d4551a8.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_ad6d60851308115b653f469c32.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_c0077441eb0357fa55ef503efb.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_ceae7cf57737e8d55aa3a1e410.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_fa57f8ce0bc8eead660f198dc4.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_4f5a4b4b3f23db2fc66009d63e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_37007870ff05db7fbe64672586.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_635ddd9846f1ec4ec484f8641e.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_8077128e59eaddc845822b1153.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_008303a6b372fab49da7edbacc.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
