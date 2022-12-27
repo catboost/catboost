@@ -152,13 +152,12 @@ def _output_screen_diff(
         - The `Window` adds a style class to the current line for highlighting
           (cursor-line).
         """
-        numbers = [
+        numbers = (
             index
             for index, cell in row.items()
             if cell.char != " " or style_string_has_style[cell.style]
-        ]
-        numbers.append(0)
-        return max(numbers)
+        )
+        return max(numbers, default=0)
 
     # Render for the first time: reset styling.
     if not previous_screen:
@@ -189,7 +188,6 @@ def _output_screen_diff(
 
     # Loop over the rows.
     row_count = min(max(screen.height, previous_screen.height), height)
-    c = 0  # Column counter.
 
     for y in range(row_count):
         new_row = screen.data_buffer[y]
@@ -200,7 +198,7 @@ def _output_screen_diff(
         previous_max_line_len = min(width - 1, get_max_column_index(previous_row))
 
         # Loop over the columns.
-        c = 0
+        c = 0  # Column counter.
         while c <= new_max_line_len:
             new_char = new_row[c]
             old_char = previous_row[c]
