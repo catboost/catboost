@@ -7147,16 +7147,7 @@
             }
         },
         "clang14": {
-            "formula": {
-                "sandbox_id": [
-                    1441176665,
-                    1432506119,
-                    1445478860,
-                    1445454611,
-                    1445513330
-                ],
-                "match": "CLANG"
-            },
+            "formula": "build/platform/clang/clang-default.json",
             "executable": {
                 "c++": [
                     "bin",
@@ -8382,7 +8373,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1522655718,
+                "sandbox_id": 1523902954,
                 "match": "app_host_launcher"
             },
             "executable": {
