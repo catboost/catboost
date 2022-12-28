@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{3E7B969E-B752-449E-A2E1-BF1ECE38850D}</ProjectGUID>
+    <ProjectGUID>{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-configparser.global</ProjectName>
+    <ProjectName>pydeprecated-python-configparser.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-configparser.global</TargetName>
+    <TargetName>pydeprecated-python-configparser.global</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\configparser\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3E7B969E-B752-449E-A2E1-BF1ECE38850D\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\27F15FCE-A841-BCC2-04FC-FDD29314DFE6\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,17 +78,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\configparser\3a9d450bcc368edd4c6fe1cbce.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\configparser\5ab763b502171481a06287b953.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser\58f1c603132b0d0b138ea3774e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser\60dcd442d8c7c725336b48287a.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\configparser
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/configparser/3a9d450bcc368edd4c6fe1cbce.cpp" "_149552779f0121b875211ece6a=/py_modules/backports.configparser.__init__" "_646a8ce1217b6398bbe61673eb=resfs/src//py_modules/backports.configparser.__init__" "_291aa81e7eb20363b8cb3ad02e=/py_code/backports.configparser.__init__" "_d906d3a2a78bae5338655734cb=/py_modules/backports.configparser.helpers" "_0b3943d1517a1b2f63ca48d0ad=resfs/src//py_modules/backports.configparser.helpers" "_7297c359d05117f175f2d43451=/py_code/backports.configparser.helpers" "_c103a2fe6d2026c89553a92aa2=/py_modules/configparser" "_27326f065ce20d35c92a031583=resfs/src//py_modules/configparser" "_a4834bf5cc59929e719a127ae5=/py_code/configparser"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/58f1c603132b0d0b138ea3774e.cpp" "_bb658885c4466efbb060087eb2=resfs/src/resfs/file/contrib/deprecated/python/configparser/.dist-info/METADATA" "_b4e44d3a3ff450e45cc1bdeb0e=resfs/file/contrib/deprecated/python/configparser/.dist-info/METADATA" "_34b846dbf1b3ec98b6ab29ed40=resfs/src/resfs/file/contrib/deprecated/python/configparser/.dist-info/top_level.txt" "_d00ae427795a89caa401ceaddc=resfs/file/contrib/deprecated/python/configparser/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\configparser
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/configparser/5ab763b502171481a06287b953.cpp" "_8a32f4dddc196849b7c497f168=resfs/src/resfs/file/contrib/python/configparser/.dist-info/METADATA" "_7fe5e4065607e32e169cf6a437=resfs/file/contrib/python/configparser/.dist-info/METADATA" "_284c757275c8481cac221a8b9e=resfs/src/resfs/file/contrib/python/configparser/.dist-info/top_level.txt" "_636f8fa304b10549011e882f8e=resfs/file/contrib/python/configparser/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/60dcd442d8c7c725336b48287a.cpp" "_4273bbb9f50f948400f8b6de63=/py_modules/backports.configparser.__init__" "_84491ca7746967d5c200a893ca=resfs/src//py_modules/backports.configparser.__init__" "_f23d77d3cc109183077abe2910=/py_code/backports.configparser.__init__" "_6ac0d2bf1b9f9deaa1ba7a94c6=/py_modules/backports.configparser.helpers" "_37750036ef1637c06b15199935=resfs/src//py_modules/backports.configparser.helpers" "_5187627d066fe0bd6937946975=/py_code/backports.configparser.helpers" "_c2139b057e5c6d6dc3bfb0e2d6=/py_modules/configparser" "_c9ac93fff076cfbf5289537f82=resfs/src//py_modules/configparser" "_ed582c718a62781b1c57e96ade=/py_code/configparser"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,13 +97,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\configparser
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/configparser/3a9d450bcc368edd4c6fe1cbce.cpp" "_149552779f0121b875211ece6a=/py_modules/backports.configparser.__init__" "_646a8ce1217b6398bbe61673eb=resfs/src//py_modules/backports.configparser.__init__" "_291aa81e7eb20363b8cb3ad02e=/py_code/backports.configparser.__init__" "_d906d3a2a78bae5338655734cb=/py_modules/backports.configparser.helpers" "_0b3943d1517a1b2f63ca48d0ad=resfs/src//py_modules/backports.configparser.helpers" "_7297c359d05117f175f2d43451=/py_code/backports.configparser.helpers" "_c103a2fe6d2026c89553a92aa2=/py_modules/configparser" "_27326f065ce20d35c92a031583=resfs/src//py_modules/configparser" "_a4834bf5cc59929e719a127ae5=/py_code/configparser"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/58f1c603132b0d0b138ea3774e.cpp" "_bb658885c4466efbb060087eb2=resfs/src/resfs/file/contrib/deprecated/python/configparser/.dist-info/METADATA" "_b4e44d3a3ff450e45cc1bdeb0e=resfs/file/contrib/deprecated/python/configparser/.dist-info/METADATA" "_34b846dbf1b3ec98b6ab29ed40=resfs/src/resfs/file/contrib/deprecated/python/configparser/.dist-info/top_level.txt" "_d00ae427795a89caa401ceaddc=resfs/file/contrib/deprecated/python/configparser/.dist-info/top_level.txt"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\configparser
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/configparser/5ab763b502171481a06287b953.cpp" "_8a32f4dddc196849b7c497f168=resfs/src/resfs/file/contrib/python/configparser/.dist-info/METADATA" "_7fe5e4065607e32e169cf6a437=resfs/file/contrib/python/configparser/.dist-info/METADATA" "_284c757275c8481cac221a8b9e=resfs/src/resfs/file/contrib/python/configparser/.dist-info/top_level.txt" "_636f8fa304b10549011e882f8e=resfs/file/contrib/python/configparser/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/configparser/60dcd442d8c7c725336b48287a.cpp" "_4273bbb9f50f948400f8b6de63=/py_modules/backports.configparser.__init__" "_84491ca7746967d5c200a893ca=resfs/src//py_modules/backports.configparser.__init__" "_f23d77d3cc109183077abe2910=/py_code/backports.configparser.__init__" "_6ac0d2bf1b9f9deaa1ba7a94c6=/py_modules/backports.configparser.helpers" "_37750036ef1637c06b15199935=resfs/src//py_modules/backports.configparser.helpers" "_5187627d066fe0bd6937946975=/py_code/backports.configparser.helpers" "_c2139b057e5c6d6dc3bfb0e2d6=/py_modules/configparser" "_c9ac93fff076cfbf5289537f82=resfs/src//py_modules/configparser" "_ed582c718a62781b1c57e96ade=/py_code/configparser"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,9 +111,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/configparser/3a9d450bcc368edd4c6fe1cbce.cpp	$B/contrib/python/configparser/5ab763b502171481a06287b953.cpp	</Message>
+      <Message>$B/contrib/deprecated/python/configparser/58f1c603132b0d0b138ea3774e.cpp	$B/contrib/deprecated/python/configparser/60dcd442d8c7c725336b48287a.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\configparser\3a9d450bcc368edd4c6fe1cbce.cpp;$(SolutionDir)$(Configuration)\contrib\python\configparser\5ab763b502171481a06287b953.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser\58f1c603132b0d0b138ea3774e.cpp;$(SolutionDir)$(Configuration)\contrib\deprecated\python\configparser\60dcd442d8c7c725336b48287a.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
