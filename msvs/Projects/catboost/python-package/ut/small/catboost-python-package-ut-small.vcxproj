@@ -536,6 +536,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.global.vcxproj">
       <Project>{180F9C01-17FB-8F97-4AB7-806F81FA4EA4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.global.vcxproj">
+      <Project>{87348AFB-273E-11AA-F496-31B32B8D1BE4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\subprocess32\pydeprecated-python-subprocess32.global.vcxproj">
       <Project>{9C2DB381-F799-1815-9F76-851209B5D6DB}</Project>
     </ProjectReference>
@@ -1009,9 +1012,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\pycontrib-python-pytz.global.vcxproj">
       <Project>{4E3822AF-7C35-47DE-C3FA-71E83FE8D544}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.global.vcxproj">
-      <Project>{2BD2B299-BF0C-C320-AB69-9A4C2D9D05F3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy\py2\pypython-scipy-py2.global.vcxproj">
       <Project>{96B2E6E8-DA3F-289E-99C7-150299BE41E2}</Project>
