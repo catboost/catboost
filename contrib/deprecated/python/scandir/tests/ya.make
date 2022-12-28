@@ -3,7 +3,7 @@ PY2TEST()
 
 
 PEERDIR(
-    contrib/python/scandir
+    contrib/deprecated/python/scandir
 )
 
 TEST_SRCS(
@@ -12,7 +12,7 @@ TEST_SRCS(
 )
 
 DATA(
-    arcadia/contrib/python/scandir/tests
+    arcadia/contrib/deprecated/python/scandir/tests
 )
 
 NO_LINT()
