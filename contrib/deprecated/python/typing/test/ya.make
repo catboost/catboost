@@ -3,7 +3,7 @@ PY2TEST()
 
 
 PEERDIR(
-    contrib/python/typing
+    contrib/deprecated/python/typing
 )
 
 TEST_SRCS(
