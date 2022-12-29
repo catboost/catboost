@@ -58,8 +58,8 @@ void __TBB_EXPORTED_FUNC wait_bounded_queue_monitor( concurrent_monitor* monitor
 }
 
 void __TBB_EXPORTED_FUNC abort_bounded_queue_monitors( concurrent_monitor* monitors ) {
-    concurrent_monitor& items_avail = monitors[d1::cbq_items_avail_tag];
-    concurrent_monitor& slots_avail = monitors[d1::cbq_slots_avail_tag];
+    concurrent_monitor& items_avail = monitors[d2::cbq_items_avail_tag];
+    concurrent_monitor& slots_avail = monitors[d2::cbq_slots_avail_tag];
 
     items_avail.abort_all();
     slots_avail.abort_all();

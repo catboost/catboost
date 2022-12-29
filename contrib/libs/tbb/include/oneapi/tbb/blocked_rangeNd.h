@@ -28,6 +28,7 @@
 
 #include "detail/_config.h"
 #include "detail/_template_helpers.h" // index_sequence, make_index_sequence
+#include "detail/_range_common.h"
 
 #include "blocked_range.h"
 
@@ -49,9 +50,11 @@ namespace d1 {
 */
 
 template<typename Value, unsigned int N, typename = detail::make_index_sequence<N>>
+    __TBB_requires(blocked_range_value<Value>)
 class blocked_rangeNd_impl;
 
 template<typename Value, unsigned int N, std::size_t... Is>
+    __TBB_requires(blocked_range_value<Value>)
 class blocked_rangeNd_impl<Value, N, detail::index_sequence<Is...>> {
 public:
     //! Type of a value.

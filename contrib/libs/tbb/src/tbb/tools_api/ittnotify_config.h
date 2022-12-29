@@ -121,7 +121,7 @@
 
 #if ITT_PLATFORM==ITT_PLATFORM_WIN
 /* use __forceinline (VC++ specific) */
-#define ITT_INLINE           __forceinline
+#define ITT_INLINE           static __forceinline
 #define ITT_INLINE_ATTRIBUTE /* nothing */
 #else  /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 /*
@@ -147,6 +147,10 @@
 #  define ITT_ARCH_IA32E 2
 #endif /* ITT_ARCH_IA32E */
 
+#ifndef ITT_ARCH_IA64
+#  define ITT_ARCH_IA64 3
+#endif /* ITT_ARCH_IA64 */
+
 #ifndef ITT_ARCH_ARM
 #  define ITT_ARCH_ARM  4
 #endif /* ITT_ARCH_ARM */
@@ -154,6 +158,10 @@
 #ifndef ITT_ARCH_PPC64
 #  define ITT_ARCH_PPC64  5
 #endif /* ITT_ARCH_PPC64 */
+
+#ifndef ITT_ARCH_ARM64
+#  define ITT_ARCH_ARM64  6
+#endif /* ITT_ARCH_ARM64 */
 
 #ifndef ITT_ARCH
 #  if defined _M_IX86 || defined __i386__
@@ -164,6 +172,8 @@
 #    define ITT_ARCH ITT_ARCH_IA64
 #  elif defined _M_ARM || defined __arm__
 #    define ITT_ARCH ITT_ARCH_ARM
+#  elif defined __aarch64__
+#    define ITT_ARCH ITT_ARCH_ARM64
 #  elif defined __powerpc64__
 #    define ITT_ARCH ITT_ARCH_PPC64
 #  endif
@@ -195,7 +205,7 @@
 #define API_VERSION_BUILD    20180723
 
 #ifndef API_VERSION_NUM
-#define API_VERSION_NUM 0.0.0
+#define API_VERSION_NUM 3.18.6
 #endif /* API_VERSION_NUM */
 
 #define API_VERSION "ITT-API-Version " ITT_TO_STR(API_VERSION_NUM) \
@@ -207,7 +217,11 @@
 typedef HMODULE           lib_t;
 typedef DWORD             TIDT;
 typedef CRITICAL_SECTION  mutex_t;
+#ifdef __cplusplus
+#define MUTEX_INITIALIZER {}
+#else
 #define MUTEX_INITIALIZER { 0 }
+#endif
 #define strong_alias(name, aliasname) /* empty for Windows */
 #else  /* ITT_PLATFORM==ITT_PLATFORM_WIN */
 #include <dlfcn.h>
@@ -322,12 +336,12 @@ ITT_INLINE long __TBB_machine_fetchadd4(volatile void* ptr, long addend)
 {
     long result;
     __asm__ __volatile__("lock\nxadd %0,%1"
-                          : "=r"(result),"=m"(*(int*)ptr)
-                          : "0"(addend), "m"(*(int*)ptr)
+                          : "=r"(result),"=m"(*(volatile int*)ptr)
+                          : "0"(addend), "m"(*(volatile int*)ptr)
                           : "memory");
     return result;
 }
-#elif ITT_ARCH==ITT_ARCH_ARM || ITT_ARCH==ITT_ARCH_PPC64
+#else
 #define __TBB_machine_fetchadd4(addr, val) __sync_fetch_and_add(addr, val)
 #endif /* ITT_ARCH==ITT_ARCH_IA64 */
 #ifndef ITT_SIMPLE_INIT
