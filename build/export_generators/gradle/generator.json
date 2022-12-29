@@ -25,6 +25,7 @@
       "proto_files",
       "proto_grpc",
       "proto_namespace",
+      "required_jdk",
       "junit4_test",
       "junit5_test"
     ],
