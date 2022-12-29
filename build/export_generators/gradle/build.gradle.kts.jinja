@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
 {% for library in targets[0].consumer_classpath -%}
-    implementation({{ library }})
+    api({{ library }})
 {% endfor -%}
 
 {% if targets[0].proto_namespace is defined -%}
@@ -63,25 +63,25 @@ repositories {
 }
 
 dependencies{
-{% if hasTest -%}
+{% for target in targets -%}
+{% if target.junit5_test -%}
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
 
     api("org.apache.commons:commons-math3:3.6.1")
 
-    implementation("com.google.guava:guava:31.0.1-jre")
+    api("com.google.guava:guava:31.0.1-jre")
 {% endif -%}
-{% for target in targets -%}
 {% for library in target.consumer_classpath -%}
 {% if target.isTest -%}
     testImplementation({{ library }})
 {% else -%}
-    implementation({{ library }})
+    api({{ library }})
 {% endif -%}
 {% endfor -%}
 {% endfor -%}
 }
 
-{% if hasTest -%}
+{% if targets|selectattr("junit5_test") -%}
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
