@@ -7,7 +7,7 @@ TEST_SRCS(
 )
 
 PEERDIR(
-    contrib/python/enum34
+    contrib/deprecated/python/enum34
 )
 
 NO_LINT()
