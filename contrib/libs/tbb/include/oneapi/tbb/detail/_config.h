@@ -324,7 +324,7 @@
 #endif
 
 #define __TBB_CPP17_UNCAUGHT_EXCEPTIONS_PRESENT             (_MSC_VER >= 1900 || __GLIBCXX__ && __cpp_lib_uncaught_exceptions \
-                                                            || _LIBCPP_VERSION >= 3700 && (!__TBB_MACOS_TARGET_VERSION || __TBB_MACOS_TARGET_VERSION >= 101200) && !__TBB_IOS)
+                                                            || _LIBCPP_VERSION >= 3700 && (!__TBB_MACOS_TARGET_VERSION || __TBB_MACOS_TARGET_VERSION >= 101200))
 
 #define __TBB_TSX_INTRINSICS_PRESENT ((__RTM__ || (_MSC_VER>=1700 && !__clang__) || __INTEL_COMPILER>=1300) && !__TBB_DEFINE_MIC && !__ANDROID__)
 
@@ -521,13 +521,6 @@
 
 #if TBB_PREVIEW_TASK_GROUP_EXTENSIONS || __TBB_BUILD
 #define __TBB_PREVIEW_TASK_GROUP_EXTENSIONS 1
-#endif
-
-
-#if !defined(__APPLE__) || !defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED > 101500
-  #define __TBB_ALIGNAS_AVAILABLE 1
-#else
-  #define __TBB_ALIGNAS_AVAILABLE 0
 #endif
 
 #endif // __TBB_detail__config_H
