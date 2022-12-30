@@ -138,9 +138,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.raw.fake.pkg.vcxproj">
-      <Project>2A67684C-6D94-7642-16D5-16BE0E7BB51D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.self.protodesc.vcxproj">
       <Project>A8D7C0FE-39A3-D0F1-3C72-4832E3FB658A</Project>
     </ProjectReference>
