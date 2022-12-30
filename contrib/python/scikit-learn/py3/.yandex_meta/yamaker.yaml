@@ -5,9 +5,11 @@ mark_as_cython_c:
   - sklearn/_isotonic.pyx
   # C++ - sklearn/cluster/_dbscan_inner.pyx
   # C++ - sklearn/cluster/_hierarchical_fast.pyx
+  - sklearn/cluster/_k_means_common.pyx
   - sklearn/cluster/_k_means_elkan.pyx
   - sklearn/cluster/_k_means_fast.pyx
   - sklearn/cluster/_k_means_lloyd.pyx
+  - sklearn/cluster/_k_means_minibatch.pyx
   - sklearn/datasets/*.pyx
   - sklearn/decomposition/*.pyx
   - sklearn/ensemble/*.pyx
@@ -15,7 +17,10 @@ mark_as_cython_c:
   - sklearn/linear_model/*.pyx
   - sklearn/manifold/*.pyx
   - sklearn/metrics/*.pyx
-  - sklearn/neighbors/*.pyx
+  - sklearn/neighbors/_ball_tree.pyx
+  - sklearn/neighbors/_kd_tree.pyx
+  # C++ - sklearn/neighbors/_partition_nodes.pyx
+  - sklearn/neighbors/_quad_tree.pyx
   - sklearn/preprocessing/*.pyx
   - sklearn/svm/_liblinear.pyx
   - sklearn/svm/_libsvm.pyx
@@ -27,7 +32,9 @@ mark_as_cython_c:
   - sklearn/utils/_logistic_sigmoid.pyx
   - sklearn/utils/_openmp_helpers.pyx
   - sklearn/utils/_random.pyx
+  - sklearn/utils/_readonly_array_wrapper.pyx
   - sklearn/utils/_seq_dataset.pyx
+  - sklearn/utils/_typedefs.pyx
   - sklearn/utils/_weight_vector.pyx
   - sklearn/utils/arrayfuncs.pyx
   - sklearn/utils/graph_shortest_path.pyx

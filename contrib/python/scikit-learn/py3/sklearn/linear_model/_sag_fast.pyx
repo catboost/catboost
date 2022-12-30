@@ -1,10 +1,6 @@
 
 #------------------------------------------------------------------------------
 
-# cython: cdivision=True
-# cython: boundscheck=False
-# cython: wraparound=False
-#
 # Authors: Danny Sullivan <dbsullivan23@gmail.com>
 #          Tom Dupre la Tour <tom.dupre-la-tour@m4x.org>
 #          Arthur Mensch <arthur.mensch@m4x.org
@@ -342,7 +338,7 @@ def sag64(SequentialDataset64 dataset,
     # the number of non-zero features for current sample
     cdef int xnnz = -1
     # the label value for current sample
-    # the label value for curent sample
+    # the label value for current sample
     cdef double y
     # the sample weight
     cdef double sample_weight
@@ -435,7 +431,7 @@ def sag64(SequentialDataset64 dataset,
 
     # Loss function to optimize
     cdef LossFunction loss
-    # Wether the loss function is multinomial
+    # Whether the loss function is multinomial
     cdef bint multinomial = False
     # Multinomial loss function
     cdef MultinomialLogLoss64 multiloss
@@ -673,7 +669,7 @@ def sag32(SequentialDataset32 dataset,
     # the number of non-zero features for current sample
     cdef int xnnz = -1
     # the label value for current sample
-    # the label value for curent sample
+    # the label value for current sample
     cdef float y
     # the sample weight
     cdef float sample_weight
@@ -766,7 +762,7 @@ def sag32(SequentialDataset32 dataset,
 
     # Loss function to optimize
     cdef LossFunction loss
-    # Wether the loss function is multinomial
+    # Whether the loss function is multinomial
     cdef bint multinomial = False
     # Multinomial loss function
     cdef MultinomialLogLoss32 multiloss
