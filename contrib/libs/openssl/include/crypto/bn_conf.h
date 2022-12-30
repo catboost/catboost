@@ -23,11 +23,3 @@
 #else
 #   include "bn_conf-linux.h"
 #endif
-
-#if defined(__IOS__) && defined(__arm__)
-#   include "bn_conf-ios-armv7.h"
-#endif
-
-#if defined(__IOS__) && defined(__i386__)
-#   include "bn_conf-ios-i386.h"
-#endif
