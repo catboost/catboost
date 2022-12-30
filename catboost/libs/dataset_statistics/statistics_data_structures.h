@@ -361,25 +361,33 @@ struct TGroupwiseStats {
         return static_cast<long double>(GroupsTotalSize) / static_cast<long double>(GroupsCount);
     }
 
+    double GetAverageGroupSqrSize() const {
+        return static_cast<long double>(GroupsTotalSqrSize) / static_cast<long double>(GroupsCount);
+    }
+
     NJson::TJsonValue ToJson() const;
 
     void InfoLog() const;
 
     Y_SAVELOAD_DEFINE(
         GroupsTotalSize,
+        GroupsTotalSqrSize,
         GroupsCount
     );
 
     SAVELOAD(
         GroupsTotalSize,
+        GroupsTotalSqrSize,
         GroupsCount
     );
 
     bool operator==(const TGroupwiseStats& a) const {
-        return std::tie(GroupsTotalSize, GroupsCount) == std::tie(a.GroupsTotalSize, a.GroupsCount);
+        return std::tie(GroupsTotalSize, GroupsTotalSqrSize, GroupsCount) ==
+            std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsCount);
     }
 
     ui64 GroupsTotalSize = 0;
+    ui64 GroupsTotalSqrSize = 0;
     ui64 GroupsCount = 0;
 };
 
