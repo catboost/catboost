@@ -2452,6 +2452,27 @@
                 },
                 {
                     "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "target": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "aarch64"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
                         "os": "LINUX"
                     },
                     "target": {
@@ -8367,7 +8388,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1546887304,
+                "sandbox_id": 1548267164,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -9145,7 +9166,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1547241343,
+                "sandbox_id": 1547703403,
                 "match": "lama"
             },
             "executable": {
