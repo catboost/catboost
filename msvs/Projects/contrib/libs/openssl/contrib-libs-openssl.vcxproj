@@ -258,8 +258,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-i686.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-android-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-armv7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-i386.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-ios-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-aarch64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\crypto\bn_conf-linux-arm.h"/>
