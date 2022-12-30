@@ -10416,7 +10416,7 @@ def test_multi_quantile(leaf_estimation_method):
     assert filecmp.cmp(quantile_path, multi_quantile_path)
 
 
-def test_calculate_statistics():
+def test_dataset_statistics():
     output_result_path = yatest.common.test_output_path('res.json')
     command = [
         CATBOOST_PATH,
