@@ -416,6 +416,41 @@ bool TFeatureStatistics::operator==(const TFeatureStatistics& a) const {
     );
 }
 
+
+TGroupwiseStats& TGroupwiseStats::operator=(TGroupwiseStats& rhs) {
+    GroupsTotalSize = rhs.GroupsTotalSize;
+    GroupsTotalSqrSize = rhs.GroupsTotalSqrSize;
+    GroupsMaxSize = rhs.GroupsMaxSize;
+    GroupsCount = rhs.GroupsCount;
+    return *this;
+}
+
+TGroupwiseStats& TGroupwiseStats::operator=(TGroupwiseStats&& rhs) {
+    GroupsTotalSize = rhs.GroupsTotalSize;
+    GroupsTotalSqrSize = rhs.GroupsTotalSqrSize;
+    GroupsMaxSize = rhs.GroupsMaxSize;
+    GroupsCount = rhs.GroupsCount;
+    return *this;
+}
+
+void TGroupwiseStats::Update(TGroupId groupId) {
+    with_lock(Mutex) {
+        ++GroupSizes[groupId];
+    }
+}
+
+void TGroupwiseStats::Flush() {
+    for (const auto& [groupId, value] : GroupSizes) {
+        GroupsTotalSize += value;
+        GroupsTotalSqrSize += value * value;
+        if (value > GroupsMaxSize) {
+            GroupsMaxSize = value;
+        }
+    }
+    GroupsCount += GroupSizes.size();
+    GroupSizes.clear();
+}
+
 NJson::TJsonValue TGroupwiseStats::ToJson() const {
     NJson::TJsonValue stats;
     stats["GroupsCount"] = GroupsCount;
