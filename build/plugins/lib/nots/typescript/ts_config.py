@@ -31,6 +31,10 @@ class TsConfig(object):
         except Exception as e:
             raise TsError("Failed to read tsconfig {}: {}".format(self.path, e))
 
+    def get_extended_paths(self):
+        ext_path = self.data.get("extends")
+        return [ext_path] if ext_path else []
+
     def get_or_create_compiler_options(self):
         """
         Returns ref to the "compilerOptions" dict.
@@ -72,12 +76,12 @@ class TsConfig(object):
         root_dir = opts.get("rootDir")
         out_dir = opts.get("outDir")
         config_dir = os.path.dirname(self.path)
-        is_mod_subdir = lambda p: not os.path.isabs(p) and os.path.normpath(os.path.join(config_dir, p)).startswith(config_dir)
+
+        def is_mod_subdir(p):
+            return not os.path.isabs(p) and os.path.normpath(os.path.join(config_dir, p)).startswith(config_dir)
 
         if root_dir is None:
             errors.append("'rootDir' option is required")
-        elif not is_mod_subdir(root_dir):
-            errors.append("'rootDir' should be a subdirectory of the module")
 
         if out_dir is None:
             errors.append("'outDir' option is required")
@@ -113,8 +117,11 @@ class TsConfig(object):
         """
         opts = self.get_or_create_compiler_options()
 
-        sources_path_rel = lambda x: os.path.normpath(os.path.join(sources_path, x))
-        build_path_rel = lambda x: os.path.normpath(os.path.join(build_path, x))
+        def sources_path_rel(x):
+            return os.path.normpath(os.path.join(sources_path, x))
+
+        def build_path_rel(x):
+            return os.path.normpath(os.path.join(build_path, x))
 
         root_dir = opts["rootDir"]
         out_dir = opts["outDir"]
