@@ -368,22 +368,25 @@ struct TGroupwiseStats {
     Y_SAVELOAD_DEFINE(
         GroupsTotalSize,
         GroupsTotalSqrSize,
+        GroupsMaxSize,
         GroupsCount
     );
 
     SAVELOAD(
         GroupsTotalSize,
         GroupsTotalSqrSize,
+        GroupsMaxSize,
         GroupsCount
     );
 
     bool operator==(const TGroupwiseStats& a) const {
-        return std::tie(GroupsTotalSize, GroupsTotalSqrSize, GroupsCount) ==
-            std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsCount);
+        return std::tie(GroupsTotalSize, GroupsTotalSqrSize, GroupsMaxSize, GroupsCount) ==
+            std::tie(a.GroupsTotalSize, a.GroupsTotalSqrSize, a.GroupsMaxSize, a.GroupsCount);
     }
 
     ui64 GroupsTotalSize = 0;
     ui64 GroupsTotalSqrSize = 0;
+    ui64 GroupsMaxSize = 0;
     ui64 GroupsCount = 0;
 };
 
