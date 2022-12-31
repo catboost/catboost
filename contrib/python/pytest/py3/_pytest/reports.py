@@ -8,6 +8,7 @@ from typing import Iterable
 from typing import Iterator
 from typing import List
 from typing import Mapping
+from typing import NoReturn
 from typing import Optional
 from typing import Tuple
 from typing import Type
@@ -36,7 +37,6 @@ from _pytest.nodes import Item
 from _pytest.outcomes import skip
 
 if TYPE_CHECKING:
-    from typing import NoReturn
     from typing_extensions import Literal
 
     from _pytest.runner import CallInfo
@@ -229,7 +229,7 @@ class BaseReport:
 
 def _report_unserialization_failure(
     type_name: str, report_class: Type[BaseReport], reportdict
-) -> "NoReturn":
+) -> NoReturn:
     url = "https://github.com/pytest-dev/pytest/issues"
     stream = StringIO()
     pprint("-" * 100, stream=stream)
@@ -276,7 +276,7 @@ class TestReport(BaseReport):
 
         #: A name -> value dictionary containing all keywords and
         #: markers associated with a test invocation.
-        self.keywords = keywords
+        self.keywords: Mapping[str, Any] = keywords
 
         #: Test outcome, always one of "passed", "failed", "skipped".
         self.outcome = outcome
@@ -298,7 +298,7 @@ class TestReport(BaseReport):
         self.sections = list(sections)
 
         #: Time it took to run just the test.
-        self.duration = duration
+        self.duration: float = duration
 
         self.__dict__.update(extra)
 
@@ -309,7 +309,11 @@ class TestReport(BaseReport):
 
     @classmethod
     def from_item_and_call(cls, item: Item, call: "CallInfo[None]") -> "TestReport":
-        """Create and fill a TestReport with standard item and call info."""
+        """Create and fill a TestReport with standard item and call info.
+
+        :param item: The item.
+        :param call: The call info.
+        """
         when = call.when
         # Remove "collect" from the Literal type -- only for collection calls.
         assert when != "collect"
@@ -455,7 +459,7 @@ def _report_to_json(report: BaseReport) -> Dict[str, Any]:
     def serialize_repr_entry(
         entry: Union[ReprEntry, ReprEntryNative]
     ) -> Dict[str, Any]:
-        data = attr.asdict(entry)  # type:ignore[arg-type]
+        data = attr.asdict(entry)
         for key, value in data.items():
             if hasattr(value, "__dict__"):
                 data[key] = attr.asdict(value)
@@ -463,7 +467,7 @@ def _report_to_json(report: BaseReport) -> Dict[str, Any]:
         return entry_data
 
     def serialize_repr_traceback(reprtraceback: ReprTraceback) -> Dict[str, Any]:
-        result = attr.asdict(reprtraceback)  # type:ignore[arg-type]
+        result = attr.asdict(reprtraceback)
         result["reprentries"] = [
             serialize_repr_entry(x) for x in reprtraceback.reprentries
         ]
@@ -473,7 +477,7 @@ def _report_to_json(report: BaseReport) -> Dict[str, Any]:
         reprcrash: Optional[ReprFileLocation],
     ) -> Optional[Dict[str, Any]]:
         if reprcrash is not None:
-            return attr.asdict(reprcrash)  # type:ignore[arg-type]
+            return attr.asdict(reprcrash)
         else:
             return None
 

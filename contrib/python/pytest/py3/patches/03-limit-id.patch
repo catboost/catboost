@@ -1,6 +1,6 @@
 --- contrib/python/pytest/py3/_pytest/python.py	(index)
 +++ contrib/python/pytest/py3/_pytest/python.py	(working tree)
-@@ -963,7 +963,7 @@ class IdMaker:
+@@ -991,7 +991,7 @@ class IdMaker:
          The counter suffix is appended only in case a string wouldn't be unique
          otherwise.
          """
@@ -9,7 +9,7 @@
          # All IDs must be unique!
          if len(resolved_ids) != len(set(resolved_ids)):
              # Record the number of occurrences of each ID.
-@@ -977,6 +977,19 @@ class IdMaker:
+@@ -1005,6 +1005,19 @@ class IdMaker:
                      id_suffixes[id] += 1
          return resolved_ids
  
