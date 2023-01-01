@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\data_util\ut\line_data_reader_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\data_util\ut\path_with_scheme_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
