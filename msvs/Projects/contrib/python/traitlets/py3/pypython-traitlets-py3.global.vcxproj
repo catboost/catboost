@@ -260,7 +260,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -280,7 +280,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\652f0a962809f28bf6baaee7de.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\e5aa673324684c3f95de2b24ea.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\dc9e9023ca09ce081d8a4aac02.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\c0d2fec5bfffe8fcda3e89f2a4.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\652f0a962809f28bf6baaee7de.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\e5aa673324684c3f95de2b24ea.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\dc9e9023ca09ce081d8a4aac02.cpp;$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\c0d2fec5bfffe8fcda3e89f2a4.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\traitlets\py3\join_b2361f085b378b82dd66c83a74.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\traitlets\py3\traitlets\__init__.py">
@@ -341,6 +341,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>

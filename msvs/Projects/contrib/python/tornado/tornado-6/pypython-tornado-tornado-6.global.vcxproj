@@ -224,7 +224,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +235,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
+"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -244,7 +244,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\ef57d62a586e2f2107bcffa0d2.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d84ac7688b2740d990de48911a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\3476ba246277ed417be05ca43a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\65e7de6da86ad20a3fd29b51d9.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d2efd1bb95c6c09fbd2fa18cd3.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\ef57d62a586e2f2107bcffa0d2.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d84ac7688b2740d990de48911a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\3476ba246277ed417be05ca43a.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\65e7de6da86ad20a3fd29b51d9.cpp;$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\d2efd1bb95c6c09fbd2fa18cd3.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6\join_183cc8034b744e0c3f4f3e173e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
@@ -413,6 +413,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
+      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
     </ProjectReference>
