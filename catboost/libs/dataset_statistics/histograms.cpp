@@ -119,6 +119,14 @@ void TFloatFeatureHistogram::CalcHistogramWithBorders(
     }
 }
 
+void InsertFloatInfValue(float value, const TString& name, NJson::TJsonValue* result) {
+    if (std::isinf(value)) {
+        result->InsertValue(name, ToString(value));
+    } else {
+        result->InsertValue(name, value);
+    }
+}
+
 NJson::TJsonValue TBorders::ToJson() const {
     NJson::TJsonValue result;
     InsertEnumType("HistogramType", HistogramType, &result);
@@ -126,8 +134,8 @@ NJson::TJsonValue TBorders::ToJson() const {
     switch (HistogramType) {
         case EHistogramType::Uniform:
             result.InsertValue("MaxBorderCount", MaxBorderCount);
-            result.InsertValue("MinValue", MinValue);
-            result.InsertValue("MaxValue", MaxValue);
+            InsertFloatInfValue(MinValue, "MinValue", &result);
+            InsertFloatInfValue(MaxValue, "MaxValue", &result);
             break;
         case EHistogramType::Exact:
             {
@@ -135,8 +143,8 @@ NJson::TJsonValue TBorders::ToJson() const {
                 result.InsertValue("Bins", VectorToJson(bins));
                 result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
                 if (!bins.empty()) {
-                    result.InsertValue("MinValue", bins.front());
-                    result.InsertValue("MaxValue", bins.back());
+                    InsertFloatInfValue(bins.front(), "MinValue", &result);
+                    InsertFloatInfValue(bins.back(), "MaxValue", &result);
                 }
             }
             break;
