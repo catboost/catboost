@@ -1155,43 +1155,6 @@ IF (OS_IOS AND ARCH_ARM64)
     )
 ENDIF()
 
-IF (OS_IOS AND ARCH_ARM7)
-    CFLAGS(
-        -DOPENSSL_PIC
-        -DOPENSSL_BN_ASM_GF2m
-        -DAES_ASM
-        -DBSAES_ASM
-        -DGHASH_ASM
-        -D_REENTRANT
-    )
-    SRCS(
-        ../asm/ios/armv7/crypto/modes/ghash-armv4.S
-        ../asm/ios/armv7/crypto/modes/ghashv8-armx.S
-        ../asm/ios/armv7/crypto/chacha/chacha-armv4.S
-        ../asm/ios/armv7/crypto/ec/ecp_nistz256-armv4.S
-        ../asm/ios/armv7/crypto/poly1305/poly1305-armv4.S
-        ../asm/ios/armv7/crypto/bn/armv4-gf2m.S
-        ../asm/ios/armv7/crypto/bn/armv4-mont.S
-        ../asm/ios/armv7/crypto/sha/sha512-armv4.S
-        ../asm/ios/armv7/crypto/sha/sha1-armv4-large.S
-        ../asm/ios/armv7/crypto/sha/sha256-armv4.S
-        ../asm/ios/armv7/crypto/sha/keccak1600-armv4.S
-        ../asm/ios/armv7/crypto/armv4cpuid.S
-        ../asm/ios/armv7/crypto/aes/aesv8-armx.S
-        ../asm/ios/armv7/crypto/aes/bsaes-armv7.S
-        ../asm/ios/armv7/crypto/aes/aes-armv4.S
-        armcap.c
-        bn/bn_asm.c
-        camellia/camellia.c
-        camellia/cmll_cbc.c
-        dso/dso_dlfcn.c
-        rand/rand_vms.c
-        rc4/rc4_enc.c
-        rc4/rc4_skey.c
-        whrlpool/wp_block.c
-    )
-ENDIF()
-
 IF (OS_IOS AND ARCH_X86_64)
     CFLAGS(
         -DL_ENDIAN
@@ -1239,51 +1202,6 @@ IF (OS_IOS AND ARCH_X86_64)
         bn/rsaz_exp.c
         dso/dso_dlfcn.c
         rand/rand_vms.c
-    )
-ENDIF()
-
-IF (OS_IOS AND ARCH_I386)
-    CFLAGS(
-        -DL_ENDIAN
-        -DOPENSSL_PIC
-        -DOPENSSL_BN_ASM_PART_WORDS
-        -DOPENSSL_IA32_SSE2
-        -DOPENSSL_BN_ASM_GF2m
-        -DRC4_ASM
-        -DMD5_ASM
-        -DRMD160_ASM
-        -DWHIRLPOOL_ASM
-        -DGHASH_ASM
-        -D_REENTRANT
-    )
-    SRCS(
-        ../asm/ios/i386/crypto/md5/md5-586.s
-        ../asm/ios/i386/crypto/rc4/rc4-586.s
-        ../asm/ios/i386/crypto/des/des-586.s
-        ../asm/ios/i386/crypto/des/crypt586.s
-        ../asm/ios/i386/crypto/modes/ghash-x86.s
-        ../asm/ios/i386/crypto/x86cpuid.s
-        ../asm/ios/i386/crypto/chacha/chacha-x86.s
-        ../asm/ios/i386/crypto/ec/ecp_nistz256-x86.s
-        ../asm/ios/i386/crypto/poly1305/poly1305-x86.s
-        ../asm/ios/i386/crypto/bf/bf-586.s
-        ../asm/ios/i386/crypto/bn/co-586.s
-        ../asm/ios/i386/crypto/bn/x86-mont.s
-        ../asm/ios/i386/crypto/bn/x86-gf2m.s
-        ../asm/ios/i386/crypto/bn/bn-586.s
-        ../asm/ios/i386/crypto/sha/sha512-586.s
-        ../asm/ios/i386/crypto/sha/sha1-586.s
-        ../asm/ios/i386/crypto/sha/sha256-586.s
-        ../asm/ios/i386/crypto/camellia/cmll-x86.s
-        ../asm/ios/i386/crypto/whrlpool/wp-mmx.s
-        ../asm/ios/i386/crypto/ripemd/rmd-586.s
-        ../asm/ios/i386/crypto/aes/vpaes-x86.s
-        ../asm/ios/i386/crypto/aes/aesni-x86.s
-        ../asm/ios/i386/engines/e_padlock-x86.s
-        dso/dso_dlfcn.c
-        rand/rand_vms.c
-        sha/keccak1600.c
-        whrlpool/wp_block.c
     )
 ENDIF()
 
