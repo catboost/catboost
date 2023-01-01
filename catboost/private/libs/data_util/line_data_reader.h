@@ -86,7 +86,7 @@ namespace NCB {
 
     class TFileLineDataReader : public ILineDataReader {
     public:
-        TFileLineDataReader(const TLineDataReaderArgs& args)
+        explicit TFileLineDataReader(const TLineDataReaderArgs& args)
             : Args(args)
             , IFStream(args.PathWithScheme.Path)
             , HeaderProcessed(!Args.Format.HasHeader)
