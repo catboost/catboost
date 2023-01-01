@@ -82,78 +82,29 @@
 
 .globl	bn_sqr_comba4
 .type	bn_sqr_comba4,@function
-.section	".opd","aw"
-.align	3
-bn_sqr_comba4:
-.quad	.bn_sqr_comba4,.TOC.@tocbase,0
-.previous
 .globl	bn_sqr_comba8
 .type	bn_sqr_comba8,@function
-.section	".opd","aw"
-.align	3
-bn_sqr_comba8:
-.quad	.bn_sqr_comba8,.TOC.@tocbase,0
-.previous
 .globl	bn_mul_comba4
 .type	bn_mul_comba4,@function
-.section	".opd","aw"
-.align	3
-bn_mul_comba4:
-.quad	.bn_mul_comba4,.TOC.@tocbase,0
-.previous
 .globl	bn_mul_comba8
 .type	bn_mul_comba8,@function
-.section	".opd","aw"
-.align	3
-bn_mul_comba8:
-.quad	.bn_mul_comba8,.TOC.@tocbase,0
-.previous
 .globl	bn_sub_words
 .type	bn_sub_words,@function
-.section	".opd","aw"
-.align	3
-bn_sub_words:
-.quad	.bn_sub_words,.TOC.@tocbase,0
-.previous
 .globl	bn_add_words
 .type	bn_add_words,@function
-.section	".opd","aw"
-.align	3
-bn_add_words:
-.quad	.bn_add_words,.TOC.@tocbase,0
-.previous
 .globl	bn_div_words
 .type	bn_div_words,@function
-.section	".opd","aw"
-.align	3
-bn_div_words:
-.quad	.bn_div_words,.TOC.@tocbase,0
-.previous
 .globl	bn_sqr_words
 .type	bn_sqr_words,@function
-.section	".opd","aw"
-.align	3
-bn_sqr_words:
-.quad	.bn_sqr_words,.TOC.@tocbase,0
-.previous
 .globl	bn_mul_words
 .type	bn_mul_words,@function
-.section	".opd","aw"
-.align	3
-bn_mul_words:
-.quad	.bn_mul_words,.TOC.@tocbase,0
-.previous
 .globl	bn_mul_add_words
 .type	bn_mul_add_words,@function
-.section	".opd","aw"
-.align	3
-bn_mul_add_words:
-.quad	.bn_mul_add_words,.TOC.@tocbase,0
-.previous
 
 
 
 .machine	"any"
+.abiversion	2
 .text
 
 
@@ -164,7 +115,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_sqr_comba4:
+bn_sqr_comba4:
+.localentry	bn_sqr_comba4,0
+
 
 
 
@@ -292,8 +245,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,2,0
 .long	0
-.size	.bn_sqr_comba4,.-.bn_sqr_comba4
-.size	bn_sqr_comba4,.-.bn_sqr_comba4
+.size	bn_sqr_comba4,.-bn_sqr_comba4
 
 
 
@@ -303,7 +255,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_sqr_comba8:
+bn_sqr_comba8:
+.localentry	bn_sqr_comba8,0
+
 
 
 
@@ -721,8 +675,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,2,0
 .long	0
-.size	.bn_sqr_comba8,.-.bn_sqr_comba8
-.size	bn_sqr_comba8,.-.bn_sqr_comba8
+.size	bn_sqr_comba8,.-bn_sqr_comba8
 
 
 
@@ -732,7 +685,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_mul_comba4:
+bn_mul_comba4:
+.localentry	bn_mul_comba4,0
+
 
 
 
@@ -876,8 +831,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,3,0
 .long	0
-.size	.bn_mul_comba4,.-.bn_mul_comba4
-.size	bn_mul_comba4,.-.bn_mul_comba4
+.size	bn_mul_comba4,.-bn_mul_comba4
 
 
 
@@ -887,7 +841,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_mul_comba8:
+bn_mul_comba8:
+.localentry	bn_mul_comba8,0
+
 
 
 
@@ -1416,8 +1372,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,3,0
 .long	0
-.size	.bn_mul_comba8,.-.bn_mul_comba8
-.size	bn_mul_comba8,.-.bn_mul_comba8
+.size	bn_mul_comba8,.-bn_mul_comba8
 
 
 
@@ -1427,7 +1382,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_sub_words:
+bn_sub_words:
+.localentry	bn_sub_words,0
+
 
 
 
@@ -1468,8 +1425,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,4,0
 .long	0
-.size	.bn_sub_words,.-.bn_sub_words
-.size	bn_sub_words,.-.bn_sub_words
+.size	bn_sub_words,.-bn_sub_words
 
 
 
@@ -1479,7 +1435,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_add_words:
+bn_add_words:
+.localentry	bn_add_words,0
+
 
 
 
@@ -1515,8 +1473,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,4,0
 .long	0
-.size	.bn_add_words,.-.bn_add_words
-.size	bn_add_words,.-.bn_add_words
+.size	bn_add_words,.-bn_add_words
 
 
 
@@ -1526,7 +1483,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_div_words:
+bn_div_words:
+.localentry	bn_div_words,0
+
 
 
 
@@ -1632,8 +1591,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,3,0
 .long	0
-.size	.bn_div_words,.-.bn_div_words
-.size	bn_div_words,.-.bn_div_words
+.size	bn_div_words,.-bn_div_words
 
 
 
@@ -1642,7 +1600,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_sqr_words:
+bn_sqr_words:
+.localentry	bn_sqr_words,0
+
 
 
 
@@ -1675,8 +1635,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,3,0
 .long	0
-.size	.bn_sqr_words,.-.bn_sqr_words
-.size	bn_sqr_words,.-.bn_sqr_words
+.size	bn_sqr_words,.-bn_sqr_words
 
 
 
@@ -1686,7 +1645,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_mul_words:
+bn_mul_words:
+.localentry	bn_mul_words,0
+
 
 
 
@@ -1782,8 +1743,7 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,4,0
 .long	0
-.size	.bn_mul_words,.-.bn_mul_words
-.size	bn_mul_words,.-.bn_mul_words
+.size	bn_mul_words,.-bn_mul_words
 
 
 
@@ -1793,7 +1753,9 @@ bn_mul_add_words:
 
 
 .align	4
-.bn_mul_add_words:
+bn_mul_add_words:
+.localentry	bn_mul_add_words,0
+
 
 
 
@@ -1909,6 +1871,5 @@ bn_mul_add_words:
 .long	0
 .byte	0,12,0x14,0,0,0,4,0
 .long	0
-.size	.bn_mul_add_words,.-.bn_mul_add_words
-.size	bn_mul_add_words,.-.bn_mul_add_words
+.size	bn_mul_add_words,.-bn_mul_add_words
 .align	4
