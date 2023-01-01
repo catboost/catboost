@@ -18,6 +18,7 @@ target_include_directories(contrib-libs-jemalloc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/include
 )
 target_link_libraries(contrib-libs-jemalloc PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-libs-libunwind
 )

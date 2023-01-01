@@ -6,37 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-add_subdirectory(idl)
-
-add_library(cpp-text_processing-dictionary)
-target_link_libraries(cpp-text_processing-dictionary PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  cpp-containers-flat_hash
-  library-cpp-json
-  text_processing-dictionary-idl
-  cpp-threading-local_executor
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(cpp-text_processing-dictionary PRIVATE
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_builder.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/bpe_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/dictionary_builder.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/fbs_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/frequency_based_dictionary_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary_impl.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/mmap_hash_table.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/multigram_dictionary_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/options.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/serialization_helpers.cpp
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/util.cpp
-)
-generate_enum_serilization(cpp-text_processing-dictionary
-  ${CMAKE_SOURCE_DIR}/library/cpp/text_processing/dictionary/types.h
-  INCLUDE_HEADERS
-  library/cpp/text_processing/dictionary/types.h
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

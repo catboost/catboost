@@ -9,6 +9,7 @@
 
 add_executable(catboost-private-libs-data_util-ut)
 target_link_libraries(catboost-private-libs-data_util-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

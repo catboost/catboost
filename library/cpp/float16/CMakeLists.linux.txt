@@ -10,6 +10,7 @@ add_subdirectory(float16_avx_impl)
 
 add_library(library-cpp-float16)
 target_link_libraries(library-cpp-float16 PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-float16-float16_avx_impl

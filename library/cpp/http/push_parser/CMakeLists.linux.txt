@@ -9,6 +9,7 @@
 
 add_library(cpp-http-push_parser)
 target_link_libraries(cpp-http-push_parser PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-http-io

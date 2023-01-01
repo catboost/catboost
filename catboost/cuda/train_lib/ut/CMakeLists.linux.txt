@@ -12,6 +12,7 @@ target_include_directories(catboost-cuda-train_lib-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/cuda/train_lib
 )
 target_link_libraries(catboost-cuda-train_lib-ut PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

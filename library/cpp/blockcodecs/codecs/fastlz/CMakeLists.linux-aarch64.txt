@@ -9,6 +9,7 @@
 
 add_library(blockcodecs-codecs-fastlz INTERFACE)
 target_link_libraries(blockcodecs-codecs-fastlz INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-fastlz
@@ -17,6 +18,7 @@ target_link_libraries(blockcodecs-codecs-fastlz INTERFACE
 
 add_global_library_for(blockcodecs-codecs-fastlz.global blockcodecs-codecs-fastlz)
 target_link_libraries(blockcodecs-codecs-fastlz.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-fastlz

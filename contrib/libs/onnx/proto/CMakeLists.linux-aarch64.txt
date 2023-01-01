@@ -12,6 +12,7 @@ target_include_directories(libs-onnx-proto PUBLIC
   ${CMAKE_BINARY_DIR}/contrib/libs/onnx
 )
 target_link_libraries(libs-onnx-proto PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-protobuf

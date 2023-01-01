@@ -9,6 +9,7 @@
 
 add_library(cpp-yt-yson)
 target_link_libraries(cpp-yt-yson PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-yt-yson_string

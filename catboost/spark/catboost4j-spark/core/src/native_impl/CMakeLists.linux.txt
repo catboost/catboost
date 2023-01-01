@@ -17,6 +17,7 @@ set_property(TARGET catboost4j-spark-impl-cpp PROPERTY
   OUTPUT_NAME catboost4j-spark-impl
 )
 target_link_libraries(catboost4j-spark-impl-cpp PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-mimalloc
