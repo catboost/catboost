@@ -274,9 +274,6 @@
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
-        "logos": {
-            "description": "run logos helpers tools"
-        },
         "arc": {
             "description": "Arcadia command-line client"
         },
@@ -2455,27 +2452,6 @@
                 },
                 {
                     "host": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "target": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "target": {
-                        "os": "LINUX",
-                        "arch": "aarch64"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
                         "os": "LINUX"
                     },
                     "target": {
@@ -3092,6 +3068,151 @@
                 "dwarf_tool": {
                     "DARWIN": "$(CLANG)/usr/bin/dsymutil -flat"
                 }
+            }
+        },
+        "android-ndk-r23": {
+            "name": "clang12",
+            "tools": {
+                "cc": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-cov"
+                },
+                "strip": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "strip"
+                },
+                "objcopy": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "objcopy"
+                },
+                "nm": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "nm"
+                },
+                "llvm-cov": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "android-ndk-r23",
+                    "executable": "llvm-symbolizer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "i686"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "x86_64"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv7a_neon"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "NDK",
+                "ar": "$(NDK)/llvm-toolchain/bin/llvm-ar",
+                "c_compiler": "$(NDK)/llvm-toolchain/bin/clang",
+                "cxx_compiler": "$(NDK)/llvm-toolchain/bin/clang++",
+                "objcopy": "$(NDK)/llvm-toolchain/bin/llvm-objcopy",
+                "strip": "$(NDK)/llvm-toolchain/bin/llvm-strip",
+                "werror_mode": "all",
+                "gcc_version": "12.0",
+                "android_ndk_version": 23
             }
         },
         "android-ndk-r25": {
@@ -5215,34 +5336,6 @@
                 }
             ]
         },
-        "logos": {
-            "tools": {
-                "logos": {
-                    "bottle": "logos",
-                    "executable": "gen_tools"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "graphs_difference": {
             "tools": {
                 "graphs_difference": {
@@ -6631,11 +6724,8 @@
     "bottles": {
         "msvc2019": {
             "formula": {
-                "by_platform": {
-                    "any": {
-                        "uri": "sbr:1971464848"
-                    }
-                }
+                "sandbox_id": 887495315,
+                "match": "Microsoft Visual C++"
             },
             "executable": {
                 "msvc": [
@@ -6765,7 +6855,7 @@
         "swagger": {
             "formula": {
                 "sandbox_id": [
-                    1547247865
+                    1488214649
                 ],
                 "match": "swagger"
             },
@@ -6829,7 +6919,7 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": 1558752720,
+                "sandbox_id": 1435123761,
                 "match": "tvmknife"
             },
             "executable": {
@@ -6852,7 +6942,10 @@
             }
         },
         "python": {
-            "formula": "build/platform/python/ymake_python2/resources.json",
+            "formula": {
+                "sandbox_id": 1277485811,
+                "match": "Python"
+            },
             "executable": {
                 "python": [
                     "python"
@@ -6996,7 +7089,16 @@
             }
         },
         "clang12": {
-            "formula": "build/platform/clang/clang12.json",
+            "formula": {
+                "sandbox_id": [
+                    1223443270,
+                    1223441613,
+                    1225508579,
+                    1223439797,
+                    1223436300
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7045,7 +7147,16 @@
             }
         },
         "clang14": {
-            "formula": "build/platform/clang/clang14.json",
+            "formula": {
+                "sandbox_id": [
+                    1441176665,
+                    1432506119,
+                    1445478860,
+                    1445454611,
+                    1445513330
+                ],
+                "match": "CLANG"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -7133,16 +7244,69 @@
                 ]
             }
         },
+        "android-ndk-r23": {
+            "formula": {
+                "sandbox_id": [
+                    1125103574,
+                    1125105409
+                ],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang++"
+                ],
+                "cc": [
+                    "llvm-toolchain",
+                    "bin",
+                    "clang"
+                ],
+                "strip": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-strip"
+                ],
+                "c++filt": [
+                    "llvm-toolchain",
+                    "bin",
+                    "i686-linux-android-c++filt"
+                ],
+                "llvm-cov": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-symbolizer": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-symbolizer"
+                ],
+                "nm": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-nm"
+                ],
+                "objcopy": [
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-objcopy"
+                ]
+            }
+        },
         "android-ndk-r25": {
             "formula": {
-                "by_platform": {
-                    "darwin-x86_64": {
-                        "uri": "sbr:3610382528"
-                    },
-                    "linux-x86_64": {
-                        "uri": "sbr:3610381029"
-                    }
-                }
+                "sandbox_id": [
+                    1467403166,
+                    1467403563
+                ],
+                "match": "NDK"
             },
             "executable": {
                 "c++": [
@@ -7211,7 +7375,7 @@
         "idea_style_config": {
             "formula": {
                 "sandbox_id": [
-                    1562037399
+                    874273162
                 ],
                 "match": "Intellij IDEA codestyle config"
             }
@@ -7371,7 +7535,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 1561957039,
+                "sandbox_id": 1051903185,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -7448,7 +7612,7 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": "1361378773",
+                "sandbox_id": "1281939415",
                 "match": "infra/rtc/sretools/sretools.tar.gz"
             },
             "executable": {
@@ -7472,8 +7636,49 @@
                 ]
             }
         },
+        "gcc61": {
+            "formula": {
+                "sandbox_id": 63189766,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "gcc",
+                    "bin",
+                    "g++-6.1"
+                ],
+                "cc": [
+                    "gcc",
+                    "bin",
+                    "gcc-6.1"
+                ],
+                "gcov": [
+                    "gcc",
+                    "bin",
+                    "gcov-6.1"
+                ],
+                "c++filt": [
+                    "gcc",
+                    "bin",
+                    "c++filt"
+                ],
+                "nm": [
+                    "gcc",
+                    "bin",
+                    "nm"
+                ],
+                "strip": [
+                    "gcc",
+                    "bin",
+                    "strip"
+                ]
+            }
+        },
         "gcc82": {
-            "formula": "build/platform/gcc/gcc82.json",
+            "formula": {
+                "sandbox_id": 288125345,
+                "match": "GCC"
+            },
             "executable": {
                 "c++": [
                     "gcc",
@@ -7533,8 +7738,8 @@
         "gdbnew": {
             "formula": {
                 "sandbox_id": [
-                    1539936704,
-                    1539939628
+                    1494385453,
+                    1494387618
                 ],
                 "platform_replacements": {},
                 "match": "GDB"
@@ -7679,7 +7884,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    1550322472
+                    1431168071
                 ],
                 "match": "dctl"
             },
@@ -7710,20 +7915,18 @@
         },
         "kubectl": {
             "formula": {
-                "by_platform": {
-                    "linux": {
-                        "uri": "sbr:3752131478"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ARCADIA_PROJECT_TGZ",
+                        "attributes": {
+                            "released": "stable",
+                            "type": "kubectl"
+                        },
+                        "owner": "RTC_INFRA"
                     },
-                    "linux-arm64": {
-                        "uri": "sbr:3752131406"
-                    },
-                    "darwin": {
-                        "uri": "sbr:3752131455"
-                    },
-                    "darwin-arm64": {
-                        "uri": "sbr:3752131456"
-                    }
-                }
+                    "update_interval": 86400
+                },
+                "match": "kubectl"
             },
             "executable": {
                 "kubectl": [
@@ -7826,7 +8029,7 @@
                         },
                         "owner": "YATOOL"
                     },
-                    "update_interval": 21600
+                    "update_interval": 86400
                 }
             },
             "executable": {
@@ -8079,17 +8282,6 @@
                 ]
             }
         },
-        "logos": {
-            "formula": {
-                "sandbox_id": 1566057525,
-                "match": "gen_tools"
-            },
-            "executable": {
-                "gen_tools": [
-                    "gen_tools"
-                ]
-            }
-        },
         "graphs_difference": {
             "formula": {
                 "sandbox_id": 374662639,
@@ -8135,7 +8327,10 @@
             }
         },
         "ya-tc": {
-            "formula": "build/external_resources/ya-tc/resources.json",
+            "formula": {
+                "sandbox_id": 1437768899,
+                "match": "ya-tc"
+            },
             "executable": {
                 "ya-tc": [
                     "ya-tc"
@@ -8185,7 +8380,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1568297239,
+                "sandbox_id": 1511641839,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8261,7 +8456,15 @@
             }
         },
         "golang": {
-            "formula": "build/external_resources/go_tools/resources.json",
+            "formula": {
+                "sandbox_id": [
+                    1455627161,
+                    1455627163,
+                    1455627162,
+                    1455627165
+                ],
+                "match": "GOLANG"
+            },
             "executable": {
                 "go": [
                     "bin",
@@ -8305,16 +8508,10 @@
         },
         "qyp": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "VMCTL_TGZ",
-                        "owner": "QYP",
-                        "attributes": {
-                            "released": "stable"
-                        }
-                    },
-                    "update_interval": 86400
-                }
+                "sandbox_id": [
+                    1497641770
+                ],
+                "match": "infra/qyp/vmctl/bin/vmctl"
             },
             "executable": {
                 "vmctl": [
@@ -8485,7 +8682,7 @@
         "coronerctl": {
             "formula": {
                 "sandbox_id": [
-                    1520884213
+                    1480926804
                 ],
                 "match": "infra/rsm/coroner/build/packages/coroner/pkg.json"
             },
@@ -8586,7 +8783,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1565093884,
+                "sandbox_id": 1503822523,
                 "match": "yfm-docs"
             },
             "executable": {
@@ -8649,8 +8846,7 @@
                 "sandbox_id": [
                     1459597978,
                     1459598823,
-                    1459599001,
-                    1523085698
+                    1459599001
                 ],
                 "match": "ktlint"
             },
@@ -8715,7 +8911,7 @@
         },
         "yadi": {
             "formula": {
-                "sandbox_id": 1530501902,
+                "sandbox_id": 1423151849,
                 "match": "yadi-arc"
             },
             "executable": {
@@ -8778,7 +8974,7 @@
         },
         "wall-e": {
             "formula": {
-                "sandbox_id": 1550113523,
+                "sandbox_id": 1422846339,
                 "match": "wall-e"
             },
             "executable": {
@@ -8789,7 +8985,7 @@
         },
         "skotty": {
             "formula": {
-                "sandbox_id": 1540880007,
+                "sandbox_id": 1433668519,
                 "match": "launcher"
             },
             "executable": {
@@ -8799,7 +8995,10 @@
             }
         },
         "gcc102-arm-none-eabi": {
-            "formula": "build/platform/gcc/gcc102-arm-none-eabi.json",
+            "formula": {
+                "sandbox_id": 1020757602,
+                "match": "GNU ARM"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -8846,7 +9045,7 @@
         },
         "bigb_request": {
             "formula": {
-                "sandbox_id": 1522655739,
+                "sandbox_id": 1512970426,
                 "match": "bb_requester"
             },
             "executable": {
@@ -8967,7 +9166,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1564760536,
+                "sandbox_id": 1504710740,
                 "match": "lama"
             },
             "executable": {
@@ -9068,7 +9267,10 @@
             }
         },
         "nds32le-elf-mculib-v5f": {
-            "formula": "build/platform/gcc/nds32le-elf-mculib-v5f.json",
+            "formula": {
+                "sandbox_id": 1326305174,
+                "match": "nds32le-elf-mculib-v5f"
+            },
             "executable": {
                 "c++": [
                     "bin",
@@ -9113,17 +9315,8 @@
         },
         "tasklet": {
             "formula": {
-                "latest_matched": {
-                    "query": {
-                        "resource_type": "TASKLET_TOOL_TGZ",
-                        "attributes": {
-                            "released": "stable"
-                        },
-                        "owner": "TASKLETS"
-                    },
-                    "update_interval": 86400,
-                    "ignore_platform": false
-                }
+                "sandbox_id": 1512817102,
+                "match": "tasklet-tool"
             },
             "executable": {
                 "tasklet": [

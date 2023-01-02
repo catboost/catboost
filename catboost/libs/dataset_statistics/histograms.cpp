@@ -40,13 +40,11 @@ void TFloatFeatureHistogram::CalcUniformHistogram(
     const TVector<ui64>& count) {
     CB_ENSURE(count.empty() || count.size() == features.size());
     if (Borders.HistogramType == EHistogramType::Exact) {
-        for (ui32 idx = 0; idx < features.size(); ++idx) {
-            float feature = features[idx];
-            ui32 inc = count.empty() ? 1 : count[idx];
+        for (auto feature: features) {
             if (ProcessNotNummeric(feature)) {
                 continue;
             }
-            Borders.BitHistogram[float(feature)] += inc;
+            Borders.BitHistogram[float(feature)]++;
         }
         ConvertBitToUniformIfNeeded();
         return;
@@ -119,34 +117,20 @@ void TFloatFeatureHistogram::CalcHistogramWithBorders(
     }
 }
 
-void InsertFloatInfValue(float value, const TString& name, NJson::TJsonValue* result) {
-    if (std::isinf(value)) {
-        result->InsertValue(name, ToString(value));
-    } else {
-        result->InsertValue(name, value);
-    }
-}
-
 NJson::TJsonValue TBorders::ToJson() const {
     NJson::TJsonValue result;
     InsertEnumType("HistogramType", HistogramType, &result);
-    result.InsertValue("OutOfDomainValuesCount", OutOfDomainValuesCount);
     switch (HistogramType) {
         case EHistogramType::Uniform:
             result.InsertValue("MaxBorderCount", MaxBorderCount);
-            InsertFloatInfValue(MinValue, "MinValue", &result);
-            InsertFloatInfValue(MaxValue, "MaxValue", &result);
+            result.InsertValue("MinValue", MinValue);
+            result.InsertValue("MaxValue", MaxValue);
             break;
         case EHistogramType::Exact:
-            {
-                auto bins = GetBins();
-                result.InsertValue("Bins", VectorToJson(bins));
-                result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
-                if (!bins.empty()) {
-                    InsertFloatInfValue(bins.front(), "MinValue", &result);
-                    InsertFloatInfValue(bins.back(), "MaxValue", &result);
-                }
-            }
+            result.InsertValue("Bins", VectorToJson(GetBins()));
+            result.InsertValue("Hist", VectorToJson(GetExactHistogram()));
+            result.InsertValue("MinValue", MinValue);
+            result.InsertValue("MaxValue", MaxValue);
             break;
         case EHistogramType::Borders:
             result.InsertValue("Borders", VectorToJson(GetBorders()));
@@ -206,6 +190,13 @@ NJson::TJsonValue THistograms::ToJson() const {
         histogram.push_back(item.ToJson());
     }
     result.InsertValue("FloatFeatureHistogram", VectorToJson(histogram));
+    if (TargetHistogram.Defined()) {
+        histogram.clear();
+        for (const auto& item : *TargetHistogram) {
+            histogram.push_back(item.ToJson());
+        }
+        result.InsertValue("TargetHistogram", VectorToJson(histogram));
+    }
     return result;
 }
 
@@ -214,6 +205,24 @@ void THistograms::Update(THistograms& histograms) {
     for (size_t idx = 0; idx < FloatFeatureHistogram.size(); ++idx) {
         FloatFeatureHistogram[idx].Update(histograms.FloatFeatureHistogram[idx]);
     }
+    CB_ENSURE(TargetHistogram.Defined() == histograms.TargetHistogram.Defined());
+    if (TargetHistogram.Defined()) {
+        for (size_t idx = 0; idx < TargetHistogram->size(); ++idx) {
+            TargetHistogram->at(idx).Update(histograms.TargetHistogram->at(idx));
+        }
+    }
+}
+
+void THistograms::AddTargetHistogram(
+    ui32 targetId,
+    TVector<float>* features
+) {
+    CB_ENSURE(TargetHistogram.Defined());
+    CB_ENSURE_INTERNAL(
+        targetId < TargetHistogram->size(),
+        "TargetId " << targetId << " is bigger then TargetHistogram size " << TargetHistogram->size()
+    );
+    TargetHistogram->at(targetId).CalcUniformHistogram(*features);
 }
 
 void THistograms::AddFloatFeatureUniformHistogram(
@@ -227,7 +236,7 @@ void THistograms::AddFloatFeatureUniformHistogram(
     FloatFeatureHistogram[featureId].CalcUniformHistogram(*features);
 }
 
-bool TBorders::operator==(const TBorders& rhs) const {
+bool TBorders::operator==(const TBorders& rhs) {
     if (HistogramType != rhs.HistogramType) {
         return false;
     }

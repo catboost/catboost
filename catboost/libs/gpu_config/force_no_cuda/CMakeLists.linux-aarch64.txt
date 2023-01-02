@@ -9,7 +9,6 @@
 
 add_library(libs-gpu_config-force_no_cuda)
 target_link_libraries(libs-gpu_config-force_no_cuda PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   libs-gpu_config-interface

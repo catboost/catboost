@@ -9,7 +9,6 @@
 
 add_library(catboost-cuda-data)
 target_link_libraries(catboost-cuda-data PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-cuda-cuda_lib

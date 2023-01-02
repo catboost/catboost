@@ -9,7 +9,6 @@
 
 add_executable(catboost-private-libs-embedding_features-ut)
 target_link_libraries(catboost-private-libs-embedding_features-ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

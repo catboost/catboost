@@ -25,7 +25,6 @@
 #include "misc.h"
 #include "governor.h"
 #include "assert_impl.h" // Out-of-line TBB assertion handling routines are instantiated here.
-#include "concurrent_monitor_mutex.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -49,13 +48,6 @@ namespace r1 {
 // governor data
 //------------------------------------------------------------------------
 cpu_features_type governor::cpu_features;
-
-//------------------------------------------------------------------------
-// concurrent_monitor_mutex data
-//------------------------------------------------------------------------
-#if !__TBB_USE_FUTEX
-std::mutex concurrent_monitor_mutex::my_init_mutex;
-#endif
 
 
 size_t DefaultSystemPageSize() {

@@ -45,7 +45,6 @@ namespace {
     public:
         void Add(const THandleRef& req) override {
             Reqs_.insert(req);
-            req->Register(WaitQueue_);
         }
 
         void Del(const THandleRef& req) override {
@@ -57,8 +56,11 @@ namespace {
                 if (Reqs_.empty()) {
                     return false;
                 }
+
                 TOnComplete cb(this);
-                WaitForMultipleObj(*WaitQueue_, deadLine, cb);
+
+                WaitForMultipleObj(Reqs_.begin(), Reqs_.end(), deadLine, cb);
+
                 if (!cb.Signalled) {
                     return false;
                 }
@@ -76,13 +78,12 @@ namespace {
 
         inline void OnComplete(const THandleRef& req) {
             Complete_.push_back(req);
-            Del(req);
+            Reqs_.erase(req);
         }
 
     private:
         typedef THashSet<THandleRef, TOps, TOps> TReqs;
         typedef TList<THandleRef> TComplete;
-        TIntrusivePtr<TWaitQueue> WaitQueue_ = MakeIntrusive<TWaitQueue>();
         TReqs Reqs_;
         TComplete Complete_;
     };

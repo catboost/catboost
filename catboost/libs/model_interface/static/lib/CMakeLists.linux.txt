@@ -12,7 +12,6 @@ target_compile_options(model_interface-static-lib PRIVATE
   -DCATBOOST_API_STATIC_LIB
 )
 target_link_libraries(model_interface-static-lib PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-cat_feature

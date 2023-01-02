@@ -21,7 +21,9 @@
 
 #include <new>          // std::bad_alloc
 #include <exception>    // std::exception
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 #include <stdexcept>    // std::runtime_error
+#endif
 
 namespace tbb {
 namespace detail {
@@ -42,39 +44,37 @@ enum class exception_id {
 };
 } // namespace d0
 
-#if _MSC_VER
-    #pragma warning(disable: 4275)
-#endif
-
 namespace r1 {
 //! Exception for concurrent containers
-class TBB_EXPORT bad_last_alloc : public std::bad_alloc {
+class bad_last_alloc : public std::bad_alloc {
 public:
     const char* __TBB_EXPORTED_METHOD what() const noexcept(true) override;
 };
 
 //! Exception for user-initiated abort
-class TBB_EXPORT user_abort : public std::exception {
+class user_abort : public std::exception {
 public:
     const char* __TBB_EXPORTED_METHOD what() const noexcept(true) override;
 };
 
 //! Exception for missing wait on structured_task_group
-class TBB_EXPORT missing_wait : public std::exception {
+class missing_wait : public std::exception {
 public:
     const char* __TBB_EXPORTED_METHOD what() const noexcept(true) override;
 };
 
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 //! Exception for impossible finalization of task_sheduler_handle
-class TBB_EXPORT unsafe_wait : public std::runtime_error {
+class unsafe_wait : public std::runtime_error {
 public:
     unsafe_wait(const char* msg) : std::runtime_error(msg) {}
 };
+#endif // __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 
 //! Gathers all throw operators in one place.
 /** Its purpose is to minimize code bloat that can be caused by throw operators
     scattered in multiple places, especially in templates. **/
-TBB_EXPORT void __TBB_EXPORTED_FUNC throw_exception ( exception_id );
+void __TBB_EXPORTED_FUNC throw_exception ( exception_id );
 } // namespace r1
 
 inline namespace d0 {

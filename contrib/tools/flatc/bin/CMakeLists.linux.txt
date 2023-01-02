@@ -12,7 +12,6 @@ target_include_directories(flatc PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
 )
 target_link_libraries(flatc PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   cpp-malloc-tcmalloc
   libs-tcmalloc-no_percpu_cache

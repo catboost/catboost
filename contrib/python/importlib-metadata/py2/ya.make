@@ -14,7 +14,7 @@ PEERDIR(
 
 IF (PYTHON2)
     PEERDIR(
-        contrib/deprecated/python/configparser
+        contrib/python/configparser
         contrib/python/contextlib2
         contrib/python/pathlib2
     )

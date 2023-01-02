@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ private:
     d1::wait_context wait_ctx;
 };
 
-//! This structure is used to store task information in an input buffer
+//! This structure is used to store task information in a input buffer
 struct task_info {
     void* my_object = nullptr;
     //! Invalid unless a task went through an ordered stage.
@@ -143,8 +143,8 @@ class input_buffer {
     //! True for ordered filter, false otherwise.
     const bool is_ordered;
 
-    //! for parallel filters that accepts nullptrs, thread-local flag for reaching end_of_input
-    using end_of_input_tls_t = basic_tls<input_buffer*>;
+    //! for parallel filters that accepts NULLs, thread-local flag for reaching end_of_input
+    using end_of_input_tls_t = basic_tls<std::intptr_t>;
     end_of_input_tls_t end_of_input_tls;
     bool end_of_input_tls_allocated; // no way to test pthread creation of TLS
 
@@ -240,10 +240,10 @@ public:
             handle_perror(status, "Failed to destroy filter TLS");
     }
     bool my_tls_end_of_input() {
-        return end_of_input_tls.get() != nullptr;
+        return end_of_input_tls.get() != 0;
     }
     void set_my_tls_end_of_input() {
-        end_of_input_tls.set(this);
+        end_of_input_tls.set(1);
     }
 };
 
@@ -280,7 +280,7 @@ private:
     //! Spawn task if token is available.
     void try_spawn_stage_task(d1::execution_data& ed) {
         ITT_NOTIFY( sync_releasing, &my_pipeline.input_tokens );
-        if( (my_pipeline.input_tokens.fetch_sub(1, std::memory_order_release)) > 1 ) {
+        if( (my_pipeline.input_tokens.fetch_sub(1, std::memory_order_relaxed)) > 1 ) {
             d1::small_object_allocator alloc{};
             r1::spawn( *alloc.new_object<stage_task>(ed, my_pipeline, alloc ), my_pipeline.my_context );
         }
@@ -331,7 +331,7 @@ public:
         return nullptr;
     }
 
-    ~stage_task() override {
+    ~stage_task() {
         if ( my_filter && my_object ) {
             my_filter->finalize(my_object);
             my_object = nullptr;
@@ -397,7 +397,7 @@ bool stage_task::execute_filter(d1::execution_data& ed) {
         }
     } else {
         // Reached end of the pipe.
-        std::size_t ntokens_avail = my_pipeline.input_tokens.fetch_add(1, std::memory_order_acquire);
+        std::size_t ntokens_avail = my_pipeline.input_tokens.fetch_add(1, std::memory_order_relaxed);
 
         if( ntokens_avail>0  // Only recycle if there is one available token
                 || my_pipeline.end_of_input.load(std::memory_order_relaxed) ) {
@@ -410,7 +410,7 @@ bool stage_task::execute_filter(d1::execution_data& ed) {
     return true;
 }
 
-pipeline::~pipeline() {
+pipeline:: ~pipeline() {
     while( first_filter ) {
         d1::base_filter* f = first_filter;
         if( input_buffer* b = f->my_input_buffer ) {

@@ -6,18 +6,22 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+add_subdirectory(flatc)
+
+add_library(contrib-libs-flatbuffers)
+target_compile_options(contrib-libs-flatbuffers PRIVATE
+  -DFLATBUFFERS_LOCALE_INDEPENDENT=1
+  -Wno-everything
+)
+target_include_directories(contrib-libs-flatbuffers PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/include
+)
+target_link_libraries(contrib-libs-flatbuffers PUBLIC
+  contrib-libs-cxxsupp
+)
+target_sources(contrib-libs-flatbuffers PRIVATE
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_gen_text.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/idl_parser.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/reflection.cpp
+  ${CMAKE_SOURCE_DIR}/contrib/libs/flatbuffers/src/util.cpp
+)

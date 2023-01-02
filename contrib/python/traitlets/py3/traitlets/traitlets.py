@@ -613,7 +613,7 @@ class TraitType(BaseDescriptor):
         if self.default_value is not Undefined:
             return self.default_value
         elif hasattr(self, "make_dynamic_default"):
-            return self.make_dynamic_default()
+            return self.make_dynamic_default()  # type:ignore[attr-defined]
         else:
             # Undefined will raise in TraitType.get
             return self.default_value
@@ -718,7 +718,7 @@ class TraitType(BaseDescriptor):
         if value is None and self.allow_none:
             return value
         if hasattr(self, "validate"):
-            value = self.validate(obj, value)
+            value = self.validate(obj, value)  # type:ignore[attr-defined]
         if obj._cross_validation_lock is False:
             value = self._cross_validate(obj, value)
         return value
@@ -981,7 +981,7 @@ class MetaHasTraits(MetaHasDescriptors):
         super().setup_class(classdict)
 
 
-def observe(*names: t.Union[Sentinel, str], type: str = "change") -> "ObserveHandler":
+def observe(*names, type="change"):
     """A decorator which can be used to observe Traits on a class.
 
     The handler passed to the decorator will be called with one ``change``
@@ -1047,7 +1047,7 @@ def observe_compat(func):
     return compatible_observer
 
 
-def validate(*names: t.Union[Sentinel, str]) -> "ValidateHandler":
+def validate(*names):
     """A decorator to register cross validator of HasTraits object's state
     when a Trait is set.
 
@@ -1080,7 +1080,7 @@ def validate(*names: t.Union[Sentinel, str]) -> "ValidateHandler":
     return ValidateHandler(names)
 
 
-def default(name: str) -> "DefaultHandler":
+def default(name):
     """A decorator which assigns a dynamic default for a Trait on a HasTraits object.
 
     Parameters
@@ -1845,7 +1845,7 @@ class HasTraits(HasDescriptors, metaclass=MetaHasTraits):
                 elif name in v.trait_names:  # type:ignore[attr-defined]
                     events[k] = v
                 elif hasattr(v, "tags"):
-                    if cls.trait_names(**v.tags):
+                    if cls.trait_names(**v.tags):  # type:ignore[attr-defined]
                         events[k] = v
         return events
 

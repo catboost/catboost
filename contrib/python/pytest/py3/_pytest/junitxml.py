@@ -354,10 +354,7 @@ def record_testsuite_property(request: FixtureRequest) -> Callable[[str, object]
             record_testsuite_property("ARCH", "PPC")
             record_testsuite_property("STORAGE_TYPE", "CEPH")
 
-    :param name:
-        The property name.
-    :param value:
-        The property value. Will be converted to a string.
+    ``name`` must be a string, ``value`` will be converted to a string and properly xml-escaped.
 
     .. warning::
 
@@ -389,7 +386,7 @@ def pytest_addoption(parser: Parser) -> None:
         metavar="path",
         type=functools.partial(filename_arg, optname="--junitxml"),
         default=None,
-        help="Create junit-xml style report file at given path",
+        help="create junit-xml style report file at given path.",
     )
     group.addoption(
         "--junitprefix",
@@ -397,7 +394,7 @@ def pytest_addoption(parser: Parser) -> None:
         action="store",
         metavar="str",
         default=None,
-        help="Prepend prefix to classnames in junit-xml output",
+        help="prepend prefix to classnames in junit-xml output",
     )
     parser.addini(
         "junit_suite_name", "Test suite name for JUnit report", default="pytest"

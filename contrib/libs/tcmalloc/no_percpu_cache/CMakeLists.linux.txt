@@ -14,7 +14,6 @@ target_compile_options(libs-tcmalloc-no_percpu_cache PRIVATE
   -Wno-everything
 )
 target_link_libraries(libs-tcmalloc-no_percpu_cache PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension
@@ -30,7 +29,6 @@ target_compile_options(libs-tcmalloc-no_percpu_cache.global PRIVATE
   -Wno-everything
 )
 target_link_libraries(libs-tcmalloc-no_percpu_cache.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   contrib-restricted-abseil-cpp
   libs-tcmalloc-malloc_extension

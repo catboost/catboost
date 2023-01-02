@@ -22,9 +22,9 @@ TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TIntrusivePtr<T> other)
 
 template <class T>
 TAtomicIntrusivePtr<T>::TAtomicIntrusivePtr(TAtomicIntrusivePtr&& other)
-    : Ptr_(other.Ptr_.load(std::memory_order::relaxed))
+    : Ptr_(other.Ptr_.load(std::memory_order_relaxed))
 {
-    other.Ptr_.store(nullptr, std::memory_order::relaxed);
+    other.Ptr_.store(nullptr, std::memory_order_relaxed);
 }
 
 template <class T>

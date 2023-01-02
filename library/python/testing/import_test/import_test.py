@@ -39,9 +39,6 @@ def check_imports(no_check=(), extra=(), skip_func=None, py_main=None):
         exceptions.sort()
         print('NO_CHECK_IMPORTS', ' '.join(exceptions))
 
-    # all test modules get imported when tests are run
-    exceptions.append('__tests__.*')
-
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]
     rx = re.compile('^({})$'.format('|'.join(patterns)))
 

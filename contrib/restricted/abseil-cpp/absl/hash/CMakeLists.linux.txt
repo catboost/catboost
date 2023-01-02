@@ -15,7 +15,6 @@ target_include_directories(abseil-cpp-absl-hash PUBLIC
   ${CMAKE_SOURCE_DIR}/contrib/restricted/abseil-cpp
 )
 target_link_libraries(abseil-cpp-absl-hash PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   abseil-cpp-absl-base
   abseil-cpp-absl-numeric

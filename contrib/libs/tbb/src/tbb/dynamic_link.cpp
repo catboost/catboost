@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@
 */
 
 #include <cstdarg>          // va_list etc.
-#include <cstring>          // strrchr
 #if _WIN32
     #include <malloc.h>
 
@@ -42,6 +41,7 @@
     #include <dlfcn.h>
     #include <unistd.h>
 
+    #include <cstring>
     #include <climits>
     #include <cstdlib>
 #endif /* _WIN32 */
@@ -145,12 +145,12 @@ namespace r1 {
 
 #if __TBB_WIN8UI_SUPPORT
     bool dynamic_link( const char*  library, const dynamic_link_descriptor descriptors[], std::size_t required, dynamic_link_handle*, int flags ) {
-        dynamic_link_handle tmp_handle = nullptr;
+        dynamic_link_handle tmp_handle = NULL;
         TCHAR wlibrary[256];
         if ( MultiByteToWideChar(CP_UTF8, 0, library, -1, wlibrary, 255) == 0 ) return false;
         if ( flags & DYNAMIC_LINK_LOAD )
             tmp_handle = LoadPackagedLibrary( wlibrary, 0 );
-        if (tmp_handle != nullptr){
+        if (tmp_handle != NULL){
             return resolve_symbols(tmp_handle, descriptors, required);
         }else{
             return false;
@@ -239,7 +239,7 @@ namespace r1 {
         char *backslash = std::strrchr( ap_data._path, '\\' );
 
         if ( !backslash ) {    // Backslash not found.
-            __TBB_ASSERT_EX( backslash != nullptr, "Unbelievable.");
+            __TBB_ASSERT_EX( backslash!=NULL, "Unbelievable.");
             return;
         }
         __TBB_ASSERT_EX( backslash >= ap_data._path, "Unbelievable.");
@@ -254,7 +254,7 @@ namespace r1 {
             DYNAMIC_LINK_WARNING( dl_sys_fail, "dladdr", err );
             return;
         } else {
-            __TBB_ASSERT_EX( dlinfo.dli_fname!=nullptr, "Unbelievable." );
+            __TBB_ASSERT_EX( dlinfo.dli_fname!=NULL, "Unbelievable." );
         }
 
         char const *slash = std::strrchr( dlinfo.dli_fname, '/' );
@@ -281,13 +281,13 @@ namespace r1 {
         }
 
         if ( fname_len>0 ) {
-            ap_data._len += fname_len;
             if ( ap_data._len>PATH_MAX ) {
                 DYNAMIC_LINK_WARNING( dl_buff_too_small );
                 ap_data._len=0;
                 return;
             }
             std::strncpy( ap_data._path+rc, dlinfo.dli_fname, fname_len );
+            ap_data._len += fname_len;
             ap_data._path[ap_data._len]=0;
         }
     #endif /* _WIN32 */
@@ -316,12 +316,12 @@ namespace r1 {
         std::size_t name_len = std::strlen( name );
         std::size_t full_len = name_len+ap_data._len;
         if ( full_len < len ) {
-            __TBB_ASSERT( ap_data._path[ap_data._len] == 0, nullptr);
-            __TBB_ASSERT( std::strlen(ap_data._path) == ap_data._len, nullptr);
+            __TBB_ASSERT( ap_data._path[ap_data._len] == 0, NULL);
+            __TBB_ASSERT( std::strlen(ap_data._path) == ap_data._len, NULL);
             std::strncpy( path, ap_data._path, ap_data._len + 1 );
-            __TBB_ASSERT( path[ap_data._len] == 0, nullptr);
+            __TBB_ASSERT( path[ap_data._len] == 0, NULL );
             std::strncat( path, name, len - ap_data._len );
-            __TBB_ASSERT( std::strlen(path) == full_len, nullptr);
+            __TBB_ASSERT( std::strlen(path) == full_len, NULL );
         }
         return full_len+1; // +1 for null character
     }
@@ -379,8 +379,8 @@ namespace r1 {
     static dynamic_link_handle global_symbols_link( const char* library, const dynamic_link_descriptor descriptors[], std::size_t required ) {
         dynamic_link_handle library_handle{};
 #if _WIN32
-        auto res = GetModuleHandleEx(0, library, &library_handle);
-        __TBB_ASSERT_EX((res && library_handle) || (!res && !library_handle), nullptr);
+        bool res = GetModuleHandleEx(0, library, &library_handle);
+        __TBB_ASSERT_EX(res && library_handle || !res && !library_handle, nullptr);
 #else /* _WIN32 */
     #if !__TBB_DYNAMIC_LOAD_ENABLED /* only __TBB_WEAK_SYMBOLS_PRESENT is defined */
         if ( !dlopen ) return 0;
@@ -408,24 +408,10 @@ namespace r1 {
     #endif /* __TBB_DYNAMIC_LOAD_ENABLED */
     }
 
-#if !_WIN32
-    int loading_flags(bool local_binding) {
-        int flags = RTLD_NOW;
-        if (local_binding) {
-            flags = flags | RTLD_LOCAL;
-#if (__linux__ && __GLIBC__) && !__TBB_USE_SANITIZERS
-            flags = flags | RTLD_DEEPBIND;
-#endif
-        } else {
-            flags = flags | RTLD_GLOBAL;
-        }
-        return flags;
-    }
-#endif
-
-    dynamic_link_handle dynamic_load( const char* library, const dynamic_link_descriptor descriptors[], std::size_t required, bool local_binding ) {
-        ::tbb::detail::suppress_unused_warning( library, descriptors, required, local_binding );
+    dynamic_link_handle dynamic_load( const char* library, const dynamic_link_descriptor descriptors[], std::size_t required ) {
+        ::tbb::detail::suppress_unused_warning( library, descriptors, required );
 #if __TBB_DYNAMIC_LOAD_ENABLED
+
         std::size_t const len = PATH_MAX + 1;
         char path[ len ];
         std::size_t rc = abs_path( library, path, len );
@@ -435,8 +421,7 @@ namespace r1 {
             // (e.g. because of MS runtime problems - one of those crazy manifest related ones)
             UINT prev_mode = SetErrorMode (SEM_FAILCRITICALERRORS);
 #endif /* _WIN32 */
-            // The second argument (loading_flags) is ignored on Windows
-            dynamic_link_handle library_handle = dlopen( path, loading_flags(local_binding) );
+            dynamic_link_handle library_handle = dlopen( path, RTLD_NOW | RTLD_GLOBAL );
 #if _WIN32
             SetErrorMode (prev_mode);
 #endif /* _WIN32 */
@@ -444,7 +429,7 @@ namespace r1 {
                 if( !resolve_symbols( library_handle, descriptors, required ) ) {
                     // The loaded library does not contain all the expected entry points
                     dynamic_unlink( library_handle );
-                    library_handle = nullptr;
+                    library_handle = NULL;
                 }
             } else
                 DYNAMIC_LINK_WARNING( dl_lib_not_found, path, dlerror() );
@@ -454,26 +439,18 @@ namespace r1 {
                 // rc == 0 means failing of init_ap_data so the warning has already been issued.
 
 #endif /* __TBB_DYNAMIC_LOAD_ENABLED */
-            return nullptr;
+            return 0;
     }
 
     bool dynamic_link( const char* library, const dynamic_link_descriptor descriptors[], std::size_t required, dynamic_link_handle *handle, int flags ) {
         init_dynamic_link_data();
 
         // TODO: May global_symbols_link find weak symbols?
-        dynamic_link_handle library_handle = ( flags & DYNAMIC_LINK_GLOBAL ) ? global_symbols_link( library, descriptors, required ) : nullptr;
+        dynamic_link_handle library_handle = ( flags & DYNAMIC_LINK_GLOBAL ) ? global_symbols_link( library, descriptors, required ) : 0;
 
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-#pragma warning (push)
-// MSVC 2015 warning: 'int': forcing value to bool 'true' or 'false'
-#pragma warning (disable: 4800)
-#endif
         if ( !library_handle && ( flags & DYNAMIC_LINK_LOAD ) )
-            library_handle = dynamic_load( library, descriptors, required, flags & DYNAMIC_LINK_LOCAL );
+            library_handle = dynamic_load( library, descriptors, required );
 
-#if defined(_MSC_VER) && _MSC_VER <= 1900
-#pragma warning (pop)
-#endif
         if ( !library_handle && ( flags & DYNAMIC_LINK_WEAK ) )
             return weak_symbol_link( descriptors, required );
 

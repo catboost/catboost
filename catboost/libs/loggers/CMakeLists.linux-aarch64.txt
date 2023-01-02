@@ -10,7 +10,6 @@ add_subdirectory(tensorboard_logger_example)
 
 add_library(catboost-libs-loggers)
 target_link_libraries(catboost-libs-loggers PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-logging

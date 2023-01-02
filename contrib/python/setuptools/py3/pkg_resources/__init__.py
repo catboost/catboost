@@ -3234,43 +3234,6 @@ from __res import Y_PYTHON_SOURCE_ROOT, ResourceImporter, executable
 from library.python import resource
 
 
-class UnionProvider(EmptyProvider):
-    def __init__(self, *pp):
-        self.module_path = [(p, p.module_path) for p in pp]
-
-    def _has(self, path):
-        for p, pp in path:
-            if p._has(pp):
-                return True
-
-        return False
-
-    def _fn(self, base, resource_name):
-        return [(p, p._fn(pp, resource_name)) for p, pp in base]
-
-    def _get(self, path):
-        for p, pp in path:
-            if p._has(pp):
-                return p._get(pp)
-
-        raise IOError(path)
-
-    def _itdir(self, path):
-        for p, pp in path:
-            for np in p._listdir(pp):
-                yield p, p._fn(pp, np)
-
-    def _listdir(self, path):
-        return list(self._itdir(path))
-
-    def _isdir(self, path):
-        for p, pp in path:
-            if p._has(pp):
-                return p._isdir(pp)
-
-        return False
-
-
 class ResProvider(EmptyProvider):
     _resource_fs = {}
 
@@ -3289,7 +3252,7 @@ class ResProvider(EmptyProvider):
     @staticmethod
     def from_module(module):
         if Y_PYTHON_SOURCE_ROOT:
-            return UnionProvider(DefaultProvider(module), ResProvider(module))
+            return DefaultProvider(module)
         else:
             return ResProvider(module)
 

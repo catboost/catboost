@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
 
 namespace tbb {
 namespace detail {
-namespace d2 {
+namespace d1 {
 
 using ticket_type = std::size_t;
 
@@ -67,7 +67,6 @@ public:
 
     using allocator_type = Allocator;
     using allocator_traits_type = tbb::detail::allocator_traits<allocator_type>;
-    using queue_allocator_type = typename allocator_traits_type::template rebind_alloc<queue_rep_type>;
 
     static constexpr size_type item_size = sizeof(T);
     static constexpr size_type items_per_page = item_size <=   8 ? 32 :
@@ -124,7 +123,7 @@ public:
         }
 
         if (tail_counter.load(std::memory_order_relaxed) != k) spin_wait_until_my_turn(tail_counter, k, base);
-        d1::call_itt_notify(d1::acquired, &tail_counter);
+        call_itt_notify(acquired, &tail_counter);
 
         if (p) {
             spin_mutex::scoped_lock lock( page_mutex );
@@ -134,7 +133,7 @@ public:
             } else {
                 head_page.store(p, std::memory_order_relaxed);
             }
-            tail_page.store(p, std::memory_order_release);
+            tail_page.store(p, std::memory_order_relaxed);;
         } else {
             p = tail_page.load(std::memory_order_acquire); // TODO may be relaxed ?
         }
@@ -142,10 +141,10 @@ public:
     }
 
     template<typename... Args>
-    void push( ticket_type k, queue_rep_type& base, queue_allocator_type& allocator, Args&&... args )
+    void push( ticket_type k, queue_rep_type& base, Args&&... args )
     {
         padded_page* p = nullptr;
-        page_allocator_type page_allocator(allocator);
+        page_allocator_type page_allocator(base.get_allocator());
         size_type index = prepare_page(k, base, page_allocator, p);
         __TBB_ASSERT(p != nullptr, "Page was not prepared");
 
@@ -153,38 +152,38 @@ public:
         // variadic capture on GCC 4.8.5
         auto value_guard = make_raii_guard([&] {
             ++base.n_invalid_entries;
-            d1::call_itt_notify(d1::releasing, &tail_counter);
+            call_itt_notify(releasing, &tail_counter);
             tail_counter.fetch_add(queue_rep_type::n_queue);
         });
 
         page_allocator_traits::construct(page_allocator, &(*p)[index], std::forward<Args>(args)...);
         // If no exception was thrown, mark item as present.
         p->mask.store(p->mask.load(std::memory_order_relaxed) | uintptr_t(1) << index, std::memory_order_relaxed);
-        d1::call_itt_notify(d1::releasing, &tail_counter);
+        call_itt_notify(releasing, &tail_counter);
 
         value_guard.dismiss();
         tail_counter.fetch_add(queue_rep_type::n_queue);
     }
 
-    void abort_push( ticket_type k, queue_rep_type& base, queue_allocator_type& allocator ) {
+    void abort_push( ticket_type k, queue_rep_type& base) {
         padded_page* p = nullptr;
-        prepare_page(k, base, allocator, p);
+        prepare_page(k, base, base.get_allocator(), p);
         ++base.n_invalid_entries;
         tail_counter.fetch_add(queue_rep_type::n_queue);
     }
 
-    bool pop( void* dst, ticket_type k, queue_rep_type& base, queue_allocator_type& allocator) {
+    bool pop( void* dst, ticket_type k, queue_rep_type& base ) {
         k &= -queue_rep_type::n_queue;
-        spin_wait_until_eq(head_counter, k);
-        d1::call_itt_notify(d1::acquired, &head_counter);
-        spin_wait_while_eq(tail_counter, k);
-        d1::call_itt_notify(d1::acquired, &tail_counter);
+        if (head_counter.load(std::memory_order_relaxed) != k) spin_wait_until_eq(head_counter, k);
+        call_itt_notify(acquired, &head_counter);
+        if (tail_counter.load(std::memory_order_relaxed) == k) spin_wait_while_eq(tail_counter, k);
+        call_itt_notify(acquired, &tail_counter);
         padded_page *p = head_page.load(std::memory_order_acquire);
         __TBB_ASSERT( p, nullptr );
         size_type index = modulo_power_of_two( k/queue_rep_type::n_queue, items_per_page );
         bool success = false;
         {
-            page_allocator_type page_allocator(allocator);
+            page_allocator_type page_allocator(base.get_allocator());
             micro_queue_pop_finalizer<self_type, value_type, page_allocator_type> finalizer(*this, page_allocator,
                 k + queue_rep_type::n_queue, index == items_per_page - 1 ? p : nullptr );
             if (p->mask.load(std::memory_order_relaxed) & (std::uintptr_t(1) << index)) {
@@ -197,7 +196,7 @@ public:
         return success;
     }
 
-    micro_queue& assign( const micro_queue& src, queue_allocator_type& allocator,
+    micro_queue& assign( const micro_queue& src, queue_rep_type& base,
         item_constructor_type construct_item )
     {
         head_counter.store(src.head_counter.load(std::memory_order_relaxed), std::memory_order_relaxed);
@@ -212,7 +211,7 @@ public:
             size_type end_in_first_page = (index+n_items < items_per_page) ? (index + n_items) : items_per_page;
 
             try_call( [&] {
-                head_page.store(make_copy(allocator, srcp, index, end_in_first_page, g_index, construct_item), std::memory_order_relaxed);
+                head_page.store(make_copy(base, srcp, index, end_in_first_page, g_index, construct_item), std::memory_order_relaxed);
             }).on_exception( [&] {
                 head_counter.store(0, std::memory_order_relaxed);
                 tail_counter.store(0, std::memory_order_relaxed);
@@ -222,7 +221,7 @@ public:
             try_call( [&] {
                 if (srcp != src.tail_page.load(std::memory_order_relaxed)) {
                     for (srcp = srcp->next; srcp != src.tail_page.load(std::memory_order_relaxed); srcp=srcp->next ) {
-                        cur_page->next = make_copy( allocator, srcp, 0, items_per_page, g_index, construct_item );
+                        cur_page->next = make_copy( base, srcp, 0, items_per_page, g_index, construct_item );
                         cur_page = cur_page->next;
                     }
 
@@ -230,7 +229,7 @@ public:
                     size_type last_index = modulo_power_of_two(tail_counter.load(std::memory_order_relaxed) / queue_rep_type::n_queue, items_per_page);
                     if( last_index==0 ) last_index = items_per_page;
 
-                    cur_page->next = make_copy( allocator, srcp, 0, last_index, g_index, construct_item );
+                    cur_page->next = make_copy( base, srcp, 0, last_index, g_index, construct_item );
                     cur_page = cur_page->next;
                 }
                 tail_page.store(cur_page, std::memory_order_relaxed);
@@ -245,10 +244,10 @@ public:
         return *this;
     }
 
-    padded_page* make_copy( queue_allocator_type& allocator, const padded_page* src_page, size_type begin_in_page,
+    padded_page* make_copy( queue_rep_type& base, const padded_page* src_page, size_type begin_in_page,
         size_type end_in_page, ticket_type& g_index, item_constructor_type construct_item )
     {
-        page_allocator_type page_allocator(allocator);
+        page_allocator_type page_allocator(base.get_allocator());
         padded_page* new_page = page_allocator_traits::allocate(page_allocator, 1);
         new_page->next = nullptr;
         new_page->mask.store(src_page->mask.load(std::memory_order_relaxed), std::memory_order_relaxed);
@@ -288,10 +287,10 @@ public:
         tail_page.store(pg, std::memory_order_relaxed);
     }
 
-    void clear(queue_allocator_type& allocator ) {
+    void clear(queue_rep_type& base) {
         padded_page* curr_page = head_page.load(std::memory_order_relaxed);
         std::size_t index = head_counter.load(std::memory_order_relaxed);
-        page_allocator_type page_allocator(allocator);
+        page_allocator_type page_allocator(base.get_allocator());
 
         while (curr_page) {
             for (; index != items_per_page - 1; ++index) {
@@ -378,12 +377,12 @@ public:
         if( is_valid_page(p) ) {
             spin_mutex::scoped_lock lock( my_queue.page_mutex );
             padded_page* q = p->next;
-            my_queue.head_page.store(q, std::memory_order_release);
+            my_queue.head_page.store(q, std::memory_order_relaxed);
             if( !is_valid_page(q) ) {
-                my_queue.tail_page.store(nullptr, std::memory_order_release);
+                my_queue.tail_page.store(nullptr, std::memory_order_relaxed);
             }
         }
-        my_queue.head_counter.store(my_ticket_type, std::memory_order_release);
+        my_queue.head_counter.store(my_ticket_type, std::memory_order_relaxed);
         if ( is_valid_page(p) ) {
             allocator_traits_type::destroy(allocator, static_cast<padded_page*>(p));
             allocator_traits_type::deallocate(allocator, static_cast<padded_page*>(p), 1);
@@ -424,13 +423,14 @@ public:
     static constexpr size_type item_size = micro_queue_type::item_size;
     static constexpr size_type items_per_page = micro_queue_type::items_per_page;
 
-    concurrent_queue_rep() {}
+    concurrent_queue_rep( queue_allocator_type& alloc ) : my_queue_allocator(alloc)
+    {}
 
     concurrent_queue_rep( const concurrent_queue_rep& ) = delete;
     concurrent_queue_rep& operator=( const concurrent_queue_rep& ) = delete;
 
-    void clear( queue_allocator_type& alloc ) {
-        page_allocator_type page_allocator(alloc);
+    void clear() {
+        page_allocator_type page_allocator(my_queue_allocator);
         for (size_type i = 0; i < n_queue; ++i) {
             padded_page* tail_page = array[i].get_tail_page();
             if( is_valid_page(tail_page) ) {
@@ -444,7 +444,7 @@ public:
         }
     }
 
-    void assign( const concurrent_queue_rep& src, queue_allocator_type& alloc, item_constructor_type construct_item ) {
+    void assign( const concurrent_queue_rep& src, item_constructor_type construct_item ) {
         head_counter.store(src.head_counter.load(std::memory_order_relaxed), std::memory_order_relaxed);
         tail_counter.store(src.tail_counter.load(std::memory_order_relaxed), std::memory_order_relaxed);
         n_invalid_entries.store(src.n_invalid_entries.load(std::memory_order_relaxed), std::memory_order_relaxed);
@@ -453,11 +453,11 @@ public:
         size_type queue_idx = 0;
         try_call( [&] {
             for (; queue_idx < n_queue; ++queue_idx) {
-                array[queue_idx].assign(src.array[queue_idx], alloc, construct_item);
+                array[queue_idx].assign(src.array[queue_idx], *this, construct_item);
             }
         }).on_exception( [&] {
             for (size_type i = 0; i < queue_idx + 1; ++i) {
-                array[i].clear(alloc);
+                array[i].clear(*this);
             }
             head_counter.store(0, std::memory_order_relaxed);
             tail_counter.store(0, std::memory_order_relaxed);
@@ -478,12 +478,16 @@ public:
     }
 
     std::ptrdiff_t size() const {
-        __TBB_ASSERT(sizeof(std::ptrdiff_t) <= sizeof(size_type), nullptr);
+        __TBB_ASSERT(sizeof(std::ptrdiff_t) <= sizeof(size_type), NULL);
         std::ptrdiff_t hc = head_counter.load(std::memory_order_acquire);
         std::ptrdiff_t tc = tail_counter.load(std::memory_order_relaxed);
         std::ptrdiff_t nie = n_invalid_entries.load(std::memory_order_relaxed);
 
         return tc - hc - nie;
+    }
+
+    queue_allocator_type& get_allocator() {
+        return my_queue_allocator;
     }
 
     friend class micro_queue<T, Allocator>;
@@ -503,6 +507,7 @@ public:
     alignas(max_nfs_size) std::atomic<ticket_type> head_counter{};
     alignas(max_nfs_size) std::atomic<ticket_type> tail_counter{};
     alignas(max_nfs_size) std::atomic<size_type> n_invalid_entries{};
+    queue_allocator_type& my_queue_allocator;
 }; // class concurrent_queue_rep
 
 #if _MSC_VER && !defined(__INTEL_COMPILER)
@@ -583,7 +588,7 @@ protected:
     Value* my_item{ nullptr };
     queue_rep_type* my_queue_rep{ nullptr };
     ticket_type my_head_counter{};
-    padded_page* my_array[queue_rep_type::n_queue]{};
+    padded_page* my_array[queue_rep_type::n_queue];
 }; // class concurrent_queue_iterator_base
 
 struct concurrent_queue_iterator_provider {
@@ -647,7 +652,7 @@ private:
     friend struct concurrent_queue_iterator_provider;
 }; // class concurrent_queue_iterator
 
-} // namespace d2
+} // namespace d1
 } // namespace detail
 } // tbb
 

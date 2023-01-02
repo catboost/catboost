@@ -9,7 +9,6 @@
 
 add_library(cpp-malloc-jemalloc)
 target_link_libraries(cpp-malloc-jemalloc PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   cpp-malloc-api
   contrib-libs-jemalloc

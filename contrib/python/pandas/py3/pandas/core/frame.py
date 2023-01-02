@@ -86,7 +86,6 @@ from pandas.compat.numpy import (
     function as nv,
     np_percentile_argname,
 )
-from pandas.errors import InvalidIndexError
 from pandas.util._decorators import (
     Appender,
     Substitution,
@@ -4221,13 +4220,6 @@ class DataFrame(NDFrame, OpsMixin):
                 self.loc[index, col] = value
             self._item_cache.pop(col, None)
 
-        except InvalidIndexError as ii_err:
-            # GH48729: Seems like you are trying to assign a value to a
-            # row when only scalar options are permitted
-            raise InvalidIndexError(
-                f"You can only assign a scalar value not a {type(value)}"
-            ) from ii_err
-
     def _ensure_valid_index(self, value) -> None:
         """
         Ensure that if we don't have an index, that we can create one from the
@@ -8255,9 +8247,7 @@ Keep all original rows and columns and also all original values
             if mask.all():
                 continue
 
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", "In a future version, `df.iloc")
-                self.loc[:, col] = expressions.where(mask, this, that)
+            self.loc[:, col] = expressions.where(mask, this, that)
 
     # ----------------------------------------------------------------------
     # Data reshaping

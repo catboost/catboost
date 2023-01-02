@@ -7,5 +7,5 @@ manager = PnpmPackageManager
 __all__ = [
     "PackageJson",
     "constants", "utils",
-    "bundle_node_modules", "extract_node_modules"
+    "bundle_node_modules", "extract_node_modules",
 ]

@@ -10,7 +10,6 @@ add_subdirectory(ut)
 
 add_library(private-libs-embedding_features)
 target_link_libraries(private-libs-embedding_features PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-text_features
@@ -46,7 +45,6 @@ target_fbs_source(private-libs-embedding_features
 
 add_global_library_for(private-libs-embedding_features.global private-libs-embedding_features)
 target_link_libraries(private-libs-embedding_features.global PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-text_features

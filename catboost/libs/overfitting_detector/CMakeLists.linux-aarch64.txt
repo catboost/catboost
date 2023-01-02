@@ -9,7 +9,6 @@
 
 add_library(catboost-libs-overfitting_detector)
 target_link_libraries(catboost-libs-overfitting_detector PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   catboost-libs-helpers

@@ -237,7 +237,6 @@
 
 - source_filter: "^contrib/libs/nvidia/nccl"
   includes:
-    - alloc.h:       contrib/libs/nvidia/nccl/src/include/alloc.h
     - socket.h:      contrib/libs/nvidia/nccl/src/include/socket.h
 
 - source_filter: "^contrib/libs/tf/tensorflow"

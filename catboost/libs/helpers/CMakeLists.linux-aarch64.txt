@@ -12,7 +12,6 @@ add_subdirectory(ut)
 
 add_library(catboost-libs-helpers)
 target_link_libraries(catboost-libs-helpers PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-data_types

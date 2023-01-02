@@ -12,11 +12,17 @@ import zipfile
 class _Formatting(object):
     @staticmethod
     def is_str(strval):
-        return isinstance(strval, (bytes, str))
+        if sys.version_info >= (3, 0, 0):
+            return isinstance(strval, (bytes, str))
+        else:
+            return isinstance(strval, basestring)
 
     @staticmethod
     def encoding_needed(strval):
-        return isinstance(strval, str)
+        if sys.version_info >= (3, 0, 0):
+            return isinstance(strval, str)
+        else:
+            return isinstance(strval, unicode)
 
     @staticmethod
     def escape_special_symbols(strval):
@@ -24,9 +30,10 @@ class _Formatting(object):
         c_str = strval.encode('utf-8') if encoding_needed else strval
         retval = b""
         for c in c_str:
-            c = bytes([c])
-            if c in (b"\\", b"\""):
-                retval += b"\\" + c
+            if sys.version_info >= (3, 0, 0):
+                c = bytes([c])
+            if c in ("\\", "\""):
+                retval += "\\" + c
             elif ord(c) < ord(' '):
                 retval += c.decode('latin-1').encode('unicode_escape')
             else:
@@ -86,12 +93,12 @@ def get_json(file_name):
             out = json.load(f)
 
         # TODO: check 'tar+svn' parsing
-        for num_var in ['ARCADIA_SOURCE_REVISION', 'ARCADIA_SOURCE_LAST_CHANGE', 'SVN_REVISION']:
-            if num_var in out and _Formatting.is_str(out[num_var]):
+        for i in ['ARCADIA_SOURCE_REVISION', 'ARCADIA_SOURCE_LAST_CHANGE', 'SVN_REVISION']:
+            if i in out and _Formatting.is_str(out[i]):
                 try:
-                    out[num_var] = int(out[num_var])
+                    out[i] = int(out[i])
                 except:
-                    out[num_var] = -1
+                    out[i] = -1
         return out
     except:
         return get_default_json()
@@ -102,12 +109,20 @@ def print_c(json_file, output_file, argv):
             json file
             output file
             $(SOURCE_ROOT)/build/scripts/c_templates/svn_interface.c"""
+    def gen_header(info):
+        lines = []
+        for k, v in info.items():
+            lines.append(_Formatting.escaped_define(k, v))
+        return lines
+
     interface = argv[0]
 
     with open(interface) as c:
         c_file = c.read()
     with open(output_file, 'w') as f:
-        header = '\n'.join(_Formatting.escaped_define(k, v) for k, v in json_file.items())
+        header = '\n'.join(gen_header(json_file))
+        if sys.version_info < (3, 0, 0):
+            header = header.encode('utf-8')
         f.write(header + '\n' + c_file)
 
 
@@ -199,8 +214,8 @@ def print_java_mf(info):
             return []
         return wrapper.wrap(key + val)
 
-    lines = wrap('Program-Version-String: ', base64.b64encode(info['PROGRAM_VERSION'].encode('utf-8')).decode('utf-8'))
-    lines += wrap('SCM-String: ', base64.b64encode(info['SCM_DATA'].encode('utf-8')).decode('utf-8'))
+    lines = wrap('Program-Version-String: ', base64.b64encode(info['PROGRAM_VERSION'].encode('utf-8')))
+    lines += wrap('SCM-String: ', base64.b64encode(info['SCM_DATA'].encode('utf-8')))
     lines += wrap('Arcadia-Source-Path: ', info['ARCADIA_SOURCE_PATH'])
     lines += wrap('Arcadia-Source-URL: ', info['ARCADIA_SOURCE_URL'])
     lines += wrap('Arcadia-Source-Revision: ', str(info['ARCADIA_SOURCE_REVISION']))
@@ -247,7 +262,7 @@ def print_go(json_file, output_file):
             ['func init() {',
              '   buildinfo.InitBuildInfo(buildinfomap)',
              '}']
-        ) + '\n')
+        ).encode('utf-8') + '\n')
 
 
 if __name__ == '__main__':

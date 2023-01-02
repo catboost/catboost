@@ -20,9 +20,6 @@ target_compile_options(contrib-libs-libunwind PRIVATE
 target_include_directories(contrib-libs-libunwind PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/include
 )
-target_link_libraries(contrib-libs-libunwind PUBLIC
-  contrib-libs-linux-headers
-)
 target_sources(contrib-libs-libunwind PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-EHABI.cpp
   ${CMAKE_SOURCE_DIR}/contrib/libs/libunwind/src/Unwind-seh.cpp

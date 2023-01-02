@@ -40,7 +40,6 @@ namespace d1 {
 //! A range over which to iterate.
 /** @ingroup algorithms */
 template<typename Value>
-    __TBB_requires(blocked_range_value<Value>)
 class blocked_range {
 public:
     //! Type of a value
@@ -140,18 +139,12 @@ private:
     }
 
     template<typename RowValue, typename ColValue>
-        __TBB_requires(blocked_range_value<RowValue> &&
-                       blocked_range_value<ColValue>)
     friend class blocked_range2d;
 
     template<typename RowValue, typename ColValue, typename PageValue>
-        __TBB_requires(blocked_range_value<RowValue> &&
-                       blocked_range_value<ColValue> &&
-                       blocked_range_value<PageValue>)
     friend class blocked_range3d;
 
     template<typename DimValue, unsigned int N, typename>
-        __TBB_requires(blocked_range_value<DimValue>)
     friend class blocked_rangeNd_impl;
 };
 

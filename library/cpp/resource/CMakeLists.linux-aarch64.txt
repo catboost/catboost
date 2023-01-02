@@ -9,7 +9,6 @@
 
 add_library(library-cpp-resource)
 target_link_libraries(library-cpp-resource PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-blockcodecs-core

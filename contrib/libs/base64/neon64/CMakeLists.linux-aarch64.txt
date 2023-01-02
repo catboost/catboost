@@ -9,7 +9,6 @@
 
 add_library(libs-base64-neon64)
 target_link_libraries(libs-base64-neon64 PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
 )
 target_sources(libs-base64-neon64 PRIVATE

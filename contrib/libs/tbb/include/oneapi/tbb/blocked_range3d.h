@@ -31,9 +31,6 @@ namespace d1 {
 //! A 3-dimensional range that models the Range concept.
 /** @ingroup algorithms */
 template<typename PageValue, typename RowValue = PageValue, typename ColValue = RowValue>
-    __TBB_requires(blocked_range_value<PageValue> &&
-                   blocked_range_value<RowValue> &&
-                   blocked_range_value<ColValue>)
 class blocked_range3d {
 public:
     //! Type for size of an iteration range

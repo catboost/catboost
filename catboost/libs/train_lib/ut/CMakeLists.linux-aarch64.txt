@@ -12,7 +12,6 @@ target_include_directories(catboost-libs-train_lib-ut PRIVATE
   ${CMAKE_SOURCE_DIR}/catboost/libs/train_lib
 )
 target_link_libraries(catboost-libs-train_lib-ut PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   library-cpp-lfalloc

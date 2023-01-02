@@ -23,6 +23,7 @@ from typing import Type
 from typing import TYPE_CHECKING
 from typing import Union
 
+import pytest
 from _pytest import outcomes
 from _pytest._code.code import ExceptionInfo
 from _pytest._code.code import ReprFileLocation
@@ -31,15 +32,11 @@ from _pytest._io import TerminalWriter
 from _pytest.compat import safe_getattr
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
-from _pytest.fixtures import fixture
 from _pytest.fixtures import FixtureRequest
 from _pytest.nodes import Collector
-from _pytest.nodes import Item
 from _pytest.outcomes import OutcomeException
-from _pytest.outcomes import skip
 from _pytest.pathlib import fnmatch_ex
 from _pytest.pathlib import import_path
-from _pytest.python import Module
 from _pytest.python_api import approx
 from _pytest.warning_types import PytestWarning
 
@@ -69,26 +66,26 @@ CHECKER_CLASS: Optional[Type["doctest.OutputChecker"]] = None
 def pytest_addoption(parser: Parser) -> None:
     parser.addini(
         "doctest_optionflags",
-        "Option flags for doctests",
+        "option flags for doctests",
         type="args",
         default=["ELLIPSIS"],
     )
     parser.addini(
-        "doctest_encoding", "Encoding used for doctest files", default="utf-8"
+        "doctest_encoding", "encoding used for doctest files", default="utf-8"
     )
     group = parser.getgroup("collect")
     group.addoption(
         "--doctest-modules",
         action="store_true",
         default=False,
-        help="Run doctests in all .py modules",
+        help="run doctests in all .py modules",
         dest="doctestmodules",
     )
     group.addoption(
         "--doctest-report",
         type=str.lower,
         default="udiff",
-        help="Choose another output format for diffs on doctest failure",
+        help="choose another output format for diffs on doctest failure",
         choices=DOCTEST_REPORT_CHOICES,
         dest="doctestreport",
     )
@@ -97,21 +94,21 @@ def pytest_addoption(parser: Parser) -> None:
         action="append",
         default=[],
         metavar="pat",
-        help="Doctests file matching pattern, default: test*.txt",
+        help="doctests file matching pattern, default: test*.txt",
         dest="doctestglob",
     )
     group.addoption(
         "--doctest-ignore-import-errors",
         action="store_true",
         default=False,
-        help="Ignore doctest ImportErrors",
+        help="ignore doctest ImportErrors",
         dest="doctest_ignore_import_errors",
     )
     group.addoption(
         "--doctest-continue-on-failure",
         action="store_true",
         default=False,
-        help="For a given doctest, continue to run after the first failure",
+        help="for a given doctest, continue to run after the first failure",
         dest="doctest_continue_on_failure",
     )
 
@@ -249,7 +246,7 @@ def _get_runner(
     )
 
 
-class DoctestItem(Item):
+class DoctestItem(pytest.Item):
     def __init__(
         self,
         name: str,
@@ -414,7 +411,7 @@ def _get_continue_on_failure(config):
     return continue_on_failure
 
 
-class DoctestTextfile(Module):
+class DoctestTextfile(pytest.Module):
     obj = None
 
     def collect(self) -> Iterable[DoctestItem]:
@@ -452,7 +449,7 @@ def _check_all_skipped(test: "doctest.DocTest") -> None:
 
     all_skipped = all(x.options.get(doctest.SKIP, False) for x in test.examples)
     if all_skipped:
-        skip("all tests skipped by +SKIP option")
+        pytest.skip("all tests skipped by +SKIP option")
 
 
 def _is_mocked(obj: object) -> bool:
@@ -494,7 +491,7 @@ def _patch_unwrap_mock_aware() -> Generator[None, None, None]:
         inspect.unwrap = real_unwrap
 
 
-class DoctestModule(Module):
+class DoctestModule(pytest.Module):
     def collect(self) -> Iterable[DoctestItem]:
         import doctest
 
@@ -552,7 +549,7 @@ class DoctestModule(Module):
                 )
             except ImportError:
                 if self.config.getvalue("doctest_ignore_import_errors"):
-                    skip("unable to import module %r" % self.path)
+                    pytest.skip("unable to import module %r" % self.path)
                 else:
                     raise
         # Uses internal doctest module parsing mechanism.
@@ -734,7 +731,7 @@ def _get_report_choice(key: str) -> int:
     }[key]
 
 
-@fixture(scope="session")
+@pytest.fixture(scope="session")
 def doctest_namespace() -> Dict[str, Any]:
     """Fixture that returns a :py:class:`dict` that will be injected into the
     namespace of doctests.

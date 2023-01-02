@@ -173,7 +173,7 @@ def _format_traceback_lines(lines, Colors, has_colors: bool, lvals):
 
 def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
     """
-    Format filename lines with custom formatting from caching compiler or `File *.py` by default
+    Format filename lines with `In [n]` if it's the nth code cell or `File *.py` if it's a module.
 
     Parameters
     ----------
@@ -184,29 +184,23 @@ def _format_filename(file, ColorFilename, ColorNormal, *, lineno=None):
         ColorScheme's normal coloring to be used.
     """
     ipinst = get_ipython()
-    if (
-        ipinst is not None
-        and (data := ipinst.compile.format_code_name(file)) is not None
-    ):
-        label, name = data
+
+    if ipinst is not None and file in ipinst.compile._filename_map:
+        file = "[%s]" % ipinst.compile._filename_map[file]
         if lineno is None:
-            tpl_link = f"{{label}} {ColorFilename}{{name}}{ColorNormal}"
+            tpl_link = f"Cell {ColorFilename}In {{file}}{ColorNormal}"
         else:
-            tpl_link = (
-                f"{{label}} {ColorFilename}{{name}}, line {{lineno}}{ColorNormal}"
-            )
+            tpl_link = f"Cell {ColorFilename}In {{file}}, line {{lineno}}{ColorNormal}"
     else:
-        label = "File"
-        name = util_path.compress_user(
+        file = util_path.compress_user(
             py3compat.cast_unicode(file, util_path.fs_encoding)
         )
         if lineno is None:
-            tpl_link = f"{{label}} {ColorFilename}{{name}}{ColorNormal}"
+            tpl_link = f"File {ColorFilename}{{file}}{ColorNormal}"
         else:
-            # can we make this the more friendly ", line {{lineno}}", or do we need to preserve the formatting with the colon?
-            tpl_link = f"{{label}} {ColorFilename}{{name}}:{{lineno}}{ColorNormal}"
+            tpl_link = f"File {ColorFilename}{{file}}:{{lineno}}{ColorNormal}"
 
-    return tpl_link.format(label=label, name=name, lineno=lineno)
+    return tpl_link.format(file=file, lineno=lineno)
 
 #---------------------------------------------------------------------------
 # Module classes
@@ -616,8 +610,6 @@ class VerboseTB(TBTools):
     traceback, to be used with alternate interpreters (because their own code
     would appear in the traceback)."""
 
-    _tb_highlight = ""
-
     def __init__(
         self,
         color_scheme: str = "Linux",
@@ -650,8 +642,10 @@ class VerboseTB(TBTools):
         self.long_header = long_header
         self.include_vars = include_vars
         # By default we use linecache.checkcache, but the user can provide a
-        # different check_cache implementation.  This was formerly used by the
-        # IPython kernel for interactive code, but is no longer necessary.
+        # different check_cache implementation.  This is used by the IPython
+        # kernel to provide tracebacks for interactive code that is cached,
+        # by a compiler instance that flushes the linecache but preserves its
+        # own code cache.
         if check_cache is None:
             check_cache = linecache.checkcache
         self.check_cache = check_cache
@@ -842,7 +836,7 @@ class VerboseTB(TBTools):
         before = context - after
         if self.has_colors:
             style = get_style_by_name("default")
-            style = stack_data.style_with_executing_node(style, self._tb_highlight)
+            style = stack_data.style_with_executing_node(style, "")
             formatter = Terminal256Formatter(style=style)
         else:
             formatter = None

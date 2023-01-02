@@ -16,7 +16,6 @@ target_include_directories(libs-cxxsupp-libcxxrt PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/cxxsupp/libcxxrt
 )
 target_link_libraries(libs-cxxsupp-libcxxrt PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-libunwind
 )
 target_sources(libs-cxxsupp-libcxxrt PRIVATE

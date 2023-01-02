@@ -6,18 +6,15 @@
 # original buildsystem will not be accepted.
 
 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux-aarch64.txt)
-elseif (APPLE)
-  include(CMakeLists.darwin.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
-  include(CMakeLists.android-arm.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
-  include(CMakeLists.android-arm64.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
-  include(CMakeLists.android-x86.txt)
-elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
-  include(CMakeLists.android-x86_64.txt)
-elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
-  include(CMakeLists.linux.txt)
-endif()
+
+add_library(library-cpp-dbg_output)
+target_link_libraries(library-cpp-dbg_output PUBLIC
+  contrib-libs-cxxsupp
+  yutil
+  library-cpp-colorizer
+)
+target_sources(library-cpp-dbg_output PRIVATE
+  ${CMAKE_SOURCE_DIR}/library/cpp/dbg_output/dump.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/dbg_output/dumpers.cpp
+  ${CMAKE_SOURCE_DIR}/library/cpp/dbg_output/engine.cpp
+)

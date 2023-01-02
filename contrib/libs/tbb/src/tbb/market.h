@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2022 Intel Corporation
+    Copyright (c) 2005-2021 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@
 #define _TBB_market_H
 
 #include "scheduler_common.h"
-#include "market_concurrent_monitor.h"
+#include "concurrent_monitor.h"
 #include "intrusive_list.h"
 #include "rml_tbb.h"
-#include "oneapi/tbb/rw_mutex.h"
 
 #include "oneapi/tbb/spin_rw_mutex.h"
 #include "oneapi/tbb/task_group.h"
@@ -37,9 +36,11 @@
 namespace tbb {
 namespace detail {
 
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 namespace d1 {
 class task_scheduler_handle;
 }
+#endif
 
 namespace r1 {
 
@@ -56,7 +57,9 @@ class market : no_copy, rml::tbb_client {
     template<typename SchedulerTraits> friend class custom_scheduler;
     friend class task_group_context;
     friend class governor;
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
     friend class lifetime_control;
+#endif
 
 public:
     //! Keys for the arena map array. The lower the value the higher priority of the arena list.
@@ -64,7 +67,9 @@ public:
 
 private:
     friend void ITT_DoUnsafeOneTimeInitialization ();
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
     friend bool finalize_impl(d1::task_scheduler_handle& handle);
+#endif
 
     typedef intrusive_list<arena> arena_list_type;
     typedef intrusive_list<thread_data> thread_data_list_type;
@@ -78,7 +83,7 @@ private:
     static global_market_mutex_type  theMarketMutex;
 
     //! Lightweight mutex guarding accounting operations with arenas list
-    typedef rw_mutex arenas_list_mutex_type;
+    typedef spin_rw_mutex arenas_list_mutex_type;
     // TODO: introduce fine-grained (per priority list) locking of arenas.
     arenas_list_mutex_type my_arenas_list_mutex;
 
@@ -86,7 +91,7 @@ private:
     rml::tbb_server* my_server;
 
     //! Waiting object for external and coroutine waiters.
-    market_concurrent_monitor my_sleep_monitor;
+    extended_concurrent_monitor my_sleep_monitor;
 
     //! Maximal number of workers allowed for use by the underlying resource manager
     /** It can't be changed after market creation. **/
@@ -98,6 +103,12 @@ private:
 
     //! Number of workers currently requested from RML
     int my_num_workers_requested;
+
+    //! The target serialization epoch for callers of adjust_job_count_estimate
+    int my_adjust_demand_target_epoch;
+
+    //! The current serialization epoch for callers of adjust_job_count_estimate
+    std::atomic<int> my_adjust_demand_current_epoch;
 
     //! First unused index of worker
     /** Used to assign indices to the new workers coming from RML, and busy part
@@ -146,9 +157,6 @@ private:
     //! Constructor
     market ( unsigned workers_soft_limit, unsigned workers_hard_limit, std::size_t stack_size );
 
-    //! Destructor
-    ~market();
-
     //! Destroys and deallocates market object created by market::create()
     void destroy ();
 
@@ -165,7 +173,7 @@ private:
         }
     }
 
-    //! Returns next arena that needs more workers, or nullptr.
+    //! Returns next arena that needs more workers, or NULL.
     arena* arena_in_need(arena* prev);
 
     template <typename Pred>
@@ -225,7 +233,7 @@ public:
                                  unsigned arena_index, std::size_t stack_size );
 
     //! Removes the arena from the market's list
-    void try_destroy_arena ( arena*, uintptr_t aba_epoch, unsigned priority_level );
+    void try_destroy_arena ( arena*, uintptr_t aba_epoch, unsigned pririty_level );
 
     //! Removes the arena from the market's list
     void detach_arena ( arena& );
@@ -234,7 +242,7 @@ public:
     bool release ( bool is_public, bool blocking_terminate );
 
     //! Return wait list
-    market_concurrent_monitor& get_wait_list() { return my_sleep_monitor; }
+    extended_concurrent_monitor& get_wait_list() { return my_sleep_monitor; }
 
 #if __TBB_ENQUEUE_ENFORCED_CONCURRENCY
     //! Imlpementation of mandatory concurrency enabling
@@ -266,8 +274,10 @@ public:
     //! Reports active parallelism level according to user's settings
     static unsigned app_parallelism_limit();
 
+#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
     //! Reports if any active global lifetime references are present
     static unsigned is_lifetime_control_present();
+#endif
 
     //! Finds all contexts affected by the state change and propagates the new state to them.
     /** The propagation is relayed to the market because tasks created by one
@@ -283,7 +293,7 @@ public:
     //! Array of pointers to the registered workers
     /** Used by cancellation propagation mechanism.
         Must be the last data member of the class market. **/
-    std::atomic<thread_data*> my_workers[1];
+    thread_data* my_workers[1];
 
     static unsigned max_num_workers() {
         global_market_mutex_type::scoped_lock lock( theMarketMutex );

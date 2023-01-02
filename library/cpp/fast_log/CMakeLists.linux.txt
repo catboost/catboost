@@ -9,7 +9,6 @@
 
 add_library(library-cpp-fast_log)
 target_link_libraries(library-cpp-fast_log PUBLIC
-  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
