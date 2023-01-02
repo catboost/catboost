@@ -3,12 +3,25 @@
 #include <util/generic/yexception.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
+#include <util/stream/input.h>
 
 /*
     Split string by rfc4180
 */
 
 namespace NCsvFormat {
+    class TLinesSplitter {
+    private:
+        IInputStream& Input;
+        const char Quote;
+    public:
+        TLinesSplitter(IInputStream& input, const char quote = '"')
+            : Input(input)
+            , Quote(quote) {
+        }
+        TString ConsumeLine();
+    };
+
     class CsvSplitter {
     public:
         CsvSplitter(TString& data, const char delimeter = ',', const char quote = '"')
