@@ -10,15 +10,15 @@ namespace NKernel {
 
 
     __global__ void UpdatePartitionSizes(TDataPartition* parts, ui32 partCount,
-                                         const int* sortedBins, ui32 size) {
+                                         const ui32* sortedBins, ui32 size) {
 
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            int bin0 = __ldg(sortedBins + i);
-            int bin1 = i ? __ldg(sortedBins + i - 1) : 0;
+            ui32 bin0 = __ldg(sortedBins + i);
+            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : 0;
 
             if (bin0 != bin1) {
-                int b = bin1;
+                ui32 b = bin1;
                 while (b < bin0) {
                     parts[b].Size = i - parts[b].Offset;
                     b++;
@@ -26,7 +26,7 @@ namespace NKernel {
             }
             if ((i + 1) == size) {
                 parts[bin0].Size = size - parts[bin0].Offset;
-                int b = bin0 + 1;
+                ui32 b = bin0 + 1;
                 while (b < partCount) {
                     parts[b].Size = 0;
                     b++;
@@ -79,24 +79,24 @@ namespace NKernel {
 
     template <class TWriter, bool DONT_WRITE_EMPTY_SUFFIX>
     __global__ void UpdatePartitionOffsets(typename TWriter::TStorageType* parts, ui32 partCount,
-                                           const int* sortedBins, ui32 size) {
+                                           const ui32* sortedBins, ui32 size) {
 
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
-        int lastBin = DONT_WRITE_EMPTY_SUFFIX ? LdgWithFallback(sortedBins + size - 1, 0) : 1 << 31;
+        ui32 lastBin = DONT_WRITE_EMPTY_SUFFIX ? LdgWithFallback(sortedBins + size - 1, 0) : UINT32_MAX;
         TWriter writer(parts);
 
         while (i < size) {
-            int bin0 = __ldg(sortedBins + i);
-            int bin1 = i ? __ldg(sortedBins + i - 1) : -1;
+            ui32 bin0 = __ldg(sortedBins + i);
+            ui32 bin1 = i ? __ldg(sortedBins + i - 1) : -1;
             if (bin0 != bin1) {
-                int b = bin0;
-                while (b > bin1) {
+                ui32 b = bin0;
+                while (b != bin1) {
                     writer.Write(b, i);
                     b--;
                 }
             }
-            if (i == (size - 1)) {
-                int b = bin0 + 1;
+            if (i + 1 == size) {
+                ui32 b = bin0 + 1;
                 while (b < min(lastBin, partCount)) {
                     writer.Write(b, size);
                     b++;
@@ -125,8 +125,8 @@ namespace NKernel {
         const ui32 numBlocks = min((size + blockSize - 1) / blockSize, (ui32)TArchProps::MaxBlockCount());
         if (numBlocks)
         {
-            UpdatePartitionOffsets<TPartitionOffsetWriter, false> << < numBlocks, blockSize, 0, stream >> > (parts, partCount, (int*)sortedBins, size);
-            UpdatePartitionSizes << < numBlocks, blockSize, 0, stream >> > (parts, partCount, (int*)sortedBins, size);
+            UpdatePartitionOffsets<TPartitionOffsetWriter, false> << < numBlocks, blockSize, 0, stream >> > (parts, partCount, sortedBins, size);
+            UpdatePartitionSizes << < numBlocks, blockSize, 0, stream >> > (parts, partCount, sortedBins, size);
         } else {
             const ui32 numBlocksClear = (partCount + blockSize - 1) / blockSize;
             ZeroPartitions<<<numBlocksClear, blockSize, 0, stream>>>(parts, partCount);
@@ -168,9 +168,9 @@ namespace NKernel {
             }
             if (skipSuffixBins)
             {
-                UpdatePartitionOffsets<TVecOffsetWriter, true> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, (int*) sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, true> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
             } else {
-                UpdatePartitionOffsets<TVecOffsetWriter, false> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, (int*) sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, false> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, sortedBins, size);
             }
         } else {
             FillBuffer(partOffsets, static_cast<ui32>(0), partCount, stream);
