@@ -42,14 +42,6 @@ def ontest_data(unit, *args):
     ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
 
 
-def save_in_file(filepath, data):
-    if filepath:
-        with open(filepath, 'a') as file_handler:
-            if os.stat(filepath).st_size == 0:
-                print >>file_handler,  BLOCK_SEPARATOR
-            print >> file_handler, data
-
-
 def prepare_recipes(data):
     data = data.replace('"USE_RECIPE_DELIM"', "\n")
     data = data.replace("$TEST_RECIPES_VALUE", "")
@@ -526,7 +518,6 @@ def onadd_ytest(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
-        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def java_srcdirs_to_data(unit, var):
@@ -656,7 +647,6 @@ def onadd_check(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
-        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def on_register_no_check_imports(unit):
@@ -706,7 +696,6 @@ def onadd_check_py_imports(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
-        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onadd_pytest_script(unit, *args):
@@ -1024,7 +1013,6 @@ def _dump_test(
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])
-        save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
 def onsetup_pytest_bin(unit, *args):
