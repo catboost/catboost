@@ -19,6 +19,7 @@ from IPython.core.application import SYSTEM_CONFIG_DIRS, ENV_CONFIG_DIRS
 from IPython.core import pylabtools
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
+import traitlets
 from traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum, observe,
     DottedObjectName,

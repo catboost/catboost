@@ -41,7 +41,7 @@ void NCatboostCuda::TPairwiseOptimizationSubsets::Split(const TStripeBuffer<ui32
     }
     //pairwise split
     {
-        auto tempIndices = TStripeBuffer<ui64>::CopyMapping(PairwiseTarget.Pairs);
+        auto tempIndices = TStripeBuffer<ui32>::CopyMapping(PairwiseTarget.Pairs);
         MakeSequence(tempIndices);
         UpdatePairwiseBins(cindex, feature, bin, CurrentDepth, PairwiseTarget.Pairs, PairBins);
         ReorderBins(PairBins, tempIndices, 2 * CurrentDepth, 2);
