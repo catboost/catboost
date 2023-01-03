@@ -39,7 +39,11 @@ inline TString BuildDescription(const char* fmt, const TMetricParam<TVector<doub
         TStringBuilder description;
         description << param.GetName() << "=" << Sprintf(fmt, param.Get()[0]) << ",";
         for (auto idx : xrange<size_t>(1, param.Get().size(), 1)) {
-            description << "," << Sprintf(fmt, param.Get()[idx]);
+            if (idx < param.Get().size() - 1) {
+                description << Sprintf(fmt, param.Get()[idx]) << ",";
+            } else {
+                description << Sprintf(fmt, param.Get()[idx]);
+            }
         }
         return description;
     }
