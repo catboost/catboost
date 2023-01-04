@@ -10,10 +10,10 @@
 
 namespace NCatboostCuda {
     //warning: will not free memory
-    template <class TMapping>
+    template <class TMapping, class TIndex>
     inline void FilterZeroEntries(TCudaBuffer<float, TMapping>* weights,
-                                  TCudaBuffer<ui32, TMapping>* nzIndices) {
-        TCudaBuffer<ui32, TMapping> status;
+                                  TCudaBuffer<TIndex, TMapping>* nzIndices) {
+        TCudaBuffer<TIndex, TMapping> status; // TIndex because size of weights may exceed 2**32
         status.Reset(weights->GetMapping());
         NonZeroFilter(*weights, status);
 
@@ -22,7 +22,7 @@ namespace NCatboostCuda {
         MakeSequence(indices);
         RadixSort(status, indices, true, 0u, 1u);
 
-        TCudaBuffer<ui32, TMapping> nzSizes;
+        TCudaBuffer<TIndex, TMapping> nzSizes;
         auto resultMapping = status.GetMapping().Transform([&](const TSlice&) {
             return 1;
         });
@@ -30,7 +30,7 @@ namespace NCatboostCuda {
 
         ReduceVector(status, nzSizes, EOperatorType::Sum);
 
-        TVector<ui32> nzSizesMaster;
+        TVector<TIndex> nzSizesMaster;
         nzSizes.Read(nzSizesMaster);
         auto nzMapping = nzSizes.GetMapping().Transform([&](const TSlice& slice) {
             CB_ENSURE(slice.Size() == 1);
