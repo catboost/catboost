@@ -1,9 +1,11 @@
 Metadata-Version: 2.1
 Name: prompt-toolkit
-Version: 3.0.31
+Version: 3.0.32
 Summary: Library for building powerful interactive command lines in Python
 Home-page: https://github.com/prompt-toolkit/python-prompt-toolkit
 Author: Jonathan Slenders
+License: UNKNOWN
+Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: BSD License
@@ -179,4 +181,6 @@ Special thanks to
 
 .. |Codecov| image:: https://codecov.io/gh/prompt-toolkit/python-prompt-toolkit/branch/master/graphs/badge.svg?style=flat
     :target: https://codecov.io/gh/prompt-toolkit/python-prompt-toolkit/
+
+
 
