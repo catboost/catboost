@@ -13,6 +13,7 @@ PEERDIR(
     contrib/restricted/abseil-cpp/absl/container
     contrib/restricted/abseil-cpp/absl/debugging
     contrib/restricted/abseil-cpp/absl/hash
+    contrib/restricted/abseil-cpp/absl/memory
     contrib/restricted/abseil-cpp/absl/numeric
     contrib/restricted/abseil-cpp/absl/profiling
     contrib/restricted/abseil-cpp/absl/strings
