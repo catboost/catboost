@@ -24,6 +24,23 @@ dependencies {
 {% endif -%}
 }
 
+{% if targets[0].proto_grpc is defined -%}
+protobuf {
+    plugins {
+        id("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.45.0"
+        }
+    }
+    generateProtoTasks {
+        ofSourceSet("main").forEach {
+            it.plugins {
+                id("grpc")
+            }
+        }
+    }
+}
+{% endif -%}
+
 val prepareProto = tasks.register<Copy>("prepareProto") {
     from(rootDir) {
 {% for proto in targets[0].proto_files -%}
