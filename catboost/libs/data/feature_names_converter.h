@@ -25,7 +25,7 @@ inline ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>
     } else {
         CB_ENSURE(
             indicesFromNames.contains(nameOrIndex),
-            "String " + nameOrIndex + " is not a feature name");
+            "String '" + nameOrIndex + "' is not a feature name");
         return indicesFromNames.at(nameOrIndex);
     }
 }
