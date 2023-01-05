@@ -261,6 +261,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.vcxproj">
       <Project>{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
+      <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\win-unicode-console\pydeprecated-python-win-unicode-console.vcxproj">
       <Project>{74C19432-1A4D-B2CC-4E7B-CF48FEE610A8}</Project>
     </ProjectReference>
@@ -425,9 +428,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\traitlets\pycontrib-python-traitlets.vcxproj">
       <Project>{1DBCB73E-225F-19E4-30C7-41861F222A71}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\typing\pycontrib-python-typing.vcxproj">
-      <Project>{A4C550F8-D8F4-B21E-6CAB-1A3939D42D78}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\wcwidth\pycontrib-python-wcwidth.vcxproj">
       <Project>{F338AB33-66DB-B461-4311-08AAD87EAE63}</Project>
