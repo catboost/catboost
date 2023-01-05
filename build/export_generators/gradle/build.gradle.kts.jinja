@@ -17,9 +17,9 @@ dependencies{
 {% for target in targets -%}
 {% for library in target.consumer_classpath -%}
 {% if target.isTest -%}
-    testImplementation(project(":{{ library | replace("/", ":") }}"))
+    testImplementation({{ library }})
 {% else -%}
-    implementation(project(":{{ library | replace("/", ":") }}"))
+    implementation({{ library }})
 {% endif -%}
 {% endfor -%}
 {% endfor -%}
