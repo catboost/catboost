@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{09B94D29-C8D9-195E-BE7A-2CF5517C1312}</ProjectGUID>
+    <ProjectGUID>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pycontrib-python-pathlib2</ProjectName>
+    <ProjectName>pydeprecated-python-scandir</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pycontrib-python-pathlib2</TargetName>
+    <TargetName>pydeprecated-python-scandir</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\09B94D29-C8D9-195E-BE7A-2CF5517C1312\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\944B2EE5-2BBB-4616-601E-6CE952A871A4\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,13 +57,13 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DARCADIA_PYTHON_UNICODE_SIZE=2 -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DARCADIA_PYTHON_UNICODE_SIZE=2 /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/python/Include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/restricted/libffi/configs/x86_64-microsoft-windows/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,11 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm">
+    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\python\scandir\_scandir.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_1d05184247622286a8b52f5bc2.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,9 +94,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,15 +104,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.py2.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_1d05184247622286a8b52f5bc2.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_1d05184247622286a8b52f5bc2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_ecafef85f0bb8a2d89abbe700b.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_971633969b11ef1b25e7cd903d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,9 +121,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.obj" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,15 +131,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_ecafef85f0bb8a2d89abbe700b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_ecafef85f0bb8a2d89abbe700b.py2.obj;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_971633969b11ef1b25e7cd903d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_971633969b11ef1b25e7cd903d.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pathlib2/pathlib2/__init__.py-" "$(SolutionDir)../contrib/python/pathlib2/pathlib2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/pathlib2/__init__.py.azjm.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir)../contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -145,9 +148,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pathlib2/pathlib2/__init__.py-" "$(SolutionDir)../contrib/python/pathlib2/pathlib2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/pathlib2/__init__.py.azjm.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/deprecated/python/scandir/scandir.py-" "$(SolutionDir)../contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,15 +158,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/pathlib2/__init__.py.azjm.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\pathlib2\pathlib2\__init__.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\pathlib2\__init__.py.azjm.yapyc;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/scandir.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\deprecated\python\scandir\scandir.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\scandir.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pathlib2\.dist-info\METADATA">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\scandir\.dist-info\METADATA">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm" "-" "contrib/python/pathlib2/.dist-info/METADATA" "_01b7f679563a12f6084f321920.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_978f110f17ba2806337ae67933.rodata" "-" "contrib/python/pathlib2/.dist-info/top_level.txt" "_e47aea3d269b64f468591328aa.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_c563a824f84c716028805c6519.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.yasm" "-" "contrib/deprecated/python/scandir/.dist-info/METADATA" "_facf014f5db25ebbbb20b94c47.rodata" "$(SolutionDir)../contrib/deprecated/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_dfd5bc73b9ffaa016da265ec39.rodata" "-" "contrib/deprecated/python/scandir/.dist-info/top_level.txt" "_c88f4b4116ec7a42105fddf162.rodata" "$(SolutionDir)../contrib/deprecated/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_c7517af3025001f48613ea13c5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -172,9 +175,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm" "-" "contrib/python/pathlib2/.dist-info/METADATA" "_01b7f679563a12f6084f321920.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_978f110f17ba2806337ae67933.rodata" "-" "contrib/python/pathlib2/.dist-info/top_level.txt" "_e47aea3d269b64f468591328aa.rodata" "$(SolutionDir)../contrib/python/pathlib2/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_c563a824f84c716028805c6519.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.yasm" "-" "contrib/deprecated/python/scandir/.dist-info/METADATA" "_facf014f5db25ebbbb20b94c47.rodata" "$(SolutionDir)../contrib/deprecated/python/scandir/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_dfd5bc73b9ffaa016da265ec39.rodata" "-" "contrib/deprecated/python/scandir/.dist-info/top_level.txt" "_c88f4b4116ec7a42105fddf162.rodata" "$(SolutionDir)../contrib/deprecated/python/scandir/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_c7517af3025001f48613ea13c5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -182,15 +185,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/_4d09929bbbbe0e7f1f06c51c25.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pathlib2\.dist-info\METADATA;$(SolutionDir)..\contrib\python\pathlib2\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_4d09929bbbbe0e7f1f06c51c25.yasm;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_978f110f17ba2806337ae67933.rodata;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_c563a824f84c716028805c6519.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/_971633969b11ef1b25e7cd903d.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\scandir\.dist-info\METADATA;$(SolutionDir)..\contrib\deprecated\python\scandir\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_971633969b11ef1b25e7cd903d.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_dfd5bc73b9ffaa016da265ec39.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_c7517af3025001f48613ea13c5.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\python\pathlib2\pathlib2\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\python\scandir\scandir.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.yasm" "$(SolutionDir)../contrib/python/pathlib2/pathlib2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_b1a6640c20c7915988256bfbd1.rodata" "-" "contrib/python/pathlib2/pathlib2/__init__.py" "_2a93fe9b5579bbc45ee932a4ce.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/pathlib2/__init__.py.azjm.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ad6cc631e457cd696708398a1a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.yasm" "$(SolutionDir)../contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_289f1831afe2b7c33bffced9ae.rodata" "-" "contrib/deprecated/python/scandir/scandir.py" "_608b048b8fbabfaa0d8d4828a3.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_9c779f6a5f4f125def47dd6ab5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -199,9 +202,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pathlib2
+cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.yasm" "$(SolutionDir)../contrib/python/pathlib2/pathlib2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_b1a6640c20c7915988256bfbd1.rodata" "-" "contrib/python/pathlib2/pathlib2/__init__.py" "_2a93fe9b5579bbc45ee932a4ce.rodata" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/pathlib2/__init__.py.azjm.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/pathlib2/_ad6cc631e457cd696708398a1a.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.yasm" "$(SolutionDir)../contrib/deprecated/python/scandir/scandir.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_289f1831afe2b7c33bffced9ae.rodata" "-" "contrib/deprecated/python/scandir/scandir.py" "_608b048b8fbabfaa0d8d4828a3.rodata" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/scandir.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/scandir/_9c779f6a5f4f125def47dd6ab5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,22 +212,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pathlib2/_ecafef85f0bb8a2d89abbe700b.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pathlib2\pathlib2\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\pathlib2\__init__.py.azjm.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_ecafef85f0bb8a2d89abbe700b.yasm;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_b1a6640c20c7915988256bfbd1.rodata;$(SolutionDir)$(Configuration)\contrib\python\pathlib2\_ad6cc631e457cd696708398a1a.rodata;</Outputs>
+      <Message>$B/contrib/deprecated/python/scandir/_1d05184247622286a8b52f5bc2.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\deprecated\python\scandir\scandir.py;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\scandir.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_1d05184247622286a8b52f5bc2.yasm;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_289f1831afe2b7c33bffced9ae.rodata;$(SolutionDir)$(Configuration)\contrib\deprecated\python\scandir\_9c779f6a5f4f125def47dd6ab5.rodata;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\python\scandir\osdefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\python\scandir\winreparse.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
-      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
-      <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
@@ -264,9 +263,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
-      <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>

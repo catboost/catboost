@@ -2626,6 +2626,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.vcxproj">
       <Project>{B1908B71-AB54-E981-2D53-A2B8C8086C94}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
+      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
       <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
     </ProjectReference>
@@ -2700,9 +2703,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\prompt-toolkit\pycontrib-python-prompt-toolkit.vcxproj">
       <Project>{047EB5F9-148B-0639-CD34-387A52108769}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
-      <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\py2\pypython-setuptools-py2.vcxproj">
       <Project>{C1D10CB8-B94C-C430-F3B3-494136748EA6}</Project>

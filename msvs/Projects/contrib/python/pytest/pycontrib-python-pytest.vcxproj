@@ -87,6 +87,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\backports.functools-lru-cache\pydeprecated-python-backports.functools-lru-cache.vcxproj">
       <Project>{F3B7ADB4-0BD3-3B7A-654E-AA78113ECAB8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\scandir\pydeprecated-python-scandir.vcxproj">
+      <Project>{944B2EE5-2BBB-4616-601E-6CE952A871A4}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\python\typing\pydeprecated-python-typing.vcxproj">
       <Project>{EDC2245C-D90A-1ACB-5E90-63335B5E6CA2}</Project>
     </ProjectReference>
@@ -188,9 +191,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\py2\pypython-pytest-py2.vcxproj">
       <Project>{80521B11-6292-CE9C-6667-FD47DFCBBABB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scandir\pycontrib-python-scandir.vcxproj">
-      <Project>{659BFF29-3F80-CC93-FD3E-1AB88F02D68C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
