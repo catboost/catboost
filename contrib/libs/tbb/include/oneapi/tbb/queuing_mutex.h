@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "detail/_namespace_injection.h"
 #include "detail/_assert.h"
 #include "detail/_utils.h"
+#include "detail/_mutex_common.h"
 
 #include "profiling.h"
 
@@ -86,14 +87,11 @@ public:
                 call_itt_notify(prepare, &m);
                 __TBB_ASSERT(pred->m_next.load(std::memory_order_relaxed) == nullptr, "the predecessor has another successor!");
 
-                pred->m_next.store(this, std::memory_order_relaxed);
+                pred->m_next.store(this, std::memory_order_release);
                 spin_wait_while_eq(m_going, 0U);
             }
             call_itt_notify(acquired, &m);
 
-            // Force acquire so that user's critical section receives correct values
-            // from processor that was previously in the user's critical section.
-            atomic_fence(std::memory_order_acquire);
         }
 
         //! Acquire lock on given mutex if free (i.e. non-blocking)
@@ -109,14 +107,11 @@ public:
             // The compare_exchange_strong must have release semantics, because we are
             // "sending" the fields initialized above to other processors.
             // x86 compare exchange operation always has a strong fence
-            if (!m.q_tail.compare_exchange_strong(expected, this))
+            if (!m.q_tail.compare_exchange_strong(expected, this, std::memory_order_acq_rel))
                 return false;
 
             m_mutex = &m;
 
-            // Force acquire so that user's critical section receives correct values
-            // from processor that was previously in the user's critical section.
-            atomic_fence(std::memory_order_acquire);
             call_itt_notify(acquired, &m);
             return true;
         }
@@ -138,13 +133,13 @@ public:
                 // Someone in the queue
                 spin_wait_while_eq(m_next, nullptr);
             }
-            m_next.load(std::memory_order_relaxed)->m_going.store(1U, std::memory_order_release);
+            m_next.load(std::memory_order_acquire)->m_going.store(1U, std::memory_order_release);
 
             reset();
         }
 
     private:
-        //! The pointer to the mutex owned, or NULL if not holding a mutex.
+        //! The pointer to the mutex owned, or nullptr if not holding a mutex.
         queuing_mutex* m_mutex{nullptr};
 
         //! The pointer to the next competitor for a mutex
@@ -172,14 +167,14 @@ private:
 inline void set_name(queuing_mutex& obj, const char* name) {
     itt_set_sync_name(&obj, name);
 }
-#if (_WIN32||_WIN64) && !__MINGW32__
+#if (_WIN32||_WIN64)
 inline void set_name(queuing_mutex& obj, const wchar_t* name) {
     itt_set_sync_name(&obj, name);
 }
 #endif //WIN
 #else
 inline void set_name(queuing_mutex&, const char*) {}
-#if (_WIN32||_WIN64) && !__MINGW32__
+#if (_WIN32||_WIN64)
 inline void set_name(queuing_mutex&, const wchar_t*) {}
 #endif //WIN
 #endif

@@ -30,7 +30,7 @@ namespace tbb {
 namespace detail {
 
 namespace r1 {
-void __TBB_EXPORTED_FUNC parallel_pipeline(task_group_context&, std::size_t, const d1::filter_node&);
+TBB_EXPORT void __TBB_EXPORTED_FUNC parallel_pipeline(task_group_context&, std::size_t, const d1::filter_node&);
 }
 
 namespace d1 {

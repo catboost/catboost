@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2005-2021 Intel Corporation
+    Copyright (c) 2005-2022 Intel Corporation
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "market.h"
 #include "arena.h"
 #include "dynamic_link.h"
+#include "concurrent_monitor.h"
 
 #include "oneapi/tbb/task_group.h"
 #include "oneapi/tbb/global_control.h"
@@ -38,15 +39,19 @@ namespace tbb {
 namespace detail {
 namespace r1 {
 
-#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
+void clear_address_waiter_table();
+
 //! global_control.cpp contains definition
 bool remove_and_check_if_empty(d1::global_control& gc);
 bool is_present(d1::global_control& gc);
-#endif // __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 
 namespace rml {
 tbb_server* make_private_server( tbb_client& client );
 } // namespace rml
+
+namespace system_topology {
+    void destroy();
+}
 
 //------------------------------------------------------------------------
 // governor
@@ -61,6 +66,7 @@ void governor::acquire_resources () {
     if( status )
         handle_perror(status, "TBB failed to initialize task scheduler TLS\n");
     detect_cpu_features(cpu_features);
+
     is_rethrow_broken = gcc_rethrow_exception_broken();
 }
 
@@ -73,11 +79,14 @@ void governor::release_resources () {
     int status = theTLS.destroy();
     if( status )
         runtime_warning("failed to destroy task scheduler TLS: %s", std::strerror(status));
+    clear_address_waiter_table();
+
+    system_topology::destroy();
     dynamic_unlink_all();
 }
 
 rml::tbb_server* governor::create_rml_server ( rml::tbb_client& client ) {
-    rml::tbb_server* server = NULL;
+    rml::tbb_server* server = nullptr;
     if( !UsePrivateRML ) {
         ::rml::factory::status_type status = theRMLServerFactory.make_server( server, client );
         if( status != ::rml::factory::st_success ) {
@@ -86,7 +95,7 @@ rml::tbb_server* governor::create_rml_server ( rml::tbb_client& client ) {
         }
     }
     if ( !server ) {
-        __TBB_ASSERT( UsePrivateRML, NULL );
+        __TBB_ASSERT( UsePrivateRML, nullptr);
         server = rml::make_private_server( client );
     }
     __TBB_ASSERT( server, "Failed to create RML server" );
@@ -121,12 +130,12 @@ void governor::one_time_init() {
 static std::uintptr_t get_stack_base(std::size_t stack_size) {
     // Stacks are growing top-down. Highest address is called "stack base",
     // and the lowest is "stack limit".
-#if USE_WINTHREAD
+#if __TBB_USE_WINAPI
     suppress_unused_warning(stack_size);
     NT_TIB* pteb = (NT_TIB*)NtCurrentTeb();
     __TBB_ASSERT(&pteb < pteb->StackBase && &pteb > pteb->StackLimit, "invalid stack info in TEB");
     return reinterpret_cast<std::uintptr_t>(pteb->StackBase);
-#else /* USE_PTHREAD */
+#else
     // There is no portable way to get stack base address in Posix, so we use
     // non-portable method (on all modern Linux) or the simplified approach
     // based on the common sense assumptions. The most important assumption
@@ -153,8 +162,20 @@ static std::uintptr_t get_stack_base(std::size_t stack_size) {
         stack_base = reinterpret_cast<std::uintptr_t>(&anchor);
     }
     return stack_base;
-#endif /* USE_PTHREAD */
+#endif /* __TBB_USE_WINAPI */
 }
+
+#if (_WIN32||_WIN64) && !__TBB_DYNAMIC_LOAD_ENABLED
+static void register_external_thread_destructor() {
+    struct thread_destructor {
+        ~thread_destructor() {
+            governor::terminate_external_thread();
+        }
+    };
+    // ~thread_destructor() will be call during the calling thread termination
+    static thread_local thread_destructor thr_destructor;
+}
+#endif // (_WIN32||_WIN64) && !__TBB_DYNAMIC_LOAD_ENABLED
 
 void governor::init_external_thread() {
     one_time_init();
@@ -170,48 +191,66 @@ void governor::init_external_thread() {
     // External thread always occupies the first slot
     thread_data& td = *new(cache_aligned_allocate(sizeof(thread_data))) thread_data(0, false);
     td.attach_arena(a, /*slot index*/ 0);
+    __TBB_ASSERT(td.my_inbox.is_idle_state(false), nullptr);
 
     stack_size = a.my_market->worker_stack_size();
     std::uintptr_t stack_base = get_stack_base(stack_size);
     task_dispatcher& task_disp = td.my_arena_slot->default_task_dispatcher();
-    task_disp.set_stealing_threshold(calculate_stealing_threshold(stack_base, stack_size));
-    td.attach_task_dispatcher(task_disp);
+    td.enter_task_dispatcher(task_disp, calculate_stealing_threshold(stack_base, stack_size));
 
     td.my_arena_slot->occupy();
     a.my_market->add_external_thread(td);
     set_thread_data(td);
+#if (_WIN32||_WIN64) && !__TBB_DYNAMIC_LOAD_ENABLED
+    // The external thread destructor is called from dllMain but it is not available with a static build.
+    // Therefore, we need to register the current thread to call the destructor during thread termination.
+    register_external_thread_destructor();
+#endif
 }
 
 void governor::auto_terminate(void* tls) {
     __TBB_ASSERT(get_thread_data_if_initialized() == nullptr ||
-        get_thread_data_if_initialized() == tls, NULL);
+        get_thread_data_if_initialized() == tls, nullptr);
     if (tls) {
         thread_data* td = static_cast<thread_data*>(tls);
+
+        auto clear_tls = [td] {
+            td->~thread_data();
+            cache_aligned_deallocate(td);
+            clear_thread_data();
+        };
 
         // Only external thread can be inside an arena during termination.
         if (td->my_arena_slot) {
             arena* a = td->my_arena;
             market* m = a->my_market;
 
+            // If the TLS slot is already cleared by OS or underlying concurrency
+            // runtime, restore its value to properly clean up arena
+            if (!is_thread_data_set(td)) {
+                set_thread_data(*td);
+            }
+
             a->my_observers.notify_exit_observers(td->my_last_observer, td->my_is_worker);
 
-            td->my_task_dispatcher->m_stealing_threshold = 0;
-            td->detach_task_dispatcher();
+            td->leave_task_dispatcher();
             td->my_arena_slot->release();
             // Release an arena
             a->on_thread_leaving<arena::ref_external>();
 
             m->remove_external_thread(*td);
+
+            // The tls should be cleared before market::release because
+            // market can destroy the tls key if we keep the last reference
+            clear_tls();
+
             // If there was an associated arena, it added a public market reference
             m->release( /*is_public*/ true, /*blocking_terminate*/ false);
+        } else {
+            clear_tls();
         }
-
-        td->~thread_data();
-        cache_aligned_deallocate(td);
-
-        clear_thread_data();
     }
-    __TBB_ASSERT(get_thread_data_if_initialized() == nullptr, NULL);
+    __TBB_ASSERT(get_thread_data_if_initialized() == nullptr, nullptr);
 }
 
 void governor::initialize_rml_factory () {
@@ -219,7 +258,6 @@ void governor::initialize_rml_factory () {
     UsePrivateRML = res != ::rml::factory::st_success;
 }
 
-#if __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 void __TBB_EXPORTED_FUNC get(d1::task_scheduler_handle& handle) {
     handle.m_ctl = new(allocate_memory(sizeof(global_control))) global_control(global_control::scheduler_handle, 1);
 }
@@ -233,6 +271,7 @@ void release_impl(d1::task_scheduler_handle& handle) {
 }
 
 bool finalize_impl(d1::task_scheduler_handle& handle) {
+    __TBB_ASSERT_RELEASE(handle, "trying to finalize with null handle");
     market::global_market_mutex_type::scoped_lock lock( market::theMarketMutex );
     bool ok = true; // ok if theMarket does not exist yet
     market* m = market::theMarket; // read the state of theMarket
@@ -270,12 +309,12 @@ bool __TBB_EXPORTED_FUNC finalize(d1::task_scheduler_handle& handle, std::intptr
         return ok;
     }
 }
-#endif // __TBB_SUPPORTS_WORKERS_WAITING_IN_TERMINATE
 
 #if __TBB_ARENA_BINDING
 
 #if __TBB_WEAK_SYMBOLS_PRESENT
 #pragma weak __TBB_internal_initialize_system_topology
+#pragma weak __TBB_internal_destroy_system_topology
 #pragma weak __TBB_internal_allocate_binding_handler
 #pragma weak __TBB_internal_deallocate_binding_handler
 #pragma weak __TBB_internal_apply_affinity
@@ -288,6 +327,7 @@ void __TBB_internal_initialize_system_topology(
     int& numa_nodes_count, int*& numa_indexes_list,
     int& core_types_count, int*& core_types_indexes_list
 );
+void __TBB_internal_destroy_system_topology( );
 
 //TODO: consider renaming to `create_binding_handler` and `destroy_binding_handler`
 binding_handler* __TBB_internal_allocate_binding_handler( int slot_num, int numa_id, int core_type_id, int max_threads_per_core );
@@ -301,6 +341,7 @@ int __TBB_internal_get_default_concurrency( int numa_id, int core_type_id, int m
 #endif /* __TBB_WEAK_SYMBOLS_PRESENT */
 
 // Stubs that will be used if TBBbind library is unavailable.
+static void dummy_destroy_system_topology ( ) { }
 static binding_handler* dummy_allocate_binding_handler ( int, int, int, int ) { return nullptr; }
 static void dummy_deallocate_binding_handler ( binding_handler* ) { }
 static void dummy_apply_affinity ( binding_handler*, int ) { }
@@ -313,6 +354,7 @@ static void (*initialize_system_topology_ptr)(
     int& numa_nodes_count, int*& numa_indexes_list,
     int& core_types_count, int*& core_types_indexes_list
 ) = nullptr;
+static void (*destroy_system_topology_ptr)( ) = dummy_destroy_system_topology;
 
 static binding_handler* (*allocate_binding_handler_ptr)( int slot_num, int numa_id, int core_type_id, int max_threads_per_core )
     = dummy_allocate_binding_handler;
@@ -325,10 +367,11 @@ static void (*restore_affinity_ptr)( binding_handler* handler_ptr, int slot_num 
 int (*get_default_concurrency_ptr)( int numa_id, int core_type_id, int max_threads_per_core )
     = dummy_get_default_concurrency;
 
-#if _WIN32 || _WIN64 || __linux__
+#if _WIN32 || _WIN64 || __unix__
 // Table describing how to link the handlers.
 static const dynamic_link_descriptor TbbBindLinkTable[] = {
     DLD(__TBB_internal_initialize_system_topology, initialize_system_topology_ptr),
+    DLD(__TBB_internal_destroy_system_topology, destroy_system_topology_ptr),
     DLD(__TBB_internal_allocate_binding_handler, allocate_binding_handler_ptr),
     DLD(__TBB_internal_deallocate_binding_handler, deallocate_binding_handler_ptr),
     DLD(__TBB_internal_apply_affinity, apply_affinity_ptr),
@@ -347,15 +390,16 @@ static const unsigned LinkTableSize = sizeof(TbbBindLinkTable) / sizeof(dynamic_
 #if _WIN32 || _WIN64
 #define LIBRARY_EXTENSION ".dll"
 #define LIBRARY_PREFIX
-#elif __linux__
+#elif __unix__
 #define LIBRARY_EXTENSION __TBB_STRING(.so.3)
 #define LIBRARY_PREFIX "lib"
-#endif /* __linux__ */
+#endif /* __unix__ */
 
 #define TBBBIND_NAME LIBRARY_PREFIX "tbbbind" DEBUG_SUFFIX LIBRARY_EXTENSION
 #define TBBBIND_2_0_NAME LIBRARY_PREFIX "tbbbind_2_0" DEBUG_SUFFIX LIBRARY_EXTENSION
-#define TBBBIND_2_4_NAME LIBRARY_PREFIX "tbbbind_2_4" DEBUG_SUFFIX LIBRARY_EXTENSION
-#endif /* _WIN32 || _WIN64 || __linux__ */
+
+#define TBBBIND_2_5_NAME LIBRARY_PREFIX "tbbbind_2_5" DEBUG_SUFFIX LIBRARY_EXTENSION
+#endif /* _WIN32 || _WIN64 || __unix__ */
 
 // Representation of system hardware topology information on the TBB side.
 // System topology may be initialized by third-party component (e.g. hwloc)
@@ -374,19 +418,19 @@ int  core_types_count = 0;
 int* core_types_indexes = nullptr;
 
 const char* load_tbbbind_shared_object() {
-#if _WIN32 || _WIN64 || __linux__
+#if _WIN32 || _WIN64 || __unix__
 #if _WIN32 && !_WIN64
     // For 32-bit Windows applications, process affinity masks can only support up to 32 logical CPUs.
     SYSTEM_INFO si;
     GetNativeSystemInfo(&si);
     if (si.dwNumberOfProcessors > 32) return nullptr;
 #endif /* _WIN32 && !_WIN64 */
-    for (const auto& tbbbind_version : {TBBBIND_2_4_NAME, TBBBIND_2_0_NAME, TBBBIND_NAME}) {
-        if (dynamic_link(tbbbind_version, TbbBindLinkTable, LinkTableSize)) {
+    for (const auto& tbbbind_version : {TBBBIND_2_5_NAME, TBBBIND_2_0_NAME, TBBBIND_NAME}) {
+        if (dynamic_link(tbbbind_version, TbbBindLinkTable, LinkTableSize, nullptr, DYNAMIC_LINK_LOCAL_BINDING)) {
             return tbbbind_version;
         }
     }
-#endif /* _WIN32 || _WIN64 || __linux__ */
+#endif /* _WIN32 || _WIN64 || __unix__ */
     return nullptr;
 }
 
@@ -429,6 +473,10 @@ void initialization_impl() {
 
 void initialize() {
     atomic_do_once(initialization_impl, initialization_state);
+}
+
+void destroy() {
+    destroy_system_topology_ptr();
 }
 } // namespace system_topology
 

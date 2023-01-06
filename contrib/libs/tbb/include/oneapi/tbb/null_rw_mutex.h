@@ -19,6 +19,7 @@
 
 #include "detail/_config.h"
 #include "detail/_namespace_injection.h"
+#include "detail/_mutex_common.h"
 
 namespace tbb {
 namespace detail {
@@ -58,6 +59,8 @@ public:
         void release() {}
         bool upgrade_to_writer() { return true; }
         bool downgrade_to_reader() { return true; }
+
+        bool is_writer() const { return true; }
     };
 
     //! Mutex traits
