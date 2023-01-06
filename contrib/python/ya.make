@@ -6,7 +6,6 @@ RECURSE(
     attrs
     backcall
     colorama
-    configparser
     contextlib2
     dateutil
     decorator
