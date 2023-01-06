@@ -12,6 +12,7 @@
   - cublasLt.h
   - cublas_v2.h
   - cuda.h
+  - cudaTypedefs.h
   - cuda_bf16.h
   - cuda_fp16.h
   - cuda_gl_interop.h
