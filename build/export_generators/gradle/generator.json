@@ -24,7 +24,9 @@
     [
       "proto_files",
       "proto_grpc",
-      "proto_namespace"
+      "proto_namespace",
+      "junit4_test",
+      "junit5_test"
     ],
     "KnownInducedAttrs":
     [
@@ -35,6 +37,7 @@
     ],
     "testSubdirs":
     [
+      "/ut",
       "/src/test",
       "/src/test/java"
     ]
