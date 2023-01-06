@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(0.22.2.post1)
+VERSION(0.24.2)
 
 LICENSE(BSD-3-Clause)
 
@@ -13,6 +13,7 @@ PEERDIR(
     contrib/python/joblib
     contrib/python/numpy
     contrib/python/scipy
+    contrib/python/threadpoolctl
 )
 
 ADDINCL(
@@ -21,6 +22,7 @@ ADDINCL(
     contrib/python/scikit-learn/py3/sklearn/linear_model
     contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm
     contrib/python/scikit-learn/py3/sklearn/svm/src/liblinear
+    contrib/python/scikit-learn/py3/sklearn/svm/src/newrand
     contrib/python/scikit-learn/py3/sklearn/utils
 )
 
@@ -28,8 +30,12 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
+NO_CHECK_IMPORTS(
+    sklearn._build_utils.*
+)
+
 CYTHON_FLAGS(
-    -ESKLEARN_OPENMP_PARALLELISM_ENABLED=0
+    -ESKLEARN_OPENMP_PARALLELISM_ENABLED=False
 )
 
 SRCS(
@@ -44,11 +50,13 @@ PY_SRCS(
     sklearn/__check_build/__init__.py
     sklearn/__init__.py
     sklearn/_build_utils/__init__.py
-    sklearn/_build_utils/deprecated_modules.py
     sklearn/_build_utils/openmp_helpers.py
     sklearn/_build_utils/pre_build_helpers.py
     sklearn/_config.py
     sklearn/_distributor_init.py
+    sklearn/_loss/__init__.py
+    sklearn/_loss/glm_distribution.py
+    sklearn/_min_dependencies.py
     sklearn/base.py
     sklearn/calibration.py
     sklearn/cluster/__init__.py
@@ -62,15 +70,6 @@ PY_SRCS(
     sklearn/cluster/_mean_shift.py
     sklearn/cluster/_optics.py
     sklearn/cluster/_spectral.py
-    sklearn/cluster/affinity_propagation_.py
-    sklearn/cluster/bicluster.py
-    sklearn/cluster/birch.py
-    sklearn/cluster/dbscan_.py
-    sklearn/cluster/hierarchical.py
-    sklearn/cluster/k_means_.py
-    sklearn/cluster/mean_shift_.py
-    sklearn/cluster/optics_.py
-    sklearn/cluster/spectral.py
     sklearn/compose/__init__.py
     sklearn/compose/_column_transformer.py
     sklearn/compose/_target.py
@@ -80,16 +79,8 @@ PY_SRCS(
     sklearn/covariance/_graph_lasso.py
     sklearn/covariance/_robust_covariance.py
     sklearn/covariance/_shrunk_covariance.py
-    sklearn/covariance/elliptic_envelope.py
-    sklearn/covariance/empirical_covariance_.py
-    sklearn/covariance/graph_lasso_.py
-    sklearn/covariance/robust_covariance.py
-    sklearn/covariance/shrunk_covariance_.py
     sklearn/cross_decomposition/__init__.py
-    sklearn/cross_decomposition/_cca.py
     sklearn/cross_decomposition/_pls.py
-    sklearn/cross_decomposition/cca_.py
-    sklearn/cross_decomposition/pls_.py
     sklearn/datasets/__init__.py
     sklearn/datasets/_base.py
     sklearn/datasets/_california_housing.py
@@ -103,18 +94,6 @@ PY_SRCS(
     sklearn/datasets/_species_distributions.py
     sklearn/datasets/_svmlight_format_io.py
     sklearn/datasets/_twenty_newsgroups.py
-    sklearn/datasets/base.py
-    sklearn/datasets/california_housing.py
-    sklearn/datasets/covtype.py
-    sklearn/datasets/kddcup99.py
-    sklearn/datasets/lfw.py
-    sklearn/datasets/olivetti_faces.py
-    sklearn/datasets/openml.py
-    sklearn/datasets/rcv1.py
-    sklearn/datasets/samples_generator.py
-    sklearn/datasets/species_distributions.py
-    sklearn/datasets/svmlight_format.py
-    sklearn/datasets/twenty_newsgroups.py
     sklearn/decomposition/__init__.py
     sklearn/decomposition/_base.py
     sklearn/decomposition/_dict_learning.py
@@ -127,19 +106,6 @@ PY_SRCS(
     sklearn/decomposition/_pca.py
     sklearn/decomposition/_sparse_pca.py
     sklearn/decomposition/_truncated_svd.py
-    sklearn/decomposition/base.py
-    sklearn/decomposition/cdnmf_fast.py
-    sklearn/decomposition/dict_learning.py
-    sklearn/decomposition/factor_analysis.py
-    sklearn/decomposition/fastica_.py
-    sklearn/decomposition/incremental_pca.py
-    sklearn/decomposition/kernel_pca.py
-    sklearn/decomposition/nmf.py
-    sklearn/decomposition/online_lda.py
-    sklearn/decomposition/online_lda_fast.py
-    sklearn/decomposition/pca.py
-    sklearn/decomposition/sparse_pca.py
-    sklearn/decomposition/truncated_svd.py
     sklearn/discriminant_analysis.py
     sklearn/dummy.py
     sklearn/ensemble/__init__.py
@@ -158,16 +124,9 @@ PY_SRCS(
     sklearn/ensemble/_stacking.py
     sklearn/ensemble/_voting.py
     sklearn/ensemble/_weight_boosting.py
-    sklearn/ensemble/bagging.py
-    sklearn/ensemble/base.py
-    sklearn/ensemble/forest.py
-    sklearn/ensemble/gradient_boosting.py
-    sklearn/ensemble/iforest.py
-    sklearn/ensemble/partial_dependence.py
-    sklearn/ensemble/voting.py
-    sklearn/ensemble/weight_boosting.py
     sklearn/exceptions.py
     sklearn/experimental/__init__.py
+    sklearn/experimental/enable_halving_search_cv.py
     sklearn/experimental/enable_hist_gradient_boosting.py
     sklearn/experimental/enable_iterative_imputer.py
     sklearn/externals/__init__.py
@@ -175,37 +134,23 @@ PY_SRCS(
     sklearn/externals/_lobpcg.py
     sklearn/externals/_pep562.py
     sklearn/externals/_pilutil.py
-    sklearn/externals/_scipy_linalg.py
-    sklearn/externals/joblib/__init__.py
-    sklearn/externals/joblib/numpy_pickle.py
-    sklearn/externals/six.py
     sklearn/feature_extraction/__init__.py
     sklearn/feature_extraction/_dict_vectorizer.py
     sklearn/feature_extraction/_hash.py
     sklearn/feature_extraction/_stop_words.py
-    sklearn/feature_extraction/dict_vectorizer.py
-    sklearn/feature_extraction/hashing.py
     sklearn/feature_extraction/image.py
-    sklearn/feature_extraction/stop_words.py
     sklearn/feature_extraction/text.py
     sklearn/feature_selection/__init__.py
     sklearn/feature_selection/_base.py
     sklearn/feature_selection/_from_model.py
     sklearn/feature_selection/_mutual_info.py
     sklearn/feature_selection/_rfe.py
+    sklearn/feature_selection/_sequential.py
     sklearn/feature_selection/_univariate_selection.py
     sklearn/feature_selection/_variance_threshold.py
-    sklearn/feature_selection/base.py
-    sklearn/feature_selection/from_model.py
-    sklearn/feature_selection/mutual_info.py
-    sklearn/feature_selection/rfe.py
-    sklearn/feature_selection/univariate_selection.py
-    sklearn/feature_selection/variance_threshold.py
     sklearn/gaussian_process/__init__.py
     sklearn/gaussian_process/_gpc.py
     sklearn/gaussian_process/_gpr.py
-    sklearn/gaussian_process/gpc.py
-    sklearn/gaussian_process/gpr.py
     sklearn/gaussian_process/kernels.py
     sklearn/impute/__init__.py
     sklearn/impute/_base.py
@@ -214,7 +159,8 @@ PY_SRCS(
     sklearn/inspection/__init__.py
     sklearn/inspection/_partial_dependence.py
     sklearn/inspection/_permutation_importance.py
-    sklearn/inspection/partial_dependence.py
+    sklearn/inspection/_plot/__init__.py
+    sklearn/inspection/_plot/partial_dependence.py
     sklearn/isotonic.py
     sklearn/kernel_approximation.py
     sklearn/kernel_ridge.py
@@ -222,6 +168,9 @@ PY_SRCS(
     sklearn/linear_model/_base.py
     sklearn/linear_model/_bayes.py
     sklearn/linear_model/_coordinate_descent.py
+    sklearn/linear_model/_glm/__init__.py
+    sklearn/linear_model/_glm/glm.py
+    sklearn/linear_model/_glm/link.py
     sklearn/linear_model/_huber.py
     sklearn/linear_model/_least_angle.py
     sklearn/linear_model/_logistic.py
@@ -233,69 +182,36 @@ PY_SRCS(
     sklearn/linear_model/_sag.py
     sklearn/linear_model/_stochastic_gradient.py
     sklearn/linear_model/_theil_sen.py
-    sklearn/linear_model/base.py
-    sklearn/linear_model/bayes.py
-    sklearn/linear_model/cd_fast.py
-    sklearn/linear_model/coordinate_descent.py
-    sklearn/linear_model/huber.py
-    sklearn/linear_model/least_angle.py
-    sklearn/linear_model/logistic.py
-    sklearn/linear_model/omp.py
-    sklearn/linear_model/passive_aggressive.py
-    sklearn/linear_model/perceptron.py
-    sklearn/linear_model/ransac.py
-    sklearn/linear_model/ridge.py
-    sklearn/linear_model/sag.py
-    sklearn/linear_model/sag_fast.py
-    sklearn/linear_model/sgd_fast.py
-    sklearn/linear_model/stochastic_gradient.py
-    sklearn/linear_model/theil_sen.py
     sklearn/manifold/__init__.py
     sklearn/manifold/_isomap.py
     sklearn/manifold/_locally_linear.py
     sklearn/manifold/_mds.py
     sklearn/manifold/_spectral_embedding.py
     sklearn/manifold/_t_sne.py
-    sklearn/manifold/isomap.py
-    sklearn/manifold/locally_linear.py
-    sklearn/manifold/mds.py
-    sklearn/manifold/spectral_embedding_.py
-    sklearn/manifold/t_sne.py
     sklearn/metrics/__init__.py
     sklearn/metrics/_base.py
     sklearn/metrics/_classification.py
     sklearn/metrics/_plot/__init__.py
     sklearn/metrics/_plot/base.py
     sklearn/metrics/_plot/confusion_matrix.py
+    sklearn/metrics/_plot/det_curve.py
     sklearn/metrics/_plot/precision_recall_curve.py
     sklearn/metrics/_plot/roc_curve.py
     sklearn/metrics/_ranking.py
     sklearn/metrics/_regression.py
     sklearn/metrics/_scorer.py
-    sklearn/metrics/base.py
-    sklearn/metrics/classification.py
     sklearn/metrics/cluster/__init__.py
     sklearn/metrics/cluster/_bicluster.py
     sklearn/metrics/cluster/_supervised.py
     sklearn/metrics/cluster/_unsupervised.py
-    sklearn/metrics/cluster/bicluster.py
-    sklearn/metrics/cluster/expected_mutual_info_fast.py
-    sklearn/metrics/cluster/supervised.py
-    sklearn/metrics/cluster/unsupervised.py
     sklearn/metrics/pairwise.py
-    sklearn/metrics/pairwise_fast.py
-    sklearn/metrics/ranking.py
-    sklearn/metrics/regression.py
-    sklearn/metrics/scorer.py
     sklearn/mixture/__init__.py
     sklearn/mixture/_base.py
     sklearn/mixture/_bayesian_mixture.py
     sklearn/mixture/_gaussian_mixture.py
-    sklearn/mixture/base.py
-    sklearn/mixture/bayesian_mixture.py
-    sklearn/mixture/gaussian_mixture.py
     sklearn/model_selection/__init__.py
     sklearn/model_selection/_search.py
+    sklearn/model_selection/_search_successive_halving.py
     sklearn/model_selection/_split.py
     sklearn/model_selection/_validation.py
     sklearn/multiclass.py
@@ -311,27 +227,11 @@ PY_SRCS(
     sklearn/neighbors/_nearest_centroid.py
     sklearn/neighbors/_regression.py
     sklearn/neighbors/_unsupervised.py
-    sklearn/neighbors/ball_tree.py
-    sklearn/neighbors/base.py
-    sklearn/neighbors/classification.py
-    sklearn/neighbors/dist_metrics.py
-    sklearn/neighbors/graph.py
-    sklearn/neighbors/kd_tree.py
-    sklearn/neighbors/kde.py
-    sklearn/neighbors/lof.py
-    sklearn/neighbors/nca.py
-    sklearn/neighbors/nearest_centroid.py
-    sklearn/neighbors/quad_tree.py
-    sklearn/neighbors/regression.py
-    sklearn/neighbors/typedefs.py
-    sklearn/neighbors/unsupervised.py
     sklearn/neural_network/__init__.py
     sklearn/neural_network/_base.py
     sklearn/neural_network/_multilayer_perceptron.py
     sklearn/neural_network/_rbm.py
     sklearn/neural_network/_stochastic_optimizers.py
-    sklearn/neural_network/multilayer_perceptron.py
-    sklearn/neural_network/rbm.py
     sklearn/pipeline.py
     sklearn/preprocessing/__init__.py
     sklearn/preprocessing/_data.py
@@ -339,64 +239,54 @@ PY_SRCS(
     sklearn/preprocessing/_encoders.py
     sklearn/preprocessing/_function_transformer.py
     sklearn/preprocessing/_label.py
-    sklearn/preprocessing/data.py
-    sklearn/preprocessing/label.py
     sklearn/random_projection.py
     sklearn/semi_supervised/__init__.py
     sklearn/semi_supervised/_label_propagation.py
-    sklearn/semi_supervised/label_propagation.py
+    sklearn/semi_supervised/_self_training.py
     sklearn/svm/__init__.py
     sklearn/svm/_base.py
     sklearn/svm/_bounds.py
     sklearn/svm/_classes.py
-    sklearn/svm/base.py
-    sklearn/svm/bounds.py
-    sklearn/svm/classes.py
-    sklearn/svm/liblinear.py
-    sklearn/svm/libsvm.py
-    sklearn/svm/libsvm_sparse.py
     sklearn/tree/__init__.py
     sklearn/tree/_classes.py
     sklearn/tree/_export.py
     sklearn/tree/_reingold_tilford.py
-    sklearn/tree/export.py
-    sklearn/tree/tree.py
     sklearn/utils/__init__.py
+    sklearn/utils/_arpack.py
+    sklearn/utils/_encode.py
+    sklearn/utils/_estimator_html_repr.py
     sklearn/utils/_joblib.py
     sklearn/utils/_mask.py
     sklearn/utils/_mocking.py
     sklearn/utils/_pprint.py
     sklearn/utils/_show_versions.py
+    sklearn/utils/_tags.py
     sklearn/utils/_testing.py
     sklearn/utils/class_weight.py
     sklearn/utils/deprecation.py
     sklearn/utils/estimator_checks.py
     sklearn/utils/extmath.py
-    sklearn/utils/fast_dict.py
     sklearn/utils/fixes.py
     sklearn/utils/graph.py
-    sklearn/utils/linear_assignment_.py
     sklearn/utils/metaestimators.py
-    sklearn/utils/mocking.py
     sklearn/utils/multiclass.py
     sklearn/utils/optimize.py
     sklearn/utils/random.py
-    sklearn/utils/seq_dataset.py
     sklearn/utils/sparsefuncs.py
     sklearn/utils/stats.py
-    sklearn/utils/testing.py
     sklearn/utils/validation.py
-    sklearn/utils/weight_vector.py
     CYTHON_C
     sklearn/__check_build/_check_build.pyx
     sklearn/_isotonic.pyx
     sklearn/cluster/_k_means_elkan.pyx
     sklearn/cluster/_k_means_fast.pyx
+    sklearn/cluster/_k_means_lloyd.pyx
     sklearn/datasets/_svmlight_format_fast.pyx
     sklearn/decomposition/_cdnmf_fast.pyx
     sklearn/decomposition/_online_lda_fast.pyx
     sklearn/ensemble/_gradient_boosting.pyx
     sklearn/ensemble/_hist_gradient_boosting/_binning.pyx
+    sklearn/ensemble/_hist_gradient_boosting/_bitset.pyx
     sklearn/ensemble/_hist_gradient_boosting/_gradient_boosting.pyx
     sklearn/ensemble/_hist_gradient_boosting/_loss.pyx
     sklearn/ensemble/_hist_gradient_boosting/_predictor.pyx
@@ -438,6 +328,7 @@ PY_SRCS(
     CYTHON_CPP
     sklearn/cluster/_dbscan_inner.pyx
     sklearn/cluster/_hierarchical_fast.pyx
+    sklearn/svm/_newrand.pyx
     sklearn/utils/_fast_dict.pyx
 )
 
@@ -471,6 +362,7 @@ RESOURCE_FILES(
     sklearn/datasets/images/README.txt
     sklearn/datasets/images/china.jpg
     sklearn/datasets/images/flower.jpg
+    sklearn/externals/README
     sklearn/linear_model/_sag_fast.pyx.tp
     sklearn/utils/_seq_dataset.pxd.tp
     sklearn/utils/_seq_dataset.pyx.tp
