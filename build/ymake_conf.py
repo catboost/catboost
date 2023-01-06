@@ -1078,9 +1078,12 @@ class GnuToolchainOptions(ToolchainOptions):
             # Default OS SDK for Linux builds
             # Use fresh SDK for any execution except of automated run on Distbuild and Sandbox.
             # This is temporary code for first stage of DEVTOOLS-9797
-            user = getpass.getuser()
-            if not user.startswith('db-runner-') and user != 'sandbox':
-                return 'ubuntu-18'
+            try:
+                user = getpass.getuser()
+                if not user.startswith('db-runner-') and user != 'sandbox':
+                    return 'ubuntu-18'
+            except:
+                pass
             return 'ubuntu-14'
 
 
