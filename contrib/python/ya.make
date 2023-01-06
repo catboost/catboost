@@ -9,7 +9,6 @@ RECURSE(
     contextlib2
     dateutil
     decorator
-    enum34
     executing
     filelock
     funcsigs
