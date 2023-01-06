@@ -413,6 +413,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-backpor
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-backports.shutil-get-terminal-size.global", "Projects\contrib\deprecated\python\backports.shutil-get-terminal-size\pydeprecated-python-backports.shutil-get-terminal-size.global.vcxproj", "{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "configparser", "Projects\contrib\deprecated\python\configparser", "{50C54028-7EFA-52C3-FDD8-A55F021CFA51}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-configparser", "Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.vcxproj", "{52A3F326-0888-51A0-F663-74EC96E2970B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-configparser.global", "Projects\contrib\deprecated\python\configparser\pydeprecated-python-configparser.global.vcxproj", "{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "faulthandler", "Projects\contrib\deprecated\python\faulthandler", "{C1B9606F-7009-2456-6E6E-F9A8A49171DD}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pydeprecated-python-faulthandler", "Projects\contrib\deprecated\python\faulthandler\pydeprecated-python-faulthandler.vcxproj", "{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}"
@@ -688,12 +694,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-colorama", "Projects\contrib\python\colorama\pycontrib-python-colorama.vcxproj", "{A57B9434-ED18-2180-9A04-9087641653EF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-colorama.global", "Projects\contrib\python\colorama\pycontrib-python-colorama.global.vcxproj", "{21E27DCE-4565-540C-28B0-36F1347995D4}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "configparser", "Projects\contrib\python\configparser", "{E19C2C21-29C5-0513-3F6D-87FE6D4DEBA2}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-configparser", "Projects\contrib\python\configparser\pycontrib-python-configparser.vcxproj", "{6DF26701-68E9-E05A-808F-1840FF373955}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pycontrib-python-configparser.global", "Projects\contrib\python\configparser\pycontrib-python-configparser.global.vcxproj", "{3E7B969E-B752-449E-A2E1-BF1ECE38850D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contextlib2", "Projects\contrib\python\contextlib2", "{0D15B60A-4F01-C0E8-1AC4-7DC7499947DD}"
 EndProject
@@ -2513,6 +2513,14 @@ Global
 		{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}.Debug|x64.Build.0 = Debug|x64
 		{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}.Release|x64.ActiveCfg = Release|x64
 		{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1}.Release|x64.Build.0 = Release|x64
+		{52A3F326-0888-51A0-F663-74EC96E2970B}.Debug|x64.ActiveCfg = Debug|x64
+		{52A3F326-0888-51A0-F663-74EC96E2970B}.Debug|x64.Build.0 = Debug|x64
+		{52A3F326-0888-51A0-F663-74EC96E2970B}.Release|x64.ActiveCfg = Release|x64
+		{52A3F326-0888-51A0-F663-74EC96E2970B}.Release|x64.Build.0 = Release|x64
+		{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}.Debug|x64.ActiveCfg = Debug|x64
+		{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}.Debug|x64.Build.0 = Debug|x64
+		{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}.Release|x64.ActiveCfg = Release|x64
+		{27F15FCE-A841-BCC2-04FC-FDD29314DFE6}.Release|x64.Build.0 = Release|x64
 		{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}.Debug|x64.ActiveCfg = Debug|x64
 		{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}.Debug|x64.Build.0 = Debug|x64
 		{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E}.Release|x64.ActiveCfg = Release|x64
@@ -2925,14 +2933,6 @@ Global
 		{21E27DCE-4565-540C-28B0-36F1347995D4}.Debug|x64.Build.0 = Debug|x64
 		{21E27DCE-4565-540C-28B0-36F1347995D4}.Release|x64.ActiveCfg = Release|x64
 		{21E27DCE-4565-540C-28B0-36F1347995D4}.Release|x64.Build.0 = Release|x64
-		{6DF26701-68E9-E05A-808F-1840FF373955}.Debug|x64.ActiveCfg = Debug|x64
-		{6DF26701-68E9-E05A-808F-1840FF373955}.Debug|x64.Build.0 = Debug|x64
-		{6DF26701-68E9-E05A-808F-1840FF373955}.Release|x64.ActiveCfg = Release|x64
-		{6DF26701-68E9-E05A-808F-1840FF373955}.Release|x64.Build.0 = Release|x64
-		{3E7B969E-B752-449E-A2E1-BF1ECE38850D}.Debug|x64.ActiveCfg = Debug|x64
-		{3E7B969E-B752-449E-A2E1-BF1ECE38850D}.Debug|x64.Build.0 = Debug|x64
-		{3E7B969E-B752-449E-A2E1-BF1ECE38850D}.Release|x64.ActiveCfg = Release|x64
-		{3E7B969E-B752-449E-A2E1-BF1ECE38850D}.Release|x64.Build.0 = Release|x64
 		{C73FE68A-A501-4B46-F074-0D16416E9647}.Debug|x64.ActiveCfg = Debug|x64
 		{C73FE68A-A501-4B46-F074-0D16416E9647}.Debug|x64.Build.0 = Debug|x64
 		{C73FE68A-A501-4B46-F074-0D16416E9647}.Release|x64.ActiveCfg = Release|x64
@@ -4949,6 +4949,9 @@ Global
 		{9DAFBF29-FE11-998A-48A7-8FB5726CB25D} = {632B7814-597B-094D-758C-01CADC7C0DE8}
 		{B1908B71-AB54-E981-2D53-A2B8C8086C94} = {9DAFBF29-FE11-998A-48A7-8FB5726CB25D}
 		{90FF36C0-FBDF-161B-0EF3-64D4A8A8FBB1} = {9DAFBF29-FE11-998A-48A7-8FB5726CB25D}
+		{50C54028-7EFA-52C3-FDD8-A55F021CFA51} = {632B7814-597B-094D-758C-01CADC7C0DE8}
+		{52A3F326-0888-51A0-F663-74EC96E2970B} = {50C54028-7EFA-52C3-FDD8-A55F021CFA51}
+		{27F15FCE-A841-BCC2-04FC-FDD29314DFE6} = {50C54028-7EFA-52C3-FDD8-A55F021CFA51}
 		{C1B9606F-7009-2456-6E6E-F9A8A49171DD} = {632B7814-597B-094D-758C-01CADC7C0DE8}
 		{E61D79FD-4A59-C2C4-D5A4-25B4515C8F9E} = {C1B9606F-7009-2456-6E6E-F9A8A49171DD}
 		{180F9C01-17FB-8F97-4AB7-806F81FA4EA4} = {C1B9606F-7009-2456-6E6E-F9A8A49171DD}
@@ -5087,9 +5090,6 @@ Global
 		{0E0E70FC-148C-4937-1103-230DC41150C2} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
 		{A57B9434-ED18-2180-9A04-9087641653EF} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
 		{21E27DCE-4565-540C-28B0-36F1347995D4} = {C8B7BCA8-3728-0C76-F68D-0702EDBCD2D4}
-		{E19C2C21-29C5-0513-3F6D-87FE6D4DEBA2} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
-		{6DF26701-68E9-E05A-808F-1840FF373955} = {E19C2C21-29C5-0513-3F6D-87FE6D4DEBA2}
-		{3E7B969E-B752-449E-A2E1-BF1ECE38850D} = {E19C2C21-29C5-0513-3F6D-87FE6D4DEBA2}
 		{0D15B60A-4F01-C0E8-1AC4-7DC7499947DD} = {E49BA228-0B9E-15E7-4487-CE6AF0F4FB93}
 		{5D501F1F-D2CD-DFC5-0584-3EB900113EC2} = {0D15B60A-4F01-C0E8-1AC4-7DC7499947DD}
 		{C73FE68A-A501-4B46-F074-0D16416E9647} = {5D501F1F-D2CD-DFC5-0584-3EB900113EC2}
