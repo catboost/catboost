@@ -1,0 +1,162 @@
+--- contrib/deprecated/python/scandir/tests/test_scandir.py	(index)
++++ contrib/deprecated/python/scandir/tests/test_scandir.py	(working tree)
+@@ -8,6 +8,8 @@ import sys
+ import time
+ import unittest
+ 
++import yatest.common
++
+ try:
+     import scandir
+     has_scandir = True
+@@ -16,8 +18,6 @@ except ImportError:
+ 
+ FILE_ATTRIBUTE_DIRECTORY = 16
+ 
+-TEST_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'testdir'))
+-
+ IS_PY3 = sys.version_info >= (3, 0)
+ 
+ if IS_PY3:
+@@ -29,9 +29,9 @@ else:
+ 
+ if hasattr(os, 'symlink'):
+     try:
+-        link_name = os.path.join(os.path.dirname(__file__), '_testlink')
+-        os.symlink(__file__, link_name)
+-        os.remove(link_name)
++        #link_name = os.path.join(os.path.dirname(__file__), '_testlink')
++        #os.symlink(__file__, link_name)
++        #os.remove(link_name)
+         symlinks_supported = True
+     except NotImplementedError:
+         # Windows versions before Vista don't support symbolic links
+@@ -88,8 +88,10 @@ def teardown():
+         shutil.rmtree(TEST_PATH)
+ 
+ 
+-class TestMixin(object):
++class TestMixin(unittest.TestCase):
+     def setUp(self):
++        global TEST_PATH
++        TEST_PATH = yatest.common.test_output_path('../test')
+         if not os.path.exists(TEST_PATH):
+             setup_main()
+         if symlinks_supported and not os.path.exists(
+@@ -101,6 +103,8 @@ class TestMixin(object):
+             sys.stdout.write('skipped {0!r} '.format(reason))
+ 
+     def test_basic(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         entries = sorted(self.scandir_func(TEST_PATH), key=lambda e: e.name)
+         self.assertEqual([(e.name, e.is_dir()) for e in entries],
+                          [('file1.txt', False), ('file2.txt', False),
+@@ -109,6 +113,8 @@ class TestMixin(object):
+                          [os.path.join(TEST_PATH, e.name) for e in entries])
+ 
+     def test_dir_entry(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         entries = dict((e.name, e) for e in self.scandir_func(TEST_PATH))
+         e = entries['file1.txt']
+         self.assertEqual([e.is_dir(), e.is_file(), e.is_symlink()], [False, True, False])
+@@ -121,6 +127,8 @@ class TestMixin(object):
+         self.assertEqual(entries['file2.txt'].stat().st_size, 8)
+ 
+     def test_stat(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         entries = list(self.scandir_func(TEST_PATH))
+         for entry in entries:
+             os_stat = os.stat(os.path.join(TEST_PATH, entry.name))
+@@ -135,6 +143,8 @@ class TestMixin(object):
+                 self.assertEqual(os_stat.st_size, scandir_stat.st_size)
+ 
+     def test_returns_iter(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         it = self.scandir_func(TEST_PATH)
+         entry = next(it)
+         assert hasattr(entry, 'name')
+@@ -145,6 +155,8 @@ class TestMixin(object):
+         self.assertTrue(0 <= result.st_file_attributes <= 0xFFFFFFFF)
+ 
+     def test_file_attributes(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         if sys.platform != 'win32' or not self.has_file_attributes:
+             # st_file_attributes is Win32 specific
+             return self.skipTest('st_file_attributes not supported')
+@@ -163,6 +175,8 @@ class TestMixin(object):
+                          FILE_ATTRIBUTE_DIRECTORY)
+ 
+     def test_path(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         entries = sorted(self.scandir_func(TEST_PATH), key=lambda e: e.name)
+         self.assertEqual([os.path.basename(e.name) for e in entries],
+                          ['file1.txt', 'file2.txt', 'linkdir', 'subdir'])
+@@ -170,6 +184,8 @@ class TestMixin(object):
+                          [os.path.normpath(e.path) for e in entries])
+ 
+     def test_symlink(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         if not symlinks_supported:
+             return self.skipTest('symbolic links not supported')
+ 
+@@ -197,6 +213,8 @@ class TestMixin(object):
+                           ('linksubdir', True, True)])
+ 
+     def test_bytes(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         # Check that unicode filenames are returned correctly as bytes in output
+         path = os.path.join(TEST_PATH, 'subdir').encode(sys.getfilesystemencoding(), 'replace')
+         self.assertTrue(isinstance(path, bytes))
+@@ -220,6 +238,8 @@ class TestMixin(object):
+         self.assertEqual(entry.path, os.path.join(path, entry_name))
+ 
+     def test_unicode(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         # Check that unicode filenames are returned correctly as (unicode) str in output
+         path = os.path.join(TEST_PATH, 'subdir')
+         if not IS_PY3:
+@@ -249,6 +269,8 @@ class TestMixin(object):
+         self.assertEqual(entry.path, os.path.join(path, 'file1.txt'))
+ 
+     def test_walk_unicode_handling(self):
++        if not hasattr(self, 'scandir_func'):
++            self.skipTest('skip mixin')
+         encoding = sys.getfilesystemencoding()
+         dirname_unicode = u'test_unicode_dir'
+         dirname_bytes = dirname_unicode.encode(encoding)
+--- contrib/deprecated/python/scandir/tests/test_walk.py	(index)
++++ contrib/deprecated/python/scandir/tests/test_walk.py	(working tree)
+@@ -7,6 +7,8 @@ import unittest
+ 
+ import scandir
+ 
++import yatest.common
++
+ walk_func = scandir.walk
+ 
+ IS_PY3 = sys.version_info >= (3, 0)
+@@ -16,6 +18,7 @@ class TestWalk(unittest.TestCase):
+     testfn = os.path.join(os.path.dirname(__file__), 'temp')
+ 
+     def test_traversal(self):
++        self.testfn = yatest.common.test_output_path('temp')
+         # Build:
+         #     TESTFN/
+         #       TEST1/              a file kid and two directory kids
+@@ -140,6 +143,7 @@ class TestWalkSymlink(unittest.TestCase):
+     temp_dir = os.path.join(os.path.dirname(__file__), 'temp')
+ 
+     def setUp(self):
++        self.temp_dir = yatest.common.test_output_path('temp')
+         os.mkdir(self.temp_dir)
+         self.dir_name = os.path.join(self.temp_dir, 'dir')
+         os.mkdir(self.dir_name)
