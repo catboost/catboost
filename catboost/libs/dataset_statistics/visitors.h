@@ -15,9 +15,9 @@
 
 using namespace NCB;
 
-class TDatasetStatisticsProviderBuilder: public IRawObjectsOrderDataVisitor {
+class TDatasetStatisticsFullVisitor: public IRawObjectsOrderDataVisitor {
 public:
-    TDatasetStatisticsProviderBuilder(
+    TDatasetStatisticsFullVisitor(
         const TDataProviderBuilderOptions& options,
         bool isLocal,
         NPar::ILocalExecutor* /*localExecutor*/)
@@ -190,6 +190,7 @@ public:
     void AddAllTextFeatures(
         ui32 localObjectIdx,
         TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
 
@@ -314,4 +315,207 @@ public:
     const TVector<TVector<float>>& GetFloatTarget() const {
         return FloatTarget;
     }
+};
+
+class TDatasetStatisticsOnlyGroupVisitor: public IRawObjectsOrderDataVisitor {
+public:
+    explicit TDatasetStatisticsOnlyGroupVisitor(bool isLocal)
+        : ObjectCount(0)
+        , NextCursor(0)
+        , InProcess(false)
+        , IsLocal(isLocal)
+    {}
+
+    void Start(
+        bool inBlock, // subset processing - Start/Finish is called for each block
+        const TDataMetaInfo& /*metaInfo*/,
+        bool /*haveUnknownNumberOfSparseFeatures*/,
+        ui32 objectCount,
+        EObjectsOrder /* objectsOrder */,
+        TVector<TIntrusivePtr<IResourceHolder>> /* resourceHolders */
+    ) override {
+        CB_ENSURE(!InProcess, "Attempt to start new processing without finishing the last");
+        InProcess = true;
+
+        ui32 prevTailSize = 0;
+        if (inBlock) {
+            prevTailSize = (NextCursor < ObjectCount) ? (ObjectCount - NextCursor) : 0;
+            NextCursor = prevTailSize;
+        } else {
+            NextCursor = 0;
+        }
+        ObjectCount = objectCount + prevTailSize;
+    }
+
+    void StartNextBlock(ui32 blockSize) override {
+        NextCursor += blockSize;
+        GroupwiseStats.Flush();
+    }
+
+    // TCommonObjectsData
+    void AddGroupId(ui32 localObjectIdx, TGroupId value) override {
+        Y_UNUSED(localObjectIdx);
+        GroupwiseStats.Update(value);
+    }
+    void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddGroupId(ui32 localObjectIdx, const TString& value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddSubgroupId(ui32 localObjectIdx, const TString& value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddSampleId(ui32 localObjectIdx, const TString& value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+
+    // TRawObjectsData
+    void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) override {
+        Y_UNUSED(localObjectIdx, flatFeatureIdx, feature);
+    }
+    void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef<float> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+    void AddAllFloatFeatures(
+        ui32 localObjectIdx,
+        TConstPolymorphicValuesSparseArray<float, ui32> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+
+    // for sparse float features default value is always assumed to be 0.0f
+
+    ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) override {
+        Y_UNUSED(flatFeatureIdx, feature);
+        return 0;
+    }
+
+    // localObjectIdx may be used as hint for sampling
+    ui32 GetCatFeatureValue(ui32 /* localObjectIdx */, ui32 flatFeatureIdx, TStringBuf feature) override {
+        Y_UNUSED(flatFeatureIdx, feature);
+        return 0;
+    }
+
+    void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
+        Y_UNUSED(localObjectIdx, flatFeatureIdx, feature);
+    }
+    void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef<ui32> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+
+    void AddAllCatFeatures(
+        ui32 localObjectIdx,
+        TConstPolymorphicValuesSparseArray<ui32, ui32> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+
+    // for sparse data
+    void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) override {
+        Y_UNUSED(flatFeatureIdx, feature);
+    }
+
+    void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
+        Y_UNUSED(localObjectIdx, flatFeatureIdx, feature);
+    }
+    void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
+        Y_UNUSED(localObjectIdx, flatFeatureIdx, feature);
+    }
+    void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+    void AddAllTextFeatures(
+        ui32 localObjectIdx,
+        TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
+        Y_UNUSED(localObjectIdx, features);
+    }
+
+    void AddEmbeddingFeature(
+        ui32 localObjectIdx,
+        ui32 flatFeatureIdx,
+        TMaybeOwningConstArrayHolder<float> feature) override {
+        Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
+    }
+
+    // TRawTargetData
+
+    void AddTarget(ui32 localObjectIdx, const TString& value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddTarget(ui32 localObjectIdx, float value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
+        Y_UNUSED(flatTargetIdx, localObjectIdx, value);
+    }
+    void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
+        Y_UNUSED(flatTargetIdx, localObjectIdx, value);
+    }
+    void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
+        Y_UNUSED(baselineIdx, localObjectIdx, value);
+    }
+    void AddWeight(ui32 localObjectIdx, float value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+    void AddGroupWeight(ui32 localObjectIdx, float value) override {
+        Y_UNUSED(localObjectIdx, value);
+    }
+
+    void Finish() override {
+        CB_ENSURE(InProcess, "Attempt to Finish without starting processing");
+        CB_ENSURE(
+            !IsLocal || NextCursor >= ObjectCount,
+            "processed object count is less than than specified in metadata: " << NextCursor << "<" << ObjectCount);
+
+        GroupwiseStats.Flush();
+
+        if (ObjectCount != 0) {
+            CATBOOST_INFO_LOG << "Objects processed: " << ObjectCount << Endl;
+        } else {
+            // should this be an error?
+            CATBOOST_ERROR_LOG << "No objects processed" << Endl;
+        }
+
+        InProcess = false;
+    }
+
+    // IDatasetVisitor
+
+    void SetGroupWeights(TVector<float>&& groupWeights) override {
+        Y_UNUSED(groupWeights);
+    }
+
+    // separate method because they can be loaded from a separate data source
+    void SetBaseline(TVector<TVector<float>>&& baseline) override {
+        Y_UNUSED(baseline);
+    }
+
+    void SetPairs(TRawPairsData&& pairs) override {
+        Y_UNUSED(pairs);
+    }
+
+    TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
+        return Nothing();
+    }
+
+    void SetTimestamps(TVector<ui64>&& timestamps) override {
+        Y_UNUSED(timestamps);
+    }
+
+private:
+    ui32 ObjectCount;
+    ui32 NextCursor;
+
+    bool InProcess;
+
+    bool IsLocal;
+
+    TGroupwiseStats GroupwiseStats;
+
+public:
+    void OutputResult(const TString& outputPath) const;
+
+    const TGroupwiseStats& GetGroupwiseStats() const;
 };
