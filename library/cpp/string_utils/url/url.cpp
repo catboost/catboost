@@ -154,6 +154,21 @@ TStringBuf GetHostAndPort(const TStringBuf url) noexcept {
     return GetHostAndPortImpl<true>(url);
 }
 
+TStringBuf GetSchemeHost(const TStringBuf url, bool trimHttp) noexcept {
+    const size_t schemeSize = GetSchemePrefixSize(url);
+    const TStringBuf scheme = url.Head(schemeSize);
+
+    const bool isHttp = (schemeSize == 0 || scheme == TStringBuf("http://"));
+
+    const TStringBuf host = GetHost(url.Tail(schemeSize));
+
+    if (isHttp && trimHttp) {
+        return host;
+    } else {
+        return TStringBuf(scheme.begin(), host.end());
+    }
+}
+
 TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDefaultPort) noexcept {
     const size_t schemeSize = GetSchemePrefixSize(url);
     const TStringBuf scheme = url.Head(schemeSize);
