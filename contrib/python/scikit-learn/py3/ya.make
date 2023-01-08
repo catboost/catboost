@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 
 
-VERSION(0.24.2)
+VERSION(1.0.2)
 
 LICENSE(BSD-3-Clause)
 
@@ -18,6 +18,7 @@ PEERDIR(
 
 ADDINCL(
     contrib/libs/cblas
+    FOR cython contrib/python/scikit-learn/py3
     FOR cython contrib/python/scipy/py3
     contrib/python/scikit-learn/py3/sklearn/linear_model
     contrib/python/scikit-learn/py3/sklearn/svm/src/libsvm
@@ -94,6 +95,9 @@ PY_SRCS(
     sklearn/datasets/_species_distributions.py
     sklearn/datasets/_svmlight_format_io.py
     sklearn/datasets/_twenty_newsgroups.py
+    sklearn/datasets/data/__init__.py
+    sklearn/datasets/descr/__init__.py
+    sklearn/datasets/images/__init__.py
     sklearn/decomposition/__init__.py
     sklearn/decomposition/_base.py
     sklearn/decomposition/_dict_learning.py
@@ -132,7 +136,9 @@ PY_SRCS(
     sklearn/externals/__init__.py
     sklearn/externals/_arff.py
     sklearn/externals/_lobpcg.py
-    sklearn/externals/_pep562.py
+    sklearn/externals/_packaging/__init__.py
+    sklearn/externals/_packaging/_structures.py
+    sklearn/externals/_packaging/version.py
     sklearn/externals/_pilutil.py
     sklearn/feature_extraction/__init__.py
     sklearn/feature_extraction/_dict_vectorizer.py
@@ -177,6 +183,7 @@ PY_SRCS(
     sklearn/linear_model/_omp.py
     sklearn/linear_model/_passive_aggressive.py
     sklearn/linear_model/_perceptron.py
+    sklearn/linear_model/_quantile.py
     sklearn/linear_model/_ransac.py
     sklearn/linear_model/_ridge.py
     sklearn/linear_model/_sag.py
@@ -220,6 +227,7 @@ PY_SRCS(
     sklearn/neighbors/__init__.py
     sklearn/neighbors/_base.py
     sklearn/neighbors/_classification.py
+    sklearn/neighbors/_distance_metric.py
     sklearn/neighbors/_graph.py
     sklearn/neighbors/_kde.py
     sklearn/neighbors/_lof.py
@@ -239,6 +247,7 @@ PY_SRCS(
     sklearn/preprocessing/_encoders.py
     sklearn/preprocessing/_function_transformer.py
     sklearn/preprocessing/_label.py
+    sklearn/preprocessing/_polynomial.py
     sklearn/random_projection.py
     sklearn/semi_supervised/__init__.py
     sklearn/semi_supervised/_label_propagation.py
@@ -278,9 +287,10 @@ PY_SRCS(
     CYTHON_C
     sklearn/__check_build/_check_build.pyx
     sklearn/_isotonic.pyx
+    sklearn/cluster/_k_means_common.pyx
     sklearn/cluster/_k_means_elkan.pyx
-    sklearn/cluster/_k_means_fast.pyx
     sklearn/cluster/_k_means_lloyd.pyx
+    sklearn/cluster/_k_means_minibatch.pyx
     sklearn/datasets/_svmlight_format_fast.pyx
     sklearn/decomposition/_cdnmf_fast.pyx
     sklearn/decomposition/_online_lda_fast.pyx
@@ -300,13 +310,12 @@ PY_SRCS(
     sklearn/linear_model/_sgd_fast.pyx
     sklearn/manifold/_barnes_hut_tsne.pyx
     sklearn/manifold/_utils.pyx
+    sklearn/metrics/_dist_metrics.pyx
     sklearn/metrics/_pairwise_fast.pyx
     sklearn/metrics/cluster/_expected_mutual_info_fast.pyx
     sklearn/neighbors/_ball_tree.pyx
-    sklearn/neighbors/_dist_metrics.pyx
     sklearn/neighbors/_kd_tree.pyx
     sklearn/neighbors/_quad_tree.pyx
-    sklearn/neighbors/_typedefs.pyx
     sklearn/preprocessing/_csr_polynomial_expansion.pyx
     sklearn/svm/_liblinear.pyx
     sklearn/svm/_libsvm.pyx
@@ -319,15 +328,17 @@ PY_SRCS(
     sklearn/utils/_logistic_sigmoid.pyx
     sklearn/utils/_openmp_helpers.pyx
     sklearn/utils/_random.pyx
+    sklearn/utils/_readonly_array_wrapper.pyx
     sklearn/utils/_seq_dataset.pyx
+    sklearn/utils/_typedefs.pyx
     sklearn/utils/_weight_vector.pyx
     sklearn/utils/arrayfuncs.pyx
-    sklearn/utils/graph_shortest_path.pyx
     sklearn/utils/murmurhash.pyx
     sklearn/utils/sparsefuncs_fast.pyx
     CYTHON_CPP
     sklearn/cluster/_dbscan_inner.pyx
     sklearn/cluster/_hierarchical_fast.pyx
+    sklearn/neighbors/_partition_nodes.pyx
     sklearn/svm/_newrand.pyx
     sklearn/utils/_fast_dict.pyx
 )
@@ -366,6 +377,8 @@ RESOURCE_FILES(
     sklearn/linear_model/_sag_fast.pyx.tp
     sklearn/utils/_seq_dataset.pxd.tp
     sklearn/utils/_seq_dataset.pyx.tp
+    sklearn/utils/_weight_vector.pxd.tp
+    sklearn/utils/_weight_vector.pyx.tp
 )
 
 END()
