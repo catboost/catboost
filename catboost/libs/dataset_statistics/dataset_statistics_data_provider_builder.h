@@ -185,13 +185,11 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
     void AddAllTextFeatures(
         ui32 localObjectIdx,
         TConstPolymorphicValuesSparseArray<TString, ui32> features) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, features);
     }
 
@@ -199,7 +197,6 @@ public:
         ui32 localObjectIdx,
         ui32 flatFeatureIdx,
         TMaybeOwningConstArrayHolder<float> feature) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(flatFeatureIdx, localObjectIdx, feature);
     }
 
@@ -228,15 +225,12 @@ public:
         Y_UNUSED(localObjectIdx);
     }
     void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(baselineIdx, localObjectIdx, value);
     }
     void AddWeight(ui32 localObjectIdx, float value) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, value);
     }
     void AddGroupWeight(ui32 localObjectIdx, float value) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(localObjectIdx, value);
     }
 
@@ -264,18 +258,15 @@ public:
     // IDatasetVisitor
 
     void SetGroupWeights(TVector<float>&& groupWeights) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(groupWeights);
     }
 
     // separate method because they can be loaded from a separate data source
     void SetBaseline(TVector<TVector<float>>&& baseline) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(baseline);
     }
 
     void SetPairs(TRawPairsData&& pairs) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(pairs);
     }
 
@@ -284,7 +275,6 @@ public:
     }
 
     void SetTimestamps(TVector<ui64>&& timestamps) override {
-        CB_ENSURE(false, "Not implemented");
         Y_UNUSED(timestamps);
     }
 
