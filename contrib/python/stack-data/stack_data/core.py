@@ -117,6 +117,20 @@ class Source(executing.Source):
             if end > start
         ]
 
+        # Combine overlapping pieces, i.e. consecutive pieces where the end of the first
+        # is greater than the start of the second.
+        # This can happen when two statements are on the same line separated by a semicolon.
+        new_pieces = pieces[:1]
+        for (start, end) in pieces[1:]:
+            (last_start, last_end) = new_pieces[-1]
+            if start < last_end:
+                assert start == last_end - 1
+                assert ';' in self.lines[start - 1]
+                new_pieces[-1] = (last_start, end)
+            else:
+                new_pieces.append((start, end))
+        pieces = new_pieces
+
         starts = [start for start, end in pieces[1:]]
         ends = [end for start, end in pieces[:-1]]
         if starts != ends:

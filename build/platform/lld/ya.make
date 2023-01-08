@@ -63,6 +63,8 @@ ELSEIF (OS_LINUX)
 
         # dynlinker on auld ubuntu versions can not handle .rodata stored in standalone segment [citation needed]
         -Wl,--no-rosegment
+        # add build-id to binaries to allow external tools check equality of binaries
+        -Wl,--build-id=sha1
     )
 ENDIF()
 
