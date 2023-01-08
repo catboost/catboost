@@ -9,6 +9,7 @@
 
 add_library(private-libs-lapack)
 target_link_libraries(private-libs-lapack PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-clapack

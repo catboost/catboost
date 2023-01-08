@@ -9,6 +9,7 @@
 
 add_library(cpp-streams-bzip2)
 target_link_libraries(cpp-streams-bzip2 PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   contrib-libs-libbz2

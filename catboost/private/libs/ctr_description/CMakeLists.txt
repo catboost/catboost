@@ -6,19 +6,18 @@
 # original buildsystem will not be accepted.
 
 
-
-add_library(private-libs-ctr_description)
-target_link_libraries(private-libs-ctr_description PUBLIC
-  contrib-libs-cxxsupp
-  yutil
-  catboost-libs-helpers
-  tools-enum_parser-enum_serialization_runtime
-)
-target_sources(private-libs-ctr_description PRIVATE
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.cpp
-)
-generate_enum_serilization(private-libs-ctr_description
-  ${CMAKE_SOURCE_DIR}/catboost/private/libs/ctr_description/ctr_type.h
-  INCLUDE_HEADERS
-  catboost/private/libs/ctr_description/ctr_type.h
-)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux-aarch64.txt)
+elseif (APPLE)
+  include(CMakeLists.darwin.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm")
+  include(CMakeLists.android-arm.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "arm64")
+  include(CMakeLists.android-arm64.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86")
+  include(CMakeLists.android-x86.txt)
+elseif (ANDROID AND CMAKE_ANDROID_ARCH STREQUAL "x86_64")
+  include(CMakeLists.android-x86_64.txt)
+elseif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" AND UNIX AND NOT APPLE AND NOT ANDROID)
+  include(CMakeLists.linux.txt)
+endif()

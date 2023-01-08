@@ -9,12 +9,14 @@
 
 add_library(private-libs-init INTERFACE)
 target_link_libraries(private-libs-init INTERFACE
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )
 
 add_global_library_for(private-libs-init.global private-libs-init)
 target_link_libraries(private-libs-init.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
 )

@@ -13,6 +13,7 @@ target_compile_options(model_comparator PRIVATE
   -DONNX_NAMESPACE=onnx
 )
 target_link_libraries(model_comparator PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   cpp-malloc-tcmalloc

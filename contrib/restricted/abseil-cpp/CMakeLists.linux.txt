@@ -10,6 +10,7 @@ add_subdirectory(absl)
 
 add_library(contrib-restricted-abseil-cpp INTERFACE)
 target_link_libraries(contrib-restricted-abseil-cpp INTERFACE
+  contrib-libs-linux-headers
   abseil-cpp-absl-algorithm
   abseil-cpp-absl-base
   abseil-cpp-absl-container

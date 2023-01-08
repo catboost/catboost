@@ -10,6 +10,7 @@ add_subdirectory(ut)
 
 add_library(catboost-libs-train_lib)
 target_link_libraries(catboost-libs-train_lib PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo
@@ -46,6 +47,7 @@ target_sources(catboost-libs-train_lib PRIVATE
 
 add_global_library_for(catboost-libs-train_lib.global catboost-libs-train_lib)
 target_link_libraries(catboost-libs-train_lib.global PUBLIC
+  contrib-libs-linux-headers
   contrib-libs-cxxsupp
   yutil
   private-libs-algo
