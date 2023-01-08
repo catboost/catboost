@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: asttokens
-Version: 2.1.0
+Version: 2.2.0
 Summary: Annotate AST trees with source code positions
 Home-page: https://github.com/gristlabs/asttokens
 Author: Dmitry Sagalovskiy, Grist Labs
@@ -31,7 +31,7 @@ License-File: LICENSE
 Requires-Dist: six
 Requires-Dist: typing ; python_version < "3.5"
 Provides-Extra: test
-Requires-Dist: astroid (<=2.5.3) ; extra == 'test'
+Requires-Dist: astroid ; extra == 'test'
 Requires-Dist: pytest ; extra == 'test'
 
 ASTTokens
