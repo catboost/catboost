@@ -422,6 +422,7 @@ NJson::TJsonValue TGroupwiseStats::ToJson() const {
     stats["GroupsTotalSize"] = GroupsTotalSize;
     if (GroupsCount) {
         stats["GroupsAverageSize"] = GetAverageGroupSize();
+        stats["GroupAverageSqrSize"] = GetAverageGroupSqrSize();
     }
     return stats;
 }
@@ -429,7 +430,8 @@ NJson::TJsonValue TGroupwiseStats::ToJson() const {
 void TGroupwiseStats::InfoLog() const {
     CATBOOST_INFO_LOG << "GroupsCount: " << GroupsCount << "\nGroupsTotalSize: " << GroupsTotalSize << Endl;
     if (GroupsCount) {
-        CATBOOST_INFO_LOG << "GroupsAverageSize: " << GetAverageGroupSize() << Endl;
+        CATBOOST_INFO_LOG << "GroupsAverageSize: " << GetAverageGroupSize()
+            << "\nGroupsAverageSqrSize: " << GetAverageGroupSqrSize() << Endl;
     }
 }
 
