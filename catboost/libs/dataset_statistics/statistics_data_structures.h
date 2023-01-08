@@ -35,11 +35,7 @@ struct IStatistics {
 public:
     virtual ~IStatistics() = default;
 
-    virtual NJson::TJsonValue ToJson() const {
-        CB_ENSURE(false, "Not implemented");
-        NJson::TJsonValue result;
-        return result;
-    }
+    virtual NJson::TJsonValue ToJson() const = 0;
 };
 
 struct TFloatFeatureStatistics : public IStatistics {
@@ -55,7 +51,7 @@ struct TFloatFeatureStatistics : public IStatistics {
 
     void Update(float feature);
 
-    NJson::TJsonValue ToJson() const;
+    NJson::TJsonValue ToJson() const override;
 
     void Update(const TFloatFeatureStatistics& update);
 
@@ -130,7 +126,7 @@ struct TSampleIdStatistics : public IStatistics {
 
     void Update(const TString& value);
 
-    NJson::TJsonValue ToJson() const;
+    NJson::TJsonValue ToJson() const override;
 
     void Update(const TSampleIdStatistics& update);
 
@@ -163,7 +159,7 @@ struct TCatFeatureStatistics: public IStatistics {
     void Update(TStringBuf value);
     void Update(ui32 value);
 
-    NJson::TJsonValue ToJson() const;
+    NJson::TJsonValue ToJson() const override;
 
     void Update(const TCatFeatureStatistics& update);
 
@@ -196,7 +192,7 @@ struct TTextFeatureStatistics: public IStatistics {
 
     void Update(TStringBuf value);
 
-    NJson::TJsonValue ToJson() const;
+    NJson::TJsonValue ToJson() const override;
 
     void Update(const TTextFeatureStatistics& update);
 
