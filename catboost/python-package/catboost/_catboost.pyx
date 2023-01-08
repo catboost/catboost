@@ -4433,17 +4433,17 @@ cdef class _PoolBase:
             thread_count
         )
         self.target_type = pool.target_type
-        
+
     cpdef _train_eval_split(self, _PoolBase train_pool, _PoolBase eval_pool, has_time, is_classification, eval_fraction, save_eval_pool):
         cdef TTrainTestSplitParams split_params
         split_params.Shuffle = not has_time
         split_params.Stratified = is_classification
-        
+
         if (eval_fraction <= 0.0) or (eval_fraction >= 1.0):
-            raise CatBoostError("eval_fraction must be in (0,1) range") 
-        
+            raise CatBoostError("eval_fraction must be in (0,1) range")
+
         split_params.TrainPart = 1.0 - eval_fraction
-    
+
         TrainEvalSplit(
             self.__pool.Get()[0],
             &train_pool.__pool,
