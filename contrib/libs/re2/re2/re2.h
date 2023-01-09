@@ -66,17 +66,17 @@
 //    CHECK(RE2::FullMatch(latin1_string, RE2(latin1_pattern, RE2::Latin1)));
 //
 // -----------------------------------------------------------------------
-// MATCHING WITH SUBSTRING EXTRACTION:
+// SUBMATCH EXTRACTION:
 //
-// You can supply extra pointer arguments to extract matched substrings.
+// You can supply extra pointer arguments to extract submatches.
 // On match failure, none of the pointees will have been modified.
-// On match success, the substrings will be converted (as necessary) and
+// On match success, the submatches will be converted (as necessary) and
 // their values will be assigned to their pointees until all conversions
 // have succeeded or one conversion has failed.
 // On conversion failure, the pointees will be in an indeterminate state
 // because the caller has no way of knowing which conversion failed.
 // However, conversion cannot fail for types like string and StringPiece
-// that do not inspect the substring contents. Hence, in the common case
+// that do not inspect the submatch contents. Hence, in the common case
 // where all of the pointees are of such types, failure is always due to
 // match failure and thus none of the pointees will have been modified.
 //
@@ -100,10 +100,10 @@
 // Example: integer overflow causes failure
 //    CHECK(!RE2::FullMatch("ruby:1234567891234", "\\w+:(\\d+)", &i));
 //
-// NOTE(rsc): Asking for substrings slows successful matches quite a bit.
+// NOTE(rsc): Asking for submatches slows successful matches quite a bit.
 // This may get a little faster in the future, but right now is slower
 // than PCRE.  On the other hand, failed matches run *very* fast (faster
-// than PCRE), as do matches without substring extraction.
+// than PCRE), as do matches without submatch extraction.
 //
 // -----------------------------------------------------------------------
 // PARTIAL MATCHES
@@ -275,15 +275,27 @@ class RE2 {
   // Need to have the const char* and const std::string& forms for implicit
   // conversions when passing string literals to FullMatch and PartialMatch.
   // Otherwise the StringPiece form would be sufficient.
-#ifndef SWIG
   RE2(const char* pattern);
   RE2(const std::string& pattern);
-#endif
   RE2(const StringPiece& pattern);
   RE2(const StringPiece& pattern, const Options& options);
   // ambiguity resolution.
   RE2(const TString& pattern) : RE2(StringPiece(pattern)) {}
   ~RE2();
+
+  // Not copyable.
+  // RE2 objects are expensive. You should probably use std::shared_ptr<RE2>
+  // instead. If you really must copy, RE2(first.pattern(), first.options())
+  // effectively does so: it produces a second object that mimics the first.
+  RE2(const RE2&) = delete;
+  RE2& operator=(const RE2&) = delete;
+  // Not movable.
+  // RE2 objects are thread-safe and logically immutable. You should probably
+  // use std::unique_ptr<RE2> instead. Otherwise, consider std::deque<RE2> if
+  // direct emplacement into a container is desired. If you really must move,
+  // be prepared to submit a design document along with your feature request.
+  RE2(RE2&&) = delete;
+  RE2& operator=(RE2&&) = delete;
 
   // Returns whether RE2 was created properly.
   bool ok() const { return error_code() == NoError; }
@@ -291,7 +303,7 @@ class RE2 {
   // The string specification for this RE2.  E.g.
   //   RE2 re("ab*c?d+");
   //   re.pattern();    // "ab*c?d+"
-  const std::string& pattern() const { return pattern_; }
+  const std::string& pattern() const { return *pattern_; }
 
   // If RE2 could not be created properly, returns an error string.
   // Else returns the empty string.
@@ -303,7 +315,7 @@ class RE2 {
 
   // If RE2 could not be created properly, returns the offending
   // portion of the regexp.
-  const std::string& error_arg() const { return error_arg_; }
+  const std::string& error_arg() const { return *error_arg_; }
 
   // Returns the program size, a very approximate measure of a regexp's "cost".
   // Larger numbers are more expensive than smaller numbers.
@@ -336,7 +348,6 @@ class RE2 {
   static bool FindAndConsumeN(StringPiece* input, const RE2& re,
                               const Arg* const args[], int n);
 
-#ifndef SWIG
  private:
   template <typename F, typename SP>
   static inline bool Apply(F f, SP sp, const RE2& re) {
@@ -442,7 +453,6 @@ class RE2 {
   static bool FindAndConsume(StringPiece* input, const RE2& re, A&&... a) {
     return Apply(FindAndConsumeN, input, re, Arg(std::forward<A>(a))...);
   }
-#endif
 
   // Replace the first match of "re" in "str" with "rewrite".
   // Within "rewrite", backslash-escaped digits (\1 to \9) can be
@@ -698,11 +708,11 @@ class RE2 {
     };
 
     Options() :
+      max_mem_(kDefaultMaxMem),
       encoding_(EncodingUTF8),
       posix_syntax_(false),
       longest_match_(false),
       log_errors_(true),
-      max_mem_(kDefaultMaxMem),
       literal_(false),
       never_nl_(false),
       dot_nl_(false),
@@ -715,6 +725,9 @@ class RE2 {
 
     /*implicit*/ Options(CannedOptions);
 
+    int64_t max_mem() const { return max_mem_; }
+    void set_max_mem(int64_t m) { max_mem_ = m; }
+
     Encoding encoding() const { return encoding_; }
     void set_encoding(Encoding encoding) { encoding_ = encoding; }
 
@@ -726,9 +739,6 @@ class RE2 {
 
     bool log_errors() const { return log_errors_; }
     void set_log_errors(bool b) { log_errors_ = b; }
-
-    int64_t max_mem() const { return max_mem_; }
-    void set_max_mem(int64_t m) { max_mem_ = m; }
 
     bool literal() const { return literal_; }
     void set_literal(bool b) { literal_ = b; }
@@ -761,11 +771,11 @@ class RE2 {
     int ParseFlags() const;
 
    private:
+    int64_t max_mem_;
     Encoding encoding_;
     bool posix_syntax_;
     bool longest_match_;
     bool log_errors_;
-    int64_t max_mem_;
     bool literal_;
     bool never_nl_;
     bool dot_nl_;
@@ -787,6 +797,10 @@ class RE2 {
   template <typename T>
   static Arg Octal(T* ptr);
 
+  // Controls the maximum count permitted by GlobalReplace(); -1 is unlimited.
+  // FOR FUZZING ONLY.
+  static void FUZZING_ONLY_set_maximum_global_replace_count(int i);
+
  private:
   void Init(const StringPiece& pattern, const Options& options);
 
@@ -798,18 +812,23 @@ class RE2 {
 
   re2::Prog* ReverseProg() const;
 
-  std::string pattern_;         // string regular expression
-  Options options_;             // option flags
-  re2::Regexp* entire_regexp_;  // parsed regular expression
-  const std::string* error_;    // error indicator (or points to empty string)
-  ErrorCode error_code_;        // error code
-  std::string error_arg_;       // fragment of regexp showing error
-  std::string prefix_;          // required prefix (before suffix_regexp_)
-  bool prefix_foldcase_;        // prefix_ is ASCII case-insensitive
-  re2::Regexp* suffix_regexp_;  // parsed regular expression, prefix_ removed
-  re2::Prog* prog_;             // compiled program for regexp
-  int num_captures_;            // number of capturing groups
-  bool is_one_pass_;            // can use prog_->SearchOnePass?
+  // First cache line is relatively cold fields.
+  const std::string* pattern_;    // string regular expression
+  Options options_;               // option flags
+  re2::Regexp* entire_regexp_;    // parsed regular expression
+  re2::Regexp* suffix_regexp_;    // parsed regular expression, prefix_ removed
+  const std::string* error_;      // error indicator (or points to empty string)
+  const std::string* error_arg_;  // fragment of regexp showing error (or ditto)
+
+  // Second cache line is relatively hot fields.
+  // These are ordered oddly to pack everything.
+  int num_captures_;              // number of capturing groups
+  ErrorCode error_code_ : 29;     // error code (29 bits is more than enough)
+  bool longest_match_ : 1;        // cached copy of options_.longest_match()
+  bool is_one_pass_ : 1;          // can use prog_->SearchOnePass?
+  bool prefix_foldcase_ : 1;      // prefix_ is ASCII case-insensitive
+  std::string prefix_;            // required prefix (before suffix_regexp_)
+  re2::Prog* prog_;               // compiled program for regexp
 
   // Reverse Prog for DFA execution only
   mutable re2::Prog* rprog_;
@@ -821,9 +840,6 @@ class RE2 {
   mutable std::once_flag rprog_once_;
   mutable std::once_flag named_groups_once_;
   mutable std::once_flag group_names_once_;
-
-  RE2(const RE2&) = delete;
-  RE2& operator=(const RE2&) = delete;
 };
 
 /***** Implementation details *****/
@@ -954,7 +970,6 @@ inline RE2::Arg RE2::Octal(T* ptr) {
   });
 }
 
-#ifndef SWIG
 // Silence warnings about missing initializers for members of LazyRE2.
 #if !defined(__clang__) && defined(__GNUC__) && __GNUC__ >= 6
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -1005,7 +1020,6 @@ class LazyRE2 {
 
   void operator=(const LazyRE2&);  // disallowed
 };
-#endif
 
 namespace hooks {
 
