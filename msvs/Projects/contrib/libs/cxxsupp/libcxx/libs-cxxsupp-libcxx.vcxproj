@@ -530,5 +530,9 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
-  <ItemGroup/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

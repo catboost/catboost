@@ -244,7 +244,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -255,7 +255,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/build/platform/python/ymake_python3/bin/python3.exe" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
+"/tmp/tmp.c13KZt8tsN/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -264,7 +264,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\f75853afbf4ae2582b3716dd09.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\c0315479e95e92d4aea2f854bf.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\b85b97bf6add270fee9e543007.cpp;$(SolutionDir)$(Configuration)\build\platform\python\ymake_python3\bin\python3.exe;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\f75853afbf4ae2582b3716dd09.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\c0315479e95e92d4aea2f854bf.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\lib\b85b97bf6add270fee9e543007.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_5a3d7cc376fa9c2729d1c9ce6f.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
@@ -531,8 +531,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\build\platform\cuda\build-platform-cuda.pkg.fake.vcxproj">
       <Project>{607AFEC4-8A23-056F-2190-DCF65FF8934B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\bin\python3.vcxproj">
-      <Project>{CB0769D4-E253-516B-A884-73C5C087A443}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
+      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cpu_compatibility_helpers\catboost-cuda-cpu_compatibility_helpers.vcxproj">
       <Project>{25AC1B6D-6F5F-550C-B8D7-D7E344784C2E}</Project>
