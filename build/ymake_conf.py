@@ -260,7 +260,8 @@ def get_stdout_and_code(command):
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = process.communicate()
         return stdout, process.returncode
-    except Exception:
+    except Exception as e:
+        logger.info("While run: `%s`", e)
         return None, None
 
 
@@ -838,9 +839,11 @@ class CompilerDetector(object):
         try:
             fd, path = tempfile.mkstemp(suffix='.cpp')
             try:
-                with os.fdopen(fd, 'wb') as output:
+                with os.fdopen(fd, 'w') as output:
                     output.write(source)
                 stdout, code = get_stdout_and_code([compiler, '-E', path])
+            except Exception as e:
+                logger.info("While writing: `%s`", e)
             finally:
                 os.remove(path)
             return stdout, code
@@ -858,13 +861,14 @@ class CompilerDetector(object):
         # Мы можем только удостовериться после разбора stdout, что в нём
         # присутствовала хотя бы одна подставленная переменная.
         # TODO(somov): Исследовать, можно ли проверять ограниченный набор кодов возврата.
+        # TODO(v-korovin): Нормально прокидывать Exception-ы, оно и так упадёт
         stdout, _ = CompilerDetector.preprocess_source(compiler, source)
 
         if stdout is None:
             return None
 
         vars_ = {}
-        for line in stdout.split('\n'):
+        for line in six.ensure_str(stdout).split('\n'):
             parts = line.split('=', 1)
             if len(parts) == 2 and parts[0].startswith(prefix):
                 name, value = parts[0][len(prefix):], parts[1]
