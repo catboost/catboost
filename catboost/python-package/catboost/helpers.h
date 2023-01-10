@@ -280,5 +280,3 @@ void TrainEvalSplit(
 
 
 TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int threadsCount);
-
-size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription);

@@ -398,7 +398,7 @@ def last_stmt(node):
   """
   child_stmts = [
     child for child in ast.iter_child_nodes(node)
-    if isinstance(child, (ast.stmt, ast.excepthandler, getattr(ast, "match_case", ())))
+    if isinstance(child, (ast.stmt, ast.excepthandler))
   ]
   if child_stmts:
     return last_stmt(child_stmts[-1])

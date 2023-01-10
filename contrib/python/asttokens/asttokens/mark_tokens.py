@@ -266,11 +266,6 @@ class MarkTokens(object):
       first_token = self._code.next_token(first_token)
     return (first_token, last_token)
 
-  def visit_matchclass(self, node, first_token, last_token):
-    # type: (util.Token, util.Token, util.Token) -> Tuple[util.Token, util.Token]
-    last_token = self.handle_following_brackets(node, last_token, '(')
-    return (first_token, last_token)
-
   def visit_subscript(self,
                       node,  # type: AstNode
                       first_token,  # type: util.Token

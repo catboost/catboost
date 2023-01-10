@@ -22,9 +22,6 @@
 #include <limits>
 
 namespace NCB {
-
-using TFeatureCustomBorders = THashMap<ui32, std::pair<double, double>>;
-
 template<typename T>
 NJson::TJsonValue AggregateStatistics(const TVector<T>& data) {
     TVector<NJson::TJsonValue> statistics;
@@ -264,7 +261,7 @@ struct TTargetsStatistics : public IStatistics {
 public:
     TTargetsStatistics() {};
 
-    void Init(const TDataMetaInfo& metaInfo, const TFeatureCustomBorders& customBorders);
+    void Init(const TDataMetaInfo& metaInfo, const TVector<TMaybe<std::pair<float, float>>>& customBorders);
 
     NJson::TJsonValue ToJson() const override;
 
@@ -320,7 +317,6 @@ public:
     TVector<TStringTargetStatistic> StringTargetStatistics;
     ERawTargetType TargetType;
     ui32 TargetCount;
-
 };
 
 struct TFeatureStatistics : public IStatistics {
@@ -346,7 +342,7 @@ public:
 
     void Init(
         const TDataMetaInfo& metaInfo,
-        const TFeatureCustomBorders& customBorders,
+        const TVector<TMaybe<std::pair<float, float>>>& customBorders,
         bool calculatePairwiseStatistics=false);
 
     NJson::TJsonValue ToJson() const override;
@@ -448,8 +444,8 @@ public:
     TMaybe<TVector<TFloatFeatureHistogram>> TargetHistogram;
 
     void Init(const TDataMetaInfo& metaInfo,
-              const TFeatureCustomBorders& customBorders,
-              const TFeatureCustomBorders& targetCustomBorders,
+              const TVector<TMaybe<std::pair<float, float>>>& customBorders,
+              const TVector<TMaybe<std::pair<float, float>>>& targetCustomBorders,
               bool calculatePairwiseStatistics=false
     ) {
         FeatureStatistics.Init(metaInfo, customBorders, calculatePairwiseStatistics);

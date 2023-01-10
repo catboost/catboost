@@ -88,15 +88,7 @@ void TFloatFeatureStatistics::Update(const TFloatFeatureStatistics& update) {
     }
 }
 
-template<typename TStatistic>
-void SetCustomBorders(const TFeatureCustomBorders& customBorders, TVector<TStatistic>* statistics) {
-    for (const auto& [key, value] : customBorders) {
-        CB_ENSURE(key < statistics->size());
-        statistics->at(key).SetCustomBorders(value);
-    }
-}
-
-void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCustomBorders& customBorders) {
+void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TVector<TMaybe<std::pair<float, float>>>& customBorders) {
     TargetType = metaInfo.TargetType;
     TargetCount = metaInfo.TargetCount;
     switch (TargetType) {
@@ -113,7 +105,14 @@ void TTargetsStatistics::Init(const TDataMetaInfo& metaInfo, const TFeatureCusto
         default:
             CB_ENSURE(false);
     }
-    SetCustomBorders(customBorders, &FloatTargetStatistics);
+
+    CB_ENSURE(customBorders.empty() || customBorders.size() == FloatTargetStatistics.size() + StringTargetStatistics.size());
+    for (size_t idx = 0; idx < customBorders.size(); ++idx) {
+        if (customBorders[idx].Defined()) {
+            CB_ENSURE(TargetType == ERawTargetType::Float);
+            FloatTargetStatistics[idx].SetCustomBorders(customBorders[idx].GetRef());
+        }
+    }
 }
 
 void TTargetsStatistics::Update(ui32 flatTargetIdx, TStringBuf value) {
@@ -374,7 +373,7 @@ NJson::TJsonValue TFloatFeaturePairwiseProduct::ToJson(const TVector<TFloatFeatu
 
 void TFeatureStatistics::Init(
     const TDataMetaInfo& metaInfo,
-    const TFeatureCustomBorders& customBorders,
+    const TVector<TMaybe<std::pair<float, float>>>& customBorders,
     bool calculatePairwiseStatistics
 ) {
     FloatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetFloatFeatureCount());
@@ -382,7 +381,13 @@ void TFeatureStatistics::Init(
     CatFeatureStatistics.resize(metaInfo.FeaturesLayout->GetCatFeatureCount());
     TextFeatureStatistics.resize(metaInfo.FeaturesLayout->GetTextFeatureCount());
 
-    SetCustomBorders(customBorders, &FloatFeatureStatistics);
+    CB_ENSURE(customBorders.empty() || customBorders.size() == FloatFeatureStatistics.size(),
+              "Not equal" << customBorders.size() << "!="  << FloatFeatureStatistics.size());
+    for (size_t idx = 0; idx < customBorders.size(); ++idx) {
+        if (customBorders[idx].Defined()) {
+            FloatFeatureStatistics[idx].SetCustomBorders(customBorders[idx].GetRef());
+        }
+    }
 }
 
 NJson::TJsonValue TFeatureStatistics::ToJson() const {
