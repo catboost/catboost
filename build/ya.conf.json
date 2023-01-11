@@ -8143,7 +8143,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 1564220267,
+                "sandbox_id": 1565633872,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -8544,7 +8544,7 @@
         },
         "yfm-docs": {
             "formula": {
-                "sandbox_id": 1513290950,
+                "sandbox_id": 1565093884,
                 "match": "yfm-docs"
             },
             "executable": {
