@@ -4,7 +4,7 @@ from _common import sort_by_keywords
 
 
 def oncreate_init_py_structure(unit, *args):
-    if unit.get('DISTBUILD'):
+    if unit.get('DISTBUILD') or unit.get('AUTOCHECK'):
         return
     target_dir = unit.get('PY_PROTOS_FOR_DIR')
     path_list = target_dir.split(os.path.sep)[1:]
