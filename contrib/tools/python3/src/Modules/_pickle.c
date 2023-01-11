@@ -8027,15 +8027,16 @@ PyInit__pickle(void)
     if (st->UnpicklingError == NULL)
         return NULL;
 
-    if (PyModule_AddObjectRef(m, "PickleError", st->PickleError) < 0) {
+    Py_INCREF(st->PickleError);
+    if (PyModule_AddObject(m, "PickleError", st->PickleError) < 0)
         return NULL;
-    }
-    if (PyModule_AddObjectRef(m, "PicklingError", st->PicklingError) < 0) {
+    Py_INCREF(st->PicklingError);
+    if (PyModule_AddObject(m, "PicklingError", st->PicklingError) < 0)
         return NULL;
-    }
-    if (PyModule_AddObjectRef(m, "UnpicklingError", st->UnpicklingError) < 0) {
+    Py_INCREF(st->UnpicklingError);
+    if (PyModule_AddObject(m, "UnpicklingError", st->UnpicklingError) < 0)
         return NULL;
-    }
+
     if (_Pickle_InitState(st) < 0)
         return NULL;
 

@@ -260,8 +260,7 @@ def get_stdout_and_code(command):
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = process.communicate()
         return stdout, process.returncode
-    except Exception as e:
-        logger.info("While run: `%s`", e)
+    except Exception:
         return None, None
 
 
@@ -839,11 +838,9 @@ class CompilerDetector(object):
         try:
             fd, path = tempfile.mkstemp(suffix='.cpp')
             try:
-                with os.fdopen(fd, 'w') as output:
+                with os.fdopen(fd, 'wb') as output:
                     output.write(source)
                 stdout, code = get_stdout_and_code([compiler, '-E', path])
-            except Exception as e:
-                logger.info("While writing: `%s`", e)
             finally:
                 os.remove(path)
             return stdout, code
@@ -861,14 +858,13 @@ class CompilerDetector(object):
         # Мы можем только удостовериться после разбора stdout, что в нём
         # присутствовала хотя бы одна подставленная переменная.
         # TODO(somov): Исследовать, можно ли проверять ограниченный набор кодов возврата.
-        # TODO(v-korovin): Нормально прокидывать Exception-ы, оно и так упадёт
         stdout, _ = CompilerDetector.preprocess_source(compiler, source)
 
         if stdout is None:
             return None
 
         vars_ = {}
-        for line in six.ensure_str(stdout).split('\n'):
+        for line in stdout.split('\n'):
             parts = line.split('=', 1)
             if len(parts) == 2 and parts[0].startswith(prefix):
                 name, value = parts[0][len(prefix):], parts[1]
@@ -1427,6 +1423,8 @@ class GnuCompiler(Compiler):
 
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
+            if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+                self.c_foptions.append('-fembed-bitcode')
 
         self.extra_compile_opts = []
 
@@ -1665,6 +1663,9 @@ class LD(Linker):
             (not target.is_iossim and target.is_ios, '-Wl,-sdk_version,13.1'),
             (target.is_iossim, '-Wl,-sdk_version,14.5'),
         ])
+
+        if self.target.is_ios and preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+            self.ld_flags.extend(('-fembed-bitcode', '-Wl,-bitcode_verify'))
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
