@@ -25,8 +25,8 @@ class _Formatting(object):
         retval = b""
         for c in c_str:
             c = bytes([c])
-            if c in ("\\", "\""):
-                retval += "\\" + c
+            if c in (b"\\", b"\""):
+                retval += b"\\" + c
             elif ord(c) < ord(' '):
                 retval += c.decode('latin-1').encode('unicode_escape')
             else:
