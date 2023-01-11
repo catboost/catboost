@@ -28,37 +28,42 @@ namespace NNeh {
 
     class TWaitQueue {
     public:
-        struct TWaitHandle {
-            inline TWaitHandle() noexcept
-                : Signalled(false)
-                , Parent(nullptr)
-            {
-            }
-
-            inline void Signal() noexcept {
+        class TWaitHandle {
+        public:
+            void Signal() noexcept {
                 TGuard<TSpinLock> lock(M_);
 
-                Signalled = true;
+                Signalled_ = true;
 
-                if (Parent) {
-                    Parent->Notify(this);
+                if (Parent_) {
+                    Parent_->Notify(this);
                 }
             }
 
-            inline void Register(TWaitQueue* parent) noexcept {
+            void Register(TWaitQueue* parent) noexcept {
                 TGuard<TSpinLock> lock(M_);
 
-                Parent = parent;
+                Parent_ = parent;
 
-                if (Signalled) {
-                    if (Parent) {
-                        Parent->Notify(this);
+                if (Signalled_) {
+                    if (Parent_) {
+                        Parent_->Notify(this);
                     }
                 }
             }
 
-            NAtomic::TBool Signalled;
-            TWaitQueue* Parent;
+            bool Signalled() const {
+                return Signalled_;
+            }
+
+            void ResetState() {
+                TGuard<TSpinLock> lock(M_);
+
+                Signalled_ = false;
+            }
+        private:
+            NAtomic::TBool Signalled_ = false;
+            TWaitQueue* Parent_ = nullptr;
             TSpinLock M_;
         };
 
