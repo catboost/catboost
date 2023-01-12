@@ -11,7 +11,6 @@
 #include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/vector.h>
-#include <util/system/info.h>
 #include <util/system/types.h>
 
 using namespace NCB;
@@ -19,7 +18,7 @@ using namespace NCB;
 struct TCalculateStatisticsParams {
     TString OutputPath;
     NCatboostOptions::TDatasetReadingParams DatasetReadingParams;
-    int ThreadCount = NSystemInfo::CachedNumberOfCpus();
+    int ThreadCount = -1; // -1 means undefined, set to CPU core count by default
     bool OnlyGroupStatistics = false;
     ui32 SpotSize = 0;
     ui32 SpotCount = 0;
