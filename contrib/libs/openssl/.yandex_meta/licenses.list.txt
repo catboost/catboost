@@ -134,6 +134,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 1999-2022 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2000-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -147,6 +151,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2000-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2000-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -194,6 +202,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2005-2022 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2006-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -226,7 +238,7 @@
 
 
 ====================COPYRIGHT====================
- * Copyright 2012-2018 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2012-2021 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -246,6 +258,10 @@
 
 
 ====================COPYRIGHT====================
+ * Copyright 2014-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
  * Copyright 2015-2016 The OpenSSL Project Authors. All Rights Reserved.
 
 
@@ -259,6 +275,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2015-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2015-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -279,6 +299,10 @@
 
 ====================COPYRIGHT====================
  * Copyright 2016-2021 The OpenSSL Project Authors. All Rights Reserved.
+
+
+====================COPYRIGHT====================
+ * Copyright 2016-2022 The OpenSSL Project Authors. All Rights Reserved.
 
 
 ====================COPYRIGHT====================
@@ -310,7 +334,7 @@
 
 
 ====================COPYRIGHT====================
- Copyright (c) 1998-2021 The OpenSSL Project
+ Copyright (c) 1998-2022 The OpenSSL Project
  Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
  All rights reserved.
 
