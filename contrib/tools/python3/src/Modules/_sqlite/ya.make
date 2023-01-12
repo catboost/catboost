@@ -4,9 +4,9 @@ LIBRARY()
 
 
 
-VERSION(3.10.8)
+VERSION(3.10.9)
 
-ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.8.tar.gz)
+ORIGINAL_SOURCE(https://github.com/python/cpython/archive/v3.10.9.tar.gz)
 
 LICENSE(Python-2.0)
 
