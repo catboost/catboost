@@ -43,9 +43,9 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
                 if (CustomStringBufs.size()) {
                     CustomString.clear();
                     for (auto CustomStringBuf : CustomStringBufs) {
-                        CustomString += TString{CustomStringBuf};
+                        CustomString += TString{ CustomStringBuf };
                     }
-                    CustomString += TString{TStringBuf(TokenStart, TokenEnd)};
+                    CustomString += TString{ TStringBuf(TokenStart, TokenEnd) };
                     CustomStringBufs.clear();
                     return TStringBuf(CustomString);
                 } else {
@@ -55,4 +55,28 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
             ++TokenEnd;
         }
     }
+};
+
+TString NCsvFormat::TLinesSplitter::ConsumeLine() {
+    bool Escape = false;
+    TString result;
+    TString line;
+    while (Input.ReadLine(line)) {
+        for (auto it = line.begin(); it != line.end(); ++it) {
+            if (*it == Quote) {
+                Escape = !Escape;
+            }
+        }
+        if (!result) {
+            result = line;
+        } else {
+            result += line;
+        }
+        if (!Escape) {
+            break;
+        } else {
+            result += "\n";
+        }
+    }
+    return result;
 };
