@@ -16,6 +16,7 @@ from traitlets.traitlets import Any, Container, Dict, HasTraits, List, Undefined
 
 from ..utils import cast_unicode, filefind
 
+
 # -----------------------------------------------------------------------------
 # Exceptions
 # -----------------------------------------------------------------------------
@@ -29,7 +30,7 @@ class ConfigLoaderError(ConfigError):
     pass
 
 
-class ConfigFileNotFound(ConfigError):
+class ConfigFileNotFound(ConfigError):  # noqa
     pass
 
 
@@ -77,7 +78,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 def execfile(fname, glob):
     with open(fname, "rb") as f:
-        exec(compile(f.read(), fname, "exec"), glob, glob)
+        exec(compile(f.read(), fname, "exec"), glob, glob)  # noqa
 
 
 class LazyConfigValue(HasTraits):
@@ -358,7 +359,7 @@ class Config(dict):  # type:ignore[type-arg]
         try:
             return self.__getitem__(key)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(e) from e
 
     def __setattr__(self, key, value):
         if key.startswith("__"):
@@ -366,7 +367,7 @@ class Config(dict):  # type:ignore[type-arg]
         try:
             self.__setitem__(key, value)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(e) from e
 
     def __delattr__(self, key):
         if key.startswith("__"):
@@ -374,7 +375,7 @@ class Config(dict):  # type:ignore[type-arg]
         try:
             dict.__delitem__(self, key)
         except KeyError as e:
-            raise AttributeError(e)
+            raise AttributeError(e) from e
 
 
 class DeferredConfig:
@@ -571,7 +572,7 @@ class JSONFileConfigLoader(FileConfigLoader):
         try:
             self._find_file()
         except OSError as e:
-            raise ConfigFileNotFound(str(e))
+            raise ConfigFileNotFound(str(e)) from e
         dct = self._read_file_as_dict()
         self.config = self._convert_to_config(dct)
         return self.config
@@ -621,7 +622,7 @@ class PyFileConfigLoader(FileConfigLoader):
         try:
             self._find_file()
         except OSError as e:
-            raise ConfigFileNotFound(str(e))
+            raise ConfigFileNotFound(str(e)) from e
         self._read_file_as_dict()
         return self.config
 
@@ -655,7 +656,7 @@ class PyFileConfigLoader(FileConfigLoader):
         )
         conf_filename = self.full_filename
         with open(conf_filename, "rb") as f:
-            exec(compile(f.read(), conf_filename, "exec"), namespace, namespace)
+            exec(compile(f.read(), conf_filename, "exec"), namespace, namespace)  # noqa
 
 
 class CommandLineConfigLoader(ConfigLoader):
@@ -1049,8 +1050,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
 
             lhs = lhs.replace(_DOT_REPLACEMENT, ".")
             if "." not in lhs:
-                # probably a mistyped alias, but not technically illegal
-                self.log.warning("Unrecognized alias: '%s', it will have no effect.", lhs)
+                self._handle_unrecognized_alias(lhs)
                 trait = None
 
             if isinstance(rhs, list):
@@ -1070,10 +1070,19 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
                 # DeferredList->list, etc
                 if isinstance(rhs, DeferredConfig):
                     rhs = rhs._super_repr()
-                raise ArgumentError(f"Error loading argument {lhs}={rhs}, {e}")
+                raise ArgumentError(f"Error loading argument {lhs}={rhs}, {e}") from e
 
         for subc in self.parsed_data._flags:
             self._load_flag(subc)
+
+    def _handle_unrecognized_alias(self, arg: str) -> None:
+        """Handling for unrecognized alias arguments
+
+        Probably a mistyped alias. By default just log a warning,
+        but users can override this to raise an error instead, e.g.
+        self.parser.error("Unrecognized alias: '%s'" % arg)
+        """
+        self.log.warning("Unrecognized alias: '%s', it will have no effect.", arg)
 
 
 class KeyValueConfigLoader(KVArgParseConfigLoader):

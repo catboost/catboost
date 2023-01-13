@@ -8,6 +8,7 @@
 
 import pickle
 import re
+import typing as t
 from unittest import TestCase
 
 import pytest
@@ -97,14 +98,14 @@ class TestTraitType(TestCase):
             a = TraitType
 
         a = A()
-        assert a.a is Undefined
+        assert a.a is Undefined  # type:ignore
 
     def test_set(self):
         class A(HasTraitsStub):
             a = TraitType
 
         a = A()
-        a.a = 10
+        a.a = 10  # type:ignore
         self.assertEqual(a.a, 10)
         self.assertEqual(a._notify_name, "a")
         self.assertEqual(a._notify_old, Undefined)
@@ -119,7 +120,10 @@ class TestTraitType(TestCase):
             tt = MyTT
 
         a = A()
-        a.tt = 10
+        a.tt = 10  # type:ignore
+        self.assertEqual(a.tt, -1)
+
+        a = A(tt=11)
         self.assertEqual(a.tt, -1)
 
     def test_default_validate(self):
@@ -146,7 +150,7 @@ class TestTraitType(TestCase):
             tt = TraitType
 
         a = A()
-        self.assertEqual(A.tt.info(), "any value")
+        self.assertEqual(A.tt.info(), "any value")  # type:ignore
 
     def test_error(self):
         class A(HasTraits):
@@ -226,7 +230,7 @@ class TestTraitType(TestCase):
                 def _x_changed(self):
                     pass
 
-            obj = ShouldWarn()
+            obj = ShouldWarn()  # type:ignore
             obj.x = 5
 
         assert obj.x == 5
@@ -535,16 +539,16 @@ class TestHasTraitsNotify(TestCase):
             self.cb = ()
 
         def callback1(name):
-            self.cb = (name,)
+            self.cb = (name,)  # type:ignore
 
         def callback2(name, new):
-            self.cb = (name, new)
+            self.cb = (name, new)  # type:ignore
 
         def callback3(name, old, new):
-            self.cb = (name, old, new)
+            self.cb = (name, old, new)  # type:ignore
 
         def callback4(name, old, new, obj):
-            self.cb = (name, old, new, obj)
+            self.cb = (name, old, new, obj)  # type:ignore
 
         class A(HasTraits):
             a = Int()
@@ -729,7 +733,7 @@ class TestObserveDecorator(TestCase):
         self.assertTrue(change in a._notify_any)
 
         class B(A):
-            b = Float()
+            b = Float()  # type:ignore
             _notify2 = []
 
             @observe("b")
@@ -738,7 +742,7 @@ class TestObserveDecorator(TestCase):
 
         b = B()
         b.a = 10
-        b.b = 10.0
+        b.b = 10.0  # type:ignore
         change = change_dict("a", 0, 10, b, "change")
         self.assertTrue(change in b._notify1)
         change = change_dict("b", 0.0, 10.0, b, "change")
@@ -1019,7 +1023,7 @@ class TestType(TestCase):
 
         self.assertRaises(ImportError, A)
 
-        class A(HasTraits):
+        class A(HasTraits):  # type:ignore
             klass = Type("rub.adub.Duck")
 
         self.assertRaises(ImportError, A)
@@ -1042,7 +1046,7 @@ class TestType(TestCase):
         class A(HasTraits):
             klass = Type("traitlets.config.Config")
 
-        from traitlets.config import Config
+        from traitlets.config import Config  # type:ignore
 
         a = A()
         a.klass = Config
@@ -1055,7 +1059,7 @@ class TestType(TestCase):
             klass = Type()
 
         a = A(klass="traitlets.config.Config")
-        from traitlets.config import Config
+        from traitlets.config import Config  # type:ignore
 
         self.assertEqual(a.klass, Config)
 
@@ -1237,7 +1241,7 @@ class TraitTestBase(TestCase):
     """A best testing class for basic trait types."""
 
     def assign(self, value):
-        self.obj.value = value
+        self.obj.value = value  # type:ignore
 
     def coerce(self, value):
         return value
@@ -1246,7 +1250,7 @@ class TraitTestBase(TestCase):
         if hasattr(self, "_good_values"):
             for value in self._good_values:
                 self.assign(value)
-                self.assertEqual(self.obj.value, self.coerce(value))
+                self.assertEqual(self.obj.value, self.coerce(value))  # type:ignore
 
     def test_bad_values(self):
         if hasattr(self, "_bad_values"):
@@ -1258,7 +1262,7 @@ class TraitTestBase(TestCase):
 
     def test_default_value(self):
         if hasattr(self, "_default_value"):
-            self.assertEqual(self._default_value, self.obj.value)
+            self.assertEqual(self._default_value, self.obj.value)  # type:ignore
 
     def test_allow_none(self):
         if (
@@ -1266,13 +1270,13 @@ class TraitTestBase(TestCase):
             and hasattr(self, "_good_values")
             and None in self._bad_values
         ):
-            trait = self.obj.traits()["value"]
+            trait = self.obj.traits()["value"]  # type:ignore
             try:
                 trait.allow_none = True
                 self._bad_values.remove(None)
                 # skip coerce. Allow None casts None to None.
                 self.assign(None)
-                self.assertEqual(self.obj.value, None)
+                self.assertEqual(self.obj.value, None)  # type:ignore
                 self.test_good_values()
                 self.test_bad_values()
             finally:
@@ -1283,7 +1287,7 @@ class TraitTestBase(TestCase):
     def tearDown(self):
         # restore default value after tests, if set
         if hasattr(self, "_default_value"):
-            self.obj.value = self._default_value
+            self.obj.value = self._default_value  # type:ignore
 
 
 class AnyTrait(HasTraits):
@@ -1297,7 +1301,7 @@ class AnyTraitTest(TraitTestBase):
 
     _default_value = None
     _good_values = [10.0, "ten", [10], {"ten": 10}, (10,), None, 1j]
-    _bad_values = []
+    _bad_values: t.Any = []
 
 
 class UnionTrait(HasTraits):
@@ -1385,7 +1389,7 @@ class MinBoundCIntTrait(HasTraits):
 
 
 class TestMinBoundCInt(TestCInt):
-    obj = MinBoundCIntTrait()
+    obj = MinBoundCIntTrait()  # type:ignore
 
     _default_value = 5
     _good_values = [3, 3.0, "3"]
@@ -1465,7 +1469,7 @@ class MaxBoundCLongTrait(HasTraits):
 
 
 class TestMaxBoundCLong(TestCLong):
-    obj = MaxBoundCLongTrait()
+    obj = MaxBoundCLongTrait()  # type:ignore
 
     _default_value = 5
     _good_values = [10, "10", 10.3]
@@ -1477,7 +1481,7 @@ class IntegerTrait(HasTraits):
 
 
 class TestInteger(TestLong):
-    obj = IntegerTrait()
+    obj = IntegerTrait()  # type:ignore
     _default_value = 1
 
     def coerce(self, n):
@@ -1672,7 +1676,7 @@ class TestList(TraitTestBase):
 
     obj = ListTrait()
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [[], [1], list(range(10)), (1, 2)]
     _bad_values = [10, [1, "a"], "a"]
 
@@ -1695,7 +1699,7 @@ class TestNoneInstanceList(TraitTestBase):
 
     obj = NoneInstanceListTrait()
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [[Foo(), Foo()], []]
     _bad_values = [[None], [Foo(), None]]
 
@@ -1713,7 +1717,7 @@ class TestInstanceList(TraitTestBase):
         """Test that the instance klass is properly assigned."""
         self.assertIs(self.obj.traits()["value"]._trait.klass, Foo)
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [[Foo(), Foo()], []]
     _bad_values = [
         [
@@ -1735,7 +1739,7 @@ class TestUnionListTrait(TraitTestBase):
 
     obj = UnionListTrait()
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [[True, 1], [False, True]]
     _bad_values = [[1, "True"], False]
 
@@ -1866,7 +1870,7 @@ def test_default_value(Trait, default_value):
 def test_subclass_default_value(Trait, default_value):
     """Test deprecated default_value=None behavior for Container subclass traits"""
 
-    class SubclassTrait(Trait):
+    class SubclassTrait(Trait):  # type:ignore
         def __init__(self, default_value=None):
             super().__init__(default_value=default_value)
 
@@ -1900,7 +1904,7 @@ class DictTrait(HasTraits):
 
 
 def test_dict_assignment():
-    d = {}
+    d: t.Dict[str, int] = {}
     c = DictTrait()
     c.value = d
     d["a"] = 5
@@ -2033,6 +2037,23 @@ class TestValidationHook(TestCase):
         u.even = 2  # OK
         with self.assertRaises(TraitError):
             u.even = 3  # Trait Error
+
+    def test_validate_used(self):
+        """Verify that the validate value is being used"""
+
+        class FixedValue(HasTraits):
+            value = Int(0)
+
+            @validate("value")
+            def _value_validate(self, proposal):
+                return -1
+
+        u = FixedValue(value=2)
+        assert u.value == -1
+
+        u = FixedValue()
+        u.value = 3
+        assert u.value == -1
 
 
 class TestLink(TestCase):
@@ -2270,7 +2291,7 @@ class TestDirectionalLink(TestCase):
         a.value = 5
         self.assertEqual(b.count, 5)
         # Change one the value of the target and check that it has no impact on the source
-        b.value = 6
+        b.value = 6  # type:ignore
         self.assertEqual(a.value, 5)
 
     def test_unlink_link(self):
@@ -2522,7 +2543,7 @@ class TestForwardDeclaredInstanceList(TraitTestBase):
         """Test that the instance klass is properly assigned."""
         self.assertIs(self.obj.traits()["value"]._trait.klass, ForwardDeclaredBar)
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [
         [ForwardDeclaredBar(), ForwardDeclaredBarSub()],
         [],
@@ -2546,7 +2567,7 @@ class TestForwardDeclaredTypeList(TraitTestBase):
         """Test that the instance klass is properly assigned."""
         self.assertIs(self.obj.traits()["value"]._trait.klass, ForwardDeclaredBar)
 
-    _default_value = []
+    _default_value: t.List[t.Any] = []
     _good_values = [
         [ForwardDeclaredBar, ForwardDeclaredBarSub],
         [],
@@ -2574,6 +2595,7 @@ class TestDynamicTraits(TestCase):
     def notify1(self, name, old, new):
         self._notify1.append((name, old, new))
 
+    @t.no_type_check
     def test_notify_all(self):
         class A(HasTraits):
             pass
@@ -2859,7 +2881,7 @@ def test_default_mro():
 
 def test_cls_self_argument():
     class X(HasTraits):
-        def __init__(__self, cls, self):
+        def __init__(__self, cls, self):  # noqa
             pass
 
     x = X(cls=None, self=None)
@@ -2872,7 +2894,7 @@ def test_override_default():
         def _a_default(self):
             return "default method"
 
-    C._a_default = lambda self: "overridden"
+    C._a_default = lambda self: "overridden"  # type:ignore
     c = C()
     assert c.a == "overridden"
 
@@ -2885,7 +2907,7 @@ def test_override_default_decorator():
         def _a_default(self):
             return "default method"
 
-    C._a_default = lambda self: "overridden"
+    C._a_default = lambda self: "overridden"  # type:ignore
     c = C()
     assert c.a == "overridden"
 
@@ -2925,13 +2947,13 @@ def _from_string_test(traittype, s, expected):
     else:
         trait = traittype(allow_none=True)
     if isinstance(s, list):
-        cast = trait.from_string_list
+        cast = trait.from_string_list  # type:ignore
     else:
         cast = trait.from_string
     if type(expected) is type and issubclass(expected, Exception):
         with pytest.raises(expected):
             value = cast(s)
-            trait.validate(CrossValidationStub(), value)
+            trait.validate(CrossValidationStub(), value)  # type:ignore
     else:
         value = cast(s)
         assert value == expected
