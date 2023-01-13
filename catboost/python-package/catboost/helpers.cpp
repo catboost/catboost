@@ -321,3 +321,9 @@ TAtomicSharedPtr<NPar::TTbbLocalExecutor<false>> GetCachedLocalExecutor(int thre
         return cachedExecutor;
     }
 }
+
+size_t GetMultiQuantileApproxSize(const TString& lossFunctionDescription) {
+    const auto& paramsMap = ParseLossParams(lossFunctionDescription).GetParamsMap();
+    return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
+}
+
