@@ -260,7 +260,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\traitlets\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/traitlets/py3/join_b2361f085b378b82dd66c83a74.cpp" "--ya-start-command-file" "contrib/python/traitlets/py3/652f0a962809f28bf6baaee7de.cpp" "contrib/python/traitlets/py3/e5aa673324684c3f95de2b24ea.cpp" "contrib/python/traitlets/py3/dc9e9023ca09ce081d8a4aac02.cpp" "contrib/python/traitlets/py3/c0d2fec5bfffe8fcda3e89f2a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
