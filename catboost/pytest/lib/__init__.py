@@ -96,7 +96,7 @@ def execute_catboost_fit(task_type, params, devices='0', stdout=None, timeout=No
     execute_catboost('fit', task_type, params, devices, stdout, timeout, env)
 
 
-# cd_path should be None for yt-search-proto pools
+# cd_path could be None (and should be for yt-search-proto pools)
 def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=None, has_header=False, args=None):
     calc_cmd = (
         get_catboost_binary_path(),
