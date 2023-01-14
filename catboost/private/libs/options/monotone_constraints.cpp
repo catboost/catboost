@@ -24,12 +24,11 @@ static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOp
     *monotoneConstraintsJsonOptions = nonTrivialConstraints;
 }
 
-void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* catBoostJsonOptions) {
-    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
-    if (!treeOptions.Has("monotone_constraints")) {
+void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* treeOptions) {
+    if (!treeOptions->Has("monotone_constraints")) {
         return;
     }
-    TJsonValue& constraintsRef = treeOptions["monotone_constraints"];
+    TJsonValue& constraintsRef = (*treeOptions)["monotone_constraints"];
     ConvertFeatureOptionsToCanonicalFormat<int>(TStringBuf("monotone_constraints"), constraintRegex, &constraintsRef);
     LeaveOnlyNonTrivialConstraints(&constraintsRef);
 }

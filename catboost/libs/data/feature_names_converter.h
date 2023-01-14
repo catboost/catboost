@@ -129,10 +129,21 @@ void ConvertFeaturesForSelectFromStringToIndices(const TSource& stringsToIndices
 
 template <typename TSource>
 void ConvertParamsToCanonicalFormat(const TSource& stringsToIndicesMatchingSource, NJson::TJsonValue* catBoostJsonOptions) {
-    ConvertMonotoneConstraintsToCanonicalFormat(catBoostJsonOptions);
+    if (!catBoostJsonOptions->Has("tree_learner_options")) {
+        return;
+    }
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    ConvertMonotoneConstraintsToCanonicalFormat(&treeOptions);
     ConvertMonotoneConstraintsFromStringToIndices(stringsToIndicesMatchingSource, catBoostJsonOptions);
-    NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(catBoostJsonOptions);
+    if (treeOptions.Has("penalties")) {
+        NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&treeOptions["penalties"]);
+    }
     ConvertAllFeaturePenaltiesFromStringToIndices(stringsToIndicesMatchingSource, catBoostJsonOptions);
+    if (catBoostJsonOptions->Has("flat_params")) {
+        auto& flatParams = (*catBoostJsonOptions)["flat_params"];
+        ConvertMonotoneConstraintsToCanonicalFormat(&flatParams);
+        NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&flatParams);
+    }
 }
 
 // feature names - dependent params are returned in result and removed from catBoostJsonOptions
