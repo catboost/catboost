@@ -216,7 +216,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_f54351f8253434098629b43327.cpp" "--ya-start-command-file" "contrib/python/Jinja2/py2/c1320468ad8a3cc7e3f51fd65f.cpp" "contrib/python/Jinja2/py2/8ec9949696a0464a15610dd25c.cpp" "contrib/python/Jinja2/py2/93a17bea14bcfa56df9b4f7a64.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_f54351f8253434098629b43327.cpp" "--ya-start-command-file" "contrib/python/Jinja2/py2/c1320468ad8a3cc7e3f51fd65f.cpp" "contrib/python/Jinja2/py2/8ec9949696a0464a15610dd25c.cpp" "contrib/python/Jinja2/py2/93a17bea14bcfa56df9b4f7a64.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,7 +227,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_f54351f8253434098629b43327.cpp" "--ya-start-command-file" "contrib/python/Jinja2/py2/c1320468ad8a3cc7e3f51fd65f.cpp" "contrib/python/Jinja2/py2/8ec9949696a0464a15610dd25c.cpp" "contrib/python/Jinja2/py2/93a17bea14bcfa56df9b4f7a64.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/py2/join_f54351f8253434098629b43327.cpp" "--ya-start-command-file" "contrib/python/Jinja2/py2/c1320468ad8a3cc7e3f51fd65f.cpp" "contrib/python/Jinja2/py2/8ec9949696a0464a15610dd25c.cpp" "contrib/python/Jinja2/py2/93a17bea14bcfa56df9b4f7a64.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
