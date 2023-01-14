@@ -260,7 +260,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/py/join_44a4da21e9344bfd60a584133d.cpp" "--ya-start-command-file" "contrib/python/py/e15a7667dc5c83b08cf288e8fb.cpp" "contrib/python/py/1b6cba8cb4763b9d255d398b80.cpp" "contrib/python/py/ae38c01ef9846d55546473da3d.cpp" "contrib/python/py/c4e2fe27734a17506c3fad2e98.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
