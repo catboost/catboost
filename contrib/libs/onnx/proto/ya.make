@@ -6,9 +6,9 @@ WITHOUT_LICENSE_TEXTS()
 
 
 
-VERSION(1.12.0)
+VERSION(1.13.0)
 
-ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.12.0.tar.gz)
+ORIGINAL_SOURCE(https://github.com/onnx/onnx/archive/v1.13.0.tar.gz)
 
 LICENSE(Apache-2.0)
 

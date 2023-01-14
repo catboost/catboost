@@ -54,6 +54,7 @@ PY_SRCS(
     onnx_operators_pb.py
     onnx_pb.py
     parser.py
+    printer.py
     shape_inference.py
     utils.py
     version.py

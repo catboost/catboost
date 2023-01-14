@@ -44,17 +44,20 @@ target_sources(contrib-libs-onnx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/logical/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/math/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/math/old.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/math/utils.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/nn/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/nn/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/object_detection/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/object_detection/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/optional/defs.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/optional/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/parser.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/printer.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/quantization/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/quantization/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/reduction/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/reduction/old.cc
+  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/reduction/utils.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/rnn/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/rnn/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/schema.cc
@@ -68,7 +71,6 @@ target_sources(contrib-libs-onnx PRIVATE
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/traditionalml/defs.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/traditionalml/old.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/defs/training/defs.cc
-  ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/onnxifi_utils.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/shape_inference/implementation.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/convert.cc
   ${CMAKE_SOURCE_DIR}/contrib/libs/onnx/onnx/version_converter/helper.cc

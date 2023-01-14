@@ -19,7 +19,7 @@ struct assert_error : public std::runtime_error {
 
 struct tensor_error : public assert_error {
  public:
-  explicit tensor_error(TString msg) : assert_error(msg) {}
+  explicit tensor_error(const TString& msg) : assert_error(msg) {}
 };
 
 TString barf(const char* fmt, ...);

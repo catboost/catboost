@@ -75,6 +75,8 @@ struct Tensor final {
     name_ = TString(other.name_.data(), other.name_.size());
     raw_data_ = TString(other.raw_data_.data(), other.raw_data_.size());
   }
+  Tensor(Tensor&&) = default;
+  ~Tensor() = default;
 
   friend void swap(Tensor& first, Tensor& second) {
     using std::swap;
