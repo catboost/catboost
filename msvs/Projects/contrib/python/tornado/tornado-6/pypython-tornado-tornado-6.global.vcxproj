@@ -224,7 +224,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +235,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\tornado\tornado-6
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/tornado/tornado-6/join_183cc8034b744e0c3f4f3e173e.cpp" "--ya-start-command-file" "contrib/python/tornado/tornado-6/ef57d62a586e2f2107bcffa0d2.cpp" "contrib/python/tornado/tornado-6/d84ac7688b2740d990de48911a.cpp" "contrib/python/tornado/tornado-6/3476ba246277ed417be05ca43a.cpp" "contrib/python/tornado/tornado-6/65e7de6da86ad20a3fd29b51d9.cpp" "contrib/python/tornado/tornado-6/d2efd1bb95c6c09fbd2fa18cd3.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

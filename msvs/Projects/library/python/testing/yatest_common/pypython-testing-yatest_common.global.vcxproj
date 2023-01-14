@@ -199,7 +199,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_51424fdc1dac632261b8dba1fd.cpp" "--ya-start-command-file" "library/python/testing/yatest_common/b8ef4f7f4750d3c523a1a1fede.cpp" "library/python/testing/yatest_common/fd71477fcdf29cedfe965873f9.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_51424fdc1dac632261b8dba1fd.cpp" "--ya-start-command-file" "library/python/testing/yatest_common/b8ef4f7f4750d3c523a1a1fede.cpp" "library/python/testing/yatest_common/fd71477fcdf29cedfe965873f9.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -210,7 +210,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_51424fdc1dac632261b8dba1fd.cpp" "--ya-start-command-file" "library/python/testing/yatest_common/b8ef4f7f4750d3c523a1a1fede.cpp" "library/python/testing/yatest_common/fd71477fcdf29cedfe965873f9.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_51424fdc1dac632261b8dba1fd.cpp" "--ya-start-command-file" "library/python/testing/yatest_common/b8ef4f7f4750d3c523a1a1fede.cpp" "library/python/testing/yatest_common/fd71477fcdf29cedfe965873f9.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
