@@ -61,6 +61,6 @@
     - SLES/OpenSLES_Android.h
     - SLES/OpenSLES_AndroidConfiguration.h
 
-- source_filter: "^contrib/python/(gevent|greenlet)"
+- source_filter: "^contrib/python/(coverage|gevent|greenlet)"
   includes:
   - internal/pycore_frame.h
