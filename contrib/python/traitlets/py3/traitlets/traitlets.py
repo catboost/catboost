@@ -1006,7 +1006,13 @@ class MetaHasTraits(MetaHasDescriptors):
         mro = cls.mro()
 
         for name in dir(cls):
-            value = getattr(cls, name)
+            # Some descriptors raise AttributeError like zope.interface's
+            # __provides__ attributes even though they exist.  This causes
+            # AttributeErrors even though they are listed in dir(cls).
+            try:
+                value = getattr(cls, name)
+            except AttributeError:
+                continue
             if isinstance(value, TraitType):
                 cls._traits[name] = value
                 trait = value
