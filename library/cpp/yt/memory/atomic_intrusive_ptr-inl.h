@@ -50,7 +50,7 @@ TAtomicIntrusivePtr<T>& TAtomicIntrusivePtr<T>::operator=(std::nullptr_t)
 template <class T>
 TIntrusivePtr<T> TAtomicIntrusivePtr<T>::Acquire() const
 {
-    char* ptr = Ptr_.load();
+    void* ptr = Ptr_.load();
     while (true) {
         auto [localRefs, obj] = UnpackPointer<T>(ptr);
 
@@ -156,7 +156,7 @@ TAtomicIntrusivePtr<T>::operator bool() const
 }
 
 template <class T>
-char* TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
+void* TAtomicIntrusivePtr<T>::AcquireObject(T* obj, bool consumeRef)
 {
     if (obj) {
         Ref(obj, static_cast<int>(ReservedRefCount - consumeRef));

@@ -6829,8 +6829,17 @@
         },
         "tvmknife": {
             "formula": {
-                "sandbox_id": 1558752720,
-                "match": "tvmknife"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "TVMKNIFE",
+                        "owner": "PASSPORT",
+                        "attributes": {
+                            "released": "stable"
+                        }
+                    },
+                    "update_interval": 86400,
+                    "ignore_platform": false
+                }
             },
             "executable": {
                 "tvmknife": [
@@ -7448,8 +7457,15 @@
         },
         "sre": {
             "formula": {
-                "sandbox_id": "1361378773",
-                "match": "infra/rtc/sretools/sretools.tar.gz"
+                "latest_matched": {
+                    "query": {
+                        "resource_type": "ARCADIA_PROJECT_TGZ",
+                        "owner": "RTC_INFRA",
+                        "attributes": {
+														"type": "sretools"
+                        }
+                    }
+                }
             },
             "executable": {
                 "sre": [

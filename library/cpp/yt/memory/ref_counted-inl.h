@@ -14,9 +14,9 @@ constexpr uint16_t PtrBits = 48;
 constexpr uintptr_t PtrMask = (1ULL << PtrBits) - 1;
 
 template <class T>
-Y_FORCE_INLINE char* PackPointer(T* ptr, uint16_t data)
+Y_FORCE_INLINE void* PackPointer(T* ptr, uint16_t data)
 {
-    return reinterpret_cast<char*>((static_cast<uintptr_t>(data) << PtrBits) | reinterpret_cast<uintptr_t>(ptr));
+    return reinterpret_cast<void*>((static_cast<uintptr_t>(data) << PtrBits) | reinterpret_cast<uintptr_t>(ptr));
 }
 
 template <class T>
@@ -268,7 +268,7 @@ void TRefCounted::DestroyRefCountedImpl(T* ptr)
 
     YT_ASSERT(offset < std::numeric_limits<uint16_t>::max());
 
-    auto* vTablePtr = reinterpret_cast<char**>(basePtr);
+    auto* vTablePtr = reinterpret_cast<void**>(basePtr);
     *vTablePtr = PackPointer(&TMemoryReleaser<T>::Do, offset);
 
     if (refCounter->WeakUnref()) {
