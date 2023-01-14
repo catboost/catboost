@@ -244,7 +244,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/join_030c10f5e4838bddfd51214d0e.cpp" "--ya-start-command-file" "contrib/python/protobuf/py2/6240bf4745e14a43b46bebb56f.cpp" "contrib/python/protobuf/py2/51b8ab3baa061b6c84eff6f0c4.cpp" "contrib/python/protobuf/py2/7be99f6fefa3ba0ffd9ab187a9.cpp" "contrib/python/protobuf/py2/1043b6ba2b56207930f4060231.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/join_030c10f5e4838bddfd51214d0e.cpp" "--ya-start-command-file" "contrib/python/protobuf/py2/6240bf4745e14a43b46bebb56f.cpp" "contrib/python/protobuf/py2/51b8ab3baa061b6c84eff6f0c4.cpp" "contrib/python/protobuf/py2/7be99f6fefa3ba0ffd9ab187a9.cpp" "contrib/python/protobuf/py2/1043b6ba2b56207930f4060231.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -255,7 +255,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\protobuf\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/join_030c10f5e4838bddfd51214d0e.cpp" "--ya-start-command-file" "contrib/python/protobuf/py2/6240bf4745e14a43b46bebb56f.cpp" "contrib/python/protobuf/py2/51b8ab3baa061b6c84eff6f0c4.cpp" "contrib/python/protobuf/py2/7be99f6fefa3ba0ffd9ab187a9.cpp" "contrib/python/protobuf/py2/1043b6ba2b56207930f4060231.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/protobuf/py2/join_030c10f5e4838bddfd51214d0e.cpp" "--ya-start-command-file" "contrib/python/protobuf/py2/6240bf4745e14a43b46bebb56f.cpp" "contrib/python/protobuf/py2/51b8ab3baa061b6c84eff6f0c4.cpp" "contrib/python/protobuf/py2/7be99f6fefa3ba0ffd9ab187a9.cpp" "contrib/python/protobuf/py2/1043b6ba2b56207930f4060231.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
