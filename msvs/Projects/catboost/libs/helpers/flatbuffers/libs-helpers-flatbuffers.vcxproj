@@ -85,7 +85,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +98,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/cpp_flatc_wrapper.py" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe" "--no-warnings" "--cpp" "--keep-prefix" "--gen-mutable" "--schema" "-b" "--yandex-maps-iter" "--gen-object-api" "--filename-suffix" ".fbs" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/flatbuffers/guid.fbs.h" "$(SolutionDir)../catboost/libs/helpers/flatbuffers/guid.fbs"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
