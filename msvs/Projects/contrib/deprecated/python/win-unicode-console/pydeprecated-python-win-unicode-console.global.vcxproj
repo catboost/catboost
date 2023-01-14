@@ -190,7 +190,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/join_ff438537a4ce4808ce3c68b3d6.cpp" "--ya-start-command-file" "contrib/deprecated/python/win-unicode-console/72a4c3d6a869e5b3dbd5c41cd8.cpp" "contrib/deprecated/python/win-unicode-console/a75e252fd0c7b5e377b4ba549b.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/join_ff438537a4ce4808ce3c68b3d6.cpp" "--ya-start-command-file" "contrib/deprecated/python/win-unicode-console/72a4c3d6a869e5b3dbd5c41cd8.cpp" "contrib/deprecated/python/win-unicode-console/a75e252fd0c7b5e377b4ba549b.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,7 +201,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\python\win-unicode-console
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/join_ff438537a4ce4808ce3c68b3d6.cpp" "--ya-start-command-file" "contrib/deprecated/python/win-unicode-console/72a4c3d6a869e5b3dbd5c41cd8.cpp" "contrib/deprecated/python/win-unicode-console/a75e252fd0c7b5e377b4ba549b.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/deprecated/python/win-unicode-console/join_ff438537a4ce4808ce3c68b3d6.cpp" "--ya-start-command-file" "contrib/deprecated/python/win-unicode-console/72a4c3d6a869e5b3dbd5c41cd8.cpp" "contrib/deprecated/python/win-unicode-console/a75e252fd0c7b5e377b4ba549b.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
