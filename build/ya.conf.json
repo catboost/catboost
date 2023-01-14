@@ -7462,7 +7462,7 @@
                         "resource_type": "ARCADIA_PROJECT_TGZ",
                         "owner": "RTC_INFRA",
                         "attributes": {
-														"type": "sretools"
+                            "type": "sretools"
                         }
                     }
                 }
@@ -8983,7 +8983,7 @@
         },
         "lama": {
             "formula": {
-                "sandbox_id": 1564760536,
+                "sandbox_id": 1570769096,
                 "match": "lama"
             },
             "executable": {
