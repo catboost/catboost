@@ -108,6 +108,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\old.cc">
       <ObjectFileName>$(IntDir)old_extra3.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\utils.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\nn\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra4.obj</ObjectFileName>
     </ClCompile>
@@ -123,25 +124,31 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\optional\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra6.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\optional\old.cc">
+      <ObjectFileName>$(IntDir)old_extra6.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\parser.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\printer.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\quantization\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra7.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\quantization\old.cc">
-      <ObjectFileName>$(IntDir)old_extra6.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra7.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra8.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\old.cc">
-      <ObjectFileName>$(IntDir)old_extra7.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra8.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\utils.cc">
+      <ObjectFileName>$(IntDir)utils_extra1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\rnn\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra9.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\rnn\old.cc">
-      <ObjectFileName>$(IntDir)old_extra8.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra9.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\schema.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\sequence\defs.cc">
@@ -152,21 +159,22 @@
       <ObjectFileName>$(IntDir)defs_extra11.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\old.cc">
-      <ObjectFileName>$(IntDir)old_extra9.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra10.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\utils.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\utils.cc">
+      <ObjectFileName>$(IntDir)utils_extra2.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_proto_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\traditionalml\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra12.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\traditionalml\old.cc">
-      <ObjectFileName>$(IntDir)old_extra10.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra11.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\training\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra13.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi_utils.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\shape_inference\implementation.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\convert.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\helper.cc"/>
@@ -190,12 +198,14 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\data_propagators.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\data_type_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\function.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_ml.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_preview.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_training.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\parser.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\printer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\schema.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\shape_inference.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\utils.h"/>
@@ -204,8 +214,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx-data_pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx-operators_pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx_pb.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\proto_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\shape_inference\implementation.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\string_utils.h"/>
@@ -237,6 +245,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\softmax_12_13.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_12_13.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_13_12.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_17_18.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\sum_8_7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\topk_9_10.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\transformers.h"/>
