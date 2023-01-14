@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/join_fbda6c4ef3fdbc7c163ea5df78.cpp" "--ya-start-command-file" "contrib/python/attrs/py2/a3d797c61fde00b246752d906f.cpp" "contrib/python/attrs/py2/c397f7b15b613919834d6e8bc0.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/join_fbda6c4ef3fdbc7c163ea5df78.cpp" "--ya-start-command-file" "contrib/python/attrs/py2/a3d797c61fde00b246752d906f.cpp" "contrib/python/attrs/py2/c397f7b15b613919834d6e8bc0.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/join_fbda6c4ef3fdbc7c163ea5df78.cpp" "--ya-start-command-file" "contrib/python/attrs/py2/a3d797c61fde00b246752d906f.cpp" "contrib/python/attrs/py2/c397f7b15b613919834d6e8bc0.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/py2/join_fbda6c4ef3fdbc7c163ea5df78.cpp" "--ya-start-command-file" "contrib/python/attrs/py2/a3d797c61fde00b246752d906f.cpp" "contrib/python/attrs/py2/c397f7b15b613919834d6e8bc0.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
