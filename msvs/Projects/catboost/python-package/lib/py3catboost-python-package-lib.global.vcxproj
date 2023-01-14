@@ -225,7 +225,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,7 +236,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_ddf2ce4a64557050bbc6b4bd51.cpp" "--ya-start-command-file" "catboost/python-package/lib/a8b1423153d7d4d7ee6ab4ded4.cpp" "catboost/python-package/lib/0208d41938ca0cf755fa0c89fa.cpp" "catboost/python-package/lib/32a60c6eca1da7fdefb345255a.cpp" "catboost/python-package/lib/655a28f6d4f7ccc0f0ac9ed191.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
