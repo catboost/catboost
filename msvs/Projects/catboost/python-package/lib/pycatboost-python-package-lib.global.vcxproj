@@ -244,7 +244,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -255,7 +255,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
+"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_5a3d7cc376fa9c2729d1c9ce6f.cpp" "--ya-start-command-file" "catboost/python-package/lib/f75853afbf4ae2582b3716dd09.cpp" "catboost/python-package/lib/c0315479e95e92d4aea2f854bf.cpp" "catboost/python-package/lib/b85b97bf6add270fee9e543007.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
