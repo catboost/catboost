@@ -528,9 +528,9 @@ def java_srcdirs_to_data(unit, var):
         if srcdir.startswith('${ARCADIA_ROOT}/') or srcdir.startswith('$ARCADIA_ROOT/'):
             srcdir = srcdir.replace('${ARCADIA_ROOT}/', '$S/')
             srcdir = srcdir.replace('$ARCADIA_ROOT/', '$S/')
-        if srcdir.startswith('${CURDIR}/') or srcdir.startswith('$CURDIR/'):
-            srcdir = srcdir.replace('${CURDIR}/', os.path.join('$S', unit.get('MODDIR')))
-            srcdir = srcdir.replace('$CURDIR/', os.path.join('$S', unit.get('MODDIR')))
+        if srcdir.startswith('${CURDIR}') or srcdir.startswith('$CURDIR'):
+            srcdir = srcdir.replace('${CURDIR}', os.path.join('$S', unit.get('MODDIR')))
+            srcdir = srcdir.replace('$CURDIR', os.path.join('$S', unit.get('MODDIR')))
         srcdir = unit.resolve_arc_path(srcdir)
         if not srcdir.startswith('$'):
             srcdir = os.path.join('$S', unit.get('MODDIR'), srcdir)
