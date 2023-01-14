@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/join_96e81848934b4d2bdbb5511e01.cpp" "--ya-start-command-file" "contrib/python/ipython-genutils/e3b8c494f9afeb6de0086080ff.cpp" "contrib/python/ipython-genutils/6b4c6543def24f04edacd05b01.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/join_96e81848934b4d2bdbb5511e01.cpp" "--ya-start-command-file" "contrib/python/ipython-genutils/e3b8c494f9afeb6de0086080ff.cpp" "contrib/python/ipython-genutils/6b4c6543def24f04edacd05b01.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\ipython-genutils
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/join_96e81848934b4d2bdbb5511e01.cpp" "--ya-start-command-file" "contrib/python/ipython-genutils/e3b8c494f9afeb6de0086080ff.cpp" "contrib/python/ipython-genutils/6b4c6543def24f04edacd05b01.cpp" "--ya-end-command-file"
+"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/ipython-genutils/join_96e81848934b4d2bdbb5511e01.cpp" "--ya-start-command-file" "contrib/python/ipython-genutils/e3b8c494f9afeb6de0086080ff.cpp" "contrib/python/ipython-genutils/6b4c6543def24f04edacd05b01.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
