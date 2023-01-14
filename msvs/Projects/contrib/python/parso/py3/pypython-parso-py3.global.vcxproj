@@ -198,7 +198,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_5edc6d485b3e81bbb2b7c2a86d.cpp" "--ya-start-command-file" "contrib/python/parso/py3/9893373746e78c69695b36b138.cpp" "contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_5edc6d485b3e81bbb2b7c2a86d.cpp" "--ya-start-command-file" "contrib/python/parso/py3/9893373746e78c69695b36b138.cpp" "contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,7 +209,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\parso\py3
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.XlH3tl9WRh/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_5edc6d485b3e81bbb2b7c2a86d.cpp" "--ya-start-command-file" "contrib/python/parso/py3/9893373746e78c69695b36b138.cpp" "contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp" "--ya-end-command-file"
+"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/parso/py3/join_5edc6d485b3e81bbb2b7c2a86d.cpp" "--ya-start-command-file" "contrib/python/parso/py3/9893373746e78c69695b36b138.cpp" "contrib/python/parso/py3/b19ddbd8182a05ebf0d3342d7d.cpp" "contrib/python/parso/py3/5bc3bce02890cd9d8f9c810889.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
