@@ -7,6 +7,7 @@ Table of contents:
   * [Requirements](#requirements)
   * [Java or Scala](#java-or-scala)
   * [Python (PySpark)](#python-pyspark)
+* [Spark Cluster Configuration](#spark-cluster-configuration)
 * [Examples](#examples)
   * [Scala](#scala)
     * [Classification](#classification)
@@ -87,6 +88,15 @@ import catboost_spark
 ...
 
 ```
+
+Spark Cluster Configuration
+---------------------------
+
+CatBoost for Apache Spark requires one training task per executor, so if you run training you have to set
+`spark.task.cpus` parameter to be equal to the number of cores in executors (`spark.executor.cores`).
+This limitation might be relaxed in the future ([the corresponding issue #1622](https://github.com/catboost/catboost/issues/1622)).
+
+Model application or feature importance evaluation do not have this limitation.
 
 
 Examples
