@@ -1329,13 +1329,9 @@ class GnuCompiler(Compiler):
                 ))
 
             if self.tc.version_at_least(11):
-                # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#improvements-to-clang-s-diagnostics
                 # See https://releases.llvm.org/11.0.0/tools/clang/docs/ReleaseNotes.html#modified-compiler-flags
-                # Disable useful -f and -W that should be restored ASAP:
+                # Disable useful -f that should be restored ASAP:
                 self.c_foptions.append('-fcommon')
-                self.c_warnings.extend((
-                    '-Wno-implicit-const-int-float-conversion',
-                ))
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
