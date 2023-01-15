@@ -1,5 +1,4 @@
 import re
-import sys
 import os
 import argparse
 import json
@@ -35,10 +34,7 @@ def main():
     cmd = [clang_tidy_bin, args.testing_src]
     cmd += ["-p", compile_command_path]
     cmd += ["--warnings-as-errors", "*"]
-    config_path = os.path.join(args.source_root, "build/config/tests/clang_tidy.yaml")
-    with open(config_path, 'r') as afile:
-        config = afile.read().strip()
-    cmd += ["--config", config]
+    cmd += ["--config-file", os.path.join(args.source_root, "build/config/tests/clang_tidy.yaml")]
     cmd += ['--header-filter', header_filter]
     cmd += ['--use-color']
     res = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
