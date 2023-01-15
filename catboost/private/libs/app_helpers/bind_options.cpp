@@ -685,6 +685,55 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
         });
 }
 
+static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
+    auto& parser = *parserPtr;
+    parser
+        .AddLongOption("features-for-select")
+        .Required()
+        .RequiredArgument("INDEX,INDEX-INDEX,...")
+        .Help("From which features perform selection; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
+        .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
+            (*plainJsonPtr)["features_for_select"] = indicesLine;
+        });
+    parser
+        .AddLongOption("num-features-to-select")
+        .Required()
+        .RequiredArgument("int")
+        .Help("How many features to select from features-for-select.")
+        .Handler1T<int>([plainJsonPtr](const int numberOfFeaturesToSelect) {
+            (*plainJsonPtr)["num_features_to_select"] = numberOfFeaturesToSelect;
+        });
+    parser
+        .AddLongOption("features-selection-steps")
+        .RequiredArgument("int")
+        .Help("How many steps to perform during feature selection.")
+        .Handler1T<int>([plainJsonPtr](const int steps) {
+            (*plainJsonPtr)["features_selection_steps"] = steps;
+        });
+    parser
+        .AddLongOption("train-final-model")
+        .NoArgument()
+        .Help("Need to train and save model after features selection.")
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["train_final_model"] = true;
+        });
+    parser
+        .AddLongOption("features-selection-result-path")
+        .RequiredArgument("PATH")
+        .Help("Where to save results of features selection.")
+        .Handler1T<TString>([plainJsonPtr](const TString& path) {
+            (*plainJsonPtr)["features_selection_result_path"] = path;
+        });
+    parser
+        .AddLongOption("shap-calc-type")
+        .DefaultValue("Regular")
+        .Help(TString::Join(
+            "Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>()))
+        .Handler1T<ECalcTypeShapValues>([plainJsonPtr](const ECalcTypeShapValues calcType) {
+            (*plainJsonPtr)["shap_calc_type"] = ToString(calcType);
+        });
+}
+
 static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     auto& parser = *parserPtr;
     parser.AddLongOption("rsm", "random subspace method (feature bagging)")
@@ -1491,6 +1540,51 @@ void ParseFeatureEvalCommandLine(
     BindBinarizationParams(&parser, plainJsonPtr);
 
     BindSystemParams(&parser, plainJsonPtr);
+
+    BindCatboostParams(&parser, plainJsonPtr);
+
+    ParseMetadata(argc, argv, &parser, plainJsonPtr);
+}
+
+
+void ParseFeaturesSelectCommandLine(
+    int argc,
+    const char* argv[],
+    NJson::TJsonValue* plainJsonPtr,
+    NJson::TJsonValue* featuresSelectOptions,
+    TString* paramsPath,
+    NCatboostOptions::TPoolLoadParams* params
+) {
+    auto parser = NLastGetopt::TOpts();
+    parser.AddHelpOption();
+    BindPoolLoadParams(&parser, params);
+
+    parser.AddLongOption("params-file", "Path to JSON file with params.")
+        .RequiredArgument("PATH")
+        .StoreResult(paramsPath)
+        .Help("If param is given in json file and in command line then one from command line will be used.");
+
+    BindMetricParams(&parser, plainJsonPtr);
+
+    BindOutputParams(&parser, plainJsonPtr);
+
+    BindBoostingParams(&parser, plainJsonPtr);
+
+    BindFeaturesSelectParams(&parser, featuresSelectOptions);
+
+    BindTreeParams(&parser, plainJsonPtr);
+
+    BindCatFeatureParams(&parser, plainJsonPtr);
+
+    BindTextFeaturesParams(&parser, plainJsonPtr);
+
+    BindDataProcessingParams(&parser, plainJsonPtr);
+
+    BindBinarizationParams(&parser, plainJsonPtr);
+
+    BindSystemParams(&parser, plainJsonPtr);
+
+    BindDistributedTrainingParams(&parser, plainJsonPtr);
 
     BindCatboostParams(&parser, plainJsonPtr);
 

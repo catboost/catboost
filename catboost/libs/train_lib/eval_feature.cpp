@@ -555,42 +555,6 @@ enum class ETrainingKind {
 };
 
 
-TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
-    const TVector<ui32>& ignoredFeatures,
-    NCB::TTrainingDataProviderPtr trainingDataProvider
-) {
-    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
-        trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
-    CB_ENSURE(
-        newObjects,
-        "Objects data provider must be TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider");
-    TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
-    newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
-    return MakeIntrusive<TTrainingDataProvider>(
-        trainingDataProvider->OriginalFeaturesLayout,
-        TDataMetaInfo(newMetaInfo),
-        trainingDataProvider->ObjectsGrouping,
-        newObjects,
-        trainingDataProvider->TargetData);
-}
-
-TTrainingDataProviders MakeFeatureSubsetTrainingData(
-    const TVector<ui32>& ignoredFeatures,
-    const NCB::TTrainingDataProviders& trainingData
-) {
-    TTrainingDataProviders newTrainingData;
-    newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
-    newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Test[0]));
-
-    newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
-
-    // TODO(akhropov): correctly support ignoring indices based on source data
-    newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
-
-    return newTrainingData;
-}
-
-
 static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
     const NCatboostOptions::TFeatureEvalOptions& options,
     ETrainingKind trainingKind,

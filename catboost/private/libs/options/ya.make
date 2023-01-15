@@ -18,6 +18,7 @@ SRCS(
     enum_helpers.cpp
     feature_eval_options.cpp
     feature_penalties_options.cpp
+    features_select_options.cpp
     json_helper.cpp
     load_options.cpp
     loss_description.cpp

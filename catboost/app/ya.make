@@ -18,23 +18,26 @@ SRCS(
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
+    mode_select_features.cpp
     GLOBAL signal_handling.cpp
 )
 
 PEERDIR(
-    catboost/private/libs/algo
-    catboost/private/libs/app_helpers
     catboost/libs/data
-    catboost/private/libs/data_util
-    catboost/private/libs/distributed
-    catboost/private/libs/documents_importance
+    catboost/libs/features_selection
     catboost/libs/helpers
-    catboost/private/libs/init
-    catboost/private/libs/labels
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/model/model_export
+    catboost/libs/train_lib
+    catboost/private/libs/algo
+    catboost/private/libs/app_helpers
+    catboost/private/libs/data_util
+    catboost/private/libs/distributed
+    catboost/private/libs/documents_importance
+    catboost/private/libs/init
+    catboost/private/libs/labels
     catboost/private/libs/options
     catboost/private/libs/target
     library/cpp/getopt/small

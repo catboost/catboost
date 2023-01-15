@@ -5,6 +5,7 @@ RECURSE(
     data/ut
     data/benchmarks_ut
     eval_result
+    features_selection
     fstr
     gpu_config
     helpers
