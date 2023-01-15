@@ -1,5 +1,7 @@
 #include "env.h"
 
+#include <build/scripts/c_templates/svnversion.h>
+
 #include <util/folder/dirut.h>
 #include <util/folder/path.h>
 #include <util/generic/singleton.h>
@@ -13,6 +15,23 @@
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/json/json_value.h>
 #include <library/cpp/json/json_writer.h>
+
+TString ArcadiaSourceRoot() {
+    TString sourceRoot = NPrivate::GetTestEnv().SourceRoot;
+    if (const auto& sourceRoot = NPrivate::GetTestEnv().SourceRoot) {
+        return sourceRoot;
+    } else {
+        return GetArcadiaSourcePath();
+    }
+}
+
+TString BuildRoot() {
+    if (const auto& buildRoot = NPrivate::GetTestEnv().BuildRoot) {
+        return buildRoot;
+    } else {
+        return GetArcadiaSourcePath();
+    }
+}
 
 TString ArcadiaFromCurrentLocation(TStringBuf where, TStringBuf path) {
     return (TFsPath(ArcadiaSourceRoot()) / TFsPath(where).Parent() / path).Fix();
