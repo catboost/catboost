@@ -400,27 +400,27 @@ namespace {
                 {
                 }
 
-                TStringBuf Scheme() override {
+                TStringBuf Scheme() const override {
                     return AsStringBuf("udp");
                 }
 
-                TString RemoteHost() override {
+                TString RemoteHost() const override {
                     return H_;
                 }
 
-                TStringBuf Service() override {
+                TStringBuf Service() const override {
                     return ((TRequestPacket&)(*this)).Service;
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return ((TRequestPacket&)(*this)).Data;
                 }
 
-                TStringBuf RequestId() override {
+                TStringBuf RequestId() const override {
                     return ((TRequestPacket&)(*this)).Guid;
                 }
 
-                bool Canceled() override {
+                bool Canceled() const override {
                     //TODO ?
                     return false;
                 }

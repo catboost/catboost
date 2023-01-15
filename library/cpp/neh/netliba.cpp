@@ -303,11 +303,11 @@ namespace {
                     }
                 }
 
-                TStringBuf Scheme() override {
+                TStringBuf Scheme() const override {
                     return AsStringBuf("netliba");
                 }
 
-                TString RemoteHost() override {
+                TString RemoteHost() const override {
                     if (!H_) {
                         TUdpAddress tmp(R_->PeerAddress);
                         tmp.Scope = 0; //discard scope from serialized addr
@@ -322,21 +322,21 @@ namespace {
                     return H_;
                 }
 
-                TStringBuf Service() override {
+                TStringBuf Service() const override {
                     return TStringBuf(R_->Url.c_str(), R_->Url.length());
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return TStringBuf((const char*)R_->Data.data(), R_->Data.size());
                 }
 
-                TStringBuf RequestId() override {
+                TStringBuf RequestId() const override {
                     const TGUID& g = R_->ReqId;
 
                     return TStringBuf((const char*)g.dw, sizeof(g.dw));
                 }
 
-                bool Canceled() override {
+                bool Canceled() const override {
                     return S_->Canceled;
                 }
 
@@ -361,7 +361,7 @@ namespace {
 
             private:
                 TAutoPtr<TUdpHttpRequest> R_;
-                TString H_;
+                mutable TString H_;
                 TIntrusivePtr<TSrvRequestState> S_;
                 TIntrusivePtr<TRequester> P_;
             };

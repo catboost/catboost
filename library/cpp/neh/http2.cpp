@@ -1356,15 +1356,15 @@ namespace {
             }
 
         protected:
-            TStringBuf Scheme() override {
+            TStringBuf Scheme() const override {
                 return AsStringBuf("http");
             }
 
-            TString RemoteHost() override {
+            TString RemoteHost() const override {
                 return RemoteHost_;
             }
 
-            TStringBuf Service() override {
+            TStringBuf Service() const override {
                 return TStringBuf(H_.Path).Skip(1);
             }
 
@@ -1384,11 +1384,11 @@ namespace {
                 return H_.Cgi;
             }
 
-            TStringBuf RequestId() override {
+            TStringBuf RequestId() const override {
                 return TStringBuf();
             }
 
-            bool Canceled() override {
+            bool Canceled() const override {
                 if (!C_) {
                     return false;
                 }
@@ -1449,7 +1449,7 @@ namespace {
             {
             }
 
-            TStringBuf Data() override {
+            TStringBuf Data() const override {
                 return H_.Cgi;
             }
         };
@@ -1461,7 +1461,7 @@ namespace {
             {
             }
 
-            TStringBuf Data() override {
+            TStringBuf Data() const override {
                 return P_->DecodedContent();
             }
         };

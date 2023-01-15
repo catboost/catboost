@@ -242,7 +242,15 @@ namespace NNeh {
             return T_;
         }
 
+        inline T* operator->() const noexcept {
+            return T_;
+        }
+
         inline T& operator*() noexcept {
+            return *T_;
+        }
+
+        inline T& operator*() const noexcept {
             return *T_;
         }
 

@@ -1558,11 +1558,11 @@ namespace NNeh {
                     }
                 }
 
-                TStringBuf Scheme() override {
+                TStringBuf Scheme() const override {
                     return AsStringBuf("https");
                 }
 
-                TString RemoteHost() override {
+                TString RemoteHost() const override {
                     return RemoteHost_;
                 }
 
@@ -1578,15 +1578,15 @@ namespace NNeh {
                     return H_.Cgi;
                 }
 
-                TStringBuf Service() override {
+                TStringBuf Service() const override {
                     return TStringBuf(H_.Path).Skip(1);
                 }
 
-                TStringBuf RequestId() override {
+                TStringBuf RequestId() const override {
                     return TStringBuf();
                 }
 
-                bool Canceled() override {
+                bool Canceled() const override {
                     if (!IO_) {
                         return false;
                     }
@@ -1647,7 +1647,7 @@ namespace NNeh {
                 {
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return H_.Cgi;
                 }
 
@@ -1664,7 +1664,7 @@ namespace NNeh {
                 {
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return Data_;
                 }
 
