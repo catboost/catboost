@@ -37,7 +37,7 @@ def main(arcadia_prefix, contrib_prefix, proto_namespace, args):
     assert out_dir_temp is not None, 'Output directory is not specified'
 
     try:
-        subprocess.check_call(args, stdin=None, stderr=subprocess.STDOUT)
+        subprocess.check_output(args, stdin=None, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         print >>sys.stderr, '{} returned non-zero exit code {}. stop.'.format(' '.join(e.cmd), e.returncode)
         print >>sys.stderr, e.output
