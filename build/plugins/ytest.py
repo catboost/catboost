@@ -440,6 +440,7 @@ def onadd_ytest(unit, *args):
         save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
 
 
+# TODO remove ADD_TEST macro support
 def onadd_test(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
                                                      "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
@@ -447,15 +448,6 @@ def onadd_test(unit, *args):
     test_files = flat_args[1:]
     if test_type in ["PEP8", "PY_FLAKES"]:
         return
-        # unit_path = unit.path()
-        # paths = []
-        # for test_file in test_files:
-        #     if test_file == ".":
-        #         path_to_check = unit_path
-        #     else:
-        #         path_to_check = os.path.join(unit_path, test_file)
-        #     paths.append(path_to_check)
-        # return onadd_check(unit, *tuple([test_type] + sorted(paths)))
 
     custom_deps = spec_args.get('DEPENDS', [])
     timeout = spec_args.get("TIMEOUT", [])
@@ -831,10 +823,6 @@ def _dump_test(
 
     if test_type == "PY_TEST":
         script_rel_path = "py.test"
-    elif test_type == "PEP8":
-        script_rel_path = "py.test.pep8"
-    elif test_type == "PY_FLAKES":
-        script_rel_path = "py.test.flakes"
     else:
         script_rel_path = test_type
 
