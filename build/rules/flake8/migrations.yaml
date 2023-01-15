@@ -1108,7 +1108,6 @@ migrations:
     - smm/lib/models/sklearn
     - sport/backend/django_mds
     - sprav/mining/botanik_miner
-    - statbox/nile/tests/unittests/common
     - statbox/qb2
     - statbox/qb2/qb2_extensions/api/v1/extractors
     - statbox/qb2/qb2_extensions/api/v1/extractors/pool
@@ -1343,7 +1342,6 @@ migrations:
     - yweb/verticals/scripts/sport_zen_updater/add_parsed_zen_urls
     - yweb/video/vparsrobot/v2/tests
     - yweb/video/vparsrobot/v2/tests-large
-    - yweb/video/vparsrobot/v2/tools/yt-runner
     - yweb/webdaemons/clickdaemon/tools/create_ammo_from_tcpdump
     - yweb/yasap/answers_nirvana/make_ammos
     - yweb/yasap/answers_quality/plagiarism/prepare_scraper_queries
@@ -1755,8 +1753,6 @@ migrations:
     - sandbox/projects/geosuggest/GeosuggestIndexPostprocessing
     - sandbox/projects/hollywood
     - sandbox/projects/hollywood/fast_data/BuildAndDeployHollywoodFastData
-    - sandbox/projects/itditp
-    - sandbox/projects/itditp/BuildModelsRealtimePackage
     - sandbox/projects/logbroker/tasks/BuildSeveralResources
     - sandbox/projects/masstransit/MapsMasstransitImportVehicleTasks
     - sandbox/projects/music/deployment/MusicRestoreMdb/YandexCloudDatabase
@@ -1765,8 +1761,6 @@ migrations:
     - sandbox/projects/news/RunNewsComplexLoadtests
     - sandbox/projects/news/runtime_tests
     - sandbox/projects/news/runtime_tests/CompareNewsApphostServiceResponses
-    - sandbox/projects/partner
-    - sandbox/projects/partner/tasks/build_all
     - sandbox/projects/runtime_models
     - sandbox/projects/runtime_models/BuildYabsRtModelsPackage
     - sandbox/projects/runtime_models/CreateWebRtModelsRequestsPlan
@@ -2344,7 +2338,6 @@ migrations:
     - sprav/snezhana_v3/app
     - sprav/snezhana_v3/task
     - sprav/tycoon/nirvana/mail/sync_subscriptions/lib
-    - statbox/nile
     - statbox/qb2
     - statbox/statkey/jam/actions
     - statbox/statkey/jam/jobs/key_reports/desktop_retention
