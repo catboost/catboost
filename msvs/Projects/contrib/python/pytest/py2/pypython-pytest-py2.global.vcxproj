@@ -357,7 +357,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py2/join_1c183369d5926af76486164810.cpp" "--ya-start-command-file" "contrib/python/pytest/py2/06bd1b998a9eadacd9718194c6.cpp" "contrib/python/pytest/py2/8c35853fc8adf0770ad399fb03.cpp" "contrib/python/pytest/py2/e2b8bcb4fb5968557724f84dbc.cpp" "contrib/python/pytest/py2/f53ba342e869259abee652155d.cpp" "contrib/python/pytest/py2/0edc5b79be88e3e5f9fb282980.cpp" "contrib/python/pytest/py2/1d10ebbd639a66a5ab98d84495.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py2/join_1c183369d5926af76486164810.cpp" "--ya-start-command-file" "contrib/python/pytest/py2/06bd1b998a9eadacd9718194c6.cpp" "contrib/python/pytest/py2/8c35853fc8adf0770ad399fb03.cpp" "contrib/python/pytest/py2/e2b8bcb4fb5968557724f84dbc.cpp" "contrib/python/pytest/py2/f53ba342e869259abee652155d.cpp" "contrib/python/pytest/py2/0edc5b79be88e3e5f9fb282980.cpp" "contrib/python/pytest/py2/1d10ebbd639a66a5ab98d84495.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -368,7 +368,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest\py2
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.wV2icmtSOD/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py2/join_1c183369d5926af76486164810.cpp" "--ya-start-command-file" "contrib/python/pytest/py2/06bd1b998a9eadacd9718194c6.cpp" "contrib/python/pytest/py2/8c35853fc8adf0770ad399fb03.cpp" "contrib/python/pytest/py2/e2b8bcb4fb5968557724f84dbc.cpp" "contrib/python/pytest/py2/f53ba342e869259abee652155d.cpp" "contrib/python/pytest/py2/0edc5b79be88e3e5f9fb282980.cpp" "contrib/python/pytest/py2/1d10ebbd639a66a5ab98d84495.cpp" "--ya-end-command-file"
+"/tmp/tmp.dAqiFGCLt8/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytest/py2/join_1c183369d5926af76486164810.cpp" "--ya-start-command-file" "contrib/python/pytest/py2/06bd1b998a9eadacd9718194c6.cpp" "contrib/python/pytest/py2/8c35853fc8adf0770ad399fb03.cpp" "contrib/python/pytest/py2/e2b8bcb4fb5968557724f84dbc.cpp" "contrib/python/pytest/py2/f53ba342e869259abee652155d.cpp" "contrib/python/pytest/py2/0edc5b79be88e3e5f9fb282980.cpp" "contrib/python/pytest/py2/1d10ebbd639a66a5ab98d84495.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
