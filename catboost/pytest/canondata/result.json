@@ -7823,6 +7823,18 @@
     "test.test_uncertainty_prediction[Logloss-VirtEnsembles-1]": {
         "uri": "file://test.test_uncertainty_prediction_Logloss-VirtEnsembles-1_/predict_test.eval"
     },
+    "test.test_uncertainty_prediction[MultiClass-TotalUncertainty-10]": {
+        "uri": "file://test.test_uncertainty_prediction_MultiClass-TotalUncertainty-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[MultiClass-TotalUncertainty-1]": {
+        "uri": "file://test.test_uncertainty_prediction_MultiClass-TotalUncertainty-1_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[MultiClass-VirtEnsembles-10]": {
+        "uri": "file://test.test_uncertainty_prediction_MultiClass-VirtEnsembles-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[MultiClass-VirtEnsembles-1]": {
+        "uri": "file://test.test_uncertainty_prediction_MultiClass-VirtEnsembles-1_/predict_test.eval"
+    },
     "test.test_uncertainty_prediction[RMSE-TotalUncertainty-10]": {
         "uri": "file://test.test_uncertainty_prediction_RMSE-TotalUncertainty-10_/predict_test.eval"
     },

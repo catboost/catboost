@@ -127,7 +127,7 @@ NCB::TEvalResult NCB::Apply(
     bool isUncertaintyPrediction,
     NPar::ILocalExecutor* executor) {
 
-    NCB::TEvalResult resultApprox;
+    NCB::TEvalResult resultApprox(virtualEnsemblesCount);
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
 
     auto maybeBaseline = dataset.RawTargetData.GetBaseline();

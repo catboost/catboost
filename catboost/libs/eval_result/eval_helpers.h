@@ -38,6 +38,7 @@ TVector<TVector<double>> MakeExternalApprox(
 
 void PrepareEval(
     const EPredictionType predictionType,
+    size_t ensemblesCount,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor,
@@ -45,12 +46,14 @@ void PrepareEval(
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
+    size_t ensemblesCount,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::ILocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
+    size_t ensemblesCount,
     const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     int threadCount);

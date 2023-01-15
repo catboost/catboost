@@ -779,7 +779,7 @@ EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP los
     EPredictionType predictionType;
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
-    prediction = PrepareEval(predictionType, CHAR(asChar(lossFunctionName)), prediction, &executor);
+    prediction = PrepareEval(predictionType, /* virtualEnsemblesCount*/ 1, CHAR(asChar(lossFunctionName)), prediction, &executor);
 
     size_t predictionSize = prediction.size() * dataRows;
     result = PROTECT(allocVector(REALSXP, predictionSize));

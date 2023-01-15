@@ -57,6 +57,10 @@ namespace NCB {
         return RawValues;
     }
 
+    size_t TEvalResult::GetEnsemblesCount() const {
+        return EnsemblesCount;
+    }
+
     void TEvalResult::ClearRawValues() {
         RawValues.clear();
         RawValues.resize(1);
@@ -193,6 +197,7 @@ namespace NCB {
                                      type,
                                      lossFunctionName,
                                      isMultiTarget,
+                                     evalResult.GetEnsemblesCount(),
                                      visibleLabelsHelper,
                                      evalParameters,
                                      &columnPrinter,

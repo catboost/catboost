@@ -8344,7 +8344,7 @@ def test_bad_uncertainty_prediction_types_usage():
 
 @pytest.mark.parametrize('virtual_ensembles_count', [1, 5])
 @pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss', 'MultiClass'])
 def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, loss_function):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE) \
         if loss_function != 'Logloss' \
@@ -8365,7 +8365,7 @@ def test_uncertainty_prediction_types(virtual_ensembles_count, prediction_type, 
         shape = preds.shape
         assert len(shape) == 3 and shape[1] == virtual_ensembles_count
         preds = preds.reshape(shape[0], shape[1] * shape[2])
-    np.savetxt(preds_path, preds, fmt='%.15f', delimiter='\t')
+    np.savetxt(preds_path, preds, fmt='%.9f', delimiter='\t')
     return local_canonical_file(preds_path)
 
 

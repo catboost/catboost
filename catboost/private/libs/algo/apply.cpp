@@ -601,5 +601,5 @@ TVector<TVector<double>> ApplyUncertaintyPredictions(
         virtualEnsemblesCount,
         &approxes,
         &executor);
-    return PrepareEval(predictionType, model.GetLossFunctionName(), approxes,  &executor);
+    return PrepareEval(predictionType, virtualEnsemblesCount, model.GetLossFunctionName(), approxes,  &executor);
 }
