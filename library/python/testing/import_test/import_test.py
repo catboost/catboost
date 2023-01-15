@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import re
 import sys
+import time
 import traceback
 
 import __res
@@ -31,6 +32,7 @@ def check_imports(no_check=(), extra=(), skip_func=None):
     rx = re.compile('^({})$'.format('|'.join(patterns)))
 
     failed = []
+    import_times = {}
 
     norm = lambda s: s[:-9] if s.endswith('.__init__') else s
     for module in sorted(sys.extra_modules | set(extra), key=norm):
@@ -51,13 +53,17 @@ def check_imports(no_check=(), extra=(), skip_func=None):
 
         try:
             print('TRY', module)
+            s = time.time()
             if module == '__main__':
                 importer.load_module('__main__', '__main__py')
             elif module.endswith('.__init__'):
                 __import__(module[:-len('.__init__')])
             else:
                 __import__(module)
-            print('OK ', module)
+
+            delay = time.time() - s
+            import_times[str(module)] = delay
+            print('OK ', module, '{:.3f}s'.format(delay))
 
         except Exception as e:
             print('FAIL:', module, e, file=sys.stderr)
@@ -70,6 +76,10 @@ def check_imports(no_check=(), extra=(), skip_func=None):
             print_backtrace_marked(e)
             failed.append('{}: {}'.format(module, e))
             raise
+
+    print("Slowest imports:")
+    for m, t in sorted(import_times.items(), key=lambda x: x[1], reverse=True)[:30]:
+        print('  ', '{:.3f}s'.format(t), m)
 
     if failed:
         raise ImportError('modules not imported:\n' + '\n'.join(failed))
