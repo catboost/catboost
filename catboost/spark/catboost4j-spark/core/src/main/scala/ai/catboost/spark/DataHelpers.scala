@@ -487,7 +487,7 @@ private[spark] object DataHelpers {
       if (pool.isDefined(param)) {
         val paramValue = pool.getOrDefault(param)
         columnsList += paramValue
-        columnTypesMap.update(paramValue, i)
+        columnTypesMap.update(columnTypeName, i)
         i = i + 1
       }
     }
