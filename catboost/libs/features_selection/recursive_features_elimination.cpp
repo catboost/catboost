@@ -139,10 +139,18 @@ namespace NCB {
                 const double prevLossValue = LossGraph->LossValues[LossGraph->MainIndices.back()];
                 const double expectedChange = expectedLossValue - prevLossValue;
                 const double realChange = lossValue - prevLossValue;
-                const double coef = Abs(expectedChange) < 1e-9 ? 0.0 : realChange / expectedChange;
-                CATBOOST_DEBUG_LOG << "Graph adaptation coef: " << coef << Endl;
-                for (size_t idx = LossGraph->LossValues.size() - 1; idx > LossGraph->MainIndices.back(); --idx) {
-                    LossGraph->LossValues[idx] = prevLossValue + (LossGraph->LossValues[idx] - prevLossValue) * coef;
+                if (Abs(expectedChange) > 1e-9) {
+                    const double coef = realChange / expectedChange;
+                    CATBOOST_DEBUG_LOG << "Graph adaptation coef: " << coef << Endl;
+                    for (size_t idx = LossGraph->LossValues.size() - 1; idx > LossGraph->MainIndices.back(); --idx) {
+                        LossGraph->LossValues[idx] = prevLossValue + (LossGraph->LossValues[idx] - prevLossValue) * coef;
+                    }
+                } else {
+                    const double changePerFeature = realChange / (LossGraph->LossValues.size() - LossGraph->MainIndices.back() - 1);
+                    CATBOOST_DEBUG_LOG << "Expected change is 0, real change per feature " << changePerFeature << Endl;
+                    for (size_t idx = LossGraph->MainIndices.back() + 1; idx < LossGraph->LossValues.size(); ++idx) {
+                        LossGraph->LossValues[idx] = LossGraph->LossValues[idx - 1] + changePerFeature;
+                    }
                 }
                 LossGraph->MainIndices.push_back(LossGraph->LossValues.size() - 1);
             }
