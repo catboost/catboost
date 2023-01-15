@@ -1279,7 +1279,7 @@ def fit_from_df(params, learn_file, test_file, cd_file):
     text_feature_indices = columns_metadata['text_feature_indices']
 
     def get_split_on_features_and_label(df, label_idx):
-        y = df.loc[:, label_idx]
+        y = df[label_idx]
         X = df.drop(label_idx, axis=1)
         return X, y
 

@@ -286,6 +286,8 @@ namespace NKernelHost {
         TCudaBufferPtr<TBestSplitProperties> Result;
         EScoreFunction ScoreFunction;
         double L2;
+        double MetaL2Exponent;
+        double MetaL2Frequency;
         bool Normalize;
         double ScoreStdDev;
         ui64 Seed;
@@ -302,6 +304,8 @@ namespace NKernelHost {
                                 TCudaBufferPtr<TBestSplitProperties> result,
                                 EScoreFunction scoreFunction,
                                 double l2,
+                                double metaL2Exponent,
+                                double metaL2Frequency,
                                 bool normalize,
                                 double scoreStdDev,
                                 ui64 seed,
@@ -314,6 +318,8 @@ namespace NKernelHost {
             , Result(result)
             , ScoreFunction(scoreFunction)
             , L2(l2)
+            , MetaL2Exponent(metaL2Exponent)
+            , MetaL2Frequency(metaL2Frequency)
             , Normalize(normalize)
             , ScoreStdDev(scoreStdDev)
             , Seed(seed)
@@ -321,7 +327,7 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(BinaryFeatures, FeatureWeights, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed, GatheredByLeaves);
+        Y_SAVELOAD_DEFINE(BinaryFeatures, FeatureWeights, Splits, Parts, FoldCount, Result, ScoreFunction, L2, MetaL2Exponent, MetaL2Frequency, Normalize, ScoreStdDev, Seed, GatheredByLeaves);
 
         void Run(const TCudaStream& stream) const {
             const ui32 foldBits = NCB::IntLog2(FoldCount);
@@ -344,7 +350,7 @@ namespace NKernelHost {
                                       Result.Get(),
                                       static_cast<ui32>(Result.Size()),
                                       ScoreFunction,
-                                      L2, Normalize,
+                                      L2, MetaL2Exponent, MetaL2Frequency, Normalize,
                                       ScoreStdDev,
                                       Seed,
                                       GatheredByLeaves,
@@ -506,6 +512,8 @@ inline void FindOptimalSplit(const TCudaBuffer<TCBinFeature, TFeaturesMapping>& 
                              TCudaBuffer<TBestSplitProperties, TFeaturesMapping>& scores,
                              EScoreFunction scoreFunction,
                              double l2,
+                             double metaL2Exponent,
+                             double metaL2Frequency,
                              bool normalize,
                              double scoreStdDev,
                              ui64 seed,
@@ -515,7 +523,7 @@ inline void FindOptimalSplit(const TCudaBuffer<TCBinFeature, TFeaturesMapping>& 
         CB_ENSURE(!gatheredByLeaves, "Best split search for gathered by leaves splits is not implemented yet");
     }
     using TKernel = NKernelHost::TFindOptimalSplitKernel;
-    LaunchKernels<TKernel>(scores.NonEmptyDevices(), stream, features, featureWeights, histograms, partStats, foldCount, scores, scoreFunction, l2, normalize, scoreStdDev, seed, gatheredByLeaves);
+    LaunchKernels<TKernel>(scores.NonEmptyDevices(), stream, features, featureWeights, histograms, partStats, foldCount, scores, scoreFunction, l2, metaL2Exponent, metaL2Frequency, normalize, scoreStdDev, seed, gatheredByLeaves);
 }
 
 template <class TFeaturesMapping, class TUi32>
