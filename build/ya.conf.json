@@ -7116,7 +7116,7 @@
         },
         "news": {
             "formula": {
-                "sandbox_id": 769052425,
+                "sandbox_id": 780628832,
                 "match": "news_launcher"
             },
             "executable": {
