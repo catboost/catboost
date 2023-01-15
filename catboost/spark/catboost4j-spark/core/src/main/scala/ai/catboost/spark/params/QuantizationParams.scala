@@ -15,31 +15,37 @@ trait QuantizationParamsTrait
   final val perFloatFeatureQuantizaton: StringArrayParam = new StringArrayParam(
     this,
     "perFloatFeatureQuantizaton",
-    """The quantization description for the given list of features (one or more).
-     Description format for a single feature:
-     FeatureId[:border_count=BorderCount][:nan_mode=BorderType][:border_type=border_selection_method]"""
+    "The quantization description for the given list of features (one or more)."
+    + "Description format for a single feature:"
+    + " FeatureId[:border_count=BorderCount][:nan_mode=BorderType][:border_type=border_selection_method]"
   )
 
   @ParamGetterSetter
   final val borderCount: IntParam = new IntParam(
     this,
     "borderCount",
-    """The number of splits for numerical features. Allowed values are integers from 1 to 65535 inclusively."""
+    "The number of splits for numerical features. Allowed values are integers from 1 to 65535 inclusively."
   )
+
+  setDefault(borderCount, 254)
 
   @ParamGetterSetter
   final val featureBorderType: EnumParam[EBorderSelectionType] = new EnumParam[EBorderSelectionType](
     this,
     "featureBorderType",
-    "The quantization mode for numerical features"
+    "The quantization mode for numerical features. See documentation for details."
   )
+
+  setDefault(featureBorderType, EBorderSelectionType.GreedyLogSum)
 
   @ParamGetterSetter
   final val nanMode: EnumParam[ENanMode] = new EnumParam[ENanMode](
     this,
     "nanMode",
-    "The method for  processing missing values in the input dataset."
+    "The method for processing missing values in the input dataset. See documentation for details."
   )
+
+  setDefault(nanMode, ENanMode.Min)
 
   @ParamGetterSetter
   final val inputBorders: Param[String] = new Param[String](
