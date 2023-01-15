@@ -5,6 +5,7 @@ namespace NCB { // split due to CUDA-compiler inability to support nested namesp
         enum class EPredictionType {
             RawFormulaVal,
             Exponent,
+            RMSEWithUncertainty,
             Probability,
             Class
         };

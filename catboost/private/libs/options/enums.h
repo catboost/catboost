@@ -227,6 +227,7 @@ enum class EPredictionType {
     Class,
     RawFormulaVal,
     Exponent,
+    RMSEWithUncertainty,
     InternalRawFormulaVal
 };
 

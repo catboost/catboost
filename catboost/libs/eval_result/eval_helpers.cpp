@@ -220,6 +220,12 @@ void PrepareEval(const EPredictionType predictionType,
         case EPredictionType::Exponent:
             *result = {CalcExponent(approx[0])};
             break;
+        case EPredictionType::RMSEWithUncertainty:
+            Y_ASSERT(approx.size() == 2);
+            result->resize(2);
+            (*result)[0] = approx[0];
+            (*result)[1] = CalcExponent(approx[1]);
+            break;
         case EPredictionType::RawFormulaVal:
             *result = approx;
             break;

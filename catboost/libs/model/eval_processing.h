@@ -161,31 +161,50 @@ namespace NCB::NModelEvaluation {
             }
             if (ApproxDimension == 1) {
                 auto blockView = GetResultBlockView(blockId, 1);
-                if (PredictionType == EPredictionType::Probability) {
-                    CalcSigmoid(blockView, blockView);
-                }
-                if (PredictionType == EPredictionType::Exponent) {
-                    FastExpInplace(blockView.data(), blockView.ysize());;
-                }
-                if (PredictionType == EPredictionType::Class) {
-                    for (auto &val : blockView) {
-                        val = val > BinclassRawValueBorder;
-                    }
+                switch (PredictionType) {
+                    case EPredictionType::Probability:
+                        CalcSigmoid(blockView, blockView);
+                        break;
+                    case EPredictionType::Exponent:
+                        FastExpInplace(blockView.data(), blockView.ysize());
+                        break;
+                    case EPredictionType::Class:
+                        for (auto &val : blockView) {
+                            val = val > BinclassRawValueBorder;
+                        }
+                        break;
+                    default:
+                        Y_ENSURE(false, "unsupported prediction type");
                 }
             } else {
-                if (PredictionType == EPredictionType::Probability) {
-                    auto blockView = GetResultBlockView(blockId, ApproxDimension);
-                    for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
-                        auto docView = blockView.Slice(i, ApproxDimension);
-                        CalcSoftmax(docView, docView);
+                switch (PredictionType) {
+                    case EPredictionType::RMSEWithUncertainty: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        for (size_t i = 1; i < blockView.size(); i += ApproxDimension) {
+                            auto docView = blockView.Slice(i, 1);
+                            FastExpInplace(docView.data(), 1);
+                        }
+                        break;
                     }
-                } else {
-                    Y_ASSERT(PredictionType == EPredictionType::Class);
-                    auto resultView = GetResultBlockView(blockId, 1);
-                    for (size_t objId = 0; objId < resultView.size(); ++objId) {
-                        auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
-                        resultView[objId] = MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
+                    case EPredictionType::Probability: {
+                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                        for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
+                            auto docView = blockView.Slice(i, ApproxDimension);
+                            CalcSoftmax(docView, docView);
+                        }
+                        break;
                     }
+                    case EPredictionType::Class: {
+                        auto resultView = GetResultBlockView(blockId, 1);
+                        for (size_t objId = 0; objId < resultView.size(); ++objId) {
+                            auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
+                            resultView[objId] =
+                                MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
+                        }
+                        break;
+                    }
+                    default:
+                        Y_ASSERT(false);
                 }
             }
         }

@@ -1,4 +1,4 @@
-SampleId	RawFormulaVal:Class=0	RawFormulaVal:Class=1	Label
+SampleId	RawFormulaValMean	RawFormulaValLog(Std)	Label
 0	0.828987941	-1.062797824	1
 1	0.8337126031	-1.078538464	1
 2	0.8349562521	-1.082661701	1

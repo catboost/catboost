@@ -1343,7 +1343,7 @@ class _CatBoostBase(object):
     def _load_model(self, model_file, format):
         if not isinstance(model_file, STRING_TYPES):
             raise CatBoostError("Invalid fname type={}: must be str().".format(type(model_file)))
-        
+
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params()):
@@ -1951,7 +1951,7 @@ class CatBoost(_CatBoostBase):
     def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability', 'Exponent'):
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability', 'Exponent', 'RMSEWithUncertainty'):
             raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal, Probability, LogProbability, Exponent.".format(prediction_type))
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
@@ -1981,6 +1981,9 @@ class CatBoost(_CatBoostBase):
             - 'RawFormulaVal' : return raw value.
             - 'Class' : return class label.
             - 'Probability' : return probability for every class.
+            - 'Exponent' : return Exponent of raw formula value.
+            - 'RMSEWithUncertainty': return standard deviation for RMSEWithUncertainty loss function
+              (logarithm of the standard deviation is returned by default).
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -4786,6 +4789,8 @@ class CatBoostRegressor(CatBoost):
             if loss_function and isinstance(loss_function, str):
                 if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
                     prediction_type = 'Exponent'
+                if loss_function == 'RMSEWithUncertainty':
+                    prediction_type = 'RMSEWithUncertainty'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
