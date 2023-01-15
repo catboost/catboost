@@ -906,31 +906,32 @@ namespace NCB {
     }
 
 
-    static void BuildSrcDataFromDataProvider(
+    static TSrcData BuildSrcDataFromDataProvider(
         TDataProviderPtr dataProvider,
-        NPar::TLocalExecutor* localExecutor,
-        TSrcData* srcData
+        NPar::TLocalExecutor* localExecutor
     ) {
+        TSrcData srcData;
+
         const auto* const quantizedObjectsData =
             dynamic_cast<const TQuantizedObjectsDataProvider*>(dataProvider->ObjectsData.Get());
         CB_ENSURE(quantizedObjectsData, "Pool is not quantized");
 
-        srcData->DocumentCount = dataProvider->GetObjectCount();
-        srcData->ObjectsOrder = quantizedObjectsData->GetOrder();
+        srcData.DocumentCount = dataProvider->GetObjectCount();
+        srcData.ObjectsOrder = quantizedObjectsData->GetOrder();
 
         TVector<TString> columnNames;
 
         //groupIds
         const auto& groupIds = quantizedObjectsData->GetGroupIds();
         if (groupIds) {
-            srcData->GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
+            srcData.GroupIds = GenerateSrcColumn<TGroupId>(groupIds.GetRef(), EColumn::GroupId);
             columnNames.push_back("GroupId");
         }
 
         //subGroupIds
         const auto& subGroupIds = quantizedObjectsData->GetSubgroupIds();
         if (subGroupIds) {
-            srcData->SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
+            srcData.SubgroupIds = GenerateSrcColumn<TSubgroupId>(subGroupIds.GetRef(), EColumn::SubgroupId);
             columnNames.push_back("SubgroupId");
         }
 
@@ -987,7 +988,7 @@ namespace NCB {
                     //CB_ENSURE_INTERNAL(!featureMetaInfo.IsAvailable, "If GetFloatFeature returns Nothing(), feature must be unavailable");
                 }
 
-                srcData->FloatFeatures.emplace_back(maybeFeatureColumn);
+                srcData.FloatFeatures.emplace_back(maybeFeatureColumn);
                 columnNames.push_back(featureMetaInfo.Name);
             } else {
                 CB_ENSURE(false, "Saving quantization results is supported only for numerical features");
@@ -1010,7 +1011,7 @@ namespace NCB {
                         TArrayRef<TArrayRef<float>>(&targetNumericRef, 1)
                     );
 
-                    srcData->Target = GenerateSrcColumn<float>(
+                    srcData.Target = GenerateSrcColumn<float>(
                         TConstArrayRef<float>(targetNumeric),
                         EColumn::Label
                     );
@@ -1048,7 +1049,7 @@ namespace NCB {
                         NPar::TLocalExecutor::WAIT_COMPLETE
                     );
 
-                    srcData->Target = GenerateSrcColumn<float>(
+                    srcData.Target = GenerateSrcColumn<float>(
                         TConstArrayRef<float>(targetFloat),
                         EColumn::Label
                     );
@@ -1063,7 +1064,7 @@ namespace NCB {
         if (baseline) {
             for (size_t baselineIdx : xrange(baseline.GetRef().size())) {
                 TSrcColumn<float> currentBaseline = GenerateSrcColumn<float>(baseline.GetRef()[baselineIdx], EColumn::Baseline);
-                srcData->Baseline.emplace_back(currentBaseline);
+                srcData.Baseline.emplace_back(currentBaseline);
                 columnNames.push_back("Baseline " + ToString(baselineIdx));
             }
         }
@@ -1071,14 +1072,14 @@ namespace NCB {
         //weights
         const auto& weights = dataProvider->RawTargetData.GetWeights();
         if (!weights.IsTrivial()) {
-            srcData->Weights = GenerateSrcColumn<float>(weights.GetNonTrivialData(), EColumn::Weight);
+            srcData.Weights = GenerateSrcColumn<float>(weights.GetNonTrivialData(), EColumn::Weight);
             columnNames.push_back("Weight");
         }
 
         //groupWeights
         const auto& groupWeights = dataProvider->RawTargetData.GetGroupWeights();
         if (!groupWeights.IsTrivial()) {
-            srcData->GroupWeights = GenerateSrcColumn<float>(groupWeights.GetNonTrivialData(), EColumn::GroupWeight);
+            srcData.GroupWeights = GenerateSrcColumn<float>(groupWeights.GetNonTrivialData(), EColumn::GroupWeight);
             columnNames.push_back("GroupWeight");
         }
 
@@ -1097,9 +1098,11 @@ namespace NCB {
         std::iota(localIndexToColumnIndex.begin(), localIndexToColumnIndex.end(), 0);
 
         //fill other attributes
-        srcData->PoolQuantizationSchema = quantizationSchema;
-        srcData->ColumnNames = columnNames;
-        srcData->LocalIndexToColumnIndex = localIndexToColumnIndex;
+        srcData.PoolQuantizationSchema = quantizationSchema;
+        srcData.ColumnNames = columnNames;
+        srcData.LocalIndexToColumnIndex = localIndexToColumnIndex;
+
+        return srcData;
     }
 
 
@@ -1108,8 +1111,7 @@ namespace NCB {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount);
 
-        TSrcData srcData;
-        BuildSrcDataFromDataProvider(dataProvider, &localExecutor, &srcData);
+        TSrcData srcData = BuildSrcDataFromDataProvider(dataProvider, &localExecutor);
 
         SaveQuantizedPool(srcData, fileName);
     }
