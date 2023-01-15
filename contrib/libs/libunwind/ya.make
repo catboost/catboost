@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(2019-06-22)
+VERSION(10.0.0)
 
 LICENSE(Apache-2.0)
 
