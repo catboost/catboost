@@ -1,6 +1,6 @@
 #include "bzip2.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/stream/file.h>
 #include <util/system/tempfile.h>

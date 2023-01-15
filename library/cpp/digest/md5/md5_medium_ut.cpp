@@ -1,6 +1,6 @@
 #include "md5.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TMD5MediumTest) {
     Y_UNIT_TEST(TestOverflow) {

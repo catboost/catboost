@@ -2,7 +2,7 @@
 #include "http_common.h"
 #include "http_headers.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(THttpCommon) {
     Y_UNIT_TEST(TCheckRequestFlags) {

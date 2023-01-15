@@ -1,6 +1,6 @@
 #include "hash_ops.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestCIHash) {
     Y_UNIT_TEST(TestYHash1) {

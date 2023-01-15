@@ -1,6 +1,6 @@
 #include "md5.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/system/fs.h>
 #include <util/stream/file.h>

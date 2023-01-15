@@ -1,5 +1,5 @@
 #include <library/object_factory/object_factory.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/string.h>

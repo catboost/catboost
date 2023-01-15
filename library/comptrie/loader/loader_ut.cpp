@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <library/comptrie/comptrie.h>
 #include <library/comptrie/loader/loader.h>
 

@@ -1,8 +1,8 @@
 #include "neh.h"
 #include "rpc.h"
 
-#include <library/unittest/registar.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 #include <util/generic/scope.h>
 #include <util/network/ip.h>

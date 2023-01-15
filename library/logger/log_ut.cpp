@@ -1,6 +1,6 @@
 #include "all.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/system/fs.h>
 #include <util/system/rwlock.h>

@@ -2,7 +2,7 @@
 #include "recyr.hh"
 #include "wide.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/charset/utf8.h>
 #include <util/system/yassert.h>

@@ -1,6 +1,6 @@
 #include <util/generic/utility.h>
 #include <util/string/util.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include "lcs_via_lis.h"
 
 class TLCSTest: public TTestBase {

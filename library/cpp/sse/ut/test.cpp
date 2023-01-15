@@ -5,7 +5,7 @@
  */
 /* Author: Vitaliy Manushkin <agri@yandex-team.ru */
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/typetraits.h>
 #include <util/string/hex.h>

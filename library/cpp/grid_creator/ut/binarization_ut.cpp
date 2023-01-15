@@ -1,7 +1,7 @@
 #include <library/cpp/grid_creator/binarization.h>
 
-#include <library/unittest/registar.h>
-#include <library/unittest/gtest.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/gtest.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/serialized_enum.h>
