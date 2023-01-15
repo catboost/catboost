@@ -873,6 +873,35 @@ static bool HaveLearnFeaturesInMemory(
     return !IsSharedFs(learnSetPath) || !isQuantized;
 }
 
+static void ValidateBorderCount(
+    const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
+    const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions
+) {
+    const auto featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
+    const auto borderCount = dataProcessingOptions.FloatFeaturesBinarization->BorderCount;
+    const auto& perFeatureBorders = dataProcessingOptions.PerFloatFeatureQuantization;
+
+    for (auto flatFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
+        const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(flatFeatureIdx);
+
+        if (featureMetaInfo.Type == EFeatureType::Float) {
+            const auto floatFeatureIdx =
+                featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
+            if (quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
+                const auto featureBorderCount = quantizedFeaturesInfo.GetBorders(floatFeatureIdx).size();
+                CB_ENSURE(
+                    featureBorderCount <= borderCount,
+                    "Quantized float feature " << flatFeatureIdx << " has " << featureBorderCount
+                    << " borders which exceeds the limit specified by border-count option");
+                CB_ENSURE(
+                    !perFeatureBorders->contains(flatFeatureIdx) || featureBorderCount <= perFeatureBorders->at(flatFeatureIdx).BorderCount,
+                    "Quantized float feature " << flatFeatureIdx << " has " << featureBorderCount
+                    << " borders which exceeds the limit specified by per-float-feature-quantization option");
+            }
+        }
+    }
+}
+
 static void TrainModel(
     const NJson::TJsonValue& trainOptionsJson,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -994,6 +1023,9 @@ static void TrainModel(
         executor,
         &rand,
         initModel);
+
+    ValidateBorderCount(*trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo(), catBoostOptions.DataProcessingOptions.Get());
+
     if (catBoostOptions.SystemOptions->IsMaster()) {
         InitializeMaster(catBoostOptions.SystemOptions);
         if (!haveLearnFeaturesInMemory) {

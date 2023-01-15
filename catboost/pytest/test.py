@@ -7151,7 +7151,8 @@ def test_quantized_pool_with_large_grid():
         pool_path='quantized://' + data_file('querywise', 'train.quantized_x1024'),
         test_path='quantized://' + data_file('querywise', 'test.quantized_x1024'),
         cd_path=data_file('querywise', 'train.cd.query_id'),
-        eval_path=quantized_eval_path
+        eval_path=quantized_eval_path,
+        border_count=1024
     )
 
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
