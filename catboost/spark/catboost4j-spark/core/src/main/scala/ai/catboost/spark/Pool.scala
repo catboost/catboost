@@ -782,4 +782,49 @@ class Pool (
     val result = new Pool(newData, pairsData, this.quantizedFeaturesInfo)
     copyValues(result)
   }
+
+  /**
+   * Create subset of this pool with the fraction of the samples (or groups of samples if present)
+   */
+  def sample(fraction: Double) : Pool = {
+    if ((fraction < 0.0) || (fraction > 1.0)) {
+      throw new CatBoostError("sample: fraction must be in [0, 1] interval")
+    }
+    val spark = this.data.sparkSession
+    val sampledPool = if (this.isDefined(groupIdCol)) {
+      val mainDataGroupIdFieldIdx = this.data.schema.fieldIndex(this.getGroupIdCol)
+      val groupedMainData = this.data.rdd.groupBy(row => row.getLong(mainDataGroupIdFieldIdx))
+      if (this.pairsData != null) {
+        val pairsGroupIdx = this.pairsData.schema.fieldIndex("groupId")
+        val groupedPairsData = this.pairsData.rdd.groupBy(row => row.getLong(pairsGroupIdx))
+
+        val sampledCogroupedData = groupedMainData.cogroup(groupedPairsData).sample(
+          withReplacement=false,
+          fraction=fraction
+        )
+        val sampledMainData = sampledCogroupedData.flatMap(
+          (group: (Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))) => {
+            group._2._1.flatMap((it : Iterable[Row]) => it)
+          }
+        )
+        val sampledPairsData = sampledCogroupedData.flatMap(
+          (group: (Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))) => {
+            group._2._2.flatMap((it : Iterable[Row]) => it)
+          }
+        )
+        new Pool(
+          spark.createDataFrame(sampledMainData, this.data.schema),
+          spark.createDataFrame(sampledPairsData, this.pairsData.schema),
+          this.quantizedFeaturesInfo
+        )
+      } else {
+        val sampledGroupedMainData = groupedMainData.sample(withReplacement=false, fraction=fraction)
+        val sampledMainData = sampledGroupedMainData.flatMap(_._2)
+        new Pool(spark.createDataFrame(sampledMainData, this.data.schema), null, this.quantizedFeaturesInfo)
+      }
+    } else {
+      new Pool(this.data.sample(fraction), null, this.quantizedFeaturesInfo)
+    }
+    this.copyValues(sampledPool)
+  }
 }
