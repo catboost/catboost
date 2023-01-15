@@ -300,6 +300,7 @@ private[spark] object Helpers {
     "per_object_feature_penalties_map" -> "per_object_feature_penalties",
     "per_object_feature_penalties_list" -> "per_object_feature_penalties",
 
+    "spark_partition_count" -> null,
     "worker_initialization_timeout" -> null,
 
     // processed in separate functions
