@@ -27,6 +27,9 @@ ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 # For HBase client: CONTRIB-1790
 ALLOW passport/cpp -> contrib/restricted/thrift
 
+# https://st.yandex-team.ru/CONTRIB-2020
+ALLOW weather -> contrib/restricted/range-v3
+
 # ALSA library is LGPL
 ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
