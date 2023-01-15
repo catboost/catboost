@@ -1216,12 +1216,12 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
     if (HasDescriptorMethods(descriptor_->file(), options_)) {
       format(
           "bool PackFrom(const ::$proto_ns$::Message& message) {\n"
-          "  return _any_metadata_.PackFrom(message);\n"
+          "  return _any_metadata_.PackFrom(GetArena(), message);\n"
           "}\n"
           "bool PackFrom(const ::$proto_ns$::Message& message,\n"
           "              ::PROTOBUF_NAMESPACE_ID::ConstStringParam "
           "type_url_prefix) {\n"
-          "  return _any_metadata_.PackFrom(message, type_url_prefix);\n"
+          "  return _any_metadata_.PackFrom(GetArena(), message, type_url_prefix);\n"
           "}\n"
           "bool UnpackTo(::$proto_ns$::Message* message) const {\n"
           "  return _any_metadata_.UnpackTo(message);\n"
@@ -1234,7 +1234,7 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
           "!std::is_convertible<T, const ::$proto_ns$::Message&>"
           "::value>::type>\n"
           "bool PackFrom(const T& message) {\n"
-          "  return _any_metadata_.PackFrom<T>(message);\n"
+          "  return _any_metadata_.PackFrom<T>(GetArena(), message);\n"
           "}\n"
           "template <typename T, class = typename std::enable_if<"
           "!std::is_convertible<T, const ::$proto_ns$::Message&>"
@@ -1242,7 +1242,7 @@ void MessageGenerator::GenerateClassDefinition(io::Printer* printer) {
           "bool PackFrom(const T& message,\n"
           "              ::PROTOBUF_NAMESPACE_ID::ConstStringParam "
           "type_url_prefix) {\n"
-          "  return _any_metadata_.PackFrom<T>(message, type_url_prefix);"
+          "  return _any_metadata_.PackFrom<T>(GetArena(), message, type_url_prefix);"
           "}\n"
           "template <typename T, class = typename std::enable_if<"
           "!std::is_convertible<T, const ::$proto_ns$::Message&>"
@@ -2530,7 +2530,7 @@ void MessageGenerator::GenerateStructors(io::Printer* printer) {
   }
 
   if (IsAnyMessage(descriptor_, options_)) {
-    initializer_with_arena += ",\n  _any_metadata_(arena, &type_url_, &value_)";
+    initializer_with_arena += ",\n  _any_metadata_(&type_url_, &value_)";
   }
   if (num_weak_fields_ > 0) {
     initializer_with_arena += ", _weak_field_map_(arena)";
