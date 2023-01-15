@@ -6,7 +6,7 @@
 
 // just to test that generated stuff works
 #include <util/generic/serialized_enum.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/singleton.h>

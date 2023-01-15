@@ -1,6 +1,6 @@
 #include "mem_copy.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 namespace {
     class TAssignBCalled: public yexception {

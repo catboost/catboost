@@ -1,7 +1,7 @@
 #include "mem.h"
 #include "multi.h"
 #include "str.h"
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestMultiInput) {
     struct TTestCase {

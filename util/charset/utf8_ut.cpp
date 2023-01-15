@@ -4,8 +4,8 @@
 #include <util/stream/file.h>
 #include <util/ysaveload.h>
 
-#include <library/unittest/registar.h>
-#include <library/unittest/env.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/env.h>
 
 Y_UNIT_TEST_SUITE(TUtfUtilTest) {
     Y_UNIT_TEST(TestUTF8Len) {

@@ -1,7 +1,7 @@
 #include "file.h"
 #include "fs.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/stream/file.h>
 #include "tempfile.h"

@@ -1,6 +1,6 @@
 #include "aligned.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 class TNastyInputStream: public IInputStream {
 public:

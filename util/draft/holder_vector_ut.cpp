@@ -1,6 +1,6 @@
 #include "holder_vector.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(THolderVectorTest) {
     Y_UNIT_TEST(TestCreateEmpty) {

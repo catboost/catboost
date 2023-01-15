@@ -1,6 +1,6 @@
 #include "mem.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestMemIO) {
     Y_UNIT_TEST(TestReadTo) {

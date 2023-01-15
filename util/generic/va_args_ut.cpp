@@ -1,6 +1,6 @@
 #include "va_args.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TMacroVarargMapTest) {
     Y_UNIT_TEST(TestMapArgs) {

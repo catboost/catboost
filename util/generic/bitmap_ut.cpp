@@ -1,6 +1,6 @@
 #include "bitmap.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #define INIT_BITMAP(bitmap, bits)                                \
     for (size_t i = 0; i < sizeof(bits) / sizeof(size_t); ++i) { \

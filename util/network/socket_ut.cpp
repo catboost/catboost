@@ -2,7 +2,7 @@
 
 #include "pair.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/string/builder.h>
 #include <util/generic/vector.h>

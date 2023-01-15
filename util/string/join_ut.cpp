@@ -1,6 +1,6 @@
 #include "join.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/generic/vector.h>
 
 #include <util/stream/output.h>

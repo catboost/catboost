@@ -2,7 +2,7 @@
 
 #include "platform.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 // There are no tests yet for instructions that use 512-bit wide registers because they are not
 // supported by some compilers yet.

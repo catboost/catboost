@@ -1,5 +1,5 @@
 #include <library/resource/resource.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <tools/enum_parser/parse_enum/parse_enum.h>
 

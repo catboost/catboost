@@ -2,7 +2,7 @@
 #include "vector.h"
 #include "noncopyable.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/is_in.h>
