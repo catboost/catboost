@@ -88,11 +88,12 @@ namespace NCB {
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
             const TVector<TString>& featureId)
-            : TFeaturesLayout(featureCount, catFeatureIndices, {}, featureId) {}
+            : TFeaturesLayout(featureCount, catFeatureIndices, {}, {}, featureId) {}
         TFeaturesLayout(
             const ui32 featureCount,
             const TVector<ui32>& catFeatureIndices,
             const TVector<ui32>& textFeatureIndices,
+            const TVector<ui32>& embeddingFeatureIndices,
             const TVector<TString>& featureId,
             bool allFeaturesAreSparse = false);
         TFeaturesLayout(
@@ -109,7 +110,9 @@ namespace NCB {
             ExternalIdxToMetaInfo,
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
-            FloatFeatureInternalIdxToExternalIdx)
+            FloatFeatureInternalIdxToExternalIdx,
+            TextFeatureInternalIdxToExternalIdx,
+            EmbeddingFeatureInternalIdxToExternalIdx)
 
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
@@ -150,8 +153,11 @@ namespace NCB {
                     otherTypesSize = ExternalIdxToMetaInfo.size() - FloatFeatureInternalIdxToExternalIdx.size();
                 } else if constexpr (FeatureType == EFeatureType::Categorical) {
                     otherTypesSize = ExternalIdxToMetaInfo.size() - CatFeatureInternalIdxToExternalIdx.size();
-                } else {
+                } else if constexpr (FeatureType == EFeatureType::Text) {
                     otherTypesSize = ExternalIdxToMetaInfo.size() - TextFeatureInternalIdxToExternalIdx.size();
+                } else {
+                    otherTypesSize
+                        = ExternalIdxToMetaInfo.size() - EmbeddingFeatureInternalIdxToExternalIdx.size();
                 }
                 return TFeatureIdx<FeatureType>(externalFeatureIdx - otherTypesSize);
             } else {
@@ -172,6 +178,8 @@ namespace NCB {
         ui32 GetCatFeatureCount() const;
 
         ui32 GetTextFeatureCount() const;
+
+        ui32 GetEmbeddingFeatureCount() const;
 
         ui32 GetExternalFeatureCount() const;
 
@@ -202,6 +210,8 @@ namespace NCB {
 
         TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
 
+        TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const;
+
         bool HasAvailableAndNotIgnoredFeatures() const;
 
         void AddFeature(TFeatureMetaInfo&& featureMetaInfo);
@@ -212,6 +222,7 @@ namespace NCB {
         TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
+        TVector<ui32> EmbeddingFeatureInternalIdxToExternalIdx;
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;

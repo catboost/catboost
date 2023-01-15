@@ -36,6 +36,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
                     (ui32)featuresData[0].size(),
                     TVector<ui32>{},
                     TVector<ui32>{},
+                    TVector<ui32>{},
                     TVector<TString>{});
 
                 visitor->Start(

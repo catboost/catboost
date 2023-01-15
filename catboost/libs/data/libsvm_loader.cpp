@@ -112,6 +112,7 @@ namespace NCB {
             (ui32)featureNames.size(),
             catFeatures,
             /*textFeatures*/ TVector<ui32>{},
+            /*embeddingFeatures*/ TVector<ui32>{},
             featureNames,
             /*allFeaturesAreSparse*/ true
         );

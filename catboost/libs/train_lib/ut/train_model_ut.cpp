@@ -208,6 +208,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                         numericFeatureCount,
                         TVector<ui32>{},
                         TVector<ui32>{},
+                        TVector<ui32>{},
                         TVector<TString>{});
 
                     visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {});

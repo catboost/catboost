@@ -467,6 +467,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
             const ui32 featureCount,
             const TVector[ui32]& catFeatureIndices,
             const TVector[ui32]& textFeatureIndices,
+            const TVector[ui32]& embeddingFeatureIndices,
             const TVector[TString]& featureId,
             bool_t allFeaturesAreSparse
         ) except +ProcessException
@@ -2326,9 +2327,16 @@ cdef void list_to_vector(values_list, TVector[ui32]* values_vector) except *:
             values_vector[0].push_back(value)
 
 
-cdef TFeaturesLayout* _init_features_layout(data, cat_features, text_features, feature_names) except*:
+cdef TFeaturesLayout* _init_features_layout(
+    data,
+    cat_features,
+    text_features,
+    embedding_features,
+    feature_names
+) except*:
     cdef TVector[ui32] cat_features_vector
     cdef TVector[ui32] text_features_vector
+    cdef TVector[ui32] embedding_features_vector
     cdef TVector[TString] feature_names_vector
     cdef bool_t all_features_are_sparse
 
@@ -2341,6 +2349,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, text_features, f
 
     list_to_vector(cat_features, &cat_features_vector)
     list_to_vector(text_features, &text_features_vector)
+    list_to_vector(embedding_features, &embedding_features_vector)
 
     if feature_names is not None:
         for feature_name in feature_names:
@@ -2354,6 +2363,7 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, text_features, f
         <ui32>feature_count,
         cat_features_vector,
         text_features_vector,
+        embedding_features_vector,
         feature_names_vector,
         all_features_are_sparse)
 
@@ -3796,7 +3806,13 @@ cdef class _PoolBase:
         data_meta_info.HasTimestamp = False
         data_meta_info.HasPairs = pairs is not None
 
-        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, text_features, feature_names)
+        data_meta_info.FeaturesLayout = _init_features_layout(
+            data,
+            cat_features,
+            text_features,
+            [],
+            feature_names
+        )
 
         do_use_raw_data_in_features_order = False
         if isinstance(data, FeaturesData):
