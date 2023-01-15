@@ -2419,6 +2419,10 @@ class CatBoost(_CatBoostBase):
             If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
             If type == 'PredictionDiff' data is list of list of np.ndarray shape (2, n_features).
 
+        reference_data: catboost.Pool or None
+            Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
+            if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
+
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
             Possible values:
