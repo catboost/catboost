@@ -13,6 +13,7 @@ import six
 from functools import reduce
 
 import process_command_files as pcf
+import process_whole_archive_option as pwa
 
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
@@ -102,6 +103,9 @@ def preprocess_args(args):
         else:
             srcs.append(f)
     args.srcs = srcs
+
+    if args.extldflags:
+        args.extldflags = pwa.ProcessWholeArchiveOption(args.targ_os).construct_cmd(args.extldflags)
 
     classify_srcs(args.srcs, args)
 
