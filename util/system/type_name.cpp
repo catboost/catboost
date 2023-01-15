@@ -28,7 +28,7 @@ TString CppDemangle(const TString& name) {
 }
 
 TString TypeName(const std::type_info& typeInfo) {
-    return CppDemangle(typeInfo.name());
+    return CppDemangle(typeInfo.name()); // NOLINT(arcadia-typeid-name-restriction)
 }
 
 TString TypeName(const std::type_index& typeIndex) {
