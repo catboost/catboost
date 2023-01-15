@@ -514,8 +514,7 @@ def pytest_runtest_makereport(item, call):
             _collect_test_rusage(item)
             if not pytest.config.suite_metrics:
                 pytest.config.suite_metrics["pytest_startup_duration"] = time.time() - context.Ctx["YA_PYTEST_START_TIMESTAMP"]
-                # uncomment after release tools
-                # pytest.config.ya_trace_reporter.dump_suite_metrics()
+                pytest.config.ya_trace_reporter.dump_suite_metrics()
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
         elif report.when == "setup":
             pytest.config.ya_trace_reporter.on_start_test_class(test_item)
