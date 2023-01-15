@@ -4799,9 +4799,11 @@ cdef class _CatBoost:
     cdef TVector[TEvalResult*] __test_evals
     cdef TMetricsAndTimeLeftHistory __metrics_history
     cdef THolder[TLearnProgress] __cached_learn_progress
+    cdef size_t __n_features_in
 
     def __cinit__(self):
         self.__model = new TFullModel()
+        self.__n_features_in = 0
 
     def __dealloc__(self):
         del self.__model
@@ -4841,6 +4843,8 @@ cdef class _CatBoost:
         cdef THolder[TLearnProgress]* init_learn_progress_param
         cdef THolder[TLearnProgress]* dst_learn_progress_param
 
+        cdef size_t n_features_in = train_pool.__pool.Get().MetaInfo.GetFeatureCount()
+        self.__n_features_in = max(self.__n_features_in, n_features_in)
         task_type = params.get('task_type', 'CPU')
 
         if isinstance(test_pools, list):
@@ -5266,6 +5270,9 @@ cdef class _CatBoost:
             if 'boosting_options' in params:
                 return params['boosting_options'].get('learning_rate', None)
         return None
+
+    def _get_n_features_in(self):
+        return self.__n_features_in
 
     def _get_metadata_wrapper(self):
         return _MetadataHashProxy(self)

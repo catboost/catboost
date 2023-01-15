@@ -1252,6 +1252,7 @@ class _CatBoostBase(object):
         setattr(self, '_random_seed', self._object._get_random_seed())
         setattr(self, '_learning_rate', self._object._get_learning_rate())
         setattr(self, '_tree_count', self._object._get_tree_count())
+        setattr(self, '_n_features_in', self._object._get_n_features_in())
 
     def _train(self, train_pool, test_pool, params, allow_clear_pool, init_model):
         self._object._train(train_pool, test_pool, params, allow_clear_pool, init_model._object if init_model else None)
@@ -1289,6 +1290,9 @@ class _CatBoostBase(object):
 
     def get_best_iteration(self):
         return self._object._get_best_iteration()
+
+    def get_n_features_in(self):
+        return self._object._get_n_features_in()
 
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()
@@ -1414,6 +1418,10 @@ class _CatBoostBase(object):
     @property
     def learning_rate_(self):
         return getattr(self, '_learning_rate') if self.is_fitted() else None
+
+    @property
+    def n_features_in_(self):
+        return getattr(self, '_n_features_in') if self.is_fitted() else None
 
     @property
     def feature_names_(self):
