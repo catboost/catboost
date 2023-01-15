@@ -1,3 +1,5 @@
+# cython: c_string_type=str, c_string_encoding=utf8
+
 from util.generic.hash cimport THashMap
 from util.generic.string cimport TString
 
