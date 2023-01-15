@@ -38,7 +38,7 @@ ADD_EQUALS_AND_HASH_CODE_METHODS(CPPTYPE)
 %enddef
 
 // Useful for wrapper for classes that can be put info TIntrusivePtr
-%define ADD_RELEASE_MEM() 
+%define ADD_RELEASE_MEM()
 
 %proxycode %{
     void releaseMem() {

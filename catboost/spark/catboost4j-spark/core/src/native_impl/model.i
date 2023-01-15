@@ -14,7 +14,7 @@
 %include "primitive_arrays.i"
 %include "tvector.i"
 
-/* 
+/*
  * Use a separate binding instead of catboost4j-prediction for now because some extra functionality
  *  is needed.
  */
@@ -26,7 +26,7 @@ public:
      * @return Number of dimensions in model.
      */
     size_t GetDimensionsCount() const;
-    
+
     %extend {
         void Calc(TConstArrayRef<double> numericFeatures, TArrayRef<double> result) const {
             TVector<float> featuresAsFloat;
@@ -34,7 +34,7 @@ public:
             Copy(numericFeatures.begin(), numericFeatures.end(), featuresAsFloat.begin());
             self->Calc(featuresAsFloat, TConstArrayRef<int>(), result);
         }
-        
+
         void CalcSparse(
             i32 size,
             TConstArrayRef<i32> numericFeaturesIndices,
@@ -48,14 +48,14 @@ public:
             self->Calc(featuresAsFloat, TConstArrayRef<int>(), result);
         }
     }
-    
+
     /**
      * Note: Max model size is limited for now to 2Gb due to Java arrays size limitation
      */
-    
+
     %typemap(javaimports) TFullModel "import java.io.*;"
     %typemap(javainterfaces) TFullModel "Externalizable"
-    
+
     %extend {
         TVector<i8> Serialize() const throw (yexception) {
             TVector<i8> result;
@@ -65,12 +65,12 @@ public:
             CB_ENSURE(result.size() <= Max<i32>(), "Model size is too big (>2Gb) to be passed to JVM");
             return result;
         }
-    
+
         void Deserialize(TConstArrayRef<i8> binaryBuffer) throw (yexception) {
             (*self) = ReadModel(binaryBuffer.data(), binaryBuffer.size());
         }
     }
-    
+
     %proxycode %{
         public void writeExternal(ObjectOutput out) throws IOException {
             TVector_i8 data;
@@ -108,7 +108,7 @@ public:
             }
         }
     %}
-    
+
     ADD_EQUALS_WITH_IMPL_AND_HASH_CODE_METHODS(TFullModel)
 };
 

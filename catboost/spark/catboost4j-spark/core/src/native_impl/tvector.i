@@ -167,7 +167,7 @@ public:
             }
             return result;
         }
-        
+
         JNIEXPORT jobject JNICALL
         Java_ru_yandex_catboost_spark_catboost4j_1spark_core_src_native_1impl_native_1implJNI_asDirectByteBufferImpl_1##CPPTYPE(
             JNIEnv* jenv,
@@ -205,7 +205,7 @@ public:
             public JAVATYPE[] toPrimitiveArray() {
                 return $imclassname.toPrimitiveArrayImpl_##CPPTYPE(swigCPtr, this);
             }
-            
+
             // valid only until next reallocation of TVector, so, use with caution.
             public java.nio.ByteBuffer asDirectByteBuffer() {
                 return (java.nio.ByteBuffer)$imclassname.asDirectByteBufferImpl_##CPPTYPE(swigCPtr, this);

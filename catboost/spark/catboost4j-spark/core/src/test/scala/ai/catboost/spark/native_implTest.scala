@@ -11,7 +11,7 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._;
 
 class native_implTest {
   ensureNativeLibLoaded
-  
+
   @Test
   @throws(classOf[Exception])
   def testTColumnSerialization() {
@@ -27,7 +27,7 @@ class native_implTest {
       Assert.assertEquals(v, SerializationUtils.roundtrip(v))
     }
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testTMaybeSerialization() {
@@ -65,7 +65,7 @@ class native_implTest {
       Assert.assertEquals(v, SerializationUtils.roundtrip(v))
     }
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testTFeaturesLayoutSerialization() {
@@ -90,12 +90,12 @@ class native_implTest {
       v.setIsAvailable(false);
       data.add(v);
     }
-    
+
     val featuresLayout = new TFeaturesLayout();
     featuresLayout.Init(data);
     Assert.assertEquals(featuresLayout, SerializationUtils.roundtrip(featuresLayout));
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testTIntermediateDataMetaInfoSerialization() {
@@ -110,10 +110,10 @@ class native_implTest {
       metaInfo.setTargetCount(1);
       metaInfo.setTargetType(ERawTargetType.Float);
       metaInfo.setHasUnknownNumberOfSparseFeatures(true);
-      
+
       Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
     }
-    
+
     {
       val metaInfo = new TIntermediateDataMetaInfo();
       metaInfo.setObjectCount(java.math.BigInteger.valueOf(10));
@@ -136,7 +136,7 @@ class native_implTest {
       );
       metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
       metaInfo.setTargetType(ERawTargetType.Float);
-      
+
       val columns = new TVector_TColumn();
       {
         val c = new TColumn();
@@ -168,7 +168,7 @@ class native_implTest {
         c.setId("f5");
         columns.add(c);
       }
-      
+
       val dataColumnsMetaInfo = new TDataColumnsMetaInfo();
       dataColumnsMetaInfo.setColumns(columns);
       metaInfo.setColumnsInfo(new TMaybe_TDataColumnsMetaInfo(dataColumnsMetaInfo));
@@ -184,7 +184,7 @@ class native_implTest {
       );
       metaInfo.setFeaturesLayout(new TFeaturesLayoutPtr(featuresLayout));
       metaInfo.setTargetType(ERawTargetType.Float);
-      
+
       metaInfo.setBaselineCount(2);
       metaInfo.setHasGroupId(true);
       metaInfo.setHasGroupWeight(true);
@@ -192,7 +192,7 @@ class native_implTest {
       metaInfo.setHasWeights(true);
       metaInfo.setHasTimestamp(true);
       metaInfo.setHasPairs(true);
-      
+
       val columns = new TVector_TColumn();
       {
         val c = new TColumn();
@@ -224,14 +224,14 @@ class native_implTest {
         c.setId("f5");
         columns.add(c);
       }
-      
+
       val dataColumnsMetaInfo = new TDataColumnsMetaInfo();
       dataColumnsMetaInfo.setColumns(columns);
       metaInfo.setColumnsInfo(new TMaybe_TDataColumnsMetaInfo(dataColumnsMetaInfo));
       Assert.assertEquals(metaInfo, SerializationUtils.roundtrip(metaInfo));
     }
   }
-  
+
   @Test
   @throws(classOf[Exception])
   def testQuantizedFeaturesInfo() {
@@ -262,7 +262,7 @@ class native_implTest {
       featuresLayout.Init(data);
       featuresLayout
     }
-    
+
     val quantizedFeaturesInfo = new TQuantizedFeaturesInfo();
     {
       quantizedFeaturesInfo.Init(generateFeaturesLayout);
@@ -272,20 +272,20 @@ class native_implTest {
         new TVector_float(Array[Float](0.1f, 0.3f, 0.9f)),
         /*defaultQuantizedBin*/ null
       );
-      
+
       quantizedFeaturesInfo.SetNanMode(1, ENanMode.Min);
-      
+
       val defaultQuantizedBin = new TDefaultQuantizedBin();
       defaultQuantizedBin.setIdx(1.toLong);
       defaultQuantizedBin.setFraction(0.7f);
-      
+
       quantizedFeaturesInfo.SetQuantization(
         1,
         new TVector_float(Array[Float](0.0f, 0.5f, 1.0f, 2.3f)),
         defaultQuantizedBin
       );
     }
-    
+
     Assert.assertEquals(quantizedFeaturesInfo.GetFeaturesLayout.__deref__, generateFeaturesLayout);
     {
       val borders = new TVector_float;
@@ -306,33 +306,33 @@ class native_implTest {
       Assert.assertEquals(defaultQuantizedBin.getIdx, 1.toLong);
       Assert.assertEquals(defaultQuantizedBin.getFraction, 0.7f, 1e-13f);
     }
-    
+
     Assert.assertEquals(quantizedFeaturesInfo, SerializationUtils.roundtrip(quantizedFeaturesInfo));
   }
-    
-  
+
+
   @Test
   @throws(classOf[Exception])
   def testTVector_float() {
     val testSequences = Seq(
-      Seq[Float](),    
+      Seq[Float](),
       Seq(0.1f),
       Seq(0.2f, 0.4f, 1.2f)
     )
-    
+
     testSequences.map {
       testSequence => {
         val srcArray = testSequence.toArray
         val v = new TVector_float(srcArray)
         val fromVector = v.toPrimitiveArray
         Assert.assertArrayEquals(srcArray, fromVector, 1e-13f)
-        
+
         val v2 = new TVector_float(srcArray)
         Assert.assertEquals(v, v2)
-        
+
         v2.add(0.88f)
         Assert.assertNotEquals(v, v2)
-        
+
         Assert.assertEquals(v, SerializationUtils.roundtrip(v))
       }
     }
@@ -342,24 +342,24 @@ class native_implTest {
   @throws(classOf[Exception])
   def testTVector_i32() {
     val testSequences = Seq(
-      Seq[Int](),    
+      Seq[Int](),
       Seq(1),
       Seq(2, 4, 6)
     )
-    
+
     testSequences.map {
       testSequence => {
         val srcArray = testSequence.toArray
         val v = new TVector_i32(srcArray)
         val fromVector = v.toPrimitiveArray
         Assert.assertArrayEquals(srcArray, fromVector)
-        
+
         val v2 = new TVector_i32(srcArray)
         Assert.assertEquals(v, v2)
-        
+
         v2.add(4)
         Assert.assertNotEquals(v, v2)
-        
+
         Assert.assertEquals(v, SerializationUtils.roundtrip(v))
       }
     }

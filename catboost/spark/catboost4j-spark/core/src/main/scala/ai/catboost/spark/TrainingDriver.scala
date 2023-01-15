@@ -34,7 +34,6 @@ class WorkerInfo (
   val port: Int
 ) extends Serializable {
   override def equals(rhs: Any) : Boolean = {
-    System.out.println("WorkerInfo.equals")
     val rhsWorkerInfo = rhs.asInstanceOf[WorkerInfo]
     if (rhsWorkerInfo == null) {
       false

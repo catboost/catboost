@@ -11,7 +11,7 @@ extern "C" {
 
     JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *jvm, void *reserved) {
         Y_UNUSED(reserved);
-    
+
         CachedJvm = jvm;
         return JNI_VERSION_1_8;
     }
@@ -22,7 +22,7 @@ struct TPerThreadJNIEnv {
 public:
     JNIEnv* JniEnv = nullptr;
     bool    Detach = false;
-    
+
 public:
     ~TPerThreadJNIEnv() {
         if (Detach) {
