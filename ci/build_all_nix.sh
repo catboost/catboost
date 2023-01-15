@@ -104,8 +104,8 @@ python ../tools/build_native_for_maven.py . catboost4j-prediction --build releas
 
 # Spark native shared library
 
-cd ../spark/catboost4j-spark/core
+cd ../../spark/catboost4j-spark/core
 
-python ../tools/build_native_for_maven.py . catboost4j-spark-impl --build release --no-src-links \
+python ../../../jvm-packages/tools/build_native_for_maven.py . catboost4j-spark-impl --build release --no-src-links \
 -DOS_SDK=local -DHAVE_CUDA=no -DUSE_LOCAL_SWIG=yes -DUSE_SYSTEM_JDK=$JAVA_HOME -DJAVA_HOME=$JAVA_HOME
 
