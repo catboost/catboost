@@ -348,7 +348,6 @@ migrations:
     - dict/mt/make/tools/tfnn/convert_mtd_to_tfnn
     - dict/mt/make/tools/yt_transform/tests
     - dict/mt/mtdict/make/definitions/modules/extracts/remove_etym
-    - dict/mt/scripts/human_eval/prepare_pool/lib
     - dict/mt/scripts/testsets/crowdsource/globalvoices/find_parallel_pages/extract_page_info
     - dict/mt/tools/log_converter/rem_tool
     - dict/mt/tools/tmx_to_plain_text
@@ -1039,7 +1038,6 @@ migrations:
     - sandbox/projects/metrika/frontend/metrika_watch_old_release
     - sandbox/projects/metrika/frontend/metrika_watch_release
     - sandbox/projects/metrika/mobile/sdk/helpers
-    - sandbox/projects/metrika/utils/platform
     - sandbox/projects/mobile_apps/teamcity_sandbox_runner/runner
     - sandbox/projects/mobile_apps/teamcity_sandbox_runner/utils/html_log_reporter
     - sandbox/projects/mssngr/rtc
