@@ -89,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\survival_aft_utils.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_multi_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_updater_helpers.h"/>
@@ -102,6 +103,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scratch_cache.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\survival_aft_utils.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
