@@ -9,10 +9,12 @@ SRCS(
     dataset_rows_reader.cpp
     data_provider_builders.cpp
     features_layout.cpp
+    groupid.cpp
     jni_helpers.cpp
     master.cpp
     meta_info.cpp
     model.cpp
+    pairs.cpp
     quantized_features_info.cpp
     quantization.cpp
     GLOBAL spark_quantized.cpp
@@ -38,6 +40,7 @@ PEERDIR(
     catboost/private/libs/algo
     catboost/private/libs/app_helpers
     catboost/private/libs/data_util
+    catboost/private/libs/data_types
     catboost/private/libs/distributed
     catboost/private/libs/options
     catboost/private/libs/quantized_pool

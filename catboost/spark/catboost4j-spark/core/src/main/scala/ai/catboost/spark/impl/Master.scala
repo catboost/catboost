@@ -35,20 +35,20 @@ private[spark] object Master {
     val savedPoolsFuture = Future {
       val threadCount = SparkHelpers.getThreadCountForDriver(preprocessedTrainPool.data.sparkSession)
 
-      val trainPoolAsFile = DataHelpers.downloadQuantizedPoolToTempFile(
+      val trainPoolFiles = DataHelpers.downloadQuantizedPoolToTempFiles(
         preprocessedTrainPool,
         includeFeatures=false,
         threadCount
       )
-      val testPoolsAsFiles = preprocessedEvalPools.map {
-        testPool => DataHelpers.downloadQuantizedPoolToTempFile(
+      val testPoolsFiles = preprocessedEvalPools.map {
+        testPool => DataHelpers.downloadQuantizedPoolToTempFiles(
           testPool,
           includeFeatures=true,
           threadCount
         )
       }.toArray
 
-      (trainPoolAsFile, testPoolsAsFiles)
+      (trainPoolFiles, testPoolsFiles)
     }
     new Master(preprocessedTrainPool.data.sparkSession, savedPoolsFuture, catBoostJsonParamsForMasterString)
   }
@@ -57,7 +57,7 @@ private[spark] object Master {
 
 private[spark] class Master(
   val spark: SparkSession,
-  val savedPoolsFuture : Future[(Path, Array[Path])],
+  val savedPoolsFuture : Future[(PoolFilesPaths, Array[PoolFilesPaths])],
   val catBoostJsonParamsForMasterString: String,
 
   // will be set in trainCallback, called from the trainingDriver's run()
@@ -115,12 +115,25 @@ private[spark] class Master(
 
     val (savedTrainPool, savedEvalPools) = Await.result(savedPoolsFuture, Duration.Inf)
 
-    args += ("--learn-set", "spark-quantized://master-part:" + savedTrainPool.toString)
+    args += ("--learn-set", "spark-quantized://master-part:" + savedTrainPool.mainData.toString)
+    if (savedTrainPool.pairsData.isDefined) {
+      args += ("--learn-pairs", "dsv-grouped-with-idx://" + savedTrainPool.pairsData.get.toString)
+    }
     if (!savedEvalPools.isEmpty) {
       args += (
         "--test-set",
-        savedEvalPools.map(path => "spark-quantized://master-part:" + path).mkString(",")
+        savedEvalPools.map(
+            poolFilesPaths => "spark-quantized://master-part:" + poolFilesPaths.mainData
+        ).mkString(",")
       )
+      if (savedTrainPool.pairsData.isDefined) { // if train pool has pairs so do test pools
+        args += (
+          "--test-pairs",
+          savedEvalPools.map(
+              poolFilesPaths => "dsv-grouped-with-idx://" + poolFilesPaths.pairsData.get.toString
+          ).mkString(",")
+        )
+      }
     }
 
     val masterAppProcess = RunClassInNewProcess(

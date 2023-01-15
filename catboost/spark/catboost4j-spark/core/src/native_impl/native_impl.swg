@@ -24,6 +24,8 @@
 %include "maybe.i"
 %include "string.i"
 
+%include "groupid.i"
+
 %include "column.i"
 %include "cd_parser.i"
 %include "features_layout.i"
@@ -33,6 +35,7 @@
 %include "quantized_features_info.i"
 %include "data_provider.i"
 %include "data_provider_builders.i"
+%include "pairs.i"
 %include "quantization.i"
 
 %include "quantized_pool_serialization.i"

@@ -27,11 +27,8 @@ private[spark] object Worker {
     trainingDriverListeningAddress: InetSocketAddress,
     catBoostJsonParamsString: String,
     quantizedFeaturesInfo: QuantizedFeaturesInfoPtr,
-    columnsIndexMap: HashMap[String, Int], // column type -> idx in schema
-    dataMetaInfo: TIntermediateDataMetaInfo,
-    schema: StructType,
     threadCount: Int,
-    rows: Iterator[Row]
+    getDataProviderCallback : () => TDataProviderPtr // can return null
   ) = {
     if (!usedInCurrentProcess.compareAndSet(false, true)) {
       throw new CatBoostError("An active CatBoost worker is already present in the current process")
@@ -41,18 +38,7 @@ private[spark] object Worker {
       // TaskContext.getPartitionId will become invalid when iteration over rows is finished, so save it
       val partitionId = TaskContext.getPartitionId
 
-      var quantizedDataProvider : TDataProviderPtr = null
-
-      if (rows.hasNext) {
-        quantizedDataProvider = DataHelpers.loadQuantizedDataset(
-          quantizedFeaturesInfo,
-          columnsIndexMap,
-          dataMetaInfo,
-          schema,
-          threadCount,
-          rows
-        )
-      }
+      var quantizedDataProvider = getDataProviderCallback()
 
       val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
@@ -116,6 +102,7 @@ private[spark] object Worker {
 
 private[spark] class Workers(
   val spark: SparkSession,
+  val workerCount: Int,
   val trainingDriverListeningPort: Int,
   val preprocessedTrainPool: Pool,
   val catBoostJsonParams: JObject
@@ -130,7 +117,8 @@ private[spark] class Workers(
 
     val (trainDataForWorkers, columnIndexMapForWorkers) = DataHelpers.selectColumnsForTrainingAndReturnIndex(
       preprocessedTrainPool,
-      includeFeatures = true
+      includeFeatures = true,
+      includeSampleId = (preprocessedTrainPool.pairsData != null)
     )
 
     val threadCount = SparkHelpers.getThreadCountForTask(spark)
@@ -148,18 +136,63 @@ private[spark] class Workers(
     val dataMetaInfo = preprocessedTrainPool.createDataMetaInfo
     val schemaForWorkers = trainDataForWorkers.schema
 
-    trainDataForWorkers.foreachPartition {
-      rows : Iterator[Row] => {
-        Worker.processPartition(
-          trainingDriverListeningAddress,
-          catBoostJsonParamsForWorkersString,
-          quantizedFeaturesInfo,
-          columnIndexMapForWorkers,
-          dataMetaInfo,
-          schemaForWorkers,
-          threadCount,
-          rows
-        )
+    if (preprocessedTrainPool.pairsData != null) {
+      val cogroupedTrainData = DataHelpers.getCogroupedMainAndPairsRDD(
+        trainDataForWorkers, 
+        columnIndexMapForWorkers("groupId"), 
+        preprocessedTrainPool.pairsData
+      ).repartition(workerCount)
+      val pairsSchema = preprocessedTrainPool.pairsData.schema
+
+      cogroupedTrainData.foreachPartition {
+        groups : Iterator[(Long, (Iterable[Iterable[Row]], Iterable[Iterable[Row]]))] => {
+          Worker.processPartition(
+            trainingDriverListeningAddress,
+            catBoostJsonParamsForWorkersString,
+            quantizedFeaturesInfo,
+            threadCount,
+            () => {
+              if (groups.hasNext) {
+                DataHelpers.loadQuantizedDatasetWithPairs(
+                  quantizedFeaturesInfo,
+                  columnIndexMapForWorkers,
+                  dataMetaInfo,
+                  schemaForWorkers,
+                  pairsSchema,
+                  threadCount,
+                  groups
+                )
+              } else {
+                null
+              }
+           }
+          )
+        }
+      }
+    } else {
+      trainDataForWorkers.repartition(workerCount).foreachPartition {
+        rows : Iterator[Row] => {
+          Worker.processPartition(
+            trainingDriverListeningAddress,
+            catBoostJsonParamsForWorkersString,
+            quantizedFeaturesInfo,
+            threadCount,
+            () => {
+              if (rows.hasNext) {
+                DataHelpers.loadQuantizedDataset(
+                  quantizedFeaturesInfo,
+                  columnIndexMapForWorkers,
+                  dataMetaInfo,
+                  schemaForWorkers,
+                  threadCount,
+                  rows
+                )
+              } else {
+                null
+              }
+            }
+          )
+        }
       }
     }
   }

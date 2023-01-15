@@ -1548,4 +1548,85 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
         TestReadDataset(testCase);
     }
+
+    Y_UNIT_TEST(ReadDatasetWithGroupedWithIdxPairs) {
+        TReadDatasetTestCase testCase;
+        TSrcData srcData;
+
+        srcData.CdFileData = AsStringBuf(
+            "0\tGroupId\n"
+            "1\tSubgroupId\n"
+            "2\tNum\tf0\n"
+            "3\tNum\tf1\n"
+            "4\tNum\tf2\n"
+        );
+        srcData.DatasetFileData = AsStringBuf(
+            "query0\tsite1\t0.1\t0.2\t0.11\n"
+            "query0\tsite22\t0.97\t0.82\t0.33\n"
+            "query1\tSite9\t0.13\t0.22\t0.23\n"
+            "Query 2\tsite12\t0.14\t0.18\t0.1\n"
+            "Query 2\tsite22\t0.9\t0.67\t0.17\n"
+            "Query 2\tSite45\t0.66\t0.1\t0.31\n"
+        );
+        srcData.DsvFileHasHeader = false;
+        srcData.PairsFileData = AsStringBuf(
+            "0\t0\t1\t0.1\n"
+            "2\t1\t0\t1.0\n"
+            "2\t0\t2\t0.2\n"
+        );
+        srcData.PairsScheme = "dsv-grouped-with-idx";
+        testCase.SrcData = std::move(srcData);
+
+
+        TExpectedRawData expectedData;
+
+        TDataColumnsMetaInfo dataColumnsMetaInfo;
+        dataColumnsMetaInfo.Columns = {
+            {EColumn::GroupId, ""},
+            {EColumn::SubgroupId, ""},
+            {EColumn::Num, "f0"},
+            {EColumn::Num, "f1"},
+            {EColumn::Num, "f2"},
+        };
+
+        TVector<TString> featureId = {"f0", "f1", "f2"};
+
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.Objects.GroupIds = TVector<TStringBuf>{
+            "query0",
+            "query0",
+            "query1",
+            "Query 2",
+            "Query 2",
+            "Query 2"
+        };
+        expectedData.Objects.SubgroupIds = TVector<TStringBuf>{
+            "site1",
+            "site22",
+            "Site9",
+            "site12",
+            "site22",
+            "Site45"
+        };
+        expectedData.Objects.FloatFeatures = {
+            TVector<float>{0.1f, 0.97f, 0.13f, 0.14f, 0.9f, 0.66f},
+            TVector<float>{0.2f, 0.82f, 0.22f, 0.18f, 0.67f, 0.1f},
+            TVector<float>{0.11f, 0.33f, 0.23f, 0.1f, 0.17f, 0.31f}
+        };
+
+        expectedData.ObjectsGrouping = TObjectsGrouping(
+            TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
+        );
+        expectedData.Target.Weights = TWeights<float>(6);
+        expectedData.Target.GroupWeights = TWeights<float>(6);
+        expectedData.Target.Pairs = TGroupedPairsInfo{
+            TPairInGroup{0, 0, 1, 0.1f},
+            TPairInGroup{2, 1, 0, 1.0f},
+            TPairInGroup{2, 0, 2, 0.2f}
+        };
+
+        testCase.ExpectedData = std::move(expectedData);
+
+        TestReadDataset(testCase);
+    }
 }
