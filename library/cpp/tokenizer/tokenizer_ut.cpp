@@ -77,7 +77,7 @@ namespace {
             //            Cout << "TOK: '" << TUtf16String(token.Token, token.Leng) << "'" << Endl;
             OrigLensStr += ToString(origleng) + " ";
             if (type == NLP_WORD || type == NLP_INTEGER || type == NLP_MARK || type == NLP_FLOAT) {
-                UNIT_ASSERT(TCharTraits<wchar16>::Find(token.Token, 0, token.Leng) == nullptr);
+                UNIT_ASSERT(!TWtringBuf(token.Token, token.Leng).Contains(wchar16(0)));
                 const size_t n = token.SubTokens.size();
                 if (n > 1)
                     OutputStream << '[';
@@ -127,7 +127,7 @@ namespace {
                 if (type == NLP_SENTBREAK)
                     OutputStream << "<S>";
             } else if (type == NLP_PARABREAK) {
-                UNIT_ASSERT(TCharTraits<wchar16>::Find(token.Token, 0, token.Leng) == nullptr);
+                UNIT_ASSERT(!TWtringBuf(token.Token, token.Leng).Contains(wchar16(0)));
                 OutputStream << TUtf16String(token.Token, token.Leng) << "<P>";
             } else if (type == NLP_END) {
                 UNIT_ASSERT(token.Leng == 1 && *token.Token == 0);
