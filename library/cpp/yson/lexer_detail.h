@@ -30,7 +30,7 @@ namespace NYT {
         //             None                    = 10111b
         //             Percent                 = 11011b
 
-        enum EReadStartCase {
+        enum EReadStartCase : unsigned {
             BinaryString = 0,      // =    00b
             OtherSpecialToken = 2, // =    10b
 
