@@ -956,8 +956,6 @@ class ToolchainOptions(object):
 
         # default C++ standard is set here, some older toolchains might need to redefine it in ya.conf.json
         self.cxx_std = self.params.get('cxx_std', 'c++20')
-        if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_android:
-            self.cxx_std = 'c++17'  # MAPSMOBI does not build with c++20 yet DTCC-55
 
         self._env = tc_json.get('env', {})
 
