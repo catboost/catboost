@@ -1584,18 +1584,33 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
+        self.type = self._get_default_linker_type()
 
-        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_windows):
+    def _get_default_linker_type(self):
+        if not self.tc.is_from_arcadia:
+            # External (e.g. system) toolchain: disable linker selection logic
+            return None
 
-            if self.build.target.is_android:
-                self.type = Linker.LLD
+        if self.build.target.is_android:
+            # Android toolchain is NDK, LLD works on all supported platforms
+            return Linker.LLD
+
+        elif self.build.target.is_linux:
+            if not self.build.host.is_linux:
+                # DEVTOOLS-7709: cross-LLD does not work with Arcadia toolchain
+                return None
             elif self.tc.is_clang:
-                # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
-                self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
+                if is_positive('USE_LTO') and not is_positive('MUSL'):
+                    # DEVTOOLS-6782: LLD fails to link LTO builds with in-memory ELF objects larger than 4 GiB
+                    return Linker.GOLD
+                else:
+                    return Linker.LLD
             else:
-                self.type = Linker.GOLD
-        else:
-            self.type = None
+                # GCC et al.
+                return Linker.GOLD
+
+        # There is no linker choice on Darwin (ld64) or Windows (link.exe)
+        return None
 
     def print_linker(self):
         self._print_linker_selector()
