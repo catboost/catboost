@@ -1162,8 +1162,8 @@ void TrainModel(
         &executor,
         &profile);
 
-    const bool hasTextFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0;
-    if (hasTextFeatures) {
+    const bool hasEmbeddingFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0;
+    if (hasEmbeddingFeatures) {
         needFstr = false;
     }
 

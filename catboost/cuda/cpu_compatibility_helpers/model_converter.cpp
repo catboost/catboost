@@ -251,12 +251,13 @@ TFullModel TModelConverter::Convert(
         TFeatureEstimatorsPtr featureEstimators = FeaturesManager.GetFeatureEstimators();
         const TGuid& estimatorGuid = featureEstimators->GetEstimatorGuid(estimatedFeature.EstimatorId);
 
-        modelSplit.EstimatedFeature = TEstimatedFeatureSplit{
+        modelSplit.EstimatedFeature = TEstimatedFeatureSplit(TModelEstimatedFeature{
             SafeIntegerCast<int>(featureEstimators->GetEstimatorSourceFeatureIdx(estimatorGuid).TextFeatureId),
             estimatorGuid,
             SafeIntegerCast<int>(estimatedFeature.LocalFeatureId),
+            FeatureTypeToEstimatedSourceFeatureType(featureEstimators->GetEstimatorSourceType(estimatorGuid))},
             border
-        };
+        );
         return modelSplit;
     }
 

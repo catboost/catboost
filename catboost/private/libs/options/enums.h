@@ -29,6 +29,11 @@ enum class EFeatureType {
     Embedding
 };
 
+enum class EEstimatedSourceFeatureType {
+    Text,
+    Embedding
+};
+
 enum EErrorType {
     PerObjectError,
     PairwiseError,

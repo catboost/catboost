@@ -707,3 +707,21 @@ bool IsUncertaintyPredictionType(EPredictionType type) {
         type == EPredictionType::VirtEnsembles
     );
 }
+
+EEstimatedSourceFeatureType FeatureTypeToEstimatedSourceFeatureType(EFeatureType featureType) {
+    if (featureType == EFeatureType::Text) {
+        return EEstimatedSourceFeatureType::Text;
+    } else {
+        CB_ENSURE(featureType == EFeatureType::Embedding);
+        return EEstimatedSourceFeatureType::Embedding;
+    }
+}
+
+EFeatureType EstimatedSourceFeatureTypeToFeatureType(EEstimatedSourceFeatureType featureType) {
+    if (featureType == EEstimatedSourceFeatureType::Text) {
+        return EFeatureType::Text;
+    } else {
+        CB_ENSURE(featureType == EEstimatedSourceFeatureType::Embedding);
+        return EFeatureType::Embedding;
+    }
+}

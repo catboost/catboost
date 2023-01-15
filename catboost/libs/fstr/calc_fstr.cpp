@@ -68,6 +68,19 @@ static TVector<TFeature>  GetCombinationClassFeatures(const TFullModel& model) {
         }
         featuresCombinations.back().second = TFeature(ctrFeature);
     }
+    for (const TEstimatedFeature& estimatedFeature: forest.GetEstimatedFeatures()) {
+        featuresCombinations.emplace_back();
+        featuresCombinations.back().first = {
+            (int)layout.GetExternalFeatureIdx(
+                estimatedFeature.ModelEstimatedFeature.SourceFeatureId,
+                EstimatedSourceFeatureTypeToFeatureType(estimatedFeature.ModelEstimatedFeature.SourceFeatureType)
+            )
+        };
+        featuresCombinations.back().second = TFeature(
+            estimatedFeature.ModelEstimatedFeature,
+            model.TextProcessingCollection->GetCalcer(estimatedFeature.ModelEstimatedFeature.CalcerId)->Type()
+        );
+    }
     TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
     Sort(
@@ -115,7 +128,7 @@ static TVector<TMxTree> BuildTrees(
         auto treeSplitsStart = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
         auto treeSplitsStop = treeSplitsStart + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
         for (auto splitIdx = treeSplitsStart; splitIdx < treeSplitsStop; ++splitIdx) {
-            auto feature = GetFeature(binFeatures[model.ModelTrees->GetModelTreeData()->GetTreeSplits()[splitIdx]]);
+            auto feature = GetFeature(model, binFeatures[model.ModelTrees->GetModelTreeData()->GetTreeSplits()[splitIdx]]);
             tree.SrcFeatures.push_back(featureToIdx.at(feature));
         }
     }
@@ -129,7 +142,7 @@ static THashMap<TFeature, int, TFeatureHash> GetFeatureToIdxMap(
     THashMap<TFeature, int, TFeatureHash> featureToIdx;
     const auto& modelBinFeatures = model.ModelTrees->GetBinFeatures();
     for (auto binSplit : model.ModelTrees->GetModelTreeData()->GetTreeSplits()) {
-        TFeature feature = GetFeature(modelBinFeatures[binSplit]);
+        TFeature feature = GetFeature(model, modelBinFeatures[binSplit]);
         if (featureToIdx.contains(feature)) {
             continue;
         }
@@ -450,8 +463,12 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
 {
     int catFeaturesCount = model.GetNumCatFeatures();
     int floatFeaturesCount = model.GetNumFloatFeatures();
+    int textFeaturesCount = model.GetNumTextFeatures();
+    int embeddingFeaturesCount = model.GetNumEmbeddingFeatures();
     TVector<double> catFeatureEffect(catFeaturesCount);
     TVector<double> floatFeatureEffect(floatFeaturesCount);
+    TVector<double> textFeatureEffect(textFeaturesCount);
+    TVector<double> embeddingFeatureEffect(embeddingFeaturesCount);
 
     for (const auto& effectWithSplit : internalEffect) {
         TFeature feature = effectWithSplit.second;
@@ -478,9 +495,15 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
                 }
                 break;
             }
-            case ESplitType::EstimatedFeature:
-                CB_ENSURE(false, "Estimated features is not supported in fstr mode");
+            case ESplitType::EstimatedFeature: {
+                if (feature.EstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Text) {
+                    textFeatureEffect[feature.EstimatedFeature.SourceFeatureId] += effectWithSplit.first;
+                } else {
+                    CB_ENSURE(feature.EstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Embedding);
+                    embeddingFeatureEffect[feature.EstimatedFeature.SourceFeatureId] += effectWithSplit.first;
+                }
                 break;
+            }
         }
     }
 
@@ -492,6 +515,14 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
     for (int i = 0; i < floatFeatureEffect.ysize(); ++i) {
         regularFeatureEffect.push_back(
             TFeatureEffect(floatFeatureEffect[i], EFeatureType::Float, i));
+    }
+    for (int i = 0; i < textFeatureEffect.ysize(); ++i) {
+        regularFeatureEffect.push_back(
+            TFeatureEffect(textFeatureEffect[i], EFeatureType::Text, i));
+    }
+    for (int i = 0; i < embeddingFeatureEffect.ysize(); ++i) {
+        regularFeatureEffect.push_back(
+            TFeatureEffect(embeddingFeatureEffect[i], EFeatureType::Embedding, i));
     }
 
     Sort(
@@ -637,8 +668,8 @@ static TVector<TVector<double>> CalcFstr(
         !model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
     CB_ENSURE(
-        model.ModelTrees->GetTextFeatures().empty(),
-        "CalcFstr is not implemented for models with text features"
+        model.ModelTrees->GetEmbeddingFeatures().empty(),
+        "CalcFstr is not implemented for models with embeddings features"
     );
 
     TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor, calcType);

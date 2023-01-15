@@ -248,12 +248,13 @@ TFullModel SimpleTextModel(
 
         ui32 estimatedFeatureIdx = 0;
         for (const auto& producedFeature: textCollection->GetProducedFeatures()) {
-            TEstimatedFeatureSplit estimatedFeatureSplit{
+            TEstimatedFeatureSplit estimatedFeatureSplit(TModelEstimatedFeature{
                 SafeIntegerCast<int>(producedFeature.FeatureId),
                 producedFeature.CalcerId,
                 SafeIntegerCast<int>(producedFeature.LocalId),
+                EEstimatedSourceFeatureType::Text},
                 /* split */ 0.f
-            };
+            );
 
             const ui32 calcerOffset = textCollection->GetAbsoluteCalcerOffset(producedFeature.CalcerId);
             const ui32 estimatedFeatureOffset = calcerOffset + producedFeature.LocalId;

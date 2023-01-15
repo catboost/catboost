@@ -258,6 +258,18 @@ static void MapBinFeaturesToClasses(
         }
         featureBucketSizes.push_back(ctrFeature.Borders.size());
     }
+
+    for (const TEstimatedFeature& estimatedFeature: forest.GetEstimatedFeatures()) {
+        featuresCombinations.emplace_back(
+            1,
+            (int)layout.GetExternalFeatureIdx(
+                estimatedFeature.ModelEstimatedFeature.SourceFeatureId,
+                EstimatedSourceFeatureTypeToFeatureType(estimatedFeature.ModelEstimatedFeature.SourceFeatureType)
+            )
+        );
+        featureBucketSizes.push_back(estimatedFeature.Borders.size());
+    }
+
     TVector<size_t> featureFirstBinBucket(featureBucketSizes.size(), 0);
     for (size_t idx : xrange((size_t)1, featureBucketSizes.size())) {
         featureFirstBinBucket[idx] = featureFirstBinBucket[idx - 1] + featureBucketSizes[idx - 1];

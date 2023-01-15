@@ -2472,6 +2472,60 @@ def test_fstr(fstr_type, boosting_type, grow_policy):
     )
 
 
+@pytest.mark.parametrize('fstr_type', ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction'])
+@pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
+def test_fstr_with_text_features(fstr_type, boosting_type, grow_policy):
+    pool = 'rotten_tomatoes'
+
+    separator_type = 'ByDelimiter'
+    feature_estimators = 'BoW,NaiveBayes,BM25'
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    return do_test_fstr(
+        fstr_type,
+        loss_function='Logloss',
+        input_path=data_file(pool, 'train'),
+        cd_path=data_file(pool, 'cd_binclass'),
+        boosting_type=boosting_type,
+        grow_policy=grow_policy,
+        normalize=False,
+        additional_train_params=('--text-processing', json.dumps(text_processing)) +
+                                (('--max-ctr-complexity', '1') if fstr_type == 'ShapValues' else ())
+    )
+
+
+@pytest.mark.parametrize('fstr_type', ['LossFunctionChange', 'ShapValues'])
+@pytest.mark.parametrize('boosting_type, grow_policy', BOOSTING_TYPE_WITH_GROW_POLICIES)
+def test_fstr_with_text_features_shap(fstr_type, boosting_type, grow_policy):
+    pool = 'rotten_tomatoes'
+
+    separator_type = 'ByDelimiter'
+    feature_estimators = 'NaiveBayes'
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    return do_test_fstr(
+        fstr_type,
+        loss_function='Logloss',
+        input_path=data_file(pool, 'train'),
+        cd_path=data_file(pool, 'cd_binclass'),
+        boosting_type=boosting_type,
+        grow_policy=grow_policy,
+        normalize=False,
+        additional_train_params=('--random-strength', '0', '--text-processing', json.dumps(text_processing)) +
+            (('--max-ctr-complexity', '1') if fstr_type == 'ShapValues' else ())
+    )
+
+
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
 @pytest.mark.parametrize('grow_policy', GROW_POLICIES)
 def test_fstr_normalized_model(fstr_type, grow_policy):

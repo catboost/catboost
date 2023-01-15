@@ -383,8 +383,8 @@ namespace NCB::NModelEvaluation {
 
                 for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
                     const ui32 featureOffset =
-                        textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.CalcerId)
-                        + estimatedFeature.LocalIndex;
+                        textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                        + estimatedFeature.ModelEstimatedFeature.LocalId;
 
                     auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
 
@@ -443,8 +443,8 @@ namespace NCB::NModelEvaluation {
 
                 for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
                     const ui32 featureOffset =
-                        embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.CalcerId)
-                        + estimatedFeature.LocalIndex;
+                        embeddingProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.ModelEstimatedFeature.CalcerId)
+                        + estimatedFeature.ModelEstimatedFeature.LocalId;
 
                     auto estimatedFeaturePtr = &estimatedFeatures[featureOffset * docCount];
 

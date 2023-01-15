@@ -109,7 +109,8 @@ static void CreateDataForTest(
                     TEstimatedFeature{
                         SafeIntegerCast<int>((*estimators)->GetEstimatorSourceFeatureIdx(guid).TextFeatureId),
                         guid,
-                        SafeIntegerCast<int>(localId)
+                        SafeIntegerCast<int>(localId),
+                        FeatureTypeToEstimatedSourceFeatureType((*estimators)->GetEstimatorSourceType(guid))
                     }
                 );
             }
@@ -176,12 +177,12 @@ static void AssertEqualCollections(
     TVector<float> result = ApplyCollection(actualCollection, textFeatures);
 
     if (partEstimatedFeatures.Defined()) {
-        TGuid lastGuid = partEstimatedFeatures->at(0).CalcerId;
+        TGuid lastGuid = partEstimatedFeatures->at(0).ModelEstimatedFeature.CalcerId;
         ui32 localId = 0;
         for (ui32 i: xrange(partEstimatedFeatures->size())) {
-            TEstimatedFeature& feature = partEstimatedFeatures->at(i);
+            TModelEstimatedFeature& feature = partEstimatedFeatures->at(i).ModelEstimatedFeature;
             const TGuid calcerId = feature.CalcerId;
-            const ui32 originalLocalId = feature.LocalIndex;
+            const ui32 originalLocalId = feature.LocalId;
             if (calcerId != lastGuid) {
                 lastGuid = calcerId;
                 localId = 0;

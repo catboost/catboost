@@ -3889,6 +3889,78 @@
     "test.test_fstr_with_target_border_and_class_weights[ShapValues]": {
         "uri": "file://test.test_fstr_with_target_border_and_class_weights_ShapValues_/fstr.tsv"
     },
+    "test.test_fstr_with_text_features[Ordered-SymmetricTree-Interaction]": {
+        "uri": "file://test.test_fstr_with_text_features_Ordered-SymmetricTree-Interaction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Ordered-SymmetricTree-InternalFeatureImportance]": {
+        "uri": "file://test.test_fstr_with_text_features_Ordered-SymmetricTree-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Ordered-SymmetricTree-InternalInteraction]": {
+        "uri": "file://test.test_fstr_with_text_features_Ordered-SymmetricTree-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Ordered-SymmetricTree-PredictionValuesChange]": {
+        "uri": "file://test.test_fstr_with_text_features_Ordered-SymmetricTree-PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Depthwise-Interaction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Depthwise-Interaction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Depthwise-InternalFeatureImportance]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Depthwise-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Depthwise-InternalInteraction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Depthwise-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Depthwise-PredictionValuesChange]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Depthwise-PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Lossguide-Interaction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Lossguide-Interaction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Lossguide-InternalFeatureImportance]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Lossguide-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Lossguide-InternalInteraction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Lossguide-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-Lossguide-PredictionValuesChange]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-Lossguide-PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-SymmetricTree-Interaction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-SymmetricTree-Interaction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-SymmetricTree-InternalFeatureImportance]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-SymmetricTree-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-SymmetricTree-InternalInteraction]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-SymmetricTree-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features[Plain-SymmetricTree-PredictionValuesChange]": {
+        "uri": "file://test.test_fstr_with_text_features_Plain-SymmetricTree-PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Ordered-SymmetricTree-LossFunctionChange]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Ordered-SymmetricTree-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Ordered-SymmetricTree-ShapValues]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Ordered-SymmetricTree-ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-Depthwise-LossFunctionChange]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-Depthwise-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-Depthwise-ShapValues]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-Depthwise-ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-Lossguide-LossFunctionChange]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-Lossguide-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-Lossguide-ShapValues]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-Lossguide-ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-SymmetricTree-LossFunctionChange]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-SymmetricTree-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_text_features_shap[Plain-SymmetricTree-ShapValues]": {
+        "uri": "file://test.test_fstr_with_text_features_shap_Plain-SymmetricTree-ShapValues_/fstr.tsv"
+    },
     "test.test_fstr_with_weights[Depthwise-InternalFeatureImportance]": {
         "uri": "file://test.test_fstr_with_weights_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
