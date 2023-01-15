@@ -9,7 +9,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/class_label_options.h>
 
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
 #include <contrib/libs/protobuf/repeated_field.h>

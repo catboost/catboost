@@ -7,7 +7,7 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 
 #include <library/cpp/json/json_value.h>
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/algorithm.h>

@@ -3,7 +3,7 @@
 #include <util/system/compiler.h>
 #include <util/stream/output.h>
 
-// ya make -DFORCE_VCS_INFO_UPDATE --vcs-file=<vcs.json> library/svnversion/test/
+// ya make -DFORCE_VCS_INFO_UPDATE --vcs-file=<vcs.json> library/cpp/svnversion/test/
 // ./library/svnversion/test/test[.exe]
 int main() {
     Cout << "GetProgramSvnVersion(): " << GetProgramSvnVersion() << Endl;

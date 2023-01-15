@@ -44,7 +44,7 @@ PEERDIR(
     library/cpp/grid_creator
     library/cpp/json
     library/cpp/logger
-    library/svnversion
+    library/cpp/svnversion
     library/cpp/text_processing/dictionary
     library/cpp/threading/local_executor
 )

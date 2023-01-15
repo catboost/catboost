@@ -40,7 +40,6 @@ RECURSE(
     python
     statistics
     statistics/ut
-    svnversion
     testing
 )
 

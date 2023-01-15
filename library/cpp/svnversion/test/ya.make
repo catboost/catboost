@@ -1,6 +1,6 @@
 
 
 PROGRAM()
-PEERDIR(library/svnversion)
+PEERDIR(library/cpp/svnversion)
 SRCS(main.cpp)
 END()

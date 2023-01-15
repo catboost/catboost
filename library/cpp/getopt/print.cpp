@@ -6,7 +6,7 @@
 #include "posix_getopt.h"
 #include "ygetopt.h"
 
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 #include <library/cpp/build_info/build_info.h>
 
 namespace NLastGetoptPrivate {
