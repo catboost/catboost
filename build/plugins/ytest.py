@@ -117,10 +117,6 @@ def validate_test(unit, kw):
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith(("contrib", "mail", "maps", "tools/idl", "metrika", "devtools", "mds", "yandex_io", "smart_devices")):
             errors.append("BOOSTTEST is not allowed here")
-    elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
-        project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools"):
-            errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds", "yp", "yt")):
@@ -792,8 +788,6 @@ def _dump_test(
 
     if test_type == "PY_TEST":
         script_rel_path = "py.test"
-    elif test_type == "FLEUR":
-        script_rel_path = "ytest.py"
     elif test_type == "PEP8":
         script_rel_path = "py.test.pep8"
     elif test_type == "PY_FLAKES":
