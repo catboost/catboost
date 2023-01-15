@@ -76,7 +76,7 @@ namespace {
     class TSysLogInstance: public TLog {
     public:
         inline TSysLogInstance()
-            : TLog(new TStreamLogBackend(&Cnull))
+            : TLog(MakeHolder<TStreamLogBackend>(&Cnull))
         {
         }
     };

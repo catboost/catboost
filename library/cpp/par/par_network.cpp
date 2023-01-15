@@ -411,7 +411,7 @@ namespace NPar {
     private:
         void ReceiveLoopFunc() {
             while (!Stopped) {
-                THolder<NNetliba_v12::TUdpHttpRequest> nlReq = Requester->GetRequest();
+                THolder<NNetliba_v12::TUdpHttpRequest> nlReq(Requester->GetRequest());
                 if (nlReq) {
                     QuickLZDecompress(&nlReq->Data);
                     PAR_DEBUG_LOG << "Got request " << nlReq->Url.data() << Endl;

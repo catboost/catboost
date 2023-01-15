@@ -846,7 +846,7 @@ void TNode::AssureList()
 
 void TNode::CreateAttributes()
 {
-    Attributes_ = new TNode;
+    Attributes_ = MakeHolder<TNode>();
     Attributes_->Value_ = TMapType();
 }
 
