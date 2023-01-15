@@ -386,3 +386,9 @@ DENY .* -> contrib/python/Geohash
 ALLOW metrika/java/api -> contrib/java/patched/com/android/tools/r8
 ALLOW contrib/java/patched/com/android/tools/r8 -> contrib/java/patched/com/android/tools/r8
 DENY .* -> contrib/java/patched
+
+# because library will not work without external dependencies - IBM MQ
+# See https://st.yandex-team.ru/CONTRIB-1854 and pymqi README for details
+ALLOW travel/avia -> contrib/python/pymqi
+DENY .* -> contrib/python/pymqi
+
