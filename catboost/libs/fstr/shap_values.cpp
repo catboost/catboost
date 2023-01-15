@@ -1389,7 +1389,7 @@ static TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
     const TDataProvider& dataset,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
-    TShapPreparedTrees* preparedTrees,
+    const TShapPreparedTrees& preparedTrees,
     NPar::ILocalExecutor* localExecutor,
     ECalcTypeShapValues calcType
 ) {
@@ -1419,7 +1419,7 @@ static TVector<TVector<TVector<double>>> CalcShapValuesWithPreparedTrees(
             model,
             *featuresBlockIterator,
             flatFeatureCount,
-            *preparedTrees,
+            preparedTrees,
             fixedFeatureParams,
             start,
             end,
@@ -1472,7 +1472,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
         dataset,
         fixedFeatureParams,
         logPeriod,
-        &preparedTrees,
+        preparedTrees,
         localExecutor,
         calcType
     );
