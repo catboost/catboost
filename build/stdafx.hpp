@@ -200,7 +200,6 @@
 #include <util/generic/yexception_ut.h>
 #include <util/generic/singleton.h>
 #include <util/generic/set.h>
-#include <util/generic/variant_impl.h>
 #include <util/generic/iterator.h>
 #include <util/generic/ptr.h>
 #include <util/generic/mapfindptr.h>
