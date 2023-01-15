@@ -24,14 +24,14 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
     // define function with unused named parameter
     // and there will be no warning for this
-    int foo(int a) {
+    int Foo(int a) {
         return 0;
     }
 
     Y_PRAGMA_DIAGNOSTIC_POP
 
     Y_UNIT_TEST(TestPragmaNoUnusedParameter) {
-        UNIT_ASSERT_EQUAL(foo(1), 0);
+        UNIT_ASSERT_EQUAL(Foo(1), 0);
     }
 
     Y_UNIT_TEST(TestHaveInt128) {
@@ -56,7 +56,7 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
     }
 
     // define deprecated function
-    [[deprecated]] void bar() {
+    [[deprecated]] void Bar() {
         return;
     }
 
@@ -65,7 +65,7 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
         Y_PRAGMA_NO_DEPRECATED
 
         // will be compiled without errors
-        bar();
+        Bar();
 
         Y_PRAGMA_DIAGNOSTIC_POP
     }

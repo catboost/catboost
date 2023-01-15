@@ -59,7 +59,7 @@ namespace {
 
     class TNonStdLayoutClass2 {
     public:
-        virtual void func() {
+        virtual void Func() {
         }
     };
 

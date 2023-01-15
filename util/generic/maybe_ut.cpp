@@ -7,16 +7,16 @@
 
 class TIncrementOnDestroy {
 private:
-    int* Ptr;
+    int* Ptr_;
 
 public:
     TIncrementOnDestroy(int* ptr) noexcept
-        : Ptr(ptr)
+        : Ptr_(ptr)
     {
     }
 
     ~TIncrementOnDestroy() {
-        ++*Ptr;
+        ++*Ptr_;
     }
 };
 

@@ -29,33 +29,33 @@ const size_t textSize = 20000;
 class TGuardedStringStream: public IInputStream, public IOutputStream {
 public:
     TGuardedStringStream() {
-        Stream.Reserve(100);
+        Stream_.Reserve(100);
     }
 
     TString Str() const {
-        with_lock (Lock) {
-            return Stream.Str();
+        with_lock (Lock_) {
+            return Stream_.Str();
         }
         return TString(); // line for compiler
     }
 
 protected:
     size_t DoRead(void* buf, size_t len) override {
-        with_lock (Lock) {
-            return Stream.Read(buf, len);
+        with_lock (Lock_) {
+            return Stream_.Read(buf, len);
         }
         return 0; // line for compiler
     }
 
     void DoWrite(const void* buf, size_t len) override {
-        with_lock (Lock) {
-            return Stream.Write(buf, len);
+        with_lock (Lock_) {
+            return Stream_.Write(buf, len);
         }
     }
 
 private:
-    TAdaptiveLock Lock;
-    TStringStream Stream;
+    TAdaptiveLock Lock_;
+    TStringStream Stream_;
 };
 
 Y_UNIT_TEST_SUITE(TShellQuoteTest) {

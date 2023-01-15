@@ -104,16 +104,16 @@ void TSockTest::TestNetworkResolutionErrorMessage() {
 
     struct TErrnoGuard {
         TErrnoGuard()
-            : PrevValue(errno)
+            : PrevValue_(errno)
         {
         }
 
         ~TErrnoGuard() {
-            errno = PrevValue;
+            errno = PrevValue_;
         }
 
     private:
-        int PrevValue;
+        int PrevValue_;
     } g;
 
     UNIT_ASSERT_VALUES_EQUAL(expected(0) + "(0): ", str(0));
@@ -131,17 +131,17 @@ void TSockTest::TestNetworkResolutionErrorMessage() {
 class TTempEnableSigPipe {
 public:
     TTempEnableSigPipe() {
-        OriginalSigHandler = signal(SIGPIPE, SIG_DFL);
-        Y_VERIFY(OriginalSigHandler != SIG_ERR);
+        OriginalSigHandler_ = signal(SIGPIPE, SIG_DFL);
+        Y_VERIFY(OriginalSigHandler_ != SIG_ERR);
     }
 
     ~TTempEnableSigPipe() {
-        auto ret = signal(SIGPIPE, OriginalSigHandler);
+        auto ret = signal(SIGPIPE, OriginalSigHandler_);
         Y_VERIFY(ret != SIG_ERR);
     }
 
 private:
-    void (*OriginalSigHandler)(int);
+    void (*OriginalSigHandler_)(int);
 };
 
 void TSockTest::TestBrokenPipe() {

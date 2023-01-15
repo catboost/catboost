@@ -94,16 +94,16 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         static size_t CountParseDataCalled;
 
         TValueProvider()
-            : Data([&] { return this->ParseData(); })
+            : Data_([&] { return this->ParseData(); })
         {
         }
 
         const TString& GetData() const {
-            return *Data;
+            return *Data_;
         }
 
     private:
-        TLazyValue<TString> Data;
+        TLazyValue<TString> Data_;
 
         TString ParseData() {
             CountParseDataCalled++;
