@@ -270,7 +270,6 @@ def BytesSizer(field_number, is_repeated, is_packed):
       return tag_size + local_VarintSize(l) + l
     return FieldSize
 
-StringSizer = BytesSizer
 
 def GroupSizer(field_number, is_repeated, is_packed):
   """Returns a sizer for a group field."""
@@ -725,7 +724,6 @@ def BytesEncoder(field_number, is_repeated, is_packed):
       return write(value)
     return EncodeField
 
-StringEncoder = BytesEncoder
 
 def GroupEncoder(field_number, is_repeated, is_packed):
   """Returns an encoder for a group field."""

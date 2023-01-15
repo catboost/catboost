@@ -189,7 +189,6 @@ def BytesByteSize(field_number, b):
           + _VarUInt64ByteSizeNoTag(len(b))
           + len(b))
 
-StringByteSize = BytesByteSize
 
 def GroupByteSize(field_number, message):
   return (2 * TagByteSize(field_number)  # START and END group.
