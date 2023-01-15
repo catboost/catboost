@@ -1,6 +1,9 @@
 package ai.catboost.spark
 
 import collection.mutable
+import collection.JavaConverters._
+
+import org.apache.commons.lang3.tuple.Pair
 
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
@@ -15,6 +18,18 @@ import org.apache.spark.sql.types._
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
 import ai.catboost.CatBoostError
+
+
+class FeatureImportance(
+  val featureName: String = "",
+  val importance: Double = 0.0
+)
+
+class FeatureInteractionScore(
+  val firstFeatureIdx: Int = 0,
+  val secondFeatureIdx: Int = 0,
+  val score: Double = 0.0
+)
 
 
 private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
@@ -59,7 +74,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       val resultSchema = StructType(dataset.schema.toSeq ++ additionalColumnsForApply)
 
       val pool = new Pool(dataFrame).setFeaturesCol($(featuresCol))
-      val featuresLayoutPtr = new TFeaturesLayoutPtr(pool.getFeaturesLayout)
+      val featuresLayoutPtr = pool.getFeaturesLayout
       val maxUniqCatFeatureValues = Pool.getCatFeaturesMaxUniqValueCount(dataFrame, $(featuresCol))
 
       val dstRowLength = resultSchema.length
@@ -211,6 +226,166 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       0
     }
     nativeModel.Save(fileName, format, exportParametersJsonString, poolCatFeaturesMaxUniqValueCount)
+  }
+
+  /**
+   * @param fstrType Supported values are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
+   * @param data
+   *  if fstrType is PredictionDiff it is required and must contain 2 samples
+   *  if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
+   *   with flag to store no leaf weights.
+   *  otherwise it can be null
+   * @param calcType Used only for PredictionValuesChange. Possible values:
+   *   - Regular
+   *       Calculate regular SHAP values
+   *   - Approximate
+   *       Calculate approximate SHAP values
+   *   - Exact
+   *       Calculate exact SHAP values
+   * @return array of feature importances (index corresponds to the order of features in the model)
+   */
+  def getFeatureImportance(
+    fstrType: EFstrType=EFstrType.FeatureImportance,
+    data: Pool=null,
+    calcType: ECalcTypeShapValues=ECalcTypeShapValues.Regular
+  ) : Array[Double] = {
+    (new impl.FeatureImportanceCalcer()).calc(this.nativeModel, fstrType, data, calcType)
+  }
+
+  /**
+   * @param fstrType Supported values are FeatureImportance, PredictionValuesChange, LossFunctionChange, PredictionDiff
+   * @param data 
+   *  if fstrType is PredictionDiff it is required and must contain 2 samples
+   *  if fstrType is PredictionValuesChange this param is required in case if model was explicitly trained
+   *   with flag to store no leaf weights.
+   *  otherwise it can be null
+   * @param calcType Used only for PredictionValuesChange. Possible values:
+   *   - Regular
+   *       Calculate regular SHAP values
+   *   - Approximate
+   *       Calculate approximate SHAP values
+   *   - Exact
+   *       Calculate exact SHAP values
+   * @return array of feature importances sorted in descending order by importance
+   */
+  def getFeatureImportancePrettified(
+    fstrType: EFstrType=EFstrType.FeatureImportance,
+    data: Pool=null,
+    calcType: ECalcTypeShapValues=ECalcTypeShapValues.Regular
+  ) : Array[FeatureImportance]  = {
+    val featureImportancesArray = getFeatureImportance(fstrType, data, calcType)
+    val datasetFeaturesLayout = if (data != null) { data.getFeaturesLayout } else { new TFeaturesLayoutPtr }
+    val featureNames = native_impl.GetMaybeGeneratedModelFeatureIdsWrapper(nativeModel, datasetFeaturesLayout)
+    featureNames.asScala.zip(featureImportancesArray).sortBy(-_._2).map{
+      case (name, value) => new FeatureImportance(name, value)
+    }.toArray
+  }
+    
+  /**
+   * @param data dataset to calculate SHAP values for
+   * @param preCalcMode Possible values:
+   *   - Auto
+   *       Use direct SHAP Values calculation only if data size is smaller than average leaves number
+   *       (the best of two strategies below is chosen).
+   *   - UsePreCalc
+   *       Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+   *       O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+   *       D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+   *       This is much faster (because of a smaller constant) than direct calculation when N >> L
+   *   - NoPreCalc
+   *       Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+   *       is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+   * @param calcType Possible values:
+   *   - Regular
+   *       Calculate regular SHAP values
+   *   - Approximate
+   *       Calculate approximate SHAP values
+   *   - Exact
+   *       Calculate exact SHAP values
+   * @param referenceData reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
+   *   if referenceData is not null, then Independent Tree SHAP values are calculated
+   * @param outputColumns columns from data to add to output DataFrame, if null - add all columns
+   * @return 
+   *   - for regression and binclass models: 
+   *     DataFrame which contains outputColumns and "shapValues" column with Vector of length (n_features + 1) with SHAP values
+   *   - for multiclass models:
+   *     DataFrame which contains outputColumns and "shapValues" column with Matrix of shape (n_classes x (n_features + 1)) with SHAP values
+   */
+  def getFeatureImportanceShapValues(
+    data: Pool,
+    preCalcMode: EPreCalcShapValues=EPreCalcShapValues.Auto,
+    calcType: ECalcTypeShapValues=ECalcTypeShapValues.Regular,
+    modelOutputType: EExplainableModelOutput=EExplainableModelOutput.Raw,
+    referenceData: Pool=null,
+    outputColumns: Array[String]=null
+  ) : DataFrame = {
+    (new impl.FeatureImportanceCalcer()).calcShapValues(
+      this.nativeModel,
+      data,
+      preCalcMode,
+      calcType,
+      modelOutputType,
+      referenceData,
+      outputColumns
+    )
+  }
+
+  /**
+   * SHAP interaction values are calculated for all features pairs if nor featureIndices nor featureNames
+   *   are specified.
+   * @param data dataset to calculate SHAP interaction values
+   * @param featureIndices (optional) pair of feature indices to calculate SHAP interaction values for.
+   * @param featureNames (optional) pair of feature names to calculate SHAP interaction values for.
+   * @param preCalcMode Possible values:
+   *   - Auto
+   *       Use direct SHAP Values calculation only if data size is smaller than average leaves number
+   *       (the best of two strategies below is chosen).
+   *   - UsePreCalc
+   *       Calculate SHAP Values for every leaf in preprocessing. Final complexity is
+   *       O(NT(D+F))+O(TL^2 D^2) where N is the number of documents(objects), T - number of trees,
+   *       D - average tree depth, F - average number of features in tree, L - average number of leaves in tree
+   *       This is much faster (because of a smaller constant) than direct calculation when N >> L
+   *   - NoPreCalc
+   *       Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
+   *       is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+   * @param calcType Possible values:
+   *   - Regular
+   *       Calculate regular SHAP values
+   *   - Approximate
+   *       Calculate approximate SHAP values
+   *   - Exact
+   *       Calculate exact SHAP values
+   * @param outputColumns columns from data to add to output DataFrame, if null - add all columns
+   * @return
+   *   - for binclass or regression: 
+   *       DataFrame which contains outputColumns and "featureIdx1", "featureIdx2", "shapInteractionValue" columns
+   *   - for multiclass: 
+   *   		 DataFrame which contains outputColumns and "classIdx", "featureIdx1", "featureIdx2", "shapInteractionValue" columns
+   */
+  def getFeatureImportanceShapInteractionValues(
+    data: Pool,
+    featureIndices: Pair[Int, Int]=null,
+    featureNames: Pair[String, String]=null,
+    preCalcMode: EPreCalcShapValues=EPreCalcShapValues.Auto,
+    calcType: ECalcTypeShapValues=ECalcTypeShapValues.Regular,
+    outputColumns: Array[String]=null
+  ) : DataFrame = {
+    (new impl.FeatureImportanceCalcer()).calcShapInteractionValues(
+      this.nativeModel,
+      data,
+      featureIndices,
+      featureNames,
+      preCalcMode,
+      calcType,
+      outputColumns
+    )
+  }
+  
+  /**
+   * @return array of feature interaction scores
+   */
+  def getFeatureImportanceInteraction() : Array[FeatureInteractionScore] = {
+    (new impl.FeatureImportanceCalcer()).calcInteraction(this.nativeModel)
   }
 }
 

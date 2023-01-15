@@ -51,7 +51,9 @@
 %include "master.i"
 %include "worker.i"
 
-%include "apply_result_iterator.i"
+%include "model_application.i"
+
+%include "calc_fstr.i"
 
 %pragma(java) jniclasscode=%{
   static {

@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/algo/split.h>
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/enum_helpers.h>
@@ -12,9 +13,14 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
+#include <util/system/types.h>
 #include <util/system/yassert.h>
 
 #include <utility>
+
+
+struct TShapPreparedTrees;
+struct IMetric;
 
 
 struct TRegularFeature {
@@ -72,9 +78,43 @@ public:
     {}
 };
 
+
+struct TCombinationClassFeatures : public TVector<TFeature> {};
+
+TCombinationClassFeatures GetCombinationClassFeatures(const TFullModel& model);
+
+
 const NCB::TDataProviderPtr GetSubsetForFstrCalc(
     const NCB::TDataProviderPtr dataset,
     NPar::ILocalExecutor* localExecutor
+);
+
+void CreateMetricAndLossDescriptionForLossChange(
+    const TFullModel& model,
+    NCatboostOptions::TLossDescription* metricDescription,
+    NCatboostOptions::TLossDescription* lossDescription,
+    bool* needYetiRankPairs,
+    THolder<IMetric>* metric
+);
+
+TVector<TMetricHolder> CalcFeatureEffectLossChangeMetricStats(
+    const TFullModel& model,
+    const int featuresCount,
+    const TShapPreparedTrees& preparedTrees,
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType,
+    NPar::ILocalExecutor* localExecutor
+);
+
+TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChangeFromScores(
+    const TCombinationClassFeatures& combinationClassFeatures,
+    const IMetric& metric,
+    const TVector<TMetricHolder>& scores
+);
+
+TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
+    const TFullModel& model,
+    TConstArrayRef<double> weights
 );
 
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
@@ -87,6 +127,11 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
+    const TFullModel& model
+);
+
+TVector<double> GetFeatureEffectForLinearIndices(
+    const TVector<std::pair<double, TFeature>>& featureEffect,
     const TFullModel& model
 );
 
@@ -156,3 +201,4 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const NCB::TDataProviderPtr dataset // can be nullptr
 );
 
+i64 GetMaxObjectCountForFstrCalc(i64 objectCount, i32 featureCount);

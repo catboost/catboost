@@ -554,6 +554,45 @@ static inline void SetSymmetricValues(TInteractionValuesFull* shapInteractionVal
     }
 }
 
+TInteractionValuesFull CalcShapInteractionValuesWithPreparedTrees(
+    const TFullModel& model,
+    const TDataProvider& dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int logPeriod,
+    ECalcTypeShapValues calcType,
+    NPar::ILocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees
+) {
+    TInteractionValuesFull shapInteractionValues;
+    if (pairOfFeatures.Defined()) {
+        CalcShapInteraction<TInteractionValuesSubset>(
+            model,
+            dataset,
+            pairOfFeatures,
+            logPeriod,
+            localExecutor,
+            preparedTrees,
+            &shapInteractionValues,
+            calcType
+        );
+        if (pairOfFeatures->first != pairOfFeatures->second) {
+            SetSymmetricValues(&shapInteractionValues);
+        }
+    } else {
+        CalcShapInteraction<TInteractionValuesFull>(
+            model,
+            dataset,
+            pairOfFeatures,
+            logPeriod,
+            localExecutor,
+            preparedTrees,
+            &shapInteractionValues,
+            calcType
+        );
+    }
+    return shapInteractionValues;
+}
+
 TInteractionValuesFull CalcShapInteractionValuesMulti(
     const TFullModel& model,
     const TDataProvider& dataset,
@@ -572,32 +611,13 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
         /*calcInternalValues*/ true,
         calcType
     );
-    TInteractionValuesFull shapInteractionValues;
-    if (pairOfFeatures.Defined()) {
-        CalcShapInteraction<TInteractionValuesSubset>(
-            model,
-            dataset,
-            pairOfFeatures,
-            logPeriod,
-            localExecutor,
-            &preparedTrees,
-            &shapInteractionValues,
-            calcType
-        );
-        if (pairOfFeatures->first != pairOfFeatures->second) {
-            SetSymmetricValues(&shapInteractionValues);
-        }
-    } else {
-        CalcShapInteraction<TInteractionValuesFull>(
-            model,
-            dataset,
-            pairOfFeatures,
-            logPeriod,
-            localExecutor,
-            &preparedTrees,
-            &shapInteractionValues,
-            calcType
-        );
-    }
-    return shapInteractionValues;
+    return CalcShapInteractionValuesWithPreparedTrees(
+        model,
+        dataset,
+        pairOfFeatures,
+        logPeriod,
+        calcType,
+        localExecutor,
+        &preparedTrees
+    );
 }
