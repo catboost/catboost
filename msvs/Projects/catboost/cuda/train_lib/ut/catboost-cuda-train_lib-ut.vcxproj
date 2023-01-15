@@ -594,6 +594,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\common\cpp-testing-common.vcxproj">
       <Project>{68BC6E30-C1B2-55F8-2F66-99AE7F9777EC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest\cpp-testing-unittest.vcxproj">
+      <Project>{A4CAA34B-E96C-B010-71AC-2425B5C8B123}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest\main\testing-unittest-main.vcxproj">
+      <Project>{9777BD48-4227-F640-6D49-2B3628A3EA37}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
       <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
     </ProjectReference>
