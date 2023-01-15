@@ -246,6 +246,15 @@ def emit(key, *value):
     print '{0}={1}'.format(key, ' '.join(to_strings(value)))
 
 
+def emit_with_comment(comment, key, *value):
+    print '# {}'.format(comment)
+    emit(key, *value)
+
+
+def emit_with_ignore_comment(key, *value):
+    emit_with_comment('IGNORE YMAKE CONF CONTEXT', key, *value)
+
+
 def append(key, *value):
     print '{0}+={1}'.format(key, ' '.join(to_strings(value)))
 
@@ -644,14 +653,17 @@ class YMake(object):
         if opts().presets:
             print '# Variables set from command line by -D options'
             for key in opts().presets:
-                print '{0}={1}'.format(key, opts().presets[key])
+                if key in ('MY_YMAKE_BIN', 'REAL_YMAKE_BIN'):
+                    emit_with_ignore_comment(key, opts().presets[key])
+                else:
+                    emit(key, opts().presets[key])
 
     def print_core_conf(self):
         with open(self._find_core_conf(), 'r') as fin:
             print fin.read()
 
     def print_settings(self):
-        emit('ARCADIA_ROOT', self.arcadia.root)
+        emit_with_ignore_comment('ARCADIA_ROOT', self.arcadia.root)
 
     @staticmethod
     def _find_core_conf():
@@ -2907,7 +2919,7 @@ def main():
     build = Build(arcadia, options.build_type, options.toolchain_params, force_ignore_local_files=not options.local_distbuild)
     build.print_build()
 
-    emit('CONF_SCRIPT_DEPENDS', __file__)
+    emit_with_ignore_comment('CONF_SCRIPT_DEPENDS', __file__)
 
 
 if __name__ == '__main__':
