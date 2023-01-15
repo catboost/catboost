@@ -230,7 +230,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
 
         visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
 
-        double *ptr_targetParam = REAL(targetParam);
+        double *ptr_targetParam = Rf_isNull(targetParam)? nullptr : REAL(targetParam);
         for (auto targetIdx : xrange(targetColumns)) {
             TVector<float> target(targetRows);
             for (auto docIdx : xrange(targetRows)) {
@@ -244,10 +244,10 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
         TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
 
-        int *ptr_groupIdParam = INTEGER(groupIdParam);
-        int *ptr_subgroupIdParam = INTEGER(subgroupIdParam);
-        double *ptr_weightParam = REAL(weightParam);
-        double *ptr_groupWeightParam = REAL(groupWeightParam);
+        int *ptr_groupIdParam = Rf_isNull(groupIdParam)? nullptr : INTEGER(groupIdParam);
+        int *ptr_subgroupIdParam = Rf_isNull(subgroupIdParam)? nullptr : INTEGER(subgroupIdParam);
+        double *ptr_weightParam = Rf_isNull(weightParam)? nullptr : REAL(weightParam);
+        double *ptr_groupWeightParam = Rf_isNull(groupWeightParam)? nullptr : REAL(groupWeightParam);
         for (ui32 i = 0; i < dataRows; ++i) {
             if (metaInfo.HasGroupId) {
                 visitor->AddGroupId(i, static_cast<uint32_t>(ptr_groupIdParam[i]));
@@ -271,7 +271,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         }
         if (metaInfo.BaselineCount) {
             TVector<float> baseline(dataRows);
-            double *ptr_baselineParam = REAL(baselineParam);
+            double *ptr_baselineParam = Rf_isNull(baselineParam)? nullptr : REAL(baselineParam);
             for (size_t j = 0; j < baselineColumns; ++j) {
                 for (ui32 i = 0; i < dataRows; ++i) {
                     baseline[i] = static_cast<float>(ptr_baselineParam[i + baselineRows * j]);
@@ -280,7 +280,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
             }
         }
 
-        double *ptr_matrixParam = REAL(matrixParam);
+        double *ptr_matrixParam = Rf_isNull(matrixParam)? nullptr : REAL(matrixParam);
         for (size_t j = 0; j < dataColumns; ++j) {
             if (metaInfo.FeaturesLayout->GetExternalFeatureType(j) == EFeatureType::Categorical) {
                 TVector<ui32> catValues;
@@ -303,7 +303,7 @@ EXPORT_FUNCTION CatBoostCreateFromMatrix_R(SEXP matrixParam,
         if (pairsParam != R_NilValue) {
             TVector<TPair> pairs;
             size_t pairsCount = static_cast<size_t>(INTEGER(getAttrib(pairsParam, R_DimSymbol))[0]);
-            double *ptr_pairsWeightParam = REAL(pairsWeightParam);
+            double *ptr_pairsWeightParam = Rf_isNull(pairsWeightParam)? nullptr : REAL(pairsWeightParam);
             int *ptr_pairsParam = INTEGER(pairsParam);
             for (size_t i = 0; i < pairsCount; ++i) {
                 float weight = 1;
@@ -767,7 +767,7 @@ EXPORT_FUNCTION CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP los
     SEXP dataDim = getAttrib(approxParam, R_DimSymbol);
     size_t dataRows = static_cast<size_t>(INTEGER(dataDim)[0]) / asInteger(columnCountParam);
     TVector<TVector<double>> prediction(asInteger(columnCountParam), TVector<double>(dataRows));
-    double *ptr_approxParam = REAL(approxParam);
+    double *ptr_approxParam = Rf_isNull(approxParam)? nullptr : REAL(approxParam);
     for (size_t i = 0, k = 0; i < dataRows; ++i) {
         for (size_t j = 0; j < prediction.size(); ++j) {
             prediction[j][i] = static_cast<double>(ptr_approxParam[k++]);
