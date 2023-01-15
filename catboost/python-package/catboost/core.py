@@ -3884,9 +3884,6 @@ class CatBoost(_CatBoostBase):
         self._object._convert_oblivious_to_asymmetric()
 
 class CatBoostClassifier(CatBoost):
-
-    _estimator_type = 'classifier'
-
     """
     Implementation of the scikit-learn API for CatBoost classification.
 
@@ -4340,6 +4337,9 @@ class CatBoostClassifier(CatBoost):
     text_processing : dict,
         Text processging description.
     """
+    
+    _estimator_type = 'classifier'
+    
     def __init__(
         self,
         iterations=None,
@@ -4887,9 +4887,6 @@ class CatBoostClassifier(CatBoost):
 
 
 class CatBoostRegressor(CatBoost):
-
-    _estimator_type = 'regressor'
-
     """
     Implementation of the scikit-learn API for CatBoost regression.
 
@@ -4906,6 +4903,9 @@ class CatBoostRegressor(CatBoost):
         'MAPE'
         'Lq:q=value'
     """
+    
+    _estimator_type = 'regressor'
+    
     def __init__(
         self,
         iterations=None,
