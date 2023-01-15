@@ -222,6 +222,9 @@ DENY .* -> contrib/deprecated/python/xmpppy
 ALLOW contrib/python/fancycompleter -> contrib/python/pyrepl
 DENY .* -> contrib/python/pyrepl
 
+# because match with contrib/python/pycrypto
+ALLOW .* -> contrib/python/pycryptodome
+# pycrypto deprecated
 ALLOW intranet/domenator/src -> contrib/python/pycrypto
 ALLOW intranet/yandex_directory/src -> contrib/python/pycrypto
 ALLOW addappter/backend -> contrib/python/pycrypto
@@ -259,7 +262,7 @@ ALLOW yabs/server/test -> contrib/python/pycrypto
 ALLOW ydo/database/active_record -> contrib/python/pycrypto
 ALLOW yweb/antispam/cid -> contrib/python/pycrypto
 ALLOW mail/payments/payments -> contrib/python/pycrypto
-DENY .* -> contrib/python/pycrypto/
+DENY .* -> contrib/python/pycrypto
 
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/Geohash
 DENY .* -> contrib/python/Geohash
