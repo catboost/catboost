@@ -114,21 +114,18 @@ def add_python_lint_checks(unit, py_ver, files):
 
     if unit.get('LINT_LEVEL_VALUE') == "none":
 
-        no_lint_allowed_paths = [
+        no_lint_allowed_paths = (
             "contrib/",
             "devtools/",
             "junk/",
-        ]
-
-        # temporary allowed, TODO: remove
-        no_lint_allowed_paths += [
+            # temporary allowed, TODO: remove
             "taxi/uservices/",
             "travel/",
-        ]
+        )
 
         upath = unit.path()[3:]
 
-        if not any(upath.startswith(path) for path in no_lint_allowed_paths):
+        if not upath.startswith(no_lint_allowed_paths):
             ymake.report_configure_error("NO_LINT() is allowed only in " + ", ".join(no_lint_allowed_paths))
 
     if files and unit.get('LINT_LEVEL_VALUE') not in ("none", "none_internal"):
