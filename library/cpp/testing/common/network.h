@@ -35,4 +35,16 @@ namespace NTesting {
         // Returns continuous sequence of the specified number of ports.
         [[nodiscard]] TVector<TPortHolder> GetFreePortsRange(size_t count);
     }
+
+    //@brief helper class for inheritance
+    struct TFreePortOwner {
+        TFreePortOwner() : Port_(GetFreePort()) {}
+
+        ui16 GetPort() const {
+            return Port_;
+        }
+
+    private:
+        TPortHolder Port_;
+    };
 }
