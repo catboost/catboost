@@ -479,7 +479,7 @@ def supports_clone():
 def commonpath(paths):
     assert paths
     if len(paths) == 1:
-        return paths[0]
+        return next(iter(paths))
 
     split_paths = [path.split(os.sep) for path in paths]
     smin = min(split_paths)
