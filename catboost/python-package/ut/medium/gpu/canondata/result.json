@@ -11,9 +11,9 @@
         "checksum": "dcd59857e9af3ac048f2f413b02ce86d",
         "uri": "file://test.test_class_names_GPU_/predictions.txt"
     },
-    "test.test_class_weights[GPU]": {
-        "checksum": "29422eeceb5d9f3a45a0e165f31c1a3c",
-        "uri": "file://test.test_class_weights_GPU_/model.bin"
+    "test.test_class_weights_list_binclass[GPU]": {
+        "checksum": "fdc2e93800c03fe041bacc6ba7414ae1",
+        "uri": "file://test.test_class_weights_list_binclass_GPU_/model.bin"
     },
     "test.test_classification_ctr[GPU]": {
         "checksum": "0558f09d7f2162c70faede6a83d5edfc",
@@ -40,7 +40,7 @@
         "uri": "file://test.test_coreml_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export_one_hot_features[GPU]": {
-        "checksum": "8834760c08c519607fe54ae990533090",
+        "checksum": "a9e501059bfec26c924571be19dbe278",
         "uri": "file://test.test_coreml_import_export_one_hot_features_GPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[GPU]": {
@@ -282,7 +282,7 @@
         "uri": "file://test.test_export_to_python_with_cat_features_GPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features_from_pandas[GPU]": {
-        "checksum": "32fb80b927a0a544810d58ad94a0b3d4",
+        "checksum": "8eeb07c4dc67edbbea9d16e524ea4f6a",
         "uri": "file://test.test_export_to_python_with_cat_features_from_pandas_GPU_/model.py"
     },
     "test.test_feature_importance[GPU]": {
@@ -462,7 +462,7 @@
         "uri": "file://test.test_prediction_diff_nonsym_feature_importance_GPU-Lossguide_/feature_importance.txt"
     },
     "test.test_priors[GPU]": {
-        "checksum": "c5c87a1ef3e729d0d9da8c64e93a9b30",
+        "checksum": "a264c588c7590237c97c967d66337992",
         "uri": "file://test.test_priors_GPU_/model.bin"
     },
     "test.test_regress_with_per_float_feature_binarization_param[GPU]": {
