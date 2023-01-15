@@ -172,10 +172,6 @@ def onjava_module(unit, *args):
             ymake.report_configure_error('{}: JDK export supported only for JAVA_PROGRAM module type'.format(unit.path()))
         data['WITH_JDK'] = extract_macro_calls(unit, 'WITH_JDK_VALUE', args_delim)
 
-    for dm_paths in data['DEPENDENCY_MANAGEMENT']:
-        for p in dm_paths:
-            unit.on_ghost_peerdir(p)
-
     if not data['EXTERNAL_JAR']:
         has_processor = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)
         data['EMBED_VCS'] = [[str(has_processor and has_processor[0] and has_processor[0][0])]]
