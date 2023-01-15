@@ -110,7 +110,20 @@ ALLOW .* -> vendor/github.com/golang/geo
 # snappy compression
 ALLOW .* -> vendor/github.com/golang/snappy
 
-# API for sentry
+# CONTRIB-632, CONTRIB-1992 API for sentry
+DENY .* -> vendor/github.com/AndreasBriese/bbloom;test
+DENY .* -> vendor/github.com/getsentry/sentry-go;test
+DENY .* -> vendor/github.com/gavv/httpexpect/_examples
+DENY .* -> vendor/github.com/getsentry/sentry-go/example
+DENY .* -> vendor/github.com/getsentry/sentry-go/fasthttp
+DENY .* -> vendor/github.com/getsentry/sentry-go/gin
+DENY .* -> vendor/github.com/getsentry/sentry-go/iris
+DENY .* -> vendor/github.com/getsentry/sentry-go/martini
+DENY .* -> vendor/github.com/getsentry/sentry-go/negroni
+DENY .* -> vendor/github.com/rs/cors/examples
+DENY .* -> vendor/github.com/rs/cors/wrapper/gin
+
+ALLOW .* -> vendor/github.com/getsentry/sentry-go
 ALLOW .* -> vendor/github.com/getsentry/raven-go
 
 # configuration library
