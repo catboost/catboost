@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{AF639D4C-6FAA-3F1F-F7B8-051F73807FEE}</ProjectGUID>
+    <ProjectGUID>{CE182D29-7141-7CB7-8DF0-C85D819C8960}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-deprecated-kmp</ProjectName>
+    <ProjectName>cpp-deprecated-split</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-deprecated-kmp</TargetName>
+    <TargetName>cpp-deprecated-split</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\deprecated\kmp\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AF639D4C-6FAA-3F1F-F7B8-051F73807FEE\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\deprecated\split\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\CE182D29-7141-7CB7-8DF0-C85D819C8960\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\deprecated\kmp\kmp.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\deprecated\kmp\kmp.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\deprecated\split\delim_string_iter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\deprecated\split\split_iterator.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\deprecated\split\delim_string_iter.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\deprecated\split\split_iterator.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -95,6 +97,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\kmp\cpp-deprecated-kmp.vcxproj">
+      <Project>{F6D2279A-FA36-23C0-2354-66F83F7BDB2B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

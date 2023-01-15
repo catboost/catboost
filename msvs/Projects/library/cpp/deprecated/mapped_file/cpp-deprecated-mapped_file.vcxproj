@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C8D7BEC2-3BB7-029A-969A-FF92ADCB2087}</ProjectGUID>
+    <ProjectGUID>{76F4EA6B-38E3-9595-F63D-F5CF3F956AF5}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-deprecated-mapped_file</ProjectName>
+    <ProjectName>cpp-deprecated-mapped_file</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-deprecated-mapped_file</TargetName>
+    <TargetName>cpp-deprecated-mapped_file</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\deprecated\mapped_file\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C8D7BEC2-3BB7-029A-969A-FF92ADCB2087\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\deprecated\mapped_file\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\76F4EA6B-38E3-9595-F63D-F5CF3F956AF5\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\deprecated\mapped_file\mapped_file.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\deprecated\mapped_file\mapped_file.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\deprecated\mapped_file\mapped_file.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\deprecated\mapped_file\mapped_file.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
