@@ -43,6 +43,12 @@
   #define LIBUNWIND_AVAIL
 #endif
 
+#if defined(_WIN32) && defined(__SEH__)
+  #define LIBUNWIND_CURSOR_ALIGNMENT_ATTR __attribute__((__aligned__(16)))
+#else
+  #define LIBUNWIND_CURSOR_ALIGNMENT_ATTR
+#endif
+
 /* error codes */
 enum {
   UNW_ESUCCESS      = 0,     /* no error */
@@ -68,7 +74,7 @@ typedef struct unw_context_t unw_context_t;
 
 struct unw_cursor_t {
   uint64_t data[_LIBUNWIND_CURSOR_SIZE];
-};
+} LIBUNWIND_CURSOR_ALIGNMENT_ATTR;
 typedef struct unw_cursor_t unw_cursor_t;
 
 typedef struct unw_addr_space *unw_addr_space_t;
@@ -830,6 +836,44 @@ enum {
   UNW_SPARC_I5 = 29,
   UNW_SPARC_I6 = 30,
   UNW_SPARC_I7 = 31,
+};
+
+// Hexagon register numbers
+enum {
+  UNW_HEXAGON_R0,
+  UNW_HEXAGON_R1,
+  UNW_HEXAGON_R2,
+  UNW_HEXAGON_R3,
+  UNW_HEXAGON_R4,
+  UNW_HEXAGON_R5,
+  UNW_HEXAGON_R6,
+  UNW_HEXAGON_R7,
+  UNW_HEXAGON_R8,
+  UNW_HEXAGON_R9,
+  UNW_HEXAGON_R10,
+  UNW_HEXAGON_R11,
+  UNW_HEXAGON_R12,
+  UNW_HEXAGON_R13,
+  UNW_HEXAGON_R14,
+  UNW_HEXAGON_R15,
+  UNW_HEXAGON_R16,
+  UNW_HEXAGON_R17,
+  UNW_HEXAGON_R18,
+  UNW_HEXAGON_R19,
+  UNW_HEXAGON_R20,
+  UNW_HEXAGON_R21,
+  UNW_HEXAGON_R22,
+  UNW_HEXAGON_R23,
+  UNW_HEXAGON_R24,
+  UNW_HEXAGON_R25,
+  UNW_HEXAGON_R26,
+  UNW_HEXAGON_R27,
+  UNW_HEXAGON_R28,
+  UNW_HEXAGON_R29,
+  UNW_HEXAGON_R30,
+  UNW_HEXAGON_R31,
+  UNW_HEXAGON_P3_0,
+  UNW_HEXAGON_PC,
 };
 
 // RISC-V registers. These match the DWARF register numbers defined by section
