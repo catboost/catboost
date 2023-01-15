@@ -179,14 +179,9 @@ namespace NCB {
 
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,
-        const TObjectsDataProvider& objectsData,
+        const TFeaturesLayout& datasetFeaturesLayout,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
-        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
-            CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
-        }
-        const auto& datasetFeaturesLayout = *objectsData.GetFeaturesLayout();
-
         const auto datasetFloatFeatureInternalIdxToExternalIdx =
             datasetFeaturesLayout.GetFloatFeatureInternalIdxToExternalIdx();
 
@@ -258,6 +253,17 @@ namespace NCB {
             datasetFeaturesMetaInfo,
             columnIndexesReorderMap
         );
+    }
+
+    void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData,
+        THashMap<ui32, ui32>* columnIndexesReorderMap)
+    {
+        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+            CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
+        }
+        CheckModelAndDatasetCompatibility(model, *objectsData.GetFeaturesLayout(), columnIndexesReorderMap);
     }
 
     void CheckModelAndDatasetCompatibility(
