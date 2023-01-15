@@ -39,6 +39,8 @@
 #include <cstdint>
 #include <util/generic/string.h>
 
+#include "config.h"
+ 
 #if defined(HAVE_SYS_UIO_H)
 #include <sys/uio.h>
 #endif  // HAVE_SYS_UIO_H
