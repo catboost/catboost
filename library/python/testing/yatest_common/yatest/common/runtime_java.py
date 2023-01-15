@@ -28,7 +28,7 @@ def get_java_path(jdk_dir):
 
 
 def get_build_java_dir(jdk_dir):
-    versions = [8, 10, 11, 12, 13]
+    versions = [8, 10, 11, 12, 13, 14, 15]
 
     if not _JAVA_DIR:
         for version in versions:
