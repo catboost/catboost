@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/logger/global/global.h>
+#include <library/cpp/logger/global/global.h>
 #include <library/cpp/containers/ring_buffer/ring_buffer.h>
 #include <util/string/builder.h>
 #include <util/system/mutex.h>
