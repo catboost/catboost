@@ -28,6 +28,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
             self.path = path
             self.mask = mask
 
+    cwd = cwd or os.getcwd()
     system = platform.system().lower()
     if system.startswith("linux"):
         import stat
