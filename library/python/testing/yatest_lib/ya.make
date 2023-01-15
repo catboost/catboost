@@ -14,6 +14,12 @@ PEERDIR(
     contrib/python/six
 )
 
+IF(PYTHON2)
+    PEERDIR(
+        contrib/python/enum34
+    )
+ENDIF()
+
 NO_LINT()
 
 END()
