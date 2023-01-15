@@ -14,6 +14,7 @@ SRCS(
     quantization.cpp
     string.cpp
     native_impl.swg
+    vector_output.cpp
 )
 
 EXTRADIR(bindings/swiglib)
@@ -27,6 +28,7 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/logging
+    catboost/libs/model
     catboost/private/libs/data_util
     catboost/private/libs/options
 )

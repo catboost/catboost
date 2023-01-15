@@ -34,3 +34,5 @@
 %include "data_provider.i"
 %include "data_provider_builders.i"
 %include "quantization.i"
+
+%include "model.i"
