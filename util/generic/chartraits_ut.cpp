@@ -19,14 +19,12 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::GetLength("a\0bc", 1000), 1);
     }
 
-    Y_UNIT_TEST(TestCompareEqual) {
+    Y_UNIT_TEST(TestCompare) {
         using T = TCharTraits<char>;
         // single char
         UNIT_ASSERT(T::Compare('a', 'a') == 0);
-        UNIT_ASSERT(T::Equal('a', 'a'));
         UNIT_ASSERT(T::Compare('a', 'b') < 0);
         UNIT_ASSERT(T::Compare('b', 'a') > 0);
-        UNIT_ASSERT(!T::Equal('a', 'A'));
 
         // empty
         UNIT_ASSERT(T::Compare(nullptr, nullptr, 0) == 0);
@@ -36,38 +34,24 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT(T::Compare("abcd", "") > 0);
 
         UNIT_ASSERT(T::Compare("abc", "abc") == 0);
-        UNIT_ASSERT(T::Equal("ab", "ab"));
         UNIT_ASSERT(T::Compare("abcd", "abc") > 0);
         UNIT_ASSERT(T::Compare("ab", "abc") < 0);
         UNIT_ASSERT(T::Compare("abcd", "bcda") < 0);
         UNIT_ASSERT(T::Compare("bcd", "abcd") > 0);
-        UNIT_ASSERT(!T::Equal("aaa", "aab"));
 
         UNIT_ASSERT(T::Compare("ab", "abc", 2) == 0);
-        UNIT_ASSERT(T::Equal("ab", "abc", 2));
         UNIT_ASSERT(T::Compare("abcA", "abcB", 3) == 0);
-        UNIT_ASSERT(T::Equal("abcA", "abcB", 3));
         UNIT_ASSERT(T::Compare("abcA", "abcB", 4) < 0);
-        UNIT_ASSERT(!T::Equal("abcB", "abcA", 4));
-        UNIT_ASSERT(!T::Equal("abcB", 4, "abcA"));
-        UNIT_ASSERT(!T::Equal("abcB", 4, "abc"));
-        UNIT_ASSERT(T::Equal("abcB", 4, "abcB"));
-        UNIT_ASSERT(!T::Equal("abcB", 4, "abcBd"));
 
         // '\0' in the middle
         UNIT_ASSERT(T::Compare("ab\0ab", "ab\0ab", 5) == 0);
-        UNIT_ASSERT(T::Equal("ab\0ab", "ab\0ab", 5));
         UNIT_ASSERT(T::Compare("ab\0ab", "ab\0cd", 5) < 0);
         UNIT_ASSERT(T::Compare("ab\0cd", "ab\0ab", 5) > 0);
-        UNIT_ASSERT(T::Equal("ab\0A", "ab\0B", 3));
-        UNIT_ASSERT(!T::Equal("ab\0A", "ab\0B", 4));
         UNIT_ASSERT(T::Compare("ab\0ab", "ab\0cd") == 0);
         UNIT_ASSERT(T::Compare("ab\0cd", "ab\0ab") == 0);
-        UNIT_ASSERT(T::Equal("ab\0AAA", "ab\0BBB"));
-        UNIT_ASSERT(T::Equal("\0AAA", "\0BBB"));
     }
 
-    Y_UNIT_TEST(TestLongCompareEqual) {
+    Y_UNIT_TEST(TestLongCompare) {
         using T = TCharTraits<char>;
 
         i8 data1[Max<ui8>()];
@@ -77,10 +61,6 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
             data1[i] = i;
             data2[i] = i;
         }
-
-        UNIT_ASSERT(T::Equal(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1)));
-        UNIT_ASSERT(!T::Equal(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[1]), sizeof(data1) - 1));
-        UNIT_ASSERT(!T::Equal(reinterpret_cast<const char*>(&data1[1]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1) - 1));
 
         UNIT_ASSERT(T::Compare(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[0]), sizeof(data1)) == 0);
         UNIT_ASSERT(T::Compare(reinterpret_cast<const char*>(&data1[0]), reinterpret_cast<const char*>(&data2[1]), sizeof(data1) - 1) == -1);

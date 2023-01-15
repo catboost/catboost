@@ -9,6 +9,7 @@
 template <typename TDerived, typename TCharType, typename TTraitsType = TCharTraits<TCharType>>
 class TStringBase {
     using TStringView = std::basic_string_view<TCharType>;
+    using TStringViewWithTraits = std::basic_string_view<TCharType, TTraitsType>;
 
 public:
     using TChar = TCharType;
@@ -229,7 +230,7 @@ public:
     }
 
     static bool equal(const TSelf& s1, const TSelf& s2) noexcept {
-        return TTraits::Equal(s1.Ptr(), s1.Len(), s2.Ptr(), s2.Len());
+        return TStringViewWithTraits{s1.data(), s1.size()} == TStringViewWithTraits{s2.data(), s2.size()};
     }
 
     static bool equal(const TSelf& s1, const TCharType* p) noexcept {
@@ -237,7 +238,7 @@ public:
             return s1.Len() == 0;
         }
 
-        return TTraits::Equal(s1.Ptr(), s1.Len(), p);
+        return TStringViewWithTraits{s1.data(), s1.size()} == p;
     }
 
     static bool equal(const TCharType* p, const TSelf& s2) noexcept {
@@ -245,7 +246,7 @@ public:
     }
 
     static bool equal(const TStringView s1, const TStringView s2) noexcept {
-        return TTraits::Equal(s1.data(), s1.length(), s2.data(), s2.length());
+        return TStringViewWithTraits{s1.data(), s1.size()} == TStringViewWithTraits{s2.data(), s2.size()};
     }
 
     template <class T>
@@ -266,11 +267,11 @@ public:
     }
 
     static inline bool StartsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
-        return withLen <= whatLen && TTraits::Equal(what, withLen, with, withLen);
+        return withLen <= whatLen && TTraits::Compare(what, withLen, with, withLen) == 0;
     }
 
     static inline bool EndsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
-        return withLen <= whatLen && TTraits::Equal(what + whatLen - withLen, withLen, with, withLen);
+        return withLen <= whatLen && TTraits::Compare(what + whatLen - withLen, withLen, with, withLen) == 0;
     }
 
     inline bool StartsWith(const TCharType* s, size_t n) const noexcept {
@@ -282,7 +283,7 @@ public:
     }
 
     inline bool StartsWith(TCharType ch) const noexcept {
-        return !empty() && TTraits::Equal(*Ptr(), ch);
+        return !empty() && TTraits::eq(*Ptr(), ch);
     }
 
     inline bool EndsWith(const TCharType* s, size_t n) const noexcept {
@@ -294,7 +295,7 @@ public:
     }
 
     inline bool EndsWith(TCharType ch) const noexcept {
-        return !empty() && TTraits::Equal(Ptr()[Len() - 1], ch);
+        return !empty() && TTraits::eq(Ptr()[Len() - 1], ch);
     }
 
     template <typename TDerived2, typename TTraits2>
@@ -517,7 +518,7 @@ public:
             const TCharType c = Ptr()[i];
 
             for (const TCharType* p = set; p < set + n; ++p) {
-                if (TTraits::Equal(c, *p)) {
+                if (TTraits::eq(c, *p)) {
                     return static_cast<size_t>(i);
                 }
             }
@@ -542,7 +543,7 @@ public:
 
             bool found = true;
             for (const TCharType* p = set; p < set + n; ++p) {
-                if (TTraits::Equal(c, *p)) {
+                if (TTraits::eq(c, *p)) {
                     found = false;
                     break;
                 }

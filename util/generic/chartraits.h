@@ -22,6 +22,7 @@ const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_
 
 template <class TCharType>
 class TCharTraits: public std::char_traits<TCharType> {
+    using TThis = TCharTraits<TCharType>;
 public:
     static size_t GetLength(const TCharType* s, size_t maxlen) {
         Y_ASSERT(s);
@@ -34,10 +35,6 @@ public:
 
     static int Compare(TCharType a, TCharType b) {
         return a == b ? 0 : (a < b ? -1 : +1);
-    }
-
-    static bool Equal(TCharType a, TCharType b) {
-        return a == b;
     }
 
     static int Compare(const TCharType* s1, const TCharType* s2) {
@@ -59,38 +56,15 @@ public:
         return res;
     }
 
-    static bool Equal(const TCharType* s1, const TCharType* s2) {
-        return Compare(s1, s2) == 0;
-    }
-    static bool Equal(const TCharType* s1, const TCharType* s2, size_t n) {
-        return Compare(s1, s2, n) == 0;
-    }
-
     static int Compare(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
         const size_t n = n1 < n2 ? n1 : n2;
         const int result = Compare(s1, s2, n);
         return result ? result : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0));
     }
 
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
-        return n1 == n2 && Equal(s1, s2, n1);
-    }
-
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2) {
-        const TCharType* end = s1 + n1;
-
-        for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || !Equal(*s1, *s2)) {
-                return false;
-            }
-        }
-
-        return *s2 == 0;
-    }
-
     static const TCharType* Find(const TCharType* s, TCharType c) {
         for (;;) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
             if (!*(s++))
                 break;
@@ -99,7 +73,7 @@ public:
     }
     static const TCharType* Find(const TCharType* s, TCharType c, size_t n) {
         for (; n > 0; ++s, --n) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
         }
         return nullptr;
@@ -129,7 +103,7 @@ public:
         if (!n)
             return nullptr;
         for (const TCharType* p = s + n - 1; p >= s; --p) {
-            if (Equal(*p, c))
+            if (TThis::eq(*p, c))
                 return p;
         }
         return nullptr;
@@ -187,21 +161,11 @@ public:
 template <>
 class TCharTraits<char>: public std::char_traits<char> {
     using TCharType = char;
+    using TThis = TCharTraits<char>;
 
 public:
     static int Compare(TCharType a, TCharType b) {
         return a == b ? 0 : (a < b ? -1 : +1);
-    }
-
-    static bool Equal(TCharType a, TCharType b) {
-        return a == b;
-    }
-
-    static bool Equal(const TCharType* s1, const TCharType* s2) {
-        return Compare(s1, s2) == 0;
-    }
-    static bool Equal(const TCharType* s1, const TCharType* s2, size_t n) {
-        return Compare(s1, s2, n) == 0;
     }
 
     static int Compare(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
@@ -210,27 +174,11 @@ public:
         return result ? result : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0));
     }
 
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
-        return n1 == n2 && Equal(s1, s2, n1);
-    }
-
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2) {
-        const TCharType* end = s1 + n1;
-
-        for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || !Equal(*s1, *s2)) {
-                return false;
-            }
-        }
-
-        return *s2 == 0;
-    }
-
     static const TCharType* RFind(const TCharType* s, TCharType c, size_t n) {
         if (!n)
             return nullptr;
         for (const TCharType* p = s + n - 1; p >= s; --p) {
-            if (Equal(*p, c))
+            if (TThis::eq(*p, c))
                 return p;
         }
         return nullptr;
@@ -331,6 +279,7 @@ public:
 template <>
 class TCharTraits<wchar16>: public std::char_traits<wchar16> {
     using TCharType = wchar16;
+    using TThis = TCharTraits<wchar16>;
 
 public:
     static size_t GetLength(const TCharType* s, size_t maxlen) {
@@ -344,10 +293,6 @@ public:
 
     static int Compare(TCharType a, TCharType b) {
         return a == b ? 0 : (a < b ? -1 : +1);
-    }
-
-    static bool Equal(TCharType a, TCharType b) {
-        return a == b;
     }
 
     static int Compare(const TCharType* s1, const TCharType* s2) {
@@ -375,25 +320,9 @@ public:
         return result ? result : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0));
     }
 
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
-        return n1 == n2 && Equal(s1, s2, n1);
-    }
-
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2) {
-        const TCharType* end = s1 + n1;
-
-        for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || !Equal(*s1, *s2)) {
-                return false;
-            }
-        }
-
-        return *s2 == 0;
-    }
-
     static const TCharType* Find(const TCharType* s, TCharType c) {
         for (;;) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
             if (!*(s++))
                 break;
@@ -402,7 +331,7 @@ public:
     }
     static const TCharType* Find(const TCharType* s, TCharType c, size_t n) {
         for (; n > 0; ++s, --n) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
         }
         return nullptr;
@@ -432,7 +361,7 @@ public:
         if (!n)
             return nullptr;
         for (const TCharType* p = s + n - 1; p >= s; --p) {
-            if (Equal(*p, c))
+            if (TThis::eq(*p, c))
                 return p;
         }
         return nullptr;
@@ -485,20 +414,12 @@ public:
     static TCharType ToLower(TCharType c) {
         return (TCharType)::ToLower((wchar32)c);
     }
-
-    // Overriden methods
-
-    static bool Equal(const wchar16* s1, const wchar16* s2) {
-        return Compare(s1, s2) == 0;
-    }
-    static bool Equal(const wchar16* s1, const wchar16* s2, size_t n) {
-        return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar16)) == 0);
-    }
 };
 
 template <>
 class TCharTraits<wchar32>: public std::char_traits<wchar32> {
     using TCharType = wchar32;
+    using TThis = TCharTraits<wchar32>;
 
 public:
     static size_t GetLength(const TCharType* s, size_t maxlen) {
@@ -512,10 +433,6 @@ public:
 
     static int Compare(TCharType a, TCharType b) {
         return a == b ? 0 : (a < b ? -1 : +1);
-    }
-
-    static bool Equal(TCharType a, TCharType b) {
-        return a == b;
     }
 
     static int Compare(const TCharType* s1, const TCharType* s2) {
@@ -543,25 +460,9 @@ public:
         return result ? result : (n1 < n2 ? -1 : (n1 > n2 ? 1 : 0));
     }
 
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
-        return n1 == n2 && Equal(s1, s2, n1);
-    }
-
-    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2) {
-        const TCharType* end = s1 + n1;
-
-        for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || !Equal(*s1, *s2)) {
-                return false;
-            }
-        }
-
-        return *s2 == 0;
-    }
-
     static const TCharType* Find(const TCharType* s, TCharType c) {
         for (;;) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
             if (!*(s++))
                 break;
@@ -570,7 +471,7 @@ public:
     }
     static const TCharType* Find(const TCharType* s, TCharType c, size_t n) {
         for (; n > 0; ++s, --n) {
-            if (Equal(*s, c))
+            if (TThis::eq(*s, c))
                 return s;
         }
         return nullptr;
@@ -600,7 +501,7 @@ public:
         if (!n)
             return nullptr;
         for (const TCharType* p = s + n - 1; p >= s; --p) {
-            if (Equal(*p, c))
+            if (TThis::eq(*p, c))
                 return p;
         }
         return nullptr;
@@ -652,14 +553,5 @@ private:
 public:
     static TCharType ToLower(TCharType c) {
         return ::ToLower((wchar32)c);
-    }
-
-    // Overriden methods
-
-    static bool Equal(const wchar32* s1, const wchar32* s2) {
-        return Compare(s1, s2) == 0;
-    }
-    static bool Equal(const wchar32* s1, const wchar32* s2, size_t n) {
-        return (n == 0) || (memcmp(s1, s2, n * sizeof(wchar32)) == 0);
     }
 };
