@@ -3,18 +3,34 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
-ALLOW contrib/tools/lftp -> contrib/libs/lftp
-
-DENY .* -> contrib/libs/lftp
-
-ALLOW contrib/deprecated/libcds -> contrib/deprecated/libcds
 ALLOW mds/libs/blackhole -> contrib/deprecated/libcds
-DENY .* -> contrib/deprecated/libcds
-
-ALLOW contrib/deprecated/folly -> contrib/deprecated/folly
-ALLOW contrib/deprecated/wangle -> contrib/deprecated/folly
-ALLOW contrib/deprecated/wangle -> contrib/deprecated/wangle
 ALLOW mds -> contrib/deprecated/folly
 ALLOW mds -> contrib/deprecated/wangle
-DENY .* -> contrib/deprecated/folly
-DENY .* -> contrib/deprecated/wangle
+
+# Use newer version from contrib/libs/mongo-cxx-driver instead
+ALLOW mds/mastermind/ -> contrib/deprecated/mongo-cxx-driver
+
+# Use library/cpp/json (a rapidjson proxy) instead
+ALLOW alice/cuttlefish/library/client_proto_converter -> contrib/deprecated/jsoncpp
+ALLOW mail/ -> contrib/deprecated/jsoncpp
+ALLOW quasar/backend/ -> contrib/deprecated/jsoncpp
+ALLOW smart_devices/ -> contrib/deprecated/jsoncpp
+ALLOW speechkit/ -> contrib/deprecated/jsoncpp
+ALLOW yandex_io/ -> contrib/deprecated/jsoncpp
+
+# mimepp is not being developed since 2012 and requires paid license
+ALLOW mail/so/ -> contrib/deprecated/mimepp
+ALLOW mail/so/spamstop/ -> contrib/deprecated/udns
+
+# TODO(thegeorg@): remove this specifying better policies
+ALLOW .* -> contrib/deprecated/python
+
+ALLOW metrika/core/programs/mobile-redirect -> contrib/deprecated/libctpp
+
+# Default policies:
+#
+# Do not restrict contrib
+# All peerdirs to contrib/deprecated from outside are prohibited
+#
+ALLOW contrib -> contrib/deprecated
+DENY .* -> contrib/deprecated
