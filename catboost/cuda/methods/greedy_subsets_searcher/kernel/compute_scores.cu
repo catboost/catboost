@@ -48,6 +48,7 @@ namespace NKernel {
               class TScoreCalcer>
     __global__ void ComputeOptimalSplits(const TCBinFeature* bf,
                                          ui32 binFeatureCount,
+                                         const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                                          const float* histograms,
                                          const double* partStats, int statCount,
                                          const ui32* partIds, int pCount,
@@ -118,8 +119,10 @@ namespace NKernel {
                 }
             }
 
-            const float score = calcer.GetScore();
+            float score = calcer.GetScore();
 
+            ui32 featureId = bf[binFeatureId].FeatureId;
+            score *= __ldg(binFeaturesWeights + featureId);
 
             if (score < bestScore) {
                 bestScore = score;
@@ -135,6 +138,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplits(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                              const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                               const float* histograms,
                               const double* partStats, int statCount,
                               const ui32* partIds, int partBlockSize, int partBlockCount,
@@ -155,7 +159,7 @@ namespace NKernel {
         numBlocks.z = 1;
 
         #define RUN() \
-        ComputeOptimalSplits<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, histograms, partStats,  statCount, partIds, partBlockSize, restPartIds, restPartCount, multiclassOptimization, scoreCalcer, result);
+        ComputeOptimalSplits<blockSize, TScoreCalcer> << < numBlocks, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binFeaturesWeightsCount, histograms, partStats,  statCount, partIds, partBlockSize, restPartIds, restPartCount, multiclassOptimization, scoreCalcer, result);
 
 
         switch (scoreFunction)

@@ -39,7 +39,7 @@ namespace NCatboostOptions {
         TOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
 
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
-        TCpuOnlyOption<float> ModelSizeReg;
+        TOption<float> ModelSizeReg;
 
         // changing this parameter can affect results due to numerical accuracy differences
         TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;

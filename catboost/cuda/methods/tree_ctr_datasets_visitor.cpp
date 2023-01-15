@@ -5,7 +5,9 @@ namespace NCatboostCuda {
     void TTreeCtrDataSetVisitor::Accept(const TTreeCtrDataSet& ctrDataSet,
                                         const TMirrorBuffer<const TPartitionStatistics>& partStats,
                                         const TMirrorBuffer<ui32>& ctrDataSetInverseIndices,
-                                        const TMirrorBuffer<ui32>& subsetDocs) {
+                                        const TMirrorBuffer<ui32>& subsetDocs,
+                                        ui32 maxUniqueValues,
+                                        float modelSizeReg) {
         {
             auto cacheIds = GetCtrsBordersToCacheIds(ctrDataSet.GetCtrs());
             if (cacheIds.size()) {
@@ -20,12 +22,13 @@ namespace NCatboostCuda {
                                     FoldCount);
         });
         const ui32 devId = ctrDataSet.GetDeviceId();
-        const ui64 taskSeed = Seeds[ctrDataSet.GetDeviceId()] + ctrDataSet.GetBaseTensor().GetHash();
+        const ui64 taskSeed = Seeds[devId] + ctrDataSet.GetBaseTensor().GetHash();
 
         scoreHelper.SubmitCompute(Subsets.DeviceView(devId),
                                   subsetDocs.DeviceView(devId));
 
         scoreHelper.ComputeOptimalSplit(partStats,
+                                        ctrDataSet.GetCtrWeights(maxUniqueValues, modelSizeReg),
                                         ScoreStdDev,
                                         taskSeed);
 

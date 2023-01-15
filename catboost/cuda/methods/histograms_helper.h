@@ -177,6 +177,7 @@ namespace NCatboostCuda {
         using TGpuDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
+        using TFeatureWeightsMapping = typename TLayoutPolicy::TFeatureWeightsMapping;
 
     public:
         TFindBestSplitsHelper(EFeaturesGroupingPolicy policy,
@@ -207,15 +208,18 @@ namespace NCatboostCuda {
         }
 
         TFindBestSplitsHelper& ComputeOptimalSplit(const TCudaBuffer<const TPartitionStatistics, NCudaLib::TMirrorMapping>& partStats,
+                                                   const TCudaBuffer<const float, TFeatureWeightsMapping>& featureWeights,
                                                    const TComputeHistogramsHelper<TLayoutPolicy>& histCalcer,
                                                    double scoreStdDev = 0,
                                                    ui64 seed = 0) {
+
             CB_ENSURE(histCalcer.GetGroupingPolicy() == Policy);
             auto& profiler = NCudaLib::GetProfiler();
             const TCudaBuffer<float, TFeaturesMapping>& histograms = histCalcer.GetHistograms(Stream);
             if (DataSet->GetGridSize(Policy)) {
                 auto guard = profiler.Profile(TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                 FindOptimalSplit(DataSet->GetBinFeaturesForBestSplits(Policy),
+                                 featureWeights,
                                  histograms,
                                  partStats,
                                  FoldCount,
@@ -292,6 +296,7 @@ namespace NCatboostCuda {
         }
 
         TFindBestSplitsHelper& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
+                                                   const TMirrorBuffer<const float>& featureWeights,
                                                    TComputeHistogramsHelper<TDocParallelLayout>& histHelper,
                                                    double scoreStdDev = 0,
                                                    ui64 seed = 0);
@@ -329,6 +334,7 @@ namespace NCatboostCuda {
         using TGpuDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
         using TFeaturesMapping = typename TLayoutPolicy::TFeaturesMapping;
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
+        using TFeatureWeightsMapping = typename TLayoutPolicy::TFeatureWeightsMapping;
 
     public:
         TScoreHelper(EFeaturesGroupingPolicy policy,
@@ -359,9 +365,11 @@ namespace NCatboostCuda {
         }
 
         TScoreHelper& ComputeOptimalSplit(const TCudaBuffer<const TPartitionStatistics, NCudaLib::TMirrorMapping>& partStats,
+                                          const TCudaBuffer<const float, TFeatureWeightsMapping>& featureWeights,
                                           double scoreStdDev = 0,
                                           ui64 seed = 0) {
             FindBestSplitsHelper.ComputeOptimalSplit(partStats,
+                                                     featureWeights,
                                                      ComputeHistogramsHelper,
                                                      scoreStdDev,
                                                      seed);

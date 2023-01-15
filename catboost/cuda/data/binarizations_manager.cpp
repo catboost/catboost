@@ -45,6 +45,7 @@ namespace NCatboostCuda {
         const TVector<ui32>& ignoredFeatureIds)
         : KnownCtrs(featureManager.KnownCtrs)
         , InverseCtrs(featureManager.InverseCtrs)
+        , UsedCtrs(featureManager.UsedCtrs)
         , DataProviderFloatFeatureIdToFeatureManagerId(featureManager.DataProviderFloatFeatureIdToFeatureManagerId)
         , DataProviderCatFeatureIdToFeatureManagerId(featureManager.DataProviderCatFeatureIdToFeatureManagerId)
         , FeatureManagerIdToDataProviderId(featureManager.FeatureManagerIdToDataProviderId)
