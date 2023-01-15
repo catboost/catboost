@@ -2629,6 +2629,12 @@ def test_cv_small_data():
     cv(pool, params, fold_count=2)
 
 
+def test_cv_without_loss_function():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.raises(CatBoostError, message="Parameter loss_function should be specified for cross-validation"):
+        cv(pool, {})
+
+
 def test_tune_hyperparams_small_data():
     train_data = [[1, 4, 5, 6],
                   [4, 5, 6, 7],
@@ -7175,7 +7181,7 @@ def test_different_formats_of_monotone_constraints_in_different_modes():
     monotone_constraints_string_2 = "0:-1,1:1,2:1,3:-1"
     monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:1,MonotonicPos1:1,MonotonicNeg1:-1"
 
-    common_options = dict(iterations=5)
+    common_options = dict(iterations=5, loss_function='RMSE')
 
     for monotone_constraints in [
         monotone_constraints_array,
@@ -7761,7 +7767,7 @@ def test_different_formats_of_feature_weights():
     feature_weights_string_2 = "3:0.1,7:2"
     feature_weights_string_3 = "DepTime:0.1,Distance:2"
 
-    common_options = dict(iterations=50)
+    common_options = dict(iterations=50, loss_function='Logloss')
     model1 = CatBoostClassifier(feature_weights=feature_weights_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
@@ -7897,7 +7903,7 @@ def test_different_formats_of_first_feature_use_penalties():
     first_feature_use_penalties_string_2 = "3:10,7:2"
     first_feature_use_penalties_string_3 = "DepTime:10,Distance:2"
 
-    common_options = dict(iterations=50)
+    common_options = dict(iterations=50, loss_function='Logloss')
     model1 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
