@@ -28,29 +28,37 @@ private[spark] object Worker {
     threadCount: Int,
     rows: Iterator[Row]
   ) = {
-    val quantizedDataProvider = DataHelpers.loadQuantizedDataset(
-      quantizedFeaturesInfo,
-      columnsIndexMap,
-      dataMetaInfo,
-      schema,
-      threadCount,
-      rows
-    )
-    val partitionSize = quantizedDataProvider.GetObjectCount.toInt
+    var quantizedDataProvider : TDataProviderPtr = null
+
+    if (rows.hasNext) {
+      quantizedDataProvider = DataHelpers.loadQuantizedDataset(
+        quantizedFeaturesInfo,
+        columnsIndexMap,
+        dataMetaInfo,
+        schema,
+        threadCount,
+        rows
+      )
+    }
+
+    val partitionSize = if (quantizedDataProvider != null) quantizedDataProvider.GetObjectCount.toInt else 0
 
     val workerPort = TrainingDriver.getWorkerPortAndSendWorkerInfo(
       trainingDriverListeningAddress,
       TaskContext.getPartitionId,
       partitionSize
     )
-    native_impl.RunWorker(
-      TaskContext.getPartitionId,
-      workerPort,
-      threadCount,
-      catBoostJsonParamsString,
-      quantizedDataProvider,
-      quantizedFeaturesInfo
-    )
+
+    if (partitionSize != 0) {
+      native_impl.RunWorker(
+        TaskContext.getPartitionId,
+        workerPort,
+        threadCount,
+        catBoostJsonParamsString,
+        quantizedDataProvider,
+        quantizedFeaturesInfo
+      )
+    }
   }
 }
 
