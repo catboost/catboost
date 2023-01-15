@@ -21,9 +21,6 @@ migrations:
       - a.yandex-team.ru/cloud/compute/go-common/logging
       - a.yandex-team.ru/cloud/compute/go-common/logging_test
       - a.yandex-team.ru/cloud/compute/go-common/pkg/logging
-      - a.yandex-team.ru/cloud/compute/go-common/pkg/xrequestid
-      - a.yandex-team.ru/cloud/compute/snapshot/internal/serializedlock
-      - a.yandex-team.ru/cloud/compute/snapshot/internal/serializedlock_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/client
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/client_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib
