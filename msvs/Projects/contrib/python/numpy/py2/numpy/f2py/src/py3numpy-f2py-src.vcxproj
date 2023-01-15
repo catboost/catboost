@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{861E3275-338E-78E4-033C-CD144FFFD80C}</ProjectGUID>
+    <ProjectGUID>{08B68BA3-7391-5320-58F2-F16F20012234}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3scipy-special-c_misc</ProjectName>
+    <ProjectName>py3numpy-f2py-src</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3scipy-special-c_misc</TargetName>
+    <TargetName>py3numpy-f2py-src</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\c_misc\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\861E3275-338E-78E4-033C-CD144FFFD80C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\f2py\src\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\08B68BA3-7391-5320-58F2-F16F20012234\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,26 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\besselpoly.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\f2py\src\fortranobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\fsolve.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\gammaincinv.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\gammasgn.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\poch.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\struve.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\double2.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\c_misc\misc.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

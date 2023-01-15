@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A5A76E67-6C26-BE49-3A90-FB44424FED1F}</ProjectGUID>
+    <ProjectGUID>{FEA69238-D2EC-4AE3-926D-D03AD349111E}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py3scipy-special-cephes</ProjectName>
+    <ProjectName>py3core-src-multiarray</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py3scipy-special-cephes</TargetName>
+    <TargetName>py3core-src-multiarray</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\cephes\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A5A76E67-6C26-BE49-3A90-FB44424FED1F\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FEA69238-D2EC-4AE3-926D-D03AD349111E\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -57,8 +57,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -DNPY_INTERNAL_BUILD=1 -DPyInit__multiarray_umath=PyInit_5numpy4core17_multiarray_umath -DPyInit__multiarray_tests=PyInit_5numpy4core17_multiarray_tests -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DHAVE_CBLAS -DHAVE_NPY_CONFIG_H=1 -DNO_ATLAS_INFO=1 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE=1 -D_LARGEFILE_SOURCE=1 -DNPY_INTERNAL_BUILD=1 -DPyInit__multiarray_umath=PyInit_5numpy4core17_multiarray_umath -DPyInit__multiarray_tests=PyInit_5numpy4core17_multiarray_tests -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DXML_STATIC -DFFI_BUILDING -DUSE_PYTHON3 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  -DUSE_PYTHON3 /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
@@ -78,204 +78,190 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\airy.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\_multiarray_tests.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\bdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\alloc.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\beta.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\array_assign_array.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\btdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\array_assign_scalar.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\cbrt.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\arrayfunction_override.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\chbevl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\arrayobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\chdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\arraytypes.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\const.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\buffer.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\dawsn.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\calculation.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ellie.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\common.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ellik.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\compiled_base.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ellpe.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\conversion_utils.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ellpj.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\convert.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ellpk.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\convert_datatype.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\exp10.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\ctors.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\exp2.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\datetime.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\expn.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\datetime_busday.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\fdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\datetime_busdaycal.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\fresnl.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\datetime_strings.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\gamma.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\descriptor.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\gdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\dragon4.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\gels.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\dtype_transfer.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\hyp2f1.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\einsum.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\hyperg.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\flagsobject.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\i0.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\getset.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\i1.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\hashdescr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\igam.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\item_selection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\igami.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\iterators.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\incbet.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\lowlevel_strided_loops.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\incbi.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\mapping.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\j0.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\methods.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\j1.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\multiarraymodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\jv.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\nditer_api.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\k0.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\nditer_constr.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\k1.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\nditer_pywrap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\kn.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\nditer_templ.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\kolmogorov.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\number.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\lanczos.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_tests.reg3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_umath.reg3.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\refcount.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\mtherr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\scalarapi.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\nbdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\scalartypes.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ndtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\sequence.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\ndtri.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\shape.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\pdtr.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\strfuncs.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\psi.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\temp_elide.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\rgamma.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\typeinfo.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\round.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\usertypes.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\scipy_iv.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\py2\numpy\core\src\multiarray\vdot.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\shichi.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\sici.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\sincos.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\sindg.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\spence.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\stdtr.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\struve.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\tandg.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\tukey.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\unity.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\yn.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\zeta.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\special\cephes\zetac.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py3_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.core._multiarray_tests" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "numpy.core._multiarray_umath" "$(SolutionDir)$(Configuration)/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_tests.reg3.cpp	$B/contrib/python/numpy/py2/numpy/core/src/multiarray/numpy.core._multiarray_umath.reg3.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_tests.reg3.cpp;$(SolutionDir)$(Configuration)\contrib\python\numpy\py2\numpy\core\src\multiarray\numpy.core._multiarray_umath.reg3.cpp;</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>{C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
-      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
-      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
-      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
-      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
@@ -294,9 +280,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
       <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
-      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
       <Project>{C09AB4D0-26FB-8670-4A3A-438A55553615}</Project>
@@ -318,27 +301,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\multiarray\py3core-src-multiarray.vcxproj">
-      <Project>{FEA69238-D2EC-4AE3-926D-D03AD349111E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\core\src\umath\py3core-src-umath.vcxproj">
-      <Project>{4EA22FCC-1DB1-1180-5487-4E11E503694D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\fft\py3py2-numpy-fft.vcxproj">
-      <Project>{171AE7AB-9F34-DEE9-820F-A7D1505E9705}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\linalg\py3py2-numpy-linalg.vcxproj">
-      <Project>{782D23BC-E7CD-71C2-FFA4-3CBC511D1886}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\numpy\random\mtrand\py3numpy-random-mtrand.vcxproj">
-      <Project>{107914D9-77F3-6D37-CA7C-D6DFEC1861CB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py2\py3python-numpy-py2.vcxproj">
-      <Project>{12AF6E85-5FEE-C2DF-98ED-5B38D3EBFC01}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\py3contrib-python-numpy.vcxproj">
-      <Project>{FA301ACA-9DC7-C37A-FCD9-C0464CED7425}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
       <Project>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</Project>
