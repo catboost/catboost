@@ -6,9 +6,9 @@
 #include "onnx/onnx_pb.h"
 
 #ifdef ONNX_USE_LITE_PROTO
-#include <contrib/libs/protobuf/message_lite.h>
+#include <google/protobuf/message_lite.h>
 #else // ONNX_USE_LITE_PROTO
-#include <contrib/libs/protobuf/message.h>
+#include <google/protobuf/message.h>
 #endif  // !ONNX_USE_LITE_PROTO
 
 namespace ONNX_NAMESPACE {
