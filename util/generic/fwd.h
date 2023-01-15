@@ -4,9 +4,6 @@
 
 #include <stlfwd>
 
-template <class TCharType>
-using TCharTraits = std::char_traits<TCharType>;
-
 template <typename TCharType, typename TTraits = std::char_traits<TCharType>>
 class TBasicString;
 
