@@ -41,6 +41,10 @@ public:
         File.FallocateNoResize(length);
     }
 
+    inline void ShrinkToFit() {
+        File.ShrinkToFit();
+    }
+
 private:
     inline bool IsAligned(i64 value) {
         return Alignment ? value == AlignDown<i64>(value, Alignment) : true;

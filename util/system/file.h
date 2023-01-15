@@ -109,6 +109,7 @@ public:
     bool Resize(i64 length) noexcept;
     bool Reserve(i64 length) noexcept;
     bool FallocateNoResize(i64 length) noexcept;
+    bool ShrinkToFit() noexcept;
     bool Flush() noexcept;
     //flush data only, without file metadata
     bool FlushData() noexcept;
@@ -164,6 +165,7 @@ public:
     void Resize(i64 length);
     void Reserve(i64 length);
     void FallocateNoResize(i64 length);
+    void ShrinkToFit();
     void Flush();
     void FlushData();
 

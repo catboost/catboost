@@ -7045,9 +7045,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    988885156
-                ],
+                "sandbox_id": [994272460],
                 "match": "ymake"
             },
             "executable": {
@@ -8889,7 +8887,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 993239714,
+                "sandbox_id": 995140895,
                 "match": "horadric"
             },
             "executable": {
@@ -9032,7 +9030,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 993240460,
+                "sandbox_id": 995140307,
                 "match": "app_host_launcher"
             },
             "executable": {

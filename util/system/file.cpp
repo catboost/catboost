@@ -27,7 +27,7 @@
 #if defined(_unix_)
 #include <fcntl.h>
 
-#if defined(_linux_) && !defined(_android_) && !defined(FALLOC_FL_KEEP_SIZE)
+#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21) && !defined(FALLOC_FL_KEEP_SIZE)
 #include <linux/falloc.h>
 #endif
 
@@ -391,11 +391,23 @@ bool TFileHandle::FallocateNoResize(i64 length) noexcept {
     if (!IsOpen()) {
         return false;
     }
-#if defined(_linux_) && !defined(_android_)
+#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
     return !fallocate(Fd_, FALLOC_FL_KEEP_SIZE, 0, length);
 #else
     Y_UNUSED(length);
     return true;
+#endif
+}
+
+// Pair for FallocateNoResize
+bool TFileHandle::ShrinkToFit() noexcept {
+    if (!IsOpen()) {
+        return false;
+    }
+#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
+        return !ftruncate(Fd_, (off_t) GetLength());
+#else
+        return true;
 #endif
 }
 
@@ -891,6 +903,12 @@ public:
         }
     }
 
+    void ShrinkToFit() {
+        if (!Handle_.ShrinkToFit()) {
+            ythrow TFileError() << "can't shrink " << FileName_.Quote() << " to logical size";
+        }
+    }
+
     void Flush() {
         if (!Handle_.Flush()) {
             ythrow TFileError() << "can't flush " << FileName_.Quote();
@@ -1128,6 +1146,10 @@ void TFile::Reserve(i64 length) {
 
 void TFile::FallocateNoResize(i64 length) {
     Impl_->FallocateNoResize(length);
+}
+
+void TFile::ShrinkToFit() {
+    Impl_->ShrinkToFit();
 }
 
 void TFile::Flush() {

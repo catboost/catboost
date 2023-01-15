@@ -23,8 +23,7 @@ inline TString TypeName() {
 // Works for dynamic type, including complex class hierarchies.
 // Also, distinguishes between T, T*, T const*, T volatile*, T const volatile*,
 // but not T and T const.
-// Has a temporary name while migrating from TypeName to BetterTypeName implementation.
 template <class T>
-inline TString BetterTypeName(const T& t) {
+inline TString TypeName(const T& t) {
     return TypeName(typeid(t));
 }

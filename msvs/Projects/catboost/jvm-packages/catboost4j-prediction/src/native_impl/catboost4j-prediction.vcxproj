@@ -294,6 +294,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\jedi\py3jedi.global.vcxproj">
       <Project>{FFD04B57-AAF4-4AF2-EDB6-4395B3523C3C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib-inline\pycontrib-python-matplotlib-inline.global.vcxproj">
+      <Project>{CB99058B-CBC4-4D66-0B8B-99F7E6B97BC3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\py3contrib-python-more-itertools.global.vcxproj">
       <Project>{6B22A075-8F67-A352-9F87-1F7DDF94B317}</Project>
     </ProjectReference>
