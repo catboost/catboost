@@ -62,6 +62,10 @@ ELSEIF (OS_WINDOWS)
         GLOBAL -D_LIBCPP_VASPRINTF_DEFINED
         GLOBAL -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_
     )
+
+    IF (CLANG_CL)
+        PEERDIR(contrib/libs/cxxsupp/builtins)
+    ENDIF()
 ELSE()
     DEFAULT(CXX_RT "glibcxx_static")
     CXXFLAGS(
