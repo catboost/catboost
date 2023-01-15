@@ -1,21 +1,7 @@
 
 
-PREBUILT_PROGRAM()
+INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rescompressor/ya.make.prebuilt)
 
-IF (HOST_OS_DARWIN AND HOST_ARCH_X86_64 OR
-    HOST_OS_LINUX AND HOST_ARCH_X86_64 OR
-    HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
-ELSE()
-    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia rescompressor)
+IF (NOT PREBUILT)
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt rescompressor tool)
 ENDIF()
-
-DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
-    ARCADIA_RESCOMPRESSOR
-    sbr:1601276031 FOR DARWIN
-    sbr:1601276198 FOR LINUX
-    sbr:1601276119 FOR WIN32
-)
-
-PRIMARY_OUTPUT(${ARCADIA_RESCOMPRESSOR_RESOURCE_GLOBAL}/rescompressor${MODULE_SUFFIX})
-
-END()

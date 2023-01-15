@@ -1,23 +1,7 @@
 
 
-PREBUILT_PROGRAM()
+INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rescompiler/ya.make.prebuilt)
 
-IF (HOST_OS_DARWIN AND HOST_ARCH_X86_64 OR
-    HOST_OS_LINUX AND HOST_ARCH_X86_64 OR
-    HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
-ELSE()
-    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia rescompiler)
+IF (NOT PREBUILT)
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt rescompiler tool)
 ENDIF()
-
-DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
-    ARCADIA_RESCOMPILER
-    sbr:1601443458 FOR DARWIN
-    sbr:1601443719 FOR LINUX
-    sbr:1601443586 FOR WIN32
-)
-
-PRIMARY_OUTPUT(${ARCADIA_RESCOMPILER_RESOURCE_GLOBAL}/rescompiler${MODULE_SUFFIX})
-
-INDUCED_DEPS(cpp ${ARCADIA_ROOT}/library/cpp/resource/registry.h ${ARCADIA_ROOT}/library/cpp/resource/resource.h)
-
-END()
