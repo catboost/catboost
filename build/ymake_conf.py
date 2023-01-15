@@ -2260,6 +2260,7 @@ class MSVCCompiler(MSVC, Compiler):
                 '-Wno-microsoft-unqualified-friend',
             ]
             if self.tc.version_at_least(2019):
+                flags += ['-fcommon']  # heretic: fix LNK2005 errors in scipy
                 cxx_warnings += [
                     '-Wno-deprecated-volatile',
                     '-Wno-deprecated-anon-enum-enum-conversion',
