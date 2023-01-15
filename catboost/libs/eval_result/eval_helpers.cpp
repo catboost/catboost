@@ -4,6 +4,7 @@
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/labels/external_label_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
@@ -102,28 +103,76 @@ static TVector<int> SelectBestClass(
     return classApprox;
 }
 
-static void CalcMoments(
+static void CalcClassificationUncertainty(
+    const TVector<TVector<double>>& approx,
+    TVector<double>* dataUncertaintyPtr,
+    TVector<double>* totalUncertaintyPtr,
+    size_t virtEnsemblesCount,
+    NPar::TLocalExecutor* executor)
+{
+    TVector<double>& dataUncertainty = *dataUncertaintyPtr;
+    TVector<double>& totalUncertainty = *totalUncertaintyPtr;
+
+    dataUncertainty.resize(approx.front().size());
+    totalUncertainty.resize(approx.front().size());
+
+    const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+    const int threadCount = executorThreadCount + 1;
+    const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
+    const auto calcUncertaitny = [&](const int blockId) {
+        int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
+        int firstLineId = blockId * blockSize;
+        if (firstLineId >= lastLineId) {
+            return;
+        }
+        for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
+            auto probability = CalcSigmoid(
+                TConstArrayRef<double>(approx[dimIdx].begin() + firstLineId, lastLineId - firstLineId));
+            auto entropy = CalcEntropyFromProbabilities(probability);
+            for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+                dataUncertainty[lineInd] += entropy[lineInd - firstLineId];
+                totalUncertainty[lineInd] += probability[lineInd - firstLineId];
+            }
+        }
+        for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
+            dataUncertainty[lineInd] /= virtEnsemblesCount;
+            totalUncertainty[lineInd] /= virtEnsemblesCount;
+        }
+    };
+    if (executor) {
+        executor->ExecRange(calcUncertaitny, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    } else {
+        calcUncertaitny(0);
+    }
+    totalUncertainty = CalcEntropyFromProbabilities(totalUncertainty);
+}
+
+static void CalcRegressionUncertaitny(
     const TVector<TVector<double>>& approx,
     TVector<double>* meanApproxPtr,
-    TVector<double>* varApproxPtr,
     TVector<double>* knowledgeUncertaintyPtr,
+    TVector<double>* dataUncertaintyPtr,
     size_t virtEnsemblesCount,
     NPar::TLocalExecutor* executor)
 {
     TVector<double>& meanApprox = *meanApproxPtr;
-    TVector<double>& varApprox = *varApproxPtr;
+    TVector<double>& knowledgeUncertainty = *knowledgeUncertaintyPtr;
     size_t dimShift = 1;
-    if (knowledgeUncertaintyPtr) {
-        knowledgeUncertaintyPtr->resize(approx.front().size());
+    if (dataUncertaintyPtr) {
+        dataUncertaintyPtr->resize(approx.front().size());
         dimShift = 2;
     }
     meanApprox.resize(approx.front().size());
-    varApprox.resize(approx.front().size());
+    knowledgeUncertainty.resize(approx.front().size());
     const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
     const int threadCount = executorThreadCount + 1;
     const int blockSize = (approx[0].ysize() + threadCount - 1) / threadCount;
-    const auto calcMoments = [&](const int blockId) {
+    const auto calcUncertaitny = [&](const int blockId) {
         int lastLineId = Min((blockId + 1) * blockSize, approx[0].ysize());
+        int firstLineId = blockId * blockSize;
+        if (firstLineId >= lastLineId) {
+            return;
+        }
         for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
             double mean = 0;
             for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
@@ -136,23 +185,25 @@ static void CalcMoments(
                 var += Sqr(approx[dimIdx * dimShift][lineInd] - mean);
             }
             var /= virtEnsemblesCount;
-            varApprox[lineInd] = var;
+            knowledgeUncertainty[lineInd] = var;
         }
-        if (knowledgeUncertaintyPtr) {
+        if (dataUncertaintyPtr) {
             for (size_t dimIdx = 0; dimIdx < virtEnsemblesCount; ++dimIdx) {
+                TVector<double> tmp = TVector<double>(approx[dimIdx * 2 + 1].begin() + firstLineId, approx[dimIdx * 2 + 1].begin() + lastLineId);
+                FastExpInplace(tmp.data(), tmp.ysize());
                 for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
-                    (*knowledgeUncertaintyPtr)[lineInd] += approx[dimIdx * 2 + 1][lineInd];
+                    (*dataUncertaintyPtr)[lineInd] += tmp[lineInd - firstLineId];
                 }
             }
             for (int lineInd = blockId * blockSize; lineInd < lastLineId; ++lineInd) {
-                (*knowledgeUncertaintyPtr)[lineInd] /= virtEnsemblesCount;
+                (*dataUncertaintyPtr)[lineInd] /= virtEnsemblesCount;
             }
         }
     };
     if (executor) {
-        executor->ExecRange(calcMoments, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+        executor->ExecRange(calcUncertaitny, 0, threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     } else {
-        calcMoments(0);
+        calcUncertaitny(0);
     }
 }
 
@@ -280,23 +331,41 @@ void PrepareEval(const EPredictionType predictionType,
             (*result)[0] = approx[0];
             (*result)[1] = CalcExponent(approx[1]);
             break;
-        case EPredictionType::VirtEnsembles:
-            *result = approx;
-            if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
-                for (size_t idx = 1; idx < result->size(); idx += 2) {
-                    FastExpInplace((*result)[idx].data(), (*result)[idx].ysize());
+        case EPredictionType::VirtEnsembles: {
+            auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+            if (IsRegressionMetric(lossFunction)) {
+                *result = approx;
+                if (lossFunction == ELossFunction::RMSEWithUncertainty) {
+                    for (size_t idx = 1; idx < result->size(); idx += 2) {
+                        FastExpInplace((*result)[idx].data(), (*result)[idx].ysize());
+                    }
                 }
             }
-            break;
-        case EPredictionType::TotalUncertainty:
-            if (FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty) {
-                result->resize(3);
-                CalcMoments(approx, &(result->at(0)), &(result->at(1)), &(result->at(2)), approx.size() / 2, executor);
+            else if (IsClassificationMetric(lossFunction)) {
+                CB_ENSURE(IsBinaryClassOnlyMetric(lossFunction), "uncertainty for MultiClass is not supported");
+                *result = approx;
             } else {
-                result->resize(2);
-                CalcMoments(approx, &(result->at(0)), &(result->at(1)), nullptr, approx.size(), executor);
+                CB_ENSURE(false, "uncertainty is not supported for " << lossFunction);
             }
             break;
+        }
+        case EPredictionType::TotalUncertainty: {
+            auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+            if (lossFunction == ELossFunction::RMSEWithUncertainty) {
+                result->resize(3);
+                CalcRegressionUncertaitny(approx, &(result->at(0)), &(result->at(1)), &(result->at(2)),
+                                          approx.size() / 2, executor);
+            } else if (IsRegressionMetric(lossFunction)) {
+                result->resize(2);
+                CalcRegressionUncertaitny(approx, &(result->at(0)), &(result->at(1)), nullptr, approx.size(), executor);
+            } else {
+                CB_ENSURE(IsClassificationMetric(lossFunction),
+                          "unsupported loss function for uncertainty " << lossFunction);
+                result->resize(2);
+                CalcClassificationUncertainty(approx, &(result->at(0)), &(result->at(1)), approx.size(), executor);
+            }
+            break;
+        }
         case EPredictionType::RawFormulaVal:
             *result = approx;
             break;

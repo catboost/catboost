@@ -8668,14 +8668,53 @@ def test_shrink_model_with_text_features(grow_policy):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
+def test_virtual_ensembles(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    train_path = data_file('querywise', 'train') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train_small')
+    test_path = data_file('querywise', 'test') if loss_function in REGRESSION_LOSSES else data_file('adult', 'test_small')
+    cd_path = data_file('querywise', 'train.cd') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train.cd')
+    test_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = [
+        '--use-best-model', 'false',
+        '-f', train_path,
+        '-t', test_path,
+        '--loss-function', loss_function,
+        '--column-description', cd_path,
+        '--posterior-sampling', 'true',
+        '--eval-file', test_eval_path,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    if loss_function == 'RMSEWithUncertainty':
+        cmd += ['--prediction-type', 'RMSEWithUncertainty']
+    execute_catboost_fit('CPU', cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--virtual-ensembles-count', '1',
+        '--prediction-type', 'VirtEnsembles',
+    )
+    yatest.common.execute(calc_cmd)
+    assert compare_evals(test_eval_path, formula_predict_path, skip_header=True)
+
+
 @pytest.mark.parametrize('virtual_ensembles_count', ['1', '10'])
 @pytest.mark.parametrize('prediction_type', ['TotalUncertainty', 'VirtEnsembles'])
-@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty'])
+@pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty', 'Logloss'])
 def test_uncertainty_prediction(virtual_ensembles_count, prediction_type, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
-    train_path = data_file('querywise', 'train')
-    test_path = data_file('querywise', 'test')
-    cd_path = data_file('querywise', 'train.cd')
+    train_path = data_file('querywise', 'train') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train_small')
+    test_path = data_file('querywise', 'test') if loss_function in REGRESSION_LOSSES else data_file('adult', 'test_small')
+    cd_path = data_file('querywise', 'train.cd') if loss_function in REGRESSION_LOSSES else data_file('adult', 'train.cd')
     cmd = (
         '--use-best-model', 'false',
         '-f', train_path,

@@ -9381,12 +9381,28 @@
             "uri": "file://test.test_tweedie/learn_error.tsv"
         }
     ],
+    "test.test_uncertainty_prediction[Logloss-TotalUncertainty-10]": {
+        "checksum": "d0c3edd3228ecb11799ebd1c5829dbdd",
+        "uri": "file://test.test_uncertainty_prediction_Logloss-TotalUncertainty-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[Logloss-TotalUncertainty-1]": {
+        "checksum": "ed03f342c36bd0c0384397a71f371f0f",
+        "uri": "file://test.test_uncertainty_prediction_Logloss-TotalUncertainty-1_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[Logloss-VirtEnsembles-10]": {
+        "checksum": "439b968ea86f42ccccb9ba988cc909f9",
+        "uri": "file://test.test_uncertainty_prediction_Logloss-VirtEnsembles-10_/predict_test.eval"
+    },
+    "test.test_uncertainty_prediction[Logloss-VirtEnsembles-1]": {
+        "checksum": "5aad260160c6efca009d2a8a414048a3",
+        "uri": "file://test.test_uncertainty_prediction_Logloss-VirtEnsembles-1_/predict_test.eval"
+    },
     "test.test_uncertainty_prediction[RMSE-TotalUncertainty-10]": {
-        "checksum": "125e4d0c9de12a50c90781e34fda1a7d",
+        "checksum": "8c2b59f4cd4a1ba4a39883a17e04bf91",
         "uri": "file://test.test_uncertainty_prediction_RMSE-TotalUncertainty-10_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSE-TotalUncertainty-1]": {
-        "checksum": "5cbe3450ca4168387f2a5e26b1ca34b1",
+        "checksum": "8b1a9e66761191f3daf586fb158064fb",
         "uri": "file://test.test_uncertainty_prediction_RMSE-TotalUncertainty-1_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSE-VirtEnsembles-10]": {
@@ -9398,19 +9414,19 @@
         "uri": "file://test.test_uncertainty_prediction_RMSE-VirtEnsembles-1_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSEWithUncertainty-TotalUncertainty-10]": {
-        "checksum": "387c95a0d4c8ab1d420c402bbf954561",
+        "checksum": "efed9c575e28a2f7d579513006e6f92a",
         "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-TotalUncertainty-10_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSEWithUncertainty-TotalUncertainty-1]": {
-        "checksum": "95c576fa0b155034a931bee86e33d35c",
+        "checksum": "036f634148f5225aba96899eb65d2dd7",
         "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-TotalUncertainty-1_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSEWithUncertainty-VirtEnsembles-10]": {
-        "checksum": "79ab49bb8c7aedc9c5e9d409c5218cff",
+        "checksum": "96860f24e51fdb40fea6f8596842dce5",
         "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-VirtEnsembles-10_/predict_test.eval"
     },
     "test.test_uncertainty_prediction[RMSEWithUncertainty-VirtEnsembles-1]": {
-        "checksum": "a87beba8ecaf685cd9ddfd332f65ce04",
+        "checksum": "75e9bc4ac1b103d6b273aa5bf54d79cc",
         "uri": "file://test.test_uncertainty_prediction_RMSEWithUncertainty-VirtEnsembles-1_/predict_test.eval"
     },
     "test.test_weight_sampling_per_tree[calc_block=5000000-Ordered]": {

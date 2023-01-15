@@ -2076,28 +2076,20 @@ class CatBoost(_CatBoostBase):
         Returns
         -------
         prediction :
+            (with V as virtual_ensembles_count and T as trees count,
+            k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant)
+            If data is for a single object, return 1-dimensional array of predictions with size depends on prediction type,
+            otherwise return 2-dimensional numpy.ndarray with shape (number_of_objects x size depends on prediction type);
+            Returned predictions depends on prediction type:
             If loss-function was RMSEWithUncertainty:
-                If data is for a single object, the return value depends on prediction_type value:
-                - 'VirtEnsembles': return 2V-dimensional numpy.ndarray [mean0, var0, mean1, var1, ...] of predictons  (V is virtual_ensembles_count).
-                    k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant.
-                - 'TotalUncertainty': return 3-dimensional numpy.ndarray:  [mean predict, var, KU] (and knowledge uncertainty
-                    if model was trained with RMSEWithUncertainty loss function) for virtEnsembles
-                otherwise:
-                - 'VirtEnsembles': return 2V-dimensional array [mean0, var0, mean1, var1, ...] of predictons (with shape (number_of_objects x 2V)) (V is virtual_ensembles_count).
-                    k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant.
-                - 'TotalUncertainty': return 2-dimensional array:  [mean predicts, var, KU] (with shape (3 x V)) (and knowledge uncertainty
-                    if model was trained with RMSEWithUncertainty loss function) for virtEnsembles
-            otherwise:
-                If data is for a single object, the return value depends on prediction_type value:
-                - 'VirtEnsembles': return V-dimensional numpy.ndarray [mean0, mean1, ...] of predictons  (V is virtual_ensembles_count).
-                    k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant.
-                - 'TotalUncertainty': return 2-dimensional numpy.ndarray:  [mean predict, var] (and knowledge uncertainty
-                    if model was trained with RMSEWithUncertainty loss function) for virtEnsembles
-                otherwise:
-                - 'VirtEnsembles': return 2V-dimensional array [mean0, mean1, ...] of predictons (with shape (number_of_objects x  V)) (V is virtual_ensembles_count).
-                    k-th virtEnsemle consists of trees [0, T/2] + [T/2 + T/(2V) * k, T/2 + T/(2V) * (k + 1)]  * constant.
-                - 'TotalUncertainty': return 2-dimensional array:  [mean predicts, var] (with shape (number_of_objects x 2V)) (and knowledge uncertainty
-                    if model was trained with RMSEWithUncertainty loss function) for virtEnsembles
+                - 'VirtEnsembles': [mean0, var0, mean1, var1, ..., vark-1].
+                - 'TotalUncertainty': [mean_predict, KnowledgeUnc, DataUnc].
+            otherwise for regression:
+                - 'VirtEnsembles':  [mean0, mean1, ...].
+                - 'TotalUncertainty': [mean_predicts, KnowledgeUnc].
+            otherwise for binary classification:
+                - 'VirtEnsembles':  [ApproxRawFormulaVal0, ApproxRawFormulaVal1, ..., ApproxRawFormulaValk-1].
+                - 'TotalUncertainty':  [DataUnc, TotalUnc].
         """
         return self._virtual_ensembles_predict(data, prediction_type, ntree_end, virtual_ensembles_count, thread_count, verbose, 'virtual_ensembles_predict')
 

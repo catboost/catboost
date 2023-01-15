@@ -90,7 +90,8 @@ namespace NCB {
         TVector<TString> headers;
         headers.reserve(classCount);
         bool isUncertainty = IsUncertaintyPredictionType(predictionType);
-        bool isRMSEWithUncertainty = FromString<ELossFunction>(lossFunctionName) == ELossFunction::RMSEWithUncertainty;
+        auto lossFunction = FromString<ELossFunction>(lossFunctionName);
+        bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
         if (isUncertainty) {
             TVector<TString> uncertaintyHeaders;
             if (predictionType == EPredictionType::VirtEnsembles) {
@@ -99,9 +100,15 @@ namespace NCB {
                     uncertaintyHeaders.push_back("Var");
                 }
             } else {
-                uncertaintyHeaders = { "Mean", "VarMean"};
-                if (isRMSEWithUncertainty) {
-                    uncertaintyHeaders.push_back("KU"); // KnowledgeUncertainty
+                if (IsRegressionMetric(lossFunction)) {
+                    uncertaintyHeaders = {"MeanPredictions", "KnowledgeUnc"}; // KnowledgeUncertainty
+                    if (isRMSEWithUncertainty) {
+                        uncertaintyHeaders.push_back("DataUnc"); // DataUncertainty
+                    }
+                } else if (IsBinaryClassOnlyMetric(lossFunction)) {
+                    uncertaintyHeaders = {"DataUnc", "TotalUnc"};
+                } else {
+                    CB_ENSURE(false, "unsupported loss function for uncertainty " << lossFunction);
                 }
             }
             size_t ensemblesCount = approxDimension / (isRMSEWithUncertainty ? 2 : 1);
