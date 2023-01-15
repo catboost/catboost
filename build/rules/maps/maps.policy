@@ -50,6 +50,7 @@ ALLOW .* -> maps/libs/http
 ALLOW .* -> maps/libs/json
 ALLOW .* -> maps/libs/nirvana
 ALLOW .* -> maps/libs/local_postgres
+ALLOW .* -> maps/libs/locale
 ALLOW .* -> maps/libs/pgpool
 ALLOW .* -> maps/libs/s3mds
 ALLOW .* -> maps/libs/sql_chemistry
@@ -58,7 +59,6 @@ ALLOW .* -> maps/libs/tile
 ALLOW .* -> maps/pylibs/local_postgres
 
 # Fix current PEERDIRs and prevent any further growth
-ALLOW extsearch/geo/kernel/localeutils -> maps/libs/locale
 ALLOW media/road-graph-tool -> maps/libs/road_graph
 ALLOW media/road-graph-tool -> maps/libs/snap
 ALLOW media/road-graph-tool -> maps/libs/succinct_rtree
