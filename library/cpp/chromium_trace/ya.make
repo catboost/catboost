@@ -5,7 +5,7 @@ LIBRARY()
 PEERDIR(
     library/cpp/containers/stack_vector
     library/cpp/json/writer
-    library/yson
+    library/cpp/yson
 )
 
 SRCS(

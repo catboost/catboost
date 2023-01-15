@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/json
-    library/yson
+    library/cpp/yson
 )
 
 SRCS(
