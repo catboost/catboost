@@ -7080,7 +7080,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 805340656,
+                "sandbox_id": 805535524,
                 "match": "zcli"
             },
             "executable": {
