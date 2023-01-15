@@ -1,6 +1,8 @@
 #pragma once
 #include "kernel.cuh"
 
+#include <tuple>
+
 namespace NKernel {
 
     #define NUM_CACHED_PROPS 16
@@ -20,6 +22,12 @@ namespace NKernel {
         inline void CacheProps(int devId) {
             cudaGetDeviceProperties(&Props[devId], devId);
             Instance.PropsCached[devId] = true;
+        }
+
+        inline void CachePropsIfNotCached(int devId) {
+            if (!PropsCached[devId]) {
+                CacheProps(devId);
+            }
         }
 
         inline int GetCurrentDevice() {
@@ -51,6 +59,32 @@ namespace NKernel {
         static int GetMajorVersion() {
             int devId = Instance.GetCurrentDevice();
             return Instance.Props[devId].major;
+        }
+
+        static int GetMajorVersion(int devId) {
+            Instance.CachePropsIfNotCached(devId);
+            return Instance.Props[devId].major;
+        }
+
+        static int GetMinorVersion(int devId) {
+            Instance.CachePropsIfNotCached(devId);
+            return Instance.Props[devId].minor;
+        }
+
+        // FP16 is accessible if compability version is at least 5.3
+        // https://h.yandex-team.ru/?https%3A%2F%2Fdocs.nvidia.com%2Fcuda%2Fcuda-c-programming-guide%2Findex.html%23arithmetic-instructions
+        static bool HasFp16(int devId) {
+            Instance.CachePropsIfNotCached(devId);
+            return std::make_tuple(GetMajorVersion(devId), GetMinorVersion(devId)) >= std::forward_as_tuple(5, 3);
+        }
+
+        // Fast FP16 is accessible if compability version is not 6.1
+        static bool HasFastFp16(int devId) {
+            Instance.CachePropsIfNotCached(devId);
+            if (!HasFp16(devId)) {
+                return false;
+            }
+            return std::make_tuple(GetMajorVersion(devId), GetMinorVersion(devId)) != std::forward_as_tuple(6, 1);
         }
     };
 
