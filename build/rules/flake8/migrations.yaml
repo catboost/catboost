@@ -3035,9 +3035,6 @@ migrations:
     - metrika/admin/python/cms/frontend/cms/ui
     - metrika/admin/python/scripts/clickhouse_parts_cleaner/lib
     - mssngr/tools/tests
-    - nirvana/vh3/src
-    - nirvana/vh3/src/vh3/backend/nirvana
-    - nirvana/vh3/tests
     - ofd/admin/lib/controllers
     - ofd/admin/lib/views
     - ofd/api/lib/blueprints
