@@ -2534,7 +2534,7 @@ class CatBoost(_CatBoostBase):
             return np.array(getattr(self, "_prediction_values_change", None))
 
 
-    def get_feature_importance(self, data=None, reference_data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", model_output="Raw", interaction_indices=None, shap_calc_type="Regular"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", model_output="Raw", interaction_indices=None, shap_calc_type="Regular", reference_data=None):
         """
         Parameters
         ----------
@@ -2551,10 +2551,6 @@ class CatBoost(_CatBoostBase):
                 See 'PredictionValuesChange' for non-ranking metrics and 'LossFunctionChange' for ranking metrics.
             If type == 'Interaction'
                 This parameter is not used.
-
-        reference_data: catboost.Pool or None
-            Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
-            if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
 
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
@@ -2617,6 +2613,10 @@ class CatBoost(_CatBoostBase):
         interaction_indices : list of int or string (feature_idx_1, feature_idx_2), optional (default=None)
             used only for ShapInteractionValues type
             Calculate SHAP Interaction Values between pair of features feature_idx_1 and feature_idx_2 for every object
+
+        reference_data: catboost.Pool or None
+            Reference data for Independent Tree SHAP values from https://arxiv.org/abs/1905.04610v1
+            if type == 'ShapValues' and reference_data is not None, then Independent Tree SHAP values are calculated
 
         Returns
         -------
