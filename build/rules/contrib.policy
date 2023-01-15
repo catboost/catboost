@@ -21,6 +21,7 @@ DENY .* -> contrib/deprecated/folly
 DENY .* -> contrib/deprecated/wangle
 
 ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
+ALLOW contrib/libs/nodejs_8 -> contrib/deprecated/http-parser
 ALLOW mds -> contrib/deprecated/http-parser
 ALLOW devtools/experimental/mds -> contrib/deprecated/http-parser
 ALLOW contrib/libs/libgit2 -> contrib/deprecated/http-parser
