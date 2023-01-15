@@ -110,6 +110,7 @@ RECURSE(
     pure_compiler
     pure_fingerprints
     pycron
+    python-netconfig-static
     qlz
     query_marker_builder
     queryrectest
