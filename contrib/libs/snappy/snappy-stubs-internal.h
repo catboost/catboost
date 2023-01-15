@@ -28,29 +28,57 @@
 //
 // Various stubs for the open-source version of Snappy.
 
-#ifndef UTIL_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
-#define UTIL_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
+#ifndef THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
+#define THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
 
-#if defined(__GNUC__)
-    #define HAVE_BUILTIN_CTZ
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#include <iostream>
-#include <string>
+#include <util/generic/string.h>
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "snappy-stubs-public.h"
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#endif
 
-#include <util/system/defaults.h>
-#include <util/system/byteorder.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif  // defined(_MSC_VER)
+
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+#if __has_feature(memory_sanitizer)
+#include <sanitizer/msan_interface.h>
+#define SNAPPY_ANNOTATE_MEMORY_IS_INITIALIZED(address, size) \
+    __msan_unpoison((address), (size))
+#else
+#define SNAPPY_ANNOTATE_MEMORY_IS_INITIALIZED(address, size) /* empty */
+#endif  // __has_feature(memory_sanitizer)
+
+#include "snappy-stubs-public.h"
 
 #if defined(__x86_64__)
 
 // Enable 64-bit optimized versions of some routines.
 #define ARCH_K8 1
+
+#elif defined(__ppc64__)
+
+#define ARCH_PPC 1
+
+#elif defined(__aarch64__)
+
+#define ARCH_ARM 1
 
 #endif
 
@@ -58,10 +86,6 @@
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
 #endif
-
-// Pull in std::min, std::ostream, and the likes. This is safe because this
-// header file is never used from any public header files.
-using namespace std;
 
 // The size of an array, if known at compile-time.
 // Will give unexpected results if used on a pointer.
@@ -71,8 +95,14 @@ using namespace std;
 #endif
 #define ARRAYSIZE(a) (sizeof(a) / sizeof(*(a)))
 
-#define PREDICT_FALSE(x) Y_UNLIKELY(x)
-#define PREDICT_TRUE(x) Y_LIKELY(x)
+// Static prediction hints.
+#ifdef HAVE_BUILTIN_EXPECT
+#define SNAPPY_PREDICT_FALSE(x) (__builtin_expect(x, 0))
+#define SNAPPY_PREDICT_TRUE(x) (__builtin_expect(!!(x), 1))
+#else
+#define SNAPPY_PREDICT_FALSE(x) x
+#define SNAPPY_PREDICT_TRUE(x) x
+#endif
 
 // This is only used for recomputing the tag byte table used during
 // decompression; for simplicity we just remove it from the open-source
@@ -88,94 +118,12 @@ namespace snappy {
 static const uint32 kuint32max = static_cast<uint32>(0xFFFFFFFF);
 static const int64 kint64max = static_cast<int64>(0x7FFFFFFFFFFFFFFFLL);
 
-// Logging.
-
-#define LOG(level) LogMessage()
-#define VLOG(level) true ? (void)0 : \
-    snappy::LogMessageVoidify() & snappy::LogMessage()
-
-class LogMessage {
- public:
-  LogMessage() { }
-  ~LogMessage() {
-    cerr << endl;
-  }
-
-  LogMessage& operator<<(const std::string& msg) {
-    cerr << msg;
-    return *this;
-  }
-  LogMessage& operator<<(int x) {
-    cerr << x;
-    return *this;
-  }
-};
-
-// Asserts, both versions activated in debug mode only,
-// and ones that are always active.
-
-#define CRASH_UNLESS(condition) \
-    PREDICT_TRUE(condition) ? (void)0 : \
-    snappy::LogMessageVoidify() & snappy::LogMessageCrash()
-
-class LogMessageCrash : public LogMessage {
- public:
-  LogMessageCrash() { }
-  ~LogMessageCrash() {
-    cerr << endl;
-    abort();
-  }
-};
-
-// This class is used to explicitly ignore values in the conditional
-// logging macros.  This avoids compiler warnings like "value computed
-// is not used" and "statement has no effect".
-
-class LogMessageVoidify {
- public:
-  LogMessageVoidify() { }
-  // This has to be an operator with a precedence lower than << but
-  // higher than ?:
-  void operator&(const LogMessage&) { }
-};
-
-#undef CHECK
-
-#define CHECK(cond) CRASH_UNLESS(cond)
-#define CHECK_LE(a, b) CRASH_UNLESS((a) <= (b))
-#define CHECK_GE(a, b) CRASH_UNLESS((a) >= (b))
-#define CHECK_EQ(a, b) CRASH_UNLESS((a) == (b))
-#define CHECK_NE(a, b) CRASH_UNLESS((a) != (b))
-#define CHECK_LT(a, b) CRASH_UNLESS((a) < (b))
-#define CHECK_GT(a, b) CRASH_UNLESS((a) > (b))
-
-#ifdef NDEBUG
-
-#define DCHECK(cond) CRASH_UNLESS(true)
-#define DCHECK_LE(a, b) CRASH_UNLESS(true)
-#define DCHECK_GE(a, b) CRASH_UNLESS(true)
-#define DCHECK_EQ(a, b) CRASH_UNLESS(true)
-#define DCHECK_NE(a, b) CRASH_UNLESS(true)
-#define DCHECK_LT(a, b) CRASH_UNLESS(true)
-#define DCHECK_GT(a, b) CRASH_UNLESS(true)
-
-#else
-
-#define DCHECK(cond) CHECK(cond)
-#define DCHECK_LE(a, b) CHECK_LE(a, b)
-#define DCHECK_GE(a, b) CHECK_GE(a, b)
-#define DCHECK_EQ(a, b) CHECK_EQ(a, b)
-#define DCHECK_NE(a, b) CHECK_NE(a, b)
-#define DCHECK_LT(a, b) CHECK_LT(a, b)
-#define DCHECK_GT(a, b) CHECK_GT(a, b)
-
-#endif
-
 // Potentially unaligned loads and stores.
 
-// x86 and PowerPC can simply do these loads and stores native.
+// x86, PowerPC, and ARM64 can simply do these loads and stores native.
 
-#if defined(__i386__) || defined(__x86_64__) || defined(__powerpc__)
+#if defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || \
+    defined(__aarch64__)
 
 #define UNALIGNED_LOAD16(_p) (*reinterpret_cast<const uint16 *>(_p))
 #define UNALIGNED_LOAD32(_p) (*reinterpret_cast<const uint32 *>(_p))
@@ -193,8 +141,19 @@ class LogMessageVoidify {
 // sub-architectures.
 //
 // This is a mess, but there's not much we can do about it.
+//
+// To further complicate matters, only LDR instructions (single reads) are
+// allowed to be unaligned, not LDRD (two reads) or LDM (many reads). Unless we
+// explicitly tell the compiler that these accesses can be unaligned, it can and
+// will combine accesses. On armcc, the way to signal this is done by accessing
+// through the type (uint32 __packed *), but GCC has no such attribute
+// (it ignores __attribute__((packed)) on individual variables). However,
+// we can tell it that a _struct_ is unaligned, which has the same effect,
+// so we do that.
 
 #elif defined(__arm__) && \
+      !defined(__ARM_ARCH_4__) && \
+      !defined(__ARM_ARCH_4T__) && \
       !defined(__ARM_ARCH_5__) && \
       !defined(__ARM_ARCH_5T__) && \
       !defined(__ARM_ARCH_5TE__) && \
@@ -206,13 +165,41 @@ class LogMessageVoidify {
       !defined(__ARM_ARCH_6ZK__) && \
       !defined(__ARM_ARCH_6T2__)
 
-#define UNALIGNED_LOAD16(_p) (*reinterpret_cast<const uint16 *>(_p))
-#define UNALIGNED_LOAD32(_p) (*reinterpret_cast<const uint32 *>(_p))
+#if __GNUC__
+#define ATTRIBUTE_PACKED __attribute__((__packed__))
+#else
+#define ATTRIBUTE_PACKED
+#endif
 
-#define UNALIGNED_STORE16(_p, _val) (*reinterpret_cast<uint16 *>(_p) = (_val))
-#define UNALIGNED_STORE32(_p, _val) (*reinterpret_cast<uint32 *>(_p) = (_val))
+namespace base {
+namespace internal {
 
-// TODO(user): NEON supports unaligned 64-bit loads and stores.
+struct Unaligned16Struct {
+  uint16 value;
+  uint8 dummy;  // To make the size non-power-of-two.
+} ATTRIBUTE_PACKED;
+
+struct Unaligned32Struct {
+  uint32 value;
+  uint8 dummy;  // To make the size non-power-of-two.
+} ATTRIBUTE_PACKED;
+
+}  // namespace internal
+}  // namespace base
+
+#define UNALIGNED_LOAD16(_p) \
+    ((reinterpret_cast<const ::snappy::base::internal::Unaligned16Struct *>(_p))->value)
+#define UNALIGNED_LOAD32(_p) \
+    ((reinterpret_cast<const ::snappy::base::internal::Unaligned32Struct *>(_p))->value)
+
+#define UNALIGNED_STORE16(_p, _val) \
+    ((reinterpret_cast< ::snappy::base::internal::Unaligned16Struct *>(_p))->value = \
+         (_val))
+#define UNALIGNED_STORE32(_p, _val) \
+    ((reinterpret_cast< ::snappy::base::internal::Unaligned32Struct *>(_p))->value = \
+         (_val))
+
+// TODO: NEON supports unaligned 64-bit loads and stores.
 // See if that would be more efficient on platforms supporting it,
 // at least for copies.
 
@@ -263,19 +250,65 @@ inline void UNALIGNED_STORE64(void *p, uint64 v) {
 
 #endif
 
-// This can be more efficient than UNALIGNED_LOAD64 + UNALIGNED_STORE64
-// on some platforms, in particular ARM.
-inline void UnalignedCopy64(const void *src, void *dst) {
-  if (sizeof(void *) == 8) {
-    UNALIGNED_STORE64(dst, UNALIGNED_LOAD64(src));
-  } else {
-    const char *src_char = reinterpret_cast<const char *>(src);
-    char *dst_char = reinterpret_cast<char *>(dst);
+// The following guarantees declaration of the byte swap functions.
+#if defined(SNAPPY_IS_BIG_ENDIAN)
 
-    UNALIGNED_STORE32(dst_char, UNALIGNED_LOAD32(src_char));
-    UNALIGNED_STORE32(dst_char + 4, UNALIGNED_LOAD32(src_char + 4));
-  }
+#ifdef HAVE_SYS_BYTEORDER_H
+#include <sys/byteorder.h>
+#endif
+
+#ifdef HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
+
+#ifdef _MSC_VER
+#include <stdlib.h>
+#define bswap_16(x) _byteswap_ushort(x)
+#define bswap_32(x) _byteswap_ulong(x)
+#define bswap_64(x) _byteswap_uint64(x)
+
+#elif defined(__APPLE__)
+// Mac OS X / Darwin features
+#include <libkern/OSByteOrder.h>
+#define bswap_16(x) OSSwapInt16(x)
+#define bswap_32(x) OSSwapInt32(x)
+#define bswap_64(x) OSSwapInt64(x)
+
+#elif defined(HAVE_BYTESWAP_H)
+#include <byteswap.h>
+
+#elif defined(bswap32)
+// FreeBSD defines bswap{16,32,64} in <sys/endian.h> (already #included).
+#define bswap_16(x) bswap16(x)
+#define bswap_32(x) bswap32(x)
+#define bswap_64(x) bswap64(x)
+
+#elif defined(BSWAP_64)
+// Solaris 10 defines BSWAP_{16,32,64} in <sys/byteorder.h> (already #included).
+#define bswap_16(x) BSWAP_16(x)
+#define bswap_32(x) BSWAP_32(x)
+#define bswap_64(x) BSWAP_64(x)
+
+#else
+
+inline uint16 bswap_16(uint16 x) {
+  return (x << 8) | (x >> 8);
 }
+
+inline uint32 bswap_32(uint32 x) {
+  x = ((x & 0xff00ff00UL) >> 8) | ((x & 0x00ff00ffUL) << 8);
+  return (x >> 16) | (x << 16);
+}
+
+inline uint64 bswap_64(uint64 x) {
+  x = ((x & 0xff00ff00ff00ff00ULL) >> 8) | ((x & 0x00ff00ff00ff00ffULL) << 8);
+  x = ((x & 0xffff0000ffff0000ULL) >> 16) | ((x & 0x0000ffff0000ffffULL) << 16);
+  return (x >> 32) | (x << 32);
+}
+
+#endif
+
+#endif  // defined(SNAPPY_IS_BIG_ENDIAN)
 
 // Convert to little-endian storage, opposite of network format.
 // Convert x from host to little endian: x = LittleEndian.FromHost(x);
@@ -289,17 +322,27 @@ inline void UnalignedCopy64(const void *src, void *dst) {
 class LittleEndian {
  public:
   // Conversion functions.
-  static uint16 FromHost16(uint16 x) { return HostToLittle(x); }
-  static uint16 ToHost16(uint16 x) { return LittleToHost(x); }
+#if defined(SNAPPY_IS_BIG_ENDIAN)
 
-  static uint32 FromHost32(uint32 x) { return HostToLittle(x); }
-  static uint32 ToHost32(uint32 x) { return LittleToHost(x); }
+  static uint16 FromHost16(uint16 x) { return bswap_16(x); }
+  static uint16 ToHost16(uint16 x) { return bswap_16(x); }
 
-#if defined(_little_endian_)
-  static bool IsLittleEndian() { return true; }
-#else
+  static uint32 FromHost32(uint32 x) { return bswap_32(x); }
+  static uint32 ToHost32(uint32 x) { return bswap_32(x); }
+
   static bool IsLittleEndian() { return false; }
-#endif
+
+#else  // !defined(SNAPPY_IS_BIG_ENDIAN)
+
+  static uint16 FromHost16(uint16 x) { return x; }
+  static uint16 ToHost16(uint16 x) { return x; }
+
+  static uint32 FromHost32(uint32 x) { return x; }
+  static uint32 ToHost32(uint32 x) { return x; }
+
+  static bool IsLittleEndian() { return true; }
+
+#endif  // !defined(SNAPPY_IS_BIG_ENDIAN)
 
   // Functions to do unaligned loads and stores in little-endian order.
   static uint16 Load16(const void *p) {
@@ -322,6 +365,9 @@ class LittleEndian {
 // Some bit-manipulation functions.
 class Bits {
  public:
+  // Return floor(log2(n)) for positive integer n.
+  static int Log2FloorNonZero(uint32 n);
+
   // Return floor(log2(n)) for positive integer n.  Returns -1 iff n == 0.
   static int Log2Floor(uint32 n);
 
@@ -329,31 +375,85 @@ class Bits {
   // undefined value if n == 0.  FindLSBSetNonZero() is similar to ffs() except
   // that it's 0-indexed.
   static int FindLSBSetNonZero(uint32 n);
+
+#if defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
   static int FindLSBSetNonZero64(uint64 n);
+#endif  // defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(Bits);
+  // No copying
+  Bits(const Bits&);
+  void operator=(const Bits&);
 };
 
 #ifdef HAVE_BUILTIN_CTZ
 
+inline int Bits::Log2FloorNonZero(uint32 n) {
+  assert(n != 0);
+  // (31 ^ x) is equivalent to (31 - x) for x in [0, 31]. An easy proof
+  // represents subtraction in base 2 and observes that there's no carry.
+  //
+  // GCC and Clang represent __builtin_clz on x86 as 31 ^ _bit_scan_reverse(x).
+  // Using "31 ^" here instead of "31 -" allows the optimizer to strip the
+  // function body down to _bit_scan_reverse(x).
+  return 31 ^ __builtin_clz(n);
+}
+
 inline int Bits::Log2Floor(uint32 n) {
-  return n == 0 ? -1 : 31 ^ __builtin_clz(n);
+  return (n == 0) ? -1 : Bits::Log2FloorNonZero(n);
 }
 
 inline int Bits::FindLSBSetNonZero(uint32 n) {
+  assert(n != 0);
   return __builtin_ctz(n);
 }
 
+#if defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
 inline int Bits::FindLSBSetNonZero64(uint64 n) {
+  assert(n != 0);
   return __builtin_ctzll(n);
 }
+#endif  // defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
+
+#elif defined(_MSC_VER)
+
+inline int Bits::Log2FloorNonZero(uint32 n) {
+  assert(n != 0);
+  unsigned long where;
+  _BitScanReverse(&where, n);
+  return static_cast<int>(where);
+}
+
+inline int Bits::Log2Floor(uint32 n) {
+  unsigned long where;
+  if (_BitScanReverse(&where, n))
+    return static_cast<int>(where);
+  return -1;
+}
+
+inline int Bits::FindLSBSetNonZero(uint32 n) {
+  assert(n != 0);
+  unsigned long where;
+  if (_BitScanForward(&where, n))
+    return static_cast<int>(where);
+  return 32;
+}
+
+#if defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
+inline int Bits::FindLSBSetNonZero64(uint64 n) {
+  assert(n != 0);
+  unsigned long where;
+  if (_BitScanForward64(&where, n))
+    return static_cast<int>(where);
+  return 64;
+}
+#endif  // defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
 
 #else  // Portable versions.
 
-inline int Bits::Log2Floor(uint32 n) {
-  if (n == 0)
-    return -1;
+inline int Bits::Log2FloorNonZero(uint32 n) {
+  assert(n != 0);
+
   int log = 0;
   uint32 value = n;
   for (int i = 4; i >= 0; --i) {
@@ -368,7 +468,13 @@ inline int Bits::Log2Floor(uint32 n) {
   return log;
 }
 
+inline int Bits::Log2Floor(uint32 n) {
+  return (n == 0) ? -1 : Bits::Log2FloorNonZero(n);
+}
+
 inline int Bits::FindLSBSetNonZero(uint32 n) {
+  assert(n != 0);
+
   int rc = 31;
   for (int i = 4, shift = 1 << 4; i >= 0; --i) {
     const uint32 x = n << shift;
@@ -381,8 +487,11 @@ inline int Bits::FindLSBSetNonZero(uint32 n) {
   return rc;
 }
 
+#if defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
 // FindLSBSetNonZero64() is defined in terms of FindLSBSetNonZero().
 inline int Bits::FindLSBSetNonZero64(uint64 n) {
+  assert(n != 0);
+
   const uint32 bottombits = static_cast<uint32>(n);
   if (bottombits == 0) {
     // Bottom bits are zero, so scan in top bits
@@ -391,6 +500,7 @@ inline int Bits::FindLSBSetNonZero64(uint64 n) {
     return FindLSBSetNonZero(bottombits);
   }
 }
+#endif  // defined(ARCH_K8) || defined(ARCH_PPC) || defined(ARCH_ARM)
 
 #endif  // End portable versions.
 
@@ -414,7 +524,7 @@ class Varint {
   static char* Encode32(char* ptr, uint32 v);
 
   // EFFECTS    Appends the varint representation of "value" to "*s".
-  static void Append32(string* s, uint32 value);
+  static void Append32(TString* s, uint32 value);
 };
 
 inline const char* Varint::Parse32WithLimit(const char* p,
@@ -467,12 +577,12 @@ inline char* Varint::Encode32(char* sptr, uint32 v) {
   return reinterpret_cast<char*>(ptr);
 }
 
-// If you know the internal layout of the std::string in use, you can
+// If you know the internal layout of the TString in use, you can
 // replace this function with one that resizes the string without
 // filling the new space with zeros (if applicable) --
 // it will be non-portable but faster.
-inline void STLStringResizeUninitialized(string* s, size_t new_size) {
-  s->ReserveAndResize(new_size);
+inline void STLStringResizeUninitialized(TString* s, size_t new_size) {
+  s->resize(new_size);
 }
 
 // Return a mutable char* pointing to a string's internal buffer,
@@ -487,10 +597,10 @@ inline void STLStringResizeUninitialized(string* s, size_t new_size) {
 // (http://www.open-std.org/JTC1/SC22/WG21/docs/lwg-defects.html#530)
 // proposes this as the method. It will officially be part of the standard
 // for C++0x. This should already work on all current implementations.
-inline char* string_as_array(string* str) {
-  return str->begin();
+inline char* string_as_array(TString* str) {
+  return str->empty() ? NULL : &*str->begin();
 }
 
 }  // namespace snappy
 
-#endif  // UTIL_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
+#endif  // THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_STUBS_INTERNAL_H_
