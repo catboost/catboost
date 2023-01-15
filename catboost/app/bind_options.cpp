@@ -533,6 +533,15 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
             (*plainJsonPtr)["langevin"] = FromString<bool>(isEnabled);
         });
 
+    parser
+        .AddLongOption("posterior-sampling")
+        .RequiredArgument("bool")
+        .Help("Enables the posterior sampling.")
+        .Handler1T<TString>([plainJsonPtr](const TString& isEnabled) {
+            (*plainJsonPtr)["posterior_sampling"] = FromString<bool>(isEnabled);
+        });
+
+
     parser.AddLongOption("diffusion-temperature", "Langevin boosting diffusion temperature.")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float diffusionTemperature) {

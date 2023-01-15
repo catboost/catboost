@@ -22,6 +22,7 @@ namespace NCB {
         NCB::TAnalyticalModeCommonParams* paramsPtr,
         size_t* iterationsLimitPtr,
         size_t* evalPeriodPtr,
+        size_t * virtualEnsemblesCountPtr,
         NLastGetopt::TOpts* parserPtr);
 
     void ReadModelAndUpdateParams(
@@ -34,5 +35,6 @@ namespace NCB {
         const NCB::TAnalyticalModeCommonParams& params,
         size_t iterationsLimit,
         size_t evalPeriod,
+        size_t virtualEnsemblesCount,
         TFullModel&& model);
 }

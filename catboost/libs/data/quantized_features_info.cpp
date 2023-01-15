@@ -75,6 +75,7 @@ namespace NCB {
             commonFloatFeaturesBinarization,
             perFloatFeatureQuantization,
             NCatboostOptions::TTextProcessingOptions(),
+            NCatboostOptions::TEmbeddingProcessingOptions(),
             floatFeaturesAllowNansInTestOnly
         )
     {}
@@ -89,12 +90,23 @@ namespace NCB {
         return textFeatureIndices;
     }
 
+    static TVector<ui32> GetAvailableEmbeddingFeatureIndices(const TFeaturesLayout& featuresLayout) {
+        TVector<ui32> embeddingFeatureIndices;
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Embedding>(
+            [&embeddingFeatureIndices](TEmbeddingFeatureIdx embeddingFeatureIdx) {
+                embeddingFeatureIndices.push_back(embeddingFeatureIdx.Idx);
+            }
+        );
+        return embeddingFeatureIndices;
+    }
+
     TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
         const TFeaturesLayout& featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
         TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
         const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
+        const NCatboostOptions::TEmbeddingProcessingOptions& embeddingProcessingOptions,
         bool floatFeaturesAllowNansInTestOnly)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
         , CommonFloatFeaturesBinarization(std::move(commonFloatFeaturesBinarization))
@@ -103,6 +115,7 @@ namespace NCB {
         , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount())
         , RuntimeTextProcessingOptions(GetAvailableTextFeatureIndices(featuresLayout), textFeaturesProcessing)
         , TextDigitizers()
+        , EmbeddingEstimatorsOptions(GetAvailableEmbeddingFeatureIndices(featuresLayout), embeddingProcessingOptions)
     {
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
     }

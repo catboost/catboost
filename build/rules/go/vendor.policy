@@ -288,6 +288,9 @@ ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-prometheus
 # Protobuf and gRPC reflection
 ALLOW .* -> vendor/github.com/jhump/protoreflect
 
+# gRPC opentracing
+ALLOW .* -> vendor/github.com/opentracing-contrib/go-grpc
+
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 

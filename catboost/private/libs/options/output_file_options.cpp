@@ -332,6 +332,9 @@ void NCatboostOptions::TOutputFilesOptions::Validate() const {
     EFstrCalculatedInFitType fstrType;
     CB_ENSURE(TryFromString<EFstrCalculatedInFitType>(ToString(FstrType.Get()), fstrType),
         "Unsupported fstr type " << FstrType.Get());
+    for (auto predictionType : PredictionTypes.Get()) {
+        CB_ENSURE(!IsUncertaintyPredictionType(predictionType), "Unsupported prediction type " << predictionType);
+    }
 }
 
 TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileName) const {

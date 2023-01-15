@@ -73,6 +73,7 @@ namespace NCB {
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
             const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
+            const NCatboostOptions::TEmbeddingProcessingOptions& embeddingFeatureProcessing,
             bool floatFeaturesAllowNansInTestOnly = true);
 
         bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
@@ -216,7 +217,7 @@ namespace NCB {
             return RuntimeTextProcessingOptions;
         }
 
-        const TVector<NCatboostOptions::TEmbeddingFeatureDescription>& GetEmbeddingProcessingOptions() const {
+        const NCatboostOptions::TRuntimeEmbeddingOptions& GetEmbeddingProcessingOptions() const {
             return EmbeddingEstimatorsOptions;
         }
 
@@ -265,7 +266,7 @@ namespace NCB {
         NCatboostOptions::TRuntimeTextOptions RuntimeTextProcessingOptions;
         TTextDigitizers TextDigitizers;
 
-        TVector<NCatboostOptions::TEmbeddingFeatureDescription> EmbeddingEstimatorsOptions;
+        NCatboostOptions::TRuntimeEmbeddingOptions EmbeddingEstimatorsOptions;
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;

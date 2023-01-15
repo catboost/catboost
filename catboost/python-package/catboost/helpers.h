@@ -194,6 +194,26 @@ void SetDataFromScipyCsrSparse(
     CB_ENSURE_INTERNAL(indptr.size() > 1, "Empty sparse arrays should be processed in Python for speed");
     const auto objCount = indptr.size() - 1;
 
+    const auto catFeatureCount = Accumulate(isCatFeature, 0);
+    if (catFeatureCount == 0) {
+        const ui32 featureCount = isCatFeature.size();
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            objCount,
+            [=] (ui32 objIdx) {
+                const auto nonzeroBegin = indptr[objIdx];
+                const auto nonzeroEnd = indptr[objIdx + 1];
+                const auto features = MakeConstPolymorphicValuesSparseArrayWithArrayIndex(
+                    featureCount,
+                    NCB::TMaybeOwningConstArrayHolder<ui32>::CreateOwning(TVector<ui32>{indices.data() + nonzeroBegin, indices.data() + nonzeroEnd}),
+                    NCB::TMaybeOwningConstArrayHolder<TFloatOrInteger>::CreateOwning(TVector<TFloatOrInteger>{data.data() + nonzeroBegin, data.data() + nonzeroEnd}),
+                    /*ordered*/ true,
+                    /*defaultValue*/ 0.0f);
+                builderVisitor->AddAllFloatFeatures(objIdx, features);
+        });
+        return;
+    }
     NPar::ParallelFor(
         *localExecutor,
         0,

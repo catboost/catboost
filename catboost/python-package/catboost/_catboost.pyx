@@ -2,6 +2,10 @@
 # coding: utf-8
 # cython: wraparound=False
 
+from catboost.base_defs cimport *
+from catboost.libs.model.cython cimport *
+from catboost.libs.monoforest._monoforest cimport *
+
 import atexit
 import six
 from six import iteritems, string_types, PY3
@@ -50,11 +54,6 @@ from util.generic.vector cimport TVector
 from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
 
-ctypedef const np.float32_t const_float32_t
-ctypedef const np.uint32_t const_ui32_t
-ctypedef const TString const_TString
-
-ctypedef enum ECloningPolicy: Default, CloneAsSolid
 
 SPARSE_MATRIX_TYPES = (
     scipy.sparse.csr_matrix,
@@ -99,6 +98,9 @@ numpy_num_dtype_list = [
     np.float64
 ]
 
+from catboost.private.libs.cython cimport *
+from catboost.libs.helpers.cython cimport *
+from catboost.libs.data.cython cimport *
 
 class _NumpyAwareEncoder(JSONEncoder):
     bool_types = (np.bool_)
@@ -117,6 +119,9 @@ class _NumpyAwareEncoder(JSONEncoder):
 
 class CatBoostError(Exception):
     pass
+
+
+cdef public object PyCatboostExceptionType = <object>CatBoostError
 
 
 @cython.embedsignature(True)
@@ -193,32 +198,6 @@ class MultiRegressionCustomObjective:
         raise CatBoostError("calc_ders_multi method is not implemented")
 
 
-cdef public object PyCatboostExceptionType = <object>CatBoostError
-
-
-cdef extern from "catboost/python-package/catboost/helpers.h":
-    cdef void ProcessException()
-
-
-cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespace "NPar":
-    cdef cppclass TLocalExecutor:
-        TLocalExecutor() nogil
-        void RunAdditionalThreads(int threadCount) nogil except +ProcessException
-
-
-cdef extern from "catboost/python-package/catboost/helpers.h":
-    cdef void SetPythonInterruptHandler() nogil
-    cdef void ResetPythonInterruptHandler() nogil
-    cdef void ThrowCppExceptionWithMessage(const TString&) nogil
-    cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
-        TConstArrayRef[ui32] rowMarkup,
-        TConstArrayRef[TFloatOrUi64] values,
-        TConstArrayRef[ui32] indices,
-        TConstArrayRef[bool_t] catFeaturesMask,
-        IRawObjectsOrderDataVisitor* builderVisitor,
-        TLocalExecutor* localExecutor) nogil except +ProcessException
-
-
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
@@ -228,72 +207,6 @@ cdef extern from "catboost/libs/logging/logging.h":
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
     cdef ui32 CalcCatFeatureHash(TStringBuf feature) except +ProcessException
     cdef float ConvertCatFeatureHashToFloat(ui32 hashVal) except +ProcessException
-
-
-cdef extern from "catboost/libs/helpers/resource_holder.h" namespace "NCB":
-    cdef cppclass IResourceHolder:
-        pass
-
-    cdef cppclass TVectorHolder[T](IResourceHolder):
-        TVector[T] Data
-
-
-cdef extern from "catboost/libs/helpers/maybe_owning_array_holder.h" namespace "NCB":
-    cdef cppclass TMaybeOwningArrayHolder[T]:
-        @staticmethod
-        TMaybeOwningArrayHolder[T] CreateNonOwning(TArrayRef[T] arrayRef)
-
-        @staticmethod
-        TMaybeOwningArrayHolder[T] CreateOwning(
-            TArrayRef[T] arrayRef,
-            TIntrusivePtr[IResourceHolder] resourceHolder
-        ) except +ProcessException
-
-        T operator[](size_t idx) except +ProcessException
-
-    cdef cppclass TMaybeOwningConstArrayHolder[T]:
-        @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateNonOwning(TConstArrayRef[T] arrayRef)
-
-        @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateOwning(
-            TConstArrayRef[T] arrayRef,
-            TIntrusivePtr[IResourceHolder] resourceHolder
-        ) except +ProcessException
-
-        @staticmethod
-        TMaybeOwningConstArrayHolder[T] CreateOwningMovedFrom[T2](TVector[T2]& data) except +ProcessException
-
-    cdef TMaybeOwningConstArrayHolder[TDst] CreateConstOwningWithMaybeTypeCast[TDst, TSrc](
-        TMaybeOwningArrayHolder[TSrc] src
-    ) except +ProcessException
-
-cdef extern from "catboost/libs/helpers/polymorphic_type_containers.h" namespace "NCB":
-    cdef cppclass ITypedSequencePtr[T]:
-        pass
-
-    cdef cppclass TTypeCastArrayHolder[TInterfaceValue, TStoredValue](ITypedSequencePtr[TInterfaceValue]):
-        TTypeCastArrayHolder(TMaybeOwningConstArrayHolder[TStoredValue] values) except +ProcessException
-
-    cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolder[TInterfaceValue, TStoredValue](
-        TMaybeOwningConstArrayHolder[TStoredValue] values
-    ) except +ProcessException
-
-    cdef ITypedSequencePtr[TInterfaceValue] MakeNonOwningTypeCastArrayHolder[TInterfaceValue, TStoredValue](
-        const TStoredValue* begin,
-        const TStoredValue* end
-    ) except +ProcessException
-
-    cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolderFromVector[TInterfaceValue, TStoredValue](
-        TVector[TStoredValue]& values
-    ) except +ProcessException
-
-    cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[TInterfaceValue]] MakeTypeCastArraysHolderFromVector[
-        TInterfaceValue,
-        TStoredValue
-    ](
-        TVector[TMaybeOwningConstArrayHolder[TStoredValue]]& values
-    ) except +ProcessException
 
 
 cdef class Py_FloatSequencePtr:
@@ -450,369 +363,6 @@ def make_embedding_type_cast_array_holder(
     return py_result, data_holders
 
 
-cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
-    cdef cppclass TSparseArrayIndexingPtr[TSize]:
-        pass
-
-    cdef cppclass TConstPolymorphicValuesSparseArray[TValue, TSize]:
-        pass
-
-    cdef TSparseArrayIndexingPtr[TSize] MakeSparseArrayIndexing[TSize](
-        TSize size,
-        TMaybeOwningConstArrayHolder[TSize] indices,
-    ) except +ProcessException
-
-    cdef TSparseArrayIndexingPtr[TSize] MakeSparseBlockIndexing[TSize](
-        TSize size,
-        TMaybeOwningConstArrayHolder[TSize] blockStarts,
-        TMaybeOwningConstArrayHolder[TSize] blockLengths
-    ) except +ProcessException
-
-    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayGeneric[TDstValue, TSize](
-        TSparseArrayIndexingPtr[TSize] indexing,
-        ITypedSequencePtr[TDstValue] nonDefaultValues,
-        TDstValue defaultValue
-    ) except +ProcessException
-
-    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArray[TDstValue, TSrcValue, TSize](
-        TSparseArrayIndexingPtr[TSize] indexing,
-        TMaybeOwningConstArrayHolder[TSrcValue] nonDefaultValues,
-        TDstValue defaultValue
-    ) except +ProcessException
-
-    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayWithArrayIndexGeneric[TDstValue, TSize](
-        TSize size,
-        TMaybeOwningConstArrayHolder[TSize] indexing,
-        ITypedSequencePtr[TDstValue] nonDefaultValues,
-        bool_t ordered,
-        TDstValue defaultValue
-    ) except +ProcessException
-
-    cdef TConstPolymorphicValuesSparseArray[TDstValue, TSize] MakeConstPolymorphicValuesSparseArrayWithArrayIndex[TDstValue, TSrcValue, TSize](
-        TSize size,
-        TMaybeOwningConstArrayHolder[TSize] indexing,
-        TMaybeOwningConstArrayHolder[TSrcValue] nonDefaultValues,
-        bool_t ordered,
-        TDstValue defaultValue
-    ) except +ProcessException
-
-cdef extern from "catboost/private/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
-    cdef cppclass TBinarizationOptions:
-        TBinarizationOptions(...)
-
-
-cdef extern from "catboost/private/libs/options/enums.h":
-    cdef cppclass EFeatureType:
-        bool_t operator==(EFeatureType)
-
-    cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
-    cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
-    cdef EFeatureType EFeatureType_Text "EFeatureType::Text"
-    cdef EFeatureType EFeatureType_Embedding "EFeatureType::Embedding"
-
-
-    cdef cppclass EPredictionType:
-        bool_t operator==(EPredictionType)
-
-    cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
-    cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
-    cdef EPredictionType EPredictionType_LogProbability "EPredictionType::LogProbability"
-    cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
-    cdef EPredictionType EPredictionType_Exponent "EPredictionType::Exponent"
-    cdef EPredictionType EPredictionType_RMSEWithUncertainty "EPredictionType::RMSEWithUncertainty"
-
-    cdef cppclass EFstrType:
-        pass
-
-    cdef cppclass EExplainableModelOutput:
-        pass
-
-    cdef cppclass ECalcTypeShapValues:
-        pass
-
-    cdef cppclass EPreCalcShapValues:
-        pass
-
-    cdef cppclass ECalcTypeShapValues:
-        pass
-
-    cdef cppclass ECrossValidation:
-        pass
-
-    cdef ECrossValidation ECrossValidation_TimeSeries "ECrossValidation::TimeSeries"
-    cdef ECrossValidation ECrossValidation_Classical "ECrossValidation::Classical"
-    cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
-
-    cdef cppclass ETaskType:
-        pass
-
-
-cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
-    cdef cppclass ERawTargetType:
-        bool_t operator==(ERawTargetType)
-
-    cdef ERawTargetType ERawTargetType_Integer "NCB::ERawTargetType::Integer"
-    cdef ERawTargetType ERawTargetType_Float "NCB::ERawTargetType::Float"
-    cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
-    cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
-
-cdef extern from "catboost/private/libs/options/json_helper.h":
-    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException
-
-cdef extern from "catboost/private/libs/options/model_based_eval_options.h" namespace "NCatboostOptions" nogil:
-    cdef TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx) except +ProcessException
-
-
-cdef extern from "catboost/private/libs/quantization_schema/schema.h" namespace "NCB":
-    cdef cppclass TPoolQuantizationSchema:
-        pass
-
-
-cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
-    cdef cppclass TFeatureMetaInfo:
-        EFeatureType Type
-        TString Name
-        bool_t IsSparse
-        bool_t IsIgnored
-        bool_t IsAvailable
-
-    cdef cppclass TFeaturesLayout:
-        TFeaturesLayout() except +ProcessException
-        TFeaturesLayout(const ui32 featureCount) except +ProcessException
-        TFeaturesLayout(
-            const ui32 featureCount,
-            const TVector[ui32]& catFeatureIndices,
-            const TVector[ui32]& textFeatureIndices,
-            const TVector[ui32]& embeddingFeatureIndices,
-            const TVector[TString]& featureId,
-            bool_t allFeaturesAreSparse
-        ) except +ProcessException
-
-        TConstArrayRef[TFeatureMetaInfo] GetExternalFeaturesMetaInfo() except +ProcessException
-        TVector[TString] GetExternalFeatureIds() except +ProcessException
-        void SetExternalFeatureIds(TConstArrayRef[TString] featureIds) except +ProcessException
-        EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
-        ui32 GetFloatFeatureCount() except +ProcessException
-        ui32 GetCatFeatureCount() except +ProcessException
-        ui32 GetEmbeddingFeatureCount() except +ProcessException
-        ui32 GetExternalFeatureCount() except +ProcessException
-        TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
-        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() except +ProcessException
-        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx() except +ProcessException
-
-    ctypedef TIntrusivePtr[TFeaturesLayout] TFeaturesLayoutPtr
-
-
-cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
-    cdef cppclass TTargetStats:
-        float MinValue
-        float MaxValue
-
-    cdef cppclass TDataMetaInfo:
-        ui64 ObjectCount
-
-        TIntrusivePtr[TFeaturesLayout] FeaturesLayout
-        ui64 MaxCatFeaturesUniqValuesOnLearn
-        TMaybe[TTargetStats] TargetStats
-
-        ERawTargetType TargetType
-        ui32 TargetCount
-        ui32 BaselineCount
-        bool_t HasGroupId
-        bool_t HasGroupWeight
-        bool_t HasSubgroupIds
-        bool_t HasWeights
-        bool_t HasTimestamp
-        bool_t HasPairs
-
-        # ColumnsInfo is not here because it is not used for now
-
-        ui32 GetFeatureCount() except +ProcessException
-
-cdef extern from "catboost/libs/data/order.h" namespace "NCB":
-    cdef cppclass EObjectsOrder:
-        pass
-
-    cdef EObjectsOrder EObjectsOrder_Ordered "NCB::EObjectsOrder::Ordered"
-    cdef EObjectsOrder EObjectsOrder_RandomShuffled "NCB::EObjectsOrder::RandomShuffled"
-    cdef EObjectsOrder EObjectsOrder_Undefined "NCB::EObjectsOrder::Undefined"
-
-
-cdef extern from "catboost/private/libs/data_types/pair.h":
-    cdef cppclass TPair:
-        ui32 WinnerId
-        ui32 LoserId
-        float Weight
-        TPair(ui32 winnerId, ui32 loserId, float weight) nogil except +ProcessException
-
-cdef extern from "catboost/private/libs/data_types/groupid.h":
-    ctypedef ui64 TGroupId
-    ctypedef ui32 TSubgroupId
-    cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
-    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
-
-
-cdef extern from "catboost/libs/data/util.h" namespace "NCB":
-    cdef cppclass TMaybeData[T]:
-        TMaybeData(...) except +
-
-        TMaybeData& operator=(...) except +
-
-        void ConstructInPlace(...) except +
-        void Clear() except +
-
-        bint Defined()
-        bint Empty()
-
-        void CheckDefined() except +
-
-        T* Get() except +
-        T& GetRef() except +
-
-        T GetOrElse(T&) except +
-        TMaybeData OrElse(TMaybeData&) except +
-
-
-cdef extern from "catboost/libs/data/quantized_features_info.h" namespace "NCB":
-    cdef cppclass TQuantizedFeaturesInfo:
-        TQuantizedFeaturesInfo(...)
-
-    ctypedef TIntrusivePtr[TQuantizedFeaturesInfo] TQuantizedFeaturesInfoPtr
-
-
-cdef extern from "catboost/libs/data/objects_grouping.h" namespace "NCB":
-    cdef cppclass TObjectsGrouping:
-        pass
-
-    ctypedef TIntrusivePtr[TObjectsGrouping] TObjectsGroupingPtr
-
-    cdef cppclass TObjectsGroupingSubset:
-        pass
-
-    cdef TObjectsGroupingSubset GetGroupingSubsetFromObjectsSubset(
-        TObjectsGroupingPtr objectsGrouping,
-        TVector[ui32]& objectsSubset,
-        EObjectsOrder subsetOrder
-    ) except +ProcessException
-
-cdef extern from "catboost/libs/data/columns.h" namespace "NCB":
-    cdef cppclass TFloatValuesHolder:
-        TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor) except +ProcessException
-
-cdef extern from "catboost/libs/data/objects.h":
-    cdef void CheckModelAndDatasetCompatibility(
-        const TFullModel& model,
-        const TObjectsDataProvider& objectsData) except +ProcessException
-
-cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
-    cdef cppclass TObjectsDataProvider:
-        ui32 GetObjectCount() except +ProcessException
-        bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity) except +ProcessException
-        TMaybeData[TConstArrayRef[TGroupId]] GetGroupIds() except +ProcessException
-        TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds() except +ProcessException
-        TMaybeData[TConstArrayRef[ui64]] GetTimestamp() except +ProcessException
-        const THashMap[ui32, TString]& GetCatFeaturesHashToString(ui32 catFeatureIdx) except +ProcessException
-        TFeaturesLayoutPtr GetFeaturesLayout() except +ProcessException
-
-    cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
-        void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
-        void SetSubgroupIds(TConstArrayRef[TStringBuf] subgroupStringIds) except +ProcessException
-        TMaybeData[const TFloatValuesHolder*] GetFloatFeature(ui32 floatFeatureIdx) except +ProcessException
-
-    cdef cppclass TQuantizedObjectsDataProvider(TObjectsDataProvider):
-        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() except +ProcessException
-
-    cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
-
-cdef extern from *:
-    TRawObjectsDataProvider* dynamic_cast_to_TRawObjectsDataProvider "dynamic_cast<NCB::TRawObjectsDataProvider*>" (TObjectsDataProvider*)
-    TQuantizedObjectsDataProvider* dynamic_cast_to_TQuantizedObjectsDataProvider "dynamic_cast<NCB::TQuantizedObjectsDataProvider*>" (TObjectsDataProvider*)
-
-
-cdef extern from "catboost/libs/data/weights.h" namespace "NCB":
-    cdef cppclass TWeights[T]:
-        T operator[](ui32 idx) except +ProcessException
-        ui32 GetSize() except +ProcessException
-        bool_t IsTrivial() except +ProcessException
-        TConstArrayRef[T] GetNonTrivialData() except +ProcessException
-
-
-ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
-
-
-cdef extern from "catboost/libs/data/target.h" namespace "NCB":
-    cdef cppclass TRawTargetDataProvider:
-        ERawTargetType GetTargetType() except +ProcessException
-        void GetNumericTarget(TArrayRef[TArrayRef[float]] dst) except +ProcessException
-        void GetStringTargetRef(TVector[TConstArrayRef[TString]]* dst) except +ProcessException
-        TMaybeData[TBaselineArrayRef] GetBaseline() except +ProcessException
-        const TWeights[float]& GetWeights() except +ProcessException
-        const TWeights[float]& GetGroupWeights() except +ProcessException
-        TConstArrayRef[TPair] GetPairs() except +ProcessException
-
-    cdef cppclass ETargetType:
-        pass
-
-    cdef cppclass TTargetDataSpecification:
-        ETargetType Type
-        TString Description
-
-    cdef cppclass TTargetDataProvider:
-        pass
-
-ctypedef TIntrusivePtr[TTargetDataProvider] TTargetDataProviderPtr
-ctypedef TIntrusivePtr[TQuantizedObjectsDataProvider] TQuantizedObjectsDataProviderPtr
-
-cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
-    cdef cppclass TDataProviderTemplate[TTObjectsDataProvider]:
-        TDataMetaInfo MetaInfo
-        TIntrusivePtr[TTObjectsDataProvider] ObjectsData
-        TObjectsGroupingPtr ObjectsGrouping
-        TRawTargetDataProvider RawTargetData
-
-        bool_t operator==(const TDataProviderTemplate& rhs)  except +ProcessException
-        TIntrusivePtr[TDataProviderTemplate[TTObjectsDataProvider]] GetSubset(
-            const TObjectsGroupingSubset& objectsGroupingSubset,
-            ui64 cpuRamLimit,
-            int threadCount
-        ) except +ProcessException
-        ui32 GetObjectCount() except +ProcessException
-
-        void SetBaseline(TBaselineArrayRef baseline) except +ProcessException
-        void SetGroupIds(TConstArrayRef[TGroupId] groupIds) except +ProcessException
-        void SetGroupWeights(TConstArrayRef[float] groupWeights) except +ProcessException
-        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
-        void SetSubgroupIds(TConstArrayRef[TSubgroupId] subgroupIds) except +ProcessException
-        void SetWeights(TConstArrayRef[float] weights) except +ProcessException
-
-    ctypedef TDataProviderTemplate[TQuantizedObjectsDataProvider] TQuantizedDataProvider
-
-    ctypedef TDataProviderTemplate[TObjectsDataProvider] TDataProvider
-    ctypedef TIntrusivePtr[TDataProvider] TDataProviderPtr
-
-    cdef cppclass TDataProvidersTemplate[TTObjectsDataProvider]:
-        TIntrusivePtr[TDataProviderTemplate[TObjectsDataProvider]] Learn
-        TVector[TIntrusivePtr[TDataProviderTemplate[TObjectsDataProvider]]] Test
-
-    ctypedef TDataProvidersTemplate[TObjectsDataProvider] TDataProviders
-
-
-    cdef cppclass TProcessedDataProviderTemplate[TTObjectsDataProvider]:
-        TDataMetaInfo MetaInfo
-        TObjectsGroupingPtr ObjectsGrouping
-        TIntrusivePtr[TTObjectsDataProvider] ObjectsData
-        TTargetDataProviderPtr TargetData
-
-
-    ctypedef TProcessedDataProviderTemplate[TObjectsDataProvider] TProcessedDataProvider
-    ctypedef TIntrusivePtr[TProcessedDataProvider] TProcessedDataProviderPtr
-
-
-    cdef cppclass TTrainingDataProviders:
-        TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]] Learn
-        TVector[TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]]] Test
-
-
 cdef extern from "catboost/private/libs/quantized_pool/serialization.h" namespace "NCB":
     cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName) except +ProcessException
 
@@ -835,111 +385,6 @@ cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatb
     cdef cppclass TColumnarPoolFormatParams:
         TDsvFormatOptions DsvFormat
         TPathWithScheme CdFilePath
-
-
-cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
-    cdef cppclass IRawObjectsOrderDataVisitor:
-        void Start(
-            bool_t inBlock,
-            const TDataMetaInfo& metaInfo,
-            bool_t haveUnknownNumberOfSparseFeatures,
-            ui32 objectCount,
-            EObjectsOrder objectsOrder,
-            TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
-        ) except +ProcessException
-
-        void StartNextBlock(ui32 blockSize) except +ProcessException
-
-        void AddGroupId(ui32 localObjectIdx, TGroupId value) except +ProcessException
-        void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) except +ProcessException
-        void AddTimestamp(ui32 localObjectIdx, ui64 value) except +ProcessException
-
-        void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) except +ProcessException
-        void AddAllFloatFeatures(ui32 localObjectIdx, TConstArrayRef[float] features) except +ProcessException
-
-        ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-        void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-        void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
-        void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-
-        void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-        void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
-        void AddTextFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-
-        void AddEmbeddingFeature(
-            ui32 localObjectIdx,
-            ui32 flatFeatureIdx,
-            TMaybeOwningConstArrayHolder[float] feature
-        ) except +ProcessException
-
-        void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
-        void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
-        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) except +ProcessException
-        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) except +ProcessException
-        void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) except +ProcessException
-        void AddWeight(ui32 localObjectIdx, float value) except +ProcessException
-        void AddGroupWeight(ui32 localObjectIdx, float value) except +ProcessException
-
-        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
-
-        void Finish() except +ProcessException
-
-    cdef cppclass IRawFeaturesOrderDataVisitor:
-        void Start(
-            const TDataMetaInfo& metaInfo,
-            ui32 objectCount,
-            EObjectsOrder objectsOrder,
-            TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
-        )
-
-        void AddGroupId(ui32 objectIdx, TGroupId value) except +ProcessException
-        void AddSubgroupId(ui32 objectIdx, TSubgroupId value) except +ProcessException
-        void AddTimestamp(ui32 objectIdx, ui64 value) except +ProcessException
-
-        void AddFloatFeature(ui32 flatFeatureIdx, ITypedSequencePtr[float] features) except +ProcessException
-        void AddFloatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray[float, ui32] features) except +ProcessException
-
-        ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
-        void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
-        void AddCatFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
-
-        void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[ui32] features) except +ProcessException
-        void AddCatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray[TString, ui32] features) except +ProcessException
-
-        void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
-        void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
-
-        void AddEmbeddingFeature(
-            ui32 flatFeatureIdx,
-            ITypedSequencePtr[TMaybeOwningConstArrayHolder[float]] features
-        ) except +ProcessException
-
-        void AddTarget(TConstArrayRef[TString] value) except +ProcessException
-        void AddTarget(ITypedSequencePtr[float] value) except +ProcessException
-        void AddTarget(ui32 flatTargetIdx, TConstArrayRef[TString] value) except +ProcessException
-        void AddTarget(ui32 flatTargetIdx, ITypedSequencePtr[float] value) except +ProcessException
-        void AddBaseline(ui32 baselineIdx, TConstArrayRef[float] value) except +ProcessException
-        void AddWeights(TConstArrayRef[float] value) except +ProcessException
-        void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
-
-        void SetPairs(TConstArrayRef[TPair] pairs) except +ProcessException
-
-        void Finish() except +ProcessException
-
-
-cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
-    cdef cppclass IDataProviderBuilder:
-        TDataProviderPtr GetResult() except +ProcessException
-
-    cdef cppclass TDataProviderBuilderOptions:
-        pass
-
-    cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
-        const TDataProviderBuilderOptions& options,
-        TLocalExecutor* localExecutor,
-        THolder[IDataProviderBuilder]* dataProviderBuilder,
-        IVisitor** loader
-    ) except +ProcessException
 
 
 cdef class Py_ObjectsOrderBuilderVisitor:
@@ -1038,113 +483,10 @@ cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
     ) nogil except +ProcessException
 
 
-cdef extern from "catboost/private/libs/algo_helpers/hessian.h":
-    cdef cppclass THessianInfo:
-        TVector[double] Data
-
-cdef extern from "catboost/private/libs/algo/learn_context.h":
-    cdef cppclass TLearnProgress:
-        pass
-
-
 cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
         pass
 
-cdef extern from "catboost/libs/model/scale_and_bias.h":
-    cdef cppclass TScaleAndBias:
-        TScaleAndBias()
-        TScaleAndBias(double scale, TVector[double]& bias)
-
-        double Scale
-        TVector[double] Bias
-
-        TVector[double]& GetBiasRef()  except +ProcessException
-
-cdef extern from "catboost/libs/model/model.h":
-    cdef cppclass TFeaturePosition:
-        int Index
-        int FlatIndex
-
-    cdef cppclass TCatFeature:
-        TFeaturePosition Position
-        TString FeatureId
-
-    cdef cppclass TFloatFeature:
-        bool_t HasNans
-        TFeaturePosition Position
-        TVector[float] Borders
-        TString FeatureId
-
-    cdef cppclass TTextFeature:
-        TFeaturePosition Position
-        TString FeatureId
-
-    cdef cppclass TNonSymmetricTreeStepNode:
-        ui16 LeftSubtreeDiff
-        ui16 RightSubtreeDiff
-
-    cdef cppclass IModelTreeData:
-        TConstArrayRef[int] GetTreeSplits() except +ProcessException
-        TConstArrayRef[int] GetTreeSizes() except +ProcessException
-        TConstArrayRef[TNonSymmetricTreeStepNode] GetNonSymmetricStepNodes() except +ProcessException
-        TConstArrayRef[ui32] GetNonSymmetricNodeIdToLeafId() except +ProcessException
-        TConstArrayRef[double] GetLeafValues() except +ProcessException
-        TConstArrayRef[double] GetLeafWeights() except +ProcessException
-
-        void SetTreeSplits(const TVector[int]&) except +ProcessException
-        void SetTreeSizes(const TVector[int]&) except +ProcessException
-        void SetNonSymmetricStepNodes(const TVector[TNonSymmetricTreeStepNode]&) except +ProcessException
-        void SetNonSymmetricNodeIdToLeafId(const TVector[ui32]&) except +ProcessException
-        void SetLeafValues(const TVector[double]&) except +ProcessException
-        void SetLeafWeights(const TVector[double]&) except +ProcessException
-        THolder[IModelTreeData] Clone(ECloningPolicy policy) except +ProcessException
-
-    cdef cppclass TModelTrees:
-        int GetDimensionCount() except +ProcessException
-        TConstArrayRef[TCatFeature] GetCatFeatures() except +ProcessException
-        TConstArrayRef[TTextFeature] GetTextFeatures() except +ProcessException
-        TConstArrayRef[TFloatFeature] GetFloatFeatures() except +ProcessException
-        void DropUnusedFeatures() except +ProcessException
-        TVector[ui32] GetTreeLeafCounts() except +ProcessException
-        const THolder[IModelTreeData]& GetModelTreeData() except +ProcessException
-
-        void ConvertObliviousToAsymmetric() except +ProcessException
-
-    cdef cppclass TCOWTreeWrapper:
-        const TModelTrees& operator*() except +ProcessException
-        const TModelTrees* Get() except +ProcessException
-        TModelTrees* GetMutable() except +ProcessException
-
-    cdef cppclass TFullModel:
-        TCOWTreeWrapper ModelTrees
-        THashMap[TString, TString] ModelInfo
-
-        bool_t operator==(const TFullModel& other) except +ProcessException
-        bool_t operator!=(const TFullModel& other) except +ProcessException
-
-        void Load(IInputStream* stream) except +ProcessException
-        void Swap(TFullModel& other) except +ProcessException
-        size_t GetTreeCount() nogil except +ProcessException
-        size_t GetDimensionsCount() nogil except +ProcessException
-        void Truncate(size_t begin, size_t end) except +ProcessException
-        bool_t IsOblivious() except +ProcessException
-        TString GetLossFunctionName() except +ProcessException
-        TVector[TJsonValue] GetModelClassLabels() except +ProcessException
-        TScaleAndBias GetScaleAndBias() except +ProcessException
-        void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
-        void InitNonOwning(const void* binaryBuffer, size_t binarySize) except +ProcessException
-
-    cdef cppclass EModelType:
-        pass
-
-    cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
-    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) nogil except +ProcessException
-    cdef TString SerializeModel(const TFullModel& model) except +ProcessException
-    cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
-    cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
-    void SetModelExternalFeatureNames(const TVector[TString]& featureNames, TFullModel* model) nogil except +ProcessException
-    cdef void SaveModelBorders(const TString& file, const TFullModel& model) nogil except +ProcessException
 
 ctypedef const TFullModel* TFullModel_const_ptr
 
@@ -1166,32 +508,11 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         const TFullModel& model,
         const TString& userParametersJson)
 
-cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
-    cdef enum EJsonValueType:
-        JSON_UNDEFINED,
-        JSON_NULL,
-        JSON_BOOLEAN,
-        JSON_INTEGER,
-        JSON_DOUBLE,
-        JSON_STRING,
-        JSON_MAP,
-        JSON_ARRAY,
-        JSON_UINTEGER
-
-    cdef cppclass TJsonValue:
-        EJsonValueType GetType()
-        i64 GetInteger() except +ProcessException
-        double GetDouble() except +ProcessException
-        const TString& GetString() except +ProcessException
-
 
 cdef extern from "library/cpp/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
 
-cdef extern from "util/stream/input.h":
-    cdef cppclass IInputStream:
-        size_t Read(void* buf, size_t len) except +ProcessException
 
 cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
@@ -1216,11 +537,6 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric) except +ProcessException
 
-cdef extern from "catboost/private/libs/algo_helpers/ders_holder.h":
-    cdef cppclass TDers:
-        double Der1
-        double Der2
-
 
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
@@ -1244,15 +560,6 @@ cdef extern from "catboost/private/libs/algo/tree_print.h":
         size_t treeIdx
     ) nogil except +ProcessException
 
-
-cdef extern from "catboost/private/libs/options/enum_helpers.h":
-    cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
-    cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
-    cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
-    cdef bool_t IsMultiRegressionObjective(const TString& lossFunction) nogil except +ProcessException
-    cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
-    cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException
-    cdef bool_t IsPairwiseMetric(const TString& metricName) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
@@ -1572,12 +879,6 @@ cdef extern from "catboost/private/libs/documents_importance/docs_importance.h":
         int logPeriod
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
-    cdef cppclass TWxTestResult:
-        double WPlus
-        double WMinus
-        double PValue
-    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
 
 cdef float _FLOAT_NAN = float('nan')
 
@@ -1606,6 +907,20 @@ cdef inline float _FloatOrNanFromString(const TString& s) except *:
 
 cdef extern from "catboost/libs/gpu_config/interface/get_gpu_device_count.h" namespace "NCB":
     cdef int GetGpuDeviceCount() except +ProcessException
+
+
+cdef extern from "catboost/python-package/catboost/helpers.h":
+    cdef void SetPythonInterruptHandler() nogil
+    cdef void ResetPythonInterruptHandler() nogil
+    cdef void ThrowCppExceptionWithMessage(const TString&) nogil
+    cdef void SetDataFromScipyCsrSparse[TFloatOrUi64](
+        TConstArrayRef[ui32] rowMarkup,
+        TConstArrayRef[TFloatOrUi64] values,
+        TConstArrayRef[ui32] indices,
+        TConstArrayRef[bool_t] catFeaturesMask,
+        IRawObjectsOrderDataVisitor* builderVisitor,
+        TLocalExecutor* localExecutor) nogil except +ProcessException
+
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef TVector[TVector[double]] EvalMetrics(

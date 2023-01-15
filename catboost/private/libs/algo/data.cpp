@@ -366,7 +366,7 @@ namespace NCB {
             }
         );
 
-        auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions();
+        auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
         auto learnEmbeddingTarget = CreateEmbeddingClassificationTarget(*pools.Learn->TargetData);
 
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(

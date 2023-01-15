@@ -681,6 +681,15 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
 
+    if (BoostingOptions->PosteriorSampling.GetUnchecked()) {
+        CB_ENSURE(BoostingOptions->Langevin.NotSet() || BoostingOptions->Langevin.Get(),
+              "Posterior Sampling requires Langevin boosting.");
+        CB_ENSURE(BoostingOptions->DiffusionTemperature.NotSet(),
+             "Diffusion Temperature in Posterior Sampling is specified");
+        CB_ENSURE(BoostingOptions->ModelShrinkMode.GetUnchecked() == EModelShrinkMode::Constant,
+             "Posterior Sampling requires Сonstant Model Shrink Mode");
+    }
+
     if (BoostingOptions->Langevin.GetUnchecked()) {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
@@ -879,6 +888,10 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (TaskType == ETaskType::CPU) {
+        if (BoostingOptions->PosteriorSampling.GetUnchecked()) {
+            BoostingOptions->Langevin.SetDefault(true);
+        }
+
         if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f && BoostingOptions->Langevin.NotSet()) {
             BoostingOptions->Langevin.SetDefault(true);
         }

@@ -14,7 +14,8 @@
             "type": "None", 
             "wait_iterations": 20
         }, 
-        "permutation_count": 4
+        "permutation_count": 4, 
+        "posterior_sampling": false
     }, 
     "cat_feature_params": {
         "combinations_ctrs": [

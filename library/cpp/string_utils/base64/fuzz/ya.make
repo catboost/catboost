@@ -3,4 +3,5 @@
 RECURSE(
     generic
     lib
+    uneven
 )

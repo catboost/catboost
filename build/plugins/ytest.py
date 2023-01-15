@@ -904,7 +904,7 @@ def onsetup_run_python(unit):
 
 def get_canonical_test_resources(unit):
     unit_path = unit.path()
-    canon_data_dir = os.path.join(unit.resolve(unit_path), CANON_DATA_DIR_NAME)
+    canon_data_dir = os.path.join(unit.resolve(unit_path), CANON_DATA_DIR_NAME, unit.get('CANONIZE_SUB_PATH') or '')
 
     try:
         _, dirs, files = next(os.walk(canon_data_dir))
