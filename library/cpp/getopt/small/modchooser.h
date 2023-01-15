@@ -9,12 +9,12 @@
 #include <functional>
 
 //! Mode function with vector of cli arguments.
-typedef std::function<int(const TVector<TString>&)> TMainFunctionPtrV;
-typedef int (*TMainFunctionRawPtrV)(const TVector<TString>& argv);
+using TMainFunctionPtrV = std::function<int(const TVector<TString>&)> ;
+using TMainFunctionRawPtrV = int (*)(const TVector<TString>& argv);
 
 //! Mode function with classic argc and argv arguments.
-typedef std::function<int(const int, const char**)> TMainFunctionPtr;
-typedef int (*TMainFunctionRawPtr)(const int argc, const char** argv);
+using TMainFunctionPtr = std::function<int(int, const char**)> ;
+using TMainFunctionRawPtr = int (*)(const int argc, const char** argv);
 
 //! Mode class with vector of cli arguments.
 class TMainClassV {
@@ -26,7 +26,7 @@ public:
 //! Mode class with classic argc and argv arguments.
 class TMainClass {
 public:
-    virtual int operator()(const int argc, const char** argv) = 0;
+    virtual int operator()(int argc, const char** argv) = 0;
     virtual ~TMainClass() = default;
 };
 
@@ -47,10 +47,10 @@ public:
     ~TModChooser();
 
 public:
-    void AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden = false, bool noCompletion = false);
-    void AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden = false, bool noCompletion = false);
-    void AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden = false, bool noCompletion = false);
-    void AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden = false, bool noCompletion = false);
+    void AddMode(const TString& mode, TMainFunctionRawPtr func, const TString& description, bool hidden = false, bool noCompletion = false);
+    void AddMode(const TString& mode, TMainFunctionRawPtrV func, const TString& description, bool hidden = false, bool noCompletion = false);
+    void AddMode(const TString& mode, TMainFunctionPtr func, const TString& description, bool hidden = false, bool noCompletion = false);
+    void AddMode(const TString& mode, TMainFunctionPtrV func, const TString& description, bool hidden = false, bool noCompletion = false);
     void AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden = false, bool noCompletion = false);
     void AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden = false, bool noCompletion = false);
 
@@ -95,7 +95,7 @@ public:
      *      call it and return its return code.
      *   4) If appropriate mode is not found - return non-zero code.
      */
-    int Run(const int argc, const char** argv) const;
+    int Run(int argc, const char** argv) const;
 
     //! Run appropriate mode. Same as Run(const int, const char**)
     int Run(const TVector<TString>& argv) const;
@@ -174,7 +174,7 @@ private:
 //! Mode class that allows introspecting its console arguments.
 class TMainClassArgs: public TMainClass {
 public:
-    int operator()(const int argc, const char** argv) final;
+    int operator()(int argc, const char** argv) final;
 
 public:
     //! Run this mode.
@@ -197,7 +197,7 @@ private:
 //! Mode class that uses sub-modes to dispatch commands further.
 class TMainClassModes: public TMainClass {
 public:
-    int operator()(const int argc, const char** argv) final;
+    int operator()(int argc, const char** argv) final;
 
 public:
     //! Run this mode.
