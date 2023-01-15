@@ -3,6 +3,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/string/reverse.h>
+
 #include <algorithm>
 
 namespace {
@@ -909,7 +911,7 @@ public:
         const TUtf16String reversed = UTF32ToWide(buffer.begin(), buffer.size());
 
         temp = original;
-        temp.reverse();
+        ReverseInPlace(temp);
         UNIT_ASSERT(temp == reversed);
     }
 

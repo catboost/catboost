@@ -4,6 +4,8 @@
 
 #include <library/cpp/testing/unittest/registar.h>
 
+#include <util/string/reverse.h>
+
 template <typename CharT, size_t N>
 struct TCharBuffer {
     CharT Data[N];
@@ -852,7 +854,7 @@ public:
         UNIT_ASSERT(s2 == s);
 
         // reverse()
-        s2.reverse();
+        ReverseInPlace(s2);
         UNIT_ASSERT(s2 == Data._6543210());
 
         // to_upper()
