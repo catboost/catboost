@@ -133,9 +133,6 @@ using TSimpleIntrusivePtr = TIntrusivePtr<T, TSimpleIntrusiveOps<T, Ops>>;
 template <class T, class C, class D = TDelete>
 class TSharedPtr;
 
-template <class T, class D = TDelete>
-class TLinkedPtr;
-
 template <class T, class C = TCopyNew, class D = TDelete>
 class TCopyPtr;
 
