@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{325357DB-9CA1-7299-6753-17428916460D}</ProjectGUID>
+    <ProjectGUID>{3847F950-BA39-75F6-DAB0-D46956BEB562}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>libcatboostmodel.o</ProjectName>
+    <ProjectName>libcatboostmodel.global</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>libcatboostmodel</TargetName>
+    <TargetName>libcatboostmodel.global</TargetName>
     <TargetExtention>.dll</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\model_interface\static\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\325357DB-9CA1-7299-6753-17428916460D\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3847F950-BA39-75F6-DAB0-D46956BEB562\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
