@@ -8737,12 +8737,6 @@
         }
     },
     "toolchain_aliases": {
-        "clang-win-x86_64": "clang11-win-x86_64",
-        "msvc2013": "msvc2013-win-x86_64",
-        "msvc2015": "msvc2015-win-x86_64",
-        "ios": "clang37-ios-armv7",
-        "ios-simulator": "clang37-ios-x86_64",
-        "android": "gcc49-android-armv7a",
-        "cygwin": "gcc49-cygwin-x86_64"
+        "clang-win-x86_64": "clang11-win-x86_64"
     }
 }
