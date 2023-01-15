@@ -4337,9 +4337,9 @@ class CatBoostClassifier(CatBoost):
     text_processing : dict,
         Text processging description.
     """
-    
+
     _estimator_type = 'classifier'
-    
+
     def __init__(
         self,
         iterations=None,
@@ -4903,9 +4903,9 @@ class CatBoostRegressor(CatBoost):
         'MAPE'
         'Lq:q=value'
     """
-    
+
     _estimator_type = 'regressor'
-    
+
     def __init__(
         self,
         iterations=None,
