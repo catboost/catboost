@@ -66,6 +66,9 @@ ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 ALLOW yandex_io -> contrib/restricted/openal-soft
 ALLOW speechkit -> contrib/restricted/openal-soft
 
+# rubberband is a GPL audio stretching library
+ALLOW dict/mt/video -> contrib/restricted/rubberband
+
 # Allowed subset of abseil is exported via library/
 ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
