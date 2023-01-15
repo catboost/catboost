@@ -1415,6 +1415,99 @@
             "uri": "file://test.test_cv_for_query_Plain_/test.eval"
         }
     ],
+    "test.test_survival_aft[Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered_/test.metric"
+        }
+    ],
+    "test.test_survival_aft[Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Normal-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Normal_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Normal-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_Plain-Normal_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Normal_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Normal_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Logistic-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Logistic_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Logistic-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Logistic_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Extreme-Ordered]": [
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Ordered-Extreme_/test.metric"
+        }
+    ],
+    "test.test_survival_aft_with_nondefault_distributions[Extreme-Plain]": [
+        {
+            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.eval"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.calc"
+        },
+        {
+            "uri": "file://test.test_survival_aft_Plain-Extreme_/test.metric"
+        }
+    ],
+    "test.test_cv_multiregression[Ordered-inverted]": [
+        {
+            "uri": "file://test.test_cv_multiregression_Ordered-inverted_/test.eval"
+        }
+    ],
     "test.test_cv_multiregression[Ordered-inverted]": [
         {
             "uri": "file://test.test_cv_multiregression_Ordered-inverted_/test.eval"

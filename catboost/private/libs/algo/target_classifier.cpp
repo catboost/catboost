@@ -58,6 +58,7 @@ TTargetClassifier BuildTargetClassifier(
     switch (loss) {
         case ELossFunction::RMSE:
         case ELossFunction::MultiRMSE:
+        case ELossFunction::SurvivalAft:
             return TTargetClassifier(
                 SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
                 targetId);

@@ -526,8 +526,10 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
-                "Currently only multi-regression objectives work with multidimensional target"
+                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                IsSurvivalRegressionObjective(mainLossFunction->GetLossFunction()) ||
+                rawData.GetTargetDimension() <= 1,
+                "Currently only multi-regression and survival objectives work with multidimensional target"
             );
         }
 

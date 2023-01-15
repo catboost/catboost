@@ -56,6 +56,7 @@ is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
+is_survivalregression_objective = _catboost.is_survivalregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 is_ranking_metric = _catboost.is_ranking_metric
 _PreprocessParams = _catboost._PreprocessParams
@@ -1525,6 +1526,10 @@ class _CatBoostBase(object):
     @staticmethod
     def _is_multiregression_objective(loss_function):
         return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
+    
+    @staticmethod
+    def _is_survivalregression_objective(loss_function):
+        return isinstance(loss_function, str) and is_survivalregression_objective(loss_function)
 
     @staticmethod
     def _is_ranking_objective(loss_function):
@@ -4891,6 +4896,7 @@ class CatBoostRegressor(CatBoost):
         'Poisson'
         'MAPE'
         'Lq:q=value'
+        'SurvivalAft:dist=value;scale=value'
     """
 
     _estimator_type = 'regressor'
@@ -5222,10 +5228,10 @@ class CatBoostRegressor(CatBoost):
 
     @staticmethod
     def _check_is_compatible_loss(loss_function):
-        is_regression = CatBoost._is_regression_objective(loss_function) or CatBoost._is_multiregression_objective(loss_function)
+        is_regression = CatBoost._is_regression_objective(loss_function) or CatBoost._is_multiregression_objective(loss_function) or CatBoost._is_survivalregression_objective(loss_function)
         if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MultiRMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
+                                "RMSE, MultiRMSE, SurvivalAft, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
     def _get_default_prediction_type(self):
         # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758

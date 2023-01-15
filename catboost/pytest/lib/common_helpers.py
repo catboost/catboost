@@ -184,6 +184,34 @@ def generate_dataset_with_num_and_cat_features(
     return (DataFrame(feature_columns), labels)
 
 
+def generate_survival_dataset(seed=20201015):
+    np.random.seed(seed)
+
+    X = np.random.rand(200, 20)*10
+
+    mean_y = np.sin(X[:, 0])
+
+    y = np.random.randn(200, 10) * 0.3 + mean_y[:, None]
+
+    y_lower = np.min(y, axis=1)
+    y_upper = np.max(y, axis=1)
+    y_upper = np.where(y_upper >= 1.4, -1, y_upper+abs(np.min(y_lower)))
+    y_lower += abs(np.min(y_lower))
+
+    right_censored_ids = np.where(y_upper == -1)[0]
+    interval_censored_ids = np.where(y_upper != -1)[0]
+
+    train_ids = np.hstack(
+        [right_censored_ids[::2], interval_censored_ids[:140]])
+    test_ids = np.hstack(
+        [right_censored_ids[1::2], interval_censored_ids[140:]])
+
+    X_train, y_lower_train, y_upper_train = X[train_ids], y_lower[train_ids], y_upper[train_ids]
+    X_test, y_lower_test, y_upper_test = X[test_ids], y_lower[test_ids], y_upper[test_ids]
+
+    return [(X_train, y_lower_train, y_upper_train), (X_test, y_lower_test, y_upper_test)]
+
+
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
 
 
