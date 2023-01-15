@@ -318,6 +318,7 @@ ALLOW sandbox/virtualenv -> contrib/python/pycrypto
 ALLOW sandbox/yasandbox -> contrib/python/pycrypto
 ALLOW skynet/library -> contrib/python/pycrypto
 ALLOW travel/hotels/tools/searcher_client -> contrib/python/pycrypto
+ALLOW travel/buses/connectors -> contrib/python/pycrypto
 ALLOW trust/emulator -> contrib/python/pycrypto
 ALLOW trust/processing_holder -> contrib/python/pycrypto
 ALLOW trust/tests/tests_trust_bindings -> contrib/python/pycrypto
