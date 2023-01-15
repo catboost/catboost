@@ -30,6 +30,8 @@ ui32 GetFileMode(DWORD fileAttributes) {
         mode |= _S_IFDIR;
     if (fileAttributes & (FILE_ATTRIBUTE_NORMAL | FILE_ATTRIBUTE_ARCHIVE))
         mode |= _S_IFREG;
+    if ((fileAttributes & FILE_ATTRIBUTE_READONLY) == 0)
+        mode |= _S_IWRITE;
     return mode;
 }
 
