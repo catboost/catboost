@@ -1,6 +1,7 @@
 import subprocess
 import sys
 
+import process_command_files as pcf
 
 def out2err(cmd):
     return subprocess.Popen(cmd, stdout=sys.stderr).wait()
@@ -22,7 +23,8 @@ def out2err_cut_first_line(cmd):
 
 
 if __name__ == '__main__':
-    mode, cmd = sys.argv[1], sys.argv[2:]
+    mode = sys.argv[1]
+    cmd = pcf.skip_markers(sys.argv[2:])
     run = out2err
     if mode in ('cl', 'ml'):
         # First line of cl.exe and ml64.exe stdout is useless: it prints input file
