@@ -818,6 +818,9 @@ public:
     basic_string(basic_string&& __str, const allocator_type& __a);
 #endif  // _LIBCPP_CXX03_LANG
 
+    _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
+    basic_string(nullptr_t) = delete;
+
     template <class = _EnableIf<__is_allocator<_Allocator>::value, nullptr_t>>
     _LIBCPP_INLINE_VISIBILITY
     basic_string(const _CharT* __s) : __r_(__default_init_tag(), __default_init_tag()) {
@@ -832,10 +835,18 @@ public:
         _LIBCPP_INLINE_VISIBILITY
         basic_string(const _CharT* __s, const _Allocator& __a);
 
+    _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
+    basic_string(nullptr_t, size_t) = delete;
+
     _LIBCPP_INLINE_VISIBILITY
     basic_string(const _CharT* __s, size_type __n);
+
+    _LIBCPP_CONSTEXPR _LIBCPP_INLINE_VISIBILITY
+    basic_string(nullptr_t, size_t, const _Allocator&) = delete;
+
     _LIBCPP_INLINE_VISIBILITY
     basic_string(const _CharT* __s, size_type __n, const _Allocator& __a);
+
     _LIBCPP_INLINE_VISIBILITY
     basic_string(size_type __n, _CharT __c);
 
@@ -882,6 +893,8 @@ public:
     operator __self_view() const _NOEXCEPT { return __self_view(data(), size()); }
 
     basic_string& operator=(const basic_string& __str);
+
+    basic_string& operator=(nullptr_t) = delete;
 
     template <class _Tp, class = _EnableIf<__can_be_converted_to_string_view<_CharT, _Traits, _Tp>::value && !__is_same_uncvref<_Tp, basic_string>::value> >
     basic_string& operator=(const _Tp& __t)
