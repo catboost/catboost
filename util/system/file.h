@@ -118,6 +118,7 @@ public:
     int Flock(int op) noexcept;
 
     FHANDLE Duplicate() const noexcept;
+    int Duplicate2Posix(int dstHandle) const noexcept;
 
     //dup2 - like semantics, return true on success
     bool LinkTo(const TFileHandle& fh) const noexcept;
