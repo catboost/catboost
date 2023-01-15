@@ -28,18 +28,33 @@ Y_UNIT_TEST_SUITE(DisjointIntervalTreeTest) {
 
     Y_UNIT_TEST(MergeIntervalsTest) {
         TDisjointIntervalTree<ui64> tree;
-        tree.Insert(1);
-        tree.Insert(2);
+        tree.Insert(5);
+
+        // Insert interval from right side.
+        tree.Insert(6);
 
         UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
         UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 2);
 
-        auto begin = tree.begin();
-        UNIT_ASSERT_VALUES_EQUAL(begin->first, 1);
-        UNIT_ASSERT_VALUES_EQUAL(begin->second, 3);
+        {
+            auto begin = tree.begin();
+            UNIT_ASSERT_VALUES_EQUAL(begin->first, 5);
+            UNIT_ASSERT_VALUES_EQUAL(begin->second, 7);
 
-        ++begin;
-        UNIT_ASSERT_EQUAL(begin, tree.end());
+            ++begin;
+            UNIT_ASSERT_EQUAL(begin, tree.end());
+        }
+
+        // Insert interval from left side.
+        tree.InsertInterval(2, 5);
+        UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 5);
+
+        {
+            auto begin = tree.begin();
+            UNIT_ASSERT_VALUES_EQUAL(begin->first, 2);
+            UNIT_ASSERT_VALUES_EQUAL(begin->second, 7);
+        }
     }
 
     Y_UNIT_TEST(EraseIntervalTest) {
@@ -200,6 +215,49 @@ Y_UNIT_TEST_SUITE(DisjointIntervalTreeTest) {
             UNIT_ASSERT_VALUES_EQUAL(tree.EraseInterval(2, 17), 7);
             UNIT_ASSERT_VALUES_EQUAL(tree.GetNumIntervals(), 2);
             UNIT_ASSERT_VALUES_EQUAL(tree.GetNumElements(), 8);
+        }
+    }
+
+    Y_UNIT_TEST(IntersectsTest) {
+        {
+            TDisjointIntervalTree<ui64> tree;
+            UNIT_ASSERT(!tree.Intersects(1, 2));
+        }
+
+        {
+            TDisjointIntervalTree<ui64> tree;
+            tree.InsertInterval(5, 10);
+
+            UNIT_ASSERT(tree.Intersects(5, 10));
+            UNIT_ASSERT(tree.Intersects(5, 6));
+            UNIT_ASSERT(tree.Intersects(9, 10));
+            UNIT_ASSERT(tree.Intersects(6, 8));
+            UNIT_ASSERT(tree.Intersects(1, 8));
+            UNIT_ASSERT(tree.Intersects(8, 15));
+            UNIT_ASSERT(tree.Intersects(3, 14));
+
+            UNIT_ASSERT(!tree.Intersects(3, 5));
+            UNIT_ASSERT(!tree.Intersects(10, 13));
+        }
+
+        {
+            TDisjointIntervalTree<ui64> tree;
+            tree.InsertInterval(5, 10);
+            tree.InsertInterval(20, 30);
+
+            UNIT_ASSERT(tree.Intersects(5, 10));
+            UNIT_ASSERT(tree.Intersects(5, 6));
+            UNIT_ASSERT(tree.Intersects(9, 10));
+            UNIT_ASSERT(tree.Intersects(6, 8));
+            UNIT_ASSERT(tree.Intersects(1, 8));
+            UNIT_ASSERT(tree.Intersects(8, 15));
+            UNIT_ASSERT(tree.Intersects(3, 14));
+            UNIT_ASSERT(tree.Intersects(18, 21));
+            UNIT_ASSERT(tree.Intersects(3, 50));
+
+            UNIT_ASSERT(!tree.Intersects(3, 5));
+            UNIT_ASSERT(!tree.Intersects(10, 13));
+            UNIT_ASSERT(!tree.Intersects(15, 18));
         }
     }
 }

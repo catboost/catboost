@@ -39,6 +39,27 @@ public:
         return const_cast<TThis*>(this)->FindContaining(t) != Tree.end();
     }
 
+    bool Intersects(const T begin, const T end) {
+        if (Empty()) {
+            return false;
+        }
+
+        TIterator l = Tree.lower_bound(begin);
+        if (l != Tree.end()) {
+            if (l->first < end) {
+                return true;
+            } else if (l != Tree.begin()) {
+                --l;
+                return l->second > begin;
+            } else {
+                return false;
+            }
+        } else {
+            auto last = Tree.rbegin();
+            return begin < last->second;
+        }
+    }
+
     TConstIterator FindContaining(const T t) const {
         return const_cast<TThis*>(this)->FindContaining(t);
     }
@@ -182,6 +203,7 @@ public:
 private:
     void InsertIntervalImpl(const T begin, const T end) {
         Y_ASSERT(begin < end);
+        Y_ASSERT(!Intersects(begin, end));
 
         TIterator l = Tree.lower_bound(begin);
         TIterator p = Tree.end();
@@ -200,6 +222,10 @@ private:
         // try to extend interval
         if (p != Tree.end() && p->second == begin) {
             p->second = end;
+        } else if (l != Tree.end() && end == l->first) {
+            T& leftBorder = const_cast<T&>(l->first);
+            // Optimization hack.
+            leftBorder = begin; // OK to change key since intervals do not intersect.
         } else {
             Tree.insert(std::make_pair(begin, end));
         }
