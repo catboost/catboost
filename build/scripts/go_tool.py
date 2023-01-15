@@ -756,12 +756,12 @@ if __name__ == '__main__':
     parser.add_argument('++debug-root-map', default=None)
     args = parser.parse_args()
 
-    preprocess_args(args)
-
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix
     vet_info_ext = args.vet_info_ext
     vet_report_ext = args.vet_report_ext
+
+    preprocess_args(args)
 
     try:
         os.unlink(args.output)
