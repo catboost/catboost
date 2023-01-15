@@ -394,7 +394,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         THolder<TScoresCalcerOnCompressedDataSet<>> featuresScoreCalcer;
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(dataSet.GetFeatures(),
+            featuresScoreCalcer = MakeHolder<TScoresCalcerOnCompressedDataSet<>>(dataSet.GetFeatures(),
                                                                          treeConfig,
                                                                          foldCount,
                                                                          true);
@@ -402,7 +402,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         THolder<TScoresCalcerOnCompressedDataSet<>> simpleCtrScoreCalcer;
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = MakeHolder<TScoresCalcerOnCompressedDataSet<>>(dataSet.GetPermutationFeatures(),
                                                                           treeConfig,
                                                                           foldCount,
                                                                           true);
@@ -551,14 +551,14 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         THolder<TScoreCalcer> simpleCtrScoreCalcer;
 
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
+            featuresScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetFeatures(),
                                                    treeConfig,
                                                    1,
                                                    true);
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetPermutationFeatures(),
                                                     treeConfig,
                                                     1,
                                                     true);

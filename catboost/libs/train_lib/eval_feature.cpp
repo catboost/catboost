@@ -882,7 +882,7 @@ static void EvaluateFeaturesImpl(
     dataSpecificOptions.LoggingLevel = ELoggingLevel::Silent;
 
     const auto taskType = catBoostOptions.GetTaskType();
-    THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(taskType);
+    THolder<IModelTrainer> modelTrainerHolder(TTrainerFactory::Construct(taskType));
 
     TSetLogging inThisScope(loggingLevel);
 

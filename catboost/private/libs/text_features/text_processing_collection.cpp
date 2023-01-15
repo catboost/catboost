@@ -161,7 +161,7 @@ namespace NCB {
     void TTextProcessingCollection::LoadHeader(IInputStream* stream) {
         ui64 textDataHeaderSize;
         ::Load(stream, textDataHeaderSize);
-        TArrayHolder<ui8> arrayHolder = new ui8[textDataHeaderSize];
+        TArrayHolder<ui8> arrayHolder(new ui8[textDataHeaderSize]);
         const ui32 loadedBytes = stream->Load(arrayHolder.Get(), textDataHeaderSize);
         CB_ENSURE(
             loadedBytes == textDataHeaderSize,
@@ -269,7 +269,7 @@ namespace NCB {
 
         ui64 headerSize;
         while (TryLoad(&stream, headerSize)) {
-            TArrayHolder<ui8> buffer = new ui8[headerSize];
+            TArrayHolder<ui8> buffer(new ui8[headerSize]);
             const ui32 loadedBytes = stream.Load(buffer.Get(), headerSize);
             CB_ENSURE(
                 loadedBytes == headerSize,

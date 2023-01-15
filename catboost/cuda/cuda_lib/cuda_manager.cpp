@@ -298,7 +298,7 @@ THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceReques
     }
     InitMemPerformanceTables(manager);
 
-    return new TStopCudaManagerCallback();
+    return MakeHolder<TStopCudaManagerCallback>();
 }
 
 THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel) {

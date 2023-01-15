@@ -58,7 +58,7 @@ TFullModel ReadModel(const TString& modelFile, EModelType format) {
         NCB::TModelLoaderFactory::Has(format),
         "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
-    THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
+    THolder<NCB::IModelLoader> modelLoader(NCB::TModelLoaderFactory::Construct(format));
     return modelLoader->ReadModel(modelFile);
 }
 
@@ -67,7 +67,7 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
         NCB::TModelLoaderFactory::Has(format),
         "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
-    THolder<NCB::IModelLoader> modelLoader = NCB::TModelLoaderFactory::Construct(format);
+    THolder<NCB::IModelLoader> modelLoader(NCB::TModelLoaderFactory::Construct(format));
     return modelLoader->ReadModel(binaryBuffer, binaryBufferSize);
 }
 
@@ -647,7 +647,7 @@ void TFullModel::Load(IInputStream* s) {
     ::Load(s, fileDescriptor);
     CB_ENSURE(fileDescriptor == GetModelFormatDescriptor(), "Incorrect model file descriptor");
     auto coreSize = ::LoadSize(s);
-    TArrayHolder<ui8> arrayHolder = new ui8[coreSize];
+    TArrayHolder<ui8> arrayHolder(new ui8[coreSize]);
     s->LoadOrFail(arrayHolder.Get(), coreSize);
 
     {
