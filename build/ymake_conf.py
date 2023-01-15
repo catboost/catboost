@@ -1646,7 +1646,10 @@ class LD(Linker):
         self.ld_flags = []
 
         if self.build.is_size_optimized:
-            self.ld_flags.append('-Wl,--gc-sections')
+            if target.is_macos:
+                self.ld_flags.append('-Wl,-dead_strip')
+            elif target.is_linux or target.is_android:
+                self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
