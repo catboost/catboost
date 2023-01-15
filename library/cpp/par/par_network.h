@@ -4,6 +4,7 @@
 #include <library/cpp/netliba/v12/udp_address.h>
 
 #include <util/generic/guid.h>
+#include <util/generic/hash.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
@@ -52,7 +53,7 @@ namespace NPar {
         }
 
         size_t Hash() const {
-            return Address.hash() ^ IntHash(Port);
+            return ComputeHash(Address) ^ IntHash(Port);
         }
 
         SAVELOAD(Address, Port, CachedNehAddr);
