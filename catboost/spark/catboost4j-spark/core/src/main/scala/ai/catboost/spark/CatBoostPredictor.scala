@@ -15,6 +15,7 @@ import org.json4s.JsonDSL._
 
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.param._
+import org.apache.spark.ml.util.DefaultParamsWritable
 import org.apache.spark.sql.{DataFrame,Dataset,Row}
 import org.apache.spark.TaskContext
 
@@ -29,6 +30,7 @@ trait CatBoostPredictorTrait[
   Model <: org.apache.spark.ml.PredictionModel[Vector, Model]]
     extends org.apache.spark.ml.Predictor[Vector, Learner, Model]
       with params.DatasetParamsTrait
+      with DefaultParamsWritable
 {
   this: params.TrainingParamsTrait =>
 

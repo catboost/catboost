@@ -3,7 +3,7 @@ package ai.catboost.spark
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.regression.RegressionModel
-import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.ml.util._
 
 import org.apache.spark.ml.CatBoostRegressorBase // defined inside catboost4j-spark
 
@@ -12,10 +12,37 @@ import ai.catboost.spark.params._
 import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
 
 
-/** Regression model trained by CatBoost. Use [[CatBoostRegressor]] to train it */
+/** Regression model trained by CatBoost. Use [[CatBoostRegressor]] to train it
+ *
+ * ==Serialization==
+ * Supports standard Spark MLLib serialization. Data can be saved to distributed filesystem like HDFS or
+ * local files.
+ * When saved to `path` two files are created:
+ *   -`<path>/metadata` which contains Spark-specific metadata in JSON format
+ *   -`<path>/model` which contains model in usual CatBoost format which can be read using other local
+ *     CatBoost APIs (if stored in a distributed filesystem it has to be copied to the local filesystem first).
+ *
+ * @example Save model
+ * {{{
+ *   val trainPool : Pool = ... init Pool ...
+ *   val regressor = new CatBoostRegressor
+ *   val model = regressor.fit(trainPool)
+ *   val path = "/home/user/catboost_spark_models/model0"
+ *   model.write.save(path)
+ * }}}
+ *
+ * @example Load model
+ * {{{
+ *   val dataFrameForPrediction : DataFrame = ... init DataFrame ...
+ *   val path = "/home/user/catboost_spark_models/model0"
+ *   val model = CatBoostRegressionModel.load(path)
+ *   val predictions = model.transform(dataFrameForPrediction)
+ *   predictions.show()
+ * }}}
+ */
 class CatBoostRegressionModel (
   override val uid: String,
-  protected var nativeModel : native_impl.TFullModel = null,
+  private[spark] var nativeModel : native_impl.TFullModel = null,
   protected var nativeDimension: Int
 )
   extends RegressionModel[Vector, CatBoostRegressionModel]
@@ -39,6 +66,24 @@ class CatBoostRegressionModel (
    */
   override def predict(features: Vector): Double = {
     predictRawImpl(features)(0)
+  }
+}
+
+object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
+  override def read: MLReader[CatBoostRegressionModel] = new CatBoostRegressionModelReader
+  override def load(path: String): CatBoostRegressionModel = super.load(path)
+
+  private class CatBoostRegressionModelReader
+    extends MLReader[CatBoostRegressionModel] with CatBoostModelReaderTrait
+  {
+      override def load(path: String) : CatBoostRegressionModel = {
+        val (uid, nativeModel) = loadImpl(
+          super.sparkSession.sparkContext,
+          classOf[CatBoostRegressionModel].getName,
+          path
+        )
+        new CatBoostRegressionModel(uid, nativeModel, 1)
+      }
   }
 }
 
@@ -91,6 +136,25 @@ class CatBoostRegressionModel (
  *  val predictions = model.transform(evalPool.data)
  *  predictions.show()
  * }}}
+ *
+ * ==Serialization==
+ * Supports standard Spark MLLib serialization. Data can be saved to distributed filesystem like HDFS or
+ * local files.
+ *
+ * @example Save
+ * {{{
+ *   val regressor = new CatBoostRegressor().setLossFunction("MAE")
+ *   val path = "/home/user/catboost_regressors/regressor0"
+ *   regressor.write.save(path)
+ * }}}
+ *
+ * @example Load
+ * {{{
+ *   val path = "/home/user/catboost_regressors/regressor0"
+ *   val regressor = CatBoostRegressor.load(path)
+ *   val trainPool : Pool = ... init Pool ...
+ *   val model = regressor.fit(trainPool)
+ * }}}
  */
 class CatBoostRegressor (override val uid: String)
   extends CatBoostRegressorBase[Vector, CatBoostRegressor, CatBoostRegressionModel]
@@ -104,5 +168,9 @@ class CatBoostRegressor (override val uid: String)
   protected override def createModel(nativeModel: native_impl.TFullModel): CatBoostRegressionModel = {
     new CatBoostRegressionModel(nativeModel)
   }
+}
+
+object CatBoostRegressor extends DefaultParamsReadable[CatBoostRegressor] {
+  override def load(path: String): CatBoostRegressor = super.load(path)
 }
 
