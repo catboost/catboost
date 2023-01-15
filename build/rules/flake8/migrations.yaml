@@ -1,0 +1,6 @@
+migrations:
+  F401:
+    ignore:
+      - F401
+    prefixes:
+      - devtools
