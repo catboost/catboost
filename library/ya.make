@@ -43,7 +43,6 @@ RECURSE(
     statistics
     statistics/ut
     svnversion
-    svnversion/java
     testing
 )
 
