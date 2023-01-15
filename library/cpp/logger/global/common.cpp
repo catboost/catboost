@@ -1,9 +1,25 @@
 #include "common.h"
 
+#include <util/generic/yexception.h>
+
 namespace NLoggingImpl {
     TString GetLocalTimeSSimple() {
         struct tm tm;
         return Strftime("%b%d_%H%M%S", Now().LocalTime(&tm));
+    }
+
+    TString PrepareToOpenLog(TString logType, const int logLevel, const bool rotation, const bool startAsDaemon) {
+        Y_ENSURE(logLevel >= 0 && logLevel <= (int)LOG_MAX_PRIORITY, "Incorrect log level");
+
+        if (rotation && TFsPath(logType).Exists()) {
+            TString newPath = Sprintf("%s_%s_%" PRIu64, logType.data(), NLoggingImpl::GetLocalTimeSSimple().data(), static_cast<ui64>(Now().MicroSeconds()));
+            TFsPath(logType).RenameTo(newPath);
+        }
+        if (startAsDaemon && (logType == "console" || logType == "cout" || logType == "cerr")) {
+            logType = "null";
+        }
+
+        return logType;
     }
 }
 
