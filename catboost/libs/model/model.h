@@ -205,22 +205,10 @@ public:
         );
 
         ClearRuntimeData();
-        ClearRepackedBins();
-        {
-            TReadGuard applyDataRGuard(other.ApplyDataLock);
-            if (other.ApplyData.Defined()) {
-                TWriteGuard applyDataWGuard(ApplyDataLock);
-                ApplyData = other.ApplyData;
-            }
-        }
-        {
-            TReadGuard runtimeDataRGuard(other.RuntimeDataLock);
-            if (other.RuntimeData.Defined()) {
-                TWriteGuard runtimeDataWGuard(RuntimeDataLock);
-                RuntimeData = other.RuntimeData;
-                RepackedBins = other.RepackedBins;
-            }
-        }
+        TGuard<TAdaptiveLock> guardApply(MutableDataLock);
+        ApplyData = other.ApplyData;
+        RepackedBins = other.RepackedBins;
+        RuntimeData = other.RuntimeData;
 
         return *this;
     }
@@ -456,11 +444,6 @@ public:
     void ClearRuntimeData() const;
 
     /**
-     * Internal usage only. Clears RepackedBins
-     */
-    void ClearRepackedBins() const;
-
-    /**
      * List of all CTRs in model
      * @return
      */
@@ -551,12 +534,12 @@ public:
     }
 
     size_t GetUsedEmbeddingFeaturesCount() const {
-        CB_ENSURE(ApplyData.Defined(), "runtime data should be initialized");
+        CB_ENSURE(ApplyData, "runtime data should be initialized");
         return ApplyData->UsedEmbeddingFeaturesCount;
     }
 
     size_t GetMinimalSufficientEmbeddingFeaturesVectorSize() const {
-        CB_ENSURE(ApplyData.Defined(), "runtime data should be initialized");
+        CB_ENSURE(ApplyData, "runtime data should be initialized");
         return ApplyData->MinimalSufficientEmbeddingFeaturesVectorSize;
     }
 
@@ -598,12 +581,12 @@ private:
 
     void PrepareApplyData() const;
     void CalcBinFeatures() const;
-    void CalcUsedModelCtrs() const;
-    void CalcFirstLeafOffsets() const;
-    void ProcessFloatFeatures() const;
-    void ProcessCatFeatures() const;
-    void ProcessTextFeatures() const;
-    void ProcessEstimatedFeatures() const;
+    void CalcUsedModelCtrs(TAtomicSharedPtr<TForApplyData> applyData) const;
+    void CalcFirstLeafOffsets(TAtomicSharedPtr<TForApplyData> applyData) const;
+    void ProcessFloatFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
+    void ProcessCatFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
+    void ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
+    void ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> applyData) const;
     void ProcessEmbeddingFeatures() const;
 private:
     //! Number of classes in model, in most cases equals to 1.
@@ -637,11 +620,9 @@ private:
     //! For computing final formula result as `Scale * sumTrees + Bias`
     TScaleAndBias ScaleAndBias;
 
-    mutable TMaybe<TRuntimeData> RuntimeData;
-    mutable TRWMutex RuntimeDataLock;
-
-    mutable TMaybe<TForApplyData> ApplyData;
-    mutable TRWMutex ApplyDataLock;
+    TAdaptiveLock MutableDataLock;
+    mutable TAtomicSharedPtr<TRuntimeData> RuntimeData;
+    mutable TAtomicSharedPtr<TForApplyData> ApplyData;
 
     /**
     * This vector contains ui32 that contains such information:
@@ -792,7 +773,6 @@ public:
             SetScaleAndBias({GetScaleAndBias().Scale, {}});
         }
         UpdateDynamicData();
-        ModelTrees->ClearRepackedBins();
     }
 
     /**

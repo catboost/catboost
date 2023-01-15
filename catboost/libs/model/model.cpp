@@ -427,16 +427,11 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
 
 static_assert(sizeof(TRepackedBin) == sizeof(NCatBoostFbs::TRepackedBin));
 
-void TModelTrees::ClearRepackedBins() const {
-    RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>{};
-}
-
 void TModelTrees::ClearRuntimeData() const {
-    TWriteGuard applyDataGuard(ApplyDataLock);
-    TWriteGuard runtimeDataGuard(RuntimeDataLock);
-
-    RuntimeData.Clear();
-    ApplyData.Clear();
+    TGuard<TAdaptiveLock> guardApply(MutableDataLock);
+    ApplyData.Drop();
+    RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>{};
+    RuntimeData.Drop();
 }
 
 void TModelTrees::UpdateRuntimeData() const {
@@ -444,30 +439,25 @@ void TModelTrees::UpdateRuntimeData() const {
 }
 
 void TModelTrees::PrepareApplyData() const {
-    {
-        TReadGuard rguard(ApplyDataLock);
-
-        if (ApplyData.Defined()) {
-            return;
-        }
+    if (ApplyData) {
+        return;
     }
-    TWriteGuard wguard(ApplyDataLock);
-
-    if (ApplyData.Defined()) {
+    TGuard<TAdaptiveLock> guard(MutableDataLock);
+    if (ApplyData) {
         return;
     }
 
-    ApplyData = TForApplyData{};
-    ProcessFloatFeatures();
-    ProcessCatFeatures();
-    ProcessTextFeatures();
-    ProcessEstimatedFeatures();
-    CalcUsedModelCtrs();
-    CalcFirstLeafOffsets();
+    auto applyData = MakeAtomicShared<TForApplyData>();
+    ProcessFloatFeatures(applyData);
+    ProcessCatFeatures(applyData);
+    ProcessTextFeatures(applyData);
+    ProcessEstimatedFeatures(applyData);
+    CalcUsedModelCtrs(applyData);
+    CalcFirstLeafOffsets(applyData);
+    ApplyData = applyData;
 }
 
-void TModelTrees::ProcessFloatFeatures() const {
-    auto& ref = ApplyData;
+void TModelTrees::ProcessFloatFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
     for (const auto& feature : FloatFeatures) {
         if (feature.UsedInModel()) {
             ++ref->UsedFloatFeaturesCount;
@@ -476,8 +466,7 @@ void TModelTrees::ProcessFloatFeatures() const {
     }
 }
 
-void TModelTrees::ProcessCatFeatures() const {
-    auto& ref = ApplyData;
+void TModelTrees::ProcessCatFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
     for (const auto& feature : CatFeatures) {
         if (feature.UsedInModel()) {
             ++ref->UsedCatFeaturesCount;
@@ -486,8 +475,7 @@ void TModelTrees::ProcessCatFeatures() const {
     }
 }
 
-void TModelTrees::ProcessTextFeatures() const {
-    auto& ref = ApplyData;
+void TModelTrees::ProcessTextFeatures(TAtomicSharedPtr<TForApplyData> ref) const {
     for (const auto& feature : TextFeatures) {
         if (feature.UsedInModel()) {
             ++ref->UsedTextFeaturesCount;
@@ -506,24 +494,20 @@ void TModelTrees::ProcessEmbeddingFeatures() const {
     }
 }
 
-void TModelTrees::ProcessEstimatedFeatures() const {
-    ApplyData->UsedEstimatedFeaturesCount = EstimatedFeatures.size();
+void TModelTrees::ProcessEstimatedFeatures(TAtomicSharedPtr<TForApplyData> applyData) const {
+    applyData->UsedEstimatedFeaturesCount = EstimatedFeatures.size();
 }
 
 void TModelTrees::CalcBinFeatures() const {
-    {
-        TReadGuard rguard(RuntimeDataLock);
-        if (RuntimeData.Defined()) {
-            return;
-        }
+    if (RuntimeData) {
+        return;
     }
-    TWriteGuard wguard(RuntimeDataLock);
-
-    if (RuntimeData.Defined()) {
+    TGuard<TAdaptiveLock> guard(MutableDataLock);
+    if (RuntimeData) {
         return;
     }
 
-    RuntimeData = TRuntimeData{};
+    auto runtimeData = MakeAtomicShared<TRuntimeData>();
 
     struct TFeatureSplitId {
         ui32 FeatureIdx = 0;
@@ -531,7 +515,7 @@ void TModelTrees::CalcBinFeatures() const {
     };
     TVector<TFeatureSplitId> splitIds;
 
-    auto& ref = RuntimeData.GetRef();
+    auto& ref = *runtimeData;
     for (const auto& feature : FloatFeatures) {
         if (!feature.UsedInModel()) {
             continue;
@@ -594,9 +578,6 @@ void TModelTrees::CalcBinFeatures() const {
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
 
-    if (RepackedBins.GetSize()) {
-        return;
-    }
     TVector<TRepackedBin> repackedBins;
 
     auto treeSplits = GetModelTreeData()->GetTreeSplits();
@@ -618,20 +599,21 @@ void TModelTrees::CalcBinFeatures() const {
         repackedBins.push_back(rb);
     }
     RepackedBins = NCB::TMaybeOwningConstArrayHolder<TRepackedBin>::CreateOwning(std::move(repackedBins));
+    RuntimeData = runtimeData;
 }
 
-void TModelTrees::CalcUsedModelCtrs() const {
-    auto& ref = ApplyData->UsedModelCtrs;
+void TModelTrees::CalcUsedModelCtrs(TAtomicSharedPtr<TForApplyData> applyData) const {
+    auto& ref = applyData->UsedModelCtrs;
     for (const auto& ctrFeature : CtrFeatures) {
         ref.push_back(ctrFeature.Ctr);
     }
 }
 
-void TModelTrees::CalcFirstLeafOffsets() const {
+void TModelTrees::CalcFirstLeafOffsets(TAtomicSharedPtr<TForApplyData> applyData) const {
     auto treeSizes = GetModelTreeData()->GetTreeSizes();
     auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
 
-    auto& ref = ApplyData->TreeFirstLeafOffsets;
+    auto& ref = applyData->TreeFirstLeafOffsets;
     ref.resize(treeSizes.size());
     if (IsOblivious()) {
         size_t currentOffset = 0;
@@ -715,7 +697,6 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
     data.NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
     data.NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
     UpdateRuntimeData();
-    ClearRepackedBins();
 }
 
 TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
@@ -1230,7 +1211,6 @@ void TFullModel::Load(IInputStream* s) {
         }
     }
     UpdateDynamicData();
-    ModelTrees->ClearRepackedBins();
 }
 
 void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
@@ -1287,7 +1267,6 @@ void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
         }
     }
     UpdateDynamicData();
-    ModelTrees->ClearRepackedBins();
 }
 
 void TFullModel::UpdateDynamicData() {
@@ -1795,7 +1774,6 @@ TFullModel SumModels(
     }
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
-    result.ModelTrees->ClearRepackedBins();
     result.ModelInfo["model_guid"] = CreateGuidAsString();
     result.SetScaleAndBias({1, totalBias});
     SumModelsParams(modelVector, &result.ModelInfo);
