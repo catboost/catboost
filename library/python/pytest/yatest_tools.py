@@ -1,10 +1,11 @@
 # coding: utf-8
 
+import collections
+import functools
+import math
 import os
 import re
 import sys
-import math
-import functools
 
 import yatest_lib.tools
 
@@ -190,14 +191,14 @@ def get_max_filename_length(dirname):
     return 255
 
 
-def get_unique_file_path(dir_path, filename):
+def get_unique_file_path(dir_path, filename, cache=collections.defaultdict(set)):
     """
-    Get unique filename in dir with proper filename length, using given filename
+    Get unique filename in dir with proper filename length, using given filename/dir.
+    File/dir won't be created (thread nonsafe)
     :param dir_path: path to dir
     :param filename: original filename
     :return: unique filename
     """
-    counter = 0
     max_suffix = 10000
     # + 1 symbol for dot before suffix
     tail_length = int(round(math.log(max_suffix, 10))) + 1
@@ -213,7 +214,11 @@ def get_unique_file_path(dir_path, filename):
             filename = yatest_lib.tools.trim_string(filename, max_path - filename_len)
     filename = yatest_lib.tools.trim_string(filename, get_max_filename_length(dir_path) - tail_length - len(extension)) + extension
     candidate = os.path.join(dir_path, filename)
+
+    key = dir_path + filename
+    counter = sorted(cache.get(key, {0, }))[-1]
     while os.path.exists(candidate):
+        cache[key].add(counter)
         counter += 1
         assert counter < max_suffix
         candidate = os.path.join(dir_path, filename + ".{}".format(counter))
