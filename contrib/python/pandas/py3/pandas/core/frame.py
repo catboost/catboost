@@ -2880,6 +2880,10 @@ class DataFrame(NDFrame):
         # Do we have a slicer (on rows)?
         indexer = convert_to_index_sliceable(self, key)
         if indexer is not None:
+            if isinstance(indexer, np.ndarray):
+                indexer = lib.maybe_indices_to_slice(
+                    indexer.astype(np.intp, copy=False), len(self)
+                )
             # either we have a slice or we have a string that can be converted
             #  to a slice for partial-string date indexing
             return self._slice(indexer, axis=0)
@@ -7359,7 +7363,7 @@ NaN 12.3   33.0
 
         result = None
         try:
-            result, how = self._aggregate(func, axis=axis, *args, **kwargs)
+            result, how = self._aggregate(func, axis, *args, **kwargs)
         except TypeError as err:
             exc = TypeError(
                 "DataFrame constructor called with "
