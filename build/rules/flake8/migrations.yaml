@@ -3037,8 +3037,6 @@ migrations:
     - search/mon/wabbajack/libs/modlib
     - search/mon/workplace/src/services
     - search/mon/workplace/src/sqla/workplace
-    - search/priemka/yappy/services
-    - search/priemka/yappy/sqla/yappy
     - search/resonance/pylib
     - search/resonance/tester/tools/viewer
     - search/rpslimiter/storage/services
