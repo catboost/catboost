@@ -381,6 +381,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\exception\cpp-cuda-exception.vcxproj">
+      <Project>{4485FA18-F2CA-4E61-F357-3E8F126F57AE}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\wrappers\cpp-cuda-wrappers.vcxproj">
       <Project>{9935B7C4-C890-9840-0263-8F903791A80D}</Project>
     </ProjectReference>

@@ -464,6 +464,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\listener\cpp-coroutine-listener.vcxproj">
       <Project>{C43D7284-E485-A23F-D1EB-E5104D32806A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\exception\cpp-cuda-exception.vcxproj">
+      <Project>{4485FA18-F2CA-4E61-F357-3E8F126F57AE}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\wrappers\cpp-cuda-wrappers.vcxproj">
       <Project>{9935B7C4-C890-9840-0263-8F903791A80D}</Project>
     </ProjectReference>
