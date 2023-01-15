@@ -1313,7 +1313,6 @@ class GnuCompiler(Compiler):
                 # See https://releases.llvm.org/10.0.0/tools/clang/docs/ReleaseNotes.html#major-new-features
                 # Useful warnings that should be enabled ASAP:
                 self.c_warnings.extend((
-                    '-Wno-implicit-int-float-conversion',
                     '-Wno-int-in-bool-context',
                     '-Wno-misleading-indentation',
                     '-Wno-unknown-warning-option',  # For nvcc to accept the above.
