@@ -586,4 +586,7 @@ ALLOW alice/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logru
 # SUBBOTNIK-90
 ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thrift.git/lib/go
 
+# CONTRIB-1959 Добавить casbin 
+ALLOW .* -> vendor/github.com/casbin/casbin/v2
+
 DENY .* -> vendor/
