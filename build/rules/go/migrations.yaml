@@ -177,7 +177,6 @@ migrations:
       - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
   protonaming:
     packages:
-      - a.yandex-team.ru/crypta/graph/soup/config/proto
       - a.yandex-team.ru/extsearch/video/content_id/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ad/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/proto
