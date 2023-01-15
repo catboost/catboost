@@ -16,6 +16,7 @@ public:
     using TSelf = TStringBase<TDerived, TChar, TTraits>;
 
     using size_type = size_t;
+    using difference_type = ptrdiff_t;
     static constexpr size_t npos = size_t(-1);
 
     static size_t hashVal(const TCharType* s, size_t n) noexcept {
@@ -425,6 +426,10 @@ public:
             return pos <= Len() ? pos : npos;
         }
         return GenericFind<TTraits::Find>(s.data(), s.length(), pos);
+    }
+
+    inline size_t find(const TCharType* s, size_t pos, size_t count) const noexcept {
+        return find(TStringView(s, count), pos);
     }
 
     inline size_t find(TCharType c, size_t pos = 0) const noexcept {
