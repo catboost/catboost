@@ -70,8 +70,9 @@ UNIT_TEST_SUITE_REGISTRATION(TStringTestZero);
 
 template <typename TStringType, typename TTestData>
 class TStringStdTestImpl {
-    using char_type = typename TStringType::char_type;
-    using traits_type = typename TStringType::traits_type;
+    using TChar = typename TStringType::char_type;
+    using TTraits = typename TStringType::traits_type;
+    using TView = std::basic_string_view<TChar, TTraits>;
 
     TTestData Data;
 
@@ -211,7 +212,7 @@ protected:
     }
 
     void erase() {
-        char_type const* c_str = Data.Hello_World();
+        TChar const* c_str = Data.Hello_World();
         TStringType str(c_str);
         UNIT_ASSERT(str == c_str);
 
@@ -282,13 +283,13 @@ protected:
         // Block A:
         xx = Data._123456();
         xx += low;
-        UNIT_ASSERT(traits_type::Compare(xx.c_str(), Data._1234562004_01_01()) == 0);
+        UNIT_ASSERT(xx.c_str() == TView(Data._1234562004_01_01()));
         // End of block A
 
         // Block B:
         xx = Data._1234();
         xx += Data._5();
-        UNIT_ASSERT(traits_type::Compare(xx.c_str(), Data._12345()) == 0);
+        UNIT_ASSERT(xx.c_str() == TView(Data._12345()));
         // End of block B
     }
 
@@ -444,7 +445,7 @@ protected:
 
     void assign() {
         TStringType s;
-        char_type const* cstr = Data.test_string_for_assign();
+        TChar const* cstr = Data.test_string_for_assign();
 
         s.assign(cstr, cstr + 22);
         UNIT_ASSERT(s == Data.test_string_for_assign());
@@ -467,7 +468,7 @@ protected:
 
     void copy() {
         TStringType s(Data.foo());
-        char_type dest[4];
+        TChar dest[4];
         dest[0] = dest[1] = dest[2] = dest[3] = 1;
         s.copy(dest, 4);
         int pos = 0;
@@ -668,7 +669,7 @@ protected:
         UNIT_ASSERT(str == Data.This_This_is_test_StringT_for_StringT_calls());
 
 #if !defined(STLPORT) || defined(_STLP_MEMBER_TEMPLATES)
-        deque<char_type> cdeque;
+        deque<TChar> cdeque;
         cdeque.push_back(*Data.I());
         str.replace(str.begin(), str.begin() + 11, cdeque.begin(), cdeque.end());
         UNIT_ASSERT(str == Data.Is_test_StringT_for_StringT_calls());
