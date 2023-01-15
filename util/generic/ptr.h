@@ -350,7 +350,7 @@ private:
 };
 
 template <typename T, typename... Args>
-THolder<T> MakeHolder(Args&&... args) {
+[[nodiscard]] THolder<T> MakeHolder(Args&&... args) {
     return new T(std::forward<Args>(args)...);
 }
 
@@ -757,12 +757,12 @@ template <class T, class Ops>
 typename TSimpleIntrusiveOps<T, Ops>::TFunc TSimpleIntrusiveOps<T, Ops>::UnRef_ = nullptr;
 
 template <typename T, class Ops = TDefaultIntrusivePtrOps<T>, typename... Args>
-TIntrusivePtr<T, Ops> MakeIntrusive(Args&&... args) {
+[[nodiscard]] TIntrusivePtr<T, Ops> MakeIntrusive(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
 template <typename T, class Ops = TDefaultIntrusivePtrOps<T>, typename... Args>
-TIntrusiveConstPtr<T, Ops> MakeIntrusiveConst(Args&&... args) {
+[[nodiscard]] TIntrusiveConstPtr<T, Ops> MakeIntrusiveConst(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
@@ -917,17 +917,17 @@ template <class T, class D = TDelete>
 using TSimpleSharedPtr = TSharedPtr<T, TSimpleCounter, D>;
 
 template <typename T, typename C, typename... Args>
-TSharedPtr<T, C> MakeShared(Args&&... args) {
+[[nodiscard]] TSharedPtr<T, C> MakeShared(Args&&... args) {
     return new T{std::forward<Args>(args)...};
 }
 
 template <typename T, typename... Args>
-inline TAtomicSharedPtr<T> MakeAtomicShared(Args&&... args) {
+[[nodiscard]] inline TAtomicSharedPtr<T> MakeAtomicShared(Args&&... args) {
     return MakeShared<T, TAtomicCounter>(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
-inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
+[[nodiscard]] inline TSimpleSharedPtr<T> MakeSimpleShared(Args&&... args) {
     return MakeShared<T, TSimpleCounter>(std::forward<Args>(args)...);
 }
 
