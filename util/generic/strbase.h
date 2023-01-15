@@ -305,6 +305,10 @@ public:
         return equal(s1, s2);
     }
 
+    friend bool operator==(const TSelf& s1, TStringView s2) noexcept {
+        return equal(s1, s2);
+    }
+
     friend bool operator==(const TSelf& s, const TCharType* pc) noexcept {
         return equal(s, pc);
     }
@@ -315,6 +319,10 @@ public:
 
     template <typename TDerived2, typename TTraits2>
     friend bool operator!=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+        return !(s1 == s2);
+    }
+
+    friend bool operator!=(const TSelf& s1, TStringView s2) noexcept {
         return !(s1 == s2);
     }
 
@@ -331,6 +339,10 @@ public:
         return compare(s1, s2) < 0;
     }
 
+    friend bool operator<(const TSelf& s1, TStringView s2) noexcept {
+        return compare(s1, s2) < 0;
+    }
+
     friend bool operator<(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) < 0;
     }
@@ -341,6 +353,10 @@ public:
 
     template <typename TDerived2, typename TTraits2>
     friend bool operator<=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+        return compare(s1, s2) <= 0;
+    }
+
+    friend bool operator<=(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) <= 0;
     }
 
@@ -357,6 +373,10 @@ public:
         return compare(s1, s2) > 0;
     }
 
+    friend bool operator>(const TSelf& s1, TStringView s2) noexcept {
+        return compare(s1, s2) > 0;
+    }
+
     friend bool operator>(const TSelf& s, const TCharType* pc) noexcept {
         return compare(s, pc) > 0;
     }
@@ -367,6 +387,10 @@ public:
 
     template <typename TDerived2, typename TTraits2>
     friend bool operator>=(const TSelf& s1, const TStringBase<TDerived2, TChar, TTraits2>& s2) noexcept {
+        return compare(s1, s2) >= 0;
+    }
+
+    friend bool operator>=(const TSelf& s1, TStringView s2) noexcept {
         return compare(s1, s2) >= 0;
     }
 
