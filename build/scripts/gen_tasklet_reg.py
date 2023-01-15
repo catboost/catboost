@@ -13,6 +13,7 @@ static const NTasklet::TRegHelper REG(
 
 WRAPPER = {
     'cpp': 'TCppWrapper<{impl}>()',
+    'js': 'TJsWrapper("{impl}")',
     'go': 'TGoWrapper("{impl}")',
     'py': 'TPythonWrapper("{impl}")',
     'java': 'TJavaWrapper("{impl}", "{py_wrapper}")',
