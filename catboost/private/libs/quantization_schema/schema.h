@@ -5,8 +5,10 @@
 
 #include <library/cpp/json/json_value.h>
 
+#include <util/generic/map.h>
 #include <util/generic/vector.h>
-#include <util/generic/string.h>
+#include <util/system/types.h>
+
 
 namespace NCB {
     struct TPoolQuantizationSchema {
