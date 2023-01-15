@@ -72,6 +72,7 @@ RECURSE(
     lfalloc/yt
     on_disk
     openssl
+    par
     pop_count
     pop_count/benchmark
     pop_count/ut

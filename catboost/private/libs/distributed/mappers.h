@@ -5,8 +5,8 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/algo/tensor_search_helpers.h>
 
-#include <library/par/par.h>
-#include <library/par/par_util.h>
+#include <library/cpp/par/par.h>
+#include <library/cpp/par/par_util.h>
 
 #include <util/ysafeptr.h>
 

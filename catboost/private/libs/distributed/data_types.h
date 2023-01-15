@@ -18,8 +18,8 @@
 
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/json/json_value.h>
-#include <library/par/par.h>
-#include <library/par/par_util.h>
+#include <library/cpp/par/par.h>
+#include <library/cpp/par/par_util.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>

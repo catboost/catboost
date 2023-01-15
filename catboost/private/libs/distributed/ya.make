@@ -19,7 +19,7 @@ PEERDIR(
     catboost/private/libs/options
     library/cpp/binsaver
     library/cpp/json
-    library/par
+    library/cpp/par
 )
 
 END()
