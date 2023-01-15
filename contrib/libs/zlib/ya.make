@@ -14,7 +14,7 @@ ADDINCL(
 
 NO_COMPILER_WARNINGS()
 
-NO_UTIL()
+NO_RUNTIME()
 
 SRCS(
     adler32.c
