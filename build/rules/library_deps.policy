@@ -6,6 +6,8 @@ ALLOW library -> certs
 ALLOW library/.*/(n)?yt -> mapreduce/yt
 ALLOW library/java -> devtools/junit5-runner
 ALLOW library/java/.*/ut -> devtools/(jtest)|(junit-runner)
+ALLOW library/java/.*/src/test -> devtools/(jtest)|(junit-runner)
+ALLOW library/java/.*/tests -> devtools/(jtest)|(junit-runner)
 ALLOW library/java/hnsw/ut -> devtools/(jtest)|(junit-runner)
 ALLOW library/python/.*/test -> devtools/ya/(test)|(exts)
 ALLOW library/(python/)?testing -> devtools/ya/
