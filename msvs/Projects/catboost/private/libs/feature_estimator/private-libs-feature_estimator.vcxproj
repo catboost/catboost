@@ -78,10 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\base_embedding_feature_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\base_text_feature_estimator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\embedding_feature_estimators.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\feature_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\text_feature_estimators.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\base_embedding_feature_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\base_text_feature_estimator.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\embedding_feature_estimators.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\feature_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\feature_estimator\text_feature_estimators.h"/>
   </ItemGroup>
@@ -102,6 +106,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
       <Project>{62440384-FCD2-5217-9DB5-BBEF00D51E9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embedding_features\private-libs-embedding_features.vcxproj">
+      <Project>{4EA54851-CD2B-B921-B7AC-E028819A1089}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embeddings\private-libs-embeddings.vcxproj">
+      <Project>{0A077A06-E60A-893B-9D6C-292EAD106DAF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
       <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>

@@ -200,6 +200,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\documents_importance\private-libs-documents_importance.vcxproj">
       <Project>{C7C09423-FDD2-E5CC-881E-F4C32FFFBCE0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embedding_features\private-libs-embedding_features.vcxproj">
+      <Project>{4EA54851-CD2B-B921-B7AC-E028819A1089}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\embeddings\private-libs-embeddings.vcxproj">
+      <Project>{0A077A06-E60A-893B-9D6C-292EAD106DAF}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\feature_estimator\private-libs-feature_estimator.vcxproj">
       <Project>{29D5DF37-EE16-EE4D-D67A-36EB7D0B5736}</Project>
     </ProjectReference>
