@@ -8,12 +8,12 @@ Installation
 
 * Linux or Mac OS X. Windows support in progress.
 * Apache Spark 2.4+
-* Scala 2.11. Scala 2.12 support in progress.
+* Scala 2.11 or 2.12
 * Maven or SBT
 
 Get the appropriate `catboost_spark_version` (you can look up available versions at [Maven central](https://search.maven.org/search?q=a:catboost-spark))
 
-Add dependency:
+Add dependency with the appropriate `scala_compat_version` (`2.11` or `2.12`):
 
 * Maven
 
@@ -22,7 +22,7 @@ Add to pom.xml of your project :
 ```
   <properties>
     ...
-    <scala.compat.version>2.11</scala.compat.version>
+    <scala.compat.version>scala_compat_version</scala.compat.version>
     ...
   </properties>
   
@@ -252,7 +252,6 @@ Documentation
 Known limitations
 -----------------
 
-* Scala 2.12 is not supported. Work in progress.
 * Windows is not supported. Work in progress.
 * PySpark is not supported. Work in progress.
 * GPU is not supported. Work in progress.
