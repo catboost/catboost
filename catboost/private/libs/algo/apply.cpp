@@ -489,3 +489,55 @@ TVector<ui32> CalcLeafIndexesMulti(
     executor.RunAdditionalThreads(threadCount - 1);
     return CalcLeafIndexesMulti(model, objectsData, treeStart, treeEnd, &executor);
 }
+
+void ApplyVirtualEnsembles(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    size_t end,
+    size_t virtualEnsemblesCount,
+    TVector<TVector<TVector<double>>>* rawValuesPtr,
+    NPar::TLocalExecutor* executor
+) {
+    auto& rawValues = *rawValuesPtr;
+    rawValues.resize(1);
+    size_t begin = 0;
+    TModelCalcerOnPool modelCalcerOnPool(model, dataset.ObjectsData, executor);
+    TVector<double> flatApprox;
+    TVector<TVector<double>> approx;
+    TVector<TVector<double>> baseApprox;
+    size_t evalPeriod = end / (2 * virtualEnsemblesCount);
+    CB_ENSURE(evalPeriod > 0 && evalPeriod * virtualEnsemblesCount < end,
+              "Not enough trees in model for " << virtualEnsemblesCount << " virtual Ensembles");
+    begin = end - evalPeriod * virtualEnsemblesCount;
+    modelCalcerOnPool.ApplyModelMulti(
+        EPredictionType::VirtEnsembles,
+        0,
+        begin,
+        &flatApprox,
+        &baseApprox);
+    for (size_t idx = 0; idx < virtualEnsemblesCount; ++idx) {
+        rawValues[0].insert(rawValues[0].end(), baseApprox.begin(), baseApprox.end());
+    }
+
+    const float actualShrinkCoef = model.GetActualShrinkCoef();
+    CB_ENSURE(actualShrinkCoef >= 0.0f && actualShrinkCoef < 1.0f,
+              "For Constant shrink mode: (model_shrink_rate * learning_rate) should be in [0, 1).");
+    float multiplicator = 1.;
+    const float coef = pow(1. - actualShrinkCoef, evalPeriod);
+    for (size_t vEnsembleIdx = 0; begin < end; begin += evalPeriod) {
+        modelCalcerOnPool.ApplyModelMulti(
+            EPredictionType::VirtEnsembles,
+            begin,
+            Min(begin + evalPeriod, end),
+            &flatApprox,
+            &approx);
+        size_t shift = vEnsembleIdx * approx.size();
+        for (size_t i = 0; i < approx.size(); ++i) {
+            for (size_t j = 0; j < approx[0].size(); ++j) {
+                rawValues.back()[shift + i][j] += approx[i][j] * multiplicator;
+            }
+        }
+        vEnsembleIdx++;
+        multiplicator *= coef;
+    }
+}
