@@ -1117,10 +1117,14 @@ cdef extern from "catboost/libs/model/model.h":
         TScaleAndBias GetScaleAndBias() except +ProcessException
         void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
 
+        @staticmethod
+        void InitNonOwning(const void* binaryBuffer, size_t binarySize) except +ProcessException
+
     cdef cppclass EModelType:
         pass
 
     cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
+    cdef TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
