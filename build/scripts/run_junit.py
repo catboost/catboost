@@ -105,6 +105,8 @@ def main():
         os.kill(proc.pid, signal.SIGKILL)
         proc.wait()
 
+    if proc.returncode:
+        sys.stderr.write('java exit code: {}\n'.format(proc.returncode))
     return proc.returncode
 
 
