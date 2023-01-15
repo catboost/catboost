@@ -94,7 +94,9 @@ void NCB::ReadModelAndUpdateParams(
         }
     }
     if (params.IsUncertaintyPrediction) {
-        CB_ENSURE(model.IsPosteriorSamplingModel(), "Uncertainty Prediction allowed only in models with Posterior Sampling");
+        if (model.IsPosteriorSamplingModel()) {
+            CATBOOST_WARNING_LOG <<  "Uncertainty Prediction asked for model fitted without Posterior Sampling option" << Endl;
+        }
         for (auto predictionType : params.PredictionTypes) {
             CB_ENSURE(IsUncertaintyPredictionType(predictionType), "Predciton type " << predictionType << " is incompatible " <<
                 "with Uncertainty Prediction Type");
