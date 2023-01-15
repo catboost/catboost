@@ -1,4 +1,4 @@
-PY23_LIBRARY()
+PY2_LIBRARY()
 
 LICENSE(BSD-3-Clause)
 
@@ -138,6 +138,12 @@ PY_SRCS(
     prompt_toolkit/utils.py
     prompt_toolkit/validation.py
     prompt_toolkit/win32_types.py
+)
+
+RESOURCE_FILES(
+    PREFIX contrib/python/prompt-toolkit/py2/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
 )
 
 END()
