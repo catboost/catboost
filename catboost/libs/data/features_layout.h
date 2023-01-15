@@ -3,6 +3,7 @@
 #include "feature_index.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/column_description/feature_tag.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/features.h>
 #include <catboost/private/libs/options/enums.h>
@@ -100,6 +101,7 @@ namespace NCB {
             const TVector<ui32>& textFeatureIndices,
             const TVector<ui32>& embeddingFeatureIndices,
             const TVector<TString>& featureId,
+            const THashMap<TString, TTagDescription>& featureTags = {},
             bool allFeaturesAreSparse = false);
         TFeaturesLayout(
             const TVector<TFloatFeature>& floatFeatures,
@@ -120,7 +122,8 @@ namespace NCB {
         // create from columns info
         static TFeaturesLayoutPtr CreateFeaturesLayout(
             TConstArrayRef<TColumn> columns,
-            TMaybe<const TVector<TString>*> featureNames);
+            TMaybe<const TVector<TString>*> featureNames,
+            TMaybe<const THashMap<TString, TTagDescription>*> featureTags = Nothing());
 
         bool EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity = false) const;
 
@@ -134,7 +137,8 @@ namespace NCB {
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx,
             TextFeatureInternalIdxToExternalIdx,
-            EmbeddingFeatureInternalIdxToExternalIdx)
+            EmbeddingFeatureInternalIdxToExternalIdx,
+            TagToExternalIndices);
 
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
@@ -245,6 +249,8 @@ namespace NCB {
 
         TConstArrayRef<ui32> GetEmbeddingFeatureInternalIdxToExternalIdx() const;
 
+        const THashMap<TString, TVector<ui32>>& GetTagToExternalIndices() const;
+
         bool HasAvailableAndNotIgnoredFeatures() const;
 
         void AddFeature(TFeatureMetaInfo&& featureMetaInfo);
@@ -256,6 +262,7 @@ namespace NCB {
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
         TVector<ui32> EmbeddingFeatureInternalIdxToExternalIdx;
+        THashMap<TString, TVector<ui32>> TagToExternalIndices;
 
         template <class TFeatureElement>
         inline void UpdateFeaturesMetaInfo(

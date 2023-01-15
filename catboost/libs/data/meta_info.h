@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/column_description/feature_tag.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/dbg_output/dump.h>
@@ -77,6 +78,7 @@ namespace NCB {
 
             // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
             TMaybe<const TVector<TString>*> featureNames = Nothing(),
+            TMaybe<const THashMap<TString, TTagDescription>*> featureTags = Nothing(),
             const TVector<NJson::TJsonValue>& classLabels = {}
         );
 

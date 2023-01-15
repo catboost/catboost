@@ -12,6 +12,7 @@
 #include "cat_feature_options.h"
 #include "metric_options.h"
 #include "text_processing_options.h"
+#include "pool_metainfo_options.h"
 
 #include <util/system/types.h>
 #include <util/system/datetime.h>
@@ -47,6 +48,7 @@ namespace NCatboostOptions {
         TOption<TCatFeatureParams> CatFeatureParams;
         TOption<NJson::TJsonValue> FlatParams;
         TOption<NJson::TJsonValue> Metadata;
+        TOption<TPoolMetaInfoOptions> PoolMetaInfoOptions;
 
         TOption<ui64> RandomSeed;
         TOption<ELoggingLevel> LoggingLevel;

@@ -49,6 +49,7 @@ namespace {
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),
                                            /*featureNamesPath=*/ NCB::TPathWithScheme(),
+                                           /*poolMetaInfoPath=*/ NCB::TPathWithScheme(),
                                            Params.DatasetReadingParams.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,

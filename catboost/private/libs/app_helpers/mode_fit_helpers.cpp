@@ -9,6 +9,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/feature_penalties_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 
@@ -44,6 +45,7 @@ int NCB::ModeFitImpl(int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
+    NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
     ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);

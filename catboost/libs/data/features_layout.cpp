@@ -36,6 +36,7 @@ TFeaturesLayout::TFeaturesLayout(
     const TVector<ui32>& textFeatureIndices,
     const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
+    const THashMap<TString, TTagDescription>& featureTags,
     bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
@@ -109,6 +110,17 @@ TFeaturesLayout::TFeaturesLayout(
             featureNames.insert(name);
         }
     }
+
+    for (const auto& [tag, description] : featureTags) {
+        for (auto featureIdx : description.Features) {
+            CB_ENSURE(
+                featureIdx < featureCount,
+                "Feature index (" << featureIdx << ") from tag #" << tag
+                << " is out of valid range [0," << featureCount << ")"
+            );
+        }
+        TagToExternalIndices[tag] = description.Features;
+    }
 }
 
 TFeaturesLayout::TFeaturesLayout(
@@ -133,7 +145,8 @@ TFeaturesLayout::TFeaturesLayout(
 
 TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
     TConstArrayRef<TColumn> columns,
-    TMaybe<const TVector<TString>*> featureNames
+    TMaybe<const TVector<TString>*> featureNames,
+    TMaybe<const THashMap<TString, TTagDescription>*> featureTags
 ) {
     TVector<TString> finalFeatureNames;
     if (featureNames) {
@@ -164,7 +177,10 @@ TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
         catFeatureIndices,
         textFeatureIndices,
         embeddingFeatureIndices,
-        finalFeatureNames);
+        finalFeatureNames,
+        featureTags.Defined()
+            ? **featureTags
+            : THashMap<TString, TTagDescription>{});
 }
 
 TFeaturesLayout::TFeaturesLayout(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
@@ -311,6 +327,11 @@ TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() c
 
 TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
     return EmbeddingFeatureInternalIdxToExternalIdx;
+}
+
+
+const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const {
+    return TagToExternalIndices;
 }
 
 

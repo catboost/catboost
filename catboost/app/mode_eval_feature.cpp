@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/libs/data/feature_names_converter.h>
 
@@ -39,8 +40,10 @@ int mode_eval_feature(int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
+    NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
 
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
+    ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &featureEvalJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
     ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);

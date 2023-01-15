@@ -51,6 +51,7 @@ namespace NCB {
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
         TPathWithScheme FeatureNamesPath;
+        TPathWithScheme PoolMetaInfoPath;
         const TVector<NJson::TJsonValue>& ClassLabels;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;

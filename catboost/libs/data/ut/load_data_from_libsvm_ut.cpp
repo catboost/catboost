@@ -50,6 +50,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*textFeatureIndices*/ TVector<ui32>(),
                 /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
+                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;
@@ -125,6 +126,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                     "Cat2", // 10
                     "" // 11
                 },
+                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;
@@ -188,6 +190,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*textFeatureIndices*/ TVector<ui32>(),
                 /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
+                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;

@@ -112,6 +112,7 @@ numpy_num_dtype_list = [
 from catboost.private.libs.cython cimport *
 from catboost.libs.helpers.cython cimport *
 from catboost.libs.data.cython cimport *
+from catboost.private.libs.data_util.cython cimport TPathWithScheme
 
 class _NumpyAwareEncoder(JSONEncoder):
     bool_types = (np.bool_)
@@ -380,14 +381,6 @@ cdef extern from "catboost/private/libs/quantized_pool/serialization.h" namespac
     cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName) except +ProcessException
 
 
-cdef extern from "catboost/private/libs/data_util/path_with_scheme.h" namespace "NCB":
-    cdef cppclass TPathWithScheme:
-        TString Scheme
-        TString Path
-        TPathWithScheme() except +ProcessException
-        TPathWithScheme(const TStringBuf& pathWithScheme, const TStringBuf& defaultScheme) except +ProcessException
-        bool_t Inited() except +ProcessException
-
 cdef extern from "catboost/private/libs/data_util/line_data_reader.h" namespace "NCB":
     cdef cppclass TDsvFormatOptions:
         bool_t HasHeader
@@ -468,6 +461,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
         const TPathWithScheme& featureNamesPath,
+        const TPathWithScheme& poolMetaInfoPath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -484,6 +478,7 @@ cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
         const TPathWithScheme& featureNamesPath,
+        const TPathWithScheme& poolMetaInfoPath,
         const TPathWithScheme& inputBordersPath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
@@ -1850,6 +1845,7 @@ cdef TFeaturesLayout* _init_features_layout(
     cdef TVector[ui32] text_features_vector
     cdef TVector[ui32] embedding_features_vector
     cdef TVector[TString] feature_names_vector
+    cdef THashMap[TString, TTagDescription] feature_tags_map
     cdef bool_t all_features_are_sparse
 
     if isinstance(data, FeaturesData):
@@ -1877,6 +1873,7 @@ cdef TFeaturesLayout* _init_features_layout(
         text_features_vector,
         embedding_features_vector,
         feature_names_vector,
+        feature_tags_map,
         all_features_are_sparse)
 
 cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType) except *:
@@ -3393,6 +3390,7 @@ cdef class _PoolBase:
                 TPathWithScheme(),
                 TPathWithScheme(),
                 feature_names_file_path,
+                TPathWithScheme(),
                 input_borders_file_path,
                 columnarPoolFormatParams,
                 emptyIntVec,
@@ -3412,6 +3410,7 @@ cdef class _PoolBase:
                 TPathWithScheme(),
                 TPathWithScheme(),
                 feature_names_file_path,
+                TPathWithScheme(),
                 columnarPoolFormatParams,
                 emptyIntVec,
                 EObjectsOrder_Undefined,
@@ -5575,6 +5574,24 @@ cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
     cdef const char* c_experiment_name_string = experiment_name.c_str()
     cdef bytes py_experiment_name_str = c_experiment_name_string[:experiment_name.size()]
     return py_experiment_name_str
+
+
+cpdef convert_features_to_indices(indices_or_names, cd_path, pool_metainfo_path):
+    cdef TJsonValue indices_or_names_as_json = ReadTJsonValue(
+        to_arcadia_string(
+            dumps(indices_or_names, cls=_NumpyAwareEncoder)
+        )
+    )
+    cdef TPathWithScheme cd_path_with_scheme
+    if cd_path is not None:
+        cd_path_with_scheme = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(cd_path)), TStringBuf(<char*>'dsv'))
+
+    cdef TPathWithScheme pool_metainfo_path_with_scheme
+    if pool_metainfo_path is not None:
+        pool_metainfo_path_with_scheme = TPathWithScheme(<TStringBuf>to_arcadia_string(fspath(pool_metainfo_path)), TStringBuf(<char*>''))
+
+    ConvertFeaturesFromStringToIndices(cd_path_with_scheme, pool_metainfo_path_with_scheme, &indices_or_names_as_json)
+    return loads(to_native_str(WriteTJsonValue(indices_or_names_as_json)))
 
 
 cpdef _check_train_params(dict params):

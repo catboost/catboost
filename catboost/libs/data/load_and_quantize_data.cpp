@@ -746,6 +746,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
     const TPathWithScheme& featureNamesPath,     // can be uninited
+    const TPathWithScheme& poolMetaInfoPath,     // can be uninited
     const TPathWithScheme& inputBordersPath,     // can be uninited
     const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
     const TVector<ui32>& ignoredFeatures,
@@ -782,6 +783,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 baselineFilePath,
                 timestampsFilePath,
                 featureNamesPath,
+                poolMetaInfoPath,
                 **classLabels,
                 columnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
@@ -837,6 +839,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     params.ColumnarPoolFormatParams = columnarPoolFormatParams;
     params.PoolPath = poolPath;
     params.FeatureNamesPath = featureNamesPath;
+    params.PoolMetaInfoPath = poolMetaInfoPath;
     params.ClassLabels = **classLabels;
     params.IgnoredFeatures = secondPassQuantizer.GetIgnoredFeatures();
     ReadAndProceedPoolInBlocks(
@@ -855,6 +858,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
     const TPathWithScheme& featureNamesPath,     // can be uninited
+    const TPathWithScheme& poolMetaInfoPath,     // can be uninited
     const TPathWithScheme& inputBordersPath,     // can be uninited
     const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
     const TVector<ui32>& ignoredFeatures,
@@ -878,6 +882,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         timestampsFilePath,
         baselineFilePath,
         featureNamesPath,
+        poolMetaInfoPath,
         inputBordersPath,
         columnarPoolFormatParams,
         ignoredFeatures,

@@ -466,6 +466,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "node_port", &systemOptions, &seenKeys);
     CopyOption(plainOptions, "file_with_hosts", &systemOptions, &seenKeys);
 
+    //pool metainfo
+    CopyOption(plainOptions, "pool_metainfo_options", &trainOptions, &seenKeys);
 
     //rest
     CopyOption(plainOptions, "random_seed", &trainOptions, &seenKeys);
@@ -940,6 +942,10 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CB_ENSURE(optionsCopySystemOptions.GetMapSafe().empty(), "system_options: key " + optionsCopySystemOptions.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "system_options");
     }
+
+    // pool metainfo
+    CopyOption(options, "pool_metainfo_options", &plainOptionsJson, &seenKeys);
+    DeleteSeenOption(&optionsCopy, "pool_metainfo_options");
 
     // rest
     CopyOption(options, "random_seed", &plainOptionsJson, &seenKeys);

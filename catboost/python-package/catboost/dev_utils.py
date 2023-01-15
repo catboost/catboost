@@ -7,3 +7,4 @@ is_maximizable_metric = _catboost.is_maximizable_metric
 is_minimizable_metric = _catboost.is_minimizable_metric
 is_user_defined_metric = _catboost.is_user_defined_metric
 get_experiment_name = _catboost.get_experiment_name
+convert_features_to_indices = _catboost.convert_features_to_indices

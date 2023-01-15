@@ -2,9 +2,10 @@
 #include "cb_dsv_loader.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/labels/helpers.h>
-#include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 
 #include <library/cpp/object_factory/object_factory.h>
 #include <library/cpp/string_utils/csv/csv.h>
@@ -48,6 +49,8 @@ namespace NCB {
                   "TCBDsvDataLoader:TimestampsFilePath does not exist");
         CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
                   "TCBDsvDataLoader:FeatureNamesPath does not exist");
+        CB_ENSURE(!Args.PoolMetaInfoPath.Inited() || CheckExists(Args.PoolMetaInfoPath),
+                  "TCBDsvDataLoader:PoolMetaInfoPath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -68,6 +71,8 @@ namespace NCB {
             Args.FeatureNamesPath
         );
 
+        const auto poolMetaInfoOptions = NCatboostOptions::LoadPoolMetaInfoOptions(Args.PoolMetaInfoPath);
+
         DataMetaInfo = TDataMetaInfo(
             std::move(columnsDescription),
             targetCount ? ERawTargetType::String : ERawTargetType::None,
@@ -76,6 +81,7 @@ namespace NCB {
             Args.PairsFilePath.Inited(),
             BaselineReader.GetBaselineCount(),
             &featureNames,
+            &poolMetaInfoOptions.Tags.Get(),
             args.CommonArgs.ClassLabels
         );
 

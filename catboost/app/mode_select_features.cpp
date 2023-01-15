@@ -20,6 +20,7 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/pool_metainfo_options.h>
 
 #include <library/cpp/json/json_writer.h>
 
@@ -49,6 +50,7 @@ static void LoadOptions(
     NJson::TJsonValue outputOptionsJson;
     NJson::TJsonValue featuresSelectJsonOptions;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson, &featuresSelectJsonOptions);
+    LoadPoolMetaInfoOptions(poolLoadParams->PoolMetaInfoPath, &catBoostJsonOptions);
 
     ConvertIgnoredFeaturesFromStringToIndices(*poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson, &featuresSelectJsonOptions);

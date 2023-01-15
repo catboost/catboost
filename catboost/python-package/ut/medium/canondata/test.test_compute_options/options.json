@@ -228,6 +228,9 @@
             "type": "RMSE"
         }
     }, 
+    "pool_metainfo_options": {
+        "tags": {}
+    }, 
     "random_seed": 0, 
     "system_options": {
         "file_with_hosts": "hosts.txt", 
