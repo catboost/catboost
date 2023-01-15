@@ -28,6 +28,11 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
 
         UNIT_ASSERT_DOUBLES_EQUAL(0.0, 0.01, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(0.01, 0.0, 0.1);
+
+        constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
+        UNIT_ASSERT_TEST_FAILS(doublesEqual(nan, 0.5, 0.1));
+        UNIT_ASSERT_TEST_FAILS(doublesEqual(0.5, nan, 0.1));
+        UNIT_ASSERT_DOUBLES_EQUAL(nan, nan, 0.1);
     }
 
     Y_UNIT_TEST(StringsEqual) {

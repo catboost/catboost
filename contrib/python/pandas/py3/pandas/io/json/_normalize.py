@@ -19,7 +19,6 @@ def convert_to_line_delimits(s):
     """
     Helper function that converts JSON lists to line delimited JSON.
     """
-
     # Determine we have a JSON list to turn to lines otherwise just return the
     # json object, only lists can
     if not s[0] == "[" and s[-1] == "]":
@@ -63,7 +62,6 @@ def nested_to_record(
 
     Examples
     --------
-
     IN[52]: nested_to_record(dict(flat1=1,dict1=dict(c=1,d=2),
                                   nested=dict(e=dict(c=1,d=2),d=2)))
     Out[52]:
@@ -117,7 +115,7 @@ def _json_normalize(
     meta: Optional[Union[str, List[Union[str, List[str]]]]] = None,
     meta_prefix: Optional[str] = None,
     record_prefix: Optional[str] = None,
-    errors: Optional[str] = "raise",
+    errors: str = "raise",
     sep: str = ".",
     max_level: Optional[int] = None,
 ) -> "DataFrame":
@@ -162,12 +160,10 @@ def _json_normalize(
 
     Examples
     --------
-
-    >>> from pandas.io.json import json_normalize
     >>> data = [{'id': 1, 'name': {'first': 'Coleen', 'last': 'Volk'}},
     ...         {'name': {'given': 'Mose', 'family': 'Regner'}},
     ...         {'id': 2, 'name': 'Faye Raker'}]
-    >>> json_normalize(data)
+    >>> pandas.json_normalize(data)
         id        name name.family name.first name.given name.last
     0  1.0         NaN         NaN     Coleen        NaN      Volk
     1  NaN         NaN      Regner        NaN       Mose       NaN
@@ -235,7 +231,7 @@ def _json_normalize(
         js: Dict[str, Any], spec: Union[List, str]
     ) -> Union[Scalar, Iterable]:
         """Internal function to pull field"""
-        result = js  # type: ignore
+        result = js
         if isinstance(spec, list):
             for field in spec:
                 result = result[field]
@@ -243,23 +239,23 @@ def _json_normalize(
             result = result[spec]
         return result
 
-    def _pull_records(js: Dict[str, Any], spec: Union[List, str]) -> Iterable:
+    def _pull_records(js: Dict[str, Any], spec: Union[List, str]) -> List:
         """
-        Interal function to pull field for records, and similar to
-        _pull_field, but require to return Iterable. And will raise error
+        Internal function to pull field for records, and similar to
+        _pull_field, but require to return list. And will raise error
         if has non iterable value.
         """
         result = _pull_field(js, spec)
 
-        # GH 31507 GH 30145, if result is not Iterable, raise TypeError if not
+        # GH 31507 GH 30145, GH 26284 if result is not list, raise TypeError if not
         # null, otherwise return an empty list
-        if not isinstance(result, Iterable):
+        if not isinstance(result, list):
             if pd.isnull(result):
-                result = []  # type: ignore
+                result = []
             else:
                 raise TypeError(
-                    f"{js} has non iterable value {result} for path {spec}. "
-                    "Must be iterable or null."
+                    f"{js} has non list value {result} for path {spec}. "
+                    "Must be list or null."
                 )
         return result
 
@@ -331,10 +327,9 @@ def _json_normalize(
                                 meta_val = np.nan
                             else:
                                 raise KeyError(
-                                    "Try running with "
-                                    "errors='ignore' as key "
+                                    "Try running with errors='ignore' as key "
                                     f"{e} is not always present"
-                                )
+                                ) from e
                     meta_vals[key].append(meta_val)
                 records.extend(recs)
 

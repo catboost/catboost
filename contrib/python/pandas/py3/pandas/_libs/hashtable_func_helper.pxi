@@ -1,4 +1,3 @@
-#cython: language_level=3
 """
 Template for each `dtype` helper function for hashtable
 
@@ -43,12 +42,13 @@ cpdef value_count_float64(float64_t[:] values, bint dropna):
         float64_t[:] result_keys
         int64_t[:] result_counts
 
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
 
     table = kh_init_float64()
     build_count_table_float64(values, table, dropna)
 
-    result_keys = np.empty(table.n_occupied, dtype=np.float64)
+    result_keys = np.empty(table.n_occupied, 'float64')
     result_counts = np.zeros(table.n_occupied, dtype=np.int64)
 
     with nogil:
@@ -65,11 +65,12 @@ cpdef value_count_float64(float64_t[:] values, bint dropna):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def duplicated_float64(float64_t[:] values, object keep='first'):
+def duplicated_float64(const float64_t[:] values, object keep='first'):
     cdef:
         int ret = 0
         float64_t value
-        Py_ssize_t k, i, n = len(values)
+        Py_ssize_t i, n = len(values)
+        khiter_t k
         kh_float64_t *table = kh_init_float64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
 
@@ -113,7 +114,7 @@ def duplicated_float64(float64_t[:] values, object keep='first'):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ismember_float64(float64_t[:] arr, float64_t[:] values):
+def ismember_float64(const float64_t[:] arr, float64_t[:] values):
     """
     Return boolean of values in arr on an
     element by-element basis
@@ -128,7 +129,8 @@ def ismember_float64(float64_t[:] arr, float64_t[:] values):
     boolean ndarry len of (arr)
     """
     cdef:
-        Py_ssize_t i, n, k
+        Py_ssize_t i, n
+        khiter_t k
         int ret = 0
         ndarray[uint8_t] result
         float64_t val
@@ -193,12 +195,13 @@ cpdef value_count_uint64(uint64_t[:] values, bint dropna):
         uint64_t[:] result_keys
         int64_t[:] result_counts
 
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
 
     table = kh_init_uint64()
     build_count_table_uint64(values, table, dropna)
 
-    result_keys = np.empty(table.n_occupied, dtype=np.uint64)
+    result_keys = np.empty(table.n_occupied, 'uint64')
     result_counts = np.zeros(table.n_occupied, dtype=np.int64)
 
     with nogil:
@@ -215,11 +218,12 @@ cpdef value_count_uint64(uint64_t[:] values, bint dropna):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def duplicated_uint64(uint64_t[:] values, object keep='first'):
+def duplicated_uint64(const uint64_t[:] values, object keep='first'):
     cdef:
         int ret = 0
         uint64_t value
-        Py_ssize_t k, i, n = len(values)
+        Py_ssize_t i, n = len(values)
+        khiter_t k
         kh_uint64_t *table = kh_init_uint64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
 
@@ -263,7 +267,7 @@ def duplicated_uint64(uint64_t[:] values, object keep='first'):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ismember_uint64(uint64_t[:] arr, uint64_t[:] values):
+def ismember_uint64(const uint64_t[:] arr, uint64_t[:] values):
     """
     Return boolean of values in arr on an
     element by-element basis
@@ -278,7 +282,8 @@ def ismember_uint64(uint64_t[:] arr, uint64_t[:] values):
     boolean ndarry len of (arr)
     """
     cdef:
-        Py_ssize_t i, n, k
+        Py_ssize_t i, n
+        khiter_t k
         int ret = 0
         ndarray[uint8_t] result
         uint64_t val
@@ -340,12 +345,13 @@ cpdef value_count_object(ndarray[object] values, bint dropna):
         kh_pymap_t *table
 
 
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
 
     table = kh_init_pymap()
     build_count_table_object(values, table, 1)
 
-    result_keys = np.empty(table.n_occupied, dtype=np.object)
+    result_keys = np.empty(table.n_occupied, 'object')
     result_counts = np.zeros(table.n_occupied, dtype=np.int64)
 
     for k in range(table.n_buckets):
@@ -364,7 +370,8 @@ cpdef value_count_object(ndarray[object] values, bint dropna):
 def duplicated_object(ndarray[object] values, object keep='first'):
     cdef:
         int ret = 0
-        Py_ssize_t k, i, n = len(values)
+        Py_ssize_t i, n = len(values)
+        khiter_t k
         kh_pymap_t *table = kh_init_pymap()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
 
@@ -420,7 +427,8 @@ def ismember_object(ndarray[object] arr, ndarray[object] values):
     boolean ndarry len of (arr)
     """
     cdef:
-        Py_ssize_t i, n, k
+        Py_ssize_t i, n
+        khiter_t k
         int ret = 0
         ndarray[uint8_t] result
         object val
@@ -483,12 +491,13 @@ cpdef value_count_int64(int64_t[:] values, bint dropna):
         int64_t[:] result_keys
         int64_t[:] result_counts
 
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
 
     table = kh_init_int64()
     build_count_table_int64(values, table, dropna)
 
-    result_keys = np.empty(table.n_occupied, dtype=np.int64)
+    result_keys = np.empty(table.n_occupied, 'int64')
     result_counts = np.zeros(table.n_occupied, dtype=np.int64)
 
     with nogil:
@@ -505,11 +514,12 @@ cpdef value_count_int64(int64_t[:] values, bint dropna):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def duplicated_int64(int64_t[:] values, object keep='first'):
+def duplicated_int64(const int64_t[:] values, object keep='first'):
     cdef:
         int ret = 0
         int64_t value
-        Py_ssize_t k, i, n = len(values)
+        Py_ssize_t i, n = len(values)
+        khiter_t k
         kh_int64_t *table = kh_init_int64()
         ndarray[uint8_t, ndim=1, cast=True] out = np.empty(n, dtype='bool')
 
@@ -553,7 +563,7 @@ def duplicated_int64(int64_t[:] values, object keep='first'):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def ismember_int64(int64_t[:] arr, int64_t[:] values):
+def ismember_int64(const int64_t[:] arr, int64_t[:] values):
     """
     Return boolean of values in arr on an
     element by-element basis
@@ -568,7 +578,8 @@ def ismember_int64(int64_t[:] arr, int64_t[:] values):
     boolean ndarry len of (arr)
     """
     cdef:
-        Py_ssize_t i, n, k
+        Py_ssize_t i, n
+        khiter_t k
         int ret = 0
         ndarray[uint8_t] result
         int64_t val
@@ -609,7 +620,8 @@ def mode_float64(float64_t[:] values, bint dropna):
     cdef:
         int count, max_count = 1
         int j = -1  # so you can do +=
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
         kh_float64_t *table
         ndarray[float64_t] modes
 
@@ -645,7 +657,8 @@ def mode_int64(int64_t[:] values, bint dropna):
     cdef:
         int count, max_count = 1
         int j = -1  # so you can do +=
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
         kh_int64_t *table
         ndarray[int64_t] modes
 
@@ -681,7 +694,8 @@ def mode_uint64(uint64_t[:] values, bint dropna):
     cdef:
         int count, max_count = 1
         int j = -1  # so you can do +=
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
         kh_uint64_t *table
         ndarray[uint64_t] modes
 
@@ -717,7 +731,8 @@ def mode_object(ndarray[object] values, bint dropna):
     cdef:
         int count, max_count = 1
         int j = -1  # so you can do +=
-        Py_ssize_t k
+        # Don't use Py_ssize_t, since table.n_buckets is unsigned
+        khiter_t k
         kh_pymap_t *table
         ndarray[object] modes
 

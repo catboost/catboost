@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pandas
-Version: 1.0.5
+Version: 1.1.2
 Summary: Powerful data structures for data analysis, time series, and statistics
 Home-page: https://pandas.pydata.org
 Maintainer: The PyData Development Team
@@ -22,16 +22,16 @@ Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Cython
 Classifier: Topic :: Scientific/Engineering
 Requires-Python: >=3.6.1
-Requires-Dist: python-dateutil (>=2.6.1)
+Requires-Dist: python-dateutil (>=2.7.3)
 Requires-Dist: pytz (>=2017.2)
-Requires-Dist: numpy (>=1.13.3)
+Requires-Dist: numpy (>=1.15.4)
 Provides-Extra: test
 Requires-Dist: pytest (>=4.0.2) ; extra == 'test'
 Requires-Dist: pytest-xdist ; extra == 'test'
 Requires-Dist: hypothesis (>=3.58) ; extra == 'test'
 
 
-**pandas** is a Python package providing fast, flexible, and expressive data
+**pandas** is a Python package that provides fast, flexible, and expressive data
 structures designed to make working with structured (tabular, multidimensional,
 potentially heterogeneous) and time series data both easy and intuitive. It
 aims to be the fundamental high-level building block for doing practical,

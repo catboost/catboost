@@ -11,6 +11,7 @@ from pandas.core.dtypes.common import (
     is_array_like,
     is_bool_dtype,
     is_extension_array_dtype,
+    is_integer,
     is_integer_dtype,
     is_list_like,
 )
@@ -18,6 +19,34 @@ from pandas.core.dtypes.generic import ABCIndexClass, ABCSeries
 
 # -----------------------------------------------------------
 # Indexer Identification
+
+
+def is_valid_positional_slice(slc: slice) -> bool:
+    """
+    Check if a slice object can be interpreted as a positional indexer.
+
+    Parameters
+    ----------
+    slc : slice
+
+    Returns
+    -------
+    bool
+
+    Notes
+    -----
+    A valid positional slice may also be interpreted as a label-based slice
+    depending on the index being sliced.
+    """
+
+    def is_int_or_none(val):
+        return val is None or is_integer(val)
+
+    return (
+        is_int_or_none(slc.start)
+        and is_int_or_none(slc.stop)
+        and is_int_or_none(slc.step)
+    )
 
 
 def is_list_like_indexer(key) -> bool:
@@ -36,18 +65,26 @@ def is_list_like_indexer(key) -> bool:
     return is_list_like(key) and not (isinstance(key, tuple) and type(key) is not tuple)
 
 
-def is_scalar_indexer(indexer, arr_value) -> bool:
+def is_scalar_indexer(indexer, ndim: int) -> bool:
     """
     Return True if we are all scalar indexers.
+
+    Parameters
+    ----------
+    indexer : object
+    ndim : int
+        Number of dimensions in the object being indexed.
 
     Returns
     -------
     bool
     """
-    if arr_value.ndim == 1:
-        if not isinstance(indexer, tuple):
-            indexer = tuple([indexer])
-            return any(isinstance(idx, np.ndarray) and len(idx) == 0 for idx in indexer)
+    if isinstance(indexer, tuple):
+        if len(indexer) == ndim:
+            return all(
+                is_integer(x) or (isinstance(x, np.ndarray) and x.ndim == len(x) == 1)
+                for x in indexer
+            )
     return False
 
 
@@ -220,7 +257,7 @@ def maybe_convert_indices(indices, n: int):
 
 def length_of_indexer(indexer, target=None) -> int:
     """
-    Return the length of a single non-tuple indexer which could be a slice.
+    Return the expected length of target[indexer]
 
     Returns
     -------
@@ -246,13 +283,19 @@ def length_of_indexer(indexer, target=None) -> int:
             step = -step
         return (stop - start + step - 1) // step
     elif isinstance(indexer, (ABCSeries, ABCIndexClass, np.ndarray, list)):
+        if isinstance(indexer, list):
+            indexer = np.array(indexer)
+
+        if indexer.dtype == bool:
+            # GH#25774
+            return indexer.sum()
         return len(indexer)
     elif not is_list_like_indexer(indexer):
         return 1
     raise AssertionError("cannot find the length of the indexer")
 
 
-def deprecate_ndim_indexing(result):
+def deprecate_ndim_indexing(result, stacklevel=3):
     """
     Helper function to raise the deprecation warning for multi-dimensional
     indexing on 1D Series/Index.
@@ -263,12 +306,39 @@ def deprecate_ndim_indexing(result):
     """
     if np.ndim(result) > 1:
         warnings.warn(
-            "Support for multi-dimensional indexing (e.g. `index[:, None]`) "
-            "on an Index is deprecated and will be removed in a future "
+            "Support for multi-dimensional indexing (e.g. `obj[:, None]`) "
+            "is deprecated and will be removed in a future "
             "version.  Convert to a numpy array before indexing instead.",
-            DeprecationWarning,
-            stacklevel=3,
+            FutureWarning,
+            stacklevel=stacklevel,
         )
+
+
+def unpack_1tuple(tup):
+    """
+    If we have a length-1 tuple/list that contains a slice, unpack to just
+    the slice.
+
+    Notes
+    -----
+    The list case is deprecated.
+    """
+    if len(tup) == 1 and isinstance(tup[0], slice):
+        # if we don't have a MultiIndex, we may still be able to handle
+        #  a 1-tuple.  see test_1tuple_without_multiindex
+
+        if isinstance(tup, list):
+            # GH#31299
+            warnings.warn(
+                "Indexing with a single-item list containing a "
+                "slice is deprecated and will raise in a future "
+                "version.  Pass a tuple instead.",
+                FutureWarning,
+                stacklevel=3,
+            )
+
+        return tup[0]
+    return tup
 
 
 # -----------------------------------------------------------
@@ -297,7 +367,7 @@ def check_array_indexer(array: AnyArrayLike, indexer: Any) -> Any:
     indexer : array-like or list-like
         The array-like that's used to index. List-like input that is not yet
         a numpy array or an ExtensionArray is converted to one. Other input
-        types are passed through as is
+        types are passed through as is.
 
     Returns
     -------
@@ -371,7 +441,7 @@ def check_array_indexer(array: AnyArrayLike, indexer: Any) -> Any:
     """
     from pandas.core.construction import array as pd_array
 
-    # whathever is not an array-like is returned as-is (possible valid array
+    # whatever is not an array-like is returned as-is (possible valid array
     # indexers that are not array-like: integer, slice, Ellipsis, None)
     # In this context, tuples are not considered as array-like, as they have
     # a specific meaning in indexing (multi-dimensional indexing)
@@ -404,10 +474,10 @@ def check_array_indexer(array: AnyArrayLike, indexer: Any) -> Any:
     elif is_integer_dtype(dtype):
         try:
             indexer = np.asarray(indexer, dtype=np.intp)
-        except ValueError:
+        except ValueError as err:
             raise ValueError(
                 "Cannot index with an integer indexer containing NA values"
-            )
+            ) from err
     else:
         raise IndexError("arrays used as indices must be of integer or boolean type")
 

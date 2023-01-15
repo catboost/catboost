@@ -102,13 +102,14 @@ def _subplots(
     layout_type="box",
     **fig_kw,
 ):
-    """Create a figure with a set of subplots already made.
+    """
+    Create a figure with a set of subplots already made.
 
     This utility wrapper makes it convenient to create common layouts of
     subplots, including the enclosing figure object, in a single call.
 
-    Keyword arguments:
-
+    Parameters
+    ----------
     naxes : int
       Number of required axes. Exceeded axes are set invisible. Default is
       nrows * ncols.
@@ -148,16 +149,16 @@ def _subplots(
         Note that all keywords not recognized above will be
         automatically included here.
 
-    Returns:
-
+    Returns
+    -------
     fig, ax : tuple
       - fig is the Matplotlib Figure object
       - ax can be either a single axis object or an array of axis objects if
       more than one subplot was created.  The dimensions of the resulting array
       can be controlled with the squeeze keyword, see above.
 
-    **Examples:**
-
+    Examples
+    --------
     x = np.linspace(0, 2*np.pi, 400)
     y = np.sin(x**2)
 
@@ -192,8 +193,7 @@ def _subplots(
             if sharex or sharey:
                 warnings.warn(
                     "When passing multiple axes, sharex and sharey "
-                    "are ignored. These settings must be specified "
-                    "when creating axes",
+                    "are ignored. These settings must be specified when creating axes",
                     UserWarning,
                     stacklevel=4,
                 )
@@ -277,7 +277,7 @@ def _remove_labels_from_axis(axis):
         t.set_visible(False)
 
     # set_visible will not be effective if
-    # minor axis has NullLocator and NullFormattor (default)
+    # minor axis has NullLocator and NullFormatter (default)
     if isinstance(axis.get_minor_locator(), ticker.NullLocator):
         axis.set_minor_locator(ticker.AutoLocator())
     if isinstance(axis.get_minor_formatter(), ticker.NullFormatter):
@@ -301,7 +301,7 @@ def _handle_shared_axes(axarr, nplots, naxes, nrows, ncols, sharex, sharey):
             try:
                 # first find out the ax layout,
                 # so that we can correctly handle 'gaps"
-                layout = np.zeros((nrows + 1, ncols + 1), dtype=np.bool)
+                layout = np.zeros((nrows + 1, ncols + 1), dtype=np.bool_)
                 for ax in axarr:
                     layout[row_num(ax), col_num(ax)] = ax.get_visible()
 

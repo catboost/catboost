@@ -1,4 +1,3 @@
-#cython: language_level=3
 from pandas._libs.util cimport numeric
 
 

@@ -1,4 +1,3 @@
-#cython: language_level=3
 """
 Template for intervaltree
 
@@ -27,7 +26,7 @@ cdef class IntervalTree(IntervalMixin):
     """A centered interval tree
 
     Based off the algorithm described on Wikipedia:
-    http://en.wikipedia.org/wiki/Interval_tree
+    https://en.wikipedia.org/wiki/Interval_tree
 
     we are emulating the IndexEngine interface
     """
