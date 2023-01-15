@@ -10,6 +10,7 @@ NO_UTIL()
 # string
 PEERDIR(
     util/charset
+    contrib/libs/libc_compat # TODO(thegeorg@): Remove strl{cpy,cat} usages from the code and remove this PEERDIR
     contrib/libs/zlib
     contrib/libs/double-conversion
 )
@@ -358,10 +359,6 @@ IF (MUSL)
         contrib/libs/linuxvdso
     )
 ELSE()
-    SRCS(
-        system/strlcat.c
-        system/strlcpy.c
-    )
     IF (OS_LINUX OR SUN OR CYGWIN OR OS_WINDOWS)
         SRCS(
             system/mktemp_system.cpp

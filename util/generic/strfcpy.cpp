@@ -56,30 +56,3 @@ void strfcpy(char *dst, const char *src, size_t siz) {
             *d = '\0';        /* NUL-terminate dst */
     }
 }
-
-void strfwcpy(char *&dst, const char *src, size_t &siz) {
-    // Warning: on return, dst may point past null character if siz becomes 0
-    char *d = dst;
-    const char *s = src;
-    size_t n = siz;
-    if (n == 0)
-        return;
-
-    /* Copy as many bytes as will fit */
-    if (n != 0 && --n != 0) {
-        do {
-            if ((*d++ = *s++) == 0)
-                break;
-        } while (--n != 0);
-    }
-
-    /* Not enough room in dst, add NUL */
-    if (n == 0) {
-        *d = '\0';      /* NUL-terminate dst */
-    } else {
-        --d;
-        ++n;
-    }
-    dst = d;
-    siz = n;
-}

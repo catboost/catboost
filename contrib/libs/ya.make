@@ -18,6 +18,7 @@ RECURSE(
     gamma_function_apache_math_port
     jemalloc
     libbz2
+    libc_compat
     libunwind
     linux-headers
     linuxvdso
