@@ -17,7 +17,11 @@ ALLOW .* -> vendor/github.com/openconfig/gnmi
 ALLOW .* -> vendor/github.com/sijms/go-ora
 
 # CONTRIB-2197
+ALLOW .* -> vendor/k8s.io/client-go/discovery
+ALLOW .* -> vendor/k8s.io/client-go/discovery/fake
 ALLOW .* -> vendor/k8s.io/client-go/kubernetes
+ALLOW .* -> vendor/k8s.io/client-go/rest
+ALLOW .* -> vendor/k8s.io/client-go/testing
 ALLOW .* -> vendor/k8s.io/client-go/tools/auth
 ALLOW .* -> vendor/k8s.io/client-go/tools/cache
 ALLOW .* -> vendor/k8s.io/client-go/tools/clientcmd
@@ -30,12 +34,23 @@ ALLOW .* -> vendor/k8s.io/client-go/tools/record
 ALLOW .* -> vendor/k8s.io/client-go/tools/reference
 ALLOW .* -> vendor/k8s.io/client-go/tools/remotecommand
 ALLOW .* -> vendor/k8s.io/client-go/tools/watch
+ALLOW .* -> vendor/k8s.io/client-go/util/flowcontrol
+ALLOW .* -> vendor/k8s.io/client-go/util/workqueue
 ALLOW .* -> vendor/k8s.io/api/apps/v1
 ALLOW .* -> vendor/k8s.io/api/authentication/v1
 ALLOW .* -> vendor/k8s.io/api/core/v1
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/apis/meta/v1
 ALLOW .* -> vendor/k8s.io/client-go/util/homedir
 ALLOW .* -> vendor/k8s.io/apimachinery/pkg/api/errors
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/labels
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/runtime
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/runtime/schema
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/runtime/serializer
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/types
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/clock
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/runtime
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/util/wait
+ALLOW .* -> vendor/k8s.io/apimachinery/pkg/watch
 
 # CONTRIB-2195
 ALLOW .* -> vendor/github.com/timakin/bodyclose
