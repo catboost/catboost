@@ -248,9 +248,6 @@ migrations:
       - kikimr/tools/dstool
       - kikimr/tools/ic_load
       - kikimr/tools/monitoring
-      - kikimr/ydbcp/core/api
-      - kikimr/ydbcp/core/db
-      - kikimr/ydbcp/core/engine
       - kikimr/yf/tests/no_recipe
       - kikimr/yf/tests/ydb
       - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
