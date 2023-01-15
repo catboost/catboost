@@ -368,6 +368,9 @@
         },
         "yadi": {
             "description": "Arcadia version of Yadi"
+        },
+        "grpc_cli": {
+            "description": "GRPC command-line tool"
         }
     },
     "toolchain": {
@@ -5473,6 +5476,34 @@
                     "default": true
                 }
             ]
+        },
+    "grpc_cli": {
+            "tools": {
+                "grpc_cli": {
+                    "bottle": "grpc_cli",
+                    "executable": "grpc_cli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7383,6 +7414,17 @@
             "executable": {
                 "yadi-arc": [
                     "yadi-arc"
+                ]
+            }
+        },
+        "grpc_cli": {
+            "formula": {
+                "sandbox_id": 739261887,
+                "match": "grpc_cli"
+            },
+            "executable": {
+                "grpc_cli": [
+                    "grpc_cli"
                 ]
             }
         }
