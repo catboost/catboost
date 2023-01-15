@@ -112,7 +112,7 @@ public:
 
 private:
     TLogBackend* Slave_;
-    TThreadPool Queue_;
+    TThreadPool Queue_{"ThreadedLogBack"};
     const std::function<void()> QueueOverflowCallback_;
 };
 
