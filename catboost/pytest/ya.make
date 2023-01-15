@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 TEST_SRCS(
     conftest.py

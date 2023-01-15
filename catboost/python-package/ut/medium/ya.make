@@ -1,6 +1,6 @@
 
 
-PYTEST()
+PY2TEST()
 
 SIZE(MEDIUM)
 
