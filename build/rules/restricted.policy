@@ -69,6 +69,10 @@ ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
 
+# cmph is a limited-use library
+ALLOW ads/yacontext -> contrib/restricted/cmph
+ALLOW mssngr/router -> contrib/restricted/cmph
+
 # http-parser is a low-level parser for http bytestream.
 # Consider using high-level alternatives.
 ALLOW contrib/libs/libgit2 -> contrib/restricted/http-parser
