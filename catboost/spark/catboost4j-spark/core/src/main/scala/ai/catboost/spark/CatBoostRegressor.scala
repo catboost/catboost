@@ -26,6 +26,8 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
  *   -`<path>/model` which contains model in usual CatBoost format which can be read using other local
  *     CatBoost APIs (if stored in a distributed filesystem it has to be copied to the local filesystem first).
  *
+ * Saving to and loading from local files in standard CatBoost model formats is also supported.
+ *
  * @example Save model
  * {{{
  *   val trainPool : Pool = ... init Pool ...
@@ -40,6 +42,24 @@ import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
  *   val dataFrameForPrediction : DataFrame = ... init DataFrame ...
  *   val path = "/home/user/catboost_spark_models/model0"
  *   val model = CatBoostRegressionModel.load(path)
+ *   val predictions = model.transform(dataFrameForPrediction)
+ *   predictions.show()
+ * }}}
+ *
+ * @example Save as a native model
+ * {{{
+ *   val trainPool : Pool = ... init Pool ...
+ *   val regressor = new CatBoostRegressor
+ *   val model = regressor.fit(trainPool)
+ *   val path = "/home/user/catboost_native_models/model0.cbm"
+ *   model.saveNativeModel(path)
+ * }}}
+ *
+ * @example Load native model
+ * {{{
+ *   val dataFrameForPrediction : DataFrame = ... init DataFrame ...
+ *   val path = "/home/user/catboost_native_models/model0.cbm"
+ *   val model = CatBoostRegressionModel.loadNativeModel(path)
  *   val predictions = model.transform(dataFrameForPrediction)
  *   predictions.show()
  * }}}
@@ -114,6 +134,13 @@ object CatBoostRegressionModel extends MLReadable[CatBoostRegressionModel] {
         )
         new CatBoostRegressionModel(uid, nativeModel, 1)
       }
+  }
+  
+  def loadNativeModel(
+    fileName: String, 
+    format: EModelType = native_impl.EModelType.CatboostBinary
+  ): CatBoostRegressionModel = {
+    new CatBoostRegressionModel(native_impl.native_impl.ReadModelWrapper(fileName, format))
   }
 }
 

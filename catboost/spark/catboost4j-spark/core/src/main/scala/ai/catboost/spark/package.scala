@@ -1,5 +1,7 @@
 package ai.catboost
 
+import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl
+
 /** CatBoost is a machine learning algorithm that uses gradient boosting on decision trees. 
  *  
  *  ==Overview==
@@ -25,4 +27,5 @@ package ai.catboost
  *  Detailed documentation is available on [[https://catboost.ai/docs/]]
  */
 package object spark {
+  type EModelType = native_impl.EModelType
 }
