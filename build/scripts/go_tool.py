@@ -18,6 +18,9 @@ FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
 
 COMPILE_OPTIMIZATION_FLAGS=('-N',)
 
+def get_trimpath(args):
+    return '{}=>;{}=>'.format(args.source_root, args.build_root)
+
 
 def preprocess_cgo1(src_path, dst_path, source_root):
     with open(src_path, 'r') as f:
@@ -43,7 +46,10 @@ def preprocess_args(args):
     args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
     args.output = os.path.normpath(args.output)
     args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
-    args.build_root = os.path.normpath(args.build_root) + os.path.sep
+    args.build_root = os.path.normpath(args.build_root)
+    args.build_root_dir = args.build_root + os.path.sep
+    args.source_root = os.path.normpath(args.source_root)
+    args.source_root_dir = args.source_root + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
     args.module_map = {}
@@ -61,8 +67,8 @@ def preprocess_args(args):
 
     # compute root relative module dir path
     assert args.output is None or args.output_root == os.path.dirname(args.output)
-    assert args.output_root.startswith(args.build_root)
-    args.module_path = args.output_root[len(args.build_root):]
+    assert args.output_root.startswith(args.build_root_dir)
+    args.module_path = args.output_root[len(args.build_root_dir):]
     assert len(args.module_path) > 0
     args.import_path, args.is_std = get_import_path(args.module_path)
 
@@ -70,10 +76,10 @@ def preprocess_args(args):
 
     srcs = []
     for f in args.srcs:
-        if f.endswith(FIXED_CGO1_SUFFIX) and f.startswith(args.build_root):
+        if f.endswith(FIXED_CGO1_SUFFIX) and f.startswith(args.build_root_dir):
             path = os.path.join(args.output_root, '{}.cgo1.go'.format(os.path.basename(f[:-len(FIXED_CGO1_SUFFIX)])))
             srcs.append(path)
-            preprocess_cgo1(f, path, args.arc_source_root)
+            preprocess_cgo1(f, path, args.source_root)
         else:
             srcs.append(f)
     args.srcs = srcs
@@ -200,7 +206,7 @@ def gen_vet_info(args):
     data = {
         'ID': import_path,
         'Compiler': 'gc',
-        'Dir': os.path.join(args.arc_source_root, get_source_path(args)),
+        'Dir': os.path.join(args.source_root, get_source_path(args)),
         'ImportPath': import_path,
         'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
         'NonGoFiles': list(filter(lambda x: not x.endswith('.go'), args.go_srcs)),
@@ -242,8 +248,8 @@ def decode_vet_report(json_report):
 
 def dump_vet_report(args, report):
     if report:
-        report = report.replace(args.build_root[:-1], '$B')
-        report = report.replace(args.arc_source_root, '$S')
+        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
 
@@ -270,7 +276,7 @@ def do_vet(args):
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
     # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
-    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.arc_source_root)
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.source_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
     dump_vet_report(args, report)
@@ -280,7 +286,7 @@ def do_vet(args):
 
 def _do_compile_go(args):
     import_path, is_std_module = args.import_path, args.is_std
-    cmd = [args.go_compile, '-o', args.output, '-trimpath', args.arc_source_root, '-p', import_path, '-D', '""']
+    cmd = [args.go_compile, '-o', args.output, '-trimpath', get_trimpath(args), '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
     if is_std_module:
         cmd.append('-std')
@@ -349,7 +355,7 @@ def do_compile_go(args):
 
 def do_compile_asm(args):
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
-    cmd = [args.go_asm, '-trimpath', args.arc_source_root]
+    cmd = [args.go_asm, '-trimpath', get_trimpath(args)]
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
     if args.asm_flags:
@@ -697,7 +703,7 @@ if __name__ == '__main__':
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++vet-info-ext', default=vet_info_ext)
     parser.add_argument('++vet-report-ext', default=vet_report_ext)
-    parser.add_argument('++arc-source-root')
+    parser.add_argument('++source-root')
     parser.add_argument('++musl', action='store_true')
     parser.add_argument('++skip-tests', nargs='*', default=None)
     parser.add_argument('++ydx-file', default='')
