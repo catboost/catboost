@@ -736,7 +736,7 @@ class Pool (
    *  quantizedPoolWithTwoBinsPerFeature.data.show()
    * }}}
    */
-  def quantize(quantizationParams: QuantizationParamsTrait) : Pool = {
+  def quantize(quantizationParams: QuantizationParamsTrait = new QuantizationParams()) : Pool = {
     if (isQuantized) {
       throw new CatBoostError("Pool is already quantized")
     }
