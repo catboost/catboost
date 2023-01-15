@@ -1,0 +1,3 @@
+- source_filter: "^speechkit/libs/crossguid"
+  includes:
+  - jni.h

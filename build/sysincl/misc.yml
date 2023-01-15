@@ -549,3 +549,7 @@
 - source_filter: "^devtools/experimental/umbrella/embedded"
   includes:
     - threads.h: devtools/experimental/umbrella/include/c11/threads.h
+
+- source_filter: "^speechkit/libs/spotter"
+  includes:
+    - threads.h: speechkit/libs/spotter/c11-threads/threads.h

@@ -168,6 +168,7 @@
   - CoreFoundation/CFRunLoop.h
   - CoreFoundation/CFString.h
   - CoreFoundation/CFTimeZone.h
+  - CoreFoundation/CFUUID.h
   - CoreFoundation/CoreFoundation.h
   - CoreGraphics/CoreGraphics.h
   - CoreLocation/CoreLocation.h
