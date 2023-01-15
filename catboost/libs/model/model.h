@@ -137,21 +137,11 @@ public:
      * This structure stores model runtime data. Should be kept up to date
      */
     struct TRuntimeData {
-        size_t UsedFloatFeaturesCount = 0;
-        size_t UsedCatFeaturesCount = 0;
-        size_t UsedTextFeaturesCount = 0;
-        size_t UsedEstimatedFeaturesCount = 0;
-        size_t MinimalSufficientFloatFeaturesVectorSize = 0;
-        size_t MinimalSufficientCatFeaturesVectorSize = 0;
-        size_t MinimalSufficientTextFeaturesVectorSize = 0;
-        /**
-         * List of all TModelCTR used in model
-         */
-        TVector<TModelCtr> UsedModelCtrs;
         /**
          * List of all binary with indexes corresponding to TreeSplits values
          */
         TVector<TModelSplit> BinFeatures;
+        ui32 EffectiveBinFeaturesBucketCount = 0;
 
         /**
         * This vector contains ui32 that contains such information:
@@ -165,8 +155,20 @@ public:
         static_assert(sizeof(TRepackedBin) == 4, "");
 
         TVector<TRepackedBin> RepackedBins;
+    };
 
-        ui32 EffectiveBinFeaturesBucketCount = 0;
+    struct TForApplyData {
+        size_t UsedFloatFeaturesCount = 0;
+        size_t UsedCatFeaturesCount = 0;
+        size_t UsedTextFeaturesCount = 0;
+        size_t UsedEstimatedFeaturesCount = 0;
+        size_t MinimalSufficientFloatFeaturesVectorSize = 0;
+        size_t MinimalSufficientCatFeaturesVectorSize = 0;
+        size_t MinimalSufficientTextFeaturesVectorSize = 0;
+        /**
+         * List of all TModelCTR used in model
+         */
+        TVector<TModelCtr> UsedModelCtrs;
 
         //! Offset of first tree leaf in flat tree leafs array
         TVector<size_t> TreeFirstLeafOffsets;
@@ -179,6 +181,10 @@ public:
     }
 
     TModelTrees& operator=(const TModelTrees& other) {
+        if (this == &other) {
+            return *this;
+        }
+
         std::tie(
             ApproxDimension,
             CatFeatures,
@@ -188,8 +194,7 @@ public:
             CtrFeatures,
             EstimatedFeatures,
             ScaleAndBias,
-            ModelTreeData,
-            RuntimeData
+            ModelTreeData
         )
         = std::forward_as_tuple(
             other.ApproxDimension,
@@ -200,9 +205,25 @@ public:
             other.CtrFeatures,
             other.EstimatedFeatures,
             other.ScaleAndBias,
-            other.ModelTreeData->Clone(IModelTreeData::ECloningPolicy::Default),
-            other.RuntimeData
+            other.ModelTreeData->Clone(IModelTreeData::ECloningPolicy::Default)
         );
+
+        ClearRuntimeData();
+        {
+            TReadGuard applyDataRGuard(other.ApplyDataLock);
+            if (other.ApplyData.Defined()) {
+                TWriteGuard applyDataWGuard(ApplyDataLock);
+                ApplyData = other.ApplyData;
+            }
+        }
+        {
+            TReadGuard runtimeDataRGuard(other.RuntimeDataLock);
+            if (other.RuntimeData.Defined()) {
+                TWriteGuard runtimeDataWGuard(RuntimeDataLock);
+                RuntimeData = other.RuntimeData;
+            }
+        }
+
         return *this;
     }
 
@@ -419,36 +440,41 @@ public:
      * Should be called after any modifications.
      */
     void UpdateRuntimeData() const;
+
+    /**
+     * Internal usage only. Clears BinFeatures and ApplyData
+     */
+    void ClearRuntimeData() const;
+
     /**
      * List of all CTRs in model
      * @return
      */
     TConstArrayRef<TModelCtr> GetUsedModelCtrs() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedModelCtrs;
+        PrepareApplyData();
+        return ApplyData->UsedModelCtrs;
     }
     /**
      * List all binary features corresponding to binary feature indexes in trees
      * @return
      */
     TConstArrayRef<TModelSplit> GetBinFeatures() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        CalcBinFeatures();
         return RuntimeData->BinFeatures;
     }
 
     TConstArrayRef<TRepackedBin> GetRepackedBins() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        CalcBinFeatures();
         return RuntimeData->RepackedBins;
     }
 
     TConstArrayRef<size_t> GetFirstLeafOffsets() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->TreeFirstLeafOffsets;
+        PrepareApplyData();
+        return ApplyData->TreeFirstLeafOffsets;
     }
 
     const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return &GetModelTreeData()->GetLeafValues()[RuntimeData->TreeFirstLeafOffsets[treeIdx]];
+        return &GetModelTreeData()->GetLeafValues()[GetFirstLeafOffsets()[treeIdx]];
     }
     /**
      * List all unique CTR bases (feature combination + ctr type) in model
@@ -471,13 +497,13 @@ public:
     }
 
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientFloatFeaturesVectorSize;
+        PrepareApplyData();
+        return ApplyData->MinimalSufficientFloatFeaturesVectorSize;
     }
 
     size_t GetUsedFloatFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedFloatFeaturesCount;
+        PrepareApplyData();
+        return ApplyData->UsedFloatFeaturesCount;
     }
 
     size_t GetNumCatFeatures() const {
@@ -489,28 +515,28 @@ public:
     }
 
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientCatFeaturesVectorSize;
+        PrepareApplyData();
+        return ApplyData->MinimalSufficientCatFeaturesVectorSize;
     }
 
     size_t GetUsedCatFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedCatFeaturesCount;
+        PrepareApplyData();
+        return ApplyData->UsedCatFeaturesCount;
     }
 
     size_t GetUsedTextFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedTextFeaturesCount;
+        PrepareApplyData();
+        return ApplyData->UsedTextFeaturesCount;
     }
 
     size_t GetMinimalSufficientTextFeaturesVectorSize() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->MinimalSufficientTextFeaturesVectorSize;
+        PrepareApplyData();
+        return ApplyData->MinimalSufficientTextFeaturesVectorSize;
     }
 
     size_t GetUsedEstimatedFeaturesCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
-        return RuntimeData->UsedEstimatedFeaturesCount;
+        PrepareApplyData();
+        return ApplyData->UsedEstimatedFeaturesCount;
     }
 
     size_t GetBinaryFeaturesFullCount() const {
@@ -518,7 +544,7 @@ public:
     }
 
     ui32 GetEffectiveBinaryFeaturesBucketsCount() const {
-        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        CalcBinFeatures();
         return RuntimeData->EffectiveBinFeaturesBucketCount;
     }
 
@@ -543,7 +569,14 @@ private:
 
     void SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj);
 
-
+    void PrepareApplyData() const;
+    void CalcBinFeatures() const;
+    void CalcUsedModelCtrs() const;
+    void CalcFirstLeafOffsets() const;
+    void ProcessFloatFeatures() const;
+    void ProcessCatFeatures() const;
+    void ProcessTextFeatures() const;
+    void ProcessEstimatedFeatures() const;
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -573,6 +606,10 @@ private:
     TScaleAndBias ScaleAndBias;
 
     mutable TMaybe<TRuntimeData> RuntimeData;
+    mutable TRWMutex RuntimeDataLock;
+
+    mutable TMaybe<TForApplyData> ApplyData;
+    mutable TRWMutex ApplyDataLock;
 };
 
 class TCOWTreeWrapper {
