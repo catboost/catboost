@@ -87,7 +87,15 @@ ALLOW smart_devices/tools/updater -> contrib/restricted/spdlog
 ALLOW contrib/libs/tcmalloc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+
+# tensorflow requires special version of abseil (std::string has to be replaced with TString)
 ALLOW contrib/libs/tf-1.14 -> contrib/restricted/abseil-cpp-tstring
+ALLOW contrib/libs/tf-2.4  -> contrib/restricted/abseil-cpp-tstring
+# google/ruy is yet another library for matrix multiplication,
+# but there are no limitations preventing it to be moved into contrib/libs upon request
+ALLOW contrib/libs/tf-2.4 -> contrib/restricted/ruy
+# Use util provided API to access CPU information instead
+ALLOW contrib/libs/tf-2.4 -> contrib/restricted/cpuinfo
 
 # cmph is a limited-use library
 ALLOW ads/yacontext -> contrib/restricted/cmph
