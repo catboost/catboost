@@ -375,7 +375,7 @@ def onadd_ytest(unit, *args):
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
         # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry and check requirements later
         return
-    elif flat_args[1] == "clang_tidy" and not unit.get("TIDY") == "yes":
+    elif flat_args[1] == "clang_tidy" and unit.get("TIDY") != "yes":
         # Graph is not prepared
         return
     elif flat_args[1] == "no.test":
@@ -383,7 +383,10 @@ def onadd_ytest(unit, *args):
 
     if flat_args[1] != "clang_tidy" and unit.get("TIDY") == "yes":
         # graph changed for clang_tidy tests
-        return
+        if flat_args[1] in ("unittest.py", "gunittest"):
+            flat_args[1] = "clang_tidy"
+        else:
+            return
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
