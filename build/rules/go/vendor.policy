@@ -589,8 +589,9 @@ ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang
 ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/client
 ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/schema
 
-# CONTRIB-1244. resposible: gzuykov@
-ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
+# CONTRIB-1244. resposible: frystile@
+ALLOW cloud/compute/gokikimr/client -> vendor/github.com/rcrowley/go-metrics
+ALLOW cloud/compute/snapshot/snapshot/lib/misc -> vendor/github.com/rcrowley/go-metrics
 
 # IGNIETFERRO-1287
 ALLOW cloud/compute/snapshot/snapshot/config -> vendor/github.com/pkg/errors
