@@ -251,17 +251,17 @@
         "news": {
             "description": "Run news team tools"
         },
-        "go_1.14.4": {
-            "description": "Run go tool (1.14.4)"
-        },
-        "gofmt_1.14.4": {
-            "description": "Run gofmt tool (1.14.4)"
-        },
         "go": {
             "description": "Run go tool (1.14.6)"
         },
         "gofmt": {
             "description": "Run gofmt tool (1.14.6)"
+        },
+        "go_1.15": {
+            "description": "Run go tool (1.15)"
+        },
+        "gofmt_1.15": {
+            "description": "Run gofmt tool (1.15)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5012,46 +5012,6 @@
                 }
             ]
         },
-        "golang_1_14_4": {
-            "tools": {
-                "golang_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "golangi_1.14.4"
-                },
-                "go_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "go_1.14.4"
-                },
-                "gofmt_1.14.4": {
-                    "bottle": "golang_1.14.4",
-                    "executable": "gofmt_1.14.4"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.14.4"
-            }
-        },
         "golang_1_14_6": {
             "tools": {
                 "golang": {
@@ -5090,6 +5050,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.14.6"
+            }
+        },
+        "golang_1_15": {
+            "tools": {
+                "golang_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "golang_1.15"
+                },
+                "go_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "go_1.15"
+                },
+                "gofmt_1.15": {
+                    "bottle": "golang_1.15",
+                    "executable": "gofmt_1.15"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.15"
             }
         },
         "godoc": {
@@ -7205,26 +7205,6 @@
                 ]
             }
         },
-        "golang_1.14.4": {
-            "formula": {
-                "sandbox_id": [
-                    691135671,
-                    691136200,
-                    691136779
-                ],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.14.4": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.14.4": [
-                    "bin",
-                    "gofmt"
-                ]
-            }
-        },
         "golang_1.14.6": {
             "formula": {
                 "sandbox_id": [
@@ -7240,6 +7220,26 @@
                     "go"
                 ],
                 "gofmt": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.15": {
+            "formula": {
+                "sandbox_id": [
+                    746358746,
+                    746359485,
+                    746360126
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.15": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.15": [
                     "bin",
                     "gofmt"
                 ]
