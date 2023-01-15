@@ -188,7 +188,7 @@ namespace {
     };
 
 
-    static inline short PollFlags(ui16 flags) noexcept {
+    inline short PollFlags(ui16 flags) noexcept {
         short ret = 0;
 
         if (flags & CONT_POLL_READ) {

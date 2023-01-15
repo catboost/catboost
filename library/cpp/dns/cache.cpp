@@ -174,7 +174,7 @@ namespace {
         }
     };
 
-    static inline IDns* ThrDns() {
+    inline IDns* ThrDns() {
         return FastTlsSingleton<TThreadedDns>();
     }
 }

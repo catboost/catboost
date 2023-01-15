@@ -16,7 +16,7 @@ TMallocInfo NMalloc::MallocInfo() {
 #include <contrib/libs/jemalloc/include/jemalloc/jemalloc.h>
 
 namespace {
-    static bool JESetParam(const char* param, const char*) {
+    bool JESetParam(const char* param, const char*) {
         if (param) {
             if (strcmp(param, "j:reset_epoch") == 0) {
                 uint64_t epoch = 1;

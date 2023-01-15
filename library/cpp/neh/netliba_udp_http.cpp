@@ -30,9 +30,9 @@ namespace {
     const size_t MIN_SHARED_MEM_PACKET = 1000;
     const size_t MAX_PACKET_SIZE = 0x70000000;
 
-    static NNeh::TAtomicBool PanicAttack;
-    static std::atomic<NHPTimer::STime> LastHeartbeat;
-    static std::atomic<double> HeartbeatTimeout;
+    NNeh::TAtomicBool PanicAttack;
+    std::atomic<NHPTimer::STime> LastHeartbeat;
+    std::atomic<double> HeartbeatTimeout;
 
     bool IsLocal(const TUdpAddress& addr) {
         return addr.IsIPv4() ? IsLocalIPv4(addr.GetIPv4()) : IsLocalIPv6(addr.Network, addr.Interface);

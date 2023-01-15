@@ -95,7 +95,7 @@ namespace {
         THashMap<TString, TServiceStatRef> SS_;
     };
 
-    static inline TServicesStat* ThrServiceStat() {
+    inline TServicesStat* ThrServiceStat() {
         Y_POD_STATIC_THREAD(TServicesStat*)
         ss;
 

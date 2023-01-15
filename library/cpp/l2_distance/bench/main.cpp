@@ -131,19 +131,19 @@ namespace {
         TData2 Data2_;
     };
 
-    static TBenchmark<ui32, i8, 1000, 1, 179> Bench1000_i8;
-    static TBenchmark<ui32, ui8, 1000, 413, 19> Bench1000_ui8;
-    static TBenchmark<ui64, i32, 1000, 19, 117> Bench1000_i32;
-    static TBenchmark<ui64, ui32, 1000, 149, 17> Bench1000_ui32;
-    static TBenchmark<float, float, 1000, 19, 117> Bench1000_float;
-    static TBenchmark<double, double, 1000, 19, 117> Bench1000_double;
+    TBenchmark<ui32, i8, 1000, 1, 179> Bench1000_i8;
+    TBenchmark<ui32, ui8, 1000, 413, 19> Bench1000_ui8;
+    TBenchmark<ui64, i32, 1000, 19, 117> Bench1000_i32;
+    TBenchmark<ui64, ui32, 1000, 149, 17> Bench1000_ui32;
+    TBenchmark<float, float, 1000, 19, 117> Bench1000_float;
+    TBenchmark<double, double, 1000, 19, 117> Bench1000_double;
 
-    static TBenchmark<ui32, i8, 30000, 1, 179> Bench30000_i8;
-    static TBenchmark<ui32, ui8, 30000, 1, 179> Bench30000_ui8;
-    static TBenchmark<ui64, i32, 30000, 19, 117> Bench30000_i32;
-    static TBenchmark<ui64, ui32, 30000, 19, 117> Bench30000_ui32;
-    static TBenchmark<float, float, 30000, 19, 117> Bench30000_float;
-    static TBenchmark<double, double, 30000, 19, 117> Bench30000_double;
+    TBenchmark<ui32, i8, 30000, 1, 179> Bench30000_i8;
+    TBenchmark<ui32, ui8, 30000, 1, 179> Bench30000_ui8;
+    TBenchmark<ui64, i32, 30000, 19, 117> Bench30000_i32;
+    TBenchmark<ui64, ui32, 30000, 19, 117> Bench30000_ui32;
+    TBenchmark<float, float, 30000, 19, 117> Bench30000_float;
+    TBenchmark<double, double, 30000, 19, 117> Bench30000_double;
 
     /* 8-bit: */
     Y_CPU_BENCHMARK(Naive1000_i8, iface) {

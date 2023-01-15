@@ -9,12 +9,12 @@
 using namespace NChromiumTrace;
 
 namespace {
-    static void SaveStr(IOutputStream* out, TStringBuf str) {
+    void SaveStr(IOutputStream* out, TStringBuf str) {
         ::SaveSize(out, str.size());
         ::SavePodArray(out, str.data(), str.size());
     }
 
-    static void LoadStr(IInputStream* in, TStringBuf& str, TMemoryPool& pool) {
+    void LoadStr(IInputStream* in, TStringBuf& str, TMemoryPool& pool) {
         size_t size = ::LoadSize(in);
         char* data = ::AllocateFromPool(pool, size);
         ::LoadPodArray(in, data, size);

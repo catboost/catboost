@@ -54,5 +54,5 @@ namespace {
             }
         }
     };
-    static const TZStd06Registrar Registrar{};
+    const TZStd06Registrar Registrar{};
 }

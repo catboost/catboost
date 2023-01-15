@@ -98,7 +98,7 @@ NNeh::TMessage NNeh::TMessage::FromString(const TStringBuf req) {
 }
 
 namespace {
-    static const TString svcFail = "service status: failed";
+    const TString svcFail = "service status: failed";
 }
 
 THandleRef NNeh::Request(const TMessage& msg, IOnRecv* fallback) {
