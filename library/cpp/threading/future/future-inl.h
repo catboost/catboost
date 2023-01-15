@@ -451,24 +451,30 @@ namespace NThreading {
         }
 
         template <typename T>
-        inline void SetValueImpl(TPromise<T>& promise, const TFuture<T>& future) {
+        inline void SetValueImpl(TPromise<T>& promise, const TFuture<T>& future,
+                                 std::enable_if_t<!std::is_void<T>::value, bool> = false) {
             future.Subscribe([=](const TFuture<T>& f) mutable {
+                T const* value;
                 try {
-                    promise.SetValue(f.GetValue());
+                    value = &f.GetValue();
                 } catch (...) {
                     promise.SetException(std::current_exception());
+                    return;
                 }
+                promise.SetValue(*value);
             });
         }
 
-        inline void SetValueImpl(TPromise<void>& promise, const TFuture<void>& future) {
-            future.Subscribe([=](const TFuture<void>& f) mutable {
+        template <typename T>
+        inline void SetValueImpl(TPromise<void>& promise, const TFuture<T>& future) {
+            future.Subscribe([=](const TFuture<T>& f) mutable {
                 try {
                     f.TryRethrow();
-                    promise.SetValue();
                 } catch (...) {
                     promise.SetException(std::current_exception());
+                    return;
                 }
+                promise.SetValue();
             });
         }
 
@@ -477,7 +483,10 @@ namespace NThreading {
             try {
                 SetValueImpl(promise, func());
             } catch (...) {
-                promise.SetException(std::current_exception());
+                const bool success = promise.TrySetException(std::current_exception());
+                if (Y_UNLIKELY(!success)) {
+                    throw;
+                }
             }
         }
 
@@ -486,10 +495,11 @@ namespace NThreading {
                              std::enable_if_t<std::is_void<TFunctionResult<F>>::value, bool> = false) {
             try {
                 func();
-                promise.SetValue();
             } catch (...) {
                 promise.SetException(std::current_exception());
+                return;
             }
+            promise.SetValue();
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -576,11 +586,12 @@ namespace NThreading {
                 if (Lock.TryAcquire()) {
                     try {
                         future.TryRethrow();
-                        Promise.SetValue();
                     } catch (...) {
                         Y_ASSERT(!Promise.HasValue() && !Promise.HasException());
                         Promise.SetException(std::current_exception());
+                        return;
                     }
+                    Promise.SetValue();
                 }
             }
         };
@@ -707,12 +718,7 @@ namespace NThreading {
     inline TFuture<void> TFuture<T>::IgnoreResult() const {
         auto promise = NewPromise();
         Subscribe([=](const TFuture<T>& future) mutable {
-            try {
-                future.TryRethrow();
-                promise.SetValue();
-            } catch (...) {
-                promise.SetException(std::current_exception());
-            }
+            NImpl::SetValueImpl(promise, future);
         });
         return promise;
     }
@@ -807,10 +813,11 @@ namespace NThreading {
         Subscribe([=](const TFuture<void>& future) mutable {
             try {
                 future.TryRethrow();
-                promise.SetValue(value);
             } catch (...) {
                 promise.SetException(std::current_exception());
+                return;
             }
+            promise.SetValue(value);
         });
         return promise;
     }
