@@ -42,19 +42,21 @@
 %include "master.i"
 %include "worker.i"
 
+%include "apply_result_iterator.i"
+
 %pragma(java) jniclasscode=%{
   static {
     try {
       //ai.catboost.common.NativeLib.smartLoad("catboost4j-spark-impl");
-      
+
       Class cls = Class.forName("ai.catboost.common.NativeLib");
       Object obj = cls.newInstance();
-      
+
       Class[] paramString = new Class[1];
       paramString[0] = String.class;
-      
+
       cls.getDeclaredMethod("smartLoad", paramString).invoke(obj, new String("catboost4j-spark-impl"));
-      
+
     } catch (Exception e) {
       System.err.println("Failed to load catboost4j-spark-impl native library: " + e);
       System.exit(1);

@@ -37,13 +37,13 @@ trait CatBoostPredictorTrait[
 
   /**
    *  override in descendants if necessary
-   *  
+   *
    *  @return (preprocessedTrainPool, preprocessedEvalPools, catBoostJsonParams)
    */
   protected def preprocessBeforeTraining(
     quantizedTrainPool: Pool,
     quantizedEvalPools: Array[Pool]
-  ) : (Pool, Array[Pool], JObject) = { 
+  ) : (Pool, Array[Pool], JObject) = {
     (
       quantizedTrainPool,
       quantizedEvalPools,

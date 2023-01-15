@@ -1,9 +1,13 @@
 package ai.catboost.spark
 
+import collection.mutable
+
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.regression.RegressionModel
 import org.apache.spark.ml.util._
+import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 
 import org.apache.spark.ml.CatBoostRegressorBase // defined inside catboost4j-spark
 
@@ -66,6 +70,32 @@ class CatBoostRegressionModel (
    */
   override def predict(features: Vector): Double = {
     predictRawImpl(features)(0)
+  }
+
+  protected override def getAdditionalColumnsForApply : Seq[StructField] = {
+    Seq(StructField($(predictionCol), DoubleType))
+  }
+
+  protected override def getResultIteratorForApply(
+    rawObjectsDataProvider: native_impl.SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
+    dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
+    threadCountForTask: Int
+  ) : Iterator[Row] = {
+    val applyResults = new native_impl.TApplyResultIterator(
+      nativeModel,
+      rawObjectsDataProvider,
+      native_impl.EPredictionType.RawFormulaVal,
+      threadCountForTask
+    ).GetSingleDimensionalResults.toPrimitiveArray
+
+    val applyResultRowIdx = dstRows(0).length - 1
+    new ProcessRowsOutputIterator(
+      dstRows,
+      (rowArray: Array[Any], objectIdx: Int) => {
+        rowArray(applyResultRowIdx) = applyResults(objectIdx)
+        rowArray
+      }
+    )
   }
 }
 

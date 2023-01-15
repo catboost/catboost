@@ -1,11 +1,15 @@
 package ai.catboost.spark
 
+import collection.mutable
+
 import org.json4s.JObject
 
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.classification.{ProbabilisticClassificationModel,ProbabilisticClassifier}
 import org.apache.spark.ml.util._
+import org.apache.spark.sql._
+import org.apache.spark.sql.types._
 
 import ai.catboost.spark.params._
 
@@ -65,6 +69,17 @@ class CatBoostClassificationModel (
     if (nativeDimension == 1) 2 else nativeDimension
   }
 
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    transformSchema(dataset.schema, logging = true)
+    if (isDefined(thresholds)) {
+      require($(thresholds).length == numClasses, this.getClass.getSimpleName +
+        ".transform() called with non-matching numClasses and thresholds.length." +
+        s" numClasses=$numClasses, but thresholds has length ${$(thresholds).length}")
+    }
+
+    transformImpl(dataset)
+  }
+
   /**
    * Prefer batch computations operating on datasets as a whole for efficiency
    */
@@ -84,6 +99,112 @@ class CatBoostClassificationModel (
     val result = new Array[Double](rawPrediction.size)
     native_impl.native_impl.CalcSoftmax(rawPrediction.toDense.values, result)
     Vectors.dense(result)
+  }
+
+  protected def getAdditionalColumnsForApply : Seq[StructField] = {
+    var result = Seq[StructField]()
+    if ($(rawPredictionCol).nonEmpty) {
+      result = result :+ StructField($(rawPredictionCol), SQLDataTypes.VectorType)
+    }
+    if ($(probabilityCol).nonEmpty) {
+      result = result :+ StructField($(probabilityCol), SQLDataTypes.VectorType)
+    }
+    if ($(predictionCol).nonEmpty) {
+      result = result :+ StructField($(predictionCol), DoubleType)
+    }
+    result
+  }
+
+  protected def getResultIteratorForApply(
+    rawObjectsDataProvider: native_impl.SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
+    dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
+    threadCountForTask: Int
+  ) : Iterator[Row] = {
+    val applyResultIterator = new native_impl.TApplyResultIterator(
+      nativeModel,
+      rawObjectsDataProvider,
+      native_impl.EPredictionType.RawFormulaVal,
+      threadCountForTask
+    )
+
+    val rowLength = dstRows(0).length
+    val numClassesValue = numClasses
+
+    val callback = if ($(rawPredictionCol).nonEmpty && !$(probabilityCol).nonEmpty && !$(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        rowArray(rowLength - 1) = Vectors.dense(rawPrediction)
+        rowArray
+      }
+    } else if (!$(rawPredictionCol).nonEmpty && $(probabilityCol).nonEmpty && !$(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        val probability = new Array[Double](numClassesValue)
+        native_impl.native_impl.CalcSoftmax(rawPrediction, probability)
+        rowArray(rowLength - 1) = Vectors.dense(probability)
+        rowArray
+      }
+    } else if ($(rawPredictionCol).nonEmpty && $(probabilityCol).nonEmpty && !$(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        rowArray(rowLength - 2) = Vectors.dense(rawPrediction)
+
+        val probability = new Array[Double](numClassesValue)
+        native_impl.native_impl.CalcSoftmax(rawPrediction, probability)
+        rowArray(rowLength - 1) = Vectors.dense(probability)
+
+        rowArray
+      }
+    } else if (!$(rawPredictionCol).nonEmpty && !$(probabilityCol).nonEmpty && $(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        rowArray(rowLength - 1) = raw2prediction(Vectors.dense(rawPrediction))
+        rowArray
+      }
+    } else if ($(rawPredictionCol).nonEmpty && !$(probabilityCol).nonEmpty && $(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        val rawPredictionVector = Vectors.dense(rawPrediction)
+        rowArray(rowLength - 2) = rawPredictionVector
+        rowArray(rowLength - 1) = raw2prediction(rawPredictionVector)
+        rowArray
+      }
+    } else if (!$(rawPredictionCol).nonEmpty && $(probabilityCol).nonEmpty && $(predictionCol).nonEmpty) {
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+
+        val probability = new Array[Double](numClassesValue)
+        native_impl.native_impl.CalcSoftmax(rawPrediction, probability)
+
+        val probabilityVector = Vectors.dense(probability)
+        rowArray(rowLength - 2) = probabilityVector
+        rowArray(rowLength - 1) = probability2prediction(probabilityVector)
+        rowArray
+      }
+    } else { // ($(rawPredictionCol).nonEmpty && $(probabilityCol).nonEmpty && $(predictionCol).nonEmpty)
+      (rowArray: Array[Any], objectIdx: Int) => {
+        val rawPrediction = new Array[Double](numClassesValue)
+        applyResultIterator.GetMultiDimensionalResult(objectIdx, rawPrediction)
+        rowArray(rowLength - 3) = Vectors.dense(rawPrediction)
+
+        val probability = new Array[Double](numClassesValue)
+        native_impl.native_impl.CalcSoftmax(rawPrediction, probability)
+        val probabilityVector = Vectors.dense(probability)
+        rowArray(rowLength - 2) = probabilityVector
+
+        rowArray(rowLength - 1) = probability2prediction(probabilityVector)
+
+        rowArray
+      }
+    }
+
+    new ProcessRowsOutputIterator(dstRows, callback)
   }
 }
 

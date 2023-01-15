@@ -493,47 +493,15 @@ class Pool (
           quantizedFeaturesInfo.GetFeaturesLayout().__deref__()
         ).toPrimitiveArray
 
-        // source features column is replaced by quantizedFeatures
-        val dstRows = new ArrayBuffer[Array[Any]]
-
-        // as columns
-        var availableFeaturesData = new Array[ArrayBuilder[Float]](availableFeaturesIndices.size)
-        for (i <- 0 until availableFeaturesData.size) {
-          availableFeaturesData(i) = ArrayBuilder.make[Float]
-        }
-
-        rowsIterator.foreach {
-          row => {
-             val rowFields = new Array[Any](row.length)
-             for (i <- 0 until row.length) {
-               if (i == featuresColumnIdx) {
-                 val featuresValues = row.getAs[Vector](i)
-                 for (j <- 0 until availableFeaturesIndices.size) {
-                   availableFeaturesData(j) += featuresValues(availableFeaturesIndices(j)).toFloat
-                 }
-               } else {
-                 rowFields(i) = row(i)
-               }
-             }
-             dstRows += rowFields
-          }
-        }
-
-        val availableFeaturesDataForBuilder = new TVector_TMaybeOwningConstArrayHolder_float
-        for (featureData <- availableFeaturesData) {
-          val result = featureData.result
-          availableFeaturesDataForBuilder.add(result)
-        }
-
-        val rawObjectsDataProviderPtr = native_impl.CreateRawObjectsDataProvider(
+        // source features column will be replaced by quantizedFeatures
+        val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
+          rowsIterator,
+          featuresColumnIdx,
           quantizedFeaturesInfo.GetFeaturesLayout(),
-          dstRows.size.toLong,
-          availableFeaturesDataForBuilder
+          availableFeaturesIndices,
+          keepRawFeaturesInDstRows = false,
+          dstRowLength = quantizedDataSchema.length
         )
-
-        // try to force cleanup of no longer used data
-        availableFeaturesData = null
-        System.gc()
 
         val quantizedObjectsDataProvider = native_impl.Quantize(
           quantizedFeaturesInfo,

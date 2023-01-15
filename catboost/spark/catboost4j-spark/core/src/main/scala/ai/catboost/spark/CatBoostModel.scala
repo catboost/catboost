@@ -1,5 +1,7 @@
 package ai.catboost.spark
 
+import collection.mutable
+
 import org.json4s.JsonDSL._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.{DefaultFormats, JObject}
@@ -7,8 +9,11 @@ import org.json4s.{DefaultFormats, JObject}
 import org.apache.spark.SparkContext
 import org.apache.spark.ml.linalg._
 import org.apache.spark.ml.util._
+import org.apache.spark.sql._
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.sql.types._
 
-import ru.yandex.catboost.spark.catboost4j_spark.core.src._
+import ru.yandex.catboost.spark.catboost4j_spark.core.src.native_impl._
 
 import ai.catboost.CatBoostError
 
@@ -17,7 +22,7 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
   extends org.apache.spark.ml.PredictionModel[Vector, Model]
   with MLWritable
 {
-  private[spark] var nativeModel: native_impl.TFullModel
+  private[spark] var nativeModel: TFullModel
   protected var nativeDimension: Int
 
   /**
@@ -32,6 +37,61 @@ private[spark] trait CatBoostModelTrait[Model <: org.apache.spark.ml.PredictionM
       case _ => throw new CatBoostError("Unknown Vector subtype")
     }
     result
+  }
+
+  protected def getAdditionalColumnsForApply : Seq[StructField]
+
+  protected def getResultIteratorForApply(
+    rawObjectsDataProvider: SWIGTYPE_p_NCB__TRawObjectsDataProviderPtr,
+    dstRows: mutable.ArrayBuffer[Array[Any]], // guaranteed to be non-empty
+    threadCountForTask: Int
+  ) : Iterator[Row]
+
+  override def transformImpl(dataset: Dataset[_]): DataFrame = {
+    val dataFrame = dataset.asInstanceOf[DataFrame]
+
+    val featuresColumnIdx = dataset.schema.fieldIndex($(featuresCol));
+
+    val additionalColumnsForApply = getAdditionalColumnsForApply
+    if (additionalColumnsForApply.isEmpty) {
+      this.logWarning(s"$uid: transform() was called as NOOP since no output columns were set.")
+      dataFrame
+    } else {
+      val resultSchema = StructType(dataset.schema.toSeq ++ additionalColumnsForApply)
+
+      val datasetFeatureNames = new TVector_TString(
+        Pool.getFeatureNames(dataFrame, $(featuresCol))
+      )
+
+      val featuresLayoutPtr = new TFeaturesLayoutPtr(
+        native_impl.MakeFeaturesLayout(
+          datasetFeatureNames.size,
+          datasetFeatureNames,
+          new TVector_i32
+        )
+      )
+
+      val dstRowLength = resultSchema.length
+      val threadCountForTask = SparkHelpers.getThreadCountForTask(dataset.sparkSession)
+
+      dataFrame.mapPartitions(
+        rowsIterator => {
+          if (rowsIterator.hasNext) {
+            val (dstRows, rawObjectsDataProviderPtr) = DataHelpers.processDatasetWithRawFeatures(
+              rowsIterator,
+              featuresColumnIdx,
+              featuresLayoutPtr,
+              native_impl.GetAvailableFloatFeatures(featuresLayoutPtr.__deref__()).toPrimitiveArray,
+              keepRawFeaturesInDstRows = true,
+              dstRowLength = dstRowLength
+            )
+            getResultIteratorForApply(rawObjectsDataProviderPtr, dstRows, threadCountForTask)
+          } else {
+            Iterator[Row]()
+          }
+        }
+      )(RowEncoder(resultSchema))
+    }
   }
 
   override def write: MLWriter = new CatBoostModelWriter[Model](this)
@@ -71,14 +131,14 @@ private[spark] trait CatBoostModelReaderTrait {
   }
 
   // returns (uid, nativeModel)
-  protected def loadImpl(sc: SparkContext, className: String, path: String): (String, native_impl.TFullModel) = {
+  protected def loadImpl(sc: SparkContext, className: String, path: String): (String, TFullModel) = {
     val metadata = loadMetadata(path, sc, className)
 
     val modelPath = new org.apache.hadoop.fs.Path(path, "model")
     val fileSystem = modelPath.getFileSystem(sc.hadoopConfiguration)
     val contentSummary = fileSystem.getContentSummary(modelPath)
 
-    val nativeModel = new native_impl.TFullModel
+    val nativeModel = new TFullModel
 
     val inputStream = fileSystem.open(modelPath)
     try {
