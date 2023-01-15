@@ -2193,10 +2193,6 @@ Documentation: https://wiki.yandex-team.ru/devtools/commandsandvars/py\_srcs
 ###### Macro [PYTHON\_PATH][](Path) <a name="macro_PYTHON_PATH"></a>
 Set path to Python that will be used to runs scripts in tests
 
-###### Macro [PY\_CODENAV][](Program) _# deprecated, internal_ <a name="macro_PY_CODENAV"></a>
-Collect codenavigation information from Program (specified as Program's module directory) and write it as Program.xref file
-Most probably you'll never need this. If you think you need, please contact devtools@ for assistance.
-
 ###### Macro [PY\_CONSTRUCTOR][](package.module[:func]) <a name="macro_PY_CONSTRUCTOR"></a>
 Specifies the module or function which will be started before python's main()
 init() is expected in the target module if no function is specified
