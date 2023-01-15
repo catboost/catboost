@@ -47,8 +47,8 @@
 #include <utility>
 
 #include <google/protobuf/stubs/common.h>
-#include "arena.h"
-#include "generated_enum_util.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/generated_enum_util.h>
 #include "map_type_handler.h"
 #include <google/protobuf/stubs/hash.h>
 

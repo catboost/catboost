@@ -40,7 +40,7 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/type.pb.h>
-#include "repeated_field.h"
+#include <google/protobuf/repeated_field.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/stubs/strutil.h>
 #include <google/protobuf/stubs/status.h>

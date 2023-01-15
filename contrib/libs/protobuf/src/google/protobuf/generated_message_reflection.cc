@@ -38,13 +38,13 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
-#include "extension_set.h"
-#include "generated_message_reflection.h"
-#include "generated_message_util.h"
-#include "map_field.h"
-#include "repeated_field.h"
-#include "wire_format.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/map_field.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/wire_format.h>
 
 
 #define GOOGLE_PROTOBUF_HAS_ONEOF

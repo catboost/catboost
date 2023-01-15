@@ -47,8 +47,8 @@
 #include <google/protobuf/stubs/once.h>
 #include "has_bits.h"
 #include "map_entry_lite.h"
-#include "message_lite.h"
-#include "wire_format_lite.h"
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/wire_format_lite.h>
 
 #include <util/generic/singleton.h>
 

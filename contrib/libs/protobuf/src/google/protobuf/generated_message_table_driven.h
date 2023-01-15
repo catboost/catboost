@@ -31,11 +31,11 @@
 #ifndef GOOGLE_PROTOBUF_GENERATED_MESSAGE_TABLE_DRIVEN_H__
 #define GOOGLE_PROTOBUF_GENERATED_MESSAGE_TABLE_DRIVEN_H__
 
-#include "map.h"
+#include <google/protobuf/map.h>
 #include "map_entry_lite.h"
-#include "message_lite.h"
-#include "wire_format_lite.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/message_lite.h>
+#include <google/protobuf/wire_format_lite.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 
 #if LANG_CXX11
 #define PROTOBUF_CONSTEXPR constexpr

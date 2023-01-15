@@ -51,7 +51,7 @@
 
 #include <Python.h>
 
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 #include "pyext/descriptor_containers.h"
 #include "pyext/descriptor_pool.h"
 #include "pyext/descriptor.h"

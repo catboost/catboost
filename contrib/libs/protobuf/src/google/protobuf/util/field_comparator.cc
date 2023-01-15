@@ -33,8 +33,8 @@
 #include <google/protobuf/util/field_comparator.h>
 
 
-#include "descriptor.h"
-#include "message.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
 #include <google/protobuf/stubs/map_util.h>
 #include <google/protobuf/stubs/mathlimits.h>
 #include <google/protobuf/stubs/mathutil.h>

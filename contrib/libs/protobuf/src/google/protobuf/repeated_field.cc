@@ -34,7 +34,7 @@
 
 #include <algorithm>
 
-#include "repeated_field.h"
+#include <google/protobuf/repeated_field.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 

@@ -31,9 +31,9 @@
 #ifndef GOOGLE_PROTOBUF_MAP_FIELD_LITE_H__
 #define GOOGLE_PROTOBUF_MAP_FIELD_LITE_H__
 
-#include "map.h"
+#include <google/protobuf/map.h>
 #include "map_entry_lite.h"
-#include "wire_format_lite.h"
+#include <google/protobuf/wire_format_lite.h>
 
 namespace google {
 namespace protobuf {

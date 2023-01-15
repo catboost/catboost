@@ -54,8 +54,8 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/type_traits.h>
-#include "arena.h"
-#include "message_lite.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/message_lite.h>
 
 
 // Forward-declare these so that we can make them friends.

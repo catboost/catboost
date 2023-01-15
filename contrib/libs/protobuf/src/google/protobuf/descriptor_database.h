@@ -41,7 +41,7 @@
 #include <utility>
 #include <vector>
 #include <google/protobuf/stubs/common.h>
-#include "descriptor.h"
+#include <google/protobuf/descriptor.h>
 
 namespace google {
 namespace protobuf {

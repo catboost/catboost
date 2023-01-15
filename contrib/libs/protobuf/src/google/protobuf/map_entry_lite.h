@@ -33,10 +33,10 @@
 
 #include <assert.h>
 
-#include "arena.h"
-#include "map.h"
+#include <google/protobuf/arena.h>
+#include <google/protobuf/map.h>
 #include "map_type_handler.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
 namespace protobuf {

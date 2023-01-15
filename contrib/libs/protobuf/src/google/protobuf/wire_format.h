@@ -41,9 +41,9 @@
 
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
-#include "message.h"
-#include "wire_format_lite.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/wire_format_lite.h>
 
 namespace google {
 namespace protobuf {

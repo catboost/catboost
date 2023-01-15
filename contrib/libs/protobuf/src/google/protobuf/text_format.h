@@ -46,8 +46,8 @@
 #include <vector>
 
 #include <google/protobuf/stubs/common.h>
-#include "descriptor.h"
-#include "message.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
 
 namespace google {
 namespace protobuf {

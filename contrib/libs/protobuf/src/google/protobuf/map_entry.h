@@ -31,13 +31,13 @@
 #ifndef GOOGLE_PROTOBUF_MAP_ENTRY_H__
 #define GOOGLE_PROTOBUF_MAP_ENTRY_H__
 
-#include "generated_message_reflection.h"
+#include <google/protobuf/generated_message_reflection.h>
 #include "map_entry_lite.h"
 #include "map_type_handler.h"
-#include "metadata.h"
-#include "reflection_ops.h"
-#include "unknown_field_set.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/metadata.h>
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
 namespace protobuf {

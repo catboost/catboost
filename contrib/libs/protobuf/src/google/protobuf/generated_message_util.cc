@@ -32,7 +32,7 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "generated_message_util.h"
+#include <google/protobuf/generated_message_util.h>
 
 #include <limits>
 #include <vector>
@@ -40,12 +40,12 @@
 #include <google/protobuf/io/coded_stream_inl.h>
 #include <google/protobuf/io/coded_stream.h>
 #include "arenastring.h"
-#include "extension_set.h"
-#include "message_lite.h"
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/message_lite.h>
 #include "metadata_lite.h"
-#include "repeated_field.h"
-#include "wire_format_lite.h"
-#include "wire_format_lite_inl.h"
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/wire_format_lite.h>
+#include <google/protobuf/wire_format_lite_inl.h>
 
 namespace google {
 namespace protobuf {

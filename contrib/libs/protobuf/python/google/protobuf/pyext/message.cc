@@ -53,10 +53,10 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/util/message_differencer.h>
-#include "descriptor.h"
-#include "message.h"
-#include "text_format.h"
-#include "unknown_field_set.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/unknown_field_set.h>
 #include "pyext/descriptor.h"
 #include "pyext/descriptor_pool.h"
 #include "pyext/extension_dict.h"

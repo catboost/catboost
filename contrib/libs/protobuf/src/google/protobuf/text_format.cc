@@ -40,21 +40,21 @@
 #include <limits>
 #include <vector>
 
-#include "text_format.h"
+#include <google/protobuf/text_format.h>
 
 #include <google/protobuf/stubs/stringprintf.h>
-#include "any.h"
+#include <google/protobuf/any.h>
 #include <google/protobuf/io/strtod.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/tokenizer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/descriptor.pb.h>
-#include "descriptor.h"
-#include "dynamic_message.h"
-#include "repeated_field.h"
-#include "unknown_field_set.h"
-#include "wire_format_lite.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/repeated_field.h>
+#include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/wire_format_lite.h>
 #include <google/protobuf/stubs/strutil.h>
 
 #include <google/protobuf/stubs/map_util.h>
