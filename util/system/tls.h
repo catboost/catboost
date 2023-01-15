@@ -157,6 +157,7 @@ namespace NTls {
     class TKey {
     public:
         TKey(TDtor dtor);
+        TKey(TKey&&) noexcept;
         ~TKey();
 
         void* Get() const;
@@ -176,7 +177,7 @@ namespace NTls {
     };
 
     template <class T>
-    class TValue: public TNonCopyable {
+    class TValue: public TMoveOnly {
         class TConstructor {
         public:
             TConstructor() noexcept = default;

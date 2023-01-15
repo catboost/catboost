@@ -243,6 +243,8 @@ TKey::TKey(TDtor dtor)
 {
 }
 
+TKey::TKey(TKey&&) noexcept = default;
+
 TKey::~TKey() = default;
 
 void* TKey::Get() const {
