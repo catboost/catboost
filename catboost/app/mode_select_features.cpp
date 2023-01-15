@@ -37,23 +37,22 @@ static void LoadOptions(
 ) {
     NJson::TJsonValue catBoostFlatJsonOptions;
     TString paramsFile;
-    NJson::TJsonValue featuresSelectJsonOptions;
     ParseFeaturesSelectCommandLine(
         argc,
         argv,
         &catBoostFlatJsonOptions,
-        &featuresSelectJsonOptions,
         &paramsFile,
         poolLoadParams
     );
 
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
-    InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
+    NJson::TJsonValue featuresSelectJsonOptions;
+    InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson, &featuresSelectJsonOptions);
 
     ConvertIgnoredFeaturesFromStringToIndices(*poolLoadParams, &catBoostFlatJsonOptions);
+    NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson, &featuresSelectJsonOptions);
     ConvertFeaturesForSelectFromStringToIndices(*poolLoadParams, &featuresSelectJsonOptions);
-    NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
     ConvertParamsToCanonicalFormat(*poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, poolLoadParams);
 

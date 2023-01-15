@@ -36,14 +36,15 @@ using namespace NCB;
 void InitOptions(
     const TString& optionsFile,
     NJson::TJsonValue* catBoostJsonOptions,
-    NJson::TJsonValue* outputOptionsJson
+    NJson::TJsonValue* outputOptionsJson,
+    NJson::TJsonValue* featuresSelectOptions
 ) {
     if (!optionsFile.empty()) {
         CB_ENSURE(NFs::Exists(optionsFile), "Params file does not exist " << optionsFile);
         TIFStream in(optionsFile);
         NJson::TJsonValue fromOptionsFile;
         CB_ENSURE(NJson::ReadJsonTree(&in, &fromOptionsFile), "can't parse params file");
-        NCatboostOptions::PlainJsonToOptions(fromOptionsFile, catBoostJsonOptions, outputOptionsJson);
+        NCatboostOptions::PlainJsonToOptions(fromOptionsFile, catBoostJsonOptions, outputOptionsJson, featuresSelectOptions);
     }
     if (!outputOptionsJson->Has("train_dir")) {
         (*outputOptionsJson)["train_dir"] = ".";
@@ -689,7 +690,6 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
     auto& parser = *parserPtr;
     parser
         .AddLongOption("features-for-select")
-        .Required()
         .RequiredArgument("INDEX,INDEX-INDEX,...")
         .Help("From which features perform selection; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
@@ -697,7 +697,6 @@ static void BindFeaturesSelectParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         });
     parser
         .AddLongOption("num-features-to-select")
-        .Required()
         .RequiredArgument("int")
         .Help("How many features to select from features-for-select.")
         .Handler1T<int>([plainJsonPtr](const int numberOfFeaturesToSelect) {
@@ -1557,7 +1556,6 @@ void ParseFeaturesSelectCommandLine(
     int argc,
     const char* argv[],
     NJson::TJsonValue* plainJsonPtr,
-    NJson::TJsonValue* featuresSelectOptions,
     TString* paramsPath,
     NCatboostOptions::TPoolLoadParams* params
 ) {
@@ -1576,7 +1574,7 @@ void ParseFeaturesSelectCommandLine(
 
     BindBoostingParams(&parser, plainJsonPtr);
 
-    BindFeaturesSelectParams(&parser, featuresSelectOptions);
+    BindFeaturesSelectParams(&parser, plainJsonPtr);
 
     BindTreeParams(&parser, plainJsonPtr);
 

@@ -244,7 +244,8 @@ static Y_NO_INLINE void DeleteSeenOption(NJson::TJsonValue* options, const TStri
 void NCatboostOptions::PlainJsonToOptions(
     const NJson::TJsonValue& plainOptions,
     NJson::TJsonValue* options,
-    NJson::TJsonValue* outputOptions
+    NJson::TJsonValue* outputOptions,
+    NJson::TJsonValue* featuresSelectOptions
 ) {
     ValidatePlainOptionsConsistency(plainOptions);
     TSet<TString> seenKeys;
@@ -472,6 +473,16 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "detailed_profile", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "task_type", &trainOptions, &seenKeys);
     CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
+
+    if (featuresSelectOptions) {
+        CopyOption(plainOptions, "features_for_select", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "num_features_to_select", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "features_selection_steps", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "train_final_model", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "features_selection_result_path", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "features_selection_algorithm", featuresSelectOptions, &seenKeys);
+        CopyOption(plainOptions, "shap_calc_type", featuresSelectOptions, &seenKeys);
+    }
 
     for (const auto& [optionName, optionValue] : plainOptions.GetMapSafe()) {
         if (!seenKeys.contains(optionName)) {

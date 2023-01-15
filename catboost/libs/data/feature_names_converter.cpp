@@ -219,7 +219,7 @@ void ConvertFeaturesForSelectFromStringToIndices(const NCatboostOptions::TPoolLo
     const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
     const auto& featureNamesForSelect = (*featuresSelectJsonOptions)["features_for_select"].GetString();
     TVector<int> featuresForSelect;
-    for (const auto& nameOrRange : StringSplitter(featureNamesForSelect).Split(',')) {
+    for (const auto& nameOrRange : StringSplitter(featureNamesForSelect).Split(',').SkipEmpty()) {
         const TString nameOrRangeAsString(nameOrRange);
         auto left = nameOrRangeAsString;
         auto right = nameOrRangeAsString;
@@ -228,8 +228,9 @@ void ConvertFeaturesForSelectFromStringToIndices(const NCatboostOptions::TPoolLo
             featuresForSelect.push_back(idx);
         }
     }
+    Sort(featuresForSelect);
     NCatboostOptions::TJsonFieldHelper<TVector<int>>::Write(
-        featuresForSelect,
+        TVector<int>(featuresForSelect.begin(), Unique(featuresForSelect.begin(), featuresForSelect.end())),
         &(*featuresSelectJsonOptions)["features_for_select"]);
 }
 
