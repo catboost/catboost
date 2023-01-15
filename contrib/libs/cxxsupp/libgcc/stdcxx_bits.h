@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(__GNUC__) && defined(__cplusplus)
-
 namespace std {
 
 void __throw_out_of_range_fmt(const char*, ...)
@@ -11,5 +9,3 @@ void __throw_out_of_range_fmt(const char*, ...)
 ;
 
 }
-
-#endif
