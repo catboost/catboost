@@ -523,7 +523,6 @@ migrations:
     - strm/pult/backend/bin/prod_channels_generator
     - strm/pult/backend/tests/unit
     - testenv/jobs/begemot
-    - testenv/jobs/release_machine/general
     - tools/mkdocs_builder/lib
     - tools/releaser/src
     - travel/avia/api_gateway
