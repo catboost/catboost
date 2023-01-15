@@ -1287,14 +1287,14 @@ public:
     }
 
     TBasicString& remove(size_t pos = 0) {
-#ifdef TSTRING_IS_STD_STRING
-        Storage_.erase(pos);
-#else
         if (pos < length()) {
+#ifdef TSTRING_IS_STD_STRING
+            Storage_.erase(pos);
+#else
             Detach();
             TruncNonShared(pos);
-        }
 #endif
+        }
 
         return *this;
     }
