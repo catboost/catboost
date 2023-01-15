@@ -24,7 +24,7 @@ static inline T VerifyDynamicCast(F f) {
 }
 
 #if !defined(NDEBUG)
-#define USE_DEBUG_CHECKED_CAST
+    #define USE_DEBUG_CHECKED_CAST
 #endif
 
 namespace NPrivate {
@@ -107,7 +107,7 @@ namespace NPrivate {
 }
 
 template <class TSmallInt, class TLargeInt>
-constexpr std::enable_if_t< ::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {
+constexpr std::enable_if_t<::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {
     return static_cast<TSmallInt>(largeInt);
 }
 

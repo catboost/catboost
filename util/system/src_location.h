@@ -17,9 +17,9 @@ struct TSourceLocation {
 
 // __SOURCE_FILE__ should be used instead of __FILE__
 #if !defined(__NVCC__)
-#define __SOURCE_FILE__ (__SOURCE_FILE_IMPL__.As<TStringBuf>())
+    #define __SOURCE_FILE__ (__SOURCE_FILE_IMPL__.As<TStringBuf>())
 #else
-#define __SOURCE_FILE__ (__SOURCE_FILE_IMPL__.template As<TStringBuf>())
+    #define __SOURCE_FILE__ (__SOURCE_FILE_IMPL__.template As<TStringBuf>())
 #endif
 
 #define __LOCATION__ ::TSourceLocation(__SOURCE_FILE__, __LINE__)

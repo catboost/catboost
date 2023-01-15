@@ -29,14 +29,14 @@ namespace NFnvPrivate {
     template <unsigned N>
     struct TFnvHelper;
 
-#define DEF_FNV(t)                                            \
-    template <>                                               \
-    struct TFnvHelper<t> {                                    \
-        static const ui##t Init = FNV##t##INIT;               \
-        template <class It>                                   \
+#define DEF_FNV(t)                                               \
+    template <>                                                  \
+    struct TFnvHelper<t> {                                       \
+        static const ui##t Init = FNV##t##INIT;                  \
+        template <class It>                                      \
         static constexpr ui##t FnvHash(It b, It e, ui##t init) { \
-            return FnvHash##t(b, e, init);                    \
-        }                                                     \
+            return FnvHash##t(b, e, init);                       \
+        }                                                        \
     };
 
     DEF_FNV(32)

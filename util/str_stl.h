@@ -180,8 +180,6 @@ template <class TFirst, class TSecond>
 struct hash<std::pair<TFirst, TSecond>>: public NHashPrivate::TPairHash<TFirst, TSecond> {
 };
 
-
-
 template <class T>
 struct TEqualTo: public std::equal_to<T> {
 };
@@ -197,7 +195,7 @@ struct TEqualTo<TUtf16String>: public TEqualTo<TWtringBuf> {
 };
 
 template <>
-struct TEqualTo<TUtf32String> : public TEqualTo<TUtf32StringBuf> {
+struct TEqualTo<TUtf32String>: public TEqualTo<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
@@ -250,7 +248,7 @@ struct TLess<TUtf16String>: public TLess<TWtringBuf> {
 };
 
 template <>
-struct TLess<TUtf32String> : public TLess<TUtf32StringBuf> {
+struct TLess<TUtf32String>: public TLess<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
@@ -269,6 +267,6 @@ struct TGreater<TUtf16String>: public TGreater<TWtringBuf> {
 };
 
 template <>
-struct TGreater<TUtf32String> : public TGreater<TUtf32StringBuf> {
+struct TGreater<TUtf32String>: public TGreater<TUtf32StringBuf> {
     using is_transparent = void;
 };

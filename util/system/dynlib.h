@@ -9,15 +9,15 @@
 #define Y_GET_FUNC_OPTIONAL(dll, name) FUNC_##name((dll).SymOptional(#name))
 
 #ifdef _win32_
-#define DEFAULT_DLLOPEN_FLAGS 0
+    #define DEFAULT_DLLOPEN_FLAGS 0
 #else
-#include <dlfcn.h>
+    #include <dlfcn.h>
 
-#ifndef RTLD_GLOBAL
-#define RTLD_GLOBAL (0)
-#endif
+    #ifndef RTLD_GLOBAL
+        #define RTLD_GLOBAL (0)
+    #endif
 
-#define DEFAULT_DLLOPEN_FLAGS (RTLD_NOW | RTLD_GLOBAL)
+    #define DEFAULT_DLLOPEN_FLAGS (RTLD_NOW | RTLD_GLOBAL)
 #endif
 
 class TDynamicLibrary {

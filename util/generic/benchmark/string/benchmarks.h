@@ -13,8 +13,8 @@ namespace {
 
         const auto defaultString = TBenchmarkedClass();
         const auto emptyString = TBenchmarkedClass("");
-        const auto lengthOneString = TBenchmarkedClass ("1");
-        const auto length1KString = TBenchmarkedClass (1000, '1');
+        const auto lengthOneString = TBenchmarkedClass("1");
+        const auto length1KString = TBenchmarkedClass(1000, '1');
 
         Y_CPU_PREFIXED_BENCHMARK(BENCHMARK_PREFIX, CreateDefault, iface) {
             for (const auto i : xrange(iface.Iterations())) {

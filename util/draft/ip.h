@@ -9,15 +9,15 @@
 #include <util/generic/variant.h>
 
 #ifdef _unix_
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <arpa/inet.h>
 #endif // _unix_
 
 #include <string.h>
 
 #ifndef INET6_ADDRSTRLEN
-#define INET6_ADDRSTRLEN 46
+    #define INET6_ADDRSTRLEN 46
 #endif
 
 // Network (big-endian) byte order

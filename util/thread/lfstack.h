@@ -13,7 +13,7 @@ class TLockFreeStack : TNonCopyable {
 
         TNode() = default;
 
-        template<class U>
+        template <class U>
         explicit TNode(U&& val)
             : Value(std::forward<U>(val))
             , Next(nullptr)

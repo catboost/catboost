@@ -628,8 +628,7 @@ public:
                    : 0;
     }
 
-    Y_PURE_FUNCTION Y_FORCE_INLINE
-    bool Empty() const {
+    Y_PURE_FUNCTION Y_FORCE_INLINE bool Empty() const {
         for (size_t i = 0; i < Mask.GetChunkCapacity(); ++i)
             if (Mask.Data[i])
                 return false;

@@ -1602,8 +1602,8 @@ public:
         iterator it = find(key, ctx);
         if (it == end()) {
             it = rep.emplace_direct(ctx, std::piecewise_construct,
-                    std::forward_as_tuple(std::forward<TKey>(key)),
-                    std::forward_as_tuple(std::forward<Args>(args)...));
+                                    std::forward_as_tuple(std::forward<TKey>(key)),
+                                    std::forward_as_tuple(std::forward<Args>(args)...));
             return {it, true};
         }
         return {it, false};

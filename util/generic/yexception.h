@@ -94,7 +94,8 @@ public:
 
     TSystemError()
         : TSystemError(LastSystemError())
-    {}
+    {
+    }
 
     int Status() const noexcept {
         return Status_;

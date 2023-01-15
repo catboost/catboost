@@ -10,10 +10,8 @@
 using namespace std::string_view_literals;
 
 template <typename TCharType, typename TTraits>
-class TBasicStringBuf:
-    public std::basic_string_view<TCharType>,
-    public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits>
-{
+class TBasicStringBuf: public std::basic_string_view<TCharType>,
+                       public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits> {
 private:
     using TdSelf = TBasicStringBuf;
     using TBase = TStringBase<TdSelf, TCharType, TTraits>;
@@ -25,31 +23,31 @@ public:
 
     //Resolving some ambiguity between TStringBase and std::basic_string_view
     //for typenames
+    using typename TStringView::const_iterator;
+    using typename TStringView::const_reference;
+    using typename TStringView::const_reverse_iterator;
+    using typename TStringView::iterator;
+    using typename TStringView::reference;
+    using typename TStringView::reverse_iterator;
     using typename TStringView::size_type;
     using typename TStringView::value_type;
-    using typename TStringView::iterator;
-    using typename TStringView::const_iterator;
-    using typename TStringView::reverse_iterator;
-    using typename TStringView::const_reverse_iterator;
-    using typename TStringView::reference;
-    using typename TStringView::const_reference;
 
     //for constants
     using TStringView::npos;
 
     //for methods and operators
     using TStringView::begin;
-    using TStringView::end;
     using TStringView::cbegin;
     using TStringView::cend;
-    using TStringView::rbegin;
-    using TStringView::rend;
     using TStringView::crbegin;
     using TStringView::crend;
+    using TStringView::end;
+    using TStringView::rbegin;
+    using TStringView::rend;
 
-    using TStringView::size;
-    using TStringView::empty;
     using TStringView::data;
+    using TStringView::empty;
+    using TStringView::size;
 
     using TStringView::operator[];
 
@@ -59,8 +57,8 @@ public:
      * while std::string_view throws std::out_of_range.
      */
     using TBase::at;
-    using TStringView::front;
     using TStringView::back;
+    using TStringView::front;
 
     using TStringView::find;
     /*
@@ -68,11 +66,11 @@ public:
      *      TBase::*find* methods take into account TCharTraits,
      *      while TTStringView::*find* would use default std::char_traits.
      */
-    using TBase::rfind;
-    using TBase::find_first_of;
     using TBase::find_first_not_of;
-    using TBase::find_last_of;
+    using TBase::find_first_of;
     using TBase::find_last_not_of;
+    using TBase::find_last_of;
+    using TBase::rfind;
 
     using TStringView::copy;
     /*
@@ -137,8 +135,7 @@ public:
     {
     }
 
-    constexpr inline TBasicStringBuf() noexcept
-    {
+    constexpr inline TBasicStringBuf() noexcept {
         /*
          * WARN:
          *  This ctor can not be defaulted due to the following feature of default initialization:
@@ -546,7 +543,7 @@ private:
     }
 };
 
-std::ostream& operator<< (std::ostream& os, TStringBuf buf);
+std::ostream& operator<<(std::ostream& os, TStringBuf buf);
 
 template <typename TCharType, size_t size>
 constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {

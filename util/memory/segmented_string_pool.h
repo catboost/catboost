@@ -19,7 +19,7 @@ class segmented_pool : TNonCopyable {
 protected:
     Alloc seg_allocator;
     struct seg_inf {
-        T* data;   // allocated chunk
+        T* data;        // allocated chunk
         size_t _size;   // size of allocated chunk in sizeof(T)-units
         size_t freepos; // offset to free chunk's memory in bytes
         seg_inf()

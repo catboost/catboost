@@ -7,10 +7,10 @@
 #include <util/system/sysstat.h>
 
 #if defined(_win_) || defined(_cygwin_)
-#include <util/system/file.h>
+    #include <util/system/file.h>
 #else
-#include <sys/un.h>
-#include <sys/stat.h>
+    #include <sys/un.h>
+    #include <sys/stat.h>
 #endif //_win_
 
 #include "init.h"
@@ -46,7 +46,7 @@ protected:
 };
 
 #if defined(_win_) || defined(_cygwin_)
-#define YAF_LOCAL AF_INET
+    #define YAF_LOCAL AF_INET
 struct TSockAddrLocal: public ISockAddr {
     TSockAddrLocal() {
         Clear();
@@ -142,7 +142,7 @@ struct TSockAddrLocal: public ISockAddr {
     char Path[PathSize];
 };
 #else
-#define YAF_LOCAL AF_LOCAL
+    #define YAF_LOCAL AF_LOCAL
 struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
     TSockAddrLocal() {
         Clear();

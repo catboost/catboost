@@ -276,11 +276,11 @@ protected:
     }
 };
 
-#define DECLARE_PARSER(CLASS)                             \
-    struct CLASS: public TDateTimeParserBaseDeprecated {  \
-        CLASS();                                          \
-        bool ParsePart(const char* input, size_t len);    \
-        TInstant GetResult(TInstant defaultValue) const;  \
+#define DECLARE_PARSER(CLASS)                            \
+    struct CLASS: public TDateTimeParserBaseDeprecated { \
+        CLASS();                                         \
+        bool ParsePart(const char* input, size_t len);   \
+        TInstant GetResult(TInstant defaultValue) const; \
     };
 
 DECLARE_PARSER(TIso8601DateTimeParserDeprecated)

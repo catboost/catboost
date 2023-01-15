@@ -114,7 +114,7 @@ public:
         return ptr;
     }
 
-    #ifndef __cpp_impl_three_way_comparison
+#ifndef __cpp_impl_three_way_comparison
     template <class C>
     inline bool operator==(const C& p) const noexcept {
         return (p == AsT());
@@ -124,7 +124,7 @@ public:
     inline bool operator!=(const C& p) const noexcept {
         return (p != AsT());
     }
-    #endif
+#endif
 
     inline explicit operator bool() const noexcept {
         return nullptr != AsT();
@@ -217,12 +217,12 @@ public:
         return T_;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_) {
@@ -332,12 +332,12 @@ public:
         return *this;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_) {
@@ -481,6 +481,7 @@ public:
 template <class T, class Ops>
 class TIntrusivePtr: public TPointerBase<TIntrusivePtr<T, Ops>, T> {
     friend class TIntrusiveConstPtr<T, Ops>;
+
 public:
     inline TIntrusivePtr(T* t = nullptr) noexcept
         : T_(t)
@@ -563,12 +564,12 @@ public:
         return T_ ? Ops::RefCount(T_) : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Ref() noexcept {
         if (T_) {
@@ -667,12 +668,12 @@ public:
         return T_ ? Ops::RefCount(T_) : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Ref() noexcept {
         if (T_ != nullptr) {
@@ -862,12 +863,12 @@ public:
         return C_ ? C_->Val() : 0;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     template <class X>
     inline void Init(X& t) {
@@ -1006,12 +1007,12 @@ public:
         return T_;
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void DoDestroy() noexcept {
         if (T_)
@@ -1070,12 +1071,12 @@ public:
         T_.Reset();
     }
 
-    #ifdef __cpp_impl_three_way_comparison
+#ifdef __cpp_impl_three_way_comparison
     template <class Other>
     inline bool operator==(const Other& p) const noexcept {
         return (p == Get());
     }
-    #endif
+#endif
 private:
     inline void Unshare() {
         if (Shared()) {

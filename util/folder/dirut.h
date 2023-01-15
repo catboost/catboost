@@ -12,29 +12,29 @@
 #include <cstdlib>
 
 #ifdef _win32_
-#include <util/system/winint.h>
-#include <direct.h>
-#include <malloc.h>
-#include <time.h>
-#include <io.h>
-#include "dirent_win.h"
+    #include <util/system/winint.h>
+    #include <direct.h>
+    #include <malloc.h>
+    #include <time.h>
+    #include <io.h>
+    #include "dirent_win.h"
 
 // these live in mktemp_system.cpp
 extern "C" int mkstemps(char* path, int slen);
 char* mkdtemp(char* path);
 
 #else
-#ifdef _sun_
-#include <alloca.h>
+    #ifdef _sun_
+        #include <alloca.h>
 
 char* mkdtemp(char* path);
-#endif
-#include <unistd.h>
-#include <pwd.h>
-#include <dirent.h>
-#ifndef DT_DIR
-#include <sys/stat.h>
-#endif
+    #endif
+    #include <unistd.h>
+    #include <pwd.h>
+    #include <dirent.h>
+    #ifndef DT_DIR
+        #include <sys/stat.h>
+    #endif
 #endif
 
 bool IsDir(const TString& path);

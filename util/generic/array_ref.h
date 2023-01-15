@@ -230,12 +230,11 @@ private:
  *
  * Named as its std counterparts, std::as_bytes.
  */
-template<typename T>
+template <typename T>
 TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef) noexcept {
     return TArrayRef<const char>(
         reinterpret_cast<const char*>(arrayRef.data()),
-        arrayRef.size_bytes()
-    );
+        arrayRef.size_bytes());
 }
 
 /**
@@ -243,12 +242,11 @@ TArrayRef<const char> as_bytes(TArrayRef<T> arrayRef) noexcept {
  *
  * Named as its std counterparts, std::as_writable_bytes.
  */
-template<typename T>
+template <typename T>
 TArrayRef<char> as_writable_bytes(TArrayRef<T> arrayRef) noexcept {
     return TArrayRef<char>(
         reinterpret_cast<char*>(arrayRef.data()),
-        arrayRef.size_bytes()
-    );
+        arrayRef.size_bytes());
 }
 
 template <class Range>

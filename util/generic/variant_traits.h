@@ -108,8 +108,7 @@ namespace NVariant {
     };
 
     template <class FRef, class VRef, size_t I = 0>
-    using TReturnType = decltype(
-        std::declval<FRef>()(TVariantAccessor::Get<I>(std::declval<VRef>())));
+    using TReturnType = decltype(std::declval<FRef>()(TVariantAccessor::Get<I>(std::declval<VRef>())));
 
     template <class FRef, class VRef, size_t... Is>
     constexpr bool CheckReturnTypes(std::index_sequence<Is...>) {
@@ -159,13 +158,15 @@ namespace NVariant {
     // Can be simplified with c++17: IGNIETFERRO-982
     template <class Ret, class F, class T, class U>
     std::enable_if_t<std::is_same<std::decay_t<T>, std::decay_t<U>>::value,
-    Ret> CallIfSame(F f, T&& a, U&& b) {
+                     Ret>
+    CallIfSame(F f, T&& a, U&& b) {
         return f(std::forward<T>(a), std::forward<U>(b));
     }
 
     template <class Ret, class F, class T, class U>
     std::enable_if_t<!std::is_same<std::decay_t<T>, std::decay_t<U>>::value,
-    Ret> CallIfSame(F, T&&, U&&) { // Will never be called
+                     Ret>
+    CallIfSame(F, T&&, U&&) { // Will never be called
         Y_FAIL();
     }
 }

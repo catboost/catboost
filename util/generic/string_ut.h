@@ -1172,4 +1172,3 @@ public:
         UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'e');
     }
 };
-

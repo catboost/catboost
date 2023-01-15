@@ -6,15 +6,15 @@ using TAtomicBase = intptr_t;
 using TAtomic = volatile TAtomicBase;
 
 #if defined(__GNUC__)
-#include "atomic_gcc.h"
+    #include "atomic_gcc.h"
 #elif defined(_MSC_VER)
-#include "atomic_win.h"
+    #include "atomic_win.h"
 #else
-#error unsupported platform
+    #error unsupported platform
 #endif
 
 #if !defined(ATOMIC_COMPILER_BARRIER)
-#define ATOMIC_COMPILER_BARRIER()
+    #define ATOMIC_COMPILER_BARRIER()
 #endif
 
 static inline TAtomicBase AtomicSub(TAtomic& a, TAtomicBase v) {

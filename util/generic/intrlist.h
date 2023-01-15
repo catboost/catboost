@@ -5,7 +5,7 @@
 #include <util/system/yassert.h>
 #include <iterator>
 
-struct TIntrusiveListDefaultTag { };
+struct TIntrusiveListDefaultTag {};
 
 /*
  * two-way linked list
@@ -27,7 +27,6 @@ public:
     }
 
 public:
-
     Y_PURE_FUNCTION
     inline bool Empty() const noexcept {
         return (Prev_ == this) && (Next_ == this);
