@@ -51,7 +51,7 @@ TConstArrayRef<ui8> TPrecomputedOnlineCtr::GetData(const TCtr& ctr, ui32 dataset
         ctr.PriorIdx
     };
 
-    const TQuantizedForCPUObjectsDataProvider& dataProvider
+    const TQuantizedObjectsDataProvider& dataProvider
         = (datasetIdx == 0) ? *(Data.DataProviders.Learn) : *(Data.DataProviders.Test[datasetIdx - 1]);
 
     const IQuantizedFloatValuesHolder& column

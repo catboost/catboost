@@ -260,7 +260,7 @@ namespace NCB {
         const TObjectsDataProvider& objectsData,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
-        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+        if (dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData)) {
             CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
         }
         CheckModelAndDatasetCompatibility(model, *objectsData.GetFeaturesLayout(), columnIndexesReorderMap);

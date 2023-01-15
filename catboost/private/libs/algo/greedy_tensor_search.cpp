@@ -142,7 +142,7 @@ inline static void MarkFeatureAsExcluded(
 static void AddFloatFeatures(
     bool isEstimated,
     bool isOnlineEstimated,
-    const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+    const TQuantizedObjectsDataProvider& learnObjectsData,
     TCandidateList* candList) {
 
     learnObjectsData.GetFeaturesLayout()->IterateOverAvailableFeatures<EFeatureType::Float>(
@@ -162,7 +162,7 @@ static void AddFloatFeatures(
 
 
 static void AddOneHotFeatures(
-    const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+    const TQuantizedObjectsDataProvider& learnObjectsData,
     TLearnContext* ctx,
     TCandidateList* candList) {
 
@@ -193,7 +193,7 @@ static void AddOneHotFeatures(
 static void CompressCandidates(
     bool isEstimated,
     bool isOnlineEstimated,
-    const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+    const TQuantizedObjectsDataProvider& learnObjectsData,
     TCandidatesContext* candidatesContext) {
 
     auto& candList = candidatesContext->CandidateList;
@@ -444,7 +444,7 @@ static void DropStatsForProjection(
 }
 
 static void AddSimpleCtrs(
-    const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+    const TQuantizedObjectsDataProvider& learnObjectsData,
     TFold* fold,
     TLearnContext* ctx,
     TBucketStatsCache* statsFromPrevTree,
@@ -478,7 +478,7 @@ static void AddSimpleCtrs(
 }
 
 static void AddTreeCtrs(
-    const TQuantizedForCPUObjectsDataProvider& learnObjectsData,
+    const TQuantizedObjectsDataProvider& learnObjectsData,
     const TSplitTree& currentTree,
     TFold* fold,
     TLearnContext* ctx,

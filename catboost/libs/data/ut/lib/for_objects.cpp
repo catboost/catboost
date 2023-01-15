@@ -43,14 +43,6 @@ namespace NCB {
                 );
             }
         );
-    }
-
-    void Compare(
-        const TQuantizedForCPUObjectsDataProvider& lhs,
-        const TQuantizedForCPUObjectsDataProvider& rhs
-    ) {
-        Compare((const TQuantizedObjectsDataProvider&)lhs, (const TQuantizedObjectsDataProvider&)rhs);
-
         lhs.GetFeaturesLayout()-> IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&] (TCatFeatureIdx catFeatureIdx) {
                 UNIT_ASSERT_EQUAL(

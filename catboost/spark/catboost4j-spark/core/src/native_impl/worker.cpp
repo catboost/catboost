@@ -82,7 +82,7 @@ void CreateTrainingDataForWorker(
                 precomputedOnlineCtrMetaDataAsJsonString
               );
         localData.PrecomputedSingleOnlineCtrDataForSingleFold->DataProviders.Learn
-            = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+            = dynamic_cast<TQuantizedObjectsDataProvider*>(
                 trainEstimatedDataProvider->ObjectsData.Get()
               );
         CB_ENSURE_INTERNAL(

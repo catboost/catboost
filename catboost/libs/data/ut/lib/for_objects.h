@@ -76,11 +76,6 @@ namespace NCB {
 
     void Compare(const TQuantizedObjectsDataProvider& lhs, const TQuantizedObjectsDataProvider& rhs);
 
-    void Compare(
-        const TQuantizedForCPUObjectsDataProvider& lhs,
-        const TQuantizedForCPUObjectsDataProvider& rhs
-    );
-
     }
 
 }

@@ -1467,7 +1467,7 @@ namespace NCB {
 
             Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount, 0);
-            Data.ObjectsData.Data.PrepareForInitialization(
+            Data.ObjectsData.PrepareForInitialization(
                 metaInfo,
 
                 // TODO(akhropov): get from quantized pool meta info when it will be available: MLTOOLS-2392.
@@ -1483,7 +1483,7 @@ namespace NCB {
 
             FillQuantizedFeaturesInfo(
                 poolQuantizationSchema,
-                Data.ObjectsData.Data.QuantizedFeaturesInfo.Get()
+                Data.ObjectsData.QuantizedFeaturesInfo.Get()
             );
 
             Data.ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
@@ -1493,7 +1493,7 @@ namespace NCB {
 
             Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *metaInfo.FeaturesLayout,
-                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                *Data.ObjectsData.QuantizedFeaturesInfo,
                 Data.ObjectsData.ExclusiveFeatureBundlesData,
                 /*dontPack*/ Options.GpuDistributedFormat
             );
@@ -1512,7 +1512,7 @@ namespace NCB {
                 FloatFeaturesStorage.PrepareForInitialization(
                     *metaInfo.FeaturesLayout,
                     objectCount,
-                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                    Data.ObjectsData.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
                     Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
                     wholeColumns
@@ -1520,7 +1520,7 @@ namespace NCB {
                 CategoricalFeaturesStorage.PrepareForInitialization(
                     *metaInfo.FeaturesLayout,
                     objectCount,
-                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
+                    Data.ObjectsData.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
                     Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
                     wholeColumns
@@ -1720,7 +1720,7 @@ namespace NCB {
                     *Data.MetaInfo.FeaturesLayout,
                     Data.CommonObjectsData.SubsetIndexing.Get(),
                     Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.Data.FloatFeatures
+                    &Data.ObjectsData.FloatFeatures
                 );
 
                 CategoricalFeaturesStorage.GetResult(
@@ -1728,13 +1728,13 @@ namespace NCB {
                     *Data.MetaInfo.FeaturesLayout,
                     Data.CommonObjectsData.SubsetIndexing.Get(),
                     Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.Data.CatFeatures
+                    &Data.ObjectsData.CatFeatures
                 );
             }
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 // without HasFeatures dataprovider self-test fails on distributed train
@@ -1774,7 +1774,7 @@ namespace NCB {
             GetBinaryFeaturesDataResult();
         }
 
-        TQuantizedForCPUBuilderData& GetDataRef() {
+        TQuantizedBuilderData& GetDataRef() {
             return Data;
         }
 
@@ -2232,10 +2232,7 @@ namespace NCB {
     private:
         ui32 ObjectCount;
 
-        /* ForCPU because TQuantizedForCPUObjectsData is more generic than TQuantizedObjectsData -
-         * it contains it as a subset
-         */
-        TQuantizedForCPUBuilderData Data;
+        TQuantizedBuilderData Data;
 
         TVector<TString> StringClassLabels; // if poolQuantizationSchema.ClassLabels has Strings
         TVector<float> FloatClassLabels;    // if poolQuantizationSchema.ClassLabels has Integer or Float
@@ -2286,7 +2283,7 @@ namespace NCB {
             const auto& featuresLayout = *dataRef.MetaInfo.FeaturesLayout;
 
             CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical Lazy columns are not supported");
-            dataRef.ObjectsData.Data.CatFeatures.clear();
+            dataRef.ObjectsData.CatFeatures.clear();
 
             const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(EFeatureType::Float);
 
@@ -2296,7 +2293,7 @@ namespace NCB {
             const auto& isAvailable = MakeIsAvailable<EFeatureType::Float>(featuresLayout);
 
             TVector<THolder<IQuantizedFloatValuesHolder>>& lazyQuantizedColumns =
-                dataRef.ObjectsData.Data.FloatFeatures;
+                dataRef.ObjectsData.FloatFeatures;
             lazyQuantizedColumns.clear();
             lazyQuantizedColumns.reserve(featureCount);
             for (auto perTypeFeatureIdx : xrange(featureCount)) {
@@ -2316,7 +2313,7 @@ namespace NCB {
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(dataRef),
                 Options.SkipCheck,

@@ -25,16 +25,16 @@ namespace NCB {
             i64 GetObjectCount() const {
                 return (*self)->GetObjectCount();
             }
-            
+
             NCB::TQuantizedObjectsDataProviderPtr GetQuantizedObjectsDataProvider() const throw(yexception) {
                 auto* quantizedObjectsDataProvider
-                    = dynamic_cast<NCB::TQuantizedForCPUObjectsDataProvider*>((*self)->ObjectsData.Get());
+                    = dynamic_cast<NCB::TQuantizedObjectsDataProvider*>((*self)->ObjectsData.Get());
                 CB_ENSURE_INTERNAL(quantizedObjectsDataProvider, "Features data is not quantized");
                 return NCB::TQuantizedObjectsDataProviderPtr(quantizedObjectsDataProvider);
             }
         }
     };
-    
+
     class TEstimatedForCPUObjectsDataProviders {
     public:
         NCB::TQuantizedObjectsDataProviderPtr Learn; // can be nullptr
