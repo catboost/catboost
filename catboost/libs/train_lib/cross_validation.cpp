@@ -40,19 +40,21 @@
 using namespace NCB;
 
 
-TVector<TArraySubsetIndexing<ui32>> CalcTrainSubsets(
+TVector<TArraySubsetIndexing<ui32>> CalcTrainSubsetsRange(
     const TVector<TArraySubsetIndexing<ui32>>& testSubsets,
-    ui32 groupCount
+    ui32 groupCount,
+    const TIndexRange<ui32>& trainSubsetsRange
 ) {
 
+    CB_ENSURE_INTERNAL(trainSubsetsRange.End <= testSubsets.size(), "Too many train subsets are requested");
     TVector<TVector<ui32>> trainSubsetIndices(testSubsets.size());
-    for (ui32 fold = 0; fold < testSubsets.size(); ++fold) {
+    for (ui32 fold : trainSubsetsRange.Iter()) {
         trainSubsetIndices[fold].reserve(groupCount - testSubsets[fold].Size());
     }
     for (ui32 testFold = 0; testFold < testSubsets.size(); ++testFold) {
         testSubsets[testFold].ForEach(
             [&](ui32 /*idx*/, ui32 srcIdx) {
-                for (ui32 fold = 0; fold < trainSubsetIndices.size(); ++fold) {
+                for (ui32 fold : trainSubsetsRange.Iter()) {
                     if (testFold == fold) {
                         continue;
                     }
@@ -68,6 +70,13 @@ TVector<TArraySubsetIndexing<ui32>> CalcTrainSubsets(
     }
 
     return result;
+}
+
+TVector<TArraySubsetIndexing<ui32>> CalcTrainSubsets(
+    const TVector<TArraySubsetIndexing<ui32>>& testSubsets,
+    ui32 groupCount
+) {
+    return CalcTrainSubsetsRange(testSubsets, groupCount, TIndexRange<ui32>(testSubsets.size()));
 }
 
 static double ComputeStdDev(const TVector<double>& values, double avg) {

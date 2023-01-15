@@ -61,6 +61,11 @@ TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsets(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     ui32 groupCount);
 
+TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsetsRange(
+    const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
+    ui32 groupCount,
+    const NCB::TIndexRange<ui32>& trainSubsetsRange);
+
 TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(const TVector<TVector<ui32>>& vectorData);
 
 TVector<NCB::TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
