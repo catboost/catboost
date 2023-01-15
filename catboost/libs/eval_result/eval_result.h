@@ -49,6 +49,18 @@ namespace NCB {
         const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo = {}
     );
 
+    TVector<THolder<IColumnPrinter>> InitializeColumnWriter(
+        const TEvalResult& evalResult,
+        NPar::ILocalExecutor* executor,
+        const TVector<TString>& outputColumns,
+        const TString& lossFunctionName,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        const TDataProvider& pool,
+        TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter,
+        std::pair<int, int> testFileWhichOf,
+        ui64 docIdOffset,
+        TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
+
     void OutputEvalResultToFile(
         const TEvalResult& evalResult,
         NPar::ILocalExecutor* executor,
