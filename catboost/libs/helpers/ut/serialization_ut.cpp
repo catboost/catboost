@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(BinSaverSerialization) {
             object.SharedInt = MakeAtomicShared<int>(42);
 
             TBufferOutput out(buffer);
-            SerializeToStream(out, object);
+            SerializeToArcadiaStream(out, object);
         }
 
         {
@@ -139,7 +139,7 @@ Y_UNIT_TEST_SUITE(BinSaverSerialization) {
             object.HolderString = MakeHolder<TString>("Sample");
 
             TBufferOutput out(buffer);
-            SerializeToStream(out, object);
+            SerializeToArcadiaStream(out, object);
         }
 
         {

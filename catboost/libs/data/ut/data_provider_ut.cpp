@@ -293,7 +293,7 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
         {
             TBufferOutput out(buffer);
-            SerializeToStream(out, trainingDataProvider);
+            SerializeToArcadiaStream(out, trainingDataProvider);
         }
 
         TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;

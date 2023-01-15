@@ -22,7 +22,7 @@ TProtoStringType InitializationErrorMessage(const char* action, const MessageLit
 namespace google::protobuf::internal {
 
     IOutputStream& operator <<(IOutputStream& output, const internal::TAsBinary& wrappedMessage) {
-        bool success = wrappedMessage.Message_.SerializeToStream(&output);
+        bool success = wrappedMessage.Message_.SerializeToArcadiaStream(&output);
         if (Y_UNLIKELY(!success)) {
             ythrow yexception() << "Cannot serialize a protobuf with AsBinary() (required fields missing?)";
         }
