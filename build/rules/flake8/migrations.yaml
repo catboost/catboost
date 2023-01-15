@@ -1497,12 +1497,6 @@ migrations:
     - ads/libs/py_dssm_lib/dssm_applier
     - ads/libs/py_ml_factors/matrixnet
     - ads/libs/py_vw_lib
-    - ads/logos/client
-    - ads/logos/libs/cpp_client/ut/binding
-    - ads/logos/tasks/build_stat_bmcategory_ancestor
-    - ads/logos/tasks/build_stat_bmcategory_traffic
-    - ads/logos/tasks/prgg_stats_result
-    - ads/logos/tools/mkdocs/plugin
     - ads/nirvana/automl/pipelines/offline_pytorch/full_example
     - ads/nirvana/gensim_w2v
     - ads/nirvana/mappers/w2v_recommender
@@ -2011,8 +2005,6 @@ migrations:
     - ads/libs/py_nirvana_api
     - ads/libs/py_yaml_loader
     - ads/libs/yql_flow
-    - ads/logos/tasks/tsar_pytorch_log/ut/lib
-    - ads/logos/viewy/yagraph/Backend
     - ads/nirvana/automl/pipelines/offline_pytorch
     - ads/nirvana/yabs_nirvana.py
     - ads/nirvana/mr_operations/mr_do_aggregate
@@ -4324,8 +4316,6 @@ migrations:
     - ads/factor_check/features/tests
     - ads/libs/py_ml_factors/mt/baseline_model
     - ads/libs/py_ml_factors/mt/rsya_factors
-    - ads/logos/tasks/build_stat_domain_ctr_apc_cost/mt
-    - ads/logos/tasks/mediation_mxfeatures_log/mt
     - quality/user_sessions/createlib/qb3/parser/local_yt_test_example_proto_v2
     - quality/user_sessions/createlib/qb3/tests/create
     - billing/agency_rewards/tests_platform
@@ -4384,8 +4374,6 @@ migrations:
     - ads/nirvana/automl/lib/preprocess_pytorch/medium_ut
     - ads/nirvana/automl/lib/metric_eval/medium_ut
     - ads/nirvana/automl/lib/joiner/medium_ut
-    - ads/logos/tasks/tsar_pytorch_log/ut
-    - ads/logos/libs/cpp_client/ut
     - ads/libs/py_ml_factors/ut/preprocessors
     - ads/libs/py_ml_factors/ut/matrixnet
     - ads/libs/py_lmcompute/ut
