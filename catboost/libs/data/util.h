@@ -23,7 +23,7 @@ namespace NCB {
         T expectedSize,
         const TStringBuf dataName,
         bool dataCanBeEmpty = false,
-        const TStringBuf expectedSizeName = AsStringBuf("object count"),
+        const TStringBuf expectedSizeName = "object count",
         bool internalCheck = false
     ) {
         CB_ENSURE(
