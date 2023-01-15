@@ -949,7 +949,7 @@ private[spark] object DataHelpers {
       }
     }
     val estimatedFeatureCount
-      = if (includeEstimatedFeatures && pool.data.schema.names.contains("_estimatedFeatures")) {
+      = if (includeEstimatedFeatures && pool.data.schema.fieldNames.contains("_estimatedFeatures")) {
           columnsList += "_estimatedFeatures"
           columnTypesMap.update("_estimatedFeatures", i)
           Some(pool.getEstimatedFeatureCount)
