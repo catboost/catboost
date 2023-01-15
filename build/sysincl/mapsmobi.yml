@@ -8,6 +8,9 @@
   - QtCore/QCoreApplication
   - QtCore/QDateTime
   - QtCore/QEvent
+  - QtCore/QJsonArray
+  - QtCore/QJsonDocument
+  - QtCore/QJsonObject
   - QtCore/QLocale
   - QtCore/QObject
   - QtCore/QPointer
