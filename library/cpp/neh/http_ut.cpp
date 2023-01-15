@@ -16,6 +16,7 @@
 #include <util/stream/str.h>
 #include <util/string/builder.h>
 #include <util/system/platform.h>
+#include <util/generic/scope.h>
 
 using namespace NNeh;
 
@@ -25,15 +26,24 @@ Y_UNIT_TEST_SUITE(NehHttp) {
      */
     class TRequestServer {
     public:
-        void ServeRequest(const IRequestRef& req) {
+        TRequestServer(std::function<void(const IRequestRef&)> f = [](const IRequestRef& req) {
             TDataSaver responseData;
             Sleep(TDuration::MilliSeconds(FromString<int>(req->Data())));
             responseData << req->Data();
             auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
             TString headers = "\r\nContent-Type: text/plain";
             httpReq->SendReply(responseData, headers);
+        })
+            : F_(f)
+        {
+        }
+
+        void ServeRequest(const IRequestRef& req) {
+            F_(req);
             // Cerr << "SendReply:" << req->Data() << Endl;
         }
+    private:
+        std::function<void(const IRequestRef&)> F_;
     };
 
     /**
@@ -49,7 +59,16 @@ Y_UNIT_TEST_SUITE(NehHttp) {
 
         @return ptr to IServices, port and error if occured. Tests failes if server could not be created.
      */
-    TServ CreateServices() {
+    TServ CreateServices(const TServiceFunction& f =
+        [](const IRequestRef& req) {
+            TDataSaver responseData;
+            Sleep(TDuration::MilliSeconds(FromString<int>(req->Data())));
+            responseData << req->Data();
+            auto* httpReq = dynamic_cast<IHttpRequest*>(req.Get());
+            TString headers = "\r\nContent-Type: text/plain";
+            httpReq->SendReply(responseData, headers);
+        }
+    ) {
         TServ serv;
         TString err;
 
@@ -60,8 +79,8 @@ Y_UNIT_TEST_SUITE(NehHttp) {
                 serv.ServerPort = basePort;
                 TStringStream addr;
                 addr << "http://localhost:" << serv.ServerPort << "/pipeline";
-                TRequestServer requestServer;
-                serv.Services->Add(addr.Str(), requestServer);
+
+                serv.Services->Add(addr.Str(), f);
                 serv.Services->ForkLoop(16); //<< throw exception, if can not bind port
                 break;
             } catch (...) {
@@ -327,6 +346,51 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             TVector<char> buffer(1024, '\0');
             const ssize_t nRecv = recv(s, &buffer[0], buffer.size(), 0);
             UNIT_ASSERT_C(nRecv == 0, "socket is still readable.");
+        }
+    }
+
+    Y_UNIT_TEST(TTestAnyResponseIsNotError) {
+        auto f = [](const IRequestRef&) {
+            throw yexception() << "error";
+        };
+
+        NNeh::THttp2Options::AnyResponseIsNotError = false;
+
+        Y_DEFER {
+            NNeh::THttp2Options::AnyResponseIsNotError = false;
+        };
+
+        {
+            TServ serv = CreateServices(f);
+
+            NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://localhost:" << serv.ServerPort << "/yandsearch?", nullptr);
+            auto resp = handle->Wait();
+            UNIT_ASSERT(resp);
+            UNIT_ASSERT(resp->IsError());
+        }
+
+        {
+            NNeh::THttp2Options::AnyResponseIsNotError = true;
+
+            TServ serv = CreateServices(f);
+
+            NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://localhost:" << serv.ServerPort << "/yandsearch?", nullptr);
+            auto resp = handle->Wait();
+            UNIT_ASSERT(resp);
+            UNIT_ASSERT(!resp->IsError());
+            UNIT_ASSERT_STRING_CONTAINS(resp->FirstLine, "404 Not found");
+        }
+
+        {
+            NNeh::THttp2Options::AnyResponseIsNotError = true;
+
+            TServ serv = CreateServices(f);
+
+            NNeh::THandleRef handle = NNeh::Request(TStringBuilder() << "http://localhost:" << serv.ServerPort << "/pipeline?", nullptr);
+            auto resp = handle->Wait();
+            UNIT_ASSERT(resp);
+            UNIT_ASSERT(!resp->IsError());
+            UNIT_ASSERT_STRING_CONTAINS(resp->FirstLine, "HTTP/1.1 503 service unavailable");
         }
     }
 }

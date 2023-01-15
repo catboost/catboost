@@ -80,6 +80,9 @@ namespace NNeh {
         //consider responses with 3xx code as successful
         static bool RedirectionNotError;
 
+        //consider response with any code as successful
+        static bool AnyResponseIsNotError;
+
         //enable tcp keepalive for outgoing requests sockets
         static bool TcpKeepAlive;
 
