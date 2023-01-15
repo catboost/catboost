@@ -1,0 +1,1191 @@
+OPTION	DOTNAME
+.text$	SEGMENT ALIGN(256) 'CODE'
+PUBLIC	padlock_capability
+
+ALIGN	16
+padlock_capability	PROC PUBLIC
+	mov	r8,rbx
+	xor	eax,eax
+	cpuid
+	xor	eax,eax
+	cmp	ebx,0746e6543h
+	jne	$L$zhaoxin
+	cmp	edx,048727561h
+	jne	$L$noluck
+	cmp	ecx,0736c7561h
+	jne	$L$noluck
+	jmp	$L$zhaoxinEnd
+$L$zhaoxin::
+	cmp	ebx,068532020h
+	jne	$L$noluck
+	cmp	edx,068676e61h
+	jne	$L$noluck
+	cmp	ecx,020206961h
+	jne	$L$noluck
+$L$zhaoxinEnd::
+	mov	eax,0C0000000h
+	cpuid
+	mov	edx,eax
+	xor	eax,eax
+	cmp	edx,0C0000001h
+	jb	$L$noluck
+	mov	eax,0C0000001h
+	cpuid
+	mov	eax,edx
+	and	eax,0ffffffefh
+	or	eax,010h
+$L$noluck::
+	mov	rbx,r8
+	DB	0F3h,0C3h		;repret
+padlock_capability	ENDP
+
+PUBLIC	padlock_key_bswap
+
+ALIGN	16
+padlock_key_bswap	PROC PUBLIC
+	mov	edx,DWORD PTR[240+rcx]
+$L$bswap_loop::
+	mov	eax,DWORD PTR[rcx]
+	bswap	eax
+	mov	DWORD PTR[rcx],eax
+	lea	rcx,QWORD PTR[4+rcx]
+	sub	edx,1
+	jnz	$L$bswap_loop
+	DB	0F3h,0C3h		;repret
+padlock_key_bswap	ENDP
+
+PUBLIC	padlock_verify_context
+
+ALIGN	16
+padlock_verify_context	PROC PUBLIC
+	mov	rdx,rcx
+	pushf
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	call	_padlock_verify_ctx
+	lea	rsp,QWORD PTR[8+rsp]
+	DB	0F3h,0C3h		;repret
+padlock_verify_context	ENDP
+
+
+ALIGN	16
+_padlock_verify_ctx	PROC PRIVATE
+	mov	r8,QWORD PTR[8+rsp]
+	bt	r8,30
+	jnc	$L$verified
+	cmp	rdx,QWORD PTR[rax]
+	je	$L$verified
+	pushf
+	popf
+$L$verified::
+	mov	QWORD PTR[rax],rdx
+	DB	0F3h,0C3h		;repret
+_padlock_verify_ctx	ENDP
+
+PUBLIC	padlock_reload_key
+
+ALIGN	16
+padlock_reload_key	PROC PUBLIC
+	pushf
+	popf
+	DB	0F3h,0C3h		;repret
+padlock_reload_key	ENDP
+
+PUBLIC	padlock_aes_block
+
+ALIGN	16
+padlock_aes_block	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_aes_block::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	r8,rbx
+	mov	rcx,1
+	lea	rbx,QWORD PTR[32+rdx]
+	lea	rdx,QWORD PTR[16+rdx]
+DB	0f3h,00fh,0a7h,0c8h
+	mov	rbx,r8
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_aes_block::
+padlock_aes_block	ENDP
+
+PUBLIC	padlock_xstore
+
+ALIGN	16
+padlock_xstore	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_xstore::
+	mov	rdi,rcx
+	mov	rsi,rdx
+
+
+	mov	edx,esi
+DB	00fh,0a7h,0c0h
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_xstore::
+padlock_xstore	ENDP
+
+PUBLIC	padlock_sha1_oneshot
+
+ALIGN	16
+padlock_sha1_oneshot	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_sha1_oneshot::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	rcx,rdx
+	mov	rdx,rdi
+	movups	xmm0,XMMWORD PTR[rdi]
+	sub	rsp,128+8
+	mov	eax,DWORD PTR[16+rdi]
+	movaps	XMMWORD PTR[rsp],xmm0
+	mov	rdi,rsp
+	mov	DWORD PTR[16+rsp],eax
+	xor	rax,rax
+DB	0f3h,00fh,0a6h,0c8h
+	movaps	xmm0,XMMWORD PTR[rsp]
+	mov	eax,DWORD PTR[16+rsp]
+	add	rsp,128+8
+	movups	XMMWORD PTR[rdx],xmm0
+	mov	DWORD PTR[16+rdx],eax
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_sha1_oneshot::
+padlock_sha1_oneshot	ENDP
+
+PUBLIC	padlock_sha1_blocks
+
+ALIGN	16
+padlock_sha1_blocks	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_sha1_blocks::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	rcx,rdx
+	mov	rdx,rdi
+	movups	xmm0,XMMWORD PTR[rdi]
+	sub	rsp,128+8
+	mov	eax,DWORD PTR[16+rdi]
+	movaps	XMMWORD PTR[rsp],xmm0
+	mov	rdi,rsp
+	mov	DWORD PTR[16+rsp],eax
+	mov	rax,-1
+DB	0f3h,00fh,0a6h,0c8h
+	movaps	xmm0,XMMWORD PTR[rsp]
+	mov	eax,DWORD PTR[16+rsp]
+	add	rsp,128+8
+	movups	XMMWORD PTR[rdx],xmm0
+	mov	DWORD PTR[16+rdx],eax
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_sha1_blocks::
+padlock_sha1_blocks	ENDP
+
+PUBLIC	padlock_sha256_oneshot
+
+ALIGN	16
+padlock_sha256_oneshot	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_sha256_oneshot::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	rcx,rdx
+	mov	rdx,rdi
+	movups	xmm0,XMMWORD PTR[rdi]
+	sub	rsp,128+8
+	movups	xmm1,XMMWORD PTR[16+rdi]
+	movaps	XMMWORD PTR[rsp],xmm0
+	mov	rdi,rsp
+	movaps	XMMWORD PTR[16+rsp],xmm1
+	xor	rax,rax
+DB	0f3h,00fh,0a6h,0d0h
+	movaps	xmm0,XMMWORD PTR[rsp]
+	movaps	xmm1,XMMWORD PTR[16+rsp]
+	add	rsp,128+8
+	movups	XMMWORD PTR[rdx],xmm0
+	movups	XMMWORD PTR[16+rdx],xmm1
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_sha256_oneshot::
+padlock_sha256_oneshot	ENDP
+
+PUBLIC	padlock_sha256_blocks
+
+ALIGN	16
+padlock_sha256_blocks	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_sha256_blocks::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	rcx,rdx
+	mov	rdx,rdi
+	movups	xmm0,XMMWORD PTR[rdi]
+	sub	rsp,128+8
+	movups	xmm1,XMMWORD PTR[16+rdi]
+	movaps	XMMWORD PTR[rsp],xmm0
+	mov	rdi,rsp
+	movaps	XMMWORD PTR[16+rsp],xmm1
+	mov	rax,-1
+DB	0f3h,00fh,0a6h,0d0h
+	movaps	xmm0,XMMWORD PTR[rsp]
+	movaps	xmm1,XMMWORD PTR[16+rsp]
+	add	rsp,128+8
+	movups	XMMWORD PTR[rdx],xmm0
+	movups	XMMWORD PTR[16+rdx],xmm1
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_sha256_blocks::
+padlock_sha256_blocks	ENDP
+
+PUBLIC	padlock_sha512_blocks
+
+ALIGN	16
+padlock_sha512_blocks	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_sha512_blocks::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+
+
+	mov	rcx,rdx
+	mov	rdx,rdi
+	movups	xmm0,XMMWORD PTR[rdi]
+	sub	rsp,128+8
+	movups	xmm1,XMMWORD PTR[16+rdi]
+	movups	xmm2,XMMWORD PTR[32+rdi]
+	movups	xmm3,XMMWORD PTR[48+rdi]
+	movaps	XMMWORD PTR[rsp],xmm0
+	mov	rdi,rsp
+	movaps	XMMWORD PTR[16+rsp],xmm1
+	movaps	XMMWORD PTR[32+rsp],xmm2
+	movaps	XMMWORD PTR[48+rsp],xmm3
+DB	0f3h,00fh,0a6h,0e0h
+	movaps	xmm0,XMMWORD PTR[rsp]
+	movaps	xmm1,XMMWORD PTR[16+rsp]
+	movaps	xmm2,XMMWORD PTR[32+rsp]
+	movaps	xmm3,XMMWORD PTR[48+rsp]
+	add	rsp,128+8
+	movups	XMMWORD PTR[rdx],xmm0
+	movups	XMMWORD PTR[16+rdx],xmm1
+	movups	XMMWORD PTR[32+rdx],xmm2
+	movups	XMMWORD PTR[48+rdx],xmm3
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_sha512_blocks::
+padlock_sha512_blocks	ENDP
+PUBLIC	padlock_ecb_encrypt
+
+ALIGN	16
+padlock_ecb_encrypt	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_ecb_encrypt::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+	push	rbp
+	push	rbx
+
+	xor	eax,eax
+	test	rdx,15
+	jnz	$L$ecb_abort
+	test	rcx,15
+	jnz	$L$ecb_abort
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	pushf
+	cld
+	call	_padlock_verify_ctx
+	lea	rdx,QWORD PTR[16+rdx]
+	xor	eax,eax
+	xor	ebx,ebx
+	test	DWORD PTR[rdx],32
+	jnz	$L$ecb_aligned
+	test	rdi,00fh
+	setz	al
+	test	rsi,00fh
+	setz	bl
+	test	eax,ebx
+	jnz	$L$ecb_aligned
+	neg	rax
+	mov	rbx,512
+	not	rax
+	lea	rbp,QWORD PTR[rsp]
+	cmp	rcx,rbx
+	cmovc	rbx,rcx
+	and	rax,rbx
+	mov	rbx,rcx
+	neg	rax
+	and	rbx,512-1
+	lea	rsp,QWORD PTR[rbp*1+rax]
+	mov	rax,512
+	cmovz	rbx,rax
+	cmp	rcx,rbx
+	ja	$L$ecb_loop
+	mov	rax,rsi
+	cmp	rbp,rsp
+	cmove	rax,rdi
+	add	rax,rcx
+	neg	rax
+	and	rax,0fffh
+	cmp	rax,128
+	mov	rax,-128
+	cmovae	rax,rbx
+	and	rbx,rax
+	jz	$L$ecb_unaligned_tail
+	jmp	$L$ecb_loop
+ALIGN	16
+$L$ecb_loop::
+	cmp	rbx,rcx
+	cmova	rbx,rcx
+	mov	r8,rdi
+	mov	r9,rsi
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+	test	rdi,00fh
+	cmovnz	rdi,rsp
+	test	rsi,00fh
+	jz	$L$ecb_inp_aligned
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+	mov	rcx,rbx
+	mov	rsi,rdi
+$L$ecb_inp_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,200
+	mov	rdi,r8
+	mov	rbx,r11
+	test	rdi,00fh
+	jz	$L$ecb_out_aligned
+	mov	rcx,rbx
+	lea	rsi,QWORD PTR[rsp]
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+$L$ecb_out_aligned::
+	mov	rsi,r9
+	mov	rcx,r10
+	add	rdi,rbx
+	add	rsi,rbx
+	sub	rcx,rbx
+	mov	rbx,512
+	jz	$L$ecb_break
+	cmp	rcx,rbx
+	jae	$L$ecb_loop
+$L$ecb_unaligned_tail::
+	xor	eax,eax
+	cmp	rbp,rsp
+	cmove	rax,rcx
+	mov	r8,rdi
+	mov	rbx,rcx
+	sub	rsp,rax
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	mov	rsi,rsp
+	mov	rdi,r8
+	mov	rcx,rbx
+	jmp	$L$ecb_loop
+ALIGN	16
+$L$ecb_break::
+	cmp	rsp,rbp
+	je	$L$ecb_done
+
+	pxor	xmm0,xmm0
+	lea	rax,QWORD PTR[rsp]
+$L$ecb_bzero::
+	movaps	XMMWORD PTR[rax],xmm0
+	lea	rax,QWORD PTR[16+rax]
+	cmp	rbp,rax
+	ja	$L$ecb_bzero
+
+$L$ecb_done::
+	lea	rsp,QWORD PTR[rbp]
+	jmp	$L$ecb_exit
+
+ALIGN	16
+$L$ecb_aligned::
+	lea	rbp,QWORD PTR[rcx*1+rsi]
+	neg	rbp
+	and	rbp,0fffh
+	xor	eax,eax
+	cmp	rbp,128
+	mov	rbp,128-1
+	cmovae	rbp,rax
+	and	rbp,rcx
+	sub	rcx,rbp
+	jz	$L$ecb_aligned_tail
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,200
+	test	rbp,rbp
+	jz	$L$ecb_exit
+
+$L$ecb_aligned_tail::
+	mov	r8,rdi
+	mov	rbx,rbp
+	mov	rcx,rbp
+	lea	rbp,QWORD PTR[rsp]
+	sub	rsp,rcx
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	lea	rdi,QWORD PTR[r8]
+	lea	rsi,QWORD PTR[rsp]
+	mov	rcx,rbx
+	jmp	$L$ecb_loop
+$L$ecb_exit::
+	mov	eax,1
+	lea	rsp,QWORD PTR[8+rsp]
+$L$ecb_abort::
+	pop	rbx
+	pop	rbp
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_ecb_encrypt::
+padlock_ecb_encrypt	ENDP
+PUBLIC	padlock_cbc_encrypt
+
+ALIGN	16
+padlock_cbc_encrypt	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_cbc_encrypt::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+	push	rbp
+	push	rbx
+
+	xor	eax,eax
+	test	rdx,15
+	jnz	$L$cbc_abort
+	test	rcx,15
+	jnz	$L$cbc_abort
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	pushf
+	cld
+	call	_padlock_verify_ctx
+	lea	rdx,QWORD PTR[16+rdx]
+	xor	eax,eax
+	xor	ebx,ebx
+	test	DWORD PTR[rdx],32
+	jnz	$L$cbc_aligned
+	test	rdi,00fh
+	setz	al
+	test	rsi,00fh
+	setz	bl
+	test	eax,ebx
+	jnz	$L$cbc_aligned
+	neg	rax
+	mov	rbx,512
+	not	rax
+	lea	rbp,QWORD PTR[rsp]
+	cmp	rcx,rbx
+	cmovc	rbx,rcx
+	and	rax,rbx
+	mov	rbx,rcx
+	neg	rax
+	and	rbx,512-1
+	lea	rsp,QWORD PTR[rbp*1+rax]
+	mov	rax,512
+	cmovz	rbx,rax
+	cmp	rcx,rbx
+	ja	$L$cbc_loop
+	mov	rax,rsi
+	cmp	rbp,rsp
+	cmove	rax,rdi
+	add	rax,rcx
+	neg	rax
+	and	rax,0fffh
+	cmp	rax,64
+	mov	rax,-64
+	cmovae	rax,rbx
+	and	rbx,rax
+	jz	$L$cbc_unaligned_tail
+	jmp	$L$cbc_loop
+ALIGN	16
+$L$cbc_loop::
+	cmp	rbx,rcx
+	cmova	rbx,rcx
+	mov	r8,rdi
+	mov	r9,rsi
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+	test	rdi,00fh
+	cmovnz	rdi,rsp
+	test	rsi,00fh
+	jz	$L$cbc_inp_aligned
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+	mov	rcx,rbx
+	mov	rsi,rdi
+$L$cbc_inp_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,208
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+	mov	rdi,r8
+	mov	rbx,r11
+	test	rdi,00fh
+	jz	$L$cbc_out_aligned
+	mov	rcx,rbx
+	lea	rsi,QWORD PTR[rsp]
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+$L$cbc_out_aligned::
+	mov	rsi,r9
+	mov	rcx,r10
+	add	rdi,rbx
+	add	rsi,rbx
+	sub	rcx,rbx
+	mov	rbx,512
+	jz	$L$cbc_break
+	cmp	rcx,rbx
+	jae	$L$cbc_loop
+$L$cbc_unaligned_tail::
+	xor	eax,eax
+	cmp	rbp,rsp
+	cmove	rax,rcx
+	mov	r8,rdi
+	mov	rbx,rcx
+	sub	rsp,rax
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	mov	rsi,rsp
+	mov	rdi,r8
+	mov	rcx,rbx
+	jmp	$L$cbc_loop
+ALIGN	16
+$L$cbc_break::
+	cmp	rsp,rbp
+	je	$L$cbc_done
+
+	pxor	xmm0,xmm0
+	lea	rax,QWORD PTR[rsp]
+$L$cbc_bzero::
+	movaps	XMMWORD PTR[rax],xmm0
+	lea	rax,QWORD PTR[16+rax]
+	cmp	rbp,rax
+	ja	$L$cbc_bzero
+
+$L$cbc_done::
+	lea	rsp,QWORD PTR[rbp]
+	jmp	$L$cbc_exit
+
+ALIGN	16
+$L$cbc_aligned::
+	lea	rbp,QWORD PTR[rcx*1+rsi]
+	neg	rbp
+	and	rbp,0fffh
+	xor	eax,eax
+	cmp	rbp,64
+	mov	rbp,64-1
+	cmovae	rbp,rax
+	and	rbp,rcx
+	sub	rcx,rbp
+	jz	$L$cbc_aligned_tail
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,208
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+	test	rbp,rbp
+	jz	$L$cbc_exit
+
+$L$cbc_aligned_tail::
+	mov	r8,rdi
+	mov	rbx,rbp
+	mov	rcx,rbp
+	lea	rbp,QWORD PTR[rsp]
+	sub	rsp,rcx
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	lea	rdi,QWORD PTR[r8]
+	lea	rsi,QWORD PTR[rsp]
+	mov	rcx,rbx
+	jmp	$L$cbc_loop
+$L$cbc_exit::
+	mov	eax,1
+	lea	rsp,QWORD PTR[8+rsp]
+$L$cbc_abort::
+	pop	rbx
+	pop	rbp
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_cbc_encrypt::
+padlock_cbc_encrypt	ENDP
+PUBLIC	padlock_cfb_encrypt
+
+ALIGN	16
+padlock_cfb_encrypt	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_cfb_encrypt::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+	push	rbp
+	push	rbx
+
+	xor	eax,eax
+	test	rdx,15
+	jnz	$L$cfb_abort
+	test	rcx,15
+	jnz	$L$cfb_abort
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	pushf
+	cld
+	call	_padlock_verify_ctx
+	lea	rdx,QWORD PTR[16+rdx]
+	xor	eax,eax
+	xor	ebx,ebx
+	test	DWORD PTR[rdx],32
+	jnz	$L$cfb_aligned
+	test	rdi,00fh
+	setz	al
+	test	rsi,00fh
+	setz	bl
+	test	eax,ebx
+	jnz	$L$cfb_aligned
+	neg	rax
+	mov	rbx,512
+	not	rax
+	lea	rbp,QWORD PTR[rsp]
+	cmp	rcx,rbx
+	cmovc	rbx,rcx
+	and	rax,rbx
+	mov	rbx,rcx
+	neg	rax
+	and	rbx,512-1
+	lea	rsp,QWORD PTR[rbp*1+rax]
+	mov	rax,512
+	cmovz	rbx,rax
+	jmp	$L$cfb_loop
+ALIGN	16
+$L$cfb_loop::
+	cmp	rbx,rcx
+	cmova	rbx,rcx
+	mov	r8,rdi
+	mov	r9,rsi
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+	test	rdi,00fh
+	cmovnz	rdi,rsp
+	test	rsi,00fh
+	jz	$L$cfb_inp_aligned
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+	mov	rcx,rbx
+	mov	rsi,rdi
+$L$cfb_inp_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,224
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+	mov	rdi,r8
+	mov	rbx,r11
+	test	rdi,00fh
+	jz	$L$cfb_out_aligned
+	mov	rcx,rbx
+	lea	rsi,QWORD PTR[rsp]
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+$L$cfb_out_aligned::
+	mov	rsi,r9
+	mov	rcx,r10
+	add	rdi,rbx
+	add	rsi,rbx
+	sub	rcx,rbx
+	mov	rbx,512
+	jnz	$L$cfb_loop
+	cmp	rsp,rbp
+	je	$L$cfb_done
+
+	pxor	xmm0,xmm0
+	lea	rax,QWORD PTR[rsp]
+$L$cfb_bzero::
+	movaps	XMMWORD PTR[rax],xmm0
+	lea	rax,QWORD PTR[16+rax]
+	cmp	rbp,rax
+	ja	$L$cfb_bzero
+
+$L$cfb_done::
+	lea	rsp,QWORD PTR[rbp]
+	jmp	$L$cfb_exit
+
+ALIGN	16
+$L$cfb_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,224
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+$L$cfb_exit::
+	mov	eax,1
+	lea	rsp,QWORD PTR[8+rsp]
+$L$cfb_abort::
+	pop	rbx
+	pop	rbp
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_cfb_encrypt::
+padlock_cfb_encrypt	ENDP
+PUBLIC	padlock_ofb_encrypt
+
+ALIGN	16
+padlock_ofb_encrypt	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_ofb_encrypt::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+	push	rbp
+	push	rbx
+
+	xor	eax,eax
+	test	rdx,15
+	jnz	$L$ofb_abort
+	test	rcx,15
+	jnz	$L$ofb_abort
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	pushf
+	cld
+	call	_padlock_verify_ctx
+	lea	rdx,QWORD PTR[16+rdx]
+	xor	eax,eax
+	xor	ebx,ebx
+	test	DWORD PTR[rdx],32
+	jnz	$L$ofb_aligned
+	test	rdi,00fh
+	setz	al
+	test	rsi,00fh
+	setz	bl
+	test	eax,ebx
+	jnz	$L$ofb_aligned
+	neg	rax
+	mov	rbx,512
+	not	rax
+	lea	rbp,QWORD PTR[rsp]
+	cmp	rcx,rbx
+	cmovc	rbx,rcx
+	and	rax,rbx
+	mov	rbx,rcx
+	neg	rax
+	and	rbx,512-1
+	lea	rsp,QWORD PTR[rbp*1+rax]
+	mov	rax,512
+	cmovz	rbx,rax
+	jmp	$L$ofb_loop
+ALIGN	16
+$L$ofb_loop::
+	cmp	rbx,rcx
+	cmova	rbx,rcx
+	mov	r8,rdi
+	mov	r9,rsi
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+	test	rdi,00fh
+	cmovnz	rdi,rsp
+	test	rsi,00fh
+	jz	$L$ofb_inp_aligned
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+	mov	rcx,rbx
+	mov	rsi,rdi
+$L$ofb_inp_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,232
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+	mov	rdi,r8
+	mov	rbx,r11
+	test	rdi,00fh
+	jz	$L$ofb_out_aligned
+	mov	rcx,rbx
+	lea	rsi,QWORD PTR[rsp]
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+$L$ofb_out_aligned::
+	mov	rsi,r9
+	mov	rcx,r10
+	add	rdi,rbx
+	add	rsi,rbx
+	sub	rcx,rbx
+	mov	rbx,512
+	jnz	$L$ofb_loop
+	cmp	rsp,rbp
+	je	$L$ofb_done
+
+	pxor	xmm0,xmm0
+	lea	rax,QWORD PTR[rsp]
+$L$ofb_bzero::
+	movaps	XMMWORD PTR[rax],xmm0
+	lea	rax,QWORD PTR[16+rax]
+	cmp	rbp,rax
+	ja	$L$ofb_bzero
+
+$L$ofb_done::
+	lea	rsp,QWORD PTR[rbp]
+	jmp	$L$ofb_exit
+
+ALIGN	16
+$L$ofb_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,232
+	movdqa	xmm0,XMMWORD PTR[rax]
+	movdqa	XMMWORD PTR[(-16)+rdx],xmm0
+$L$ofb_exit::
+	mov	eax,1
+	lea	rsp,QWORD PTR[8+rsp]
+$L$ofb_abort::
+	pop	rbx
+	pop	rbp
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_ofb_encrypt::
+padlock_ofb_encrypt	ENDP
+PUBLIC	padlock_ctr32_encrypt
+
+ALIGN	16
+padlock_ctr32_encrypt	PROC PUBLIC
+	mov	QWORD PTR[8+rsp],rdi	;WIN64 prologue
+	mov	QWORD PTR[16+rsp],rsi
+	mov	rax,rsp
+$L$SEH_begin_padlock_ctr32_encrypt::
+	mov	rdi,rcx
+	mov	rsi,rdx
+	mov	rdx,r8
+	mov	rcx,r9
+
+
+	push	rbp
+	push	rbx
+
+	xor	eax,eax
+	test	rdx,15
+	jnz	$L$ctr32_abort
+	test	rcx,15
+	jnz	$L$ctr32_abort
+	lea	rax,QWORD PTR[$L$padlock_saved_context]
+	pushf
+	cld
+	call	_padlock_verify_ctx
+	lea	rdx,QWORD PTR[16+rdx]
+	xor	eax,eax
+	xor	ebx,ebx
+	test	DWORD PTR[rdx],32
+	jnz	$L$ctr32_aligned
+	test	rdi,00fh
+	setz	al
+	test	rsi,00fh
+	setz	bl
+	test	eax,ebx
+	jnz	$L$ctr32_aligned
+	neg	rax
+	mov	rbx,512
+	not	rax
+	lea	rbp,QWORD PTR[rsp]
+	cmp	rcx,rbx
+	cmovc	rbx,rcx
+	and	rax,rbx
+	mov	rbx,rcx
+	neg	rax
+	and	rbx,512-1
+	lea	rsp,QWORD PTR[rbp*1+rax]
+	mov	rax,512
+	cmovz	rbx,rax
+$L$ctr32_reenter::
+	mov	eax,DWORD PTR[((-4))+rdx]
+	bswap	eax
+	neg	eax
+	and	eax,31
+	mov	rbx,512
+	shl	eax,4
+	cmovz	rax,rbx
+	cmp	rcx,rax
+	cmova	rbx,rax
+	cmovbe	rbx,rcx
+	cmp	rcx,rbx
+	ja	$L$ctr32_loop
+	mov	rax,rsi
+	cmp	rbp,rsp
+	cmove	rax,rdi
+	add	rax,rcx
+	neg	rax
+	and	rax,0fffh
+	cmp	rax,32
+	mov	rax,-32
+	cmovae	rax,rbx
+	and	rbx,rax
+	jz	$L$ctr32_unaligned_tail
+	jmp	$L$ctr32_loop
+ALIGN	16
+$L$ctr32_loop::
+	cmp	rbx,rcx
+	cmova	rbx,rcx
+	mov	r8,rdi
+	mov	r9,rsi
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+	test	rdi,00fh
+	cmovnz	rdi,rsp
+	test	rsi,00fh
+	jz	$L$ctr32_inp_aligned
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+	mov	rcx,rbx
+	mov	rsi,rdi
+$L$ctr32_inp_aligned::
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,216
+	mov	eax,DWORD PTR[((-4))+rdx]
+	test	eax,0ffff0000h
+	jnz	$L$ctr32_no_carry
+	bswap	eax
+	add	eax,010000h
+	bswap	eax
+	mov	DWORD PTR[((-4))+rdx],eax
+$L$ctr32_no_carry::
+	mov	rdi,r8
+	mov	rbx,r11
+	test	rdi,00fh
+	jz	$L$ctr32_out_aligned
+	mov	rcx,rbx
+	lea	rsi,QWORD PTR[rsp]
+	shr	rcx,3
+DB	0f3h,048h,0a5h
+	sub	rdi,rbx
+$L$ctr32_out_aligned::
+	mov	rsi,r9
+	mov	rcx,r10
+	add	rdi,rbx
+	add	rsi,rbx
+	sub	rcx,rbx
+	mov	rbx,512
+	jz	$L$ctr32_break
+	cmp	rcx,rbx
+	jae	$L$ctr32_loop
+	mov	rbx,rcx
+	mov	rax,rsi
+	cmp	rbp,rsp
+	cmove	rax,rdi
+	add	rax,rcx
+	neg	rax
+	and	rax,0fffh
+	cmp	rax,32
+	mov	rax,-32
+	cmovae	rax,rbx
+	and	rbx,rax
+	jnz	$L$ctr32_loop
+$L$ctr32_unaligned_tail::
+	xor	eax,eax
+	cmp	rbp,rsp
+	cmove	rax,rcx
+	mov	r8,rdi
+	mov	rbx,rcx
+	sub	rsp,rax
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	mov	rsi,rsp
+	mov	rdi,r8
+	mov	rcx,rbx
+	jmp	$L$ctr32_loop
+ALIGN	16
+$L$ctr32_break::
+	cmp	rsp,rbp
+	je	$L$ctr32_done
+
+	pxor	xmm0,xmm0
+	lea	rax,QWORD PTR[rsp]
+$L$ctr32_bzero::
+	movaps	XMMWORD PTR[rax],xmm0
+	lea	rax,QWORD PTR[16+rax]
+	cmp	rbp,rax
+	ja	$L$ctr32_bzero
+
+$L$ctr32_done::
+	lea	rsp,QWORD PTR[rbp]
+	jmp	$L$ctr32_exit
+
+ALIGN	16
+$L$ctr32_aligned::
+	mov	eax,DWORD PTR[((-4))+rdx]
+	bswap	eax
+	neg	eax
+	and	eax,0ffffh
+	mov	rbx,1048576
+	shl	eax,4
+	cmovz	rax,rbx
+	cmp	rcx,rax
+	cmova	rbx,rax
+	cmovbe	rbx,rcx
+	jbe	$L$ctr32_aligned_skip
+
+$L$ctr32_aligned_loop::
+	mov	r10,rcx
+	mov	rcx,rbx
+	mov	r11,rbx
+
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,216
+
+	mov	eax,DWORD PTR[((-4))+rdx]
+	bswap	eax
+	add	eax,010000h
+	bswap	eax
+	mov	DWORD PTR[((-4))+rdx],eax
+
+	mov	rcx,r10
+	sub	rcx,r11
+	mov	rbx,1048576
+	jz	$L$ctr32_exit
+	cmp	rcx,rbx
+	jae	$L$ctr32_aligned_loop
+
+$L$ctr32_aligned_skip::
+	lea	rbp,QWORD PTR[rcx*1+rsi]
+	neg	rbp
+	and	rbp,0fffh
+	xor	eax,eax
+	cmp	rbp,32
+	mov	rbp,32-1
+	cmovae	rbp,rax
+	and	rbp,rcx
+	sub	rcx,rbp
+	jz	$L$ctr32_aligned_tail
+	lea	rax,QWORD PTR[((-16))+rdx]
+	lea	rbx,QWORD PTR[16+rdx]
+	shr	rcx,4
+DB	0f3h,00fh,0a7h,216
+	test	rbp,rbp
+	jz	$L$ctr32_exit
+
+$L$ctr32_aligned_tail::
+	mov	r8,rdi
+	mov	rbx,rbp
+	mov	rcx,rbp
+	lea	rbp,QWORD PTR[rsp]
+	sub	rsp,rcx
+	shr	rcx,3
+	lea	rdi,QWORD PTR[rsp]
+DB	0f3h,048h,0a5h
+	lea	rdi,QWORD PTR[r8]
+	lea	rsi,QWORD PTR[rsp]
+	mov	rcx,rbx
+	jmp	$L$ctr32_loop
+$L$ctr32_exit::
+	mov	eax,1
+	lea	rsp,QWORD PTR[8+rsp]
+$L$ctr32_abort::
+	pop	rbx
+	pop	rbp
+	mov	rdi,QWORD PTR[8+rsp]	;WIN64 epilogue
+	mov	rsi,QWORD PTR[16+rsp]
+	DB	0F3h,0C3h		;repret
+$L$SEH_end_padlock_ctr32_encrypt::
+padlock_ctr32_encrypt	ENDP
+DB	86,73,65,32,80,97,100,108,111,99,107,32,120,56,54,95
+DB	54,52,32,109,111,100,117,108,101,44,32,67,82,89,80,84
+DB	79,71,65,77,83,32,98,121,32,60,97,112,112,114,111,64
+DB	111,112,101,110,115,115,108,46,111,114,103,62,0
+ALIGN	16
+.text$	ENDS
+_DATA	SEGMENT
+ALIGN	8
+$L$padlock_saved_context::
+	DQ	0
+
+_DATA	ENDS
+END

@@ -978,34 +978,35 @@ ENDIF()
 
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
-        ../asm/windows/crypto/aes/aesni-mb-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-sha1-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-sha256-x86_64.asm
-        ../asm/windows/crypto/aes/aesni-x86_64.asm
-        ../asm/windows/crypto/aes/vpaes-x86_64.asm
-        ../asm/windows/crypto/bn/rsaz-avx2.asm
-        ../asm/windows/crypto/bn/rsaz-x86_64.asm
-        ../asm/windows/crypto/bn/x86_64-gf2m.asm
-        ../asm/windows/crypto/bn/x86_64-mont.asm
-        ../asm/windows/crypto/bn/x86_64-mont5.asm
-        ../asm/windows/crypto/camellia/cmll-x86_64.asm
-        ../asm/windows/crypto/chacha/chacha-x86_64.asm
-        ../asm/windows/crypto/ec/ecp_nistz256-x86_64.asm
-        ../asm/windows/crypto/ec/x25519-x86_64.asm
-        ../asm/windows/crypto/md5/md5-x86_64.asm
-        ../asm/windows/crypto/modes/aesni-gcm-x86_64.asm
-        ../asm/windows/crypto/modes/ghash-x86_64.asm
-        ../asm/windows/crypto/poly1305/poly1305-x86_64.asm
-        ../asm/windows/crypto/rc4/rc4-md5-x86_64.asm
-        ../asm/windows/crypto/rc4/rc4-x86_64.asm
-        ../asm/windows/crypto/sha/keccak1600-x86_64.asm
-        ../asm/windows/crypto/sha/sha1-mb-x86_64.asm
-        ../asm/windows/crypto/sha/sha1-x86_64.asm
-        ../asm/windows/crypto/sha/sha256-mb-x86_64.asm
-        ../asm/windows/crypto/sha/sha256-x86_64.asm
-        ../asm/windows/crypto/sha/sha512-x86_64.asm
-        ../asm/windows/crypto/whrlpool/wp-x86_64.asm
-        ../asm/windows/crypto/x86_64cpuid.asm
+        ../asm/windows/crypto/aes/aesni-mb-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-sha1-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-sha256-x86_64.masm
+        ../asm/windows/crypto/aes/aesni-x86_64.masm
+        ../asm/windows/crypto/aes/vpaes-x86_64.masm
+        ../asm/windows/crypto/bn/rsaz-avx2.masm
+        ../asm/windows/crypto/bn/rsaz-x86_64.masm
+        ../asm/windows/crypto/bn/x86_64-gf2m.masm
+        ../asm/windows/crypto/bn/x86_64-mont.masm
+        ../asm/windows/crypto/bn/x86_64-mont5.masm
+        ../asm/windows/crypto/camellia/cmll-x86_64.masm
+        ../asm/windows/crypto/chacha/chacha-x86_64.masm
+        ../asm/windows/crypto/ec/ecp_nistz256-x86_64.masm
+        ../asm/windows/crypto/ec/x25519-x86_64.masm
+        ../asm/windows/crypto/md5/md5-x86_64.masm
+        ../asm/windows/crypto/modes/aesni-gcm-x86_64.masm
+        ../asm/windows/crypto/modes/ghash-x86_64.masm
+        ../asm/windows/crypto/poly1305/poly1305-x86_64.masm
+        ../asm/windows/crypto/rc4/rc4-md5-x86_64.masm
+        ../asm/windows/crypto/rc4/rc4-x86_64.masm
+        ../asm/windows/crypto/sha/keccak1600-x86_64.masm
+        ../asm/windows/crypto/sha/sha1-mb-x86_64.masm
+        ../asm/windows/crypto/sha/sha1-x86_64.masm
+        ../asm/windows/crypto/sha/sha256-mb-x86_64.masm
+        ../asm/windows/crypto/sha/sha256-x86_64.masm
+        ../asm/windows/crypto/sha/sha512-x86_64.masm
+        ../asm/windows/crypto/whrlpool/wp-x86_64.masm
+        ../asm/windows/crypto/uplink-x86_64.masm
+        ../asm/windows/crypto/x86_64cpuid.masm
     )
 ENDIF()
 

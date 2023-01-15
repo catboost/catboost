@@ -6,6 +6,8 @@
 #   include "opensslconf-ios-armv7.h"
 #elif defined(__APPLE__) && defined(__IOS__) && defined(__aarch64__)
 #   include "opensslconf-ios-arm64.h"
+#elif defined(__APPLE__) && defined(__aarch64__)
+#   include "opensslconf-osx-arm64.h"
 #elif defined(__APPLE__) && defined(__x86_64__)
 #   include "opensslconf-osx.h"
 #elif defined(__ANDROID__) && defined(__x86_64__)
