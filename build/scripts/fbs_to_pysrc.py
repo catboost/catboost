@@ -6,6 +6,7 @@ import tarfile
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--flags', nargs='*')
     parser.add_argument('--flatc', required=True)
     parser.add_argument('--input', nargs='*', required=True)
     parser.add_argument('--output', required=True)
@@ -22,7 +23,7 @@ def call(cmd, cwd=None, env=None):
 def main():
     args = parse_args()
 
-    cmd = [args.flatc, '--python', '-o', args.work_dir] + args.input
+    cmd = [args.flatc, '--python', '-o', args.work_dir] + args.flags + args.input
     call(cmd)
 
     py_srcs = []
