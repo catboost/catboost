@@ -1695,6 +1695,16 @@
             "uri": "file://test.test_dist_train_with_baseline_calc_block=60_/test_1.eval"
         }
     ],
+    "test.test_dist_train_with_cat_features[one_hot_max_size=255-calc_block=5000000]": [
+        {
+            "uri": "file://test.test_dist_train_with_cat_features_one_hot_max_size=255-calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_with_cat_features[one_hot_max_size=255-calc_block=60]": [
+        {
+            "uri": "file://test.test_dist_train_with_cat_features_one_hot_max_size=255-calc_block=60_/test_1.eval"
+        }
+    ],
     "test.test_dist_train_with_weights[calc_block=5000000]": [
         {
             "uri": "file://test.test_dist_train_with_weights_calc_block=5000000_/test_1.eval"
