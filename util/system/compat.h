@@ -16,11 +16,11 @@
 
 extern "C" {
 #if defined(_win_)
-using pid_t = int;
+    using pid_t = int;
 
-inline unsigned int alarm(unsigned int /*seconds*/) {
-    return 0; // no alarm is currently set :)
-}
+    inline unsigned int alarm(unsigned int /*seconds*/) {
+        return 0; // no alarm is currently set :)
+    }
 
     #define SIGQUIT SIGBREAK // instead of 3
     #define SIGKILL SIGTERM  // instead of 9
@@ -33,17 +33,17 @@ inline unsigned int alarm(unsigned int /*seconds*/) {
 #endif
 
 #ifndef HAVE_NATIVE_GETPROGNAME
-const char* getprogname();
+    const char* getprogname();
 #endif
 
 #if defined(_MSC_VER)
-void err(int e, const char* m, ...);
-void errx(int e, const char* m, ...);
-void warn(const char* m, ...);
-void warnx(const char* m, ...);
-void vwarnx(const char* format, va_list ap);
-void vwarn(const char* format, va_list ap);
-void verrx(int status, const char* format, va_list ap);
+    void err(int e, const char* m, ...);
+    void errx(int e, const char* m, ...);
+    void warn(const char* m, ...);
+    void warnx(const char* m, ...);
+    void vwarnx(const char* format, va_list ap);
+    void vwarn(const char* format, va_list ap);
+    void verrx(int status, const char* format, va_list ap);
 #else
     #include <err.h>
 #endif

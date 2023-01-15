@@ -19,13 +19,13 @@
 
 #ifdef CLANG_COVERAGE
 extern "C" {
-// __llvm_profile_write_file may not be provided if the executable target uses NO_CLANG_COVERAGE() macro and
-// arrives as test's dependency via DEPENDS() macro.
-// That's why we provide a weak no-op implementation for __llvm_profile_write_file,
-// which is used below in the code, to correctly save codecoverage profile before program exits using abort().
-Y_WEAK int __llvm_profile_write_file(void) {
-    return 0;
-}
+    // __llvm_profile_write_file may not be provided if the executable target uses NO_CLANG_COVERAGE() macro and
+    // arrives as test's dependency via DEPENDS() macro.
+    // That's why we provide a weak no-op implementation for __llvm_profile_write_file,
+    // which is used below in the code, to correctly save codecoverage profile before program exits using abort().
+    Y_WEAK int __llvm_profile_write_file(void) {
+        return 0;
+    }
 }
 
 #endif

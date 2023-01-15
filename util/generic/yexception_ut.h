@@ -4,10 +4,10 @@
 extern "C" {
 #endif
 
-typedef void (*TCallbackFun)(int);
+    typedef void (*TCallbackFun)(int);
 
-//! just calls callback with parameter @c i
-void TestCallback(TCallbackFun f, int i);
+    //! just calls callback with parameter @c i
+    void TestCallback(TCallbackFun f, int i);
 
 #ifdef __cplusplus
 }

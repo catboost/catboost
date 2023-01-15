@@ -11,7 +11,7 @@ extern "C" {
     #endif
 
     #define _S_IFLNK 0xA000
-int lstat(const char* fileName, stat_struct* fileStat);
+    int lstat(const char* fileName, stat_struct* fileStat);
 
     #ifdef __cplusplus
 }

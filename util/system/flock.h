@@ -24,9 +24,9 @@ extern "C" {
     #define LOCK_NB 4 /* don't block when locking */
     #define LOCK_UN 8 /* unlock */
 
-int Flock(void* hndl, int operation);
-int flock(int fd, int operation);
-int fsync(int fd);
+    int Flock(void* hndl, int operation);
+    int flock(int fd, int operation);
+    int fsync(int fd);
 
     #ifdef __cplusplus
 }

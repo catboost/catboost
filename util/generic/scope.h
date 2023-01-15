@@ -10,11 +10,13 @@ namespace NPrivate {
     class TScopeGuard {
     public:
         TScopeGuard(const F& function)
-            : Function_{function} {
+            : Function_{function}
+        {
         }
 
         TScopeGuard(F&& function)
-            : Function_{std::move(function)} {
+            : Function_{std::move(function)}
+        {
         }
 
         TScopeGuard(TScopeGuard&&) = default;
