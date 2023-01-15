@@ -213,3 +213,6 @@ ALLOW ydo/database/models -> contrib/python/pycrypto
 ALLOW yweb/antispam/cid -> contrib/python/pycrypto
 ALLOW mail/payments/payments -> contrib/python/pycrypto
 DENY .* -> contrib/python/pycrypto
+
+ALLOW yql/udfs/common/python/python_arc -> contrib/python/Geohash
+DENY .* -> contrib/python/Geohash
