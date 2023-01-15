@@ -749,7 +749,6 @@ migrations:
     - quality/functionality/snippets/top_hosts/plugins/calculator888
     - quality/functionality/turbo/analytics/ecommerce/lib/page_classifier
     - quality/functionality/turbo/auto_cleanup/lib
-    - quality/functionality/turbo/forms/app/tests
     - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/rss/parser_job/tests/small
     - quality/functionality/turbo/tools/infinity/tools/wmc
@@ -1150,10 +1149,8 @@ migrations:
     - yabs/server/test/ft/BSSERVER-14390
     - yabs/server/test/ft/BSSERVER-2122
     - yabs/server/test/ft/BSSERVER-2158
-    - yabs/server/test/ft/BSSERVER-2280
     - yabs/server/test/ft/BSSERVER-2293
     - yabs/server/test/ft/BSSERVER-2454
-    - yabs/server/test/ft/BSSERVER-2971
     - yabs/server/test/ft/BSSERVER-2976
     - yabs/server/test/ft/BSSERVER-3049
     - yabs/server/test/ft/BSSERVER-3090
@@ -1182,7 +1179,6 @@ migrations:
     - yabs/server/test/ft/ads_adfox/proxy_request
     - yabs/server/test/ft/checks
     - yabs/server/test/ft/lua/yabs_dsp
-    - yabs/server/test/ft/unsorted
     - yabs/server/test/pylibs/qxl
     - yabs/server/test/pylibs/simulator
     - yabs/server/test/qabs_bsserver_pytest
@@ -1641,8 +1637,6 @@ migrations:
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
     - quality/neural_net/bert/bert
-    - quality/neural_net/bert/bert/pytorch/data
-    - quality/neural_net/bert/bert/pytorch/deepspeed/pretraining
     - quality/neural_net/bert/tools/autobert
     - quality/neural_net/bert/tools/autobert/builders
     - quality/nirvana_tools/conveyor_operations/bert/rebuild_bert_model
@@ -1840,7 +1834,6 @@ migrations:
     - yabs/vh/frontend/test/ft/HOME-43539
     - ydo/async_api/tests/medium
     - ydo/bg_task_processor/tests/tasks_tests
-    - ydo/libs/async_api
     - ydo/libs/errorbooster/tests
     - ydo/server/extract_backend_request_source/lib
     - ydo/tools/workers_quality/strikomat
@@ -2262,10 +2255,8 @@ migrations:
     - quality/functionality/scripts/psuh/HomeWorkMetricsLib/HomeWorkMetricsLib
     - quality/functionality/turbo/analytics/quality/samplers/cms_sampler
     - quality/functionality/turbo/forms/app/lib
-    - quality/functionality/turbo/forms/app/tests
     - quality/functionality/turbo/merger/ut/medium
     - quality/functionality/turbo/ml_ads/prepare_daily_logs
-    - quality/functionality/turbo/rss/parser_job/tests/medium
     - quality/functionality/turbo/tools/rthub_dev/prepare_autoparser
     - quality/functionality/turbo/yml_process/lib
     - quality/neural_net/bert/bert
@@ -2480,7 +2471,6 @@ migrations:
     - yabs/server/test/ft/BSSERVER-12402
     - yabs/server/test/ft/BSSERVER-13708
     - yabs/server/test/ft/BSSERVER-13878
-    - yabs/server/test/ft/BSSERVER-14014
     - yabs/server/test/ft/BSSERVER-14049
     - yabs/server/test/ft/BSSERVER-14107
     - yabs/server/test/ft/BSSERVER-14110
@@ -2683,16 +2673,4 @@ migrations:
     - modadvert/programs/supermoderation_api/ut/handlers
     - modadvert/programs/toloka_clustering/it
     - modadvert/programs/white_list_spam_client/it
-    - quality/functionality/turbo/auto_morda/state_builder/tests
-    - quality/functionality/turbo/forms/app/tests
-    - quality/functionality/turbo/remove_404_pages/remover/tests
-    - quality/functionality/turbo/rss/common/python/backoffice/tests
-    - quality/functionality/turbo/rss/common/python/sandbox/tests
-    - quality/functionality/turbo/rss/feed_list_builder/tests/medium
-    - quality/functionality/turbo/rss/parser_job/tests/medium
-    - quality/functionality/unstructured/qdsaas_uploader/tests_lib2/medium
-    - quality/neural_net/bert/bert/pytorch
-    - quality/neural_net/bert/bert/pytorch/deepspeed/pretraining
     - quality/nirvana_tools/conveyor_operations/meta_formula_bfmf_bundle/lib
-    - quality/relev_tools/choice_screen/vh_operations
-    - quality/relev_tools/mx_ops/tests/fat
