@@ -188,22 +188,15 @@ void TModelTrees::ProcessSplitsSet(
             FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
         } else if (split.Type == ESplitType::EstimatedFeature) {
             const TEstimatedFeatureSplit estimatedFeatureSplit = split.EstimatedFeature;
-            EEstimatedSourceFeatureType featureType;
-            if (std::find(textFeaturesInternalIndexesMap.begin(),
-                          textFeaturesInternalIndexesMap.end(),
-                          estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId) !=
-                          textFeaturesInternalIndexesMap.end()) {
+            if (estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureType == EEstimatedSourceFeatureType::Text) {
                 usedTextFeatureIndexes.insert(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId);
-                featureType = EEstimatedSourceFeatureType::Text;
             } else {
                 usedEmbeddingFeatureIndexes.insert(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureId);
-                featureType = EEstimatedSourceFeatureType::Embedding;
             }
             if (EstimatedFeatures.empty() ||
                 EstimatedFeatures.back().ModelEstimatedFeature != estimatedFeatureSplit.ModelEstimatedFeature
             ) {
                 TEstimatedFeature estimatedFeature(estimatedFeatureSplit.ModelEstimatedFeature);
-                Y_ASSERT(estimatedFeatureSplit.ModelEstimatedFeature.SourceFeatureType == featureType);
                 EstimatedFeatures.emplace_back(estimatedFeature);
             }
 
