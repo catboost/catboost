@@ -216,6 +216,38 @@ public:
     }
 };
 
+class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
+public:
+    explicit TRMSEWithUncertaintyError()
+        : TMultiDerCalcer(EHessianType::Diagonal)
+    {
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override {
+        const int dim = 2;
+        Y_ASSERT(target.size() == 1);
+        const double diff = (target[0] - approx[0]);
+        double prec = -2 * approx[1];
+        FastExpInplace(&prec, /*count*/ 1);
+        (*der)[0] = weight * diff;
+        (*der)[1] = weight * (Sqr(diff) * prec - 1);
+
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                     der2->ApproxDimension == dim);
+
+            der2->Data[0] = -weight;
+            der2->Data[1] = -weight;
+        }
+    }
+};
+
 class TCrossEntropyError final : public IDerCalcer {
 public:
     explicit TCrossEntropyError(bool isExpApprox)

@@ -20,6 +20,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
 
 #include <library/cpp/fast_exp/fast_exp.h>
@@ -437,9 +438,9 @@ TMetricHolder TMultiRMSEMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    const auto evalImpl = [&](bool useWeights, bool hasDelta) {
-        const auto realApprox = [&](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
-        const auto realWeight = [&](int idx) { return useWeights ? weight[idx] : 1; };
+    const auto evalImpl = [=](bool useWeights, bool hasDelta) {
+        const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
+        const auto realWeight = [=](int idx) { return useWeights ? weight[idx] : 1; };
 
         TMetricHolder error(2);
         for (auto dim : xrange(target.size())) {
@@ -461,6 +462,79 @@ double TMultiRMSEMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+/* RMSEWithUncertainty */
+namespace {
+    class TRMSEWithUncertaintyMetric final: public TAdditiveMultiRegressionMetric {
+    public:
+        explicit TRMSEWithUncertaintyMetric(
+            ELossFunction lossFunction,
+            const TLossParams& descriptionParams);
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+
+    };
+}
+
+TRMSEWithUncertaintyMetric::TRMSEWithUncertaintyMetric(
+    ELossFunction lossFunction,
+    const TLossParams& descriptionParams)
+    : TAdditiveMultiRegressionMetric(lossFunction, descriptionParams)
+{}
+
+TVector<THolder<IMetric>> TRMSEWithUncertaintyMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TRMSEWithUncertaintyMetric>(config.Metric, config.Params));
+}
+
+TMetricHolder TRMSEWithUncertaintyMetric::EvalSingleThread(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TVector<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weights,
+    int begin,
+    int end
+) const {
+    Y_ASSERT(target.size() == 1);
+    const auto evalImpl = [=](bool useWeights, bool hasDelta) {
+        const auto realApprox = [=](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
+        const auto realWeight = [=](int idx) { return useWeights ? weights[idx] : 1; };
+
+        TMetricHolder error(2);
+        double stats0 = 0;
+        double stats1 = 0;
+        for (auto i : xrange(begin, end)) {
+            double weight = realWeight(i);
+            double expSum = -2 * realApprox(1, i);
+            FastExpInplace(&expSum, /*count*/ 1);
+            stats0 += weight * (0.39908993417 + realApprox(1, i) + 0.5 * expSum * Sqr(realApprox(0, i) - target[0][i]));
+            stats1 += weight;
+        }
+        error.Stats[0] += stats0;
+        error.Stats[1] += stats1;
+        return error;
+    };
+
+    return DispatchGenericLambda(evalImpl, !weights.empty(), !approxDelta.empty());
+}
+
+double TRMSEWithUncertaintyMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] == 0 ? 0 : error.Stats[0] / error.Stats[1];
+}
+
+void TRMSEWithUncertaintyMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
     *valueType = EMetricBestValue::Min;
 }
 
@@ -502,7 +576,6 @@ TMetricHolder TRMSEMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric RMSE supports only single-dimensional data");
     Y_ASSERT(!isExpApprox);
 
     const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
@@ -4579,6 +4652,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
     switch (metric) {
         case ELossFunction::MultiRMSE:
             AppendTemporaryMetricsVector(TMultiRMSEMetric::Create(config), &result);
+            break;
+        case ELossFunction::RMSEWithUncertainty:
+            AppendTemporaryMetricsVector(TRMSEWithUncertaintyMetric::Create(config), &result);
             break;
         case ELossFunction::Logloss:
             AppendTemporaryMetricsVector(TCrossEntropyMetric::Create(config), &result);

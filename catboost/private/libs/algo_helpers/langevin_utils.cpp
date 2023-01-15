@@ -92,3 +92,48 @@ void AddLangevinNoiseToLeafDerivativesSum(
         }
     }
 }
+
+void AddLangevinNoiseToLeafNewtonSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSum>* leafDersSum
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    TFastRng64 rng(randomSeed);
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    for (TSum& sum : *leafDersSum) {
+        if (sum.SumWeights < 1e-9) {
+            continue;
+        }
+        double scaledCoef = coef * sqrt(std::fabs(sum.SumDer2) + scaledL2Regularizer);
+        sum.SumDer += scaledCoef * StdNormalDistribution<double>(rng);
+    }
+}
+
+void AddLangevinNoiseToLeafNewtonSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSumMulti>* leafDersSum
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    TFastRng64 rng(randomSeed);
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    for (TSumMulti& sum : *leafDersSum) {
+        if (sum.SumWeights < 1e-9) {
+            continue;
+        }
+        for (int i = 0; i < sum.SumDer.ysize(); ++i) {
+            double scaledCoef = coef * sqrt(std::fabs(sum.SumDer2.Data[i]) + scaledL2Regularizer);
+            sum.SumDer[i] += scaledCoef * StdNormalDistribution<double>(rng);
+        }
+    }
+}
+

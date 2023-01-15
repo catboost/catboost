@@ -782,6 +782,14 @@ namespace {
                     *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
                     GetWeights(*trainingData.Learn->TargetData)
                 );
+            } else {
+                if (catboostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSEWithUncertainty) {
+                    startingApprox = CalcOptimumConstApprox(
+                        catboostOptions.LossFunctionDescription,
+                        *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
+                        GetWeights(*trainingData.Learn->TargetData)
+                    );
+                }
             }
             TLearnContext ctx(
                 catboostOptions,

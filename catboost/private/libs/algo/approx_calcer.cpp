@@ -642,12 +642,21 @@ static void CalcApproxDeltaSimple(
             ctx->Params.ObliviousTreeOptions->L2Reg,
             fold.GetSumWeight(),
             fold.GetLearnSampleCount());
-        AddLangevinNoiseToLeafDerivativesSum(
-            ctx->Params.BoostingOptions->DiffusionTemperature,
-            ctx->Params.BoostingOptions->LearningRate,
-            scaledL2Regularizer,
-            randomSeed,
-            &leafDers);
+        if (estimationMethod == ELeavesEstimation::Gradient) {
+            AddLangevinNoiseToLeafDerivativesSum(
+                ctx->Params.BoostingOptions->DiffusionTemperature,
+                ctx->Params.BoostingOptions->LearningRate,
+                scaledL2Regularizer,
+                randomSeed,
+                &leafDers);
+        } else if (estimationMethod == ELeavesEstimation::Newton) {
+            AddLangevinNoiseToLeafNewtonSum(
+                ctx->Params.BoostingOptions->DiffusionTemperature,
+                ctx->Params.BoostingOptions->LearningRate,
+                scaledL2Regularizer,
+                randomSeed,
+                &leafDers);
+        }
         if (treeHasMonotonicConstraints) {
             CalcMonotonicLeafDeltasSimple(
                 leafDers,

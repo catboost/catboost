@@ -129,6 +129,8 @@ enum class ELossFunction {
     Huber,
     Tweedie,
 
+    RMSEWithUncertainty,
+
     /* multiclassification errors */
 
     MultiClass,

@@ -56,6 +56,7 @@ TTargetClassifier BuildTargetClassifier(
 
     switch (loss) {
         case ELossFunction::RMSE:
+        case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:
         case ELossFunction::Expectile:
         case ELossFunction::Lq:

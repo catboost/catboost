@@ -104,10 +104,15 @@ class TestModeNormalizeModel(object):
         data = map(float, open(eval_result).readlines()[1:])
         return min(data), max(data)
 
-    def test_normalize_good(self):
+    @pytest.mark.parametrize('loss_function', ['RMSE', 'RMSEWithUncertainty'])
+    def test_normalize_good(self, loss_function):
         dataset = Dataset('adult')
-        model = self.fit('RMSE', dataset)
-        normalized_model = self.normalize_model(model, dataset, 'test_file')
+        model = self.fit(loss_function, dataset)
+        try:
+            normalized_model = self.normalize_model(model, dataset, 'test_file')
+        except:
+            assert loss_function == 'RMSEWithUncertainty'
+            return
         normalized_eval = self.eval_model(normalized_model, dataset, 'test_file')
         normalized_minmax = self.get_minmax(normalized_eval)
         assert normalized_minmax == (0, 1)

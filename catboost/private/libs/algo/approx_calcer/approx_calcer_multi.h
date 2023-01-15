@@ -79,13 +79,23 @@ void CalcLeafValuesMulti(
         );
 
         if (params.BoostingOptions->Langevin) {
-            AddLangevinNoiseToLeafDerivativesSum(
-                params.BoostingOptions->DiffusionTemperature,
-                params.BoostingOptions->LearningRate,
-                ScaleL2Reg(l2Regularizer, sumWeight, learnSampleCount),
-                rng->GenRand(),
-                &leafDers
-            );
+            if (estimationMethod == ELeavesEstimation::Gradient) {
+                AddLangevinNoiseToLeafDerivativesSum(
+                    params.BoostingOptions->DiffusionTemperature,
+                    params.BoostingOptions->LearningRate,
+                    ScaleL2Reg(l2Regularizer, sumWeight, learnSampleCount),
+                    rng->GenRand(),
+                    &leafDers
+                );
+            } else if (estimationMethod == ELeavesEstimation::Newton) {
+                AddLangevinNoiseToLeafNewtonSum(
+                    params.BoostingOptions->DiffusionTemperature,
+                    params.BoostingOptions->LearningRate,
+                    ScaleL2Reg(l2Regularizer, sumWeight, learnSampleCount),
+                    rng->GenRand(),
+                    &leafDers
+                );
+            }
         }
 
         CalcLeafDeltasMulti(

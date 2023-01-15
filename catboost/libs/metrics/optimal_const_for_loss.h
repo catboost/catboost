@@ -29,6 +29,22 @@ namespace NCB {
         return targetSum / summaryWeight;
     }
 
+    inline float CalculateWeightedTargetVariance(TConstArrayRef<float> target, TConstArrayRef<float> weights, float mean) {
+        const double summaryWeight = weights.empty() ? target.size() : Accumulate(weights, 0.0);
+        double targetSum = 0.0;
+        if (weights.empty()) {
+            for (size_t i = 0; i < target.size(); ++i) {
+                targetSum += Sqr(target[i] - mean);
+            }
+        } else {
+            Y_ASSERT(target.size() == weights.size());
+            for (size_t i = 0; i < target.size(); ++i) {
+                targetSum += Sqr(target[i] - mean) * weights[i];
+            }
+        }
+        return targetSum / summaryWeight;
+    }
+
     inline float CalculateWeightedTargetQuantile(
         TConstArrayRef<float> target,
         TConstArrayRef<float> weights,
@@ -116,11 +132,18 @@ namespace NCB {
         TConstArrayRef<float> target,
         TConstArrayRef<float> weights
     ) {
-        TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target, weights);
-        if (optimum.Defined()) {
-            return TVector<double>(1, *optimum.Get());
+        auto lossFunction = lossDescription.GetLossFunction();
+        if (lossFunction == ELossFunction::RMSEWithUncertainty) {
+            double mean = CalculateWeightedTargetAverage(target, weights);
+            double var = CalculateWeightedTargetVariance(target, weights, mean);
+            return TVector<double>({mean, 0.5 * log(var)});
         } else {
-            return Nothing();
+            TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target, weights);
+            if (optimum.Defined()) {
+                return TVector<double>(1, *optimum.Get());
+            } else {
+                return Nothing();
+            }
         }
     }
 }
