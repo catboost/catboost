@@ -13,6 +13,7 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
+#include <tuple>
 
 struct TFeatureEvaluationSummary {
     TVector<EMetricBestValue> MetricTypes; // [metric count]
@@ -23,6 +24,16 @@ struct TFeatureEvaluationSummary {
     TVector<TVector<TVector<TMetricsHistory>>> MetricsHistory; // [is test][feature set count][fold count]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> FeatureStrengths; // [is test][feature set count][fold count][feature index]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> RegularFeatureStrengths; // [is test][feature set count][fold count][feature index]
+    struct TProcessorsUsage {
+        float Time;
+        ui32 Iteration;
+        NJson::TJsonValue Processors;
+        Y_SAVELOAD_DEFINE(
+            Time,
+            Iteration,
+            Processors);
+    };
+    TVector<TProcessorsUsage> ProcessorsUsage; // [snapshot idx]
 
     TVector<TVector<TVector<TVector<double>>>> BestMetrics; // [is test][feature set count][metric count][fold count]
     TVector<TVector<ui32>> BestBaselineIterations; // [feature set count][fold count]
@@ -44,6 +55,7 @@ public:
         ui32 featureSetIdx,
         const TVector<TVector<double>>& metricValuesOnTest);
 
+    NJson::TJsonValue CalcProcessorsSummary() const;
     void CalcWxTestAndAverageDelta();
     void CreateLogs(
         const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
@@ -61,6 +73,7 @@ public:
         MetricsHistory,
         FeatureStrengths,
         RegularFeatureStrengths,
+        ProcessorsUsage,
         BestMetrics,
         BestBaselineIterations,
         WxTest,

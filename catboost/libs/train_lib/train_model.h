@@ -57,7 +57,7 @@ public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
         return true;
     }
-    virtual void OnSaveSnapshot(IOutputStream* /*snapshot*/) {
+    virtual void OnSaveSnapshot(const NJson::TJsonValue& /*processors*/, IOutputStream* /*snapshot*/) {
     }
     virtual bool OnLoadSnapshot(IInputStream* /*snapshot*/) {
         return true;

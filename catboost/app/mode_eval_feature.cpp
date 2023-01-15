@@ -92,6 +92,16 @@ int mode_eval_feature(int argc, const char* argv[]) {
         CATBOOST_DEBUG_LOG << ToString(featureEvalSummary);
     }
 
+    if (!featureEvalSummary.ProcessorsUsage.empty()) {
+        const auto processorsSummary = featureEvalSummary.CalcProcessorsSummary();
+        if (featureEvalOptions.ProcessorsUsageFileName->length() > 0) {
+            TFileOutput ProcessorsUsageFile(featureEvalOptions.ProcessorsUsageFileName.Get());
+            ProcessorsUsageFile << ToString(processorsSummary);
+        } else {
+            CATBOOST_DEBUG_LOG << ToString(processorsSummary);
+        }
+    }
+
     return 0;
 }
 

@@ -32,6 +32,7 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/hash_set.h>
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
@@ -140,6 +141,40 @@ void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
         const double bestMetric = metricValuesOnFold[bestIteration][metricIdx];
         featureSetBestMetrics[metricIdx].push_back(bestMetric);
     }
+}
+
+
+NJson::TJsonValue TFeatureEvaluationSummary::CalcProcessorsSummary() const {
+    const auto& history = ProcessorsUsage;
+    CB_ENSURE_INTERNAL(!history.empty(), "Need some processors usage info");
+    THashMap<TString, float> totalTime; // [processor name]
+    THashMap<TString, ui32> totalIterations; // [processor name]
+    ui32 previousIteration = history[0].Iteration;
+    for (const auto& event : history) {
+        const auto time = event.Time;
+        const auto iteration = event.Iteration;
+        const auto& processors = event.Processors;
+        CB_ENSURE_INTERNAL(processors.IsArray(), "Processors should be json array");
+        const auto& processorsArray = processors.GetArray();
+        for (auto& processor : processorsArray) {
+            const auto& processorString = processor.GetString();
+            totalTime[processorString] += time;
+            if (previousIteration >= iteration) {
+                totalIterations[processorString] += iteration; // first snapshot in this training
+            } else {
+                totalIterations[processorString] += (iteration - previousIteration);
+            }
+        }
+        previousIteration = iteration;
+    }
+    NJson::TJsonValue summary;
+    auto& timeJson = summary.InsertValue("time", NJson::TJsonMap());
+    auto& iterationsJson = summary.InsertValue("iterations", NJson::TJsonMap());
+    for (const auto& [processor, time] : totalTime) {
+        timeJson.InsertValue(processor, NJson::TJsonValue{time});
+        iterationsJson.InsertValue(processor, NJson::TJsonValue{totalIterations.at(processor)});
+    }
+    return summary;
 }
 
 
@@ -724,7 +759,10 @@ public:
         return /*continue training*/true;
     }
 
-    void OnSaveSnapshot(IOutputStream* snapshot) override {
+    void OnSaveSnapshot(const NJson::TJsonValue& processors, IOutputStream* snapshot) override {
+        if (processors.IsArray()) {
+            Summary->ProcessorsUsage.push_back({float(SnapshotTimer.PassedReset()), IterationIdx, processors});
+        }
         Summary->Save(snapshot);
         NJson::TJsonValue options;
         EvalFeatureOptions.Save(&options);
@@ -784,6 +822,7 @@ public:
 
 private:
     THPTimer TrainTimer;
+    THPTimer SnapshotTimer;
     ui32 IterationIdx = 0;
     const ui32 IterationCount;
     NCatboostOptions::TFeatureEvalOptions EvalFeatureOptions;
