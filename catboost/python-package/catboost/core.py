@@ -233,7 +233,7 @@ def _get_features_indices(features, feature_names):
             A sequence of string ids for features or None.
             Used to get feature indices for string ids in 'features' parameter
     """
-    if (not isinstance(features, Sequence)) or isinstance(features, (str, bytes, bytearray)):
+    if (not isinstance(features, (Sequence, np.ndarray))) or isinstance(features, (str, bytes, bytearray)):
         raise CatBoostError("feature names should be a sequence, but got " + repr(features))
     if feature_names is not None:
         return [
