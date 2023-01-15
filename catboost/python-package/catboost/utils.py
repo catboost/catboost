@@ -122,6 +122,10 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             indices of categorical features in array of all features.
             Note: indices in array of features, not indices in array of all columns!
 
+        "text_feature_indices" : list of integers
+            indices of text features in array of all features.
+            Note: indices in array of features, not indices in array of all columns!
+
         "column_names" : list of strings
 
         "non_feature_column_indices" : list of integers
