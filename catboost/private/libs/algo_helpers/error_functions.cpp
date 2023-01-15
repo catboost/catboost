@@ -246,9 +246,16 @@ namespace {
     template <int Capacity>
     class TExpForwardView {
     public:
-        TExpForwardView(TConstArrayRef<double> src, double bias)
+        explicit TExpForwardView(TConstArrayRef<double> src)
+            : Src(src)
+        {
+            ExpSrc.fill(0.0);
+        }
+        TExpForwardView(TConstArrayRef<double> src, double bias, double scale)
             : Src(src)
             , Bias(bias)
+            , Scale(scale)
+            , IsWithBiasScale(bias != 0.0 || scale != 1.0)
         {
             ExpSrc.fill(0.0);
         }
@@ -257,8 +264,14 @@ namespace {
             if (ViewEnd <= idx) {
                 ViewBegin = idx;
                 ViewEnd = Min(idx + Capacity, Src.size());
-                for (size_t i : xrange(ViewBegin, ViewEnd)) {
-                    ExpSrc[i - ViewBegin] = Src[i] + Bias;
+                if (IsWithBiasScale) {
+                    for (size_t i : xrange(ViewBegin, ViewEnd)) {
+                        ExpSrc[i - ViewBegin] = (Src[i] + Bias) * Scale;
+                    }
+                } else {
+                    for (size_t i : xrange(ViewBegin, ViewEnd)) {
+                        ExpSrc[i - ViewBegin] = Src[i];
+                    }
                 }
                 FastExpInplace(ExpSrc.data(), ViewEnd - ViewBegin);
             }
@@ -266,9 +279,11 @@ namespace {
         }
     private:
         TConstArrayRef<double> Src;
-        double Bias;
+        double Bias = 0.0;
+        double Scale = 1.0;
         size_t ViewBegin = 0;
         size_t ViewEnd = 0;
+        bool IsWithBiasScale = false;
         std::array<double, Capacity> ExpSrc;
     };
 }
@@ -284,8 +299,8 @@ static void CalcCrossEntropyDerRangeImpl(
     TDers* ders,
     double* firstDers
 ) {
-    TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes + start, count), 0);
-    TExpForwardView</*Capacity*/16> expApproxDeltas(MakeArrayRef(approxDeltas + start, count), 0);
+    TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes + start, count));
+    TExpForwardView</*Capacity*/16> expApproxDeltas(MakeArrayRef(approxDeltas + start, count));
     Y_ASSERT(HasDelta == (approxDeltas != nullptr));
 #pragma clang loop vectorize_width(4) interleave_count(2)
     for (int i = start; i < start + count; ++i) {
@@ -520,25 +535,20 @@ void TQuerySoftMaxError::CalcDersForSingleQuery(
         }
     }
     if (sumWeightedTargets > 0) {
-        TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes.data(), offset + count), -maxApprox);
+        TExpForwardView</*Capacity*/16> expApproxes(MakeArrayRef(approxes.data(), offset + count), -maxApprox, Beta);
         double sumExpApprox = 0;
         for (int dim = offset; dim < offset + count; ++dim) {
             const float weight = weights.empty() ? 1.0f : weights[start + dim];
-            if (weight > 0) {
-                const double expApprox = expApproxes[start + dim] * weight;
-                ders[dim].Der1 = expApprox;
-                sumExpApprox += expApprox;
-            }
+            const double expApprox = expApproxes[start + dim] * weight;
+            ders[dim].Der1 = expApprox;
+            sumExpApprox += expApprox;
         }
         for (int dim = offset; dim < offset + count; ++dim) {
             const float weight = weights.empty() ? 1.0f : weights[start + dim];
             if (weight > 0) {
                 const double p = ders[dim].Der1 / sumExpApprox;
-                ders[dim].Der2 = sumWeightedTargets * (p * (p - 1.0) - LambdaReg);
-                ders[dim].Der1 = -sumWeightedTargets * p;
-                if (targets[start + dim] > 0) {
-                    ders[dim].Der1 += weight * targets[start + dim];
-                }
+                ders[dim].Der2 = Beta * sumWeightedTargets * (Beta * p * (p - 1.0) - LambdaReg);
+                ders[dim].Der1 = Beta * (-sumWeightedTargets * p + weight * targets[start + dim]);
             } else {
                 ders[dim].Der2 = 0.0;
                 ders[dim].Der1 = 0.0;

@@ -203,12 +203,16 @@ THolder<IDerCalcer> BuildError(
         case ELossFunction::QuerySoftMax: {
             const auto& lossFunctionDescription = params.LossFunctionDescription;
             const auto& lossParams = lossFunctionDescription->GetLossParamsMap();
-            CB_ENSURE(
-                lossParams.empty() || lossParams.begin()->first == "lambda",
-                "Invalid loss description" << ToString(lossFunctionDescription.Get()));
+            for (const auto& [param, value] : lossParams) {
+                Y_UNUSED(value);
+                CB_ENSURE(
+                    param == "lambda" || param == "beta",
+                    "Invalid loss description" << ToString(lossFunctionDescription.Get()));
+            }
 
             const double lambdaReg = NCatboostOptions::GetQuerySoftMaxLambdaReg(lossFunctionDescription);
-            return MakeHolder<TQuerySoftMaxError>(lambdaReg, isStoreExpApprox);
+            const double beta = NCatboostOptions::GetQuerySoftMaxBeta(lossFunctionDescription);
+            return MakeHolder<TQuerySoftMaxError>(lambdaReg, beta, isStoreExpApprox);
         }
         case ELossFunction::YetiRank:
             return MakeHolder<TPairLogitError>(isStoreExpApprox);

@@ -143,4 +143,8 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
     Y_UNIT_TEST(TestCombinationRMSEQueryRMSE) {
         TestCombinationGradientImpl(/*seed*/42, "RMSE", "QueryRMSE");
     }
+
+    Y_UNIT_TEST(TestCombinationLoglossQuerySoftMaxBeta) {
+        TestCombinationGradientImpl(/*seed*/96, "Logloss", "QuerySoftMax:beta=0.5");
+    }
 }

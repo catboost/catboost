@@ -239,6 +239,7 @@ namespace NCatboostCuda {
                                             samplesGrouping.GetBiasedOffsets(),
                                             samplesGrouping.GetOffsetsBias(),
                                             NCatboostOptions::GetQuerySoftMaxLambdaReg(Params),
+                                            NCatboostOptions::GetQuerySoftMaxBeta(Params),
                                             GetTarget().GetTargets(),
                                             GetTarget().GetWeights(),
                                             point,
