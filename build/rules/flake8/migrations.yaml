@@ -697,9 +697,6 @@ migrations:
     - yweb/robot/metrics/pmusca/graph/bin/extract_urls_from_serp
     - yweb/robot/metrics/pmusca/update_jupiter_urlinfo
     - yweb/sitelinks/scripts/sitelinks
-    - yweb/video/faas/graphs/bsvideo
-    - yweb/video/faas/graphs/q
-    - yweb/video/faas/graphs/regular
     - yweb/video/faas/lib
     - yweb/webscripts/video/duplicates/nirvana_scripts/knn/filter_knn_source
     - yweb/yasap/answers/answers
