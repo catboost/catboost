@@ -9,7 +9,7 @@ import unittest
 from cython.operator cimport dereference as deref
 
 
-class TestHash(unittest.TestCase):
+class TestHashSet(unittest.TestCase):
 
     def test_simple_constructor_equality_operator(self):
         cdef THashSet[int] c1
