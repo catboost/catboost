@@ -8,11 +8,19 @@ def out2err(cmd):
     return subprocess.Popen(cmd, stdout=sys.stderr).wait()
 
 
+def decoding_needed(strval):
+    if sys.version_info >= (3, 0, 0):
+        return isinstance(strval, bytes)
+    else:
+        return False
+
+
 def out2err_cut_first_line(cmd):
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     first_line = True
     while True:
         line = p.stdout.readline()
+        line = line.decode('utf-8') if decoding_needed(line) else line
         if not line:
             break
         if first_line:
