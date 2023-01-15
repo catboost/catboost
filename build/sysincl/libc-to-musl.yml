@@ -67,6 +67,7 @@
     - contrib/libs/musl/src/include/wchar.h
 
   - inttypes.h:             contrib/libs/musl/include/inttypes.h
+  - stddef.h:               contrib/libs/musl/include/stddef.h
   - stdint.h:               contrib/libs/musl/include/stdint.h
 
 
