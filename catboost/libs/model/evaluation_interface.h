@@ -205,11 +205,12 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 TArrayRef<double> results,
                 const TFeatureLayout* featureInfo = nullptr
             ) const {
-                TVector<TConstArrayRef<float>> floatRefs(floatFeatures.begin(), floatFeatures.end());
-                TVector<TConstArrayRef<TStringBuf>> catFeatureStringRefs(Reserve(catFeatures.size()));
+                TVector<TVector<TStringBuf>> catFeatureString(Reserve(catFeatures.size()));
                 for (const auto& objCatFeature : catFeatures) {
-                    catFeatureStringRefs.emplace_back(TVector<TStringBuf>{objCatFeature.begin(), objCatFeature.end()});
+                    catFeatureString.emplace_back(TVector<TStringBuf>{objCatFeature.begin(), objCatFeature.end()});
                 }
+                TVector<TConstArrayRef<float>> floatRefs(floatFeatures.begin(), floatFeatures.end());
+                TVector<TConstArrayRef<TStringBuf>> catFeatureStringRefs(catFeatureString.begin(), catFeatureString.end());
                 Calc<TStringBuf>(floatRefs, catFeatureStringRefs, results, featureInfo);
             }
 
