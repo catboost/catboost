@@ -21,5 +21,4 @@ END()
 
 RECURSE(
     minidump2core
-    python_tracer
 )
