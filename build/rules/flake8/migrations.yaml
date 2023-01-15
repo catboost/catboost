@@ -1028,7 +1028,6 @@ migrations:
     - ads/libs/py_mapreduce/yabs-mapreduce-modules/py-modules/yabs/tabtools
     - ads/ml_engine/learn/result/local_extended_fstr/lib
     - ads/pytorch/lib/online_learning/production/processors/tsar_processor/lib
-    - ads/quality/adv_machine/scripts/cluster_master
     - ads/quality/adv_machine/tsar/cm_robot/cmpy/page
     - ads/quality/apc_check_py
     - ads/quality/embedding/tsar_tensor/ft_pool/lib
@@ -1370,7 +1369,6 @@ migrations:
     - yt/cron/runner/cron_scheduler/tests
     - yt/idm-integration/integration
     - yt/skynet/test
-    - yt/yt/tests/integration/tests
     - yweb/antispam/cid/analytics/pushes/crypta_lal/args
     - yweb/antispam/cid/analytics/pushes/push_sender/args
     - yweb/antispam/cid/analytics/pushes/push_sender/cli
@@ -1453,7 +1451,6 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/tools/language_model/tests/test_linear_merge
     - yabs/outdoor/viewer/back/logic
-    - yt/yt/tests/integration/tests
   F401:
     ignore:
     - F401
@@ -1469,7 +1466,6 @@ migrations:
     - ads/nirvana/mappers/w2v_recommender
     - ads/quality/adv_machine/cm_robot/cmpy/fresh_stats
     - ads/quality/adv_machine/cm_robot/cmpy/search_query_recom_attempt
-    - ads/quality/adv_machine/cm_robot/cmpy/stuff
     - ads/quality/embedding/join_banners
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/gram_eval
     - ads/quality/embedding/tsar_tensor/BSFACTOR-44/preprocess
@@ -1924,7 +1920,6 @@ migrations:
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_lambda
     - voicetech/asr/core/lib/subword_ngram_lm/nirvana/fit_vocabulary
     - voicetech/asr/tools/language_model/tests/test_linear_merge
-    - yt/yt/tests/integration/tests
     - yweb/tellurium/tools/store_history_to_yt
     - yweb/tellurium/ui
   no_lint:
@@ -3216,8 +3211,6 @@ migrations:
     - travel/rasp/library/python/route_search/migrations
     - travel/rasp/morda
     - travel/rasp/mysql_dumper/lib
-    - travel/rasp/pathfinder_maps
-    - travel/rasp/pathfinder_proxy/tests
     - travel/rasp/suburban_tasks
     - travel/rasp/touch
     - trust/bill76/convert_terminal_rates
@@ -3397,9 +3390,6 @@ migrations:
     - yt/yt/experiments/dyntables_stress_test
     - yt/yt/experiments/grpc_proxy_python_sample
     - yt/yt/experiments/streaming/trampoline
-    - yt/yt/python/yt_driver_bindings
-    - yt/yt/python/yt_driver_rpc_bindings
-    - yt/yt/python/yt_yson_bindings
     - yt/yt/server/scheduler_simulator/scripts/bin/extract_event_log
     - yt/yt/server/scheduler_simulator/scripts/bin/extract_preemption_info
     - yt/yt/server/scheduler_simulator/scripts/bin/simulator_operation_decompressor
