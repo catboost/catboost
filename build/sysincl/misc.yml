@@ -386,7 +386,7 @@
   includes:
     - mem.h
 
-- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|perl-JavaScript-V8|uatraits)"
+- source_filter: "^contrib/libs/(authparser|libcoro-perl|libev-perl|libevent-perl|uatraits)"
   includes:
     - patchlevel.h
 
