@@ -1192,8 +1192,6 @@ migrations:
     - quality/trailer/suggest/services/maps/pygeosg/pygeosg/processing
     - quality/user_sessions/py_amon/cbir
     - quality/user_sessions/py_amon/images
-    - release_machine/time_spectre
-    - release_machine/time_spectre/release_stats_manager_runner
     - repo/yeoman/data/lib
     - repo/yeoman/stats/lib
     - sandbox/projects/tycoon/TycoonAdverts
