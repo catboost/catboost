@@ -1460,7 +1460,6 @@ migrations:
     - maps/automotive/qa/metrics/common/ut
     - maps/automotive/tools/statistics_auto/pylib/track_match_finder
     - maps/b2bgeo/mvrp_solver/annealing_mvrp/tests_lib
-    - maps/doc/schemas/ymapsdf/tests
     - maps/infra/apiteka/config_uploader/tests
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/sedem/cli/tests/release
@@ -1553,9 +1552,6 @@ migrations:
     - quality/functionality/turbo/tools/pq_delete_docs
     - quality/functionality/turbo/tools/tdm
     - quality/logs/mousetrack_lib/python/tests
-    - quality/neural_net/bert/bert
-    - quality/neural_net/bert/tools/autobert
-    - quality/neural_net/bert/tools/autobert/builders
     - quality/nirvana_tools/conveyor_operations/bert/rebuild_bert_model
     - quality/nirvana_tools/conveyor_operations/bert/state_to_ynmt
     - quality/relev_tools/choice_screen/create_stove
