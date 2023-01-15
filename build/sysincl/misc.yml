@@ -123,6 +123,10 @@
   includes:
     - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
 
+- source_filter: "^contrib/libs/llvm"
+  includes:
+    - plugin-api.h # GNU linker plugin API.
+
 - source_filter: "^contrib/libs/libevent"
   includes:
     - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
