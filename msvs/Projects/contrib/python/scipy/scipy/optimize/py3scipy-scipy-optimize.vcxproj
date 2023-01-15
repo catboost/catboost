@@ -173,7 +173,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_38d98d9c6f7a66e0e1b4362bde.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_2c170f6a8ca6050f542d1c758d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_75044899130414d0f66cb87834.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1f2b4571d4a99576c42ae46a73.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_671a55745e50bd00e7af2e3b35.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_38d98d9c6f7a66e0e1b4362bde.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_2c170f6a8ca6050f542d1c758d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_75044899130414d0f66cb87834.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1f2b4571d4a99576c42ae46a73.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_671a55745e50bd00e7af2e3b35.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -184,7 +184,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_38d98d9c6f7a66e0e1b4362bde.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_2c170f6a8ca6050f542d1c758d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_75044899130414d0f66cb87834.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1f2b4571d4a99576c42ae46a73.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_671a55745e50bd00e7af2e3b35.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_38d98d9c6f7a66e0e1b4362bde.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_2c170f6a8ca6050f542d1c758d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_75044899130414d0f66cb87834.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_1f2b4571d4a99576c42ae46a73.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/_671a55745e50bd00e7af2e3b35.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -200,7 +200,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_ed8bc65c59ed2649c06b8d531f.cpp" "contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp" "contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp" "contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp" "contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_ed8bc65c59ed2649c06b8d531f.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp" "contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp" "contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp" "contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -211,7 +211,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\optimize
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_ed8bc65c59ed2649c06b8d531f.cpp" "contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp" "contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp" "contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp" "contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/optimize/join_ed8bc65c59ed2649c06b8d531f.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/optimize/2c170f6a8ca6050f542d1c758d.cpp" "contrib/python/scipy/scipy/optimize/75044899130414d0f66cb87834.cpp" "contrib/python/scipy/scipy/optimize/1f2b4571d4a99576c42ae46a73.cpp" "contrib/python/scipy/scipy/optimize/671a55745e50bd00e7af2e3b35.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

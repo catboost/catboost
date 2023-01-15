@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_d71302c21534e17cd270b53095.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f3804e5ab9f35235e9c2ac270f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5ffae79297c65a339738d33bde.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_d71302c21534e17cd270b53095.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f3804e5ab9f35235e9c2ac270f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5ffae79297c65a339738d33bde.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,7 +219,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_d71302c21534e17cd270b53095.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f3804e5ab9f35235e9c2ac270f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5ffae79297c65a339738d33bde.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_d71302c21534e17cd270b53095.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_f3804e5ab9f35235e9c2ac270f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/attrs/_5ffae79297c65a339738d33bde.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -235,7 +235,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_eccc5b9b8bf6d87a27726c5906.cpp" "contrib/python/attrs/f3804e5ab9f35235e9c2ac270f.cpp" "contrib/python/attrs/5ffae79297c65a339738d33bde.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_eccc5b9b8bf6d87a27726c5906.cpp" "--ya-start-command-file" "contrib/python/attrs/f3804e5ab9f35235e9c2ac270f.cpp" "contrib/python/attrs/5ffae79297c65a339738d33bde.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,7 +246,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\attrs
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_eccc5b9b8bf6d87a27726c5906.cpp" "contrib/python/attrs/f3804e5ab9f35235e9c2ac270f.cpp" "contrib/python/attrs/5ffae79297c65a339738d33bde.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/attrs/join_eccc5b9b8bf6d87a27726c5906.cpp" "--ya-start-command-file" "contrib/python/attrs/f3804e5ab9f35235e9c2ac270f.cpp" "contrib/python/attrs/5ffae79297c65a339738d33bde.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

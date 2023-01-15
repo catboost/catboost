@@ -271,7 +271,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_e150745cce5f5f39e896fd5f25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0841abc4c93a32cfcf6ab345ce.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_bb0106744be0ee1726fa2c08a4.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_e150745cce5f5f39e896fd5f25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0841abc4c93a32cfcf6ab345ce.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_bb0106744be0ee1726fa2c08a4.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -282,7 +282,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_e150745cce5f5f39e896fd5f25.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0841abc4c93a32cfcf6ab345ce.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_bb0106744be0ee1726fa2c08a4.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_e150745cce5f5f39e896fd5f25.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_0841abc4c93a32cfcf6ab345ce.yasm" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/_bb0106744be0ee1726fa2c08a4.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -298,7 +298,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2ba26c1f9897de796df70c808e.cpp" "contrib/python/dateutil/0841abc4c93a32cfcf6ab345ce.cpp" "contrib/python/dateutil/bb0106744be0ee1726fa2c08a4.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2ba26c1f9897de796df70c808e.cpp" "--ya-start-command-file" "contrib/python/dateutil/0841abc4c93a32cfcf6ab345ce.cpp" "contrib/python/dateutil/bb0106744be0ee1726fa2c08a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -309,7 +309,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2ba26c1f9897de796df70c808e.cpp" "contrib/python/dateutil/0841abc4c93a32cfcf6ab345ce.cpp" "contrib/python/dateutil/bb0106744be0ee1726fa2c08a4.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/dateutil/join_2ba26c1f9897de796df70c808e.cpp" "--ya-start-command-file" "contrib/python/dateutil/0841abc4c93a32cfcf6ab345ce.cpp" "contrib/python/dateutil/bb0106744be0ee1726fa2c08a4.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

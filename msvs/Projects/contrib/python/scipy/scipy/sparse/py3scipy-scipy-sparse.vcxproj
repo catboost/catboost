@@ -184,7 +184,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_038dce43afa894c3312f836567.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_722f9d85d54a042e2421ff7f35.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_20fbf5ef9dd6d4c9c9e7585f98.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_0713a07501ee48b9415a3f9d03.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_038dce43afa894c3312f836567.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_722f9d85d54a042e2421ff7f35.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_20fbf5ef9dd6d4c9c9e7585f98.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_0713a07501ee48b9415a3f9d03.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -195,7 +195,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_038dce43afa894c3312f836567.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_722f9d85d54a042e2421ff7f35.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_20fbf5ef9dd6d4c9c9e7585f98.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_0713a07501ee48b9415a3f9d03.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_038dce43afa894c3312f836567.yasm" "--ya-start-command-file" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_722f9d85d54a042e2421ff7f35.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_20fbf5ef9dd6d4c9c9e7585f98.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/_0713a07501ee48b9415a3f9d03.yasm" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -211,7 +211,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_5af358604f5092a0d9f0d93fd0.cpp" "contrib/python/scipy/scipy/sparse/722f9d85d54a042e2421ff7f35.cpp" "contrib/python/scipy/scipy/sparse/20fbf5ef9dd6d4c9c9e7585f98.cpp" "contrib/python/scipy/scipy/sparse/0713a07501ee48b9415a3f9d03.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_5af358604f5092a0d9f0d93fd0.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/722f9d85d54a042e2421ff7f35.cpp" "contrib/python/scipy/scipy/sparse/20fbf5ef9dd6d4c9c9e7585f98.cpp" "contrib/python/scipy/scipy/sparse/0713a07501ee48b9415a3f9d03.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -222,7 +222,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_5af358604f5092a0d9f0d93fd0.cpp" "contrib/python/scipy/scipy/sparse/722f9d85d54a042e2421ff7f35.cpp" "contrib/python/scipy/scipy/sparse/20fbf5ef9dd6d4c9c9e7585f98.cpp" "contrib/python/scipy/scipy/sparse/0713a07501ee48b9415a3f9d03.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/join_5af358604f5092a0d9f0d93fd0.cpp" "--ya-start-command-file" "contrib/python/scipy/scipy/sparse/722f9d85d54a042e2421ff7f35.cpp" "contrib/python/scipy/scipy/sparse/20fbf5ef9dd6d4c9c9e7585f98.cpp" "contrib/python/scipy/scipy/sparse/0713a07501ee48b9415a3f9d03.cpp" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

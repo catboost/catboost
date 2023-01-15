@@ -165,7 +165,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "--ya-start-command-file" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -176,7 +176,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/join_dqib5om4arijogqf2wqnltc7re.cpp" "--ya-start-command-file" "catboost/idl/pool/proto/metainfo.pb.h" "catboost/idl/pool/proto/metainfo.pb.cc" "catboost/idl/pool/proto/quantization_schema.pb.h" "catboost/idl/pool/proto/quantization_schema.pb.cc" "--ya-end-command-file"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
