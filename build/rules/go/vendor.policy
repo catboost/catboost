@@ -709,6 +709,8 @@ ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thri
 # Benchmarks using github.com/pkg/errors
 ALLOW library/go/core/xerrors -> vendor/github.com/pkg/errors
 
+
+## LOAD-1046: Pandora perftool. responsible: load@
 # CONTRIB-2040
 ALLOW load/projects/pandora -> vendor/github.com/pkg/errors
 
@@ -720,6 +722,30 @@ ALLOW load/projects/pandora -> vendor/github.com/hashicorp/go-multierror
 
 # CONTRIB-2006
 ALLOW load/projects/pandora -> vendor/github.com/asaskevich/govalidator
+
+# CONTRIB-2041
+ALLOW load/projects/pandora -> vendor/github.com/spf13/viper
+
+# CONTRIB-2008
+ALLOW load/projects/pandora -> vendor/github.com/fatih/structs
+
+# CONTRIB-2007
+ALLOW load/projects/pandora -> vendor/github.com/facebookgo/stack
+
+# CONTRIB-2036
+ALLOW load/projects/pandora -> vendor/gopkg.in/bluesuncorp/validator.v9
+
+# CONTRIB-2088
+ALLOW load/projects/pandora -> vendor/github.com/pquerna/ffjson/fflib/v1
+
+# CONTRIB-2039
+ALLOW load/projects/pandora -> vendor/github.com/json-iterator/go
+
+# CONTRIB-2089
+ALLOW load/projects/pandora -> vendor/github.com/onsi/ginkgo
+
+# CONTRIB-2029
+ALLOW load/projects/pandora -> vendor/github.com/magiconair/properties/assert
 
 #
 # This section is for EXCEPTIONS. Add new rule above, not here.
