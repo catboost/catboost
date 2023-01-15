@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    APACHE2
-)
+LICENSE(APACHE2)
 
 
 

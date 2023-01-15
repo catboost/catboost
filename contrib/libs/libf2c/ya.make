@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    LIBF2C
-)
+LICENSE(LIBF2C)
 
 
 

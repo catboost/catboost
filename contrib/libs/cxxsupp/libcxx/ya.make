@@ -1,8 +1,6 @@
 LIBRARY()
 
-LICENSE(
-    APACHE
-)
+LICENSE(APACHE)
 
 
 
