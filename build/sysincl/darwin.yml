@@ -30,6 +30,7 @@
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
   - ConditionalMacros.h
+  - DiskArbitration/DiskArbitration.h
   - Endian.h
   - MacTypes.h
   - TargetConditionals.h
