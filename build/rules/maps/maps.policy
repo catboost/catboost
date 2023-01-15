@@ -30,6 +30,11 @@ ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/deprecated/localeutils
 ALLOW maps/hotspots/spotsvis/core -> maps/libs/deprecated/coordtrans
 ALLOW maps/streetview/backoffice/lib -> maps/libs/deprecated/coordtrans_pymod
 
+# Use std::chrono or util/datetime instead
+ALLOW maps/analyzer -> maps/libs/deprecated/boost_time
+ALLOW maps/routing -> maps/libs/deprecated/boost_time
+ALLOW maps/tools/naviguide/lib -> maps/libs/deprecated/boost_time
+
 # Stop spreading deprecated stuff
 ALLOW maps/libs/deprecated -> maps/libs/deprecated
 DENY .* -> maps/libs/deprecated
