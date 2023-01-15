@@ -77,7 +77,7 @@ namespace NYT {
     }
 
     TString TokenTypeToString(ETokenType type) {
-        return TString(TokenTypeToChar(type));
+        return TString(1, TokenTypeToChar(type));
     }
 
     ////////////////////////////////////////////////////////////////////////////////
