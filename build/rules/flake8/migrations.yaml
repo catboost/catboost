@@ -143,9 +143,6 @@ migrations:
     - antiadblock/cryprox/tests/unit
     - antirobot/daemon/arcadia_test
     - antirobot/tools/daily_routine/lib
-    - april/basback/basback
-    - april/basback/basback/api
-    - april/basback/basback/process/qa/query_analytics_report
     - april/web/bas/bm
     - april/web/bas/bm/utils
     - april/web/bas/collector
@@ -553,9 +550,6 @@ migrations:
     - irt/bmgen/synonyms
     - juggler/juggler_client/jclient
     - juggler/juggler_client/jclient/scheduling
-    - jupytercloud/backend
-    - jupytercloud/backend/clients
-    - jupytercloud/backend/handlers
     - jupytercloud/tools/calc_notebooks_stats
     - keyboard/analytics/toloka/nirvana/blocks
     - keyboard/analytics/toloka/nirvana/swipe
@@ -625,7 +619,6 @@ migrations:
     - maps/b2bgeo/ya_courier/backend/ya_courier_backend/util
     - maps/carparks/regression/renderer/generate_ammo
     - maps/carparks/tools/route_lost_viewer/bin
-    - maps/garden/modules/carparks_design_src/lib
     - maps/infra/ecstatic/common/worker/lib
     - maps/infra/monitoring/sla_calculator/core/services
     - maps/infra/sedem/machine/tests
@@ -655,7 +648,6 @@ migrations:
     - maps/wikimap/stat/libs/common/tests/lib/dates_ut
     - maps/wikimap/stat/tasks_payment/dictionaries/public_holidays/tests
     - maps/wikimap/stat/tasks_payment/report/lib
-    - maps/wikimap/stat/tasks_payment/tasks_logging/tracker_tickets/lib
     - maps_adv/common/http_client
     - maps_adv/common/http_client/lib
     - market/access/puller/mt
@@ -763,7 +755,6 @@ migrations:
     - orgvisits/library/python/text_tools
     - orgvisits/library/python/yt_jobs/tests
     - orgvisits/metrics/ugc_feedback/ctr
-    - ott/drm/library/python/cmfv
     - passport/cpp/daemons/kolmogor/ut_medium
     - passport/cpp/daemons/xunistater/ut_py
     - passport/go/daemons/tvmtool/ut_py2
@@ -1573,7 +1564,6 @@ migrations:
     - cloud/netinfra/rknfilter/yc_rkn_common
     - cloud/netinfra/rknfilter/yc_rkn_config_node
     - cmnt/tools/regression/request_classes
-    - crm/crm-logbroker-consumer
     - crypta/cm/services/quoter/bin/test
     - cv/cbir_search/tools/similar_pool/scrape_serp_from_middle
     - cv/imageproc/ocr/tools/database_extraction/nirvana/imgaug/src/augmenters
@@ -1631,7 +1621,6 @@ migrations:
     - dj/lib/viewer/server
     - dj/tools/rthub_profiles/acceptance/acceptance_tool
     - dj/tools/viewer/custom/entity
-    - douber/backend/api/clients
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib
     - edadeal/analytics/scripts/CashbackReport/CashbackReportLib/CashbackReportLib
     - education/checking_system/api/it
@@ -1724,7 +1713,6 @@ migrations:
     - kikimr/tools/create_svp
     - kikimr/tools/dstool
     - kikimr/tools/duty_bot
-    - kikimr/tools/monitoring
     - kikimr/tools/release
     - kikimr/ydbcp/core/api
     - kikimr/ydbcp/core/api/ut
@@ -1741,7 +1729,6 @@ migrations:
     - library/python/bstr
     - library/python/coredump_filter
     - library/python/pytest/plugins
-    - library/python/toloka_client/tests
     - load/projects/yatool_perf_test/lib
     - logbroker/juggler/bundle/checks
     - logbroker/public/client/lib
@@ -2260,7 +2247,6 @@ migrations:
     - yweb/video/faas/graphs/regular
     - yweb/video/faas/graphs/regular-drm
     - yweb/video/faas/graphs/regular-fast
-    - yweb/video/faas/graphs/strm
     - yweb/video/faas/graphs/tests/zen
     - yweb/video/faas/graphs/ugc-drm
     - yweb/video/faas/graphs/zen
@@ -2487,7 +2473,6 @@ migrations:
     - crypta/lab/test/yt
     - cv/imageproc/ocr/tools/nirvana/captcha_renderer
     - cv/short2long/nirvana/lib
-    - cv/short2long/python_lib
     - cv/short2long/training/yt_load_highlights
     - datalens/backend/bi-api
     - datalens/backend/bi-common
@@ -2574,12 +2559,9 @@ migrations:
     - intranet/pypi/src
     - intranet/table_flow/src
     - intranet/table_flow/tests
-    - intranet/trip/src
     - intranet/trip/tests
-    - jupytercloud/backend
     - kikimr/tools/dstool
     - kikimr/tools/ic_load
-    - kikimr/tools/monitoring
     - kikimr/yf/tests/no_recipe
     - kikimr/yf/tests/ydb
     - lbs/research/LBS381_choosing_gsm_over_wifi/calc_stats
@@ -3071,15 +3053,6 @@ migrations:
     - alice/uniproxy/library/subway/tests
     - alice/uniproxy/library/vins
     - alice/uniproxy/tools/proxycli/library/proxycli
-    - april/basback/basback
-    - april/basback/basback/process
-    - april/basback/basback/process/dwr/direct_weekly_pptx
-    - april/basback/basback/process/other/sender
-    - april/basback/basback/process/qa/query_analytics_report
-    - april/tools/etl/accounting
-    - april/web/bas/oauth
-    - april/web/bas/oauth/utils
-    - april/web/bas/other
     - billing/agency_rewards/agency_rewards
     - billing/agency_rewards/agency_rewards/main
     - billing/agency_rewards/agency_rewards/utils
@@ -3106,10 +3079,6 @@ migrations:
     - cloud/mdb/dbaas_worker/test/mocks
     - cloud/mdb/graphene/test-util/pg-slowdown-test
     - cloud/mdb/internal/python/compute/operations
-    - cmnt/tools/regression/lib
-    - crm/crm-logbroker-consumer
-    - crm/infra/pymonitor
-    - cv/short2long/python_lib
     - datalens/backend/bi-api
     - datalens/backend/bi-api/bi/resources
     - datalens/backend/bi-api/tests/db
@@ -3148,10 +3117,6 @@ migrations:
     - direct/infra/mysql_manager/mymgr
     - direct/infra/mysql_manager/zkguard
     - direct/infra/mysql_manager/zkguard-runit-gen
-    - douber/backend/api/clients
-    - douber/backend/api/views/cargo
-    - douber/backend/api/views/evacuator
-    - douber/backend/api/views/phone
     - education/flow/infrastructure/enigma_api
     - education/flow/infrastructure/migrant
     - education/flow/infrastructure/migrant/src
@@ -3199,18 +3164,6 @@ migrations:
     - infra/rtc_sla_tentacles/backend/bin/juggler_checks_manager
     - infra/rtc_sla_tentacles/backend/lib/api
     - infra/rtc_sla_tentacles/backend/lib/yp_lite
-    - intranet/domenator/tests
-    - intranet/domenator/tests/api
-    - intranet/femida/src/hire_orders
-    - intranet/trip/src
-    - intranet/trip/src/lib/aeroclub
-    - jupytercloud/arcadia_kernel/manage
-    - jupytercloud/backend
-    - jupytercloud/backend/dns
-    - jupytercloud/backend/handlers
-    - kikimr/tools/monitoring
-    - library/python/toloka_client
-    - library/python/toloka_client/tutorial
     - locdoc/doc_tools/yoda/friends/smartcat
     - locdoc/doc_tools/yoda/friends/smartcat/api
     - locdoc/doc_tools/yoda/friends/tanker
@@ -3265,7 +3218,6 @@ migrations:
     - maps/infra/sedem/cli/lib/schema
     - maps/infra/sedem/cli/modules
     - maps/infra/sedem/cli/tests/release
-    - maps/infra/sedem/cli/tests/release/machine
     - maps/infra/sedem/machine/client
     - maps/infra/sedem/machine/tests
     - maps/infra/sedem/tools/changelog_collector
@@ -3343,7 +3295,6 @@ migrations:
     - ott/drm/columbia/src/logs/strm
     - ott/drm/jobs/s3probe
     - ott/drm/jobs/s3probe/src
-    - ott/drm/library/python/cmfv
     - ott/tv/webeka/proxy
     - ott/tv/webeka/proxy/api
     - payplatform/scrooge/scrooge/utils
@@ -3454,7 +3405,6 @@ migrations:
     - yweb/news/news_back/api/v3/tests
     - yweb/video/faas/lib
     - yweb/video/faas/lib/analyze
-    - yweb/video/faas/lib/misc
     - yweb/video/faas/lib/os
     - yweb/video/faas/lib/telegram
     - yweb/video/faas/lib/tests/convert
@@ -3648,9 +3598,6 @@ migrations:
     - infra/dist/cacus/lib
     - infra/kernel/test/misc
     - intranet/dogma/mon
-    - intranet/trip/src
-    - intranet/trip/src/api/auth
-    - intranet/trip/src/db/subqueries
     - intranet/trip/tests
     - intranet/trip/tests/api
     - jupytercloud/arcadia_kernel/lib
@@ -3775,8 +3722,6 @@ migrations:
     - quality/ab_testing/scripts/ems/modules/metric
     - quality/ab_testing/scripts/ems/modules/metric/backends
     - quality/ab_testing/scripts/ems/modules/metrics/abt/api/v1
-    - quality/functionality/chats/floyd/src/floyd/core
-    - quality/functionality/chats/floyd/src/floyd/core/platform
     - quality/functionality/turbo/auto_morda/state_builder/tests
     - quality/functionality/turbo/forms/app/tests
     - quality/functionality/turbo/remove_404_pages/remover/tests
