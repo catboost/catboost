@@ -1,6 +1,10 @@
 import sys
 
-import process_command_files as pcf
+
+# Support @response-file notation for windows to reduce cmd length
+if sys.argv[1].startswith('@'):
+    with open(sys.argv[1][1:]) as afile:
+        sys.argv[1:] = afile.read().splitlines()
 
 
 with open(sys.argv[1], 'w') as f:
@@ -12,5 +16,5 @@ with open(sys.argv[1], 'w') as f:
     f.write('#pragma GCC diagnostic ignored "-Wsubobject-linkage"\n')
     f.write('#endif\n\n')
 
-    for arg in pcf.iter_args(sys.argv[2:]):
-        f.write('#include "' + arg + '"\n')
+    for i in sys.argv[2:]:
+        f.write('#include "' + i + '"\n')

@@ -7,7 +7,7 @@
 #include <catboost/libs/model/fwd.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -26,8 +26,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
     int end,
-    NPar::ILocalExecutor* executor = nullptr,
-    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline = Nothing());
+    NPar::TLocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -36,8 +35,7 @@ TVector<TVector<double>> ApplyModelMulti(
     const EPredictionType predictionType = EPredictionType::RawFormulaVal,
     int begin = 0,
     int end = 0,
-    int threadCount = 1,
-    const NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>>& baseline = Nothing());
+    int threadCount = 1);
 
 TVector<TVector<double>> ApplyModelMulti(
     const TFullModel& model,
@@ -53,7 +51,7 @@ TMinMax<double> ApplyModelForMinMax(
     const NCB::TObjectsDataProvider& objectsData,
     int treeBegin = 0,
     int treeEnd = 0,
-    NPar::ILocalExecutor* executor = nullptr);
+    NPar::TLocalExecutor* executor = nullptr);
 
 /*
  * Tradeoff memory for speed
@@ -64,7 +62,7 @@ public:
     TModelCalcerOnPool(
         const TFullModel& model,
         NCB::TObjectsDataProviderPtr objectsData,
-        NPar::ILocalExecutor* executor);
+        NPar::TLocalExecutor* executor);
 
     void ApplyModelMulti(
         const EPredictionType predictionType,
@@ -77,8 +75,8 @@ private:
     const TFullModel* Model;
     NCB::NModelEvaluation::TConstModelEvaluatorPtr ModelEvaluator;
     NCB::TObjectsDataProviderPtr ObjectsData;
-    NPar::ILocalExecutor* Executor;
-    NPar::ILocalExecutor::TExecRangeParams BlockParams;
+    NPar::TLocalExecutor* Executor;
+    NPar::TLocalExecutor::TExecRangeParams BlockParams;
     TVector<TIntrusivePtr<NCB::NModelEvaluation::IQuantizedData>> QuantizedDataForThreads;
 };
 
@@ -120,7 +118,7 @@ TVector<ui32> CalcLeafIndexesMulti(
     NCB::TObjectsDataProviderPtr objectsData,
     int treeStart = 0,
     int treeEnd = 0,
-    NPar::ILocalExecutor* executor = nullptr);
+    NPar::TLocalExecutor* executor = nullptr);
 
 TVector<ui32> CalcLeafIndexesMulti(
     const TFullModel& model,
@@ -129,22 +127,3 @@ TVector<ui32> CalcLeafIndexesMulti(
     int treeStart = 0,
     int treeEnd = 0,
     int threadCount = 1);
-
-void ApplyVirtualEnsembles(
-    const TFullModel& model,
-    const NCB::TDataProvider& dataset,
-    size_t end,
-    size_t virtualEnsemblesCount,
-    TVector<TVector<double>>* rawValuesPtr,
-    NPar::ILocalExecutor* executor
-);
-
-TVector<TVector<double>> ApplyUncertaintyPredictions(
-    const TFullModel& model,
-    const NCB::TDataProvider& data,
-    bool verbose = false,
-    const EPredictionType predictionType = EPredictionType::VirtEnsembles,
-    int end = 0,
-    int virtualEnsemblesCount = 10,
-    int threadCount = 1);
-

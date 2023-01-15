@@ -17,7 +17,7 @@
 #ifndef FLATBUFFERS_REGISTRY_H_
 #define FLATBUFFERS_REGISTRY_H_
 
-#include "idl.h"
+#include "flatbuffers/idl.h"
 
 namespace flatbuffers {
 
@@ -72,7 +72,7 @@ class Registry {
       return DetachedBuffer();
     }
     // We have a valid FlatBuffer. Detach it from the builder and return.
-    return parser.builder_.Release();
+    return parser.builder_.ReleaseBufferPointer();
   }
 
   // Modify any parsing / output options used by the other functions.

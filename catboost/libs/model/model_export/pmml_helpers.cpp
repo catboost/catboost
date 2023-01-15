@@ -6,8 +6,8 @@
 #include <catboost/libs/helpers/xml_output.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 
-#include <library/cpp/json/json_value.h>
-#include <library/cpp/svnversion/svnversion.h>
+#include <library/json/json_value.h>
+#include <library/svnversion/svnversion.h>
 
 #include <util/datetime/base.h>
 #include <util/generic/algorithm.h>
@@ -117,7 +117,7 @@ static void OutputTargetsFields(
     TXmlElementOutputContext targets(xmlOut, "Targets");
     {
         TXmlElementOutputContext target(xmlOut, "Target");
-        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().GetOneDimensionalBias())
+        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().Bias)
             .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale)
             .AddAttr("field", "prediction");
     }
@@ -222,54 +222,8 @@ static void OutputCategoricalMapping(
     }
 }
 
-static void OutputPredicate(
-    const TModelTrees& modelTrees,
-    const TModelSplit& binFeature,
-    bool isLeafNode,
-    size_t leftChildIdx,
-    size_t rightChildIdx,
-    const TOneHotValuesToIdx& oneHotValuesToIdx,
-    TXmlOutputContext* xmlOut) {
 
-    auto featureType = binFeature.Type;
-
-    if (featureType == ESplitType::FloatFeature) {
-        int floatFeatureIdx = binFeature.FloatFeature.FloatFeature;
-        const auto& floatFeature = modelTrees.GetFloatFeatures()[floatFeatureIdx];
-
-        if (!isLeafNode) {
-            if (floatFeature.HasNans &&
-                (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue))
-            {
-                xmlOut->AddAttr("defaultChild", rightChildIdx);
-            } else {
-                xmlOut->AddAttr("defaultChild", leftChildIdx);
-            }
-        }
-
-        TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
-        xmlOut->AddAttr("field", CreateFeatureName(floatFeature))
-            .AddAttr("operator", "greaterThan")
-            .AddAttr("value", binFeature.FloatFeature.Split);
-    } else {
-        Y_ASSERT(featureType == ESplitType::OneHotFeature);
-
-        if (!isLeafNode) {
-            xmlOut->AddAttr("defaultChild", leftChildIdx);
-        }
-
-        int catFeatureIdx = binFeature.OneHotFeature.CatFeatureIdx;
-        const auto& catFeature = modelTrees.GetCatFeatures()[catFeatureIdx];
-
-        TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
-        xmlOut->AddAttr("field", CreateFeatureName(catFeature) + "_mapped")
-            .AddAttr("operator", "equal")
-            .AddAttr("value", oneHotValuesToIdx[catFeatureIdx].at(binFeature.OneHotFeature.Value));
-    }
-}
-
-
-static void OutputNodeSymmetric(
+static void OutputNode(
     const TModelTrees& modelTrees,
     size_t treeIdx,
     size_t treeFirstGlobalLeafIdx,
@@ -282,12 +236,12 @@ static void OutputNodeSymmetric(
     TXmlElementOutputContext node(xmlOut, "Node");
     xmlOut->AddAttr("id", leafIdx);
 
-    const bool isLeafNode = layer == SafeIntegerCast<size_t>(modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
+    const bool isLeafNode = layer == SafeIntegerCast<size_t>(modelTrees.GetTreeSizes()[treeIdx]);
 
     if (isLeafNode) {
         xmlOut->AddAttr(
             "score",
-            modelTrees.GetModelTreeData()->GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
+            modelTrees.GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
     }
     xmlOut->AddAttr(
         "recordCount",
@@ -296,24 +250,51 @@ static void OutputNodeSymmetric(
     // predicate
     if ((layer != 0) && (leafIdx % 2 == 0)) {
         const int splitIdx
-            = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx] - layer;
-        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits().at(splitIdx)];
+            = modelTrees.GetTreeStartOffsets()[treeIdx] + modelTrees.GetTreeSizes()[treeIdx] - layer;
+        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetTreeSplits().at(splitIdx)];
 
-        OutputPredicate(
-            modelTrees,
-            binFeature,
-            isLeafNode,
-            /*leftChildIdx*/ 2 * leafIdx + 1,
-            /*rightChildIdx*/ 2 * leafIdx + 2,
-            oneHotValuesToIdx,
-            xmlOut);
+        auto featureType = binFeature.Type;
+
+        if (featureType == ESplitType::FloatFeature) {
+            int floatFeatureIdx = binFeature.FloatFeature.FloatFeature;
+            const auto& floatFeature = modelTrees.GetFloatFeatures()[floatFeatureIdx];
+
+            if (!isLeafNode) {
+                if (floatFeature.HasNans &&
+                    (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue))
+                {
+                    xmlOut->AddAttr("defaultChild", 2 * leafIdx + 2);
+                } else {
+                    xmlOut->AddAttr("defaultChild", 2 * leafIdx + 1);
+                }
+            }
+
+            TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
+            xmlOut->AddAttr("field", CreateFeatureName(floatFeature))
+                .AddAttr("operator", "greaterThan")
+                .AddAttr("value", binFeature.FloatFeature.Split);
+        } else {
+            Y_ASSERT(featureType == ESplitType::OneHotFeature);
+
+            if (!isLeafNode) {
+                xmlOut->AddAttr("defaultChild", 2 * leafIdx + 1);
+            }
+
+            int catFeatureIdx = binFeature.OneHotFeature.CatFeatureIdx;
+            const auto& catFeature = modelTrees.GetCatFeatures()[catFeatureIdx];
+
+            TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
+            xmlOut->AddAttr("field", CreateFeatureName(catFeature) + "_mapped")
+                .AddAttr("operator", "equal")
+                .AddAttr("value", oneHotValuesToIdx[catFeatureIdx].at(binFeature.OneHotFeature.Value));
+        }
     } else {
         TXmlElementOutputContext predicate(xmlOut, "True");
     }
 
     if (!isLeafNode) {
         for (auto childLeafIdx : {2 * leafIdx + 2, 2 * leafIdx + 1}) {
-            OutputNodeSymmetric(
+            OutputNode(
                 modelTrees,
                 treeIdx,
                 treeFirstGlobalLeafIdx,
@@ -326,18 +307,17 @@ static void OutputNodeSymmetric(
     }
 }
 
-
 static TVector<double> CalculateNodeWeights(
     const TModelTrees& modelTrees,
     size_t treeIdx,
     size_t treeFirstGlobalLeafIdx) {
 
-    auto lastLayer = SafeIntegerCast<size_t>(modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
+    auto lastLayer = SafeIntegerCast<size_t>(modelTrees.GetTreeSizes()[treeIdx]);
     auto knownIdxBegin = (size_t(1) << lastLayer) - 1;
 
     TVector<double> weights(2 * knownIdxBegin + 1);
     std::copy_n(
-        modelTrees.GetModelTreeData()->GetLeafWeights().begin() + treeFirstGlobalLeafIdx,
+        modelTrees.GetLeafWeights().begin() + treeFirstGlobalLeafIdx,
         size_t(1) << lastLayer,
         weights.begin() + knownIdxBegin);
     while (knownIdxBegin > 0) {
@@ -352,139 +332,12 @@ static TVector<double> CalculateNodeWeights(
     return weights;
 }
 
-static void OutputNodeNonSymmetric(
-    const TModelTrees& modelTrees,
-    size_t treeIdx,
-    size_t nodeIdx,
-    size_t *outputNodeIdx,
-    bool isRightChild,
-    bool isDummyLeaf,
-    size_t parentNodeIdx,
-    const TOneHotValuesToIdx& oneHotValuesToIdx,
-    TConstArrayRef<double> nodeWeights,
-    TConstArrayRef<size_t> leftChildren,
-    TXmlOutputContext* xmlOut) {
-
-    size_t leftStep = 0;
-    size_t rightStep = 0;
-    if (!isDummyLeaf) {
-        leftStep = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx].LeftSubtreeDiff;
-        rightStep = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx].RightSubtreeDiff;
-    }
-
-    const bool isLeafNode = leftStep == 0 && rightStep == 0;
-
-    TXmlElementOutputContext node(xmlOut, "Node");
-    xmlOut->AddAttr("id", *outputNodeIdx);
-
-    if (isLeafNode) {
-        xmlOut->AddAttr(
-            "score",
-            modelTrees.GetModelTreeData()->GetLeafValues()[modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx]]);
-    }
-    xmlOut->AddAttr(
-        "recordCount",
-        nodeWeights[*outputNodeIdx]);
-
-    // predicate
-    if (isRightChild) {
-        const auto& binFeature = modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits().at(parentNodeIdx)];
-
-        OutputPredicate(
-            modelTrees,
-            binFeature,
-            isLeafNode,
-            leftChildren[*outputNodeIdx],
-            /*rightChildIdx*/ *outputNodeIdx + 1,
-            oneHotValuesToIdx,
-            xmlOut);
-    } else {
-        TXmlElementOutputContext predicate(xmlOut, "True");
-    }
-
-    ++*outputNodeIdx;
-
-    if (!isLeafNode) {
-        OutputNodeNonSymmetric(
-            modelTrees,
-            treeIdx,
-            nodeIdx + rightStep,
-            outputNodeIdx,
-            /*isRightChild*/true,
-            /*isDummyLeaf*/rightStep == 0,
-            nodeIdx,
-            oneHotValuesToIdx,
-            nodeWeights,
-            leftChildren,
-            xmlOut);
-        OutputNodeNonSymmetric(
-            modelTrees,
-            treeIdx,
-            nodeIdx + leftStep,
-            outputNodeIdx,
-            /*isRightChild*/false,
-            /*isDummyLeaf*/leftStep == 0,
-            nodeIdx,
-            oneHotValuesToIdx,
-            nodeWeights,
-            leftChildren,
-            xmlOut);
-    }
-}
-
-
-static void CalculateNodeWeightsAndLeftChildrenNonSymmetric(
-    const TModelTrees& modelTrees,
-    size_t treeIdx,
-    size_t nodeIdx,
-    TVector<double>* weights,
-    TVector<size_t>* leftChildren) {
-
-    const auto& stepNode = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
-    const auto outputIdx = weights->size();
-    weights->push_back(0.0);
-    leftChildren->push_back(0);
-
-    if (stepNode.LeftSubtreeDiff == 0 && stepNode.RightSubtreeDiff == 0) {
-        (*weights)[outputIdx] = modelTrees.GetModelTreeData()->GetLeafWeights()[modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx]];
-        return;
-    }
-
-    if (stepNode.RightSubtreeDiff != 0) {
-        CalculateNodeWeightsAndLeftChildrenNonSymmetric(
-            modelTrees,
-            treeIdx,
-            nodeIdx + stepNode.RightSubtreeDiff,
-            weights,
-            leftChildren);
-    } else {
-        // dummy child
-        weights->push_back(0.0);
-        leftChildren->push_back(0);
-    }
-    (*leftChildren)[outputIdx] = weights->size();
-
-    if (stepNode.LeftSubtreeDiff != 0) {
-        CalculateNodeWeightsAndLeftChildrenNonSymmetric(
-            modelTrees,
-            treeIdx,
-            nodeIdx + stepNode.LeftSubtreeDiff,
-            weights,
-            leftChildren);
-    } else {
-        // dummy child
-        weights->push_back(0.0);
-        leftChildren->push_back(0);
-    }
-    (*weights)[outputIdx] = (*weights)[outputIdx + 1] + (*weights)[(*leftChildren)[outputIdx]];
-}
-
 static void OutputTree(
     const TFullModel& model,
     size_t treeIdx,
+    size_t treeFirstGlobalLeafIdx,
     TStringBuf targetName,
     const TOneHotValuesToIdx& oneHotValuesToIdx,
-    size_t* obliviousTreeFirstGlobalLeafIdx,
     TXmlOutputContext* xmlOut) {
 
     TXmlElementOutputContext treeModel(xmlOut, "TreeModel");
@@ -502,43 +355,17 @@ static void OutputTree(
         xmlOut->AddAttr("name", targetName).AddAttr("optype", "continuous").AddAttr("dataType", "double");
     }
 
-    if (model.IsOblivious()) {
-        auto weights = CalculateNodeWeights(*model.ModelTrees, treeIdx, *obliviousTreeFirstGlobalLeafIdx);
+    auto weights = CalculateNodeWeights(*model.ModelTrees, treeIdx, treeFirstGlobalLeafIdx);
 
-        OutputNodeSymmetric(
-            *model.ModelTrees,
-            treeIdx,
-            *obliviousTreeFirstGlobalLeafIdx,
-            /*layer*/ 0,
-            /*leafIdx*/ 0,
-            oneHotValuesToIdx,
-            weights,
-            xmlOut);
-        *obliviousTreeFirstGlobalLeafIdx += (size_t(1) << model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx]);
-    } else {
-        const auto treeStartOffset = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
-        TVector<double> weights;
-        TVector<size_t> leftChildren;
-        CalculateNodeWeightsAndLeftChildrenNonSymmetric(
-            *model.ModelTrees,
-            treeIdx,
-            treeStartOffset,
-            &weights,
-            &leftChildren);
-        size_t outputNodeIdx = 0;
-        OutputNodeNonSymmetric(
-            *model.ModelTrees,
-            treeIdx,
-            treeStartOffset,
-            &outputNodeIdx,
-            /*isRightChild*/ false,
-            /*isDummyLeaf*/ false,
-            /*parentNodeIdx*/ 0,
-            oneHotValuesToIdx,
-            weights,
-            leftChildren,
-            xmlOut);
-    }
+    OutputNode(
+        *model.ModelTrees,
+        treeIdx,
+        treeFirstGlobalLeafIdx,
+        /*layer*/ 0,
+        /*leafIdx*/ 0,
+        oneHotValuesToIdx,
+        weights,
+        xmlOut);
 }
 
 
@@ -577,8 +404,8 @@ static void OutputTreeEnsemble(
         TXmlElementOutputContext segmentation(xmlOut, "Segmentation");
         xmlOut->AddAttr("multipleModelMethod", "sum");
 
-        size_t obliviousTreeFirstGlobalLeafIdx = 0;
-        for (auto treeIdx : xrange(modelTrees.GetModelTreeData()->GetTreeSizes().size())) {
+        size_t treeFirstGlobalLeafIdx = 0;
+        for (auto treeIdx : xrange(modelTrees.GetTreeSizes().size())) {
             TXmlElementOutputContext segment(xmlOut, "Segment");
             xmlOut->AddAttr("id", treeIdx);
 
@@ -587,7 +414,9 @@ static void OutputTreeEnsemble(
                 TXmlElementOutputContext predicate(xmlOut, "True");
             }
 
-            OutputTree(model, treeIdx, targetName, *oneHotValuesToIdx, &obliviousTreeFirstGlobalLeafIdx, xmlOut);
+            OutputTree(model, treeIdx, treeFirstGlobalLeafIdx, targetName, *oneHotValuesToIdx, xmlOut);
+
+            treeFirstGlobalLeafIdx += (size_t(1) << modelTrees.GetTreeSizes()[treeIdx]);
         }
     }
     if (!isChainPart) {
@@ -712,6 +541,8 @@ namespace NCB {
         CB_ENSURE(
             model.GetDimensionsCount() == 1,
             "PMML export currently supports only single-dimensional models");
+
+        CB_ENSURE(model.IsOblivious(), "PMML export currently supports only symmetric trees models");
 
         CB_ENSURE_INTERNAL(
             !model.ModelTrees->GetOneHotFeatures().size() || catFeaturesHashToString,

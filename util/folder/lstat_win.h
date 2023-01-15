@@ -4,17 +4,17 @@
 #include "fts.h"
 
 #ifdef _win_
-    #include <sys/stat.h>
+#include <sys/stat.h>
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-    #endif
+#endif
 
-    #define _S_IFLNK 0xA000
-    int lstat(const char* fileName, stat_struct* fileStat);
+#define _S_IFLNK 0xA000
+int lstat(const char* fileName, stat_struct* fileStat);
 
-    #ifdef __cplusplus
+#ifdef __cplusplus
 }
-    #endif
+#endif
 
 #endif //_win_

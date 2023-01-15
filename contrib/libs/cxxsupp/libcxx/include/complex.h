@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===--------------------------- complex.h --------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -20,7 +20,7 @@
 #include <__config>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 #ifdef __cplusplus
@@ -35,6 +35,6 @@
 #include_next <complex.h>
 #endif
 
-#endif // __cplusplus
+#endif  // __cplusplus
 
-#endif // _LIBCPP_COMPLEX_H
+#endif  // _LIBCPP_COMPLEX_H

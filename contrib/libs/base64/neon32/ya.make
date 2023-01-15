@@ -3,11 +3,8 @@
 LIBRARY()
 
 LICENSE(
-    BSD-2-Clause AND
-    MIT
+    BSD2
 )
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 NO_UTIL()
 

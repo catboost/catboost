@@ -38,7 +38,7 @@ pictures can easily be drawn.
 ----- turtle.py
 
 This module is an extended reimplementation of turtle.py from the
-Python standard distribution up to Python 2.5. (See: https://www.python.org)
+Python standard distribution up to Python 2.5. (See: http://www.python.org)
 
 It tries to keep the merits of turtle.py and to be (nearly) 100%
 compatible with it. This means in the first place to enable the
@@ -258,18 +258,17 @@ class Vec2D(tuple):
     def __rmul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
             return Vec2D(self[0]*other, self[1]*other)
-        return NotImplemented
     def __sub__(self, other):
         return Vec2D(self[0]-other[0], self[1]-other[1])
     def __neg__(self):
         return Vec2D(-self[0], -self[1])
     def __abs__(self):
-        return math.hypot(*self)
+        return (self[0]**2 + self[1]**2)**0.5
     def rotate(self, angle):
         """rotate self counterclockwise by angle
         """
         perp = Vec2D(-self[1], self[0])
-        angle = math.radians(angle)
+        angle = angle * math.pi / 180.0
         c, s = math.cos(angle), math.sin(angle)
         return Vec2D(self[0]*c+perp[0]*s, self[1]*c+perp[1]*s)
     def __getnewargs__(self):
@@ -464,18 +463,20 @@ class TurtleScreenBase(object):
        a corresponding TurtleScreenBase class has to be implemented.
     """
 
-    def _blankimage(self):
+    @staticmethod
+    def _blankimage():
         """return a blank image object
         """
-        img = TK.PhotoImage(width=1, height=1, master=self.cv)
+        img = TK.PhotoImage(width=1, height=1)
         img.blank()
         return img
 
-    def _image(self, filename):
+    @staticmethod
+    def _image(filename):
         """return an image object containing the
         imagedata from a gif-file named filename.
         """
-        return TK.PhotoImage(file=filename, master=self.cv)
+        return TK.PhotoImage(file=filename)
 
     def __init__(self, cv):
         self.cv = cv
@@ -595,6 +596,7 @@ class TurtleScreenBase(object):
         item = self.cv.create_text(x-1, -y, text = txt, anchor = anchor[align],
                                         fill = pencolor, font = font)
         x0, y0, x1, y1 = self.cv.bbox(item)
+        self.cv.update()
         return item, x1-1
 
 ##    def _dot(self, pos, size, color):
@@ -808,7 +810,7 @@ class TurtleScreenBase(object):
         >>> screen.mainloop()
 
         """
-        self.cv.tk.mainloop()
+        TK.mainloop()
 
     def textinput(self, title, prompt):
         """Pop up a dialog window for input of a string.
@@ -823,7 +825,7 @@ class TurtleScreenBase(object):
         >>> screen.textinput("NIM", "Name of first player:")
 
         """
-        return simpledialog.askstring(title, prompt, parent=self.cv)
+        return simpledialog.askstring(title, prompt)
 
     def numinput(self, title, prompt, default=None, minval=None, maxval=None):
         """Pop up a dialog window for input of a number.
@@ -831,7 +833,7 @@ class TurtleScreenBase(object):
         Arguments: title is the title of the dialog window,
         prompt is a text mostly describing what numerical information to input.
         default: default value
-        minval: minimum value for input
+        minval: minimum value for imput
         maxval: maximum value for input
 
         The number input must be in the range minval .. maxval if these are
@@ -844,8 +846,7 @@ class TurtleScreenBase(object):
 
         """
         return simpledialog.askfloat(title, prompt, initialvalue=default,
-                                     minvalue=minval, maxvalue=maxval,
-                                     parent=self.cv)
+                                     minvalue=minval, maxvalue=maxval)
 
 
 ##############################################################################
@@ -963,8 +964,6 @@ class TurtleScreen(TurtleScreenBase):
 
     def __init__(self, cv, mode=_CFG["mode"],
                  colormode=_CFG["colormode"], delay=_CFG["delay"]):
-        TurtleScreenBase.__init__(self, cv)
-
         self._shapes = {
                    "arrow" : Shape("polygon", ((-10,0), (10,0), (0,10))),
                   "turtle" : Shape("polygon", ((0,16), (-2,14), (-1,10), (-4,7),
@@ -988,6 +987,7 @@ class TurtleScreen(TurtleScreenBase):
 
         self._bgpics = {"nopic" : ""}
 
+        TurtleScreenBase.__init__(self, cv)
         self._mode = mode
         self._delayvalue = delay
         self._colormode = _CFG["colormode"]
@@ -1597,7 +1597,7 @@ class TNavigator(object):
         >>> turtle.heading()
         1.5707963267948966
         """
-        self._setDegreesPerAU(math.tau)
+        self._setDegreesPerAU(2*math.pi)
 
     def _go(self, distance):
         """move turtle forward by specified distance"""
@@ -1644,7 +1644,7 @@ class TNavigator(object):
         Argument:
         distance -- a number
 
-        Move the turtle backward by distance, opposite to the direction the
+        Move the turtle backward by distance ,opposite to the direction the
         turtle is headed. Do not change the turtle's heading.
 
         Example (for a Turtle instance named turtle):
@@ -1888,7 +1888,7 @@ class TNavigator(object):
         elif isinstance(x, TNavigator):
             pos = x._position
         x, y = pos - self._position
-        result = round(math.degrees(math.atan2(y, x)), 10) % 360.0
+        result = round(math.atan2(y, x)*180.0/math.pi, 10) % 360.0
         result /= self._degreesPerAU
         return (self._angleOffset + self._angleOrient*result) % self._fullcircle
 
@@ -1903,7 +1903,7 @@ class TNavigator(object):
         67.0
         """
         x, y = self._orient
-        result = round(math.degrees(math.atan2(y, x)), 10) % 360.0
+        result = round(math.atan2(y, x)*180.0/math.pi, 10) % 360.0
         result /= self._degreesPerAU
         return (self._angleOffset + self._angleOrient*result) % self._fullcircle
 
@@ -1976,7 +1976,7 @@ class TNavigator(object):
             steps = 1+int(min(11+abs(radius)/6.0, 59.0)*frac)
         w = 1.0 * extent / steps
         w2 = 0.5 * w
-        l = 2.0 * radius * math.sin(math.radians(w2)*self._degreesPerAU)
+        l = 2.0 * radius * math.sin(w2*math.pi/180.0*self._degreesPerAU)
         if radius < 0:
             l, w, w2 = -l, -w, -w2
         tr = self._tracer()
@@ -2861,7 +2861,7 @@ class RawTurtle(TPen, TNavigator):
         >>> turtle.fd(50)
         """
         tilt = -angle * self._degreesPerAU * self._angleOrient
-        tilt = math.radians(tilt) % math.tau
+        tilt = (tilt * math.pi / 180.0) % (2*math.pi)
         self.pen(resizemode="user", tilt=tilt)
 
     def tiltangle(self, angle=None):
@@ -2876,8 +2876,7 @@ class RawTurtle(TPen, TNavigator):
         between the orientation of the turtleshape and the heading of the
         turtle (its direction of movement).
 
-        (Incorrectly marked as deprecated since Python 3.1, it is really
-        settiltangle that is deprecated.)
+        Deprecated since Python 3.1
 
         Examples (for a Turtle instance named turtle):
         >>> turtle.shape("circle")
@@ -2886,7 +2885,7 @@ class RawTurtle(TPen, TNavigator):
         >>> turtle.tiltangle()
         """
         if angle is None:
-            tilt = -math.degrees(self._tilt) * self._angleOrient
+            tilt = -self._tilt * (180.0/math.pi) * self._angleOrient
             return (tilt / self._degreesPerAU) % self._fullcircle
         else:
             self.settiltangle(angle)
@@ -2940,7 +2939,7 @@ class RawTurtle(TPen, TNavigator):
         if t11 * t22 - t12 * t21 == 0:
             raise TurtleGraphicsError("Bad shape transform matrix: must not be singular")
         self._shapetrafo = (m11, m12, m21, m22)
-        alfa = math.atan2(-m21, m11) % math.tau
+        alfa = math.atan2(-m21, m11) % (2 * math.pi)
         sa, ca = math.sin(alfa), math.cos(alfa)
         a11, a12, a21, a22 = (ca*m11 - sa*m21, ca*m12 - sa*m22,
                               sa*m11 + ca*m21, sa*m12 + ca*m22)
@@ -3402,7 +3401,6 @@ class RawTurtle(TPen, TNavigator):
         """
         item, end = self.screen._write(self._position, txt, align, font,
                                                           self._pencolor)
-        self._update()
         self.items.append(item)
         if self.undobuffer:
             self.undobuffer.push(("wri", item))

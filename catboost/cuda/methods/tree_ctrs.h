@@ -110,8 +110,6 @@ namespace NCatboostCuda {
         void VisitPermutationDataSets(ui32 permutationId,
                                       TDataSetVisitor& visitor);
 
-        ui32 GetMaxUniqueValues() const;
-
     private:
         void AddDataSets(const TVector<TTreeCtrDataSetPtr>& dataSets, ui32 permutationId, bool withCompressedIndexFlag,
                          TVector<TTreeCtrDataSet*>& dst);

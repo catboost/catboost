@@ -13,8 +13,6 @@
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
 
-#include <util/generic/cast.h>
-
 #include <cmath>
 
 namespace NKernelHost {
@@ -83,7 +81,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Feature, Bin, CompressedIndex, Pairs, Depth, Bins);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::UpdateBinsPairs(Feature, Bin, CompressedIndex.Get(), Pairs.Get(), SafeIntegerCast<ui32>(Pairs.Size()), Depth, Bins.Get(), stream.GetStream());
+            NKernel::UpdateBinsPairs(Feature, Bin, CompressedIndex.Get(), Pairs.Get(), Pairs.Size(), Depth, Bins.Get(), stream.GetStream());
         }
     };
 
@@ -172,7 +170,7 @@ namespace NKernelHost {
         }
     };
 
-    class TCholeskySolverKernel: public TKernelBase<NKernel::TCholeskySolverContext> {
+    class TCholeskySolverKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<float> Matrices;
         TCudaBufferPtr<float> Solutions;
@@ -190,12 +188,9 @@ namespace NKernelHost {
         {
         }
 
-        using TKernelContext = NKernel::TCholeskySolverContext;
-        THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const;
-
         Y_SAVELOAD_DEFINE(Matrices, Solutions, SolutionsSlice, RemoveLast);
 
-        void Run(const TCudaStream& stream, TKernelContext&) const;
+        void Run(const TCudaStream& stream) const;
     };
 
     class TCalcScoresKernel: public TStatelessKernel {
@@ -266,8 +261,6 @@ namespace NKernelHost {
     private:
         TCudaBufferPtr<const float> Scores;
         TCudaBufferPtr<const TCBinFeature> BinFeature;
-        double ScoreBeforeSplit;
-        TCudaBufferPtr<const float> FeatureWeights;
         ui32 BestIndexBias;
         TCudaBufferPtr<TBestSplitPropertiesWithIndex> Best;
 
@@ -276,28 +269,20 @@ namespace NKernelHost {
 
         TSelectBestSplitKernel(TCudaBufferPtr<const float> scores,
                                TCudaBufferPtr<const TCBinFeature> binFeature,
-                               double scoreBeforeSplit,
-                               TCudaBufferPtr<const float> featureWeights,
                                ui32 bestIndexBias,
                                TCudaBufferPtr<TBestSplitPropertiesWithIndex> best)
             : Scores(scores)
             , BinFeature(binFeature)
-            , ScoreBeforeSplit(scoreBeforeSplit)
-            , FeatureWeights(featureWeights)
             , BestIndexBias(bestIndexBias)
             , Best(best)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Scores, BinFeature, ScoreBeforeSplit, FeatureWeights, BestIndexBias, Best);
+        Y_SAVELOAD_DEFINE(Scores, BinFeature, BestIndexBias, Best);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(BinFeature.Size() == Scores.Size());
-
-            NKernel::SelectBestSplit(
-                Scores.Get(), BinFeature.Get(), BinFeature.Size(),
-                ScoreBeforeSplit, FeatureWeights.Get(),
-                BestIndexBias, Best.Get(), stream.GetStream());
+            NKernel::SelectBestSplit(Scores.Get(), BinFeature.Get(), BinFeature.Size(), BestIndexBias, Best.Get(), stream.GetStream());
         }
     };
 
@@ -405,7 +390,7 @@ namespace NKernelHost {
                                       GroupDers2.Get(),
                                       Qids.Get(),
                                       Pairs.Get(),
-                                      SafeIntegerCast<ui32>(Pairs.Size()),
+                                      static_cast<ui32>(Pairs.Size()),
                                       PairDer2.Get(),
                                       stream.GetStream());
         }
@@ -432,7 +417,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Pairs, Bins, BinCount, PairBins);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::FillPairBins(Pairs.Get(), Bins.Get(), BinCount, SafeIntegerCast<ui32>(Pairs.Size()), PairBins.Get(), stream.GetStream());
+            NKernel::FillPairBins(Pairs.Get(), Bins.Get(), BinCount, Pairs.Size(), PairBins.Get(), stream.GetStream());
         }
     };
 
@@ -455,8 +440,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Pairs, Bins, PairWeights);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(Pairs.Size() == PairWeights.Size());
-            NKernel::ZeroSameLeafBinWeights(Pairs.Get(), Bins.Get(), SafeIntegerCast<ui32>(Pairs.Size()), PairWeights.Get(), stream.GetStream());
+            NKernel::ZeroSameLeafBinWeights(Pairs.Get(), Bins.Get(), Pairs.Size(), PairWeights.Get(), stream.GetStream());
         }
     };
 
@@ -547,8 +531,6 @@ inline void UpdatePairwiseBins(const NCudaLib::TCudaBuffer<TUi32, NCudaLib::TStr
 
 inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping>& scores,
                                const TCudaBuffer<TCBinFeature, NCudaLib::TStripeMapping>& features,
-                               double scoreBeforeSplit,
-                               const TCudaBuffer<float, NCudaLib::TMirrorMapping>& featureWeights,
                                TCudaBuffer<TBestSplitPropertiesWithIndex, NCudaLib::TStripeMapping>& result,
                                ui32 stream = 0) {
     NCudaLib::TDistributedObject<ui32> offsets = CreateDistributedObject<ui32>(0u);
@@ -558,7 +540,7 @@ inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping
     }
 
     using TKernel = NKernelHost::TSelectBestSplitKernel;
-    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, scores, features, scoreBeforeSplit, featureWeights, offsets, result);
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, scores, features, offsets, result);
 }
 
 inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy policy,
@@ -579,7 +561,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                                       ui32 stream) {
     using TKernel = NKernelHost::TComputePairwiseHistogramKernel;
 
-    LaunchKernels<TKernel>(pairs.NonEmptyDevices(),
+    LaunchKernels<TKernel>(gridBlock.NonEmptyDevices(),
                            stream,
                            policy,
                            gridBlock,

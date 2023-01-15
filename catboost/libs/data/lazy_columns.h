@@ -10,9 +10,42 @@ namespace NCB {
     template <class TBase>
     class TLazyCompressedValuesHolderImpl : public TBase {
     public:
-        TLazyCompressedValuesHolderImpl(ui32 featureId, const TPathWithScheme& pathWithScheme, ui64 size)
-        : TBase(featureId, size)
-        , PathWithScheme(pathWithScheme)
+        using TLoadedColumnData = TVector<ui8>; // TODO(kirillovs): support wide historgrams in "lazy" columns
+
+        template<typename T>
+        class TLazyCompressedValuesIterator : public IDynamicBlockIterator<T> {
+        public:
+            TLazyCompressedValuesIterator(
+                const TFeaturesArraySubsetIndexing* subsetIndexing,
+                std::shared_ptr<TLoadedColumnData>&& columnData,
+                size_t offset
+            )
+                : SubsetIndexing(subsetIndexing)
+                , ColumnData(std::move(columnData))
+            {
+                Iterator = MakeArraySubsetBlockIterator<T>(
+                    SubsetIndexing,
+                    MakeArrayRef(*ColumnData),
+                    offset
+                );
+            }
+
+            TConstArrayRef<T> Next(size_t blockSize) {
+                return Iterator->Next(blockSize);
+            }
+        private:
+            const TFeaturesArraySubsetIndexing* SubsetIndexing;
+            std::shared_ptr<TLoadedColumnData> ColumnData;
+            IDynamicBlockIteratorPtr<T> Iterator;
+        };
+
+        TLazyCompressedValuesHolderImpl(
+            ui32 featureId,
+            const TFeaturesArraySubsetIndexing* subsetIndexing,
+            TAtomicSharedPtr<IQuantizedPoolLoader> poolLoader)
+        : TBase(featureId, subsetIndexing->Size())
+        , SubsetIndexing(subsetIndexing)
+        , PoolLoader(poolLoader)
         {
         }
 
@@ -27,36 +60,46 @@ namespace NCB {
             return 0;
         }
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* /*localExecutor*/) const override {
-            return 0;
-        }
-
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* /*localExecutor*/
+            NPar::TLocalExecutor* localExecutor
         ) const override {
-            CB_ENSURE_INTERNAL(
-                cloningParams.SubsetIndexing == nullptr || cloningParams.SubsetIndexing->IsFullSubset(),
-                "Lazy columns support only full subset indexing");
+            Y_UNUSED(localExecutor);
+            CB_ENSURE_INTERNAL(!cloningParams.MakeConsecutive, "Making consecutive not supported on Lazy columns for now");
             return MakeHolder<TLazyCompressedValuesHolderImpl>(
                 TBase::GetId(),
-                PathWithScheme,
-                TBase::GetSize());
+                cloningParams.SubsetIndexing,
+                PoolLoader
+            );
         }
 
-        TPathWithScheme GetPathWithScheme() const {
-            return PathWithScheme;
-        }
-
-        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 /*offset*/) const override {
-            CB_ENSURE(false);
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset) const override {
+            return MakeHolder<TLazyCompressedValuesIterator<ui8>>(
+                SubsetIndexing,
+                GetColumnData(),
+                offset
+            );
         }
 
     private:
-        TPathWithScheme PathWithScheme;
-    };
+        std::shared_ptr<TLoadedColumnData> GetColumnData() const {
+            with_lock(LoadDataLock) {
+                auto cachedResult = LoadedColumnDataWeakPtr.lock();
+                if (cachedResult) {
+                    return cachedResult;
+                }
+                std::shared_ptr<TLoadedColumnData> loadedColumn = std::make_shared<TLoadedColumnData>(
+                    PoolLoader->LoadQuantizedColumn(TBase::GetId())
+                );
+                LoadedColumnDataWeakPtr = loadedColumn;
+                return loadedColumn;
+            }
+        }
+    private:
+        mutable TMutex LoadDataLock;
+        mutable std::weak_ptr<TVector<ui8>> LoadedColumnDataWeakPtr;
 
-    using TLazyQuantizedFloatValuesHolder = TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>;
-    template <typename IQuantizedValuesHolder>
-    const TLazyQuantizedFloatValuesHolder* CastToLazyQuantizedFloatValuesHolder(const IQuantizedValuesHolder* quantizedFeatureColumn);
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
+        TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
+    };
 }

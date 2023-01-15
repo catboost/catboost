@@ -1,5 +1,3 @@
-#include "hinge_loss.h"
-
 #include "metric_holder.h"
 
 #include <util/generic/vector.h>

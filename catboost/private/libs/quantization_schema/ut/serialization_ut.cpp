@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/helpers/exception.h>
@@ -6,8 +6,8 @@
 #include <catboost/private/libs/quantization_schema/schema.h>
 #include <catboost/private/libs/quantization_schema/serialization.h>
 
-#include <google/protobuf/util/message_differencer.h>
-#include <google/protobuf/text_format.h>
+#include <contrib/libs/protobuf/util/message_differencer.h>
+#include <contrib/libs/protobuf/text_format.h>
 
 #include <util/generic/strbuf.h>
 #include <util/stream/mem.h>
@@ -47,7 +47,7 @@ static void DoCheck(const google::protobuf::Message& lhs, const google::protobuf
 Y_UNIT_TEST_SUITE(SerializationTests) {
     Y_UNIT_TEST(TestConversionToProto) {
         NCB::TPoolQuantizationSchema schema;
-        schema.FloatFeatureIndices = {1, 3, 5};
+        schema.FeatureIndices = {1, 3, 5};
         schema.Borders = {
             {.25f, .5f, .75f},
             {-0.5f, .0f},
@@ -109,14 +109,14 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         const auto schema = NCB::QuantizationSchemaFromProto(proto);
 
         NCB::TPoolQuantizationSchema expected;
-        expected.FloatFeatureIndices = {1, 3, 5};
+        expected.FeatureIndices = {1, 3, 5};
         expected.Borders = {
             {.25f, .5f, .75f},
             {-0.5f, .0f},
             {.0f, 1.f, 10.f}};
         expected.NanModes = {ENanMode::Min, ENanMode::Min, ENanMode::Forbidden};
 
-        UNIT_ASSERT_VALUES_EQUAL(schema.FloatFeatureIndices, expected.FloatFeatureIndices);
+        UNIT_ASSERT_VALUES_EQUAL(schema.FeatureIndices, expected.FeatureIndices);
         UNIT_ASSERT_VALUES_EQUAL(schema.Borders.size(), expected.Borders.size());
         for (size_t i = 0; i < schema.Borders.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(schema.Borders[i], expected.Borders[i]);

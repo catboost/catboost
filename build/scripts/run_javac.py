@@ -11,7 +11,6 @@ def parse_args():
     parser.add_option('--verbose', default=False, action='store_true')
     parser.add_option('--remove-notes', default=False, action='store_true')
     parser.add_option('--ignore-errors', default=False, action='store_true')
-    parser.add_option('--kotlin', default=False, action='store_true')
     return parser.parse_args()
 
 
@@ -89,9 +88,6 @@ def main():
 
     with open(opts.sources_list) as f:
         input_files = f.read().strip().split()
-
-    if opts.kotlin:
-        input_files = [i for i in input_files if i.endswith('.kt')]
 
     if not input_files:
         if opts.verbose:

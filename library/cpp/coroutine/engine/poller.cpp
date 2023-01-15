@@ -46,11 +46,6 @@ namespace {
     template <class T>
     class TVirtualize: public IPollerFace {
     public:
-        TVirtualize(EContPoller pollerEngine)
-            : PollerEngine_(pollerEngine)
-        {
-        }
-
         void Set(const TChange& c) override {
             P_.Set(c);
         }
@@ -59,12 +54,8 @@ namespace {
             P_.Wait(events, deadLine);
         }
 
-        EContPoller PollEngine() const override {
-            return PollerEngine_;
-        }
     private:
         T P_;
-        const EContPoller PollerEngine_;
     };
 
 
@@ -188,7 +179,7 @@ namespace {
     };
 
 
-    inline short PollFlags(ui16 flags) noexcept {
+    static inline short PollFlags(ui16 flags) noexcept {
         short ret = 0;
 
         if (flags & CONT_POLL_READ) {
@@ -198,12 +189,6 @@ namespace {
         if (flags & CONT_POLL_WRITE) {
             ret |= POLLOUT;
         }
-
-#if defined(_linux_)
-        if (flags & CONT_POLL_RDHUP) {
-            ret |= POLLRDHUP;
-        }
-#endif
 
         return ret;
     }
@@ -274,12 +259,6 @@ namespace {
                     filter |= CONT_POLL_WRITE;
                 }
 
-#if defined(_linux_)
-                if (ev & POLLRDHUP) {
-                    filter |= CONT_POLL_RDHUP;
-                }
-#endif
-
                 if (ev & POLLERR) {
                     status = EIO;
                 } else if (ev & POLLHUP && pfd.events & POLLOUT) {
@@ -290,7 +269,7 @@ namespace {
                 }
 
                 if (status) {
-                    filter = CONT_POLL_READ | CONT_POLL_WRITE | CONT_POLL_RDHUP;
+                    filter = CONT_POLL_READ | CONT_POLL_WRITE;
                 }
 
                 const TEvent res = {
@@ -310,6 +289,43 @@ namespace {
         TPollVec T_;
     };
 
+
+    class TCombinedPoller {
+        typedef TPoller<TPollerImpl<TWithoutLocking>> TDefaultPoller;
+
+    public:
+        TCombinedPoller() {
+            P_.Reset(new TPollPoller());
+        }
+
+        void Set(const TChange& c) {
+            if (!P_) {
+                D_->Set(c);
+            } else {
+                P_->Set(c);
+            }
+        }
+
+        void Wait(TEvents& events, TInstant deadLine) {
+            if (!P_) {
+                D_->Wait(events, deadLine);
+            } else {
+                if (P_->Size() > 200) {
+                    D_.Reset(new TDefaultPoller());
+                    P_->Build(*D_);
+                    P_.Destroy();
+                    D_->Wait(events, deadLine);
+                } else {
+                    P_->Wait(events, deadLine);
+                }
+            }
+        }
+
+    private:
+        THolder<TPollPoller> P_;
+        THolder<TDefaultPoller> D_;
+    };
+
     struct TUserPoller: public TString {
         TUserPoller()
             : TString(GetEnv("USER_POLLER"))
@@ -319,7 +335,7 @@ namespace {
 }
 
 THolder<IPollerFace> IPollerFace::Default() {
-    return Construct(*SingletonWithPriority<TUserPoller, 0>());
+    return Construct(*Singleton<TUserPoller>());
 }
 
 THolder<IPollerFace> IPollerFace::Construct(TStringBuf name) {
@@ -327,30 +343,22 @@ THolder<IPollerFace> IPollerFace::Construct(TStringBuf name) {
 }
 
 THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
-    if (poller == EContPoller::Default) {
-#if defined (HAVE_EPOLL_POLLER)
-        poller = EContPoller::Epoll;
-#elif defined(HAVE_KQUEUE_POLLER)
-        poller = EContPoller::Kqueue;
-#else
-        poller = EContPoller::Select;
-#endif
-    }
-
     switch (poller) {
+    case EContPoller::Default:
+        return MakeHolder<TVirtualize<TCombinedPoller>>();
     case EContPoller::Select:
-        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>>(poller);
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>>();
     case EContPoller::Poll:
-        return MakeHolder<TVirtualize<TPollPoller>>(poller);
+        return MakeHolder<TVirtualize<TPollPoller>>();
     case EContPoller::Epoll:
 #if defined(HAVE_EPOLL_POLLER)
-        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TEpollPoller<TWithoutLocking>>>>>(poller);
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TEpollPoller<TWithoutLocking>>>>>();
 #else
         return nullptr;
 #endif
     case EContPoller::Kqueue:
 #if defined(HAVE_KQUEUE_POLLER)
-        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TKqueuePoller<TWithoutLocking>>>>>(poller);
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TKqueuePoller<TWithoutLocking>>>>>();
 #else
         return nullptr;
 #endif

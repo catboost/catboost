@@ -33,23 +33,16 @@ struct TFeature {
     ESplitType Type;
     int FeatureIdx;
     TModelCtr Ctr;
-    TModelEstimatedFeature EstimatedFeature;
-    EFeatureCalcerType FeatureCalcerType;
     static constexpr size_t FloatFeatureBaseHash = 12321;
     static constexpr size_t CtrBaseHash = 89321;
     static constexpr size_t OneHotFeatureBaseHash = 517931;
-    static constexpr size_t EstimatedFeatureBaseHash = 2123719;
 
 public:
     TFeature() = default;
     TFeature(const TFloatFeature& feature) : Type(ESplitType::FloatFeature), FeatureIdx(feature.Position.Index) {}
     TFeature(const TOneHotFeature& feature) : Type(ESplitType::OneHotFeature), FeatureIdx(feature.CatFeatureIndex) {}
     TFeature(const TCtrFeature& feature) : Type(ESplitType::OnlineCtr), Ctr(feature.Ctr) {}
-    TFeature(const TEstimatedFeature& feature, EFeatureCalcerType featureCalcerType)
-        : Type(ESplitType::EstimatedFeature)
-        , EstimatedFeature(feature.ModelEstimatedFeature)
-        , FeatureCalcerType(featureCalcerType)
-    {}
+
 
     bool operator==(const TFeature& other) const {
         if (Type != other.Type) {
@@ -57,10 +50,7 @@ public:
         }
         if (Type == ESplitType::OnlineCtr) {
             return Ctr == other.Ctr;
-        } else if (Type == ESplitType::EstimatedFeature) {
-            return EstimatedFeature == other.EstimatedFeature && FeatureCalcerType == other.FeatureCalcerType;
-        }
-        else {
+        } else {
             return FeatureIdx == other.FeatureIdx;
         }
     }
@@ -70,17 +60,13 @@ public:
     }
 
     size_t GetHash() const {
-        switch(Type) {
-            case ESplitType::FloatFeature:
-                return MultiHash(FloatFeatureBaseHash, FeatureIdx);
-            case ESplitType::OneHotFeature:
-                return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
-            case ESplitType::OnlineCtr:
-                return MultiHash(CtrBaseHash, Ctr.GetHash());
-            case ESplitType::EstimatedFeature:
-                return MultiHash(EstimatedFeatureBaseHash, EstimatedFeature.SourceFeatureId, EstimatedFeature.LocalId, EstimatedFeature.SourceFeatureType, FeatureCalcerType);
-            default:
-                CB_ENSURE(false, "Unsupported split type " << Type);
+        if (Type == ESplitType::FloatFeature) {
+            return MultiHash(FloatFeatureBaseHash, FeatureIdx);
+        } else if (Type == ESplitType::OnlineCtr) {
+            return MultiHash(CtrBaseHash, Ctr.GetHash());
+        } else {
+            Y_ASSERT(Type == ESplitType::OneHotFeature);
+            return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
         }
     }
     TString BuildDescription(const NCB::TFeaturesLayout& layout) const;
@@ -92,7 +78,7 @@ struct TFeatureHash {
     }
 };
 
-TFeature GetFeature(const TFullModel& model, const TModelSplit& split);
+TFeature GetFeature(const TModelSplit& split);
 
 int GetMaxSrcFeature(const TVector<TMxTree>& trees);
 
@@ -152,7 +138,7 @@ TVector<double> CalcEffectForNonObliviousModel(
     CB_ENSURE_INTERNAL(!model.IsOblivious(), "CalcEffectForNonObliviousModel function got oblivious model");
 
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
-    const auto leafValues = model.ModelTrees->GetModelTreeData()->GetLeafValues();
+    const auto leafValues = model.ModelTrees->GetLeafValues();
     const int approxDimension = model.ModelTrees->GetDimensionsCount();
     const int featureCount = featureToIdx.size();
     TVector<double> res(featureCount, 0);
@@ -160,16 +146,16 @@ TVector<double> CalcEffectForNonObliviousModel(
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         TVector<TTriangleNodes> nodesStack;
 
-        const int treeIdxsStart = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
-        const int treeIdxsEnd = treeIdxsStart + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
+        const int treeIdxsStart = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+        const int treeIdxsEnd = treeIdxsStart + model.ModelTrees->GetTreeSizes()[treeIdx];
 
         THashMap<int, TNodeInfo> nodeIdxToInfo;
 
         for (int nodeIdx = treeIdxsStart; nodeIdx < treeIdxsEnd; ++nodeIdx) {
-            const auto& node = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
+            const auto& node = model.ModelTrees->GetNonSymmetricStepNodes()[nodeIdx];
 
             if (node.LeftSubtreeDiff == 0 || node.RightSubtreeDiff == 0) { // node is terminal
-                const int leafValueIndex = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+                const int leafValueIndex = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
                 TVector<double> values(
                     leafValues.begin() + leafValueIndex,
                     leafValues.begin() + leafValueIndex + approxDimension);
@@ -181,8 +167,8 @@ TVector<double> CalcEffectForNonObliviousModel(
                     continue;
                 }
             }
-            const int split = model.ModelTrees->GetModelTreeData()->GetTreeSplits()[nodeIdx];
-            const auto& feature = GetFeature(model, binFeatures[split]);
+            const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
+            const auto& feature = GetFeature(binFeatures[split]);
             const int featureIdx = featureToIdx.at(feature);
             nodesStack.push_back(
                 TTriangleNodes {

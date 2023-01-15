@@ -15,7 +15,7 @@
 #include <util/random/shuffle.h>
 #include <util/system/info.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/output.h>
 
@@ -31,7 +31,7 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     TTObjectsDataProvider&& objectsDataProvider,
     TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
     TMaybe<EObjectsOrder> objectsOrderForGetSubset,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     if (subsetForGetSubset.Defined()) {
         TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
@@ -95,7 +95,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TRangesSubset<ui32>(savedIndexRanges)
             );
-            commonData.GroupIds.GetMaybeNumData() = {0, 0, 2, 3, 4, 4};
+            commonData.GroupIds = {0, 0, 2, 3, 4, 4};
 
             srcDatas.push_back(commonData);
         }
@@ -110,8 +110,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
-            commonData.GroupIds.GetMaybeNumData() = {0, 0, 3, 1};
-            commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+            commonData.GroupIds = {0, 0, 3, 1};
+            commonData.SubgroupIds = {0, 2, 3, 1};
 
             srcDatas.push_back(commonData);
         }
@@ -153,13 +153,13 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             );
 
 #define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
-            UNIT_ASSERT(Equal(rawObjectsDataProvider.Get##FIELD(), srcData.FIELD.GetMaybeNumData()));
+            UNIT_ASSERT(Equal(rawObjectsDataProvider.Get##FIELD(), srcData.FIELD));
 
             COMPARE_DATA_PROVIDER_FIELD(GroupIds)
             COMPARE_DATA_PROVIDER_FIELD(SubgroupIds)
+            COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
-            UNIT_ASSERT(Equal(rawObjectsDataProvider.GetTimestamp(), srcData.Timestamp));
 
             UNIT_ASSERT_EQUAL(*rawObjectsDataProvider.GetFeaturesLayout(), *srcData.FeaturesLayout);
         }
@@ -174,7 +174,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TFullSubset<ui32>(4)
             );
-            commonData.GroupIds.GetMaybeNumData() = TVector<TGroupId>{0};
+            commonData.GroupIds = TVector<TGroupId>{0};
 
             srcs.push_back(commonData);
         }
@@ -189,7 +189,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TRangesSubset<ui32>(savedIndexRanges)
             );
-            commonData.GroupIds.GetMaybeNumData() = {0, 0, 2, 3, 4, 0};
+            commonData.GroupIds = {0, 0, 2, 3, 4, 0};
 
             srcs.push_back(commonData);
         }
@@ -200,7 +200,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
-            commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+            commonData.SubgroupIds = {0, 2, 3, 1};
 
             srcs.push_back(commonData);
         }
@@ -211,8 +211,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
-            commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-            commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3};
+            commonData.GroupIds = {0, 0, 1, 1};
+            commonData.SubgroupIds = {0, 2, 3};
 
             srcs.push_back(commonData);
         }
@@ -251,7 +251,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         const TVector<THashMap<ui32, TString>>& catFeaturesHashToString,
         const TCommonObjectsData& commonData,
         std::pair<bool, bool> useFeatureTypes,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         TRawObjectsData data;
         ui32 featureId = 0;
@@ -275,7 +275,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             }
         }
 
-        TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {}, {});
+        TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {}, {});
         commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
 
         return TRawObjectsDataProvider(
@@ -342,8 +342,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
         commonData.Order = EObjectsOrder::RandomShuffled;
-        commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
 
         TVector<TVector<float>> srcFloatFeatures1 = GetFloatFeatures1();
 
@@ -474,17 +474,16 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 }
             }
 
-            TFeaturesLayout featuresLayout(featureCount, catFeatureIndices, {}, {}, {});
+            TFeaturesLayout featuresLayout(featureCount, catFeatureIndices, {}, {});
 
 #define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
-            UNIT_ASSERT(Equal(objectsDataProvider.Get##FIELD(), expectedCommonData.FIELD.GetMaybeNumData()));
+            UNIT_ASSERT(Equal(objectsDataProvider.Get##FIELD(), expectedCommonData.FIELD));
 
             COMPARE_DATA_PROVIDER_FIELD(GroupIds)
             COMPARE_DATA_PROVIDER_FIELD(SubgroupIds)
+            COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
-            UNIT_ASSERT(Equal(objectsDataProvider.GetTimestamp(), expectedCommonData.Timestamp));
-
 
             UNIT_ASSERT_EQUAL(*objectsDataProvider.GetFeaturesLayout(), featuresLayout);
             UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider.GetOrder(), expectedCommonData.Order);
@@ -500,8 +499,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             TFullSubset<ui32>{4}
         );
         commonData.Order = EObjectsOrder::Ordered;
-        commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
         commonData.Timestamp = {10, 0, 100, 20};
 
         TVector<TVector<float>> floatFeatures = {
@@ -557,8 +556,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
         commonData.Order = EObjectsOrder::RandomShuffled;
-        commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
 
         TVector<TVector<float>> srcFloatFeatures = GetFloatFeatures1();
 
@@ -647,14 +646,14 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             TIndexedSubset<ui32>{0, 4, 3, 1, 2, 6, 8, 9}
         );
         commonData.Order = EObjectsOrder::Undefined;
-        commonData.GroupIds.GetMaybeNumData() = {0, 1, 1, 2, 2, 3, 3, 3};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1, 7, 0, 2, 4};
+        commonData.GroupIds = {0, 1, 1, 2, 2, 3, 3, 3};
+        commonData.SubgroupIds = {0, 2, 3, 1, 7, 0, 2, 4};
         commonData.Timestamp = {10, 20, 15, 30, 25, 16, 22, 36};
 
         TCommonObjectsData expectedSubsetCommonData;
         expectedSubsetCommonData.Order = EObjectsOrder::RandomShuffled;
-        expectedSubsetCommonData.GroupIds.GetMaybeNumData() = {3, 3, 3, 1, 1};
-        expectedSubsetCommonData.SubgroupIds.GetMaybeNumData() = {0, 2, 4, 2, 3};
+        expectedSubsetCommonData.GroupIds = {3, 3, 3, 1, 1};
+        expectedSubsetCommonData.SubgroupIds = {0, 2, 4, 2, 3};
         expectedSubsetCommonData.Timestamp = {16, 22, 36, 20, 15};
 
         TVector<TVector<float>> srcFloatFeatures = {
@@ -784,7 +783,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 std::make_pair(false, true),
                 std::make_pair(true, true)
             }) {
-                TQuantizedObjectsData data;
+                TQuantizedForCPUObjectsData data;
 
                 TVector<ui32> catFeatureIndices;
                 if (useFeatureTypes.second) {
@@ -802,7 +801,6 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                     ),
                     catFeatureIndices,
                     {},
-                    {},
                     {}
                 );
 
@@ -811,7 +809,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 TCommonObjectsData commonDataCopy(commonData);
                 commonDataCopy.FeaturesLayout = featuresLayoutPtr;
 
-                data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                data.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                     featuresLayout,
                     TConstArrayRef<ui32>(),
                     NCatboostOptions::TBinarizationOptions()
@@ -823,7 +821,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 );
                 data.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                     featuresLayout,
-                    *data.QuantizedFeaturesInfo,
+                    *data.Data.QuantizedFeaturesInfo,
                     data.ExclusiveFeatureBundlesData,
                     true
                 );
@@ -846,7 +844,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(floatFeature.data(), floatFeature.size(), bitsPerKey)
                         );
 
-                        data.FloatFeatures.emplace_back(
+                        data.Data.FloatFeatures.emplace_back(
                             MakeHolder<TQuantizedFloatValuesHolder>(
                                 featureId,
                                 TCompressedArray(floatFeature.size(), bitsPerKey, storage),
@@ -859,7 +857,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                 if (useFeatureTypes.second) {
                     TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(
-                        data.QuantizedFeaturesInfo
+                        data.Data.QuantizedFeaturesInfo
                     );
 
                     for (auto catFeatureIdx : xrange(srcCatFeatures.size())) {
@@ -897,7 +895,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(catFeature.data(), catFeature.size(), bitsPerKey)
                         );
 
-                        data.CatFeatures.emplace_back(
+                        data.Data.CatFeatures.emplace_back(
                             MakeHolder<TQuantizedCatValuesHolder>(
                                 featureId,
                                 TCompressedArray(catFeature.size(), bitsPerKey, storage),
@@ -912,11 +910,11 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
 
-                THolder<TQuantizedObjectsDataProvider> objectsDataProvider;
+                THolder<TQuantizedForCPUObjectsDataProvider> objectsDataProvider;
 
-                objectsDataProvider = MakeHolder<TQuantizedObjectsDataProvider>(
+                objectsDataProvider = MakeHolder<TQuantizedForCPUObjectsDataProvider>(
                     GetMaybeSubsetDataProvider(
-                        TQuantizedObjectsDataProvider(
+                        TQuantizedForCPUObjectsDataProvider(
                             Nothing(),
                             std::move(commonDataCopy),
                             std::move(data),
@@ -954,7 +952,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 }
                 if (taskType == ETaskType::CPU) {
                     auto& quantizedForCPUObjectsDataProvider =
-                        dynamic_cast<TQuantizedObjectsDataProvider&>(*objectsDataProvider);
+                        dynamic_cast<TQuantizedForCPUObjectsDataProvider&>(*objectsDataProvider);
 
                     if (useFeatureTypes.first) {
                         for (auto i : xrange(subsetFloatFeatures.size())) {
@@ -987,13 +985,13 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 }
 
 #define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
-            UNIT_ASSERT(Equal(objectsDataProvider->Get##FIELD(), expectedCommonData.FIELD.GetMaybeNumData()));
+            UNIT_ASSERT(Equal(objectsDataProvider->Get##FIELD(), expectedCommonData.FIELD));
 
             COMPARE_DATA_PROVIDER_FIELD(GroupIds)
             COMPARE_DATA_PROVIDER_FIELD(SubgroupIds)
+            COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
-                UNIT_ASSERT(Equal(objectsDataProvider->GetTimestamp(), expectedCommonData.Timestamp));
 
                 UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
                 UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider->GetOrder(), expectedCommonData.Order);
@@ -1016,8 +1014,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             TFullSubset<ui32>{4}
         );
         commonData.Order = EObjectsOrder::Ordered;
-        commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
         commonData.Timestamp = {10, 0, 100, 20};
 
         TVector<ui32> srcFloatFeatureBinCounts = {32, 256};
@@ -1030,8 +1028,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
             {{true, false}, 330653220},
-            {{false, true}, 1741468018},
-            {{true, true}, 3156525411}
+            {{false, true}, 3926288674},
+            {{true, true}, 837687603}
         };
 
         TestSubsetFeatures(
@@ -1059,8 +1057,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
         commonData.Order = EObjectsOrder::RandomShuffled;
-        commonData.GroupIds.GetMaybeNumData() = {0, 0, 1, 1};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1};
+        commonData.GroupIds = {0, 0, 1, 1};
+        commonData.SubgroupIds = {0, 2, 3, 1};
 
         TVector<ui32> srcFloatFeatureBinCounts = {64, 256, 256};
 
@@ -1179,14 +1177,14 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             TIndexedSubset<ui32>{0, 4, 3, 1, 2, 6, 8, 9}
         );
         commonData.Order = EObjectsOrder::Undefined;
-        commonData.GroupIds.GetMaybeNumData() = {0, 1, 1, 2, 2, 3, 3, 3};
-        commonData.SubgroupIds.GetMaybeNumData() = {0, 2, 3, 1, 7, 0, 2, 4};
+        commonData.GroupIds = {0, 1, 1, 2, 2, 3, 3, 3};
+        commonData.SubgroupIds = {0, 2, 3, 1, 7, 0, 2, 4};
         commonData.Timestamp = {10, 20, 15, 30, 25, 16, 22, 36};
 
         TCommonObjectsData expectedSubsetCommonData;
         expectedSubsetCommonData.Order = EObjectsOrder::RandomShuffled;
-        expectedSubsetCommonData.GroupIds.GetMaybeNumData() = {3, 3, 3, 1, 1};
-        expectedSubsetCommonData.SubgroupIds.GetMaybeNumData() = {0, 2, 4, 2, 3};
+        expectedSubsetCommonData.GroupIds = {3, 3, 3, 1, 1};
+        expectedSubsetCommonData.SubgroupIds = {0, 2, 4, 2, 3};
         expectedSubsetCommonData.Timestamp = {16, 22, 36, 20, 15};
 
 

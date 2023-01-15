@@ -18,13 +18,6 @@ class FileWrapper:
             self.close = filelike.close
 
     def __getitem__(self,key):
-        import warnings
-        warnings.warn(
-            "FileWrapper's __getitem__ method ignores 'key' parameter. "
-            "Use iterator protocol instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
         data = self.filelike.read(self.blksize)
         if data:
             return data
@@ -162,9 +155,9 @@ def setup_testing_defaults(environ):
 
 
 _hoppish = {
-    'connection', 'keep-alive', 'proxy-authenticate',
-    'proxy-authorization', 'te', 'trailers', 'transfer-encoding',
-    'upgrade'
+    'connection':1, 'keep-alive':1, 'proxy-authenticate':1,
+    'proxy-authorization':1, 'te':1, 'trailers':1, 'transfer-encoding':1,
+    'upgrade':1
 }.__contains__
 
 def is_hop_by_hop(header_name):

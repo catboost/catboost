@@ -56,13 +56,13 @@ SRCS(Modules/_bisectmodule.c
 
 CFLAGS(-DBUILD_ZLIB)
 
-IF (ARCH_X86_64 OR ARCH_I386 OR ARCH_PPC64LE OR ARCH_AARCH64)
+IF (ARCH_X86_64 OR ARCH_I386)
     IF (OS_CYGWIN)
         #TODO
     ELSE()
-        PEERDIR(contrib/restricted/libffi)
+        PEERDIR(contrib/deprecated/libffi)
 
-        ADDINCL(contrib/restricted/libffi/include)
+        ADDINCL(contrib/deprecated/libffi/include)
 
         SRCS(
             Modules/_ctypes/_ctypes.c

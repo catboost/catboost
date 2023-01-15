@@ -1,7 +1,5 @@
 PROGRAM()
 
-VERSION(20190311)
-
 
 
 NO_UTIL()

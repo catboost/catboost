@@ -9,7 +9,6 @@
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/private/libs/options/oblivious_tree_options.h>
 #include <catboost/cuda/gpu_data/bootstrap.h>
-#include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
     class IMirrorTargetWrapper: public TNonCopyable {
@@ -68,19 +67,15 @@ namespace NCatboostCuda {
 
         TFeatureParallelObliviousTreeSearcher(TScopedCacheHolder& cache,
                                               TBinarizedFeaturesManager& featuresManager,
-                                              const NCatboostOptions::TBoostingOptions& boostingOptions,
                                               const TFeatureParallelDataSet& dataSet,
                                               TBootstrap<NCudaLib::TMirrorMapping>& bootstrap,
-                                              const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions,
-                                              TGpuAwareRandom& random)
+                                              const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions)
             : ScopedCache(cache)
             , FeaturesManager(featuresManager)
-            , BoostingOptions(boostingOptions)
             , DataSet(dataSet)
             , CtrTargets(dataSet.GetCtrTargets())
             , Bootstrap(bootstrap)
             , TreeConfig(learnerOptions)
-            , Random(random)
         {
         }
 
@@ -97,7 +92,7 @@ namespace NCatboostCuda {
         TFeatureParallelObliviousTreeSearcher& SetTarget(TTarget&& target) {
             CB_ENSURE(SingleTaskTarget == nullptr, "Target already was set");
             CB_ENSURE(FoldBasedTasks.size() == 0, "Can't mix foldBased and singleTask targets");
-            SingleTaskTarget = MakeHolder<TMirrorTargetWrapper<TTarget>>((std::move(target)));
+            SingleTaskTarget = new TMirrorTargetWrapper<TTarget>((std::move(target)));
             return *this;
         }
 
@@ -168,7 +163,6 @@ namespace NCatboostCuda {
         TScopedCacheHolder& ScopedCache;
         //our learn algorithm could generate new features, so no const
         TBinarizedFeaturesManager& FeaturesManager;
-        const NCatboostOptions::TBoostingOptions& BoostingOptions;
         const TDataSet& DataSet;
         const TCtrTargets<NCudaLib::TMirrorMapping>& CtrTargets;
 
@@ -180,6 +174,5 @@ namespace NCatboostCuda {
         //should one or another, no mixing
         TVector<TOptimizationTask> FoldBasedTasks;
         THolder<IMirrorTargetWrapper> SingleTaskTarget;
-        TGpuAwareRandom& Random;
     };
 }

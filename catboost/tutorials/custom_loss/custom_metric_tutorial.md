@@ -21,13 +21,13 @@ TMetricHolder TUserDefinedPerObjectMetric::Eval(
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
     int end,
-    NPar::ILocalExecutor& /*executor*/
+    NPar::TLocalExecutor& /*executor*/
 ) const {
-    TMetricHolder error(2);
+    TMetricHolder error;
     for (int k = begin; k < end; ++k) {
         float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] += w * (log(1 + exp(approx[0][k])) - target[k] * approx[0][k]);
-        error.Stats[1] += w;
+        error.Error += w * (log(1 + exp(approx[0][k])) - target[k] * approx[0][k]);
+        error.Weight += w;
     }
     return error;
 }

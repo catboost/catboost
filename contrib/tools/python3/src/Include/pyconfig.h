@@ -1,36 +1,32 @@
 #pragma once
 
-#if defined(Py_BUILD_CORE) || defined(Py_BUILD_CORE_BUILTIN) || defined(Py_BUILD_CORE_MODULE)
-#define ABIFLAGS ""
+#ifdef Py_BUILD_CORE
+#define ABIFLAGS "m"
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
-#define VERSION "3.10"
+#define VERSION "3.7"
 #define VPATH ""
 #define BLAKE2_USE_SSE
 #define USE_ZLIB_CRC32
 #if defined(__linux__)
 #define PLATFORM "linux"
 #define MULTIARCH "x86_64-linux-gnu"
-#define SOABI "cpython-310-x86_64-linux-gnu"
+#define SOABI "cpython-37m-x86_64-linux-gnu"
 #elif defined(__APPLE__)
 #define PLATFORM "darwin"
 #define MULTIARCH "darwin"
-#define SOABI "cpython-310-darwin"
+#define SOABI "cpython-37m-darwin"
 #endif
 #endif
 
-#define PLATLIBDIR "lib"
+#define WITH_DECIMAL_CONTEXTVAR 1
 
 #if defined(__linux__)
 #include "pyconfig-linux.h"
 #endif
 
 #if defined(__APPLE__)
-#  if defined(__arm64__)
-#    include "pyconfig-osx-arm64.h"
-#  else
-#    include "pyconfig-osx.h"
-#  endif
+#include "pyconfig-osx.h"
 #endif
 
 #if defined(_MSC_VER)

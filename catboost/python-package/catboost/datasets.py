@@ -8,9 +8,6 @@ import tempfile
 import six
 import shutil
 
-from .core import PATH_TYPES, fspath
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,9 +75,9 @@ def _get_cache_path():
 
 
 def set_cache_path(path):
-    assert isinstance(path, PATH_TYPES), 'expected string or pathlib.Path'
+    assert isinstance(path, str), 'expected string'
     global _cache_path
-    _cache_path = fspath(path)
+    _cache_path = path
 
 
 def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False):
@@ -184,13 +181,6 @@ def rotten_tomatoes():
     url = 'https://catboost-opensource.s3.yandex.net/rotten_tomatoes.tar.gz'
     md5 = 'a07fed612805ac9e17ced0d82a96add4'
     dataset_name, train_file, test_file = 'rotten_tomatoes', 'learn.tsv', 'test.tsv'
-    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
-
-
-def imdb():
-    url = 'https://catboost-opensource.s3.yandex.net/imdb.tar.gz'
-    md5 = '0fd62578d631ac3d71a71c3e6ced6f8b'
-    dataset_name, train_file, test_file = 'imdb', 'learn.tsv', 'test.tsv'
     return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
 

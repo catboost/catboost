@@ -4,6 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/colorizer
+    library/overloaded
 )
 
 SRCS(

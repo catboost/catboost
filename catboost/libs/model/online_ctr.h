@@ -70,6 +70,57 @@ struct THash<TFloatSplit> {
     }
 };
 
+struct TEstimatedFeatureSplit {
+    int SourceFeatureId = 0;
+    NCB::TGuid CalcerId;
+    int LocalId = 0;
+    float Split = 0.f;
+
+public:
+    TEstimatedFeatureSplit() = default;
+    TEstimatedFeatureSplit(
+        int sourceFeatureId,
+        NCB::TGuid calcerId,
+        int localId,
+        float split
+    )
+        : SourceFeatureId(sourceFeatureId)
+        , CalcerId(calcerId)
+        , LocalId(localId)
+        , Split(split)
+    {}
+
+    bool operator==(const TEstimatedFeatureSplit& other) const {
+        return std::tie(SourceFeatureId, CalcerId, LocalId, Split)
+            == std::tie(other.SourceFeatureId, other.CalcerId, other.LocalId, other.Split);
+    }
+
+    bool operator<(const TEstimatedFeatureSplit& other) const {
+        return std::tie(SourceFeatureId, CalcerId, LocalId, Split)
+            < std::tie(other.SourceFeatureId, other.CalcerId, other.LocalId, other.Split);
+    }
+
+    ui64 GetHash() const {
+        return MultiHash(SourceFeatureId, CalcerId, LocalId, Split);
+    }
+
+    Y_SAVELOAD_DEFINE(SourceFeatureId, CalcerId, LocalId, Split)
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        CanonizeFloatForFbs(&Split);
+    }
+};
+
+template <>
+struct THash<TEstimatedFeatureSplit> {
+    inline size_t operator()(const TEstimatedFeatureSplit& split) const {
+        return split.GetHash();
+    }
+};
+
 struct TOneHotSplit {
     int CatFeatureIdx = 0;
     int Value = 0;

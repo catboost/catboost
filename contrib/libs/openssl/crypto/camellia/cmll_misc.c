@@ -9,7 +9,7 @@
 
 #include <openssl/opensslv.h>
 #include <openssl/camellia.h>
-#include "cmll_local.h"
+#include "cmll_locl.h"
 
 int Camellia_set_key(const unsigned char *userKey, const int bits,
                      CAMELLIA_KEY *key)

@@ -28,14 +28,12 @@ namespace NCatboostCuda {
                              TStripeBuffer<const ui32>&& bins,
                              const TVector<double>& leafWeights,
                              const TVector<double>& pairLeafWeights,
-                             const TLeavesEstimationConfig& estimationConfig,
-                             TGpuAwareRandom& random)
+                             const TLeavesEstimationConfig& estimationConfig)
             : LeavesEstimationConfig(estimationConfig)
             , Baseline(std::move(baseline))
             , Bins(std::move(bins))
             , BinWeightsSum(leafWeights)
             , PairBinWeightsSum(pairLeafWeights)
-            , Random(random)
         {
             Cursor = TStripeBuffer<float>::CopyMapping(Baseline);
 
@@ -48,7 +46,7 @@ namespace NCatboostCuda {
                 FillBuffer(PointStat, 0.0f);
             }
 
-            if (estimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+            if (estimationConfig.UseNewton) {
                 auto pointMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(BinCount());
                 PointwiseSecondDerStats.Reset(pointMapping);
 
@@ -132,7 +130,7 @@ namespace NCatboostCuda {
             auto& sigma = *secondDer;
 
             if (TImpl::HasDiagonalPart()) {
-                if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+                if (LeavesEstimationConfig.UseNewton) {
                     for (ui32 i = 0; i < pointDim; ++i) {
                         sigma[i * PointDim() + i] = PointDer2[i];
                     }
@@ -148,7 +146,7 @@ namespace NCatboostCuda {
                     if (idx1 == idx2) {
                         continue;
                     }
-                    const double w = LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton
+                    const double w = LeavesEstimationConfig.UseNewton
                                          ? PairDer2[idx1 * rowSize + idx2]
                                          : PairBinWeightsSum[idx1 * rowSize + idx2];
 
@@ -204,7 +202,7 @@ namespace NCatboostCuda {
         }
 
         void ComputeSecondOrderStats() {
-            if (!HasSecondOrderStatsAtPoint && LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+            if (!HasSecondOrderStatsAtPoint && LeavesEstimationConfig.UseNewton) {
                 ComputeFirstOrderStats();
                 static_cast<TImpl*>(this)->FillDer2(&PointwiseSecondDerStats,
                                                     &PairwiseSecondDerOrWeightsStats);
@@ -242,8 +240,6 @@ namespace NCatboostCuda {
         TVector<double> PointDer2;
         TVector<double> PairDer2;
         TVector<double> PairBinWeightsSum;
-
-        TGpuAwareRandom& Random;
     };
 
 }

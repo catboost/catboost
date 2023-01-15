@@ -55,7 +55,7 @@ public:
         return ret;
     }
 
-    THolder<IThread> Run(const std::function<void()>& func);
+    THolder<IThread> Run(std::function<void()> func);
 
 private:
     virtual IThread* DoCreate() = 0;

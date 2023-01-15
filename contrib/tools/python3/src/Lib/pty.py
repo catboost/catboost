@@ -1,21 +1,16 @@
 """Pseudo terminal utilities."""
 
 # Bugs: No signal handling.  Doesn't set slave termios and window size.
-#       Only tested on Linux, FreeBSD, and macOS.
+#       Only tested on Linux.
 # See:  W. Richard Stevens. 1992.  Advanced Programming in the
 #       UNIX Environment.  Chapter 19.
 # Author: Steen Lumholt -- with additions by Guido.
 
 from select import select
 import os
-import sys
 import tty
 
-# names imported directly for test mocking purposes
-from os import close, waitpid
-from tty import setraw, tcgetattr, tcsetattr
-
-__all__ = ["openpty", "fork", "spawn"]
+__all__ = ["openpty","fork","spawn"]
 
 STDIN_FILENO = 0
 STDOUT_FILENO = 1
@@ -109,8 +104,8 @@ def fork():
         os.dup2(slave_fd, STDIN_FILENO)
         os.dup2(slave_fd, STDOUT_FILENO)
         os.dup2(slave_fd, STDERR_FILENO)
-        if slave_fd > STDERR_FILENO:
-            os.close(slave_fd)
+        if (slave_fd > STDERR_FILENO):
+            os.close (slave_fd)
 
         # Explicitly open the tty to make it become a controlling tty.
         tmp_fd = os.open(os.ttyname(STDOUT_FILENO), os.O_RDWR)
@@ -137,22 +132,14 @@ def _copy(master_fd, master_read=_read, stdin_read=_read):
             pty master -> standard output   (master_read)
             standard input -> pty master    (stdin_read)"""
     fds = [master_fd, STDIN_FILENO]
-    while fds:
-        rfds, _wfds, _xfds = select(fds, [], [])
-
+    while True:
+        rfds, wfds, xfds = select(fds, [], [])
         if master_fd in rfds:
-            # Some OSes signal EOF by returning an empty byte string,
-            # some throw OSErrors.
-            try:
-                data = master_read(master_fd)
-            except OSError:
-                data = b""
+            data = master_read(master_fd)
             if not data:  # Reached EOF.
-                return    # Assume the child process has exited and is
-                          # unreachable, so we clean up.
+                fds.remove(master_fd)
             else:
                 os.write(STDOUT_FILENO, data)
-
         if STDIN_FILENO in rfds:
             data = stdin_read(STDIN_FILENO)
             if not data:
@@ -164,24 +151,20 @@ def spawn(argv, master_read=_read, stdin_read=_read):
     """Create a spawned process."""
     if type(argv) == type(''):
         argv = (argv,)
-    sys.audit('pty.spawn', argv)
-
     pid, master_fd = fork()
     if pid == CHILD:
         os.execlp(argv[0], *argv)
-
     try:
-        mode = tcgetattr(STDIN_FILENO)
-        setraw(STDIN_FILENO)
-        restore = True
+        mode = tty.tcgetattr(STDIN_FILENO)
+        tty.setraw(STDIN_FILENO)
+        restore = 1
     except tty.error:    # This is the same as termios.error
-        restore = False
-
+        restore = 0
     try:
         _copy(master_fd, master_read, stdin_read)
-    finally:
+    except OSError:
         if restore:
-            tcsetattr(STDIN_FILENO, tty.TCSAFLUSH, mode)
+            tty.tcsetattr(STDIN_FILENO, tty.TCSAFLUSH, mode)
 
-    close(master_fd)
-    return waitpid(pid, 0)[1]
+    os.close(master_fd)
+    return os.waitpid(pid, 0)[1]

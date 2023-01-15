@@ -19,11 +19,6 @@ namespace re2 {
 class Bitmap256 {
  public:
   Bitmap256() {
-    Clear();
-  }
-
-  // Clears all of the bits.
-  void Clear() {
     memset(words_, 0, sizeof words_);
   }
 
@@ -32,7 +27,7 @@ class Bitmap256 {
     DCHECK_GE(c, 0);
     DCHECK_LE(c, 255);
 
-    return (words_[c / 64] & (uint64_t{1} << (c % 64))) != 0;
+    return (words_[c / 64] & (1ULL << (c % 64))) != 0;
   }
 
   // Sets the bit with index c.
@@ -40,7 +35,7 @@ class Bitmap256 {
     DCHECK_GE(c, 0);
     DCHECK_LE(c, 255);
 
-    words_[c / 64] |= (uint64_t{1} << (c % 64));
+    words_[c / 64] |= (1ULL << (c % 64));
   }
 
   // Finds the next non-zero bit with index >= c.
@@ -51,6 +46,7 @@ class Bitmap256 {
   // Finds the least significant non-zero bit in n.
   static int FindLSBSet(uint64_t n) {
     DCHECK_NE(n, 0);
+
 #if defined(__GNUC__)
     return __builtin_ctzll(n);
 #elif defined(_MSC_VER) && defined(_M_X64)
@@ -88,7 +84,7 @@ int Bitmap256::FindNextSetBit(int c) const {
 
   // Check the word that contains the bit. Mask out any lower bits.
   int i = c / 64;
-  uint64_t word = words_[i] & (~uint64_t{0} << (c % 64));
+  uint64_t word = words_[i] & (~0ULL << (c % 64));
   if (word != 0)
     return (i * 64) + FindLSBSet(word);
 

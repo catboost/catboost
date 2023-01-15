@@ -1,5 +1,5 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
@@ -175,14 +175,14 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
     }
     //
     void SolveCPU(const TVector<float>& linearSystems,
-                  const TVector<float>& sqrtMatrices,
                   const ui32 rowSize,
                   const ui32 binFeatureCount,
+                  float lambda0,
+                  float lambda1,
                   bool removeLastRow,
                   TVector<float>* solutions,
                   TVector<float>* scores) {
-        const ui32 sqrtSystemSize = rowSize * (rowSize + 1) / 2;
-        const ui32 linSystemSize = sqrtSystemSize + rowSize;
+        const ui32 sourceSystemSize = rowSize + rowSize * (rowSize + 1) / 2;
         const ui32 vecSize = removeLastRow ? rowSize - 1 : rowSize;
 
         solutions->resize(rowSize * binFeatureCount);
@@ -192,16 +192,23 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             TVector<double> sqrtMatrix(vecSize * vecSize);
             TVector<double> solution(vecSize);
 
+            const size_t matrixOffset = bf * sourceSystemSize;
+            float cellPrior = 1.0f / rowSize;
+
             for (ui32 y = 0; y < vecSize; y++) {
                 for (ui32 x = 0; x <= y; x++) {
-                    float val = sqrtMatrices[bf * sqrtSystemSize + GetMatrixOffset(y, x)];
+                    float val = linearSystems[matrixOffset + GetMatrixOffset(y, x)];
+                    if (x == y && val <= 1e-9f) {
+                        val += 10.0f;
+                    }
+                    val += y != x ? -lambda0 * cellPrior : (lambda0 * (1.0f - cellPrior) + lambda1);
                     sqrtMatrix[y * vecSize + x] = val;
 
                     if (x != y) {
                         sqrtMatrix[x * vecSize + y] = val;
                     }
                 }
-                solution[y] = linearSystems[bf * linSystemSize + rowSize * (rowSize + 1) / 2 + y];
+                solution[y] = linearSystems[matrixOffset + rowSize * (rowSize + 1) / 2 + y];
             }
 
             SolveLinearSystemCholesky(&sqrtMatrix,
@@ -218,7 +225,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             }
 
             float score = 0;
-            const float* targetPtr = linearSystems.data() + bf * linSystemSize + rowSize * (rowSize + 1) / 2;
+            const float* targetPtr = linearSystems.data() + matrixOffset + rowSize * (rowSize + 1) / 2;
             for (ui32 i = 0; i < rowSize; ++i) {
                 score += targetPtr[i] * solutionFloat[i];
             }
@@ -227,7 +234,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 TVector<float> betaProj(rowSize);
                 for (ui32 row = 0; row < rowSize; ++row) {
                     for (ui32 col = 0; col < rowSize; ++col) {
-                        betaProj[row] += linearSystems[bf * linSystemSize + GetMatrixOffset(row, col)] * solutionFloat[col];
+                        betaProj[row] += linearSystems[matrixOffset + GetMatrixOffset(row, col)] * solutionFloat[col];
                     }
                 }
                 for (ui32 row = 0; row < rowSize; ++row) {
@@ -303,11 +310,12 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
     }
     //
     void CheckResults(EFeaturesGroupingPolicy policy,
+                      const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                       int currentDepth,
                       const typename TSharedCompressedIndex<TDocParallelLayout>::TCompressedDataSet& features,
                       const TPairwiseOptimizationSubsets& subsets,
                       const TBinaryFeatureSplitResults& result) {
-        const bool removeLast = !subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size();
+        const bool nzDiagDer2 = subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size();
         TVector<float> matrices;
         TVector<float> vectors;
         CalcRefMatrices(policy, features, subsets, currentDepth, &matrices, &vectors);
@@ -332,17 +340,15 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         result.Solutions.Read(solutionsGpu);
         result.Scores.Read(scoresGpu);
 
-        TVector<float> sqrtMatrices;
-        result.SqrtMatrices->Read(sqrtMatrices);
-
         TVector<float> solutionsCpu;
         TVector<float> scoresCpu;
 
         SolveCPU(computedSystems,
-                 sqrtMatrices,
                  1u << (currentDepth + 1),
                  binFeatures.size(),
-                 removeLast,
+                 treeConfig.PairwiseNonDiagReg,
+                 treeConfig.L2Reg,
+                 treeConfig.L2Reg.Get() < 1e-1 ? nzDiagDer2 == false : false,
                  &solutionsCpu,
                  &scoresCpu);
 
@@ -350,24 +356,20 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         UNIT_ASSERT_EQUAL_C(solutionsCpu.size(), solutionsGpu.size(), solutionsCpu.size() << " neq " << solutionsGpu.size());
 
         for (ui32 i = 0; i < solutionsCpu.size(); ++i) {
-            if (std::abs(solutionsCpu[i] - solutionsGpu[i]) > 1e-5f || std::isnan(solutionsCpu[i]) || std::isnan(solutionsGpu[i])) {
+            if (std::abs(solutionsCpu[i] - solutionsGpu[i]) > 1e-5f) {
                 const ui32 rowSize = 1u << (currentDepth + 1);
                 ui32 bf = i / (rowSize);
-                const ui32 sqrtSystemSize = (rowSize * (rowSize + 1)) / 2;
-                const ui32 systemSize = rowSize + sqrtSystemSize;
+                const ui32 systemSize = rowSize + (rowSize * (rowSize + 1)) / 2;
                 DumpVec(computedSystems.data() + bf * systemSize, systemSize, "Linear system");
-                DumpVec(sqrtMatrices.data() + bf * sqrtSystemSize, sqrtSystemSize, "Sqrt system");
                 DumpVec(solutionsCpu.data() + bf * rowSize, rowSize, "CPU");
                 DumpVec(solutionsGpu.data() + bf * rowSize, rowSize, "GPU");
             }
             UNIT_ASSERT_DOUBLES_EQUAL_C(solutionsCpu[i], solutionsGpu[i], 1e-5, i << " " << solutionsCpu[i] << " not equal to " << solutionsGpu[i] << " depth " << (1 << currentDepth));
         }
-        Cout << "Solutions OK" << Endl;
 
         for (ui32 i = 0; i < scoresCpu.size(); ++i) {
             UNIT_ASSERT_DOUBLES_EQUAL_C(scoresCpu[i], scoresGpu[i], 1e-2, i << " " << scoresCpu[i] << " not equal to " << scoresGpu[i] << " depth " << (1 << currentDepth));
         }
-        Cout << "Scores OK" << Endl;
     }
 
     TNonDiagQuerywiseTargetDers ComputeWeakTarget(TRandom & random,
@@ -456,7 +458,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         treeConfig.PairwiseNonDiagReg = 1;
 
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetFeatures(),
+            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
                                                    treeConfig,
                                                    subsets,
                                                    random,
@@ -464,7 +466,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
                                                     treeConfig,
                                                     subsets,
                                                     random,
@@ -489,6 +491,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                         const TBinaryFeatureSplitResults& results = featuresScoreCalcer->GetResultsForPolicy(
                             policy);
                         CheckResults(policy,
+                                     treeConfig,
                                      depth,
                                      dataSet.GetFeatures(),
                                      subsets,
@@ -502,6 +505,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     if (simpleCtrScoreCalcer->HasHelperForPolicy(policy)) {
                         const TBinaryFeatureSplitResults& results = simpleCtrScoreCalcer->GetResultsForPolicy(policy);
                         CheckResults(policy,
+                                     treeConfig,
                                      depth,
                                      dataSet.GetPermutationFeatures(),
                                      subsets,

@@ -1,18 +1,13 @@
 #pragma once
 
 #include "compressed_index.h"
-#include "kernels.h"
-
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_util/helpers.h>
-#include <catboost/libs/data/lazy_columns.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <catboost/private/libs/data_util/path_with_scheme.h>
-#include <catboost/private/libs/quantized_pool/loader.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/random/shuffle.h>
@@ -47,7 +42,7 @@ namespace NCatboostCuda {
         using TIndex = TSharedCompressedIndex<TLayoutPolicy>;
 
         TSharedCompressedIndexBuilder(TIndex& compressedIndex,
-                                      NPar::ILocalExecutor* localExecutor)
+                                      NPar::TLocalExecutor* localExecutor)
             : CompressedIndex(compressedIndex)
             , LocalExecutor(localExecutor)
         {
@@ -124,7 +119,7 @@ namespace NCatboostCuda {
             TVector<ui32> restFeatures = FilterZeroFeatures(featuresInfo,
                                                             featureIds);
 
-            dst->DataSets.push_back(MakeHolder<TDataSet>(description,
+            dst->DataSets.push_back(new TDataSet(description,
                                                  samplesMapping,
                                                  dst->FlatStorage,
                                                  featureIds));
@@ -174,33 +169,17 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void CheckBinCount(
-            const NCudaLib::TDistributedObject<TCFeature>& feature,
-            const ui32 binCount
-        ) const {
-            for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
-                if (!feature.IsEmpty(dev)) {
-                    const ui32 folds = feature.At(dev).Folds;
-                    CB_ENSURE_INTERNAL(
-                        folds == 0 || binCount <= (folds + 1),
-                        "There are #" << folds + 1 << " but need at least " << binCount << " to store feature");
-                }
-            }
-        }
-
-        template <typename IQuantizedFeatureColumn>
+        template <typename IQuantizedFeatureColumn, typename TValueProcessor = TIdentity>
         TSharedCompressedIndexBuilder& Write(
             const ui32 dataSetId,
             const ui32 featureId,
             const ui32 binCount,
             IQuantizedFeatureColumn* quantizedFeatureColumn,
-            TMaybe<ui16> baseValue = Nothing()
+            TValueProcessor&& valueProcessor = TIdentity()
         ) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
                                                                                       << " total dataSets " << GatherIndex.size());
-            CB_ENSURE_INTERNAL(binCount > 1, "Feature #" << featureId << " is empty");
-
             auto& dataSet = *CompressedIndex.DataSets[dataSetId];
             const auto& docsMapping = dataSet.SamplesMapping;
             CB_ENSURE(quantizedFeatureColumn->GetSize() == docsMapping.GetObjectsSlice().Size());
@@ -228,58 +207,49 @@ namespace NCatboostCuda {
                 );
                 quantizedFeatureColumn = reorderedColumn.Get();
             }
-
-            if (NCB::CastToLazyQuantizedFloatValuesHolder(quantizedFeatureColumn)) {
-                CATBOOST_DEBUG_LOG << "Loading featureId " << featureId << " on device side" << Endl;
-                WriteLazyBinsVector(
-                    dataSetId,
-                    featureId,
-                    binCount,
-                    /*permute*/false,
-                    NCB::CastToLazyQuantizedFloatValuesHolder(quantizedFeatureColumn),
-                    baseValue);
-            } else {
-                TVector<ui8> writeBins;
-                writeBins.yresize(quantizedFeatureColumn->GetSize());
-                quantizedFeatureColumn->ParallelForEachBlock(
-                    LocalExecutor,
-                    [writeBinsPtr = writeBins.data(), baseValue] (size_t blockStartIdx, auto block) {
-                        auto writePtr = writeBinsPtr + blockStartIdx;
-                        if (baseValue.Defined()) {
-                            for (auto i : xrange(block.size())) {
-                                writePtr[i] = ClipWideHistValue(block[i], *baseValue);
-                            }
-                        } else {
-                            for (auto i : xrange(block.size())) {
-                                writePtr[i] = block[i];
-                            }
-                        }
-                    },
-                    4096 /*blockSize*/
-                );
-                WriteBinsVector(
-                    dataSetId,
-                    featureId,
-                    binCount,
-                    /*permute=*/ false,
-                    writeBins
-                );
-            }
+            TVector<ui8> writeBins;
+            writeBins.yresize(quantizedFeatureColumn->GetSize());
+            quantizedFeatureColumn->ParallelForEachBlock(
+                LocalExecutor,
+                [writeBinsPtr = writeBins.data(), valueProcessor = std::move(valueProcessor)] (size_t blockStartIdx, auto block) {
+                    auto writePtr = writeBinsPtr + blockStartIdx;
+                    for (auto i : xrange(block.size())) {
+                        writePtr[i] = valueProcessor(block[i]);
+                    }
+                },
+                4096 /*blockSize*/
+            );
+            WriteBinsVector(
+                dataSetId,
+                featureId,
+                binCount,
+                /*permute=*/ false,
+                writeBins
+            );
             return *this;
         }
 
+        // TODO(kirillovs): figure out, why compilation without template fails here
+        template<typename TBinsVector>
         void WriteBinsVector(
             const ui32 dataSetId,
             const ui32 featureId,
             const ui32 binCount,
             bool permute,
-            TConstArrayRef<ui8> binsVector
+            const TBinsVector& binsVector
         ) {
             auto& dataSet = *CompressedIndex.DataSets[dataSetId];
             const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
 
-            CheckBinCount(feature, binCount);
-
+            CB_ENSURE(binCount > 1, "Feature #" << featureId << " is empty");
+            for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
+                if (!feature.IsEmpty(dev)) {
+                    const ui32 folds = feature.At(dev).Folds;
+                    CB_ENSURE(folds == 0 || binCount <= (folds + 1),
+                                "There are #" << folds + 1 << " but need at least " << binCount
+                                            << " to store feature");
+                }
+            }
             //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
             // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)
             // + some speedup on multi-host mode
@@ -308,32 +278,6 @@ namespace NCatboostCuda {
             SeenFeatures[dataSetId].insert(featureId);
         }
 
-        void WriteLazyBinsVector(
-            const ui32 dataSetId,
-            const ui32 featureId,
-            const ui32 binCount,
-            bool permute,
-            const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
-            TMaybe<ui16> baseValue
-        ) {
-            auto& dataSet = *CompressedIndex.DataSets[dataSetId];
-            const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
-
-            CheckBinCount(feature, binCount);
-
-            CB_ENSURE_INTERNAL(!permute, "Lazy columns should be shuffled by quantizer");
-
-            TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToLazyCompressedIndex(
-                feature,
-                lazyQuantizedColumn,
-                featureId,
-                baseValue,
-                dataSet.GetSamplesMapping(),
-                &CompressedIndex.FlatStorage
-            );
-            SeenFeatures[dataSetId].insert(featureId);
-        }
-
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
             CATBOOST_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
@@ -342,10 +286,6 @@ namespace NCatboostCuda {
             for (ui32 dataSetId = 0; dataSetId < blockCount; ++dataSetId) {
                 auto& ds = *CompressedIndex.DataSets[dataSetId];
                 ds.PrintInfo();
-            }
-            if (!NCB::TQuantizedPoolLoadersCache::IsEmpty()) {
-                NCudaLib::GetCudaManager().WaitComplete();
-                DropAllLoaders(CompressedIndex.DataSets[0]->GetSamplesMapping().NonEmptyDevices());
             }
 
             BuildIsDone = true;
@@ -359,11 +299,13 @@ namespace NCatboostCuda {
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
         TVector<TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing>> GatherIndex;
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     extern template class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;
 
     extern template class TSharedCompressedIndexBuilder<TDocParallelLayout>;
+
+    extern template class TSharedCompressedIndexBuilder<TSingleDevLayout>;
 
 }

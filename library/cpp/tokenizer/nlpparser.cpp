@@ -2,8 +2,8 @@
 #include "sentbreakfilter.h"
 #include "special_tokens.h"
 
-#include <library/cpp/token/charfilter.h>
-#include <library/cpp/token/token_iterator.h>
+#include <library/token/charfilter.h>
+#include <library/token/token_iterator.h>
 
 #include <util/charset/utf8.h>
 #include <util/charset/wide.h>
@@ -453,7 +453,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
                 data = Buffer.Data();
                 dest = data;
                 const size_t n = p - text;
-                std::char_traits<wchar16>::copy(dest, text, n);
+                TCharTraits<wchar16>::Copy(dest, text, n);
                 dest += n;
             }
 
@@ -500,7 +500,7 @@ void TNlpParser::Execute(const wchar16* text, size_t len, const wchar16** textSt
                 // UTF8 is bad or too short (for example: %action-%61%62%63)
                 // copy text as is:
                 size_t n = p - start;
-                std::char_traits<wchar16>::copy(dest, start, n);
+                TCharTraits<wchar16>::Copy(dest, start, n);
                 dest += n;
             }
         } else if (dest)

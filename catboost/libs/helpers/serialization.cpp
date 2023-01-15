@@ -1,7 +1,7 @@
 #include "serialization.h"
 #include "exception.h"
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/stream/str.h>
 
@@ -37,7 +37,7 @@ namespace NCB {
 
     void ReadMagic(const char* expectedMagic, ui32 magicSize, ui32 alignment, IInputStream* stream) {
         TCountingInput input(stream);
-        TArrayHolder<char> loadedMagic = TArrayHolder<char>(new char[magicSize]);
+        TArrayHolder<char> loadedMagic = new char[magicSize];
         ui32 loadedBytes = input.Load(loadedMagic.Get(), magicSize);
         CB_ENSURE(
             loadedBytes == magicSize && Equal(loadedMagic.Get(), loadedMagic.Get() + magicSize, expectedMagic),

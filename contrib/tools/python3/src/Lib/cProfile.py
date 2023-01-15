@@ -103,19 +103,24 @@ class Profile(_lsprof.Profiler):
         return self
 
     # This method is more useful to profile a single function call.
-    def runcall(self, func, /, *args, **kw):
+    def runcall(*args, **kw):
+        if len(args) >= 2:
+            self, func, *args = args
+        elif not args:
+            raise TypeError("descriptor 'runcall' of 'Profile' object "
+                            "needs an argument")
+        elif 'func' in kw:
+            func = kw.pop('func')
+            self, *args = args
+        else:
+            raise TypeError('runcall expected at least 1 positional argument, '
+                            'got %d' % (len(args)-1))
+
         self.enable()
         try:
             return func(*args, **kw)
         finally:
             self.disable()
-
-    def __enter__(self):
-        self.enable()
-        return self
-
-    def __exit__(self, *exc_info):
-        self.disable()
 
 # ____________________________________________________________
 
@@ -152,11 +157,6 @@ def main():
     (options, args) = parser.parse_args()
     sys.argv[:] = args
 
-    # The script that we're profiling may chdir, so capture the absolute path
-    # to the output file at startup.
-    if options.outfile is not None:
-        options.outfile = os.path.abspath(options.outfile)
-
     if len(args) > 0:
         if options.module:
             code = "run_module(modname, run_name='__main__')"
@@ -175,12 +175,7 @@ def main():
                 '__package__': None,
                 '__cached__': None,
             }
-        try:
-            runctx(code, globs, None, options.outfile, options.sort)
-        except BrokenPipeError as exc:
-            # Prevent "Exception ignored" during interpreter shutdown.
-            sys.stdout = None
-            sys.exit(exc.errno)
+        runctx(code, globs, None, options.outfile, options.sort)
     else:
         parser.print_usage()
     return parser

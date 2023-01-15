@@ -1,15 +1,13 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (c) Facebook Inc. and Microsoft Corporation.
+// Licensed under the MIT license.
 
 #ifndef ONNX_DATA_TYPE_UTILS_H
 #define ONNX_DATA_TYPE_UTILS_H
 
 #include <mutex>
-#include <util/generic/string.h>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include "onnx/common/common.h"
 #include "onnx/onnx_pb.h"
 
 namespace ONNX_NAMESPACE {
@@ -36,28 +34,26 @@ namespace Utils {
 //
 class DataTypeUtils final {
  public:
-  // If the DataType input is invalid, this function will throw std::invalid_argument exception.
-  // If ONNX_NO_EXCEPTIONS is set it will abort.
   static DataType ToType(const TString& type_str);
 
-  // If the DataType input is invalid, this function will throw std::invalid_argument exception.
-  // If ONNX_NO_EXCEPTIONS is set it will abort.
   static DataType ToType(const TypeProto& type_proto);
 
-  // If the DataType input is invalid, this function will throw std::invalid_argument exception.
-  // If ONNX_NO_EXCEPTIONS is set it will abort.
   static const TypeProto& ToTypeProto(const DataType& data_type);
-  static TString ToDataTypeString(int32_t tensor_data_type);
 
  private:
   static void FromString(const TString& type_str, TypeProto& type_proto);
 
-  static void FromDataTypeString(const TString& type_str, int32_t& tensor_data_type);
+  static void FromDataTypeString(
+      const TString& type_str,
+      int32_t& tensor_data_type);
 
-  static TString ToString(const TypeProto& type_proto, const TString& left = "", const TString& right = "");
+  static TString ToString(
+      const TypeProto& type_proto,
+      const TString& left = "",
+      const TString& right = "");
 
-  // If int32_t input is invalid, this function will throw an exception.
-  // If ONNX_NO_EXCEPTIONS is set it will abort.
+  static TString ToDataTypeString(
+      int32_t tensor_data_type);
 
   static bool IsValidDataTypeString(const TString& type_str);
 

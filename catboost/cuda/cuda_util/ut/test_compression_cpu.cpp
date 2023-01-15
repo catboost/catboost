@@ -1,8 +1,8 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <iostream>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 using namespace std;
 

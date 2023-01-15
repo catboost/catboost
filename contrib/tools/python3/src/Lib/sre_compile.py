@@ -52,22 +52,6 @@ _equivalences = (
     (0x3c2, 0x3c3), # ςσ
     # GREEK SMALL LETTER PHI, GREEK PHI SYMBOL
     (0x3c6, 0x3d5), # φϕ
-    # CYRILLIC SMALL LETTER VE, CYRILLIC SMALL LETTER ROUNDED VE
-    (0x432, 0x1c80), # вᲀ
-    # CYRILLIC SMALL LETTER DE, CYRILLIC SMALL LETTER LONG-LEGGED DE
-    (0x434, 0x1c81), # дᲁ
-    # CYRILLIC SMALL LETTER O, CYRILLIC SMALL LETTER NARROW O
-    (0x43e, 0x1c82), # оᲂ
-    # CYRILLIC SMALL LETTER ES, CYRILLIC SMALL LETTER WIDE ES
-    (0x441, 0x1c83), # сᲃ
-    # CYRILLIC SMALL LETTER TE, CYRILLIC SMALL LETTER TALL TE, CYRILLIC SMALL LETTER THREE-LEGGED TE
-    (0x442, 0x1c84, 0x1c85), # тᲄᲅ
-    # CYRILLIC SMALL LETTER HARD SIGN, CYRILLIC SMALL LETTER TALL HARD SIGN
-    (0x44a, 0x1c86), # ъᲆ
-    # CYRILLIC SMALL LETTER YAT, CYRILLIC SMALL LETTER TALL YAT
-    (0x463, 0x1c87), # ѣᲇ
-    # CYRILLIC SMALL LETTER UNBLENDED UK, CYRILLIC SMALL LETTER MONOGRAPH UK
-    (0x1c88, 0xa64b), # ᲈꙋ
     # LATIN SMALL LETTER S WITH DOT ABOVE, LATIN SMALL LETTER LONG S WITH DOT ABOVE
     (0x1e61, 0x1e9b), # ṡẛ
     # LATIN SMALL LIGATURE LONG S T, LATIN SMALL LIGATURE ST
@@ -96,7 +80,7 @@ def _compile(code, pattern, flags):
     tolower = None
     fixes = None
     if flags & SRE_FLAG_IGNORECASE and not flags & SRE_FLAG_LOCALE:
-        if flags & SRE_FLAG_UNICODE:
+        if flags & SRE_FLAG_UNICODE and not flags & SRE_FLAG_ASCII:
             iscased = _sre.unicode_iscased
             tolower = _sre.unicode_tolower
             fixes = _ignorecase_fixes
@@ -212,7 +196,7 @@ def _compile(code, pattern, flags):
                 av = AT_MULTILINE.get(av, av)
             if flags & SRE_FLAG_LOCALE:
                 av = AT_LOCALE.get(av, av)
-            elif flags & SRE_FLAG_UNICODE:
+            elif (flags & SRE_FLAG_UNICODE) and not (flags & SRE_FLAG_ASCII):
                 av = AT_UNICODE.get(av, av)
             emit(av)
         elif op is BRANCH:
@@ -233,7 +217,7 @@ def _compile(code, pattern, flags):
             emit(op)
             if flags & SRE_FLAG_LOCALE:
                 av = CH_LOCALE[av]
-            elif flags & SRE_FLAG_UNICODE:
+            elif (flags & SRE_FLAG_UNICODE) and not (flags & SRE_FLAG_ASCII):
                 av = CH_UNICODE[av]
             emit(av)
         elif op is GROUPREF:
@@ -281,7 +265,7 @@ def _compile_charset(charset, flags, code):
         elif op is CATEGORY:
             if flags & SRE_FLAG_LOCALE:
                 emit(CH_LOCALE[av])
-            elif flags & SRE_FLAG_UNICODE:
+            elif (flags & SRE_FLAG_UNICODE) and not (flags & SRE_FLAG_ASCII):
                 emit(CH_UNICODE[av])
             else:
                 emit(av)
@@ -336,19 +320,11 @@ def _optimize_charset(charset, iscased=None, fixup=None, fixes=None):
                     charmap += b'\0' * 0xff00
                     continue
                 # Character set contains non-BMP character codes.
-                # For range, all BMP characters in the range are already
-                # proceeded.
                 if fixup:
                     hascased = True
-                    # For now, IN_UNI_IGNORE+LITERAL and
-                    # IN_UNI_IGNORE+RANGE_UNI_IGNORE work for all non-BMP
-                    # characters, because two characters (at least one of
-                    # which is not in the BMP) match case-insensitively
-                    # if and only if:
-                    # 1) c1.lower() == c2.lower()
-                    # 2) c1.lower() == c2 or c1.lower().upper() == c2
-                    # Also, both c.lower() and c.lower().upper() are single
-                    # characters for every non-BMP character.
+                    # There are only two ranges of cased non-BMP characters:
+                    # 10400-1044F (Deseret) and 118A0-118DF (Warang Citi),
+                    # and for both ranges RANGE_UNI_IGNORE works.
                     if op is RANGE:
                         op = RANGE_UNI_IGNORE
                 tail.append((op, av))
@@ -477,7 +453,7 @@ def _generate_overlap_table(prefix):
 def _get_iscased(flags):
     if not flags & SRE_FLAG_IGNORECASE:
         return None
-    elif flags & SRE_FLAG_UNICODE:
+    elif flags & SRE_FLAG_UNICODE and not flags & SRE_FLAG_ASCII:
         return _sre.unicode_iscased
     else:
         return _sre.ascii_iscased
@@ -621,7 +597,7 @@ def isstring(obj):
 
 def _code(p, flags):
 
-    flags = p.state.flags | flags
+    flags = p.pattern.flags | flags
     code = []
 
     # compile info block
@@ -796,13 +772,13 @@ def compile(p, flags=0):
         dis(code)
 
     # map in either direction
-    groupindex = p.state.groupdict
-    indexgroup = [None] * p.state.groups
+    groupindex = p.pattern.groupdict
+    indexgroup = [None] * p.pattern.groups
     for k, i in groupindex.items():
         indexgroup[i] = k
 
     return _sre.compile(
-        pattern, flags | p.state.flags, code,
-        p.state.groups-1,
+        pattern, flags | p.pattern.flags, code,
+        p.pattern.groups-1,
         groupindex, tuple(indexgroup)
         )

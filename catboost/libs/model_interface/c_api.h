@@ -3,11 +3,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
-#define CATBOOST_APPLIER_MAJOR 1
-#define CATBOOST_APPLIER_MINOR 1
-#define CATBOOST_APPLIER_FIX 1
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -23,37 +18,7 @@ extern "C" {
 #define CATBOOST_API
 #endif
 
-typedef void DataWrapperHandle;
-
-typedef void DataProviderHandle;
-
-/**
- * Create empty data wrapper
- * @return
- */
-CATBOOST_API DataWrapperHandle* DataWrapperCreate(size_t docsCount);
-
-CATBOOST_API void DataWrapperDelete(DataWrapperHandle* dataWrapperHandle);
-
-CATBOOST_API void AddFloatFeatures(DataWrapperHandle* dataWrapperHandle, const float** floatFeatures, size_t floatFeaturesSize);
-
-CATBOOST_API void AddCatFeatures(DataWrapperHandle* dataWrapperHandle, const char*** catFeatures, size_t catFeaturesSize);
-
-CATBOOST_API void AddTextFeatures(DataWrapperHandle* dataWrapperHandle, const char*** textFeatures, size_t textFeaturesSize);
-
-CATBOOST_API void AddEmbeddingFeatures(DataWrapperHandle* dataWrapperHandle, const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize);
-
-CATBOOST_API DataProviderHandle* BuildDataProvider(DataWrapperHandle* dataWrapperHandle);
-
 typedef void ModelCalcerHandle;
-
-enum EApiPredictionType {
-    APT_RAW_FORMULA_VAL = 0,
-    APT_EXPONENT = 1,
-    APT_RMSE_WITH_UNCERTAINTY = 2,
-    APT_PROBABILITY = 3,
-    APT_CLASS = 4,
-};
 
 /**
  * Create empty model handle
@@ -100,17 +65,6 @@ CATBOOST_API bool LoadFullModelFromBuffer(
  * Use CUDA gpu device for model evaluation
 */
 CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
-
-/**
- * Set prediction type for model evaluation
-*/
-CATBOOST_API bool SetPredictionType(ModelCalcerHandle* modelHandle, enum EApiPredictionType predictionType);
-
-/**
- * Set prediction type for model evaluation with string constant
-*/
-CATBOOST_API bool SetPredictionTypeString(ModelCalcerHandle* modelHandle, const char* predictionTypeStr);
-
 
 /**
  * **Use this method only if you really understand what you want.**
@@ -177,37 +131,6 @@ CATBOOST_API bool CalcModelPredictionText(
     const char*** textFeatures, size_t textFeaturesSize,
     double* result, size_t resultSize);
 
-
-/**
- * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer model handle
- * @param docCount object count
- * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
- * @param floatFeaturesSize float feature count
- * @param catFeatures array of array of char* categorical value pointers.
- * String pointer should point to zero terminated string.
- * @param catFeaturesSize categorical feature count
- * @param textFeatures array of array of char* text value pointers.
- * String pointer should point to zero terminated string.
- * @param textFeaturesSize text feature count
- * @param embeddingFeatures array of array of array of float (first dimension is object index, second is feature index, third is index in embedding array).
- * String pointer should point to zero terminated string.
- * @param embeddingFeaturesSize embedding feature count
- * @param result pointer to user allocated results vector
- * @param resultSize result size should be equal to modelApproxDimension * docCount
- * (e.g. for non multiclass models should be equal to docCount)
- * @return false if error occured
- */
-CATBOOST_API bool CalcModelPredictionTextAndEmbeddings(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    double* result, size_t resultSize);
-
-
 /**
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * @param calcer model handle
@@ -248,97 +171,6 @@ CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(
     const int** catFeatures, size_t catFeaturesSize,
     double* result, size_t resultSize);
 
-CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool CalcModelPredictionWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    double* result, size_t resultSize);
-
-/**
- * Methods equivalent to the methods above
- * only returning a prediction for the specific class
- * @param classId number of the class should be in [0, modelApproxDimension - 1]
- * @param resultSize result size should be equal to docCount
-*/
-CATBOOST_API bool PredictSpecificClassFlat(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClass(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassText(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassTextAndEmbeddings(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const char*** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassSingle(
-    ModelCalcerHandle* modelHandle,
-    const float* floatFeatures, size_t floatFeaturesSize,
-    const char** catFeatures, size_t catFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassWithHashedCatFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
-CATBOOST_API bool PredictSpecificClassWithHashedCatFeaturesAndTextAndEmbeddingFeatures(
-    ModelCalcerHandle* modelHandle,
-    size_t docCount,
-    const float** floatFeatures, size_t floatFeaturesSize,
-    const int** catFeatures, size_t catFeaturesSize,
-    const char*** textFeatures, size_t textFeaturesSize,
-    const float*** embeddingFeatures, size_t* embeddingDimensions, size_t embeddingFeaturesSize,
-    int classId,
-    double* result, size_t resultSize);
-
 /**
  * Get hash for given string value
  * @param data we don't expect data to be zero terminated, so pass correct size
@@ -369,18 +201,6 @@ CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
- * Get expected text feature count for model
- * @param calcer model handle
- */
-CATBOOST_API size_t GetTextFeaturesCount(ModelCalcerHandle* modelHandle);
-
-/**
- * Get expected embedding feature count for model
- * @param calcer model handle
- */
-CATBOOST_API size_t GetEmbeddingFeaturesCount(ModelCalcerHandle* modelHandle);
-
-/**
  * Get number of trees in model
  * @param calcer model handle
  */
@@ -391,15 +211,6 @@ CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle);
  * @param calcer model handle
  */
 CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
-
-/**
- * Get number of dimensions for current prediction
- * For default `APT_RAW_FORMULA_VAL`, `APT_EXPONENT`, `APT_PROBABILITY`, `APT_CLASS` prediction type GetPredictionDimensionsCount == GetDimensionsCount
- * For `APT_RMSE_WITH_UNCERTAINTY` - returns 2 (value prediction and predicted uncertainty)
- * @param calcer model handle
- */
-CATBOOST_API size_t GetPredictionDimensionsCount(ModelCalcerHandle* modelHandle);
-
 
 /**
  * Check if model metadata holds some value for provided key
@@ -418,16 +229,6 @@ CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const 
  * @param calcer model handle
  */
 CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
-
-
-/**
- * Get names of features used in the model.
- * individual strings in featureNames array and featureNames array itself must be deallocated using free() after use.
- *
- * @return true on success, false on error
- */
-CATBOOST_API bool GetModelUsedFeaturesNames(ModelCalcerHandle* modelHandle, char*** featureNames, size_t* featureCount);
-
 
 #if defined(__cplusplus)
 }

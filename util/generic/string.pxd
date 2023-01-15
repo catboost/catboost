@@ -6,9 +6,7 @@ cdef extern from "<util/generic/strbuf.h>" nogil:
         TStringBuf() except +
         TStringBuf(const char*) except +
         TStringBuf(const char*, size_t) except +
-        const char* data()
         char* Data()
-        size_t size()
         size_t Size()
 
 
@@ -33,6 +31,8 @@ cdef extern from "<util/generic/string.h>" nogil:
         TString(TStringBuf&, TStringBuf&, TStringBuf&) except +
 
         const char* c_str()
+        const char* data()
+        size_t size()
         size_t max_size()
         size_t length()
         void resize(size_t) except +

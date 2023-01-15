@@ -1,4 +1,0 @@
-mark_as_sources:
-  - traitlets/tests/__init__.py
-  - traitlets/tests/_warnings.py
-  - traitlets/tests/utils.py

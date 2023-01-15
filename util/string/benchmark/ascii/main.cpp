@@ -1,4 +1,4 @@
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/generic/xrange.h>
 #include <util/string/ascii.h>

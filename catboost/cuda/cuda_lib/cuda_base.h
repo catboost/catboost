@@ -105,7 +105,7 @@ namespace NCudaLib {
         }
 
         TCudaStream& Get() {
-            CB_ENSURE(Stream != nullptr, "Error: initialize default stream for thread on launch");
+            Y_VERIFY(Stream != nullptr, "Error: initialize default stream for thread on launch");
             return *Stream;
         }
     };

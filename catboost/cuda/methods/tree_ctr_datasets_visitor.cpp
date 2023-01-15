@@ -5,11 +5,7 @@ namespace NCatboostCuda {
     void TTreeCtrDataSetVisitor::Accept(const TTreeCtrDataSet& ctrDataSet,
                                         const TMirrorBuffer<const TPartitionStatistics>& partStats,
                                         const TMirrorBuffer<ui32>& ctrDataSetInverseIndices,
-                                        const TMirrorBuffer<ui32>& subsetDocs,
-                                        const TMirrorBuffer<const float>& featureWeights,
-                                        double scoreBeforeSplit,
-                                        ui32 maxUniqueValues,
-                                        float modelSizeReg) {
+                                        const TMirrorBuffer<ui32>& subsetDocs) {
         {
             auto cacheIds = GetCtrsBordersToCacheIds(ctrDataSet.GetCtrs());
             if (cacheIds.size()) {
@@ -19,20 +15,17 @@ namespace NCatboostCuda {
 
         using TScoreCalcer = TScoresCalcerOnCompressedDataSet<TSingleDevLayout>;
         auto& scoreHelper = *ctrDataSet.GetCacheHolder().Cache(ctrDataSet, 0, [&]() -> THolder<TScoreCalcer> {
-            return MakeHolder<TScoreCalcer>(ctrDataSet.GetCompressedDataSet(),
+            return new TScoreCalcer(ctrDataSet.GetCompressedDataSet(),
                                     TreeConfig,
                                     FoldCount);
         });
         const ui32 devId = ctrDataSet.GetDeviceId();
-        const ui64 taskSeed = Seeds[devId] + ctrDataSet.GetBaseTensor().GetHash();
+        const ui64 taskSeed = Seeds[ctrDataSet.GetDeviceId()] + ctrDataSet.GetBaseTensor().GetHash();
 
         scoreHelper.SubmitCompute(Subsets.DeviceView(devId),
                                   subsetDocs.DeviceView(devId));
 
-        scoreHelper.ComputeOptimalSplit(partStats.AsConstBuf(),
-                                        ctrDataSet.GetCtrWeights(maxUniqueValues, modelSizeReg).AsConstBuf(),
-                                        featureWeights,
-                                        scoreBeforeSplit,
+        scoreHelper.ComputeOptimalSplit(partStats,
                                         ScoreStdDev,
                                         taskSeed);
 
@@ -65,9 +58,8 @@ namespace NCatboostCuda {
         { //we don't need complex logic here. this should be pretty fast
             bool shouldReturn = false;
             with_lock (Lock) {
-                if (bestSplitProperties.Gain < BestGain) {
+                if (bestSplitProperties.Score < BestScore) {
                     BestScore = bestSplitProperties.Score;
-                    BestGain = bestSplitProperties.Gain;
                     BestBin = bestSplitProperties.BinId;
                     BestDevice = dev;
                     BestCtr = dataSet.GetCtrs()[bestSplitProperties.FeatureId];
@@ -143,7 +135,6 @@ namespace NCatboostCuda {
         , TreeConfig(treeConfig)
         , Subsets(subsets)
         , BestScore(std::numeric_limits<double>::infinity())
-        , BestGain(std::numeric_limits<double>::infinity())
         , BestBin(-1)
         , BestDevice(-1)
         , BestBorders(NCudaLib::GetCudaManager().GetDeviceCount())
@@ -152,8 +143,8 @@ namespace NCatboostCuda {
     {
     }
 
-    TTreeCtrDataSetVisitor& TTreeCtrDataSetVisitor::SetBestGain(double gain) {
-        BestGain = gain;
+    TTreeCtrDataSetVisitor& TTreeCtrDataSetVisitor::SetBestScore(double score) {
+        BestScore = score;
         return *this;
     }
 

@@ -1,136 +1,145 @@
 #include "httpreqdata.h"
 
-#include <library/cpp/case_insensitive_string/case_insensitive_string.h>
-
 #include <util/stream/mem.h>
-#include <util/string/join.h>
-
-#include <array>
-
-#ifdef _sse4_2_
-#include <smmintrin.h>
-#endif
 
 TBaseServerRequestData::TBaseServerRequestData(SOCKET s)
-    : Socket_(s)
-    , BeginTime_(MicroSeconds())
+    : Addr(nullptr)
+    , Host()
+    , Port()
+    , Path(nullptr)
+    , Search(nullptr)
+    , SearchLength(0)
+    , Socket(s)
+    , BeginTime(MicroSeconds())
 {
 }
 
-TBaseServerRequestData::TBaseServerRequestData(TStringBuf qs, SOCKET s)
-    : Query_(qs)
-    , OrigQuery_(Query_)
-    , Socket_(s)
-    , BeginTime_(MicroSeconds())
+TBaseServerRequestData::TBaseServerRequestData(const char* qs, SOCKET s)
+    : Addr(nullptr)
+    , Host()
+    , Port()
+    , Path(nullptr)
+    , Search((char*)qs)
+    , SearchLength(qs ? strlen(qs) : 0)
+    , OrigSearch(Search, SearchLength)
+    , Socket(s)
+    , BeginTime(MicroSeconds())
 {
 }
 
-void TBaseServerRequestData::AppendQueryString(TStringBuf str) {
-    if (Y_UNLIKELY(!Query_.empty())) {
-        TStringBuf separator = !Query_.EndsWith('&') && !str.StartsWith('&') ? "&"sv : ""sv;
-        ModifiedQueryString_ = TString::Join(Query_, separator, str);
-     } else {
-        ModifiedQueryString_ = str;
-     }
-    Query_ = ModifiedQueryString_;
+void TBaseServerRequestData::AppendQueryString(const char* str, size_t length) {
+    if (Y_UNLIKELY(Search)) {
+        Y_ASSERT(strlen(Search) == SearchLength);
+        ModifiedQueryString.Reserve(SearchLength + length + 2);
+        ModifiedQueryString.Assign(Search, SearchLength);
+        if (SearchLength > 0 && Search[SearchLength - 1] != '&' &&
+            length > 0 && str[0] != '&') {
+            ModifiedQueryString.Append('&');
+        }
+        ModifiedQueryString.Append(str, length);
+    } else {
+        ModifiedQueryString.Reserve(length + 1);
+        ModifiedQueryString.Assign(str, length);
+    }
+    ModifiedQueryString.Append('\0');
+    Search = ModifiedQueryString.data();
+    SearchLength = ModifiedQueryString.size() - 1; // ignore terminator
 }
 
 void TBaseServerRequestData::SetRemoteAddr(TStringBuf addr) {
-    Addr_.ConstructInPlace(addr.substr(0, INET6_ADDRSTRLEN - 1));
+    TMemoryOutput out(AddrData, Y_ARRAY_SIZE(AddrData) - 1);
+    out.Write(addr.substr(0, Y_ARRAY_SIZE(AddrData) - 1));
+    *out.Buf() = '\0';
+
+    Addr = AddrData;
 }
 
-TStringBuf TBaseServerRequestData::RemoteAddr() const {
-    if (!Addr_) {
-        auto& addr = Addr_.ConstructInPlace();
-        addr.ReserveAndResize(INET6_ADDRSTRLEN);
-        if (GetRemoteAddr(Socket_, addr.begin(), addr.size())) {
-            if (auto pos = addr.find('\0'); pos != TString::npos) {
-                addr.resize(pos);
-            }
-        } else {
-            addr.clear();
-        }
-     }
+const char* TBaseServerRequestData::RemoteAddr() const {
+    if (!Addr) {
+        *AddrData = 0;
+        GetRemoteAddr(Socket, AddrData, sizeof(AddrData));
+        Addr = AddrData;
+    }
 
-    return *Addr_;
- }
-
-const TString* TBaseServerRequestData::HeaderIn(TStringBuf key) const {
-    return HeadersIn_.FindPtr(key);
+    return Addr;
 }
 
-TStringBuf TBaseServerRequestData::HeaderInOrEmpty(TStringBuf key) const {
-    const auto* ptr = HeaderIn(key);
-    return ptr ? TStringBuf{*ptr} : TStringBuf{};
+const char* TBaseServerRequestData::HeaderIn(const char* key) const {
+    auto it = HeadersIn_.find(key);
+
+    if (it == HeadersIn_.end()) {
+        return nullptr;
+    }
+
+    return it->second.data();
 }
 
 TString TBaseServerRequestData::HeaderByIndex(size_t n) const noexcept {
-    if (n >= HeadersIn_.size()) {
-        return {};
+    if (n >= HeadersCount()) {
+        return nullptr;
     }
 
-    const auto& [key, value] = *std::next(HeadersIn_.begin(), n);
+    HeaderInHash::const_iterator i = HeadersIn_.begin();
 
-    return TString::Join(key, ": ", value);
+    while (n) {
+        ++i;
+        --n;
+    }
+
+    return TString(i->first) + AsStringBuf(": ") + i->second;
 }
 
-TStringBuf TBaseServerRequestData::Environment(TStringBuf key) const {
-    TCaseInsensitiveStringBuf ciKey(key.data(), key.size());
-    if (ciKey == "REMOTE_ADDR") {
-        const auto ip = HeaderIn("X-Real-IP");
-        return ip ? *ip : RemoteAddr();
-    } else if (ciKey == "QUERY_STRING") {
-        return Query();
-    } else if (ciKey == "SERVER_NAME") {
-        return ServerName();
-    } else if (ciKey == "SERVER_PORT") {
-        return ServerPort();
-    } else if (ciKey == "SCRIPT_NAME") {
+const char* TBaseServerRequestData::Environment(const char* key) const {
+    if (stricmp(key, "REMOTE_ADDR") == 0) {
+        const char* ip = HeaderIn("X-Real-IP");
+        if (ip)
+            return ip;
+        return RemoteAddr();
+    } else if (stricmp(key, "QUERY_STRING") == 0) {
+        return QueryString();
+    } else if (stricmp(key, "SERVER_NAME") == 0) {
+        return ServerName().data();
+    } else if (stricmp(key, "SERVER_PORT") == 0) {
+        return ServerPort().data();
+    } else if (stricmp(key, "SCRIPT_NAME") == 0) {
         return ScriptName();
     }
-    return {};
+    return nullptr;
 }
 
- void TBaseServerRequestData::Clear() {
+void TBaseServerRequestData::Clear() {
     HeadersIn_.clear();
-    Addr_ = Nothing();
-    Path_.clear();
-    Query_ = {};
-    OrigQuery_ = {};
-    Host_.clear();
-    Port_.clear();
-    CurPage_.remove();
-    ParseBuf_.clear();
-    BeginTime_ = MicroSeconds();
+    Addr = Path = Search = nullptr;
+    OrigSearch = {};
+    SearchLength = 0;
+    Host.clear();
+    Port.clear();
+    CurPage.remove();
+    ParseBuf.Clear();
+    BeginTime = MicroSeconds();
 }
 
-const TString& TBaseServerRequestData::GetCurPage() const {
-    if (!CurPage_ && Host_) {
-        std::array<TStringBuf, 7> fragments;
-        auto fragmentIt = fragments.begin();
-        *fragmentIt++ = "http://"sv;
-        *fragmentIt++ = Host_;
-        if (Port_) {
-            *fragmentIt++ = ":"sv;
-            *fragmentIt++ = Port_;
+const char* TBaseServerRequestData::GetCurPage() const {
+    if (!CurPage && Host) {
+        CurPage = "http://";
+        CurPage += Host;
+        if (Port) {
+            CurPage += ':';
+            CurPage += Port;
         }
-        *fragmentIt++ = Path_;
-        if (!Query_.empty()) {
-            *fragmentIt++ = "?"sv;
-            *fragmentIt++ = Query_;
+        CurPage += Path;
+        if (Search) {
+            CurPage += '?';
+            CurPage += Search;
         }
-
-        CurPage_ = JoinRange(""sv, fragments.begin(), fragmentIt);
     }
-    return CurPage_;
+    return CurPage.data();
 }
 
-bool TBaseServerRequestData::Parse(TStringBuf origReq) {
-    ParseBuf_.reserve(origReq.size() + 16);
-    ParseBuf_.assign(origReq.begin(), origReq.end());
-    ParseBuf_.insert(ParseBuf_.end(), 15, ' ');
-    ParseBuf_.push_back('\0');
-    char* req = ParseBuf_.data();
+bool TBaseServerRequestData::Parse(const char* origReq) {
+    size_t origReqLength = strlen(origReq);
+    ParseBuf.Assign(origReq, origReqLength + 1);
+    char* req = ParseBuf.Data();
 
     while (*req == ' ' || *req == '\t')
         req++;
@@ -139,85 +148,33 @@ bool TBaseServerRequestData::Parse(TStringBuf origReq) {
     while (req[1] == '/') // remove redundant slashes
         req++;
 
-    char* pathBegin = req;
-    char* queryBegin = nullptr;
+    // detect url end (can contain some garbage after whitespace, e.g. 'HTTP 1.1')
+    char* urlEnd = req;
+    while (*urlEnd && *urlEnd != ' ' && *urlEnd != '\t')
+        urlEnd++;
+    if (*urlEnd)
+        *urlEnd = 0;
 
-#ifdef _sse4_2_
-    const __m128i simdSpace = _mm_set1_epi8(' ');
-    const __m128i simdTab = _mm_set1_epi8('\t');
-    const __m128i simdHash = _mm_set1_epi8('#');
-    const __m128i simdQuestion = _mm_set1_epi8('?');
+    // cut fragment if exists
+    char* fragment = strchr(req, '#');
+    if (fragment)
+        *fragment = 0; // ignore fragment
+    else
+        fragment = urlEnd;
+    Path = req;
 
-    auto isEnd = [=](__m128i x) {
-        const auto v = _mm_or_si128(
-                _mm_or_si128(
-                    _mm_cmpeq_epi8(x, simdSpace), _mm_cmpeq_epi8(x, simdTab)),
-                _mm_cmpeq_epi8(x, simdHash));
-        return !_mm_testz_si128(v, v);
-    };
-
-    // No need for the range check because we have padding of spaces at the end.
-    for (;; req += 16) {
-        const auto x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(req));
-        const auto isQuestionSimd = _mm_cmpeq_epi8(x, simdQuestion);
-        const auto isQuestion = !_mm_testz_si128(isQuestionSimd, isQuestionSimd);
-        if (isEnd(x)) {
-            if (isQuestion) {
-                // The prospective query end and a question sign are both in the
-                // current block. Need to find out which comes first.
-                for (;*req != ' ' && *req != '\t' && *req != '#'; ++req) {
-                    if (*req == '?') {
-                        queryBegin = req + 1;
-                        break;
-                    }
-                }
-            }
-            break;
-        }
-        if (isQuestion) {
-            // Find the exact query beginning
-            for (queryBegin = req; *queryBegin != '?'; ++queryBegin) {
-            }
-            ++queryBegin;
-
-            break;
-        }
-    }
-
-    // If we bailed out because we found query string begin. Now look for the the end of the query
-    if (queryBegin) {
-        for (;; req += 16) {
-            const auto x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(req));
-            if (isEnd(x)) {
-                break;
-            }
-        }
-    }
-#else
-    for (;*req != ' ' && *req != '\t' && *req != '#'; ++req) {
-        if (*req == '?') {
-            queryBegin = req + 1;
-            break;
-        }
-    }
-#endif
-
-    while (*req != ' ' && *req != '\t' && *req != '#') {
-        ++req;
-    }
-
-    char* pathEnd = queryBegin ? queryBegin - 1 : req;
-    // Make sure Path_ and Query_ are actually zero-reminated.
-    *pathEnd = '\0';
-    *req = '\0';
-    Path_ = TStringBuf{pathBegin, pathEnd};
-    if (queryBegin) {
-        Query_ = TStringBuf{queryBegin, req};
-        OrigQuery_ = Query_;
+    // calculate Search length without additional strlen-ing
+    Search = strchr(Path, '?');
+    if (Search) {
+        *Search++ = 0;
+        ptrdiff_t delta = fragment - Search;
+        // indeed, second case is a parse error
+        SearchLength = (delta >= 0) ? delta : (urlEnd - Search);
+        Y_ASSERT(strlen(Search) == SearchLength);
     } else {
-        Query_ = {};
-        OrigQuery_ = {};
+        SearchLength = 0;
     }
+    OrigSearch = {Search, SearchLength};
 
     return true;
 }
@@ -228,11 +185,12 @@ void TBaseServerRequestData::AddHeader(const TString& name, const TString& value
     if (stricmp(name.data(), "Host") == 0) {
         size_t hostLen = strcspn(value.data(), ":");
         if (value[hostLen] == ':')
-            Port_ = value.substr(hostLen + 1);
-        Host_ = value.substr(0, hostLen);
+            Port = value.substr(hostLen + 1);
+        Host = value.substr(0, hostLen);
     }
 }
 
-void TBaseServerRequestData::SetPath(TString path) {
-    Path_ = std::move(path);
+void TBaseServerRequestData::SetPath(const TString& path) {
+    PathStorage = TBuffer(path.data(), path.size() + 1);
+    Path = PathStorage.Data();
 }

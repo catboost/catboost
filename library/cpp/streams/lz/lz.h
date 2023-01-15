@@ -5,11 +5,6 @@
 #include <util/generic/ptr.h>
 #include <util/generic/yexception.h>
 
-#include <library/cpp/streams/lz/common/error.h>
-
-#include <library/cpp/streams/lz/lz4/lz4.h>
-#include <library/cpp/streams/lz/snappy/snappy.h>
-
 /**
  * @file
  *
@@ -22,10 +17,89 @@
  * for some comparisons.
  */
 
+struct TDecompressorError: public yexception {
+};
+
 /**
  * @addtogroup Streams_Archs
  * @{
  */
+
+/**
+ * Lz4 compressing stream.
+ *
+ * @see http://code.google.com/p/lz4/
+ */
+class TLz4Compress: public IOutputStream {
+public:
+    TLz4Compress(IOutputStream* slave, ui16 maxBlockSize = 1 << 15);
+    ~TLz4Compress() override;
+
+private:
+    void DoWrite(const void* buf, size_t len) override;
+    void DoFlush() override;
+    void DoFinish() override;
+
+private:
+    class TImpl;
+    THolder<TImpl> Impl_;
+};
+
+/**
+ * Lz4 decompressing stream.
+ *
+ * @see http://code.google.com/p/lz4/
+ */
+class TLz4Decompress: public IInputStream {
+public:
+    TLz4Decompress(IInputStream* slave);
+    ~TLz4Decompress() override;
+
+private:
+    size_t DoRead(void* buf, size_t len) override;
+
+private:
+    class TImpl;
+    THolder<TImpl> Impl_;
+};
+
+/**
+ * Snappy compressing stream.
+ *
+ * @see http://code.google.com/p/snappy/
+ */
+class TSnappyCompress: public IOutputStream {
+public:
+    TSnappyCompress(IOutputStream* slave, ui16 maxBlockSize = 1 << 15);
+    ~TSnappyCompress() override;
+
+private:
+    void DoWrite(const void* buf, size_t len) override;
+    void DoFlush() override;
+    void DoFinish() override;
+
+private:
+    class TImpl;
+    THolder<TImpl> Impl_;
+};
+
+/**
+ * Snappy decompressing stream.
+ *
+ * @see http://code.google.com/p/snappy/
+ */
+class TSnappyDecompress: public IInputStream {
+public:
+    TSnappyDecompress(IInputStream* slave);
+    ~TSnappyDecompress() override;
+
+private:
+    size_t DoRead(void* buf, size_t len) override;
+
+private:
+    class TImpl;
+    THolder<TImpl> Impl_;
+};
 
 /**
  * MiniLZO compressing stream.

@@ -1023,6 +1023,8 @@ class CSimpleBaseTypeNode(CBaseTypeNode):
                 if scope is None:
                     # Maybe it's a cimport.
                     scope = env.find_imported_module(self.module_path, self.pos)
+                    if scope:
+                        scope.fused_to_specific = env.fused_to_specific
             else:
                 scope = env
 
@@ -1048,8 +1050,6 @@ class CSimpleBaseTypeNode(CBaseTypeNode):
                         type = PyrexTypes.TemplatePlaceholderType(self.name)
                     else:
                         error(self.pos, "'%s' is not a type identifier" % self.name)
-        if type and type.is_fused and env.fused_to_specific:
-            type = type.specialize(env.fused_to_specific)
         if self.complex:
             if not type.is_numeric or type.is_complex:
                 error(self.pos, "can only complexify c numeric types")
@@ -1382,9 +1382,6 @@ class CVarDefNode(StatNode):
                     self.entry.type.create_to_py_utility_code(env)
                     self.entry.create_wrapper = True
             else:
-                if self.overridable:
-                    warning(self.pos, "cpdef variables will not be supported in Cython 3; "
-                            "currently they are no different from cdef variables", 2)
                 if self.directive_locals:
                     error(self.pos, "Decorators can only be followed by functions")
                 self.entry = dest_scope.declare_var(
@@ -2637,11 +2634,8 @@ class CFuncDefNode(FuncDefNode):
         def put_into_closure(entry):
             if entry.in_closure and not arg.default:
                 code.putln('%s = %s;' % (entry.cname, entry.original_cname))
-                if entry.type.is_memoryviewslice:
-                    code.put_incref_memoryviewslice(entry.cname, have_gil=True)
-                else:
-                    code.put_var_incref(entry)
-                    code.put_var_giveref(entry)
+                code.put_var_incref(entry)
+                code.put_var_giveref(entry)
         for arg in self.args:
             put_into_closure(scope.lookup_here(arg.name))
 
@@ -3238,14 +3232,8 @@ class DefNode(FuncDefNode):
         def put_into_closure(entry):
             if entry.in_closure:
                 code.putln('%s = %s;' % (entry.cname, entry.original_cname))
-                if entry.xdecref_cleanup:
-                    # mostly applies to the starstar arg - this can sometimes be NULL
-                    # so must be xincrefed instead
-                    code.put_var_xincref(entry)
-                    code.put_var_xgiveref(entry)
-                else:
-                    code.put_var_incref(entry)
-                    code.put_var_giveref(entry)
+                code.put_var_incref(entry)
+                code.put_var_giveref(entry)
         for arg in self.args:
             put_into_closure(arg.entry)
         for arg in self.star_arg, self.starstar_arg:
@@ -3464,7 +3452,7 @@ class DefNodeWrapper(FuncDefNode):
                     docstr.as_c_string_literal()))
 
             if entry.is_special:
-                code.putln('#if CYTHON_UPDATE_DESCRIPTOR_DOC')
+                code.putln('#if CYTHON_COMPILING_IN_CPYTHON')
                 code.putln(
                     "struct wrapperbase %s;" % entry.wrapperbase_cname)
                 code.putln('#endif')
@@ -4159,10 +4147,6 @@ class GeneratorBodyDefNode(DefNode):
                                 cname=cname, visibility='private')
         entry.func_cname = cname
         entry.qualified_name = EncodedString(self.name)
-        # Work-around for https://github.com/cython/cython/issues/1699
-        # We don't currently determine whether the generator entry is used or not,
-        # so mark it as used to avoid false warnings.
-        entry.used = True
         self.entry = entry
 
     def analyse_declarations(self, env):
@@ -4514,22 +4498,26 @@ class PyClassDefNode(ClassDefNode):
                     pass  # no base classes => no inherited metaclass
                 else:
                     self.metaclass = ExprNodes.PyClassMetaclassNode(
-                        pos, class_def_node=self)
+                        pos, mkw=mkdict, bases=self.bases)
                 needs_metaclass_calculation = False
             else:
                 needs_metaclass_calculation = True
 
             self.dict = ExprNodes.PyClassNamespaceNode(
-                pos, name=name, doc=doc_node, class_def_node=self)
+                pos, name=name, doc=doc_node,
+                metaclass=self.metaclass, bases=self.bases, mkw=self.mkw)
             self.classobj = ExprNodes.Py3ClassNode(
-                pos, name=name, class_def_node=self, doc=doc_node,
+                pos, name=name,
+                bases=self.bases, dict=self.dict, doc=doc_node,
+                metaclass=self.metaclass, mkw=self.mkw,
                 calculate_metaclass=needs_metaclass_calculation,
                 allow_py2_metaclass=allow_py2_metaclass)
         else:
             # no bases, no metaclass => old style class creation
             self.dict = ExprNodes.DictNode(pos, key_value_pairs=[])
             self.classobj = ExprNodes.ClassNode(
-                pos, name=name, class_def_node=self, doc=doc_node)
+                pos, name=name,
+                bases=bases, dict=self.dict, doc=doc_node)
 
         self.target = ExprNodes.NameNode(pos, name=name)
         self.class_cell = ExprNodes.ClassCellInjectorNode(self.pos)
@@ -4547,7 +4535,7 @@ class PyClassDefNode(ClassDefNode):
                              visibility='private',
                              module_name=None,
                              class_name=self.name,
-                             bases=self.bases or ExprNodes.TupleNode(self.pos, args=[]),
+                             bases=self.classobj.bases or ExprNodes.TupleNode(self.pos, args=[]),
                              decorators=self.decorators,
                              body=self.body,
                              in_pxd=False,
@@ -4571,10 +4559,6 @@ class PyClassDefNode(ClassDefNode):
                     args=[class_result])
             self.decorators = None
         self.class_result = class_result
-        if self.bases:
-            self.bases.analyse_declarations(env)
-        if self.mkw:
-            self.mkw.analyse_declarations(env)
         self.class_result.analyse_declarations(env)
         self.target.analyse_target_declaration(env)
         cenv = self.create_scope(env)
@@ -4585,10 +4569,10 @@ class PyClassDefNode(ClassDefNode):
     def analyse_expressions(self, env):
         if self.bases:
             self.bases = self.bases.analyse_expressions(env)
-        if self.mkw:
-            self.mkw = self.mkw.analyse_expressions(env)
         if self.metaclass:
             self.metaclass = self.metaclass.analyse_expressions(env)
+        if self.mkw:
+            self.mkw = self.mkw.analyse_expressions(env)
         self.dict = self.dict.analyse_expressions(env)
         self.class_result = self.class_result.analyse_expressions(env)
         cenv = self.scope
@@ -4613,22 +4597,12 @@ class PyClassDefNode(ClassDefNode):
             self.metaclass.generate_evaluation_code(code)
         self.dict.generate_evaluation_code(code)
         cenv.namespace_cname = cenv.class_obj_cname = self.dict.result()
-
-        class_cell = self.class_cell
-        if class_cell is not None and not class_cell.is_active:
-            class_cell = None
-
-        if class_cell is not None:
-            class_cell.generate_evaluation_code(code)
+        self.class_cell.generate_evaluation_code(code)
         self.body.generate_execution_code(code)
         self.class_result.generate_evaluation_code(code)
-        if class_cell is not None:
-            class_cell.generate_injection_code(
-                code, self.class_result.result())
-        if class_cell is not None:
-            class_cell.generate_disposal_code(code)
-            class_cell.free_temps(code)
-
+        self.class_cell.generate_injection_code(
+            code, self.class_result.result())
+        self.class_cell.generate_disposal_code(code)
         cenv.namespace_cname = cenv.class_obj_cname = self.classobj.result()
         self.target.generate_assignment_code(self.class_result, code)
         self.dict.generate_disposal_code(code)
@@ -4960,7 +4934,7 @@ class CClassDefNode(ClassDefNode):
                     preprocessor_guard = slot.preprocessor_guard_code() if slot else None
                     if preprocessor_guard:
                         code.putln(preprocessor_guard)
-                    code.putln('#if CYTHON_UPDATE_DESCRIPTOR_DOC')
+                    code.putln('#if CYTHON_COMPILING_IN_CPYTHON')
                     code.putln("{")
                     code.putln(
                         'PyObject *wrapper = PyObject_GetAttrString((PyObject *)&%s, "%s"); %s' % (
@@ -5879,7 +5853,6 @@ class DelStatNode(StatNode):
                 arg.generate_evaluation_code(code)
                 code.putln("delete %s;" % arg.result())
                 arg.generate_disposal_code(code)
-                arg.free_temps(code)
             # else error reported earlier
 
     def annotate(self, code):
@@ -6008,7 +5981,6 @@ class ReturnStatNode(StatNode):
                     rhs=value,
                     code=code,
                     have_gil=self.in_nogil_context)
-                value.generate_post_assignment_code(code)
             elif self.in_generator:
                 # return value == raise StopIteration(value), but uncatchable
                 code.globalstate.use_utility_code(
@@ -6022,7 +5994,7 @@ class ReturnStatNode(StatNode):
                 code.putln("%s = %s;" % (
                     Naming.retval_cname,
                     value.result_as(self.return_type)))
-                value.generate_post_assignment_code(code)
+            value.generate_post_assignment_code(code)
             value.free_temps(code)
         else:
             if self.return_type.is_pyobject:
@@ -6424,8 +6396,6 @@ class SwitchStatNode(StatNode):
             # generate the switch statement, so shouldn't be bothered).
             code.putln("default: break;")
         code.putln("}")
-        self.test.generate_disposal_code(code)
-        self.test.free_temps(code)
 
     def generate_function_definitions(self, env, code):
         self.test.generate_function_definitions(env, code)
@@ -7689,10 +7659,9 @@ class TryFinallyStatNode(StatNode):
                     if self.func_return_type.is_pyobject:
                         code.putln("%s = 0;" % ret_temp)
                     code.funcstate.release_temp(ret_temp)
+                    ret_temp = None
                 if self.in_generator:
                     self.put_error_uncatcher(code, exc_vars)
-                    for cname in exc_vars:
-                        code.funcstate.release_temp(cname)
 
             if not self.finally_clause.is_terminator:
                 code.put_goto(old_label)
@@ -7706,8 +7675,6 @@ class TryFinallyStatNode(StatNode):
     def generate_function_definitions(self, env, code):
         self.body.generate_function_definitions(env, code)
         self.finally_clause.generate_function_definitions(env, code)
-        if self.finally_except_clause:
-            self.finally_except_clause.generate_function_definitions(env, code)
 
     def put_error_catcher(self, code, temps_to_clean_up, exc_vars,
                           exc_lineno_cnames=None, exc_filename_cname=None):
@@ -8791,11 +8758,6 @@ class ParallelStatNode(StatNode, ParallelNode):
         self.begin_of_parallel_control_block_point = None
         self.begin_of_parallel_control_block_point_after_decls = None
 
-        if self.num_threads is not None:
-            # FIXME: is it the right place? should not normally produce code.
-            self.num_threads.generate_disposal_code(code)
-            self.num_threads.free_temps(code)
-
         # Firstly, always prefer errors over returning, continue or break
         if self.error_label_used:
             c.putln("const char *%s = NULL; int %s = 0, %s = 0;" % self.parallel_pos_info)
@@ -8995,6 +8957,10 @@ class ParallelRangeNode(ParallelStatNode):
             self.index_type = PyrexTypes.c_py_ssize_t_type
         else:
             self.index_type = self.target.type
+            if not self.index_type.signed:
+                warning(self.target.pos,
+                        "Unsigned index type not allowed before OpenMP 3.0",
+                        level=2)
 
         # Setup start, stop and step, allocating temps if needed
         self.names = 'start', 'stop', 'step'
@@ -9137,7 +9103,7 @@ class ParallelRangeNode(ParallelStatNode):
 
         # TODO: check if the step is 0 and if so, raise an exception in a
         # 'with gil' block. For now, just abort
-        code.putln("if ((%(step)s == 0)) abort();" % fmt_dict)
+        code.putln("if (%(step)s == 0) abort();" % fmt_dict)
 
         self.setup_parallel_control_flow_block(code) # parallel control flow block
 
@@ -9171,7 +9137,7 @@ class ParallelRangeNode(ParallelStatNode):
 
         # And finally, release our privates and write back any closure
         # variables
-        for temp in start_stop_step + (self.chunksize,):
+        for temp in start_stop_step + (self.chunksize, self.num_threads):
             if temp is not None:
                 temp.generate_disposal_code(code)
                 temp.free_temps(code)
@@ -9258,15 +9224,12 @@ class ParallelRangeNode(ParallelStatNode):
         code.putln("%(target)s = (%(target_type)s)(%(start)s + %(step)s * %(i)s);" % fmt_dict)
         self.initialize_privates_to_nan(code, exclude=self.target.entry)
 
-        if self.is_parallel and not self.is_nested_prange:
-            # nested pranges are not omp'ified, temps go to outer loops
+        if self.is_parallel:
             code.funcstate.start_collecting_temps()
 
         self.body.generate_execution_code(code)
         self.trap_parallel_exit(code, should_flush=True)
-        if self.is_parallel and not self.is_nested_prange:
-            # nested pranges are not omp'ified, temps go to outer loops
-            self.privatize_temps(code)
+        self.privatize_temps(code)
 
         if self.breaking_label_used:
             # Put a guard around the loop body in case return, break or

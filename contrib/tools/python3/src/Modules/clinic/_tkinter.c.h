@@ -19,17 +19,7 @@ _tkinter_tkapp_eval(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *script;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("eval", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t script_length;
-    script = PyUnicode_AsUTF8AndSize(arg, &script_length);
-    if (script == NULL) {
-        goto exit;
-    }
-    if (strlen(script) != (size_t)script_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:eval", &script)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_eval_impl(self, script);
@@ -55,17 +45,7 @@ _tkinter_tkapp_evalfile(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *fileName;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("evalfile", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t fileName_length;
-    fileName = PyUnicode_AsUTF8AndSize(arg, &fileName_length);
-    if (fileName == NULL) {
-        goto exit;
-    }
-    if (strlen(fileName) != (size_t)fileName_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:evalfile", &fileName)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_evalfile_impl(self, fileName);
@@ -91,17 +71,7 @@ _tkinter_tkapp_record(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *script;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("record", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t script_length;
-    script = PyUnicode_AsUTF8AndSize(arg, &script_length);
-    if (script == NULL) {
-        goto exit;
-    }
-    if (strlen(script) != (size_t)script_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:record", &script)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_record_impl(self, script);
@@ -127,17 +97,7 @@ _tkinter_tkapp_adderrorinfo(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *msg;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("adderrorinfo", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t msg_length;
-    msg = PyUnicode_AsUTF8AndSize(arg, &msg_length);
-    if (msg == NULL) {
-        goto exit;
-    }
-    if (strlen(msg) != (size_t)msg_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:adderrorinfo", &msg)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_adderrorinfo_impl(self, msg);
@@ -187,17 +147,7 @@ _tkinter_tkapp_exprstring(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *s;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("exprstring", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t s_length;
-    s = PyUnicode_AsUTF8AndSize(arg, &s_length);
-    if (s == NULL) {
-        goto exit;
-    }
-    if (strlen(s) != (size_t)s_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:exprstring", &s)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_exprstring_impl(self, s);
@@ -223,17 +173,7 @@ _tkinter_tkapp_exprlong(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *s;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("exprlong", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t s_length;
-    s = PyUnicode_AsUTF8AndSize(arg, &s_length);
-    if (s == NULL) {
-        goto exit;
-    }
-    if (strlen(s) != (size_t)s_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:exprlong", &s)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_exprlong_impl(self, s);
@@ -259,17 +199,7 @@ _tkinter_tkapp_exprdouble(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *s;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("exprdouble", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t s_length;
-    s = PyUnicode_AsUTF8AndSize(arg, &s_length);
-    if (s == NULL) {
-        goto exit;
-    }
-    if (strlen(s) != (size_t)s_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:exprdouble", &s)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_exprdouble_impl(self, s);
@@ -295,17 +225,7 @@ _tkinter_tkapp_exprboolean(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *s;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("exprboolean", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t s_length;
-    s = PyUnicode_AsUTF8AndSize(arg, &s_length);
-    if (s == NULL) {
-        goto exit;
-    }
-    if (strlen(s) != (size_t)s_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:exprboolean", &s)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_exprboolean_impl(self, s);
@@ -336,7 +256,7 @@ PyDoc_STRVAR(_tkinter_tkapp_createcommand__doc__,
 "\n");
 
 #define _TKINTER_TKAPP_CREATECOMMAND_METHODDEF    \
-    {"createcommand", (PyCFunction)(void(*)(void))_tkinter_tkapp_createcommand, METH_FASTCALL, _tkinter_tkapp_createcommand__doc__},
+    {"createcommand", (PyCFunction)_tkinter_tkapp_createcommand, METH_FASTCALL, _tkinter_tkapp_createcommand__doc__},
 
 static PyObject *
 _tkinter_tkapp_createcommand_impl(TkappObject *self, const char *name,
@@ -349,23 +269,10 @@ _tkinter_tkapp_createcommand(TkappObject *self, PyObject *const *args, Py_ssize_
     const char *name;
     PyObject *func;
 
-    if (!_PyArg_CheckPositional("createcommand", nargs, 2, 2)) {
+    if (!_PyArg_ParseStack(args, nargs, "sO:createcommand",
+        &name, &func)) {
         goto exit;
     }
-    if (!PyUnicode_Check(args[0])) {
-        _PyArg_BadArgument("createcommand", "argument 1", "str", args[0]);
-        goto exit;
-    }
-    Py_ssize_t name_length;
-    name = PyUnicode_AsUTF8AndSize(args[0], &name_length);
-    if (name == NULL) {
-        goto exit;
-    }
-    if (strlen(name) != (size_t)name_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
-        goto exit;
-    }
-    func = args[1];
     return_value = _tkinter_tkapp_createcommand_impl(self, name, func);
 
 exit:
@@ -389,17 +296,7 @@ _tkinter_tkapp_deletecommand(TkappObject *self, PyObject *arg)
     PyObject *return_value = NULL;
     const char *name;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("deletecommand", "argument", "str", arg);
-        goto exit;
-    }
-    Py_ssize_t name_length;
-    name = PyUnicode_AsUTF8AndSize(arg, &name_length);
-    if (name == NULL) {
-        goto exit;
-    }
-    if (strlen(name) != (size_t)name_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
+    if (!PyArg_Parse(arg, "s:deletecommand", &name)) {
         goto exit;
     }
     return_value = _tkinter_tkapp_deletecommand_impl(self, name);
@@ -416,7 +313,7 @@ PyDoc_STRVAR(_tkinter_tkapp_createfilehandler__doc__,
 "\n");
 
 #define _TKINTER_TKAPP_CREATEFILEHANDLER_METHODDEF    \
-    {"createfilehandler", (PyCFunction)(void(*)(void))_tkinter_tkapp_createfilehandler, METH_FASTCALL, _tkinter_tkapp_createfilehandler__doc__},
+    {"createfilehandler", (PyCFunction)_tkinter_tkapp_createfilehandler, METH_FASTCALL, _tkinter_tkapp_createfilehandler__doc__},
 
 static PyObject *
 _tkinter_tkapp_createfilehandler_impl(TkappObject *self, PyObject *file,
@@ -430,15 +327,10 @@ _tkinter_tkapp_createfilehandler(TkappObject *self, PyObject *const *args, Py_ss
     int mask;
     PyObject *func;
 
-    if (!_PyArg_CheckPositional("createfilehandler", nargs, 3, 3)) {
+    if (!_PyArg_ParseStack(args, nargs, "OiO:createfilehandler",
+        &file, &mask, &func)) {
         goto exit;
     }
-    file = args[0];
-    mask = _PyLong_AsInt(args[1]);
-    if (mask == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    func = args[2];
     return_value = _tkinter_tkapp_createfilehandler_impl(self, file, mask, func);
 
 exit:
@@ -482,7 +374,7 @@ PyDoc_STRVAR(_tkinter_tkapp_createtimerhandler__doc__,
 "\n");
 
 #define _TKINTER_TKAPP_CREATETIMERHANDLER_METHODDEF    \
-    {"createtimerhandler", (PyCFunction)(void(*)(void))_tkinter_tkapp_createtimerhandler, METH_FASTCALL, _tkinter_tkapp_createtimerhandler__doc__},
+    {"createtimerhandler", (PyCFunction)_tkinter_tkapp_createtimerhandler, METH_FASTCALL, _tkinter_tkapp_createtimerhandler__doc__},
 
 static PyObject *
 _tkinter_tkapp_createtimerhandler_impl(TkappObject *self, int milliseconds,
@@ -495,14 +387,10 @@ _tkinter_tkapp_createtimerhandler(TkappObject *self, PyObject *const *args, Py_s
     int milliseconds;
     PyObject *func;
 
-    if (!_PyArg_CheckPositional("createtimerhandler", nargs, 2, 2)) {
+    if (!_PyArg_ParseStack(args, nargs, "iO:createtimerhandler",
+        &milliseconds, &func)) {
         goto exit;
     }
-    milliseconds = _PyLong_AsInt(args[0]);
-    if (milliseconds == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    func = args[1];
     return_value = _tkinter_tkapp_createtimerhandler_impl(self, milliseconds, func);
 
 exit:
@@ -515,7 +403,7 @@ PyDoc_STRVAR(_tkinter_tkapp_mainloop__doc__,
 "\n");
 
 #define _TKINTER_TKAPP_MAINLOOP_METHODDEF    \
-    {"mainloop", (PyCFunction)(void(*)(void))_tkinter_tkapp_mainloop, METH_FASTCALL, _tkinter_tkapp_mainloop__doc__},
+    {"mainloop", (PyCFunction)_tkinter_tkapp_mainloop, METH_FASTCALL, _tkinter_tkapp_mainloop__doc__},
 
 static PyObject *
 _tkinter_tkapp_mainloop_impl(TkappObject *self, int threshold);
@@ -526,17 +414,10 @@ _tkinter_tkapp_mainloop(TkappObject *self, PyObject *const *args, Py_ssize_t nar
     PyObject *return_value = NULL;
     int threshold = 0;
 
-    if (!_PyArg_CheckPositional("mainloop", nargs, 0, 1)) {
+    if (!_PyArg_ParseStack(args, nargs, "|i:mainloop",
+        &threshold)) {
         goto exit;
     }
-    if (nargs < 1) {
-        goto skip_optional;
-    }
-    threshold = _PyLong_AsInt(args[0]);
-    if (threshold == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-skip_optional:
     return_value = _tkinter_tkapp_mainloop_impl(self, threshold);
 
 exit:
@@ -549,7 +430,7 @@ PyDoc_STRVAR(_tkinter_tkapp_dooneevent__doc__,
 "\n");
 
 #define _TKINTER_TKAPP_DOONEEVENT_METHODDEF    \
-    {"dooneevent", (PyCFunction)(void(*)(void))_tkinter_tkapp_dooneevent, METH_FASTCALL, _tkinter_tkapp_dooneevent__doc__},
+    {"dooneevent", (PyCFunction)_tkinter_tkapp_dooneevent, METH_FASTCALL, _tkinter_tkapp_dooneevent__doc__},
 
 static PyObject *
 _tkinter_tkapp_dooneevent_impl(TkappObject *self, int flags);
@@ -560,17 +441,10 @@ _tkinter_tkapp_dooneevent(TkappObject *self, PyObject *const *args, Py_ssize_t n
     PyObject *return_value = NULL;
     int flags = 0;
 
-    if (!_PyArg_CheckPositional("dooneevent", nargs, 0, 1)) {
+    if (!_PyArg_ParseStack(args, nargs, "|i:dooneevent",
+        &flags)) {
         goto exit;
     }
-    if (nargs < 1) {
-        goto skip_optional;
-    }
-    flags = _PyLong_AsInt(args[0]);
-    if (flags == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-skip_optional:
     return_value = _tkinter_tkapp_dooneevent_impl(self, flags);
 
 exit:
@@ -654,7 +528,7 @@ PyDoc_STRVAR(_tkinter__flatten__doc__,
     {"_flatten", (PyCFunction)_tkinter__flatten, METH_O, _tkinter__flatten__doc__},
 
 PyDoc_STRVAR(_tkinter_create__doc__,
-"create($module, screenName=None, baseName=\'\', className=\'Tk\',\n"
+"create($module, screenName=None, baseName=None, className=\'Tk\',\n"
 "       interactive=False, wantobjects=False, wantTk=True, sync=False,\n"
 "       use=None, /)\n"
 "--\n"
@@ -669,7 +543,7 @@ PyDoc_STRVAR(_tkinter_create__doc__,
 "    if not None, then pass -use to wish");
 
 #define _TKINTER_CREATE_METHODDEF    \
-    {"create", (PyCFunction)(void(*)(void))_tkinter_create, METH_FASTCALL, _tkinter_create__doc__},
+    {"create", (PyCFunction)_tkinter_create, METH_FASTCALL, _tkinter_create__doc__},
 
 static PyObject *
 _tkinter_create_impl(PyObject *module, const char *screenName,
@@ -682,7 +556,7 @@ _tkinter_create(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
 {
     PyObject *return_value = NULL;
     const char *screenName = NULL;
-    const char *baseName = "";
+    const char *baseName = NULL;
     const char *className = "Tk";
     int interactive = 0;
     int wantobjects = 0;
@@ -690,112 +564,10 @@ _tkinter_create(PyObject *module, PyObject *const *args, Py_ssize_t nargs)
     int sync = 0;
     const char *use = NULL;
 
-    if (!_PyArg_CheckPositional("create", nargs, 0, 8)) {
+    if (!_PyArg_ParseStack(args, nargs, "|zssiiiiz:create",
+        &screenName, &baseName, &className, &interactive, &wantobjects, &wantTk, &sync, &use)) {
         goto exit;
     }
-    if (nargs < 1) {
-        goto skip_optional;
-    }
-    if (args[0] == Py_None) {
-        screenName = NULL;
-    }
-    else if (PyUnicode_Check(args[0])) {
-        Py_ssize_t screenName_length;
-        screenName = PyUnicode_AsUTF8AndSize(args[0], &screenName_length);
-        if (screenName == NULL) {
-            goto exit;
-        }
-        if (strlen(screenName) != (size_t)screenName_length) {
-            PyErr_SetString(PyExc_ValueError, "embedded null character");
-            goto exit;
-        }
-    }
-    else {
-        _PyArg_BadArgument("create", "argument 1", "str or None", args[0]);
-        goto exit;
-    }
-    if (nargs < 2) {
-        goto skip_optional;
-    }
-    if (!PyUnicode_Check(args[1])) {
-        _PyArg_BadArgument("create", "argument 2", "str", args[1]);
-        goto exit;
-    }
-    Py_ssize_t baseName_length;
-    baseName = PyUnicode_AsUTF8AndSize(args[1], &baseName_length);
-    if (baseName == NULL) {
-        goto exit;
-    }
-    if (strlen(baseName) != (size_t)baseName_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
-        goto exit;
-    }
-    if (nargs < 3) {
-        goto skip_optional;
-    }
-    if (!PyUnicode_Check(args[2])) {
-        _PyArg_BadArgument("create", "argument 3", "str", args[2]);
-        goto exit;
-    }
-    Py_ssize_t className_length;
-    className = PyUnicode_AsUTF8AndSize(args[2], &className_length);
-    if (className == NULL) {
-        goto exit;
-    }
-    if (strlen(className) != (size_t)className_length) {
-        PyErr_SetString(PyExc_ValueError, "embedded null character");
-        goto exit;
-    }
-    if (nargs < 4) {
-        goto skip_optional;
-    }
-    interactive = _PyLong_AsInt(args[3]);
-    if (interactive == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    if (nargs < 5) {
-        goto skip_optional;
-    }
-    wantobjects = _PyLong_AsInt(args[4]);
-    if (wantobjects == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    if (nargs < 6) {
-        goto skip_optional;
-    }
-    wantTk = _PyLong_AsInt(args[5]);
-    if (wantTk == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    if (nargs < 7) {
-        goto skip_optional;
-    }
-    sync = _PyLong_AsInt(args[6]);
-    if (sync == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    if (nargs < 8) {
-        goto skip_optional;
-    }
-    if (args[7] == Py_None) {
-        use = NULL;
-    }
-    else if (PyUnicode_Check(args[7])) {
-        Py_ssize_t use_length;
-        use = PyUnicode_AsUTF8AndSize(args[7], &use_length);
-        if (use == NULL) {
-            goto exit;
-        }
-        if (strlen(use) != (size_t)use_length) {
-            PyErr_SetString(PyExc_ValueError, "embedded null character");
-            goto exit;
-        }
-    }
-    else {
-        _PyArg_BadArgument("create", "argument 8", "str or None", args[7]);
-        goto exit;
-    }
-skip_optional:
     return_value = _tkinter_create_impl(module, screenName, baseName, className, interactive, wantobjects, wantTk, sync, use);
 
 exit:
@@ -822,8 +594,7 @@ _tkinter_setbusywaitinterval(PyObject *module, PyObject *arg)
     PyObject *return_value = NULL;
     int new_val;
 
-    new_val = _PyLong_AsInt(arg);
-    if (new_val == -1 && PyErr_Occurred()) {
+    if (!PyArg_Parse(arg, "i:setbusywaitinterval", &new_val)) {
         goto exit;
     }
     return_value = _tkinter_setbusywaitinterval_impl(module, new_val);
@@ -867,4 +638,4 @@ exit:
 #ifndef _TKINTER_TKAPP_DELETEFILEHANDLER_METHODDEF
     #define _TKINTER_TKAPP_DELETEFILEHANDLER_METHODDEF
 #endif /* !defined(_TKINTER_TKAPP_DELETEFILEHANDLER_METHODDEF) */
-/*[clinic end generated code: output=ab311480dd044fe4 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=eb3202e07db3dbb1 input=a9049054013a1b77]*/

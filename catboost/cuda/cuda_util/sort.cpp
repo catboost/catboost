@@ -8,7 +8,6 @@
 #include <catboost/cuda/cuda_util/kernel/transform.cuh>
 #include <catboost/libs/helpers/exception.h>
 
-#include <util/generic/cast.h>
 #include <util/stream/labeled.h>
 
 using NCudaLib::TMirrorMapping;
@@ -115,7 +114,7 @@ namespace {
             if (!NeedOnlyTempStorage) {
                 context.TempKeys = manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
-                    context.TempValues = manager.Allocate<char>(size * (ui64)context.ValueSize);
+                    context.TempValues = manager.Allocate<char>(size * context.ValueSize);
                 }
             }
             context.TempStorage = manager.Allocate<char>(context.TempStorageSize);
@@ -154,7 +153,7 @@ namespace {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
-            const ui32 size = SafeIntegerCast<ui32>(Keys.Size());
+            const ui32 size = Keys.Size();
 
             if (size == 0) {
                 return;
@@ -477,11 +476,9 @@ Y_MAP_ARGS(
     (ui32, ui32, TStripeMapping),
     (ui32, i32, TStripeMapping),
     (ui32, float, TStripeMapping),
-    (ui32, ui64, TStripeMapping),
     (ui64, i32, TStripeMapping),
     (float, uint2, TStripeMapping),
     (ui64, ui32, TStripeMapping),
-    (ui64, ui64, TStripeMapping),
     (bool, ui32, TStripeMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
@@ -489,26 +486,23 @@ Y_MAP_ARGS(
 
 // ReorderBins
 
-template <typename TMapping, typename TIndex>
+template <typename TMapping>
 static void ReorderBinsImpl(
     TCudaBuffer<ui32, TMapping>& bins,
-    TCudaBuffer<TIndex, TMapping>& indices,
+    TCudaBuffer<ui32, TMapping>& indices,
     ui32 offset,
     ui32 bits,
     ui64 stream) {
-    using TKernel = TRadixSortKernel<ui32, TIndex>;
+    using TKernel = TRadixSortKernel<ui32, ui32>;
     CB_ENSURE((offset + bits) <= (sizeof(ui32) * 8), LabeledOutput(offset + bits, sizeof(ui32) * 8));
     LaunchKernels<TKernel>(bins.NonEmptyDevices(), stream, bins, indices, false, offset, offset + bits);
 }
 
-#define Y_CATBOOST_CUDA_F_IMPL_PROXY(x) \
-    Y_CATBOOST_CUDA_F_IMPL x
-
-#define Y_CATBOOST_CUDA_F_IMPL(TMapping, TIndex)                \
+#define Y_CATBOOST_CUDA_F_IMPL(TMapping)                        \
     template <>                                                 \
-    void ReorderBins<TMapping, TIndex>(                         \
+    void ReorderBins<TMapping>(                                 \
         TCudaBuffer<ui32, TMapping> & bins,                     \
-        TCudaBuffer<TIndex, TMapping> & indices,                \
+        TCudaBuffer<ui32, TMapping> & indices,                  \
         ui32 offset,                                            \
         ui32 bits,                                              \
         ui64 stream) {                                          \
@@ -516,16 +510,12 @@ static void ReorderBinsImpl(
     }
 
 Y_MAP_ARGS(
-    Y_CATBOOST_CUDA_F_IMPL_PROXY,
-    (TMirrorMapping, ui32),
-    (TSingleMapping, ui32),
-    (TStripeMapping, ui32),
-    (TMirrorMapping, ui64),
-    (TSingleMapping, ui64),
-    (TStripeMapping, ui64));
+    Y_CATBOOST_CUDA_F_IMPL,
+    TMirrorMapping,
+    TSingleMapping,
+    TStripeMapping);
 
 #undef Y_CATBOOST_CUDA_F_IMPL
-#undef Y_CATBOOST_CUDA_F_IMPL_PROXY
 
 // ReorderBins
 
@@ -587,8 +577,6 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0xAA0016, TRadixSortKernel, float, uint2);
     REGISTER_KERNEL_TEMPLATE_2(0xAA0017, TRadixSortKernel, ui64, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0xAA0018, TRadixSortKernel, bool, ui32);
-    REGISTER_KERNEL_TEMPLATE_2(0xAA0019, TRadixSortKernel, ui32, ui64);
-    REGISTER_KERNEL_TEMPLATE_2(0xAA0020, TRadixSortKernel, ui64, ui64);
 
     //    REGISTER_KERNEL_TEMPLATE_2(0xAA0015, TRadixSortKernel, i32, uchar);
     //    REGISTER_KERNEL_TEMPLATE_2(0xAA0016, TRadixSortKernel, i32, char);

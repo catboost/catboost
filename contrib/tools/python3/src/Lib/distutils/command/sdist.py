@@ -407,13 +407,14 @@ class sdist(Command):
         distribution.
         """
         log.info("reading manifest file '%s'", self.manifest)
-        with open(self.manifest) as manifest:
-            for line in manifest:
-                # ignore comments and blank lines
-                line = line.strip()
-                if line.startswith('#') or not line:
-                    continue
-                self.filelist.append(line)
+        manifest = open(self.manifest)
+        for line in manifest:
+            # ignore comments and blank lines
+            line = line.strip()
+            if line.startswith('#') or not line:
+                continue
+            self.filelist.append(line)
+        manifest.close()
 
     def make_release_tree(self, base_dir, files):
         """Create the directory tree that will become the source

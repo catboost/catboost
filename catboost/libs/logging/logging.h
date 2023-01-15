@@ -2,12 +2,11 @@
 
 #include "logging_level.h"
 
-#include <library/cpp/logger/backend.h>
+#include <library/logger/backend.h>
 #include <util/generic/singleton.h>
 #include <util/system/src_location.h>
 #include <util/stream/tempbuf.h>
 #include <util/generic/yexception.h>
-#include <atomic>
 
 class TCatboostLog;
 
@@ -70,8 +69,6 @@ private:
     ELogPriority LogPriority = TLOG_WARNING;
     class TImpl;
     THolder<TImpl> ImplHolder;
-
-    std::atomic<bool> IsCustomBackendSpecified;
 };
 
 class TCatBoostLogSettings {
@@ -82,7 +79,7 @@ public:
     using TSelf = TCatBoostLogSettings;
     TCatboostLog Log;
     inline static TSelf& GetRef() {
-       return *Singleton<TSelf>();
+        return *Singleton<TSelf>();
     }
 };
 
@@ -157,16 +154,9 @@ public:
 
 void ResetTraceBackend(const TString& string);
 
-using TCustomLoggingObject = void*;
-using TCustomLoggingFunction = void(*)(const char*, size_t len, TCustomLoggingObject);
+using TCustomLoggingFunction = void(*)(const char*, size_t len);
 
-
-void SetCustomLoggingFunction(
-    TCustomLoggingFunction normalPriorityFunc,
-    TCustomLoggingFunction errorPriorityFunc,
-    TCustomLoggingObject normalPriorityObj = nullptr,
-    TCustomLoggingObject errorPriorityObj = nullptr
-);
+void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc);
 void RestoreOriginalLogger();
 
 namespace NPrivateCatboostLogger {

@@ -6,7 +6,7 @@
 #include <catboost/libs/data/ut/lib/for_loader.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/string/builder.h>
 #include <util/folder/tempdir.h>
@@ -29,7 +29,6 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
             metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 factorCount,
-                TVector<ui32>{},
                 TVector<ui32>{},
                 TVector<ui32>{},
                 TVector<TString>{});
@@ -67,7 +66,6 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
     TrainModel(
             params,
             nullptr,
-            Nothing(),
             Nothing(),
             Nothing(),
             std::move(dataProviders),
@@ -120,13 +118,11 @@ TDataProviderPtr GetAdultPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
-        TPathWithScheme(),
         readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
-        /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );
 }
@@ -168,13 +164,11 @@ TDataProviderPtr GetMultiClassPool() {
         TPathWithScheme(),
         TPathWithScheme(),
         TPathWithScheme(),
-        TPathWithScheme(),
         readDatasetMainParams.ColumnarPoolFormatParams,
         /*ignoredFeatures*/ {},
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
-        /*forceUnitAutoPairWeights*/ false,
         &classLabels
     );
 }
@@ -235,7 +229,7 @@ TFullModel SimpleTextModel(
         textFeatures.emplace_back(textFeature);
     }
 
-    TObliviousTreeBuilder treeBuilder(TVector<TFloatFeature>{}, TVector<TCatFeature>{}, textFeatures, TVector<TEmbeddingFeature>{}, 1);
+    TObliviousTreeBuilder treeBuilder(TVector<TFloatFeature>{}, TVector<TCatFeature>{}, textFeatures, 1);
 
     {
         const int docCount = textFeaturesValues[0].size();
@@ -253,13 +247,12 @@ TFullModel SimpleTextModel(
 
         ui32 estimatedFeatureIdx = 0;
         for (const auto& producedFeature: textCollection->GetProducedFeatures()) {
-            TEstimatedFeatureSplit estimatedFeatureSplit(TModelEstimatedFeature{
-                SafeIntegerCast<int>(producedFeature.FeatureId),
+            TEstimatedFeatureSplit estimatedFeatureSplit{
+                SafeIntegerCast<int>(producedFeature.TextFeatureId),
                 producedFeature.CalcerId,
                 SafeIntegerCast<int>(producedFeature.LocalId),
-                EEstimatedSourceFeatureType::Text},
                 /* split */ 0.f
-            );
+            };
 
             const ui32 calcerOffset = textCollection->GetAbsoluteCalcerOffset(producedFeature.CalcerId);
             const ui32 estimatedFeatureOffset = calcerOffset + producedFeature.LocalId;
@@ -333,7 +326,7 @@ TFullModel SimpleAsymmetricModel() {
         }
     };
 
-    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, TVector<TTextFeature>{}, TVector<TEmbeddingFeature>{}, 1);
+    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, TVector<TTextFeature>{}, 1);
 
     THolder<TNonSymmetricTreeNode> treeHead = MakeHolder<TNonSymmetricTreeNode>();
     treeHead->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
@@ -383,7 +376,9 @@ TFullModel SimpleAsymmetricModel() {
     return model;
 }
 
-TFullModel DefaultTrainCatOnlyModel(const NJson::TJsonValue& params) {
+TFullModel TrainCatOnlyModel() {
+    TTempDir trainDir;
+
     TDataProviders dataProviders;
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
@@ -394,14 +389,13 @@ TFullModel DefaultTrainCatOnlyModel(const NJson::TJsonValue& params) {
                 (ui32)3,
                 TVector<ui32>{0, 1, 2},
                 TVector<ui32>{},
-                TVector<ui32>{},
                 TVector<TString>{});
 
             visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});
 
-            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "a", "b"});
-            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "c", "d"});
-            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"e", "f", "f"});
+            visitor->AddCatFeature(0, TConstArrayRef<TStringBuf>{"a", "b", "c"});
+            visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "e", "f"});
+            visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"g", "h", "k"});
 
             visitor->AddTarget(
                 MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
@@ -414,13 +408,15 @@ TFullModel DefaultTrainCatOnlyModel(const NJson::TJsonValue& params) {
 
     TFullModel model;
     TEvalResult evalResult;
-
+    NJson::TJsonValue params;
+    params.InsertValue("iterations", 5);
+    params.InsertValue("random_seed", 1);
+    params.InsertValue("train_dir", trainDir.Name());
     TrainModel(
         params,
         nullptr,
         {},
         {},
-        Nothing(),
         std::move(dataProviders),
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,
@@ -430,25 +426,6 @@ TFullModel DefaultTrainCatOnlyModel(const NJson::TJsonValue& params) {
     );
 
     return model;
-}
-
-TFullModel TrainCatOnlyModel() {
-    TTempDir trainDir;
-    NJson::TJsonValue params;
-    params.InsertValue("iterations", 5);
-    params.InsertValue("random_seed", 1);
-    params.InsertValue("train_dir", trainDir.Name());
-    return DefaultTrainCatOnlyModel(params);
-}
-
-TFullModel TrainCatOnlyNoOneHotModel() {
-    TTempDir trainDir;
-    NJson::TJsonValue params;
-    params.InsertValue("iterations", 5);
-    params.InsertValue("random_seed", 1);
-    params.InsertValue("train_dir", trainDir.Name());
-    params.InsertValue("one_hot_max_size", 0);
-    return DefaultTrainCatOnlyModel(params);
 }
 
 TFullModel MultiValueFloatModel() {

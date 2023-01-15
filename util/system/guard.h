@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/noncopyable.h>
-#include <util/system/defaults.h>
 
 template <class T>
 struct TCommonLockOps {
@@ -101,9 +100,12 @@ static inline TGuard<T> Guard(const T& t) {
  *     some code under guard
  * }
  */
-#define with_lock(X)                                              \
-    if (auto Y_GENERATE_UNIQUE_ID(__guard) = ::Guard(X); false) { \
-    } else
+#define with_lock(X)                                       \
+    if (auto Y_GENERATE_UNIQUE_ID(__guard) = ::Guard(X)) { \
+        goto Y_CAT(GUARD_LABEL, __LINE__);                 \
+    } else                                                 \
+        Y_CAT(GUARD_LABEL, __LINE__)                       \
+            :
 
 /*
  * auto guard = Guard(Lock_);

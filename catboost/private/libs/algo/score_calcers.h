@@ -110,6 +110,6 @@ inline THolder<IPointwiseScoreCalcer> MakePointwiseScoreCalcer(EScoreFunction sc
         case EScoreFunction::L2:
             return MakeHolder<TL2ScoreCalcer>();
         default:
-            CB_ENSURE(false, "Only Cosine and L2 score functions are supported for CPU.");
+            Y_UNREACHABLE();
     }
 }

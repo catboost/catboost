@@ -3,7 +3,7 @@
 
 #include <catboost/libs/data/libsvm_loader.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -34,7 +34,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             TReadDatasetTestCase testCase;
             TSrcData srcData;
             srcData.Scheme = "libsvm";
-            srcData.DatasetFileData = TStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0 1:0.1 3:0.2\n"
                 "1 2:0.97 5:0.82 6:0.11 8:1.2\n"
                 "0 3:0.13 7:0.22 8:0.17\n"
@@ -48,9 +48,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(8),
                 /*catFeatureIndices*/ TVector<ui32>(),
                 /*textFeatureIndices*/ TVector<ui32>(),
-                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
-                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;
@@ -91,13 +89,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             TReadDatasetTestCase testCase;
             TSrcData srcData;
             srcData.Scheme = "libsvm";
-            srcData.CdFileData = TStringBuf(
+            srcData.CdFileData = AsStringBuf(
                 "0\tTarget\n"
                 "3\tCateg\tCat0\n"
                 "9\tCateg\tCat1\n"
                 "11\tCateg\tCat2\n"
             );
-            srcData.DatasetFileData = TStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0 1:0.1 3:0 9:12 12:0.66\n"
                 "1 2:0.97 5:0.82 6:0.11 8:1.2 11:7\n"
                 "0 3:1 7:0.22 8:0.17 9:0 11:2\n"
@@ -111,7 +109,6 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(12),
                 /*catFeatureIndices*/ TVector<ui32>{2, 8, 10},
                 /*textFeatureIndices*/ TVector<ui32>(),
-                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>{
                     "", // 0
                     "", // 1
@@ -126,7 +123,6 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                     "Cat2", // 10
                     "" // 11
                 },
-                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;
@@ -174,7 +170,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             TReadDatasetTestCase testCase;
             TSrcData srcData;
             srcData.Scheme = "libsvm";
-            srcData.DatasetFileData = TStringBuf(
+            srcData.DatasetFileData = AsStringBuf(
                 "0 qid:0 1:0.1 3:0.2\n"
                 "1 qid:1 2:0.97 5:0.82 6:0.11 8:1.2\n"
                 "0 qid:1 3:0.13 7:0.22 8:0.17\n"
@@ -188,9 +184,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 ui32(8),
                 /*catFeatureIndices*/ TVector<ui32>(),
                 /*textFeatureIndices*/ TVector<ui32>(),
-                /*embeddingFeatureIndices*/ TVector<ui32>(),
                 /*featureId*/ TVector<TString>(),
-                /*featureTags*/ THashMap<TString, NCB::TTagDescription>(),
                 /*allFeaturesAreSparse*/ true
             );
             expectedData.MetaInfo.TargetType = ERawTargetType::Float;

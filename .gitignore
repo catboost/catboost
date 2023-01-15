@@ -25,28 +25,3 @@ test-results
 
 /msvs/Debug/*
 /msvs/Release/*
-
-catboost/rust-package/target/
-
-catboost/rust-package/catboost-sys/target/
-
-catboost/app/catboost
-
-catboost/libs/model_interface/*.dylib*
-
-catboost/pytest/catboost-pytest
-
-catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff
-
-catboost/tutorials/apply_model/rust/target/
-catboost/tools/limited_precision_json_diff/limited_precision_json_diff
-
-# R build artifacts
-catboost*.tar.gz
-catboost.Rcheck/
-
-# widget build artefacts
-node_modules/
-**/widget/js/dist/
-**/widget/labextension
-**/widget/nbextension

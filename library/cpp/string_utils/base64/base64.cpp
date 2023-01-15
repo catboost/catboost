@@ -65,7 +65,7 @@ namespace {
         }
     };
 
-    const TImpl GetImpl() {
+    static const TImpl GetImpl() {
         static const TImpl IMPL;
         return IMPL;
     }
@@ -111,7 +111,7 @@ static inline unsigned char GetBase64EncodedIndex3(unsigned char octet2) {
     return (octet2 & 0x3f);
 }
 
-template <bool urlVersion, bool usePadding = true>
+template <bool urlVersion>
 static inline char* Base64EncodeImpl(char* outstr, const unsigned char* instr, size_t len) {
     const char* const base64_etab = (urlVersion ? base64_etab_url : base64_etab_std);
     const char pad = (urlVersion ? ',' : '=');
@@ -132,13 +132,9 @@ static inline char* Base64EncodeImpl(char* outstr, const unsigned char* instr, s
             *outstr++ = base64_etab[GetBase64EncodedIndex2(instr[idx + 1], '\0')];
         } else {
             *outstr++ = base64_etab[GetBase64EncodedIndex1(instr[idx], '\0')];
-            if (usePadding) {
-                *outstr++ = pad;
-            }
-        }
-        if (usePadding) {
             *outstr++ = pad;
         }
+        *outstr++ = pad;
     }
     *outstr = 0;
 
@@ -151,10 +147,6 @@ static char* Base64EncodePlain(char* outstr, const unsigned char* instr, size_t 
 
 char* Base64EncodeUrl(char* outstr, const unsigned char* instr, size_t len) {
     return Base64EncodeImpl<true>(outstr, instr, len);
-}
-
-char* Base64EncodeUrlNoPadding(char* outstr, const unsigned char* instr, size_t len) {
-    return Base64EncodeImpl<true, false>(outstr, instr, len);
 }
 
 inline void uudecode_1(char* dst, unsigned char* src) {
@@ -253,27 +245,13 @@ size_t Base64Decode(void* dst, const char* b, const char* e) {
     return outLen;
 }
 
-size_t Base64DecodeUneven(void* dst, const TStringBuf s) {
-    const size_t tailSize = s.length() % 4;
-    if (tailSize == 0) {
-        return Base64Decode(dst, s.begin(), s.end());
+TString Base64DecodeUneven(const TStringBuf s) {
+    if (s.length() % 4 == 0) {
+        return Base64Decode(s);
     }
 
-    // divide s into even part and tail and decode in two step, to avoid memory allocation
-    char tail[4] = {'=', '=', '=', '='};
-    memcpy(tail, s.end() - tailSize, tailSize);
-    size_t decodedEven = s.length() > 4 ? Base64Decode(dst, s.begin(), s.end() - tailSize) : 0;
-    // there should not be tail of size 1 it's incorrect for 8-bit bytes
-    size_t decodedTail = tailSize != 1 ? Base64Decode(static_cast<char*>(dst) + decodedEven, tail, tail + 4) : 0;
-    return decodedEven + decodedTail;
-}
-
-TString Base64DecodeUneven(const TStringBuf s) {
-    TString ret;
-    ret.ReserveAndResize(Base64DecodeBufSize(s.size()));
-    size_t size = Base64DecodeUneven(const_cast<char*>(ret.data()), s);
-    ret.resize(size);
-    return ret;
+    // padding to 4
+    return Base64Decode(TString(s) + TString(4 - (s.length() % 4), '='));
 }
 
 char* Base64Encode(char* outstr, const unsigned char* instr, size_t len) {

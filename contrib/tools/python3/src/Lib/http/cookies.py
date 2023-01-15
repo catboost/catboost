@@ -131,7 +131,6 @@ Finis.
 #
 import re
 import string
-import types
 
 __all__ = ["CookieError", "BaseCookie", "SimpleCookie"]
 
@@ -257,7 +256,8 @@ class Morsel(dict):
     In a cookie, each such pair may have several attributes, so this class is
     used to keep the attributes associated with the appropriate key,value pair.
     This class also includes a coded_value attribute, which is used to hold
-    the network representation of the value.
+    the network representation of the value.  This is most useful when Python
+    objects are pickled for network transit.
     """
     # RFC 2109 lists these attributes as reserved:
     #   path       comment         domain
@@ -281,7 +281,6 @@ class Morsel(dict):
         "secure"   : "Secure",
         "httponly" : "HttpOnly",
         "version"  : "Version",
-        "samesite" : "SameSite",
     }
 
     _flags = {'secure', 'httponly'}
@@ -419,8 +418,6 @@ class Morsel(dict):
 
         # Return the result
         return _semispacejoin(result)
-
-    __class_getitem__ = classmethod(types.GenericAlias)
 
 
 #

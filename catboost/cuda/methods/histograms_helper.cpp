@@ -21,11 +21,7 @@ namespace NCatboostCuda {
 
     TFindBestSplitsHelper<TDocParallelLayout>& TFindBestSplitsHelper<TDocParallelLayout>::ComputeOptimalSplit(
         const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
-        const TMirrorBuffer<const float>& catFeatureWeights,
-        const TMirrorBuffer<const float>& featureWeights,
-        double scoreBeforeSplit,
         TComputeHistogramsHelper<TDocParallelLayout>& histHelper, double scoreStdDev, ui64 seed) {
-
         CB_ENSURE(histHelper.GetGroupingPolicy() == Policy);
         auto& profiler = NCudaLib::GetProfiler();
         if (DataSet->GetGridSize(Policy)) {
@@ -39,17 +35,12 @@ namespace NCatboostCuda {
 
                 auto guard = profiler.Profile(TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                 FindOptimalSplit(binFeatures,
-                                 catFeatureWeights,
-                                 featureWeights,
                                  histogram,
                                  reducedStats,
                                  FoldCount,
-                                 scoreBeforeSplit,
                                  BestScores,
                                  ScoreFunction,
                                  L2,
-                                 MetaL2Exponent,
-                                 MetaL2Frequency,
                                  Normalize,
                                  scoreStdDev,
                                  seed,
@@ -72,17 +63,12 @@ namespace NCatboostCuda {
                 auto guard = profiler.Profile(
                     TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
                 FindOptimalSplit(binFeatures,
-                                 catFeatureWeights,
-                                 featureWeights,
                                  ReducedHistograms,
                                  reducedStats,
                                  FoldCount,
-                                 scoreBeforeSplit,
                                  BestScores,
                                  ScoreFunction,
                                  L2,
-                                 MetaL2Exponent,
-                                 MetaL2Frequency,
                                  Normalize,
                                  scoreStdDev,
                                  seed,

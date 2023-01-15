@@ -16,8 +16,6 @@ class BaseProtocol:
     write-only transport like write pipe
     """
 
-    __slots__ = ()
-
     def connection_made(self, transport):
         """Called when a connection is made.
 
@@ -89,8 +87,6 @@ class Protocol(BaseProtocol):
     * CL: connection_lost()
     """
 
-    __slots__ = ()
-
     def data_received(self, data):
         """Called when some data is received.
 
@@ -108,6 +104,10 @@ class Protocol(BaseProtocol):
 
 class BufferedProtocol(BaseProtocol):
     """Interface for stream protocol with manual buffer control.
+
+    Important: this has been added to asyncio in Python 3.7
+    *on a provisional basis*!  Consider it as an experimental API that
+    might be changed or removed in Python 3.8.
 
     Event methods, such as `create_server` and `create_connection`,
     accept factories that return protocols that implement this interface.
@@ -129,8 +129,6 @@ class BufferedProtocol(BaseProtocol):
     * ER: eof_received()
     * CL: connection_lost()
     """
-
-    __slots__ = ()
 
     def get_buffer(self, sizehint):
         """Called to allocate a new receive buffer.
@@ -162,8 +160,6 @@ class BufferedProtocol(BaseProtocol):
 class DatagramProtocol(BaseProtocol):
     """Interface for datagram protocol."""
 
-    __slots__ = ()
-
     def datagram_received(self, data, addr):
         """Called when some datagram is received."""
 
@@ -176,8 +172,6 @@ class DatagramProtocol(BaseProtocol):
 
 class SubprocessProtocol(BaseProtocol):
     """Interface for protocol for subprocess calls."""
-
-    __slots__ = ()
 
     def pipe_data_received(self, fd, data):
         """Called when the subprocess writes data into stdout/stderr pipe.

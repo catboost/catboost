@@ -17,74 +17,38 @@
 #ifndef FLATBUFFERS_UTIL_H_
 #define FLATBUFFERS_UTIL_H_
 
-#include <errno.h>
-
-#include "base.h"
-#include "stl_emulation.h"
-
+#include <assert.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <fstream>
+#include <iomanip>
 #ifndef FLATBUFFERS_PREFER_PRINTF
 #  include <sstream>
-#else  // FLATBUFFERS_PREFER_PRINTF
+#else // FLATBUFFERS_PREFER_PRINTF
 #  include <float.h>
 #  include <stdio.h>
-#endif  // FLATBUFFERS_PREFER_PRINTF
-
-#include <iomanip>
+#endif // FLATBUFFERS_PREFER_PRINTF
 #include <string>
+#ifdef _WIN32
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  include <windows.h>  // Must be included before <direct.h>
+#  include <direct.h>
+#  include <winbase.h>
+#  undef interface  // This is also important because of reasons
+#else
+#  include <limits.h>
+#endif
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include "flatbuffers/base.h"
 
 namespace flatbuffers {
-
-// @locale-independent functions for ASCII characters set.
-
-// Fast checking that character lies in closed range: [a <= x <= b]
-// using one compare (conditional branch) operator.
-inline bool check_ascii_range(char x, char a, char b) {
-  FLATBUFFERS_ASSERT(a <= b);
-  // (Hacker's Delight): `a <= x <= b` <=> `(x-a) <={u} (b-a)`.
-  // The x, a, b will be promoted to int and subtracted without overflow.
-  return static_cast<unsigned int>(x - a) <= static_cast<unsigned int>(b - a);
-}
-
-// Case-insensitive isalpha
-inline bool is_alpha(char c) {
-  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
-  return check_ascii_range(c & 0xDF, 'a' & 0xDF, 'z' & 0xDF);
-}
-
-// Check for uppercase alpha
-inline bool is_alpha_upper(char c) { return check_ascii_range(c, 'A', 'Z'); }
-
-// Check (case-insensitive) that `c` is equal to alpha.
-inline bool is_alpha_char(char c, char alpha) {
-  FLATBUFFERS_ASSERT(is_alpha(alpha));
-  // ASCII only: alpha to upper case => reset bit 0x20 (~0x20 = 0xDF).
-  return ((c & 0xDF) == (alpha & 0xDF));
-}
-
-// https://en.cppreference.com/w/cpp/string/byte/isxdigit
-// isdigit and isxdigit are the only standard narrow character classification
-// functions that are not affected by the currently installed C locale. although
-// some implementations (e.g. Microsoft in 1252 codepage) may classify
-// additional single-byte characters as digits.
-inline bool is_digit(char c) { return check_ascii_range(c, '0', '9'); }
-
-inline bool is_xdigit(char c) {
-  // Replace by look-up table.
-  return is_digit(c) || check_ascii_range(c & 0xDF, 'a' & 0xDF, 'f' & 0xDF);
-}
-
-// Case-insensitive isalnum
-inline bool is_alnum(char c) { return is_alpha(c) || is_digit(c); }
-
-inline char CharToUpper(char c) {
-  return static_cast<char>(::toupper(static_cast<unsigned char>(c)));
-}
-
-inline char CharToLower(char c) {
-  return static_cast<char>(::tolower(static_cast<unsigned char>(c)));
-}
-
-// @end-locale-independent functions for ASCII character set
 
 #ifdef FLATBUFFERS_PREFER_PRINTF
 template<typename T> size_t IntToDigitCount(T t) {
@@ -109,22 +73,21 @@ template<typename T> size_t NumToStringWidth(T t, int precision = 0) {
   return string_width;
 }
 
-template<typename T>
-std::string NumToStringImplWrapper(T t, const char *fmt, int precision = 0) {
+template<typename T> std::string NumToStringImplWrapper(T t, const char* fmt,
+                                                        int precision = 0) {
   size_t string_width = NumToStringWidth(t, precision);
   std::string s(string_width, 0x00);
   // Allow snprintf to use std::string trailing null to detect buffer overflow
-  snprintf(const_cast<char *>(s.data()), (s.size() + 1), fmt, string_width, t);
+  snprintf(const_cast<char*>(s.data()), (s.size()+1), fmt, precision, t);
   return s;
 }
-#endif  // FLATBUFFERS_PREFER_PRINTF
+#endif // FLATBUFFERS_PREFER_PRINTF
 
 // Convert an integer or floating point value to a string.
 // In contrast to std::stringstream, "char" values are
 // converted to a string of digits, and we don't use scientific notation.
 template<typename T> std::string NumToString(T t) {
   // clang-format off
-
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
     ss << t;
@@ -140,9 +103,6 @@ template<> inline std::string NumToString<signed char>(signed char t) {
   return NumToString(static_cast<int>(t));
 }
 template<> inline std::string NumToString<unsigned char>(unsigned char t) {
-  return NumToString(static_cast<int>(t));
-}
-template<> inline std::string NumToString<char>(char t) {
   return NumToString(static_cast<int>(t));
 }
 #if defined(FLATBUFFERS_CPP98_STL)
@@ -163,7 +123,6 @@ inline std::string NumToString<unsigned long long>(unsigned long long t) {
 // Special versions for floats/doubles.
 template<typename T> std::string FloatToString(T t, int precision) {
   // clang-format off
-
   #ifndef FLATBUFFERS_PREFER_PRINTF
     // to_string() prints different numbers of digits for floats depending on
     // platform and isn't available on Android, so we use stringstream
@@ -199,9 +158,7 @@ template<> inline std::string NumToString<float>(float t) {
 // The returned string length is always xdigits long, prefixed by 0 digits.
 // For example, IntToStringHex(0x23, 8) returns the string "00000023".
 inline std::string IntToStringHex(int i, int xdigits) {
-  FLATBUFFERS_ASSERT(i >= 0);
   // clang-format off
-
   #ifndef FLATBUFFERS_PREFER_PRINTF
     std::stringstream ss;
     ss << std::setw(xdigits) << std::setfill('0') << std::hex << std::uppercase
@@ -213,196 +170,28 @@ inline std::string IntToStringHex(int i, int xdigits) {
   // clang-format on
 }
 
-// clang-format off
-// Use locale independent functions {strtod_l, strtof_l, strtoll_l, strtoull_l}.
-#if defined(FLATBUFFERS_LOCALE_INDEPENDENT) && (FLATBUFFERS_LOCALE_INDEPENDENT > 0)
-  class ClassicLocale {
-    #ifdef _MSC_VER
-      typedef _locale_t locale_type;
-    #else
-      typedef locale_t locale_type;  // POSIX.1-2008 locale_t type
-    #endif
-    ClassicLocale();
-    ~ClassicLocale();
-    locale_type locale_;
-    static ClassicLocale instance_;
-  public:
-    static locale_type Get() { return instance_.locale_; }
-  };
-
+// Portable implementation of strtoll().
+inline int64_t StringToInt(const char *str, char **endptr = nullptr,
+                           int base = 10) {
+  // clang-format off
   #ifdef _MSC_VER
-    #define __strtoull_impl(s, pe, b) _strtoui64_l(s, pe, b, ClassicLocale::Get())
-    #define __strtoll_impl(s, pe, b) _strtoi64_l(s, pe, b, ClassicLocale::Get())
-    #define __strtod_impl(s, pe) _strtod_l(s, pe, ClassicLocale::Get())
-    #define __strtof_impl(s, pe) _strtof_l(s, pe, ClassicLocale::Get())
+    return _strtoi64(str, endptr, base);
   #else
-    #define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())
-    #define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())
-    #define __strtod_impl(s, pe) strtod_l(s, pe, ClassicLocale::Get())
-    #define __strtof_impl(s, pe) strtof_l(s, pe, ClassicLocale::Get())
+    return strtoll(str, endptr, base);
   #endif
-#else
-  #define __strtod_impl(s, pe) strtod(s, pe)
-  #define __strtof_impl(s, pe) static_cast<float>(strtod(s, pe))
+  // clang-format on
+}
+
+// Portable implementation of strtoull().
+inline uint64_t StringToUInt(const char *str, char **endptr = nullptr,
+                             int base = 10) {
+  // clang-format off
   #ifdef _MSC_VER
-    #define __strtoull_impl(s, pe, b) _strtoui64(s, pe, b)
-    #define __strtoll_impl(s, pe, b) _strtoi64(s, pe, b)
+    return _strtoui64(str, endptr, base);
   #else
-    #define __strtoull_impl(s, pe, b) strtoull(s, pe, b)
-    #define __strtoll_impl(s, pe, b) strtoll(s, pe, b)
+    return strtoull(str, endptr, base);
   #endif
-#endif
-
-inline void strtoval_impl(int64_t *val, const char *str, char **endptr,
-                                 int base) {
-    *val = __strtoll_impl(str, endptr, base);
-}
-
-inline void strtoval_impl(uint64_t *val, const char *str, char **endptr,
-                                 int base) {
-  *val = __strtoull_impl(str, endptr, base);
-}
-
-inline void strtoval_impl(double *val, const char *str, char **endptr) {
-  *val = __strtod_impl(str, endptr);
-}
-
-// UBSAN: double to float is safe if numeric_limits<float>::is_iec559 is true.
-__supress_ubsan__("float-cast-overflow")
-inline void strtoval_impl(float *val, const char *str, char **endptr) {
-  *val = __strtof_impl(str, endptr);
-}
-#undef __strtoull_impl
-#undef __strtoll_impl
-#undef __strtod_impl
-#undef __strtof_impl
-// clang-format on
-
-// Adaptor for strtoull()/strtoll().
-// Flatbuffers accepts numbers with any count of leading zeros (-009 is -9),
-// while strtoll with base=0 interprets first leading zero as octal prefix.
-// In future, it is possible to add prefixed 0b0101.
-// 1) Checks errno code for overflow condition (out of range).
-// 2) If base <= 0, function try to detect base of number by prefix.
-//
-// Return value (like strtoull and strtoll, but reject partial result):
-// - If successful, an integer value corresponding to the str is returned.
-// - If full string conversion can't be performed, 0 is returned.
-// - If the converted value falls out of range of corresponding return type, a
-// range error occurs. In this case value MAX(T)/MIN(T) is returned.
-template<typename T>
-inline bool StringToIntegerImpl(T *val, const char *const str,
-                                const int base = 0,
-                                const bool check_errno = true) {
-  // T is int64_t or uint64_T
-  FLATBUFFERS_ASSERT(str);
-  if (base <= 0) {
-    auto s = str;
-    while (*s && !is_digit(*s)) s++;
-    if (s[0] == '0' && is_alpha_char(s[1], 'X'))
-      return StringToIntegerImpl(val, str, 16, check_errno);
-    // if a prefix not match, try base=10
-    return StringToIntegerImpl(val, str, 10, check_errno);
-  } else {
-    if (check_errno) errno = 0;  // clear thread-local errno
-    auto endptr = str;
-    strtoval_impl(val, str, const_cast<char **>(&endptr), base);
-    if ((*endptr != '\0') || (endptr == str)) {
-      *val = 0;      // erase partial result
-      return false;  // invalid string
-    }
-    // errno is out-of-range, return MAX/MIN
-    if (check_errno && errno) return false;
-    return true;
-  }
-}
-
-template<typename T>
-inline bool StringToFloatImpl(T *val, const char *const str) {
-  // Type T must be either float or double.
-  FLATBUFFERS_ASSERT(str && val);
-  auto end = str;
-  strtoval_impl(val, str, const_cast<char **>(&end));
-  auto done = (end != str) && (*end == '\0');
-  if (!done) *val = 0;  // erase partial result
-  return done;
-}
-
-// Convert a string to an instance of T.
-// Return value (matched with StringToInteger64Impl and strtod):
-// - If successful, a numeric value corresponding to the str is returned.
-// - If full string conversion can't be performed, 0 is returned.
-// - If the converted value falls out of range of corresponding return type, a
-// range error occurs. In this case value MAX(T)/MIN(T) is returned.
-template<typename T> inline bool StringToNumber(const char *s, T *val) {
-  // Assert on `unsigned long` and `signed long` on LP64.
-  // If it is necessary, it could be solved with flatbuffers::enable_if<B,T>.
-  static_assert(sizeof(T) < sizeof(int64_t), "unexpected type T");
-  FLATBUFFERS_ASSERT(s && val);
-  int64_t i64;
-  // The errno check isn't needed, will return MAX/MIN on overflow.
-  if (StringToIntegerImpl(&i64, s, 0, false)) {
-    const int64_t max = (flatbuffers::numeric_limits<T>::max)();
-    const int64_t min = flatbuffers::numeric_limits<T>::lowest();
-    if (i64 > max) {
-      *val = static_cast<T>(max);
-      return false;
-    }
-    if (i64 < min) {
-      // For unsigned types return max to distinguish from
-      // "no conversion can be performed" when 0 is returned.
-      *val = static_cast<T>(flatbuffers::is_unsigned<T>::value ? max : min);
-      return false;
-    }
-    *val = static_cast<T>(i64);
-    return true;
-  }
-  *val = 0;
-  return false;
-}
-
-template<> inline bool StringToNumber<int64_t>(const char *str, int64_t *val) {
-  return StringToIntegerImpl(val, str);
-}
-
-template<>
-inline bool StringToNumber<uint64_t>(const char *str, uint64_t *val) {
-  if (!StringToIntegerImpl(val, str)) return false;
-  // The strtoull accepts negative numbers:
-  // If the minus sign was part of the input sequence, the numeric value
-  // calculated from the sequence of digits is negated as if by unary minus
-  // in the result type, which applies unsigned integer wraparound rules.
-  // Fix this behaviour (except -0).
-  if (*val) {
-    auto s = str;
-    while (*s && !is_digit(*s)) s++;
-    s = (s > str) ? (s - 1) : s;  // step back to one symbol
-    if (*s == '-') {
-      // For unsigned types return the max to distinguish from
-      // "no conversion can be performed".
-      *val = (flatbuffers::numeric_limits<uint64_t>::max)();
-      return false;
-    }
-  }
-  return true;
-}
-
-template<> inline bool StringToNumber(const char *s, float *val) {
-  return StringToFloatImpl(val, s);
-}
-
-template<> inline bool StringToNumber(const char *s, double *val) {
-  return StringToFloatImpl(val, s);
-}
-
-inline int64_t StringToInt(const char *s, int base = 10) {
-  int64_t val;
-  return StringToIntegerImpl(&val, s, base) ? val : 0;
-}
-
-inline uint64_t StringToUInt(const char *s, int base = 10) {
-  uint64_t val;
-  return StringToIntegerImpl(&val, s, base) ? val : 0;
+  // clang-format on
 }
 
 typedef bool (*LoadFileFunction)(const char *filename, bool binary,
@@ -431,7 +220,13 @@ bool LoadFile(const char *name, bool binary, std::string *buf);
 // If "binary" is false data is written using ifstream's
 // text mode, otherwise data is written with no
 // transcoding.
-bool SaveFile(const char *name, const char *buf, size_t len, bool binary);
+inline bool SaveFile(const char *name, const char *buf, size_t len,
+                     bool binary) {
+  std::ofstream ofs(name, binary ? std::ofstream::binary : std::ofstream::out);
+  if (!ofs.is_open()) return false;
+  ofs.write(buf, len);
+  return !ofs.bad();
+}
 
 // Save data "buf" into file "name" returning true if
 // successful, false otherwise.  If "binary" is false
@@ -447,35 +242,100 @@ inline bool SaveFile(const char *name, const std::string &buf, bool binary) {
 // Windows ('/' or '\\') separators are used.
 
 // Any new separators inserted are always posix.
-FLATBUFFERS_CONSTEXPR char kPathSeparator = '/';
+
+// We internally store paths in posix format ('/'). Paths supplied
+// by the user should go through PosixPath to ensure correct behavior
+// on Windows when paths are string-compared.
+
+static const char kPathSeparator = '/';
+static const char kPathSeparatorWindows = '\\';
+static const char *PathSeparatorSet = "\\/";  // Intentionally no ':'
 
 // Returns the path with the extension, if any, removed.
-std::string StripExtension(const std::string &filepath);
+inline std::string StripExtension(const std::string &filepath) {
+  size_t i = filepath.find_last_of(".");
+  return i != std::string::npos ? filepath.substr(0, i) : filepath;
+}
 
 // Returns the extension, if any.
-std::string GetExtension(const std::string &filepath);
+inline std::string GetExtension(const std::string &filepath) {
+  size_t i = filepath.find_last_of(".");
+  return i != std::string::npos ? filepath.substr(i + 1) : "";
+}
 
 // Return the last component of the path, after the last separator.
-std::string StripPath(const std::string &filepath);
+inline std::string StripPath(const std::string &filepath) {
+  size_t i = filepath.find_last_of(PathSeparatorSet);
+  return i != std::string::npos ? filepath.substr(i + 1) : filepath;
+}
 
 // Strip the last component of the path + separator.
-std::string StripFileName(const std::string &filepath);
+inline std::string StripFileName(const std::string &filepath) {
+  size_t i = filepath.find_last_of(PathSeparatorSet);
+  return i != std::string::npos ? filepath.substr(0, i) : "";
+}
 
-// Concatenates a path with a filename, regardless of whether the path
+// Concatenates a path with a filename, regardless of wether the path
 // ends in a separator or not.
-std::string ConCatPathFileName(const std::string &path,
-                               const std::string &filename);
+inline std::string ConCatPathFileName(const std::string &path,
+                                      const std::string &filename) {
+  std::string filepath = path;
+  if (filepath.length()) {
+    char &filepath_last_character = string_back(filepath);
+    if (filepath_last_character == kPathSeparatorWindows) {
+      filepath_last_character = kPathSeparator;
+    } else if (filepath_last_character != kPathSeparator) {
+      filepath += kPathSeparator;
+    }
+  }
+  filepath += filename;
+  // Ignore './' at the start of filepath.
+  if (filepath[0] == '.' && filepath[1] == kPathSeparator) {
+    filepath.erase(0, 2);
+  }
+  return filepath;
+}
 
 // Replaces any '\\' separators with '/'
-std::string PosixPath(const char *path);
+inline std::string PosixPath(const char *path) {
+  std::string p = path;
+  std::replace(p.begin(), p.end(), '\\', '/');
+  return p;
+}
 
 // This function ensure a directory exists, by recursively
 // creating dirs for any parts of the path that don't exist yet.
-void EnsureDirExists(const std::string &filepath);
+inline void EnsureDirExists(const std::string &filepath) {
+  auto parent = StripFileName(filepath);
+  if (parent.length()) EnsureDirExists(parent);
+    // clang-format off
+  #ifdef _WIN32
+    (void)_mkdir(filepath.c_str());
+  #else
+    mkdir(filepath.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
+  #endif
+  // clang-format on
+}
 
 // Obtains the absolute path from any other path.
 // Returns the input path if the absolute path couldn't be resolved.
-std::string AbsolutePath(const std::string &filepath);
+inline std::string AbsolutePath(const std::string &filepath) {
+  // clang-format off
+  #ifdef FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+    return filepath;
+  #else
+    #ifdef _WIN32
+      char abs_path[MAX_PATH];
+      return GetFullPathNameA(filepath.c_str(), MAX_PATH, abs_path, nullptr)
+    #else
+      char abs_path[PATH_MAX];
+      return realpath(filepath.c_str(), abs_path)
+    #endif
+      ? abs_path
+      : filepath;
+  #endif // FLATBUFFERS_NO_ABSOLUTE_PATH_RESOLUTION
+  // clang-format on
+}
 
 // To and from UTF-8 unicode conversion functions
 
@@ -519,8 +379,7 @@ inline int FromUTF8(const char **in) {
       break;
     }
   }
-  if ((static_cast<unsigned char>(**in) << len) & 0x80)
-    return -1;  // Bit after leading 1's must be 0.
+  if ((static_cast<unsigned char>(**in) << len) & 0x80) return -1;  // Bit after leading 1's must be 0.
   if (!len) return *(*in)++;
   // UTF-8 encoded values with a length are between 2 and 4 bytes.
   if (len < 2 || len > 4) { return -1; }
@@ -579,7 +438,7 @@ inline std::string WordWrap(const std::string in, size_t max_length,
 
   return wrapped;
 }
-#endif  // !FLATBUFFERS_PREFER_PRINTF
+#endif // !FLATBUFFERS_PREFER_PRINTF
 
 inline bool EscapeString(const char *s, size_t length, std::string *_text,
                          bool allow_non_utf8, bool natural_utf8) {
@@ -650,48 +509,6 @@ inline bool EscapeString(const char *s, size_t length, std::string *_text,
   text += "\"";
   return true;
 }
-
-inline std::string BufferToHexText(const void *buffer, size_t buffer_size,
-                                   size_t max_length,
-                                   const std::string &wrapped_line_prefix,
-                                   const std::string &wrapped_line_suffix) {
-  std::string text = wrapped_line_prefix;
-  size_t start_offset = 0;
-  const char *s = reinterpret_cast<const char *>(buffer);
-  for (size_t i = 0; s && i < buffer_size; i++) {
-    // Last iteration or do we have more?
-    bool have_more = i + 1 < buffer_size;
-    text += "0x";
-    text += IntToStringHex(static_cast<uint8_t>(s[i]), 2);
-    if (have_more) { text += ','; }
-    // If we have more to process and we reached max_length
-    if (have_more &&
-        text.size() + wrapped_line_suffix.size() >= start_offset + max_length) {
-      text += wrapped_line_suffix;
-      text += '\n';
-      start_offset = text.size();
-      text += wrapped_line_prefix;
-    }
-  }
-  text += wrapped_line_suffix;
-  return text;
-}
-
-// Remove paired quotes in a string: "text"|'text' -> text.
-std::string RemoveStringQuotes(const std::string &s);
-
-// Change th global C-locale to locale with name <locale_name>.
-// Returns an actual locale name in <_value>, useful if locale_name is "" or
-// null.
-bool SetGlobalTestLocale(const char *locale_name,
-                         std::string *_value = nullptr);
-
-// Read (or test) a value of environment variable.
-bool ReadEnvironmentVariable(const char *var_name,
-                             std::string *_value = nullptr);
-
-// MSVC specific: Send all assert reports to STDOUT to prevent CI hangs.
-void SetupDefaultCRTReportMode();
 
 }  // namespace flatbuffers
 

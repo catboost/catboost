@@ -8,7 +8,6 @@
 #include <util/generic/deque.h>
 #include <util/generic/queue.h>
 
-#include <atomic>
 #include <tuple>
 
 #include <cstdlib>
@@ -30,12 +29,12 @@ namespace {
 
     public:
         inline TAtExit() noexcept
-            : FinishStarted_(false)
+            : FinishStarted_(0)
         {
         }
 
         inline void Finish() noexcept {
-            FinishStarted_.store(true);
+            AtomicSet(FinishStarted_, 1);
 
             auto guard = Guard(Lock_);
 
@@ -66,41 +65,39 @@ namespace {
         }
 
         inline bool FinishStarted() const {
-            return FinishStarted_.load();
+            return AtomicGet(FinishStarted_);
         }
 
     private:
         TAdaptiveLock Lock_;
-        std::atomic<bool> FinishStarted_;
+        TAtomic FinishStarted_;
         TDeque<TFunc> Store_;
         TPriorityQueue<TFunc*, TVector<TFunc*>, TCmp> Items_;
     };
 
-    static TAdaptiveLock atExitLock;
-    static std::atomic<TAtExit*> atExitPtr = nullptr;
+    static TAtomic atExitLock = 0;
+    static TAtExit* atExit = nullptr;
     alignas(TAtExit) static char atExitMem[sizeof(TAtExit)];
 
     static void OnExit() {
-        if (TAtExit* const atExit = atExitPtr.load()) {
+        if (atExit) {
             atExit->Finish();
             atExit->~TAtExit();
-            atExitPtr.store(nullptr);
+            atExit = nullptr;
         }
     }
 
     static inline TAtExit* Instance() {
-        if (TAtExit* const atExit = atExitPtr.load(std::memory_order_acquire)) {
-            return atExit;
-        }
-        with_lock (atExitLock) {
-            if (TAtExit* const atExit = atExitPtr.load()) {
-                return atExit;
+        if (!atExit) {
+            with_lock (atExitLock) {
+                if (!atExit) {
+                    atexit(OnExit);
+                    atExit = new (atExitMem) TAtExit;
+                }
             }
-            atexit(OnExit);
-            TAtExit* const atExit = new (atExitMem) TAtExit;
-            atExitPtr.store(atExit, std::memory_order_release);
-            return atExit;
         }
+
+        return atExit;
     }
 }
 
@@ -109,10 +106,10 @@ void ManualRunAtExitFinalizers() {
 }
 
 bool ExitStarted() {
-    if (TAtExit* const atExit = atExitPtr.load(std::memory_order_acquire)) {
-        return atExit->FinishStarted();
+    if (!atExit) {
+        return false;
     }
-    return false;
+    return atExit->FinishStarted();
 }
 
 void AtExit(TAtExitFunc func, void* ctx, size_t priority) {

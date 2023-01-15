@@ -60,7 +60,7 @@ namespace NCatboostCuda {
                                 &sampledQids,
                                 &sampledQidOffsets);
 
-            TCudaBuffer<ui64, TMapping> matrixOffsets;
+            TCudaBuffer<ui32, TMapping> matrixOffsets;
             matrixOffsets.Reset(sampledQidOffsets.GetMapping());
             {
                 auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(matrixOffsets);
@@ -118,7 +118,7 @@ namespace NCatboostCuda {
                 }
             }
 
-            TCudaBuffer<ui64, TMapping> nzWeightPairIndices;
+            TCudaBuffer<ui32, TMapping> nzWeightPairIndices;
 
             FilterZeroEntries(&weights,
                               &nzWeightPairIndices);

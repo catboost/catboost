@@ -1,6 +1,6 @@
 #include "for_objects.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 namespace NCB {
@@ -43,6 +43,14 @@ namespace NCB {
                 );
             }
         );
+    }
+
+    void Compare(
+        const TQuantizedForCPUObjectsDataProvider& lhs,
+        const TQuantizedForCPUObjectsDataProvider& rhs
+    ) {
+        Compare((const TQuantizedObjectsDataProvider&)lhs, (const TQuantizedObjectsDataProvider&)rhs);
+
         lhs.GetFeaturesLayout()-> IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&] (TCatFeatureIdx catFeatureIdx) {
                 UNIT_ASSERT_EQUAL(

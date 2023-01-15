@@ -2,7 +2,7 @@
 
 #include "holder.h"
 
-#include <openssl/bn.h>
+#include <contrib/libs/openssl/include/openssl/bn.h>
 
 namespace NOpenSSL {
     class TBignum : public THolder<BIGNUM, BN_new, BN_clear_free> {

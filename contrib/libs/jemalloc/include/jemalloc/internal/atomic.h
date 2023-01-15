@@ -1,107 +1,304 @@
-#ifndef JEMALLOC_INTERNAL_ATOMIC_H
-#define JEMALLOC_INTERNAL_ATOMIC_H
+/******************************************************************************/
+#ifdef JEMALLOC_H_TYPES
 
-#define ATOMIC_INLINE JEMALLOC_ALWAYS_INLINE
+#endif /* JEMALLOC_H_TYPES */
+/******************************************************************************/
+#ifdef JEMALLOC_H_STRUCTS
 
-#define JEMALLOC_U8_ATOMICS
-#if defined(JEMALLOC_GCC_ATOMIC_ATOMICS)
-#  include "jemalloc/internal/atomic_gcc_atomic.h"
-#  if !defined(JEMALLOC_GCC_U8_ATOMIC_ATOMICS)
-#    undef JEMALLOC_U8_ATOMICS
-#  endif
-#elif defined(JEMALLOC_GCC_SYNC_ATOMICS)
-#  error #include "jemalloc/internal/atomic_gcc_sync.h"
-#  if !defined(JEMALLOC_GCC_U8_SYNC_ATOMICS)
-#    undef JEMALLOC_U8_ATOMICS
-#  endif
-#elif defined(_MSC_VER)
-#  include "jemalloc/internal/atomic_msvc.h"
-#elif defined(JEMALLOC_C11_ATOMICS)
-#  error #include "jemalloc/internal/atomic_c11.h"
-#else
-#  error "Don't have atomics implemented on this platform."
+#endif /* JEMALLOC_H_STRUCTS */
+/******************************************************************************/
+#ifdef JEMALLOC_H_EXTERNS
+
+#define	atomic_read_uint64(p)	atomic_add_uint64(p, 0)
+#define	atomic_read_uint32(p)	atomic_add_uint32(p, 0)
+#define	atomic_read_z(p)	atomic_add_z(p, 0)
+#define	atomic_read_u(p)	atomic_add_u(p, 0)
+
+#endif /* JEMALLOC_H_EXTERNS */
+/******************************************************************************/
+#ifdef JEMALLOC_H_INLINES
+
+#ifndef JEMALLOC_ENABLE_INLINE
+uint64_t	atomic_add_uint64(uint64_t *p, uint64_t x);
+uint64_t	atomic_sub_uint64(uint64_t *p, uint64_t x);
+uint32_t	atomic_add_uint32(uint32_t *p, uint32_t x);
+uint32_t	atomic_sub_uint32(uint32_t *p, uint32_t x);
+size_t	atomic_add_z(size_t *p, size_t x);
+size_t	atomic_sub_z(size_t *p, size_t x);
+unsigned	atomic_add_u(unsigned *p, unsigned x);
+unsigned	atomic_sub_u(unsigned *p, unsigned x);
 #endif
 
-/*
- * This header gives more or less a backport of C11 atomics. The user can write
- * JEMALLOC_GENERATE_ATOMICS(type, short_type, lg_sizeof_type); to generate
- * counterparts of the C11 atomic functions for type, as so:
- *   JEMALLOC_GENERATE_ATOMICS(int *, pi, 3);
- * and then write things like:
- *   int *some_ptr;
- *   atomic_pi_t atomic_ptr_to_int;
- *   atomic_store_pi(&atomic_ptr_to_int, some_ptr, ATOMIC_RELAXED);
- *   int *prev_value = atomic_exchange_pi(&ptr_to_int, NULL, ATOMIC_ACQ_REL);
- *   assert(some_ptr == prev_value);
- * and expect things to work in the obvious way.
- *
- * Also included (with naming differences to avoid conflicts with the standard
- * library):
- *   atomic_fence(atomic_memory_order_t) (mimics C11's atomic_thread_fence).
- *   ATOMIC_INIT (mimics C11's ATOMIC_VAR_INIT).
- */
-
-/*
- * Pure convenience, so that we don't have to type "atomic_memory_order_"
- * quite so often.
- */
-#define ATOMIC_RELAXED atomic_memory_order_relaxed
-#define ATOMIC_ACQUIRE atomic_memory_order_acquire
-#define ATOMIC_RELEASE atomic_memory_order_release
-#define ATOMIC_ACQ_REL atomic_memory_order_acq_rel
-#define ATOMIC_SEQ_CST atomic_memory_order_seq_cst
-
-/*
- * Another convenience -- simple atomic helper functions.
- */
-#define JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(type, short_type,	\
-    lg_size)								\
-    JEMALLOC_GENERATE_INT_ATOMICS(type, short_type, lg_size)		\
-    ATOMIC_INLINE void							\
-    atomic_load_add_store_##short_type(atomic_##short_type##_t *a,	\
-	type inc) {							\
-	    type oldval = atomic_load_##short_type(a, ATOMIC_RELAXED);	\
-	    type newval = oldval + inc;					\
-	    atomic_store_##short_type(a, newval, ATOMIC_RELAXED);	\
-	}								\
-    ATOMIC_INLINE void							\
-    atomic_load_sub_store_##short_type(atomic_##short_type##_t *a,	\
-	type inc) {							\
-	    type oldval = atomic_load_##short_type(a, ATOMIC_RELAXED);	\
-	    type newval = oldval - inc;					\
-	    atomic_store_##short_type(a, newval, ATOMIC_RELAXED);	\
-	}
-
-/*
- * Not all platforms have 64-bit atomics.  If we do, this #define exposes that
- * fact.
- */
+#if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_ATOMIC_C_))
+/******************************************************************************/
+/* 64-bit operations. */
 #if (LG_SIZEOF_PTR == 3 || LG_SIZEOF_INT == 3)
-#  define JEMALLOC_ATOMIC_U64
+#  ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (__sync_add_and_fetch(p, x));
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (__sync_sub_and_fetch(p, x));
+}
+#elif (defined(_MSC_VER))
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (InterlockedExchangeAdd64(p, x));
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (InterlockedExchangeAdd64(p, -((int64_t)x)));
+}
+#elif (defined(JEMALLOC_OSATOMIC))
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (OSAtomicAdd64((int64_t)x, (int64_t *)p));
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (OSAtomicAdd64(-((int64_t)x), (int64_t *)p));
+}
+#  elif (defined(__amd64__) || defined(__x86_64__))
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	asm volatile (
+	    "lock; xaddq %0, %1;"
+	    : "+r" (x), "=m" (*p) /* Outputs. */
+	    : "m" (*p) /* Inputs. */
+	    );
+
+	return (x);
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	x = (uint64_t)(-(int64_t)x);
+	asm volatile (
+	    "lock; xaddq %0, %1;"
+	    : "+r" (x), "=m" (*p) /* Outputs. */
+	    : "m" (*p) /* Inputs. */
+	    );
+
+	return (x);
+}
+#  elif (defined(JEMALLOC_ATOMIC9))
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	/*
+	 * atomic_fetchadd_64() doesn't exist, but we only ever use this
+	 * function on LP64 systems, so atomic_fetchadd_long() will do.
+	 */
+	assert(sizeof(uint64_t) == sizeof(unsigned long));
+
+	return (atomic_fetchadd_long(p, (unsigned long)x) + x);
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	assert(sizeof(uint64_t) == sizeof(unsigned long));
+
+	return (atomic_fetchadd_long(p, (unsigned long)(-(long)x)) - x);
+}
+#  elif (defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_8))
+JEMALLOC_INLINE uint64_t
+atomic_add_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (__sync_add_and_fetch(p, x));
+}
+
+JEMALLOC_INLINE uint64_t
+atomic_sub_uint64(uint64_t *p, uint64_t x)
+{
+
+	return (__sync_sub_and_fetch(p, x));
+}
+#  else
+#    error "Missing implementation for 64-bit atomic operations"
+#  endif
 #endif
 
-JEMALLOC_GENERATE_ATOMICS(void *, p, LG_SIZEOF_PTR)
+/******************************************************************************/
+/* 32-bit operations. */
+#ifdef __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
 
-/*
- * There's no actual guarantee that sizeof(bool) == 1, but it's true on the only
- * platform that actually needs to know the size, MSVC.
- */
-JEMALLOC_GENERATE_ATOMICS(bool, b, 0)
+	return (__sync_add_and_fetch(p, x));
+}
 
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(unsigned, u, LG_SIZEOF_INT)
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
 
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(size_t, zu, LG_SIZEOF_PTR)
+	return (__sync_sub_and_fetch(p, x));
+}
+#elif (defined(_MSC_VER))
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
 
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(ssize_t, zd, LG_SIZEOF_PTR)
+	return (InterlockedExchangeAdd(p, x));
+}
 
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(uint8_t, u8, 0)
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
 
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(uint32_t, u32, 2)
+	return (InterlockedExchangeAdd(p, -((int32_t)x)));
+}
+#elif (defined(JEMALLOC_OSATOMIC))
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
 
-#ifdef JEMALLOC_ATOMIC_U64
-JEMALLOC_GENERATE_EXPANDED_INT_ATOMICS(uint64_t, u64, 3)
+	return (OSAtomicAdd32((int32_t)x, (int32_t *)p));
+}
+
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
+
+	return (OSAtomicAdd32(-((int32_t)x), (int32_t *)p));
+}
+#elif (defined(__i386__) || defined(__amd64__) || defined(__x86_64__))
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
+
+	asm volatile (
+	    "lock; xaddl %0, %1;"
+	    : "+r" (x), "=m" (*p) /* Outputs. */
+	    : "m" (*p) /* Inputs. */
+	    );
+
+	return (x);
+}
+
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
+
+	x = (uint32_t)(-(int32_t)x);
+	asm volatile (
+	    "lock; xaddl %0, %1;"
+	    : "+r" (x), "=m" (*p) /* Outputs. */
+	    : "m" (*p) /* Inputs. */
+	    );
+
+	return (x);
+}
+#elif (defined(JEMALLOC_ATOMIC9))
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
+
+	return (atomic_fetchadd_32(p, x) + x);
+}
+
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
+
+	return (atomic_fetchadd_32(p, (uint32_t)(-(int32_t)x)) - x);
+}
+#elif (defined(JE_FORCE_SYNC_COMPARE_AND_SWAP_4))
+JEMALLOC_INLINE uint32_t
+atomic_add_uint32(uint32_t *p, uint32_t x)
+{
+
+	return (__sync_add_and_fetch(p, x));
+}
+
+JEMALLOC_INLINE uint32_t
+atomic_sub_uint32(uint32_t *p, uint32_t x)
+{
+
+	return (__sync_sub_and_fetch(p, x));
+}
+#else
+#  error "Missing implementation for 32-bit atomic operations"
 #endif
 
-#undef ATOMIC_INLINE
+/******************************************************************************/
+/* size_t operations. */
+JEMALLOC_INLINE size_t
+atomic_add_z(size_t *p, size_t x)
+{
 
-#endif /* JEMALLOC_INTERNAL_ATOMIC_H */
+#if (LG_SIZEOF_PTR == 3)
+	return ((size_t)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
+#elif (LG_SIZEOF_PTR == 2)
+	return ((size_t)atomic_add_uint32((uint32_t *)p, (uint32_t)x));
+#endif
+}
+
+JEMALLOC_INLINE size_t
+atomic_sub_z(size_t *p, size_t x)
+{
+
+#if (LG_SIZEOF_PTR == 3)
+	return ((size_t)atomic_add_uint64((uint64_t *)p,
+	    (uint64_t)-((int64_t)x)));
+#elif (LG_SIZEOF_PTR == 2)
+	return ((size_t)atomic_add_uint32((uint32_t *)p,
+	    (uint32_t)-((int32_t)x)));
+#endif
+}
+
+/******************************************************************************/
+/* unsigned operations. */
+JEMALLOC_INLINE unsigned
+atomic_add_u(unsigned *p, unsigned x)
+{
+
+#if (LG_SIZEOF_INT == 3)
+	return ((unsigned)atomic_add_uint64((uint64_t *)p, (uint64_t)x));
+#elif (LG_SIZEOF_INT == 2)
+	return ((unsigned)atomic_add_uint32((uint32_t *)p, (uint32_t)x));
+#endif
+}
+
+JEMALLOC_INLINE unsigned
+atomic_sub_u(unsigned *p, unsigned x)
+{
+
+#if (LG_SIZEOF_INT == 3)
+	return ((unsigned)atomic_add_uint64((uint64_t *)p,
+	    (uint64_t)-((int64_t)x)));
+#elif (LG_SIZEOF_INT == 2)
+	return ((unsigned)atomic_add_uint32((uint32_t *)p,
+	    (uint32_t)-((int32_t)x)));
+#endif
+}
+/******************************************************************************/
+#endif
+
+#endif /* JEMALLOC_H_INLINES */
+/******************************************************************************/

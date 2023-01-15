@@ -93,8 +93,7 @@ namespace NCudaLib {
             auto& manager = GetMpiManager();
             CB_ENSURE(manager.GetHostId() == DestRank, "Future could be created only on source rank");
             IsFutureCreated = true;
-            auto mpiFuture = new TMpiFuture<T>(SourceRank, Tag);
-            return THolder<TMpiFuture<T>>(mpiFuture);
+            return new TMpiFuture<T>(SourceRank, Tag);
         }
 
         TMpiPromise(int sourceRank,

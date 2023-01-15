@@ -1,20 +1,32 @@
 PY23_LIBRARY()
 
-LICENSE(Service-Py23-Proxy)
 
 
+VERSION(5.0.0)
 
-IF (PYTHON2)
-    PEERDIR(contrib/python/more-itertools/py2)
-ELSE()
-    PEERDIR(contrib/python/more-itertools/py3)
-ENDIF()
+LICENSE(MIT)
+
+PEERDIR(
+    contrib/python/six
+)
 
 NO_LINT()
 
+PY_SRCS(
+    TOP_LEVEL
+    more_itertools/__init__.py
+    more_itertools/more.py
+    more_itertools/recipes.py
+)
+
+RESOURCE_FILES(
+    PREFIX contrib/python/more-itertools/
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()
 
-RECURSE(
-    py2
-    py3
+RECURSE_FOR_TESTS(
+    tests
 )

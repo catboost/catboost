@@ -1,13 +1,8 @@
 /* stringlib: partition implementation */
 
 #ifndef STRINGLIB_FASTSEARCH_H
-#  error must include "stringlib/fastsearch.h" before including this module
+#error must include "stringlib/fastsearch.h" before including this module
 #endif
-
-#if !STRINGLIB_MUTABLE && !defined(STRINGLIB_GET_EMPTY)
-#  error "STRINGLIB_GET_EMPTY must be defined if STRINGLIB_MUTABLE is zero"
-#endif
-
 
 Py_LOCAL_INLINE(PyObject*)
 STRINGLIB(partition)(PyObject* str_obj,
@@ -42,12 +37,10 @@ STRINGLIB(partition)(PyObject* str_obj,
 #else
         Py_INCREF(str_obj);
         PyTuple_SET_ITEM(out, 0, (PyObject*) str_obj);
-        PyObject *empty = (PyObject*)STRINGLIB_GET_EMPTY();
-        assert(empty != NULL);
-        Py_INCREF(empty);
-        PyTuple_SET_ITEM(out, 1, empty);
-        Py_INCREF(empty);
-        PyTuple_SET_ITEM(out, 2, empty);
+        Py_INCREF(STRINGLIB_EMPTY);
+        PyTuple_SET_ITEM(out, 1, (PyObject*) STRINGLIB_EMPTY);
+        Py_INCREF(STRINGLIB_EMPTY);
+        PyTuple_SET_ITEM(out, 2, (PyObject*) STRINGLIB_EMPTY);
 #endif
         return out;
     }
@@ -97,12 +90,10 @@ STRINGLIB(rpartition)(PyObject* str_obj,
             return NULL;
         }
 #else
-        PyObject *empty = (PyObject*)STRINGLIB_GET_EMPTY();
-        assert(empty != NULL);
-        Py_INCREF(empty);
-        PyTuple_SET_ITEM(out, 0, empty);
-        Py_INCREF(empty);
-        PyTuple_SET_ITEM(out, 1, empty);
+        Py_INCREF(STRINGLIB_EMPTY);
+        PyTuple_SET_ITEM(out, 0, (PyObject*) STRINGLIB_EMPTY);
+        Py_INCREF(STRINGLIB_EMPTY);
+        PyTuple_SET_ITEM(out, 1, (PyObject*) STRINGLIB_EMPTY);
         Py_INCREF(str_obj);
         PyTuple_SET_ITEM(out, 2, (PyObject*) str_obj);
 #endif

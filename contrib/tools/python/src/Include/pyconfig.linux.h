@@ -56,7 +56,7 @@
 #define HAVE_GAI_STRERROR 1
 #define HAVE_GAMMA 1
 #if defined(__x86_64__) || defined(__i386__)
-#  define HAVE_GCC_ASM_FOR_X87 1
+#define HAVE_GCC_ASM_FOR_X87 1
 #endif
 #define HAVE_GETADDRINFO 1
 #define HAVE_GETCWD 1
@@ -231,37 +231,29 @@
 #define SHLIB_EXT ".so"
 
 #if defined(_64_)
-#  define SIZEOF_FPOS_T 16
-#  define SIZEOF_LONG 8
-#  define SIZEOF_PTHREAD_T 8
-#  if !defined(SIZEOF_SIZE_T)
-#    define SIZEOF_SIZE_T 8
-#  endif
-#  define SIZEOF_TIME_T 8
-#  define SIZEOF_UINTPTR_T 8
-#  define SIZEOF_VOID_P 8
+#define SIZEOF_FPOS_T 16
+#define SIZEOF_LONG 8
+#define SIZEOF_PTHREAD_T 8
+#if !defined(SIZEOF_SIZE_T)
+#define SIZEOF_SIZE_T 8
+#endif
+#define SIZEOF_TIME_T 8
+#define SIZEOF_UINTPTR_T 8
+#define SIZEOF_VOID_P 8
 #else
-#  if defined(_arm32_)
-#    define SIZEOF_FPOS_T 16
-#  else
-#    define SIZEOF_FPOS_T 8
-#  endif
-#  define SIZEOF_LONG 4
-#  define SIZEOF_PTHREAD_T 4
-#  if !defined(SIZEOF_SIZE_T)
-#    define SIZEOF_SIZE_T 4
-#  endif
-#  define SIZEOF_TIME_T 4
-#  define SIZEOF_UINTPTR_T 4
-#  define SIZEOF_VOID_P 4
+#define SIZEOF_FPOS_T 8
+#define SIZEOF_LONG 4
+#define SIZEOF_PTHREAD_T 4
+#if !defined(SIZEOF_SIZE_T)
+#define SIZEOF_SIZE_T 4
+#endif
+#define SIZEOF_TIME_T 4
+#define SIZEOF_UINTPTR_T 4
+#define SIZEOF_VOID_P 4
 #endif
 
 #define SIZEOF_DOUBLE 8
-#if defined(_arm32_)
-#  define SIZEOF_LONG_DOUBLE 8
-#else
-#  define SIZEOF_LONG_DOUBLE 16
-#endif
+#define SIZEOF_LONG_DOUBLE 16
 #define SIZEOF_FLOAT 4
 #define SIZEOF_INT 4
 #define SIZEOF_LONG_LONG 8
@@ -277,14 +269,14 @@
 #define TIME_WITH_SYS_TIME 1
 
 #ifndef _ALL_SOURCE
-#  define _ALL_SOURCE 1
+# define _ALL_SOURCE 1
 #endif
 
 #if defined(_64_)
-#  if defined(__aarch64__) || defined(__powerpc__)
-#  else
-#    define VA_LIST_IS_ARRAY 1
-#  endif
+#if defined(__aarch64__)
+#else
+#define VA_LIST_IS_ARRAY 1
+#endif
 #endif
 #define WITH_DOC_STRINGS 1
 #define WITH_PYMALLOC 1
@@ -294,12 +286,12 @@
 #define _GNU_SOURCE 1
 #define _LARGEFILE_SOURCE 1
 #if !defined(_POSIX_C_SOURCE)
-#  define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200112L
 #endif
 #define __BSD_VISIBLE 1
 
 #ifndef HAVE_VALGRIND
-#  undef WITH_VALGRIND
+#undef WITH_VALGRIND
 #endif
 
 #endif /*Py_PYCONFIG_H*/

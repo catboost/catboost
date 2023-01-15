@@ -1,5 +1,4 @@
 
-SUBSCRIBER(g:util-subscribers)
 
 RECURSE(
     ascii
@@ -8,7 +7,6 @@ RECURSE(
     float_to_string/metrics
     join
     join/metrics
-    strip
     subst_global
     subst_global/metrics
 )

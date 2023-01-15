@@ -17,15 +17,6 @@ _have_code = (types.MethodType, types.FunctionType, types.CodeType,
               classmethod, staticmethod, type)
 
 FORMAT_VALUE = opmap['FORMAT_VALUE']
-FORMAT_VALUE_CONVERTERS = (
-    (None, ''),
-    (str, 'str'),
-    (repr, 'repr'),
-    (ascii, 'ascii'),
-)
-MAKE_FUNCTION = opmap['MAKE_FUNCTION']
-MAKE_FUNCTION_FLAGS = ('defaults', 'kwdefaults', 'annotations', 'closure')
-
 
 def _try_compile(source, name):
     """Attempts to compile the given source, first as an expression and
@@ -157,7 +148,6 @@ def _format_code_info(co):
     lines.append("Name:              %s" % co.co_name)
     lines.append("Filename:          %s" % co.co_filename)
     lines.append("Argument count:    %s" % co.co_argcount)
-    lines.append("Positional-only arguments: %s" % co.co_posonlyargcount)
     lines.append("Kw-only arguments: %s" % co.co_kwonlyargcount)
     lines.append("Number of locals:  %s" % co.co_nlocals)
     lines.append("Stack size:        %s" % co.co_stacksize)
@@ -338,11 +328,8 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
                 argval, argrepr = _get_const_info(arg, constants)
             elif op in hasname:
                 argval, argrepr = _get_name_info(arg, names)
-            elif op in hasjabs:
-                argval = arg*2
-                argrepr = "to " + repr(argval)
             elif op in hasjrel:
-                argval = offset + 2 + arg*2
+                argval = offset + 2 + arg
                 argrepr = "to " + repr(argval)
             elif op in haslocal:
                 argval, argrepr = _get_name_info(arg, varnames)
@@ -352,15 +339,12 @@ def _get_instructions_bytes(code, varnames=None, names=None, constants=None,
             elif op in hasfree:
                 argval, argrepr = _get_name_info(arg, cells)
             elif op == FORMAT_VALUE:
-                argval, argrepr = FORMAT_VALUE_CONVERTERS[arg & 0x3]
-                argval = (argval, bool(arg & 0x4))
+                argval = ((None, str, repr, ascii)[arg & 0x3], bool(arg & 0x4))
+                argrepr = ('', 'str', 'repr', 'ascii')[arg & 0x3]
                 if argval[1]:
                     if argrepr:
                         argrepr += ', '
                     argrepr += 'with format'
-            elif op == MAKE_FUNCTION:
-                argrepr = ', '.join(s for i, s in enumerate(MAKE_FUNCTION_FLAGS)
-                                    if arg & (1<<i))
         yield Instruction(opname[op], op,
                           arg, argval, argrepr,
                           offset, starts_line, is_jump_target)
@@ -387,7 +371,7 @@ def _disassemble_bytes(code, lasti=-1, varnames=None, names=None,
                        constants=None, cells=None, linestarts=None,
                        *, file=None, line_offset=0):
     # Omit the line number column entirely if we have no line number info
-    show_lineno = bool(linestarts)
+    show_lineno = linestarts is not None
     if show_lineno:
         maxlineno = max(linestarts.values()) + line_offset
         if maxlineno >= 1000:
@@ -428,7 +412,6 @@ def _unpack_opargs(code):
             extended_arg = (arg << 8) if op == EXTENDED_ARG else 0
         else:
             arg = None
-            extended_arg = 0
         yield (i, op, arg)
 
 def findlabels(code):
@@ -441,9 +424,9 @@ def findlabels(code):
     for offset, op, arg in _unpack_opargs(code):
         if arg is not None:
             if op in hasjrel:
-                label = offset + 2 + arg*2
+                label = offset + 2 + arg
             elif op in hasjabs:
-                label = arg*2
+                label = arg
             else:
                 continue
             if label not in labels:
@@ -453,15 +436,27 @@ def findlabels(code):
 def findlinestarts(code):
     """Find the offsets in a byte code which are start of lines in the source.
 
-    Generate pairs (offset, lineno)
-    """
-    lastline = None
-    for start, end, line in code.co_lines():
-        if line is not None and line != lastline:
-            lastline = line
-            yield start, line
-    return
+    Generate pairs (offset, lineno) as described in Python/compile.c.
 
+    """
+    byte_increments = code.co_lnotab[0::2]
+    line_increments = code.co_lnotab[1::2]
+
+    lastlineno = None
+    lineno = code.co_firstlineno
+    addr = 0
+    for byte_incr, line_incr in zip(byte_increments, line_increments):
+        if byte_incr:
+            if lineno != lastlineno:
+                yield (addr, lineno)
+                lastlineno = lineno
+            addr += byte_incr
+        if line_incr >= 0x80:
+            # line_increments is an array of 8-bit signed integers
+            line_incr -= 0x100
+        lineno += line_incr
+    if lineno != lastlineno:
+        yield (addr, lineno)
 
 class Bytecode:
     """The bytecode operations of a piece of code
@@ -529,7 +524,7 @@ def _test():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('infile', type=argparse.FileType('rb'), nargs='?', default='-')
+    parser.add_argument('infile', type=argparse.FileType(), nargs='?', default='-')
     args = parser.parse_args()
     with args.infile as infile:
         source = infile.read()

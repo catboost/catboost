@@ -16,7 +16,7 @@ static inline void CalcObliviousExactShapValuesForLeafRecursive(
     size_t nodeIdx
 ) {
     const size_t approxDimension = forest.GetDimensionsCount();
-    size_t treeSize = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
+    size_t treeSize = forest.GetTreeSizes()[treeIdx];
 
     if (depth == treeSize) {
         auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
@@ -30,7 +30,7 @@ static inline void CalcObliviousExactShapValuesForLeafRecursive(
     size_t remainingDepth = treeSize - depth - 1;
 
     const int feature = binFeatureCombinationClass[
-        forest.GetModelTreeData()->GetTreeSplits()[forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + remainingDepth]
+        forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + remainingDepth]
     ];
     if ((mask >> featureMap.at(feature)) & 1) {
         for (size_t newDepth = depth + 1; newDepth < treeSize + 1; ++newDepth) {
@@ -97,11 +97,11 @@ static inline TVector<int> CollectObliviousTreeFeatures(
 ) {
     THashSet<int> featureSet;
 
-    size_t treeSize = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
+    size_t treeSize = forest.GetTreeSizes()[treeIdx];
 
     for (size_t depth = 0; depth < treeSize; ++depth) {
         featureSet.insert(binFeatureCombinationClass[
-                                  forest.GetModelTreeData()->GetTreeSplits()[forest.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + treeSize - depth - 1]
+                                  forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + treeSize - depth - 1]
                           ]);
     }
 

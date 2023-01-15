@@ -9,7 +9,7 @@
 class TFullModel;
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -65,7 +65,7 @@ private:
     void BuildCurve(
         const TVector<TVector<double>>& approxes, // [poolId][docId]
         const TVector<TConstArrayRef<float>>& labels, // [poolId][docId]
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     );
 
     static TRocPoint IntersectSegments(const TRocPoint& leftEnds, const TRocPoint& rightEnds);

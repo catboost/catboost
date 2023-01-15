@@ -84,9 +84,11 @@ namespace NCudaLib {
                         ui64 readOffset = mapping.MemoryOffset(intersection);
                         CB_ENSURE(readOffset >= SrcOffset);
                         readOffset -= SrcOffset;
+                        Y_ASSERT(writeSize <= SrcMaxSize);
                         CB_ENSURE(writeSize <= SrcMaxSize);
 
-                        static_assert(!std::is_const<T>::value, "Can't write to const buffer");
+                        //TODO(noxoom): if(constexpr) after cpp17
+                        Y_VERIFY(!std::is_const<T>::value, "Can't write to const buffer");
                         auto dst = Dst->GetBuffer(dev).ConstCast();
                         WriteDone.push_back(TDataCopier::AsyncWrite(Src + readOffset + columnOffset,
                                                                     dst,

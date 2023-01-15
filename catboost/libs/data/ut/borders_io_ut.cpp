@@ -4,11 +4,12 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/stream/file.h>
+#include <util/system/mktemp.h>
 #include <util/system/tempfile.h>
 
 #include <limits>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -16,7 +17,7 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(BordersIo) {
     Y_UNIT_TEST(Save) {
-        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
 
         TQuantizedFeaturesInfo quantizedFeaturesInfo(
             featuresLayout,
@@ -66,7 +67,7 @@ Y_UNIT_TEST_SUITE(BordersIo) {
                 "2\t11\tMin\n");
         }
 
-        TFeaturesLayout featuresLayout(ui32(3), {}, {}, {}, {});
+        TFeaturesLayout featuresLayout(ui32(3), TVector<ui32>(), TVector<ui32>(), TVector<TString>());
 
         TQuantizedFeaturesInfo quantizedFeaturesInfo(
             featuresLayout,

@@ -4,20 +4,20 @@
 #include <sys/stat.h>
 
 #ifdef _win_
-    #define S_IRUSR _S_IREAD
-    #define S_IWUSR _S_IWRITE
-    #define S_IXUSR _S_IEXEC
-    #define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
+#define S_IRUSR _S_IREAD
+#define S_IWUSR _S_IWRITE
+#define S_IXUSR _S_IEXEC
+#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR)
 
-    #define S_IRGRP _S_IREAD
-    #define S_IWGRP _S_IWRITE
-    #define S_IXGRP _S_IEXEC
-    #define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
+#define S_IRGRP _S_IREAD
+#define S_IWGRP _S_IWRITE
+#define S_IXGRP _S_IEXEC
+#define S_IRWXG (S_IRGRP | S_IWGRP | S_IXGRP)
 
-    #define S_IROTH _S_IREAD
-    #define S_IWOTH _S_IWRITE
-    #define S_IXOTH _S_IEXEC
-    #define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
+#define S_IROTH _S_IREAD
+#define S_IWOTH _S_IWRITE
+#define S_IXOTH _S_IEXEC
+#define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
 #endif
 
 int Chmod(const char* fname, int mode);

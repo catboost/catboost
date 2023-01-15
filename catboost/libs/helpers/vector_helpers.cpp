@@ -2,7 +2,7 @@
 
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
+#include <util/system/atomic.h>
 #include <util/system/guard.h>
 
 #if defined(__x86_64__)

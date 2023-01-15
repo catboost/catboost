@@ -1,6 +1,5 @@
 #pragma once
 
-#include "model_estimated_features.h"
 #include "online_ctr.h"
 
 #include <util/system/types.h>

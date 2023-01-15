@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -396,9 +396,7 @@ static float CalculateNdcg(
             docs[j].Prediction = approxes[offset + j];
         }
 
-        TVector<double> decay(sizes[i]);
-        FillDcgDecay(ENdcgDenominatorType::LogPosition, Nothing(), decay);
-        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, decay, type, topSize);
+        perQueryMetrics[i] = weights[offset] * CalcNdcg(docs, type, topSize);
     }
 
     return FastAccumulate(perQueryMetrics);

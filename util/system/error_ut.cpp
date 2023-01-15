@@ -1,13 +1,13 @@
 #include "error.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/ylimits.h>
 
 #ifdef _win_
-    #include "winint.h"
+#include "winint.h"
 #else
-    #include <fcntl.h>
+#include <fcntl.h>
 #endif
 
 class TSysErrorTest: public TTestBase {

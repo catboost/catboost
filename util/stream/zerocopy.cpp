@@ -44,12 +44,12 @@ size_t IZeroCopyInputFastReadTo::DoReadTo(TString& st, char ch) {
     st.clear();
     do {
         if (const char* pos = (const char*)memchr(ptr, ch, len)) {
-            size_t bytesRead = (pos - ptr) + 1;
-            if (bytesRead > 1) {
+            size_t readed = (pos - ptr) + 1;
+            if (readed > 1) {
                 st.append(ptr, pos);
             }
-            Undo(len - bytesRead);
-            result += bytesRead;
+            Undo(len - readed);
+            result += readed;
             return result;
         } else {
             result += len;

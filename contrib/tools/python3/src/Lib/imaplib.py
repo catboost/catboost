@@ -98,7 +98,6 @@ Commands = {
         'THREAD':       ('SELECTED',),
         'UID':          ('SELECTED',),
         'UNSUBSCRIBE':  ('AUTH', 'SELECTED'),
-        'UNSELECT':     ('SELECTED',),
         }
 
 #       Patterns to match server responses
@@ -136,13 +135,10 @@ class IMAP4:
 
     r"""IMAP4 client class.
 
-    Instantiate with: IMAP4([host[, port[, timeout=None]]])
+    Instantiate with: IMAP4([host[, port]])
 
             host - host's name (default: localhost);
             port - port number (default: standard IMAP4 port).
-            timeout - socket timeout (default: None)
-                      If timeout is not given or is None,
-                      the global default socket timeout is used
 
     All IMAP4rev1 commands are supported by methods of the same
     name (in lower-case).
@@ -185,7 +181,7 @@ class IMAP4:
     class abort(error): pass        # Service errors - close and retry
     class readonly(abort): pass     # Mailbox status changed to READ-ONLY
 
-    def __init__(self, host='', port=IMAP4_PORT, timeout=None):
+    def __init__(self, host='', port=IMAP4_PORT):
         self.debug = Debug
         self.state = 'LOGOUT'
         self.literal = None             # A literal argument to a command
@@ -199,7 +195,7 @@ class IMAP4:
 
         # Open socket to server.
 
-        self.open(host, port, timeout)
+        self.open(host, port)
 
         try:
             self._connect()
@@ -276,9 +272,6 @@ class IMAP4:
         return self
 
     def __exit__(self, *args):
-        if self.state == "LOGOUT":
-            return
-
         try:
             self.logout()
         except OSError:
@@ -288,20 +281,14 @@ class IMAP4:
     #       Overridable methods
 
 
-    def _create_socket(self, timeout):
+    def _create_socket(self):
         # Default value of IMAP4.host is '', but socket.getaddrinfo()
         # (which is used by socket.create_connection()) expects None
         # as a default value for host.
-        if timeout is not None and not timeout:
-            raise ValueError('Non-blocking socket (timeout=0) is not supported')
         host = None if not self.host else self.host
-        sys.audit("imaplib.open", self, self.host, self.port)
-        address = (host, self.port)
-        if timeout is not None:
-            return socket.create_connection(address, timeout)
-        return socket.create_connection(address)
+        return socket.create_connection((host, self.port))
 
-    def open(self, host='', port=IMAP4_PORT, timeout=None):
+    def open(self, host = '', port = IMAP4_PORT):
         """Setup connection to remote server on "host:port"
             (default: localhost:standard IMAP4 port).
         This connection will be used by the routines:
@@ -309,7 +296,7 @@ class IMAP4:
         """
         self.host = host
         self.port = port
-        self.sock = self._create_socket(timeout)
+        self.sock = self._create_socket()
         self.file = self.sock.makefile('rb')
 
 
@@ -328,7 +315,6 @@ class IMAP4:
 
     def send(self, data):
         """Send data to remote."""
-        sys.audit("imaplib.send", self, data)
         self.sock.sendall(data)
 
 
@@ -511,7 +497,7 @@ class IMAP4:
     def enable(self, capability):
         """Send an RFC5161 enable string to the server.
 
-        (typ, [data]) = <instance>.enable(capability)
+        (typ, [data]) = <intance>.enable(capability)
         """
         if 'ENABLE' not in self.capabilities:
             raise IMAP4.error("Server does not support ENABLE")
@@ -639,8 +625,11 @@ class IMAP4:
         Returns server 'BYE' response.
         """
         self.state = 'LOGOUT'
-        typ, dat = self._simple_command('LOGOUT')
+        try: typ, dat = self._simple_command('LOGOUT')
+        except: typ, dat = 'NO', ['%s: %s' % sys.exc_info()[:2]]
         self.shutdown()
+        if 'BYE' in self.untagged_responses:
+            return 'BYE', self.untagged_responses['BYE']
         return typ, dat
 
 
@@ -903,22 +892,6 @@ class IMAP4:
         return self._simple_command('UNSUBSCRIBE', mailbox)
 
 
-    def unselect(self):
-        """Free server's resources associated with the selected mailbox
-        and returns the server to the authenticated state.
-        This command performs the same actions as CLOSE, except
-        that no messages are permanently removed from the currently
-        selected mailbox.
-
-        (typ, [data]) = <instance>.unselect()
-        """
-        try:
-            typ, data = self._simple_command('UNSELECT')
-        finally:
-            self.state = 'AUTH'
-        return typ, data
-
-
     def xatom(self, name, *args):
         """Allow simple extension commands
                 notified by server in CAPABILITY response.
@@ -1039,17 +1012,16 @@ class IMAP4:
 
 
     def _command_complete(self, name, tag):
-        logout = (name == 'LOGOUT')
         # BYE is expected after LOGOUT
-        if not logout:
+        if name != 'LOGOUT':
             self._check_bye()
         try:
-            typ, data = self._get_tagged_response(tag, expect_bye=logout)
+            typ, data = self._get_tagged_response(tag)
         except self.abort as val:
             raise self.abort('command: %s => %s' % (name, val))
         except self.error as val:
             raise self.error('command: %s => %s' % (name, val))
-        if not logout:
+        if name != 'LOGOUT':
             self._check_bye()
         if typ == 'BAD':
             raise self.error('%s command error: %s %s' % (name, typ, data))
@@ -1145,7 +1117,7 @@ class IMAP4:
         return resp
 
 
-    def _get_tagged_response(self, tag, expect_bye=False):
+    def _get_tagged_response(self, tag):
 
         while 1:
             result = self.tagged_commands[tag]
@@ -1153,15 +1125,9 @@ class IMAP4:
                 del self.tagged_commands[tag]
                 return result
 
-            if expect_bye:
-                typ = 'BYE'
-                bye = self.untagged_responses.pop(typ, None)
-                if bye is not None:
-                    # Server replies to the "LOGOUT" command with "BYE"
-                    return (typ, bye)
-
             # If we've seen a BYE at this point, the socket will be
             # closed, so report the BYE now.
+
             self._check_bye()
 
             # Some have reported "unexpected response" exceptions.
@@ -1251,12 +1217,13 @@ class IMAP4:
             sys.stderr.write('  %s.%02d %s\n' % (tm, (secs*100)%100, s))
             sys.stderr.flush()
 
-        def _dump_ur(self, untagged_resp_dict):
-            if not untagged_resp_dict:
-                return
-            items = (f'{key}: {value!r}'
-                    for key, value in untagged_resp_dict.items())
-            self._mesg('untagged responses dump:' + '\n\t\t'.join(items))
+        def _dump_ur(self, dict):
+            # Dump untagged responses (in `dict').
+            l = dict.items()
+            if not l: return
+            t = '\n\t\t'
+            l = map(lambda x:'%s: "%s"' % (x[0], x[1][0] and '" "'.join(x[1]) or ''), l)
+            self._mesg('untagged responses dump:%s%s' % (t, t.join(l)))
 
         def _log(self, line):
             # Keep log of last `_cmd_log_len' interactions for debugging.
@@ -1285,7 +1252,7 @@ if HAVE_SSL:
 
         """IMAP4 client class over SSL connection
 
-        Instantiate with: IMAP4_SSL([host[, port[, keyfile[, certfile[, ssl_context[, timeout=None]]]]]])
+        Instantiate with: IMAP4_SSL([host[, port[, keyfile[, certfile[, ssl_context]]]]])
 
                 host - host's name (default: localhost);
                 port - port number (default: standard IMAP4 SSL port);
@@ -1295,15 +1262,13 @@ if HAVE_SSL:
                               and private key (default: None)
                 Note: if ssl_context is provided, then parameters keyfile or
                 certfile should not be set otherwise ValueError is raised.
-                timeout - socket timeout (default: None) If timeout is not given or is None,
-                          the global default socket timeout is used
 
         for more documentation see the docstring of the parent class IMAP4.
         """
 
 
         def __init__(self, host='', port=IMAP4_SSL_PORT, keyfile=None,
-                     certfile=None, ssl_context=None, timeout=None):
+                     certfile=None, ssl_context=None):
             if ssl_context is not None and keyfile is not None:
                 raise ValueError("ssl_context and keyfile arguments are mutually "
                                  "exclusive")
@@ -1320,20 +1285,20 @@ if HAVE_SSL:
                 ssl_context = ssl._create_stdlib_context(certfile=certfile,
                                                          keyfile=keyfile)
             self.ssl_context = ssl_context
-            IMAP4.__init__(self, host, port, timeout)
+            IMAP4.__init__(self, host, port)
 
-        def _create_socket(self, timeout):
-            sock = IMAP4._create_socket(self, timeout)
+        def _create_socket(self):
+            sock = IMAP4._create_socket(self)
             return self.ssl_context.wrap_socket(sock,
                                                 server_hostname=self.host)
 
-        def open(self, host='', port=IMAP4_SSL_PORT, timeout=None):
+        def open(self, host='', port=IMAP4_SSL_PORT):
             """Setup connection to remote server on "host:port".
                 (default: localhost:standard IMAP4 SSL port).
             This connection will be used by the routines:
                 read, readline, send, shutdown.
             """
-            IMAP4.open(self, host, port, timeout)
+            IMAP4.open(self, host, port)
 
     __all__.append("IMAP4_SSL")
 
@@ -1355,7 +1320,7 @@ class IMAP4_stream(IMAP4):
         IMAP4.__init__(self)
 
 
-    def open(self, host=None, port=None, timeout=None):
+    def open(self, host = None, port = None):
         """Setup a stream connection.
         This connection will be used by the routines:
             read, readline, send, shutdown.

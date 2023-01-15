@@ -12,38 +12,36 @@
 #define STACK_ALIGN (8 * PLATFORM_DATA_ALIGN)
 
 #if defined(_x86_64_) || defined(_i386_) || defined(_arm_) || defined(_ppc64_)
-    #define STACK_GROW_DOWN 1
+#define STACK_GROW_DOWN 1
 #else
-    #error todo
+#error todo
 #endif
 
 /*
  * switch method
  */
-#if defined(thread_sanitizer_enabled)
-    #define USE_UCONTEXT_CONT
-#elif defined(_bionic_) || defined(__IOS__)
-    #define USE_GENERIC_CONT
+#if defined(_bionic_) || defined(__IOS__)
+#define USE_GENERIC_CONT
 #elif defined(_cygwin_)
-    #define USE_UCONTEXT_CONT
+#define USE_UCONTEXT_CONT
 #elif defined(_win_)
-    #define USE_FIBER_CONT
+#define USE_FIBER_CONT
 #elif (defined(_i386_) || defined(_x86_64_) || defined(_arm64_)) && !defined(_k1om_)
-    #define USE_JUMP_CONT
+#define USE_JUMP_CONT
 #else
-    #define USE_UCONTEXT_CONT
+#define USE_UCONTEXT_CONT
 #endif
 
 #if defined(USE_JUMP_CONT)
-    #if defined(_arm64_)
-        #include "context_aarch64.h"
-    #else
-        #include "context_x86.h"
-    #endif
+#if defined(_arm64_)
+#include "context_aarch64.h"
+#else
+#include "context_x86.h"
+#endif
 #endif
 
 #if defined(USE_UCONTEXT_CONT)
-    #include <ucontext.h>
+#include <ucontext.h>
 #endif
 
 struct ITrampoLine {
@@ -149,9 +147,9 @@ private:
         ITrampoLine* TL;
     };
 
-    #if defined(_asan_enabled_) || defined(_tsan_enabled_)
+#if defined(_asan_enabled_) || defined(_tsan_enabled_)
     TSan San_;
-    #endif
+#endif
 };
 #endif
 
@@ -163,13 +161,13 @@ static inline size_t MachineContextSize() noexcept {
  * be polite
  */
 #if !defined(FROM_CONTEXT_IMPL)
-    #undef USE_JUMP_CONT
-    #undef USE_FIBER_CONT
-    #undef USE_GENERIC_CONT
-    #undef USE_UCONTEXT_CONT
-    #undef PROGR_CNT
-    #undef STACK_CNT
-    #undef EXTRA_PUSH_ARGS
+#undef USE_JUMP_CONT
+#undef USE_FIBER_CONT
+#undef USE_GENERIC_CONT
+#undef USE_UCONTEXT_CONT
+#undef PROGR_CNT
+#undef STACK_CNT
+#undef EXTRA_PUSH_ARGS
 #endif
 
 struct TExceptionSafeContext: public TContMachineContext {

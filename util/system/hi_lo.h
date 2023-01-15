@@ -2,10 +2,8 @@
 
 #include "unaligned_mem.h"
 
-#include <utility>
-
 #ifndef _little_endian_
-    #error "Not implemented"
+#error "Not implemented"
 #endif
 
 namespace NHiLoPrivate {
@@ -17,23 +15,17 @@ namespace NHiLoPrivate {
         {
         }
 
-        TRepr Get() const {
-            return ReadUnaligned<TRepr>(Ptr);
-        }
-        operator TRepr() const {
-            return Get();
-        }
+        TRepr Get() const { return ReadUnaligned<TRepr>(Ptr); }
+        operator TRepr() const { return Get(); }
 
-        const char* GetPtr() const {
-            return Ptr;
-        }
+        const char* GetPtr() const { return Ptr; }
 
     protected:
         const char* Ptr;
     };
 
     template <class TRepr>
-    class TIntRef: public TConstIntRef<TRepr> {
+    class TIntRef : public TConstIntRef<TRepr> {
     public:
         explicit TIntRef(char* ptr)
             : TConstIntRef<TRepr>(ptr)
@@ -45,9 +37,7 @@ namespace NHiLoPrivate {
             return *this;
         }
 
-        char* GetPtr() const {
-            return const_cast<char*>(this->Ptr);
-        }
+        char* GetPtr() const { return const_cast<char *>(this->Ptr); }
     };
 
     template <class T>
@@ -77,12 +67,12 @@ namespace NHiLoPrivate {
 
     template <class T>
     const char* CharPtrOf(const T& value) {
-        return reinterpret_cast<const char*>(&value);
+        return reinterpret_cast<const char *>(&value);
     }
 
     template <class T>
     char* CharPtrOf(T& value) {
-        return reinterpret_cast<char*>(&value);
+        return reinterpret_cast<char *>(&value);
     }
 
     template <class T>
@@ -99,8 +89,8 @@ namespace NHiLoPrivate {
     auto MakeIntRef(T&& value) {
         using TRef = typename TReferenceType<typename std::decay<T>::type>::TType;
         static_assert(
-            std::is_scalar<TRef>::value,
-            "Hi* and Lo* functions can be applied only to scalar values");
+                std::is_scalar<TRef>::value,
+                "Hi* and Lo* functions can be applied only to scalar values");
         static_assert(sizeof(TRef) >= sizeof(TRepr), "Requested bit range is not within provided value");
         constexpr size_t offset = IsLow ? 0 : sizeof(TRef) - sizeof(TRepr);
 

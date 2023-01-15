@@ -17,8 +17,4 @@ PEERDIR(
 
 END()
 
-RECURSE(
-    bench
-    fuzz
-    ut
-)
+RECURSE_FOR_TESTS(ut)

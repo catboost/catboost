@@ -153,15 +153,12 @@ namespace NCudaLib {
         {
         }
 
-        THandleBasedMemoryPointer(const THandleBasedMemoryPointer& other) = default;
-
-        THandleBasedMemoryPointer(const THandleBasedMemoryPointer& other, ui64 offset)
+        THandleBasedMemoryPointer(const THandleBasedMemoryPointer& other,
+                                  ui64 offset = 0)
             : Handle(other.Handle)
             , Offset(other.Offset + offset)
         {
         }
-
-        THandleBasedMemoryPointer& operator=(const THandleBasedMemoryPointer& other) = default;
 
         operator THandleBasedMemoryPointer<const T, Type>() {
             return THandleBasedMemoryPointer<const T, Type>(Handle, Offset);

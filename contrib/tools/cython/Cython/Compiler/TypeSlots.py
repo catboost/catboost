@@ -625,20 +625,6 @@ def get_slot_code_by_name(scope, slot_name):
     slot = get_slot_by_name(slot_name)
     return slot.slot_code(scope)
 
-def is_reverse_number_slot(name):
-    """
-    Tries to identify __radd__ and friends (so the METH_COEXIST flag can be applied).
-
-    There's no great consequence if it inadvertently identifies a few other methods
-    so just use a simple rule rather than an exact list.
-    """
-    if name.startswith("__r") and name.endswith("__"):
-        forward_name = name.replace("r", "", 1)
-        for meth in PyNumberMethods:
-            if getattr(meth, "method_name", None) == forward_name:
-                return True
-    return False
-
 
 #------------------------------------------------------------------------------------------
 #
@@ -827,7 +813,6 @@ PyAsyncMethods = (
     MethodSlot(unaryfunc, "am_await", "__await__"),
     MethodSlot(unaryfunc, "am_aiter", "__aiter__"),
     MethodSlot(unaryfunc, "am_anext", "__anext__"),
-    EmptySlot("am_send", ifdef="PY_VERSION_HEX >= 0x030A00A3"),
 )
 
 #------------------------------------------------------------------------------------------
@@ -903,10 +888,8 @@ slot_table = (
     EmptySlot("tp_del"),
     EmptySlot("tp_version_tag"),
     EmptySlot("tp_finalize", ifdef="PY_VERSION_HEX >= 0x030400a1"),
-    EmptySlot("tp_vectorcall", ifdef="PY_VERSION_HEX >= 0x030800b1 && (!CYTHON_COMPILING_IN_PYPY || PYPY_VERSION_NUM >= 0x07030800)"),
-    EmptySlot("tp_print", ifdef="PY_VERSION_HEX >= 0x030800b4 && PY_VERSION_HEX < 0x03090000"),
-    # PyPy specific extension - only here to avoid C compiler warnings.
-    EmptySlot("tp_pypy_flags", ifdef="CYTHON_COMPILING_IN_PYPY && PY_VERSION_HEX >= 0x03090000"),
+    EmptySlot("tp_vectorcall", ifdef="PY_VERSION_HEX >= 0x030800b1"),
+    EmptySlot("tp_print", ifdef="PY_VERSION_HEX >= 0x030800b4"),
 )
 
 #------------------------------------------------------------------------------------------

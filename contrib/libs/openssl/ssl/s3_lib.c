@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  * Copyright 2005 Nokia. All rights reserved.
  *
@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <openssl/objects.h>
 #include "internal/nelem.h"
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include <openssl/md5.h>
 #include <openssl/dh.h>
 #include <openssl/rand.h>
@@ -2171,7 +2171,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_RFC_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_CK_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aDSS,
      SSL_CAMELLIA128,
      SSL_SHA256,
@@ -2187,7 +2187,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_RFC_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_CK_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aRSA,
      SSL_CAMELLIA128,
      SSL_SHA256,
@@ -2203,7 +2203,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_ADH_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_RFC_ADH_WITH_CAMELLIA_128_CBC_SHA256,
      TLS1_CK_ADH_WITH_CAMELLIA_128_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aNULL,
      SSL_CAMELLIA128,
      SSL_SHA256,
@@ -2235,7 +2235,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_RFC_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_CK_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aDSS,
      SSL_CAMELLIA256,
      SSL_SHA256,
@@ -2251,7 +2251,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_RFC_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_CK_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aRSA,
      SSL_CAMELLIA256,
      SSL_SHA256,
@@ -2267,7 +2267,7 @@ static SSL_CIPHER ssl3_ciphers[] = {
      TLS1_TXT_ADH_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_RFC_ADH_WITH_CAMELLIA_256_CBC_SHA256,
      TLS1_CK_ADH_WITH_CAMELLIA_256_CBC_SHA256,
-     SSL_kDHE,
+     SSL_kEDH,
      SSL_aNULL,
      SSL_CAMELLIA256,
      SSL_SHA256,
@@ -3676,12 +3676,6 @@ long ssl3_ctrl(SSL *s, int cmd, long larg, void *parg)
     case SSL_CTRL_SET_CHAIN_CERT_STORE:
         return ssl_cert_set_cert_store(s->cert, parg, 1, larg);
 
-    case SSL_CTRL_GET_VERIFY_CERT_STORE:
-        return ssl_cert_get_cert_store(s->cert, parg, 0);
-
-    case SSL_CTRL_GET_CHAIN_CERT_STORE:
-        return ssl_cert_get_cert_store(s->cert, parg, 1);
-
     case SSL_CTRL_GET_PEER_SIGNATURE_NID:
         if (s->s3->tmp.peer_sigalg == NULL)
             return 0;
@@ -3955,12 +3949,6 @@ long ssl3_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg)
     case SSL_CTRL_SET_CHAIN_CERT_STORE:
         return ssl_cert_set_cert_store(ctx->cert, parg, 1, larg);
 
-    case SSL_CTRL_GET_VERIFY_CERT_STORE:
-        return ssl_cert_get_cert_store(ctx->cert, parg, 0);
-
-    case SSL_CTRL_GET_CHAIN_CERT_STORE:
-        return ssl_cert_get_cert_store(ctx->cert, parg, 1);
-
         /* A Thawte special :-) */
     case SSL_CTRL_EXTRA_CHAIN_CERT:
         if (ctx->extra_certs == NULL) {
@@ -4084,10 +4072,9 @@ const SSL_CIPHER *ssl3_get_cipher_by_id(uint32_t id)
 
 const SSL_CIPHER *ssl3_get_cipher_by_std_name(const char *stdname)
 {
-    SSL_CIPHER *tbl;
-    SSL_CIPHER *alltabs[] = {tls13_ciphers, ssl3_ciphers, ssl3_scsvs};
-    size_t i, j, tblsize[] = {TLS13_NUM_CIPHERS, SSL3_NUM_CIPHERS,
-                              SSL3_NUM_SCSVS};
+    SSL_CIPHER *c = NULL, *tbl;
+    SSL_CIPHER *alltabs[] = {tls13_ciphers, ssl3_ciphers};
+    size_t i, j, tblsize[] = {TLS13_NUM_CIPHERS, SSL3_NUM_CIPHERS};
 
     /* this is not efficient, necessary to optimize this? */
     for (j = 0; j < OSSL_NELEM(alltabs); j++) {
@@ -4095,11 +4082,21 @@ const SSL_CIPHER *ssl3_get_cipher_by_std_name(const char *stdname)
             if (tbl->stdname == NULL)
                 continue;
             if (strcmp(stdname, tbl->stdname) == 0) {
-                return tbl;
+                c = tbl;
+                break;
             }
         }
     }
-    return NULL;
+    if (c == NULL) {
+        tbl = ssl3_scsvs;
+        for (i = 0; i < SSL3_NUM_SCSVS; i++, tbl++) {
+            if (strcmp(stdname, tbl->stdname) == 0) {
+                c = tbl;
+                break;
+            }
+        }
+    }
+    return c;
 }
 
 /*
@@ -4641,9 +4638,8 @@ int ssl_generate_master_secret(SSL *s, unsigned char *pms, size_t pmslen,
 
         OPENSSL_clear_free(s->s3->tmp.psk, psklen);
         s->s3->tmp.psk = NULL;
-        s->s3->tmp.psklen = 0;
         if (!s->method->ssl3_enc->generate_master_secret(s,
-                    s->session->master_key, pskpms, pskpmslen,
+                    s->session->master_key,pskpms, pskpmslen,
                     &s->session->master_key_length)) {
             OPENSSL_clear_free(pskpms, pskpmslen);
             /* SSLfatal() already called */
@@ -4671,10 +4667,8 @@ int ssl_generate_master_secret(SSL *s, unsigned char *pms, size_t pmslen,
         else
             OPENSSL_cleanse(pms, pmslen);
     }
-    if (s->server == 0) {
+    if (s->server == 0)
         s->s3->tmp.pms = NULL;
-        s->s3->tmp.pmslen = 0;
-    }
     return ret;
 }
 

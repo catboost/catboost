@@ -44,12 +44,11 @@ AND THERE IS NO OBLIGATION WHATSOEVER TO PROVIDE MAINTENANCE,
 SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 """
 
-__all__ = ['TestResult', 'TestCase', 'IsolatedAsyncioTestCase', 'TestSuite',
+__all__ = ['TestResult', 'TestCase', 'TestSuite',
            'TextTestRunner', 'TestLoader', 'FunctionTestCase', 'main',
            'defaultTestLoader', 'SkipTest', 'skip', 'skipIf', 'skipUnless',
            'expectedFailure', 'TextTestResult', 'installHandler',
-           'registerResult', 'removeResult', 'removeHandler',
-           'addModuleCleanup']
+           'registerResult', 'removeResult', 'removeHandler']
 
 # Expose obsolete functions for backwards compatibility
 __all__.extend(['getTestCaseNames', 'makeSuite', 'findTestCases'])
@@ -57,15 +56,14 @@ __all__.extend(['getTestCaseNames', 'makeSuite', 'findTestCases'])
 __unittest = True
 
 from .result import TestResult
-from .case import (addModuleCleanup, TestCase, FunctionTestCase, SkipTest, skip,
-                   skipIf, skipUnless, expectedFailure)
+from .case import (TestCase, FunctionTestCase, SkipTest, skip, skipIf,
+                   skipUnless, expectedFailure)
 from .suite import BaseTestSuite, TestSuite
 from .loader import (TestLoader, defaultTestLoader, makeSuite, getTestCaseNames,
                      findTestCases)
 from .main import TestProgram, main
 from .runner import TextTestRunner, TextTestResult
 from .signals import installHandler, registerResult, removeResult, removeHandler
-# IsolatedAsyncioTestCase will be imported lazily.
 
 # deprecated
 _TextTestResult = TextTestResult
@@ -78,18 +76,3 @@ def load_tests(loader, tests, pattern):
     # top level directory cached on loader instance
     this_dir = os.path.dirname(__file__)
     return loader.discover(start_dir=this_dir, pattern=pattern)
-
-
-# Lazy import of IsolatedAsyncioTestCase from .async_case
-# It imports asyncio, which is relatively heavy, but most tests
-# do not need it.
-
-def __dir__():
-    return globals().keys() | {'IsolatedAsyncioTestCase'}
-
-def __getattr__(name):
-    if name == 'IsolatedAsyncioTestCase':
-        global IsolatedAsyncioTestCase
-        from .async_case import IsolatedAsyncioTestCase
-        return IsolatedAsyncioTestCase
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

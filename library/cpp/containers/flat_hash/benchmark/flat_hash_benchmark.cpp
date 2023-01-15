@@ -1,7 +1,7 @@
 #include <library/cpp/containers/flat_hash/flat_hash.h>
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/random/random.h>
 #include <util/generic/xrange.h>

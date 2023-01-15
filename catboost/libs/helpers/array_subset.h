@@ -9,13 +9,12 @@
 
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/cpp/dbg_output/dump.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/dbg_output/dump.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
-#include <util/generic/overloaded.h>
 #include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
@@ -194,10 +193,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetIndexing
-        : public std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
+        : public TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
     {
     public:
-        using TBase = std::variant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
+        using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
         // default constructor is necessary for BinSaver serialization & Cython
@@ -230,67 +229,80 @@ namespace NCB {
         }
 
         bool IsFullSubset() const {
-            return std::holds_alternative<TFullSubset<TSize>>(*this);
+            return HoldsAlternative<TFullSubset<TSize>>(*this);
         }
 
         TSize Size() const {
-            return std::visit(TOverloaded{
-                [](const TFullSubset<TSize>& subset) { return subset.Size; },
-                [](const TRangesSubset<TSize>& subset) { return subset.Size; },
-                [](const TIndexedSubset<TSize>& subset) -> TSize { return subset.size(); }
-            }, *this);
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return Get<TFullSubset<TSize>>().Size;
+                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
+                    return Get<TRangesSubset<TSize>>().Size;
+                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
+                    return static_cast<TSize>(Get<TIndexedSubset<TSize>>().size());
+            }
+            return 0; // just to silence compiler warnings
         }
 
         // number of elements for TFullSubset or TIndexedSubset, number of ranges for TRangesSubset
         TSize GetParallelizableUnitsCount() const {
-            return std::visit(TOverloaded{
-                [](const TFullSubset<TSize>& subset) -> TSize { return subset.Size; },
-                [](const TRangesSubset<TSize>& subset) -> TSize { return subset.Blocks.size(); },
-                [](const TIndexedSubset<TSize>& subset) -> TSize { return subset.size(); }
-            }, *this);
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return Get<TFullSubset<TSize>>().Size;
+                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
+                    return Get<TRangesSubset<TSize>>().Blocks.size();
+                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
+                    return static_cast<TSize>(Get<TIndexedSubset<TSize>>().size());
+            }
+            return 0; // just to silence compiler warnings
         }
 
-        // Had to redefine Get because automatic resolution does not work with current std::variant implementation
+        // Had to redefine Get because automatic resolution does not work with current TVariant implementation
         template <class T>
         decltype(auto) Get() {
-            return std::get<T>((TBase&)*this);
+            return ::Get<T>((TBase&)*this);
         }
 
         template <class T>
         decltype(auto) Get() const {
-            return std::get<T>((const TBase&)*this);
+            return ::Get<T>((const TBase&)*this);
         }
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
             return ConsecutiveSubsetBeginCache;
         }
         // returns Nothing() if subset is not consecutive
         TMaybe<TSize> GetConsecutiveSubsetBeginImpl() const {
-            return std::visit(TOverloaded{
-                [](const TFullSubset<TSize>&) -> TMaybe<TSize> { return 0; },
-                [](const TRangesSubset<TSize>& subset) -> TMaybe<TSize> {
-                    const auto& blocks = subset.Blocks;
-                    if (blocks.size() == 0) {
-                        return TSize(0);
-                    }
-                    for (auto i : xrange(blocks.size() - 1)) {
-                        if (blocks[i].SrcEnd != blocks[i + 1].SrcBegin) {
-                            return Nothing();
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return TSize(0);
+                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
+                    {
+                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
+                        if (blocks.size() == 0) {
+                            return TSize(0);
                         }
-                    }
-                    return blocks[0].SrcBegin;
-                },
-                [](const TIndexedSubset<TSize>& indices) -> TMaybe<TSize> {
-                    if (indices.size() == 0) {
-                        return TSize(0);
-                    }
-                    for (auto i : xrange(indices.size() - 1)) {
-                        if ((indices[i] + 1) != indices[i + 1]) {
-                            return Nothing();
+                        for (auto i : xrange(blocks.size() - 1)) {
+                            if (blocks[i].SrcEnd != blocks[i + 1].SrcBegin) {
+                                return Nothing();
+                            }
                         }
+                        return blocks[0].SrcBegin;
                     }
-                    return indices[0];
-                }
-            }, *this);
+                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
+                    {
+                        TConstArrayRef<TSize> indices = Get<TIndexedSubset<TSize>>();
+                        if (indices.size() == 0) {
+                            return TSize(0);
+                        }
+                        for (auto i : xrange(indices.size() - 1)) {
+                            if ((indices[i] + 1) != indices[i + 1]) {
+                                return Nothing();
+                            }
+                        }
+                        return indices[0];
+                    }
+            }
+            return Nothing(); // just to silence compiler warnings
         }
 
         bool IsConsecutive() const {
@@ -339,56 +351,84 @@ namespace NCB {
 
         // might be used for external parallelism if you need element indices of the subrange
         NCB::TIndexRange<TSize> GetElementRangeFromUnitRange(NCB::TIndexRange<TSize> unitRange) const {
-            return std::visit(TOverloaded{
-                [&](const TFullSubset<TSize>&) { return unitRange; },
-                [&](const TRangesSubset<TSize>& rangesSubset) {
-                    const auto& blocks = rangesSubset.Blocks;
-                    return NCB::TIndexRange<TSize>(
-                        blocks[unitRange.Begin].DstBegin,
-                        unitRange.End < blocks.size() ? blocks[unitRange.End].DstBegin : rangesSubset.Size
-                    );
-                },
-                [&](const TIndexedSubset<TSize>&) { return unitRange; }
-            }, *this);
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return unitRange;
+                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
+                    {
+                        const auto& rangesSubset = Get<TRangesSubset<TSize>>();
+                        const auto& blocks = rangesSubset.Blocks;
+                        return NCB::TIndexRange<TSize>(
+                            blocks[unitRange.Begin].DstBegin,
+                            unitRange.End < blocks.size() ? blocks[unitRange.End].DstBegin : rangesSubset.Size
+                        );
+                    }
+                    break;
+                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
+                    return unitRange;
+            }
+            return NCB::TIndexRange<TSize>(0); // silence compiler warnings
         }
 
 // need to be able to use 'break' or 'return' in iteration
 #define LOOP_SUB_RANGE(unitSubRange, LOOP_BODY_MACRO) \
-        if (std::holds_alternative<TFullSubset<TSize>>(*this)) { \
-            for (TSize index : unitSubRange.Iter()) { \
-                LOOP_BODY_MACRO(index, index) \
-            } \
-        } else if (const auto* ranges = std::get_if<TRangesSubset<TSize>>(this)) { \
-            const auto& blocks = ranges->Blocks; \
-            for (TSize blockIndex : unitSubRange.Iter()) { \
-                auto block = blocks[blockIndex]; \
-                TSize index = block.DstBegin; \
-                for (TSize srcIndex = block.SrcBegin; \
-                     srcIndex != block.SrcEnd; \
-                     ++srcIndex, ++index) \
+        switch (TBase::index()) { \
+            case TVariantIndexV<TFullSubset<TSize>, TBase>: \
                 { \
-                    LOOP_BODY_MACRO(index, srcIndex) \
+                    for (TSize index : unitSubRange.Iter()) { \
+                        LOOP_BODY_MACRO(index, index) \
+                    } \
                 } \
-            } \
-        } else if (const auto* srcIndex = std::get_if<TIndexedSubset<TSize>>(this)) { \
-            for (TSize index : unitSubRange.Iter()) { \
-                LOOP_BODY_MACRO(index, (*srcIndex)[index]) \
-            } \
+                break; \
+            case TVariantIndexV<TRangesSubset<TSize>, TBase>: \
+                { \
+                    const auto& blocks = Get<TRangesSubset<TSize>>().Blocks; \
+                    for (TSize blockIndex : unitSubRange.Iter()) { \
+                        auto block = blocks[blockIndex]; \
+                        TSize index = block.DstBegin; \
+                        for (TSize srcIndex = block.SrcBegin; \
+                             srcIndex != block.SrcEnd; \
+                             ++srcIndex, ++index) \
+                        { \
+                            LOOP_BODY_MACRO(index, srcIndex) \
+                        } \
+                    } \
+                } \
+                break; \
+            case TVariantIndexV<TIndexedSubset<TSize>, TBase>: \
+                { \
+                    const auto& srcIndex = Get<TIndexedSubset<TSize>>(); \
+                    for (TSize index : unitSubRange.Iter()) { \
+                        LOOP_BODY_MACRO(index, srcIndex[index]) \
+                    } \
+                } \
+                break; \
         }
 
 
 // need to be able to use 'break' or 'return' in iteration
 #define LOOP_SUB_RANGE_BLOCKWISE(unitSubRange, BLOCK_MACRO) \
-        if (std::holds_alternative<TFullSubset<TSize>>(*this)) { \
-            BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, (TSize*)nullptr) \
-        } else if (const auto* ranges = std::get_if<TRangesSubset<TSize>>(this)) { \
-            const auto& blocks = ranges->Blocks; \
-            for (TSize blockIndex : unitSubRange.Iter()) { \
-                const auto block = blocks[blockIndex]; \
-                BLOCK_MACRO(block.SrcBegin, block.SrcEnd, block.DstBegin, (TSize*)nullptr) \
-            } \
-        } else if (const auto* srcIndex = std::get_if<TIndexedSubset<TSize>>(this)) { \
-            BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, srcIndex->data()) \
+        switch (TBase::index()) { \
+            case TVariantIndexV<TFullSubset<TSize>, TBase>: \
+                { \
+                    BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, (TSize*)nullptr) \
+                } \
+                break; \
+            case TVariantIndexV<TRangesSubset<TSize>, TBase>: \
+                { \
+                    const auto& blocks = Get<TRangesSubset<TSize>>().Blocks; \
+                    for (TSize blockIndex : unitSubRange.Iter()) { \
+                        const auto block = blocks[blockIndex]; \
+                        BLOCK_MACRO(block.SrcBegin, block.SrcEnd, block.DstBegin, (TSize*)nullptr) \
+                    } \
+                } \
+                break; \
+            case TVariantIndexV<TIndexedSubset<TSize>, TBase>: \
+                { \
+                    const auto& srcIndex = Get<TIndexedSubset<TSize>>(); \
+                    BLOCK_MACRO(unitSubRange.Begin, unitSubRange.End, unitSubRange.Begin, srcIndex.data()) \
+                } \
+                break; \
         }
 
 
@@ -451,7 +491,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::ILocalExecutor* localExecutor,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             if (!Size()) {
@@ -479,7 +519,7 @@ namespace NCB {
                     ForEachInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
                 0,
-                SafeIntegerCast<int>(parallelUnitRanges.RangesCount()),
+                (int)parallelUnitRanges.RangesCount(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
@@ -494,7 +534,7 @@ namespace NCB {
         template <class F>
         void ParallelForEachBlockwise(
             F&& f,
-            NPar::ILocalExecutor* localExecutor,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             if (!Size()) {
@@ -522,7 +562,7 @@ namespace NCB {
                     ForEachBlockwiseInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
                 0,
-                SafeIntegerCast<int>(parallelUnitRanges.RangesCount()),
+                (int)parallelUnitRanges.RangesCount(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
@@ -570,7 +610,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetIndexing<TSize>& subset) {
-        std::visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
+        Visit(NCB::TDumperArraySubsetVisitor<S, TSize>(s), subset);
     }
 };
 
@@ -580,32 +620,38 @@ namespace NCB {
     // TODO(akhropov): too expensive for release?
     template <class TSize = size_t>
     void CheckSubsetIndices(const TArraySubsetIndexing<TSize>& srcSubset, TSize srcSize) {
-        std::visit(TOverloaded{
-            [&](const TFullSubset<TSize>&) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.index()) {
+            case TVariantIndexV<TFullSubset<TSize>, TVariantType>:
                 CB_ENSURE(
                     srcSize == srcSubset.Size(),
                     "srcSubset is TFullSubset, but has different size from src's size"
                 );
-            },
-            [&](const TRangesSubset<TSize>& rangesSrcSubset) {
-                for (auto i : xrange(rangesSrcSubset.Blocks.size())) {
-                    CB_ENSURE(
-                        rangesSrcSubset.Blocks[i].SrcEnd <= srcSize,
-                        "TRangesSubset.Blocks[" <<  i << "].SrcEnd (" << rangesSrcSubset.Blocks[i].SrcEnd
-                        << ") > srcSize (" << srcSize << ')'
-                    );
+                break;
+            case TVariantIndexV<TRangesSubset<TSize>, TVariantType>: {
+                    const auto& rangesSrcSubset = srcSubset.template Get<TRangesSubset<TSize>>();
+                    for (auto i : xrange(rangesSrcSubset.Blocks.size())) {
+                        CB_ENSURE(
+                            rangesSrcSubset.Blocks[i].SrcEnd <= srcSize,
+                            "TRangesSubset.Blocks[" <<  i << "].SrcEnd (" << rangesSrcSubset.Blocks[i].SrcEnd
+                            << ") > srcSize (" << srcSize << ')'
+                        );
+                    }
                 }
-            },
-            [&](const TIndexedSubset<TSize>& indexedSrcSubset) {
-                for (auto i : xrange(indexedSrcSubset.size())) {
-                    CB_ENSURE(
-                        indexedSrcSubset[i] < srcSize,
-                        "TIndexedSubset[" <<  i << "] (" << indexedSrcSubset[i]
-                        << ") >= srcSize (" << srcSize << ')'
-                    );
+                break;
+            case TVariantIndexV<TIndexedSubset<TSize>, TVariantType>: {
+                    const auto& indexedSrcSubset = srcSubset.template Get<TIndexedSubset<TSize>>();
+                    for (auto i : xrange(indexedSrcSubset.size())) {
+                        CB_ENSURE(
+                            indexedSrcSubset[i] < srcSize,
+                            "TIndexedSubset[" <<  i << "] (" << indexedSrcSubset[i]
+                            << ") >= srcSize (" << srcSize << ')'
+                        );
+                    }
                 }
-            }
-        }, srcSubset);
+                break;
+        }
     }
 
 
@@ -711,17 +757,23 @@ namespace NCB {
         const TRangesSubset<TSize>& src,
         const TArraySubsetIndexing<TSize>& srcSubset
     ) {
-        return std::visit(TOverloaded{
-            [&](const TFullSubset<TSize>&) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.index()) {
+            case TVariantIndexV<TFullSubset<TSize>, TVariantType>:
                 CB_ENSURE(
                     src.Size == srcSubset.Size(),
                     "srcSubset is TFullSubset, but has different size from src's size"
                 );
                 return TArraySubsetIndexing<TSize>(TRangesSubset<TSize>(src));
-            },
-            [&](const TRangesSubset<TSize>& ranges) { return Compose(src, ranges); },
-            [&](const TIndexedSubset<TSize>& indices) { return Compose(src, indices); },
-        }, srcSubset);
+            case TVariantIndexV<TRangesSubset<TSize>, TVariantType>:
+                return Compose(src, srcSubset.template Get<TRangesSubset<TSize>>());
+            case TVariantIndexV<TIndexedSubset<TSize>, TVariantType>:
+                return Compose(src, srcSubset.template Get<TIndexedSubset<TSize>>());
+        }
+        Y_FAIL("This should be unreachable");
+        // return something to keep compiler happy
+        return TArraySubsetIndexing<TSize>( TFullSubset<TSize>(0) );
     }
 
     template <class TSize = size_t>
@@ -773,17 +825,23 @@ namespace NCB {
         const TIndexedSubset<TSize>& src,
         const TArraySubsetIndexing<TSize>& srcSubset
     ) {
-        return std::visit(TOverloaded{
-            [&](const TFullSubset<TSize>&) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.index()) {
+            case TVariantIndexV<TFullSubset<TSize>, TVariantType>:
                 CB_ENSURE(
                     src.size() == srcSubset.Size(),
                     "srcSubset is TFullSubset, but has different size from src's size"
                 );
                 return TArraySubsetIndexing<TSize>(TIndexedSubset<TSize>(src));
-            },
-            [&](const TRangesSubset<TSize>& ranges) { return Compose(src, ranges); },
-            [&](const TIndexedSubset<TSize>& indices) { return Compose(src, indices); },
-        }, srcSubset);
+            case TVariantIndexV<TRangesSubset<TSize>, TVariantType>:
+                return Compose(src, srcSubset.template Get<TRangesSubset<TSize>>());
+            case TVariantIndexV<TIndexedSubset<TSize>, TVariantType>:
+                return Compose(src, srcSubset.template Get<TIndexedSubset<TSize>>());
+        }
+        Y_FAIL("This should be unreachable");
+        // return something to keep compiler happy
+        return TArraySubsetIndexing<TSize>( TFullSubset<TSize>(0) );
     }
 
 
@@ -794,7 +852,7 @@ namespace NCB {
         const TArraySubsetIndexing<TSize>& src,
         const TArraySubsetIndexing<TSize>& srcSubset
     ) {
-        return ::std::visit([&](const auto& val) {
+        return ::Visit([&](const auto& val) {
             return Compose(val, srcSubset);
         }, src);
     }
@@ -809,9 +867,9 @@ namespace NCB {
     template <class TSize = size_t>
     TArraySubsetIndexing<TSize> MakeIncrementalIndexing(
         const TArraySubsetIndexing<TSize>& indexing,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
-        if (std::holds_alternative<TFullSubset<TSize>>(indexing)) {
+        if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
             return indexing;
         } else {
             TVector<TSize> indices;
@@ -892,7 +950,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::ILocalExecutor* localExecutor,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) {
             SubsetIndexing->ParallelForEach(
@@ -907,7 +965,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::ILocalExecutor* localExecutor,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             SubsetIndexing->ParallelForEach(
@@ -960,7 +1018,7 @@ namespace NCB {
     inline TVector<TDst> GetSubset(
         const TSrcArrayLike& srcArrayLike,
         const TArraySubsetIndexing<TSize>& subsetIndexing,
-        TMaybe<NPar::ILocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
         TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         TVector<TDst> dst;
@@ -986,7 +1044,7 @@ namespace NCB {
     inline TMaybe<TVector<T>, TMaybePolicy> GetSubsetOfMaybeEmpty(
         TMaybe<TConstArrayRef<T>, TMaybePolicy> src,
         const TArraySubsetIndexing<TSize>& subsetIndexing,
-        TMaybe<NPar::ILocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
         TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         if (!src) {
@@ -1012,7 +1070,7 @@ namespace NCB {
      *    for concrete iterator types to avoid double dynamic dispatch.
      */
     template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator, class TTransformer>
-    class TArraySubsetBlockIterator final : public IDynamicBlockWithExactIterator<TDstValue> {
+    class TArraySubsetBlockIterator final : public IDynamicBlockIterator<TDstValue> {
     public:
         TArraySubsetBlockIterator(
             TArrayLike src,
@@ -1027,17 +1085,14 @@ namespace NCB {
         {}
 
         TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
-            return NextExact(Min(maxBlockSize, RemainingSize));
-        }
-
-        TConstArrayRef<TDstValue> NextExact(size_t exactBlockSize) override {
-            Buffer.yresize(exactBlockSize);
+            const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
+            Buffer.yresize(dstBlockSize);
             typename TSubsetIndexingIterator::value_type index;
             for (auto& dstElement : Buffer) {
                 SubsetIndexingIterator.Next(&index);
                 dstElement = Transformer(Src[index]);
             }
-            RemainingSize -= exactBlockSize;
+            RemainingSize -= dstBlockSize;
             return Buffer;
         }
 
@@ -1059,8 +1114,8 @@ namespace NCB {
         const ui32 size = subsetIndexing->Size();
         const ui32 remainingSize = size - offset;
 
-        return std::visit(TOverloaded{
-            [&](const TFullSubset<ui32>&) -> IDynamicBlockIteratorPtr<TDstValue> {
+        switch (subsetIndexing->index()) {
+            case TVariantIndexV<TFullSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
                 return MakeHolder<
                         TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangeIterator<ui32>, TTransformer>
                     >(
@@ -1069,28 +1124,32 @@ namespace NCB {
                         TRangeIterator<ui32>(TIndexRange<ui32>(offset, size)),
                         std::move(transformer)
                     );
-            },
-            [&](const TRangesSubset<ui32>& ranges) -> IDynamicBlockIteratorPtr<TDstValue> {
+            case TVariantIndexV<TRangesSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
                 return MakeHolder<
                         TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangesSubsetIterator<ui32>, TTransformer>
                     >(
                         std::move(src),
                         remainingSize,
-                        TRangesSubsetIterator<ui32>(ranges, offset),
+                        TRangesSubsetIterator<ui32>(subsetIndexing->Get<TRangesSubset<ui32>>(), offset),
                         std::move(transformer)
                     );
-            },
-            [&](const TIndexedSubset<ui32>& indexedSubset) -> IDynamicBlockIteratorPtr<TDstValue> {
-                using TIterator = TStaticIteratorRangeAsDynamic<const ui32*>;
+            case TVariantIndexV<TIndexedSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                {
+                    using TIterator = TStaticIteratorRangeAsDynamic<const ui32*>;
 
-                return MakeHolder<TArraySubsetBlockIterator<TDstValue, TArrayLike, TIterator, TTransformer>>(
-                    std::move(src),
-                    remainingSize,
-                    TIterator(indexedSubset.begin() + offset, indexedSubset.end()),
-                    std::move(transformer)
-                );
-            }
-        }, *subsetIndexing);
+                    const auto& indexedSubset = subsetIndexing->Get<TIndexedSubset<ui32>>();
+
+                    return MakeHolder<TArraySubsetBlockIterator<TDstValue, TArrayLike, TIterator, TTransformer>>(
+                        std::move(src),
+                        remainingSize,
+                        TIterator(indexedSubset.begin() + offset, indexedSubset.end()),
+                        std::move(transformer)
+                    );
+                }
+            default:
+                Y_UNREACHABLE();
+        }
+        Y_UNREACHABLE();
     }
 
     template <class TDstValue, class TArrayLike>
@@ -1137,10 +1196,10 @@ namespace NCB {
 
     template <class TSize>
     class TArraySubsetInvertedIndexing
-        : public std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
+        : public TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>
     {
     public:
-        using TBase = std::variant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
+        using TBase = TVariant<TFullSubset<TSize>, TInvertedIndexedSubset<TSize>>;
 
     public:
         explicit TArraySubsetInvertedIndexing(TFullSubset<TSize>&& subset)
@@ -1157,21 +1216,24 @@ namespace NCB {
 
         template <class T>
         decltype(auto) Get() const {
-            return std::get<T>((const TBase&)*this);
+            return ::Get<T>((const TBase&)*this);
         }
 
         TSize GetSize() const {
-            return std::visit(
+            return Visit(
                 [&] (const auto& variant) { return variant.GetSize(); },
                 *this
             );
         }
 
         TSize GetSrcSize() const {
-            std::visit(TOverloaded{
-                [](const TFullSubset<TSize>& subset) { return subset.GetSize(); },
-                [](const TInvertedIndexedSubset<TSize>& inverted) { return inverted.GetMapping().size(); }
-            }, *this);
+            switch (TBase::index()) {
+                case TVariantIndexV<TFullSubset<TSize>, TBase>:
+                    return Get<TFullSubset<TSize>>().GetSize();
+                case TVariantIndexV<TInvertedIndexedSubset<TSize>, TBase>:
+                    return Get<TInvertedIndexedSubset<TSize>>().GetMapping().size();
+            }
+            Y_UNREACHABLE();
         }
     };
 
@@ -1179,10 +1241,14 @@ namespace NCB {
     TArraySubsetInvertedIndexing<TSize> GetInvertedIndexing(
         const TArraySubsetIndexing<TSize>& indexing,
         TSize srcSize,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
-        if (const auto* fullSubset = std::get_if<TFullSubset<TSize>>(&indexing)) {
-            return TArraySubsetInvertedIndexing<TSize>(TFullSubset<TSize>(*fullSubset));
+        if (indexing.index()
+            == TVariantIndexV<TFullSubset<TSize>, typename TArraySubsetIndexing<TSize>::TBase>)
+        {
+            return TArraySubsetInvertedIndexing<TSize>(
+                TFullSubset<TSize>(Get<TFullSubset<TSize>>(indexing))
+            );
         }
 
         TVector<TSize> invertedIndices;
@@ -1212,16 +1278,16 @@ namespace NCB {
     TArraySubsetInvertedIndexing<TSize> Compose(
         const TArraySubsetInvertedIndexing<TSize>& src,
         TArraySubsetInvertedIndexing<TSize>&& srcSubset,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         CB_ENSURE_INTERNAL(
             src.GetSize() >= srcSubset.GetSrcSize(),
             "srcSubset has source mapping size greater than src's size"
         );
-        if (std::holds_alternative<TFullSubset<TSize>>(src)) {
+        if (HoldsAlternative<TFullSubset<TSize>>(src)) {
             return std::move(srcSubset);
         }
-        if (std::holds_alternative<TFullSubset<TSize>>(srcSubset)) {
+        if (HoldsAlternative<TFullSubset<TSize>>(srcSubset)) {
             return src;
         }
 
@@ -1289,7 +1355,7 @@ template <class TSize>
 struct TDumper<NCB::TArraySubsetInvertedIndexing<TSize>> {
     template <class S>
     static inline void Dump(S& s, const NCB::TArraySubsetInvertedIndexing<TSize>& invertedSubset) {
-        std::visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
+        Visit(NCB::TDumperArraySubsetInvertedIndexingVisitor<S, TSize>(s), invertedSubset);
     }
 };
 

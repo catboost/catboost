@@ -7,7 +7,6 @@ ELSE()
 ENDIF()
 
 SRCS(
-    test_calculate_threshold.cpp
     test_compression_cpu.cpp
     test_compression_gpu.cpp
     test_fill.cpp

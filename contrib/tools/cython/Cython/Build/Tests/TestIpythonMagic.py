@@ -13,8 +13,15 @@ from Cython.TestUtils import CythonTest
 
 try:
     import IPython.testing.globalipapp
+    from IPython.utils import py3compat
 except ImportError:
     # Disable tests and fake helpers for initialisation below.
+    class _py3compat(object):
+        def str_to_unicode(self, s):
+            return s
+
+    py3compat = _py3compat()
+
     def skip_if_not_installed(_):
         return None
 else:
@@ -28,24 +35,24 @@ try:
 except ImportError:
     pass
 
-code = u"""\
+code = py3compat.str_to_unicode("""\
 def f(x):
     return 2*x
-"""
+""")
 
-cython3_code = u"""\
+cython3_code = py3compat.str_to_unicode("""\
 def f(int x):
     return 2 / x
 
 def call(x):
     return f(*(x,))
-"""
+""")
 
-pgo_cython3_code = cython3_code + u"""\
+pgo_cython3_code = cython3_code + py3compat.str_to_unicode("""\
 def main():
     for _ in range(100): call(5)
 main()
-"""
+""")
 
 
 if sys.platform == 'win32':
@@ -154,10 +161,10 @@ class TestIPythonMagic(CythonTest):
     @skip_win32('Skip on Windows')
     def test_extlibs(self):
         ip = self._ip
-        code = u"""
+        code = py3compat.str_to_unicode("""
 from libc.math cimport sin
 x = sin(0.0)
-        """
+        """)
         ip.user_ns['x'] = 1
         ip.run_cell_magic('cython', '-l m', code)
         self.assertEqual(ip.user_ns['x'], 0)
@@ -195,11 +202,11 @@ x = sin(0.0)
             ip.run_cell_magic('cython', '--verbose', code)
             ip.ex('g = f(10)')
         self.assertEqual(ip.user_ns['g'], 20.0)
-        self.assertEqual([verbose_log.INFO, verbose_log.DEBUG, verbose_log.INFO],
+        self.assertEquals([verbose_log.INFO, verbose_log.DEBUG, verbose_log.INFO],
                           verbose_log.thresholds)
 
         with mock_distutils() as normal_log:
             ip.run_cell_magic('cython', '', code)
             ip.ex('g = f(10)')
         self.assertEqual(ip.user_ns['g'], 20.0)
-        self.assertEqual([normal_log.INFO], normal_log.thresholds)
+        self.assertEquals([normal_log.INFO], normal_log.thresholds)

@@ -1,6 +1,6 @@
 // Used indirectly. See build/scripts/vcs_info.py
 // ya-bin dump vcs-info > vcs.json
-// python build/scripts/vcs_info.py vcs.json out.c build/scripts/c_templates/svn_interface.c <any_prefix>library/cpp/svnversion<any_suffix>
+// python build/scripts/vcs_info.py vcs.json out.c build/scripts/c_templates/svn_interface.c <any_prefix>library/svnversion<any_suffix>
 
 
 #include "build/scripts/c_templates/svnversion.h"
@@ -69,15 +69,6 @@ const char* GetArcadiaLastAuthor() {
 int GetProgramSvnRevision() {
 #if defined(ARCADIA_SOURCE_REVISION)
     return ARCADIA_SOURCE_REVISION;
-#else
-    return 0;
-#endif
-}
-
-const char* GetVCSDirty()
-{
-#if defined(DIRTY)
-    return DIRTY;
 #else
     return 0;
 #endif
@@ -167,7 +158,7 @@ const char* GetBranch() {
 #endif
 }
 
-int GetArcadiaPatchNumber() {
+int GetArcadiaGitPatchNumber() {
 #if defined(ARCADIA_PATCH_NUMBER)
     return ARCADIA_PATCH_NUMBER;
 #else

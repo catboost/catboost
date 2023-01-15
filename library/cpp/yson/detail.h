@@ -10,7 +10,7 @@
 #include <util/string/cast.h>
 #include <util/stream/input.h>
 
-namespace NYson {
+namespace NYT {
     namespace NDetail {
         ////////////////////////////////////////////////////////////////////////////////
 
@@ -214,7 +214,7 @@ namespace NYson {
             }
 
             bool ReadVarint32Fallback(ui32* value) {
-                if (BeginByte() + MaxVarintBytes <= EndByte() ||
+                if (BeginByte() + MaxVarint32Bytes <= EndByte() ||
                     // Optimization:  If the Varint ends at exactly the end of the buffer,
                     // we can detect that and still use the fast path.
                     (BeginByte() < EndByte() && !(EndByte()[-1] & 0x80)))
@@ -425,10 +425,10 @@ namespace NYson {
 
             template <bool AllowFinish>
             double ReadNanOrInf() {
-                static const TStringBuf nanString = "nan";
-                static const TStringBuf infString = "inf";
-                static const TStringBuf plusInfString = "+inf";
-                static const TStringBuf minusInfString = "-inf";
+                static const auto nanString = AsStringBuf("nan");
+                static const auto infString = AsStringBuf("inf");
+                static const auto plusInfString = AsStringBuf("+inf");
+                static const auto minusInfString = AsStringBuf("-inf");
 
                 TStringBuf expectedString;
                 double expectedValue;
@@ -560,8 +560,8 @@ namespace NYson {
             bool ReadBoolean() {
                 Buffer_.clear();
 
-                static TStringBuf trueString = "true";
-                static TStringBuf falseString = "false";
+                static auto trueString = AsStringBuf("true");
+                static auto falseString = AsStringBuf("false");
 
                 auto throwIncorrectBoolean = [&]() {
                     ythrow TYsonException() << "Incorrect boolean string " << TString(Buffer_.data(), Buffer_.size());
@@ -803,4 +803,4 @@ namespace NYson {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

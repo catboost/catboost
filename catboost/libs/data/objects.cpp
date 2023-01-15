@@ -31,10 +31,10 @@
 
 using namespace NCB;
 
-template <class TGroupIdClass>
+
 static void CheckGroupIds(
     ui32 objectCount,
-    TMaybeData<TConstArrayRef<TGroupIdClass>> groupIds,
+    TMaybeData<TConstArrayRef<TGroupId>> groupIds,
     TMaybe<TObjectsGroupingPtr> objectsGrouping
 ) {
     if (!groupIds) {
@@ -45,7 +45,7 @@ static void CheckGroupIds(
     CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
 
 
-    TVector<TGroupIdClass> groupGroupIds;
+    TVector<TGroupId> groupGroupIds;
     TGroupBounds currentGroupBounds(0); // used only if objectsGrouping is defined
 
     if (objectsGrouping.Defined()) {
@@ -62,7 +62,7 @@ static void CheckGroupIds(
         currentGroupBounds = (*objectsGrouping)->GetGroup(0);
     }
 
-    TGroupIdClass lastGroupId = groupIdsData[0];
+    TGroupId lastGroupId = groupIdsData[0];
     groupGroupIds.emplace_back(lastGroupId);
 
     // using ui32 for counters/indices here is safe because groupIdsData' size was checked above
@@ -86,6 +86,22 @@ static void CheckGroupIds(
     auto it = std::adjacent_find(groupGroupIds.begin(), groupGroupIds.end());
     CB_ENSURE(it == groupGroupIds.end(), "group Ids are not consecutive");
 }
+
+
+TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
+    ui32 objectCount,
+    TMaybeData<TConstArrayRef<TGroupId>> groupIds
+) {
+    if (!groupIds) {
+        return TObjectsGrouping(objectCount);
+    }
+    auto groupIdsData = *groupIds;
+
+    CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
+
+    return TObjectsGrouping(GroupSamples(groupIdsData), true);
+}
+
 
 static bool HaveMoreThanOneKeyOrAnyValueMismatch(
     const THashMap<ui32, TString>& lhs,
@@ -163,15 +179,10 @@ bool NCB::TCommonObjectsData::EqualTo(const NCB::TCommonObjectsData& rhs, bool i
         return false;
     }
 
-    return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) && (StoreStringColumns == rhs.StoreStringColumns) &&
-        (SampleId == rhs.SampleId) && (GroupIds == rhs.GroupIds) && (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp);
+    return FeaturesLayout->EqualTo(*rhs.FeaturesLayout, ignoreSparsity) && (Order == rhs.Order) &&
+        (GroupIds == rhs.GroupIds) && (SubgroupIds == rhs.SubgroupIds) && (Timestamp == rhs.Timestamp);
 }
 
-void NCB::TCommonObjectsData::SetStoreStringColumns(bool storeStringColumns) {
-    SubgroupIds.SetStoreStringColumns(storeStringColumns);
-    GroupIds.SetStoreStringColumns(storeStringColumns);
-    StoreStringColumns = storeStringColumns;
-}
 
 void NCB::TCommonObjectsData::PrepareForInitialization(
     const TDataMetaInfo& metaInfo,
@@ -179,22 +190,9 @@ void NCB::TCommonObjectsData::PrepareForInitialization(
     ui32 prevTailCount
 ) {
     FeaturesLayout = metaInfo.FeaturesLayout;
-    if (prevTailCount == 0) {
-        SetStoreStringColumns(metaInfo.StoreStringColumns);
-    } else {
-        SubgroupIds.SetStoreStringColumnsVal(metaInfo.StoreStringColumns);
-        GroupIds.SetStoreStringColumnsVal(metaInfo.StoreStringColumns);
-        StoreStringColumns = metaInfo.StoreStringColumns;
-    }
 
-    if (StoreStringColumns) {
-        NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds.GetMaybeStringData());
-        NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds.GetMaybeStringData());
-        NCB::PrepareForInitialization(metaInfo.HasSampleId, objectCount, prevTailCount, &SampleId);
-    } else {
-        NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds.GetMaybeNumData());
-        NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds.GetMaybeNumData());
-    }
+    NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, prevTailCount, &GroupIds);
+    NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, prevTailCount, &SubgroupIds);
     NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, prevTailCount, &Timestamp);
 
     const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
@@ -206,38 +204,14 @@ void NCB::TCommonObjectsData::PrepareForInitialization(
     }
 }
 
-void NCB::TCommonObjectsData::SetBuildersArrayRef(
-    const TDataMetaInfo& metaInfo,
-    TArrayRef<TGroupId>* numGroupIdsRefPtr,
-    TArrayRef<TString>* stringGroupIdsRefPtr,
-    TArrayRef<TSubgroupId>* numSubgroupIdsRefPtr,
-    TArrayRef<TString>* stringSubgroupIdsRefPtr
-) {
-    if (StoreStringColumns) {
-        if (metaInfo.HasGroupId) {
-            *stringGroupIdsRefPtr = GroupIds.GetMaybeStringData().GetRef();
-        }
-        if (metaInfo.HasSubgroupIds) {
-            *stringSubgroupIdsRefPtr = SubgroupIds.GetMaybeStringData().GetRef();
-        }
-    } else {
-        if (metaInfo.HasGroupId) {
-            *numGroupIdsRefPtr = GroupIds.GetMaybeNumData().GetRef();
-        }
-        if (metaInfo.HasSubgroupIds) {
-            *numSubgroupIdsRefPtr = SubgroupIds.GetMaybeNumData().GetRef();
-        }
-    }
-}
-
 
 void NCB::TCommonObjectsData::CheckAllExceptGroupIds() const {
-    if (SubgroupIds.IsDefined()) {
+    if (SubgroupIds) {
         CB_ENSURE(
-            GroupIds.IsDefined(),
+            GroupIds,
             "non-empty SubgroupIds when GroupIds is not defined"
         );
-        CheckDataSize(SubgroupIds.GetSize(), GroupIds.GetSize(), "Subgroup Ids", false, "Group Ids size");
+        CheckDataSize(SubgroupIds->size(), GroupIds->size(), "Subgroup Ids", false, "Group Ids size");
     }
     if (Timestamp) {
         CheckDataSize(Timestamp->size(), (size_t)SubsetIndexing->Size(), "Timestamp");
@@ -255,23 +229,18 @@ void NCB::TCommonObjectsData::Check(TMaybe<TObjectsGroupingPtr> objectsGrouping)
             "SubsetIndexing's Size"
         );
     }
-    if (StoreStringColumns) {
-        CheckGroupIds<TString>(SubsetIndexing->Size(), GroupIds.GetMaybeStringData(), objectsGrouping);
-    } else {
-        CheckGroupIds<TGroupId>(SubsetIndexing->Size(), GroupIds.GetMaybeNumData(), objectsGrouping);
-    }
+    CheckGroupIds(SubsetIndexing->Size(), GroupIds, objectsGrouping);
     CheckAllExceptGroupIds();
 }
 
 NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData result;
     result.ResourceHolders = ResourceHolders;
     result.FeaturesLayout = FeaturesLayout;
     result.Order = Combine(Order, objectsGroupingSubset.GetObjectSubsetOrder());
-    result.SetStoreStringColumns(StoreStringColumns);
 
     result.CatFeaturesHashToString = CatFeaturesHashToString;
 
@@ -287,8 +256,8 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
 
     tasks.emplace_back(
         [&, this]() {
-            result.GroupIds = GetSubsetFromMaybeStringOrNumIdColumn(
-                GroupIds,
+            result.GroupIds = GetSubsetOfMaybeEmpty<TGroupId>(
+                (TMaybeData<TConstArrayRef<TGroupId>>)GroupIds,
                 objectsGroupingSubset.GetObjectsIndexing(),
                 localExecutor
             );
@@ -296,17 +265,8 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     );
     tasks.emplace_back(
         [&, this]() {
-            result.SampleId = GetSubsetOfMaybeEmpty<TString>(
-                (TMaybeData<TConstArrayRef<TString>>) SampleId,
-                objectsGroupingSubset.GetObjectsIndexing(),
-                localExecutor
-            );
-        }
-    );
-    tasks.emplace_back(
-        [&, this]() {
-            result.SubgroupIds = GetSubsetFromMaybeStringOrNumIdColumn(
-                SubgroupIds,
+            result.SubgroupIds = GetSubsetOfMaybeEmpty<TSubgroupId>(
+                (TMaybeData<TConstArrayRef<TSubgroupId>>)SubgroupIds,
                 objectsGroupingSubset.GetObjectsIndexing(),
                 localExecutor
             );
@@ -330,12 +290,12 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
 void NCB::TCommonObjectsData::Load(TFeaturesLayoutPtr featuresLayout, ui32 objectCount, IBinSaver* binSaver) {
     FeaturesLayout = featuresLayout;
     SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
-    LoadMulti(binSaver, &Order, &StoreStringColumns, &SampleId, &GroupIds, &SubgroupIds, &Timestamp);
+    LoadMulti(binSaver, &Order, &GroupIds, &SubgroupIds, &Timestamp);
     AddWithShared(binSaver, &CatFeaturesHashToString);
 }
 
 void NCB::TCommonObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
-    SaveMulti(binSaver, Order, StoreStringColumns, SampleId, GroupIds, SubgroupIds, Timestamp);
+    SaveMulti(binSaver, Order, GroupIds, SubgroupIds, Timestamp);
     AddWithShared(
         binSaver,
         const_cast<TAtomicSharedPtr<TVector<THashMap<ui32, TString>>>*>(&CatFeaturesHashToString)
@@ -359,15 +319,10 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
             commonData.CheckAllExceptGroupIds();
         }
         ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-            commonData.StoreStringColumns ?
-                CreateObjectsGroupingFromGroupIds<TString>(
-                    commonData.SubsetIndexing->Size(),
-                    commonData.GroupIds.GetMaybeStringData() // Nothing(), Turn off group checks for quantization due to time
-                ) :
-                CreateObjectsGroupingFromGroupIds<TGroupId>(
-                    commonData.SubsetIndexing->Size(),
-                    commonData.GroupIds.GetMaybeNumData()
-                )
+            CreateObjectsGroupingFromGroupIds(
+                commonData.SubsetIndexing->Size(),
+                commonData.GroupIds
+            )
         );
     }
     CommonData = std::move(commonData);
@@ -385,34 +340,27 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
 
 void NCB::TObjectsDataProvider::SetGroupIds(TConstArrayRef<TGroupId> groupIds) {
     ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-        CreateObjectsGroupingFromGroupIds<TGroupId>(GetObjectCount(), groupIds) // groupIds data size is checked inside
+        CreateObjectsGroupingFromGroupIds(GetObjectCount(), groupIds) // groupIds data size is checked inside
     );
-    auto& groupIds_ = CommonData.GroupIds.GetMaybeNumData();
-    if (!groupIds_) {
-        groupIds_.ConstructInPlace(groupIds.begin(), groupIds.end());
+    if (!CommonData.GroupIds) {
+        CommonData.GroupIds.ConstructInPlace(groupIds.begin(), groupIds.end());
     } else {
-        groupIds_->assign(groupIds.begin(), groupIds.end());
+        CommonData.GroupIds->assign(groupIds.begin(), groupIds.end());
     }
 }
 
 void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgroupIds) {
     CheckDataSize(subgroupIds.size(), (size_t)GetObjectCount(), "subgroupIds");
-    auto& subgroupIds_ = CommonData.SubgroupIds.GetMaybeNumData();
-    if (!subgroupIds_) {
-        subgroupIds_.ConstructInPlace(subgroupIds.begin(), subgroupIds.end());
+    if (!CommonData.SubgroupIds) {
+        CommonData.SubgroupIds.ConstructInPlace(subgroupIds.begin(), subgroupIds.end());
     } else {
-        subgroupIds_->assign(subgroupIds.begin(), subgroupIds.end());
+        CommonData.SubgroupIds->assign(subgroupIds.begin(), subgroupIds.end());
     }
-}
-
-void NCB::TObjectsDataProvider::SetTimestamps(TConstArrayRef<ui64> timestamps) {
-    CheckDataSize(timestamps.size(), (size_t)GetObjectCount(), "timestamps");
-    CommonData.Timestamp.ConstructInPlace(TVector<ui64>(timestamps.begin(), timestamps.end()));
 }
 
 TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset(
     const TVector<ui32>& ignoredFeatures,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     return GetSubsetImpl(
         ::GetGroupingSubsetFromObjectsSubset(
@@ -424,21 +372,6 @@ TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset
         localExecutor
     );
 }
-
-TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::Clone(
-    NPar::ILocalExecutor* localExecutor
-) const {
-    return GetSubsetImpl(
-        ::GetGroupingSubsetFromObjectsSubset(
-            ObjectsGrouping,
-            TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
-            EObjectsOrder::Ordered),
-        /*ignoredFeatures*/ Nothing(),
-        GetMonopolisticFreeCpuRam(),
-        localExecutor
-    );
-}
-
 
 template <class TColumn>
 static bool AreFeaturesValuesEqual(
@@ -514,8 +447,7 @@ static bool AreFeaturesValuesEqual(
 bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
         AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
-        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures) &&
-        AreFeaturesValuesEqual(EmbeddingFeatures, rhs.EmbeddingFeatures);
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
@@ -529,9 +461,6 @@ void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInf
 
     TextFeatures.clear();
     TextFeatures.resize((size_t)metaInfo.FeaturesLayout->GetTextFeatureCount());
-
-    EmbeddingFeatures.clear();
-    EmbeddingFeatures.resize((size_t)metaInfo.FeaturesLayout->GetEmbeddingFeatureCount());
 }
 
 
@@ -579,7 +508,7 @@ void NCB::TRawObjectsData::Check(
     ui32 objectCount,
     const TFeaturesLayout& featuresLayout,
     const TVector<THashMap<ui32, TString>>* catFeaturesHashToString,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
 
@@ -595,7 +524,6 @@ void NCB::TRawObjectsData::Check(
     }
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
-    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Embedding, EmbeddingFeatures);
 
     localExecutor->ExecRangeWithThrow(
         [&] (int catFeatureIdx) {
@@ -637,37 +565,6 @@ void NCB::TRawObjectsData::Check(
         SafeIntegerCast<int>(CatFeatures.size()),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
-
-    if (objectCount) {
-        localExecutor->ExecRangeWithThrow(
-            [&] (int embeddingFeatureIdx) {
-                auto* embeddingFeaturePtr = EmbeddingFeatures[embeddingFeatureIdx].Get();
-                if (embeddingFeaturePtr) {
-                    size_t expectedDimension = embeddingFeaturePtr->GetBlockIterator()->Next(1)[0].GetSize();
-
-                    if (auto* denseEmbeddingFeaturePtr
-                            = dynamic_cast<const TEmbeddingArrayValuesHolder*>(embeddingFeaturePtr))
-                    {
-                        denseEmbeddingFeaturePtr->GetData()->ParallelForEach(
-                            [&] (ui32 objectIdx, const TConstEmbedding& value) {
-                                CB_ENSURE_INTERNAL(
-                                    value.GetSize() == expectedDimension,
-                                    "Inconsistent dimensions for embedding data for objects #0 and #"
-                                    << objectIdx
-                                );
-                            },
-                            localExecutor
-                        );
-                    } else {
-                        CB_ENSURE_INTERNAL(false, "unknown TEmbeddingValuesHolder subtype");
-                    }
-                }
-            },
-            0,
-            SafeIntegerCast<int>(EmbeddingFeatures.size()),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
-    }
 }
 
 template <class TColumn, class TGetAggregatedColumn>
@@ -754,7 +651,7 @@ static void GetSubsetWithScheduling(
 
 static TResourceConstrainedExecutor CreateCpuRamConstrainedExecutor(
     ui64 cpuRamLimit,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     const ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
     OutputWarningIfCpuRamUsageOverLimit(cpuRamUsage, cpuRamLimit);
@@ -772,7 +669,7 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
@@ -810,7 +707,6 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubsetImpl(
     getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
     getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
     getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
-    getSubsetWithScheduling(Data.EmbeddingFeatures, &subsetData.EmbeddingFeatures);
 
     resourceConstrainedExecutor.ExecTasks();
 
@@ -846,20 +742,17 @@ static bool HasSparseData(const TVector<THolder<T>>& columns) {
 bool NCB::TRawObjectsDataProvider::HasDenseData() const {
     return ::HasDenseData(Data.FloatFeatures) ||
         ::HasDenseData(Data.CatFeatures) ||
-        ::HasDenseData(Data.TextFeatures) ||
-        ::HasDenseData(Data.EmbeddingFeatures);
+        ::HasDenseData(Data.TextFeatures);
 }
 
 
 bool NCB::TRawObjectsDataProvider::HasSparseData() const {
     return ::HasSparseData(Data.FloatFeatures) ||
         ::HasSparseData(Data.CatFeatures) ||
-        ::HasSparseData(Data.TextFeatures) ||
-        ::HasDenseData(Data.EmbeddingFeatures);
+        ::HasSparseData(Data.TextFeatures);
 }
 
 void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds) {
-    CB_ENSURE_INTERNAL(!CommonData.StoreStringColumns, "Set TGroupIds with StoreStringColumns option");
     CheckDataSize(groupStringIds.size(), (size_t)GetObjectCount(), "group Ids");
 
     TVector<TGroupId> newGroupIds;
@@ -869,16 +762,15 @@ void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupS
     }
 
     ObjectsGrouping = MakeIntrusive<TObjectsGrouping>(
-        CreateObjectsGroupingFromGroupIds<TGroupId>(GetObjectCount(), (TConstArrayRef<TGroupId>)newGroupIds)
+        CreateObjectsGroupingFromGroupIds(GetObjectCount(), (TConstArrayRef<TGroupId>)newGroupIds)
     );
-    CommonData.GroupIds.GetMaybeNumData() = std::move(newGroupIds);
+    CommonData.GroupIds = std::move(newGroupIds);
 }
 
 void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> subgroupStringIds) {
-    CB_ENSURE_INTERNAL(!CommonData.StoreStringColumns, "Set TSubroupIds with StoreStringColumns option");
     CheckDataSize(subgroupStringIds.size(), (size_t)GetObjectCount(), "subgroup Ids");
     CB_ENSURE(
-        CommonData.GroupIds.IsDefined(),
+        CommonData.GroupIds,
         "non-empty subgroupStringIds when GroupIds is not defined"
     );
 
@@ -887,15 +779,14 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
     for (auto i : xrange(subgroupStringIds.size())) {
         newSubgroupIds[i] = CalcSubgroupIdFor(subgroupStringIds[i]);
     }
-    CommonData.SubgroupIds.GetMaybeNumData() = std::move(newSubgroupIds);
+    CommonData.SubgroupIds = std::move(newSubgroupIds);
 }
 
 
 bool NCB::TQuantizedObjectsData::operator==(const NCB::TQuantizedObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
         AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
-        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures) &&
-        AreFeaturesValuesEqual(EmbeddingFeatures, rhs.EmbeddingFeatures);
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
 }
 
 
@@ -916,10 +807,6 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
     const ui32 textFeatureCount = metaInfo.FeaturesLayout->GetTextFeatureCount();
     TextFeatures.resize(textFeatureCount);
 
-    EmbeddingFeatures.clear();
-    const ui32 embeddingFeatureCount = metaInfo.FeaturesLayout->GetEmbeddingFeatureCount();
-    EmbeddingFeatures.resize(embeddingFeatureCount);
-
     if (!QuantizedFeaturesInfo) {
         QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
             *metaInfo.FeaturesLayout,
@@ -935,7 +822,7 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
 void NCB::TQuantizedObjectsData::Check(
     ui32 objectCount,
     const TFeaturesLayout& featuresLayout,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     /* localExecutor is a parameter here to make
      * TQuantizedObjectsData::Check and TQuantizedObjectsData::Check have the same interface
@@ -947,22 +834,73 @@ void NCB::TQuantizedObjectsData::Check(
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
-    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Embedding, EmbeddingFeatures);
 }
 
+
+NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
+    const TObjectsGroupingSubset& objectsGroupingSubset,
+    TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
+    ui64 cpuRamLimit,
+    NPar::TLocalExecutor* localExecutor
+) const {
+    TCommonObjectsData subsetCommonData = CommonData.GetSubset(
+        objectsGroupingSubset,
+        localExecutor
+    );
+
+    TMaybe<TFeaturesArraySubsetInvertedIndexing> subsetInvertedIndexing;
+    if (subsetCommonData.FeaturesLayout->HasSparseFeatures()) {
+        subsetInvertedIndexing.ConstructInPlace(
+            GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
+        );
+    }
+
+    if (ignoredFeatures.Defined()) {
+        subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+        subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(*ignoredFeatures);
+    }
+
+    TQuantizedForCPUObjectsData subsetData;
+
+    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
+
+    auto getSubsetWithScheduling = [&] (const auto& srcFeatures, auto* dstFeatures) {
+        GetSubsetWithScheduling(
+            MakeConstArrayRef(srcFeatures),
+            subsetCommonData.SubsetIndexing.Get(),
+            subsetInvertedIndexing,
+            &resourceConstrainedExecutor,
+            dstFeatures
+        );
+    };
+
+    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.Data.FloatFeatures);
+    getSubsetWithScheduling(Data.CatFeatures, &subsetData.Data.CatFeatures);
+    getSubsetWithScheduling(Data.TextFeatures, &subsetData.Data.TextFeatures);
+
+    resourceConstrainedExecutor.ExecTasks();
+
+    subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+
+    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+        objectsGroupingSubset.GetSubsetGrouping(),
+        std::move(subsetCommonData),
+        std::move(subsetData),
+        true,
+        Nothing()
+    );
+}
 
 bool NCB::TQuantizedObjectsDataProvider::HasDenseData() const {
     return ::HasDenseData(Data.FloatFeatures) ||
         ::HasDenseData(Data.CatFeatures) ||
-        ::HasDenseData(Data.TextFeatures) ||
-        ::HasDenseData(Data.EmbeddingFeatures);
+        ::HasDenseData(Data.TextFeatures);
 }
 
 bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
     return ::HasSparseData(Data.FloatFeatures) ||
         ::HasSparseData(Data.CatFeatures) ||
-        ::HasSparseData(Data.TextFeatures) ||
-        ::HasDenseData(Data.EmbeddingFeatures);
+        ::HasSparseData(Data.TextFeatures);
 }
 
 template <EFeatureType FeatureType, class T>
@@ -970,7 +908,7 @@ static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
     const TFeaturesLayout& featuresLayout,
     const TVector<THolder<T>>& featuresData,
-    NPar::ILocalExecutor* localExecutor)
+    NPar::TLocalExecutor* localExecutor)
 {
     const ui32 emptyColumnDataForCrc = 0;
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
@@ -995,7 +933,7 @@ static ui32 CalcFeatureValuesCheckSum(
     return checkSum;
 }
 
-ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::ILocalExecutor* localExecutor) const {
+ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
     if (!Data.CachedFeaturesCheckSum) {
         ui32 checkSum = 0;
 
@@ -1175,6 +1113,34 @@ static void LoadFeatures(
     );
 }
 
+void NCB::TQuantizedObjectsData::Load(
+    const TArraySubsetIndexing<ui32>* subsetIndexing,
+    const NCB::TFeaturesLayout& featuresLayout,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    IBinSaver* binSaver
+) {
+    QuantizedFeaturesInfo = quantizedFeaturesInfo;
+    LoadFeatures<EFeatureType::Float>(
+        featuresLayout,
+        subsetIndexing,
+        /*packedBinaryFeaturesData*/ Nothing(),
+        /*exclusiveFeatureBundlesData*/ Nothing(),
+        /*featureGroupsData*/ Nothing(),
+        binSaver,
+        &FloatFeatures
+    );
+    LoadFeatures<EFeatureType::Categorical>(
+        featuresLayout,
+        subsetIndexing,
+        /*packedBinaryFeaturesData*/ Nothing(),
+        /*exclusiveFeatureBundlesData*/ Nothing(),
+        /*featureGroupsData*/ Nothing(),
+        binSaver,
+        &CatFeatures
+    );
+    LoadMulti(binSaver, &CachedFeaturesCheckSum);
+}
+
 
 template <class T>
 static void SaveAsCompressedArray(TConstArrayRef<T> values, IBinSaver* binSaver) {
@@ -1204,7 +1170,7 @@ static void SaveAsCompressedArray(TConstArrayRef<T> values, IBinSaver* binSaver)
 template <class TColumn>
 static void SaveColumnData(
     const TColumn& column,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) {
     if (auto* packedBinaryValues
@@ -1234,7 +1200,7 @@ template <EFeatureType FeatureType, class TColumn>
 static void SaveFeatures(
     const TFeaturesLayout& featuresLayout,
     const TVector<THolder<TColumn>>& src,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) {
     featuresLayout.IterateOverAvailableFeatures<FeatureType>(
@@ -1251,9 +1217,7 @@ void NCB::TQuantizedObjectsData::SaveNonSharedPart(
     IBinSaver* binSaver
 ) const {
     NPar::TLocalExecutor localExecutor;
-    PackedBinaryFeaturesData.Save(&localExecutor, binSaver);
-    ExclusiveFeatureBundlesData.Save(&localExecutor, binSaver);
-    FeaturesGroupsData.Save(&localExecutor, binSaver);
+
     SaveFeatures<EFeatureType::Float>(
         featuresLayout,
         FloatFeatures,
@@ -1280,16 +1244,12 @@ void NCB::DbgDumpQuantizedFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
         [&] (TFloatFeatureIdx floatFeatureIdx) {
-            auto feature = quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx);
-            if (!feature)
-                return;
-
-            (*feature)->ForEachBlock(
+            (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))->ForEachBlock(
                 [out, floatFeatureIdx] (size_t blockStartOffset, auto block) {
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;
                         (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
-                            << ").bin=" << ui32(block[i]) << Endl;
+                            << ").bin=" << ui32(block[objectIdx]) << Endl;
                     }
                 }
             );
@@ -1298,16 +1258,12 @@ void NCB::DbgDumpQuantizedFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
-            auto feature = quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx);
-            if (!feature)
-                return;
-
-            (*feature)->ForEachBlock(
+            (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))->ForEachBlock(
                 [out, catFeatureIdx] (size_t blockStartOffset, auto block) {
                     for (auto i : xrange(block.size())) {
                         auto objectIdx = i + blockStartOffset;
                         (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
-                            << ").bin=" << ui32(block[i]) << Endl;
+                            << ").bin=" << ui32(block[objectIdx]) << Endl;
                     }
                 }
             );
@@ -1360,7 +1316,7 @@ void NCB::TExclusiveFeatureBundlesData::GetSubsetWithScheduling(
 
 
 void NCB::TExclusiveFeatureBundlesData::Save(
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) const {
     Y_ASSERT(!binSaver->IsReading());
@@ -1450,7 +1406,7 @@ void NCB::TFeatureGroupsData::GetSubsetWithScheduling(
 
 
 void NCB::TFeatureGroupsData::Save(
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     IBinSaver* binSaver
 ) const {
     Y_ASSERT(!binSaver->IsReading());
@@ -1553,7 +1509,7 @@ void NCB::TPackedBinaryFeaturesData::GetSubsetWithScheduling(
     );
 }
 
-void NCB::TPackedBinaryFeaturesData::Save(NPar::ILocalExecutor* localExecutor, IBinSaver* binSaver) const {
+void NCB::TPackedBinaryFeaturesData::Save(NPar::TLocalExecutor* localExecutor, IBinSaver* binSaver) const {
     Y_ASSERT(!binSaver->IsReading());
 
     SaveMulti(
@@ -1622,7 +1578,7 @@ TString NCB::DbgDumpMetaData(const NCB::TPackedBinaryFeaturesData& packedBinaryF
 }
 
 
-void NCB::TQuantizedObjectsData::Load(
+void NCB::TQuantizedForCPUObjectsData::Load(
     const TArraySubsetIndexing<ui32>* subsetIndexing,
     const TFeaturesLayout& featuresLayout,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -1631,7 +1587,7 @@ void NCB::TQuantizedObjectsData::Load(
     PackedBinaryFeaturesData.Load(subsetIndexing, binSaver);
     ExclusiveFeatureBundlesData.Load(subsetIndexing, binSaver);
     FeaturesGroupsData.Load(subsetIndexing, binSaver);
-    QuantizedFeaturesInfo = quantizedFeaturesInfo;
+    Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
     LoadFeatures<EFeatureType::Float>(
         featuresLayout,
         subsetIndexing,
@@ -1639,7 +1595,7 @@ void NCB::TQuantizedObjectsData::Load(
         &ExclusiveFeatureBundlesData,
         &FeaturesGroupsData,
         binSaver,
-        &FloatFeatures
+        &Data.FloatFeatures
     );
     LoadFeatures<EFeatureType::Categorical>(
         featuresLayout,
@@ -1648,16 +1604,43 @@ void NCB::TQuantizedObjectsData::Load(
         &ExclusiveFeatureBundlesData,
         &FeaturesGroupsData,
         binSaver,
-        &CatFeatures
+        &Data.CatFeatures
     );
-    LoadMulti(binSaver, &CachedFeaturesCheckSum);
+    LoadMulti(binSaver, &Data.CachedFeaturesCheckSum);
+}
+
+
+NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
+    TMaybe<TObjectsGroupingPtr> objectsGrouping,
+    TCommonObjectsData&& commonData,
+    TQuantizedForCPUObjectsData&& data,
+    bool skipCheck,
+    TMaybe<NPar::TLocalExecutor*> localExecutor
+)
+    : TQuantizedObjectsDataProvider(
+        std::move(objectsGrouping),
+        std::move(commonData),
+        std::move(data.Data),
+        skipCheck,
+        localExecutor
+      )
+{
+    PackedBinaryFeaturesData = std::move(data.PackedBinaryFeaturesData);
+    ExclusiveFeatureBundlesData = std::move(data.ExclusiveFeatureBundlesData);
+    FeaturesGroupsData = std::move(data.FeaturesGroupsData);
+
+    CatFeatureUniqueValuesCounts.yresize(Data.CatFeatures.size());
+    for (auto catFeatureIdx : xrange(Data.CatFeatures.size())) {
+        CatFeatureUniqueValuesCounts[catFeatureIdx] =
+            Data.QuantizedFeaturesInfo->GetUniqueValuesCounts(TCatFeatureIdx(catFeatureIdx));
+    }
 }
 
 
 // if data is not packed or bundled or grouped - return empty holder
 template <class TColumn>
 static THolder<TColumn> GetAggregatedColumn(
-    const TQuantizedObjectsData& data,
+    const TQuantizedForCPUObjectsData& data,
     ui32 flatFeatureIdx
 ) {
     const auto& bundlesData = data.ExclusiveFeatureBundlesData;
@@ -1693,11 +1676,11 @@ static THolder<TColumn> GetAggregatedColumn(
 }
 
 
-NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
+NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) const {
     TCommonObjectsData subsetCommonData = CommonData.GetSubset(
         objectsGroupingSubset,
@@ -1718,7 +1701,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
 
     auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
 
-    TQuantizedObjectsData subsetData;
+    TQuantizedForCPUObjectsData subsetData;
 
     auto getSubsetWithSchedulingForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
         srcData.GetSubsetWithScheduling(
@@ -1729,9 +1712,9 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
         );
     };
 
-    getSubsetWithSchedulingForDataPart(Data.PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
-    getSubsetWithSchedulingForDataPart(Data.ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
-    getSubsetWithSchedulingForDataPart(Data.FeaturesGroupsData, &subsetData.FeaturesGroupsData);
+    getSubsetWithSchedulingForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
+    getSubsetWithSchedulingForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
+    getSubsetWithSchedulingForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
 
     resourceConstrainedExecutor.ExecTasks();
 
@@ -1758,7 +1741,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
                 flatFeatureIdx
             );
         },
-        &subsetData.FloatFeatures
+        &subsetData.Data.FloatFeatures
     );
 
     getSubsetWithSchedulingForFeaturesPart(
@@ -1769,26 +1752,20 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
                 flatFeatureIdx
             );
         },
-        &subsetData.CatFeatures
+        &subsetData.Data.CatFeatures
     );
 
     getSubsetWithSchedulingForFeaturesPart(
         Data.TextFeatures,
         [] (ui32) { return nullptr; },
-        &subsetData.TextFeatures
-    );
-
-    getSubsetWithSchedulingForFeaturesPart(
-        Data.EmbeddingFeatures,
-        [] (ui32) { return nullptr; },
-        &subsetData.EmbeddingFeatures
+        &subsetData.Data.TextFeatures
     );
 
     resourceConstrainedExecutor.ExecTasks();
 
-    subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+    subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
-    return MakeIntrusive<TQuantizedObjectsDataProvider>(
+    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
         objectsGroupingSubset.GetSubsetGrouping(),
         std::move(subsetCommonData),
         std::move(subsetData),
@@ -1801,7 +1778,7 @@ template <class TColumn>
 static void MakeConsecutiveIfDenseColumnDataWithScheduling(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
     const TColumn& src,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<std::function<void()>>* tasks,
     THolder<TColumn>* dst
 ) {
@@ -1847,7 +1824,7 @@ static void MakeConsecutiveIfDenseArrayFeatures(
     const TExclusiveFeatureBundlesData& newExclusiveFeatureBundlesData,
     const TPackedBinaryFeaturesData& newPackedBinaryFeaturesData,
     const TFeatureGroupsData& newFeatureGroupsData,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<THolder<TColumn>>* dst
 ) {
     if (&src != dst) {
@@ -1908,7 +1885,7 @@ static void MakeConsecutiveIfDenseArrayFeatures(
 
 static void EnsureConsecutiveIfDenseExclusiveFeatureBundles(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     NCB::TExclusiveFeatureBundlesData* exclusiveFeatureBundlesData
 ) {
     TVector<std::function<void()>> tasks;
@@ -1929,7 +1906,7 @@ static void EnsureConsecutiveIfDenseExclusiveFeatureBundles(
 
 static void EnsureConsecutiveIfDensePackedBinaryFeatures(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<THolder<IBinaryPacksArray>>* packedBinaryFeatures
 ) {
     TVector<std::function<void()>> tasks;
@@ -1950,7 +1927,7 @@ static void EnsureConsecutiveIfDensePackedBinaryFeatures(
 
 static void EnsureConsecutiveIfDenseFeatureGroups(
     const NCB::TFeaturesArraySubsetIndexing* newSubsetIndexing,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     NCB::TFeatureGroupsData* featureGroupsData
 ) {
     TVector<std::function<void()>> tasks;
@@ -1969,8 +1946,8 @@ static void EnsureConsecutiveIfDenseFeatureGroups(
 }
 
 
-void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
-    NPar::ILocalExecutor* localExecutor
+void NCB::TQuantizedForCPUObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
+    NPar::TLocalExecutor* localExecutor
 ) {
     if (GetFeaturesArraySubsetIndexing().IsConsecutive()) {
         return;
@@ -1988,7 +1965,7 @@ void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
                 EnsureConsecutiveIfDenseExclusiveFeatureBundles(
                     newSubsetIndexing.Get(),
                     localExecutor,
-                    &Data.ExclusiveFeatureBundlesData
+                    &ExclusiveFeatureBundlesData
                 );
             }
         );
@@ -1998,7 +1975,7 @@ void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
                 EnsureConsecutiveIfDensePackedBinaryFeatures(
                     newSubsetIndexing.Get(),
                     localExecutor,
-                    &Data.PackedBinaryFeaturesData.SrcData
+                    &PackedBinaryFeaturesData.SrcData
                 );
             }
         );
@@ -2008,7 +1985,7 @@ void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
                 EnsureConsecutiveIfDenseFeatureGroups(
                     newSubsetIndexing.Get(),
                     localExecutor,
-                    &Data.FeaturesGroupsData
+                    &FeaturesGroupsData
                 );
             }
         );
@@ -2025,9 +2002,9 @@ void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
                     *GetFeaturesLayout(),
                     newSubsetIndexing.Get(),
                     Data.FloatFeatures,
-                    Data.ExclusiveFeatureBundlesData,
-                    Data.PackedBinaryFeaturesData,
-                    Data.FeaturesGroupsData,
+                    ExclusiveFeatureBundlesData,
+                    PackedBinaryFeaturesData,
+                    FeaturesGroupsData,
                     localExecutor,
                     &Data.FloatFeatures
                 );
@@ -2039,9 +2016,9 @@ void NCB::TQuantizedObjectsDataProvider::EnsureConsecutiveIfDenseFeaturesData(
                     *GetFeaturesLayout(),
                     newSubsetIndexing.Get(),
                     Data.CatFeatures,
-                    Data.ExclusiveFeatureBundlesData,
-                    Data.PackedBinaryFeaturesData,
-                    Data.FeaturesGroupsData,
+                    ExclusiveFeatureBundlesData,
+                    PackedBinaryFeaturesData,
+                    FeaturesGroupsData,
                     localExecutor,
                     &Data.CatFeatures
                 );
@@ -2179,45 +2156,45 @@ static void CheckFeaturesByType(
     }
 }
 
-void NCB::TQuantizedObjectsDataProvider::CheckCPUTrainCompatibility() const {
+void NCB::TQuantizedForCPUObjectsDataProvider::CheckCPUTrainCompatibility() const {
     CheckFeaturesByType(
         EFeatureType::Float,
         Data.FloatFeatures,
-        Data.ExclusiveFeatureBundlesData,
-        Data.PackedBinaryFeaturesData,
-        Data.FeaturesGroupsData,
+        ExclusiveFeatureBundlesData,
+        PackedBinaryFeaturesData,
+        FeaturesGroupsData,
         "Float"
     );
     CheckFeaturesByType(
         EFeatureType::Categorical,
         Data.CatFeatures,
-        Data.ExclusiveFeatureBundlesData,
-        Data.PackedBinaryFeaturesData,
-        Data.FeaturesGroupsData,
+        ExclusiveFeatureBundlesData,
+        PackedBinaryFeaturesData,
+        FeaturesGroupsData,
         "Cat"
     );
 }
 
 
-void NCB::TQuantizedObjectsDataProvider::CheckFeatureIsNotInAggregated(
+void NCB::TQuantizedForCPUObjectsDataProvider::CheckFeatureIsNotInAggregated(
     EFeatureType featureType,
     const TStringBuf featureTypeName,
     ui32 perTypeFeatureIdx
 ) const {
     const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(perTypeFeatureIdx, featureType);
     CB_ENSURE_INTERNAL(
-        !Data.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx],
-        "Called TQuantizedObjectsDataProvider::GetNonPacked" << featureTypeName
+        !PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex[flatFeatureIdx],
+        "Called TQuantizedForCPUObjectsDataProvider::GetNonPacked" << featureTypeName
         << "Feature for binary packed feature #" << flatFeatureIdx
     );
     CB_ENSURE_INTERNAL(
-        !Data.ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart[flatFeatureIdx],
-        "Called TQuantizedObjectsDataProvider::GetNonPacked" << featureTypeName
+        !ExclusiveFeatureBundlesData.FlatFeatureIndexToBundlePart[flatFeatureIdx],
+        "Called TQuantizedForCPUObjectsDataProvider::GetNonPacked" << featureTypeName
         << "Feature for bundled feature #" << flatFeatureIdx
     );
     CB_ENSURE_INTERNAL(
-        !Data.FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx],
-        "Called TQuantizedObjectsDataProvider::GetNonPacked" << featureTypeName
+        !FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx],
+        "Called TQuantizedForCPUObjectsDataProvider::GetNonPacked" << featureTypeName
         << "Feature for grouped feature #" << flatFeatureIdx
     );
 }

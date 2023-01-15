@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "ssl_local.h"
+#include "ssl_locl.h"
 
 #ifndef OPENSSL_NO_UNIT_TEST
 

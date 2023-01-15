@@ -43,11 +43,6 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
         CB_ENSURE(CheckExists(TestBaselineFilePath),
                   "Error: test baseline file '" << TestBaselineFilePath << "' doesn't exist");
     }
-
-    if (!PrecomputedMetadataFile.empty()) {
-        CB_ENSURE(CheckExists(NCB::TPathWithScheme(PrecomputedMetadataFile)),
-                  "Error: precomputed metadata file '" << PrecomputedMetadataFile << "' doesn't exist");
-    }
 }
 
 void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
@@ -76,17 +71,10 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
 
 void NCatboostOptions::ValidatePoolParams(
     const NCB::TPathWithScheme& poolPath,
-    const NCB::TDsvFormatOptions& dsvFormat
-) {
-    CB_ENSURE(
-        poolPath.Scheme == "dsv" || !dsvFormat.HasHeader,
-        "HasHeader parameter supported for \"dsv\" pools only."
-    );
-}
-
-void NCatboostOptions::ValidatePoolParams(
-    const NCB::TPathWithScheme& poolPath,
     const TColumnarPoolFormatParams& poolFormatParams
 ) {
-    NCatboostOptions::ValidatePoolParams(poolPath, poolFormatParams.DsvFormat);
+    CB_ENSURE(
+        poolPath.Scheme == "dsv" || !poolFormatParams.DsvFormat.HasHeader,
+        "HasHeader parameter supported for \"dsv\" pools only."
+    );
 }

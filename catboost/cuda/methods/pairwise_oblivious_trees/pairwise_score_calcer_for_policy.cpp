@@ -164,7 +164,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         const auto& gatheredByLeavesTarget = Subsets.GetPairwiseTarget();
 
         if (NeedPointwiseWeights) {
-            CB_ENSURE(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size(),
+            Y_VERIFY(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size(),
                      "No weights, use hist1 instead");
 
             ComputeBlockHistogram2(Policy,
@@ -183,11 +183,9 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                                    streamId);
 
         } else {
-            CB_ENSURE(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size() == 0,
+            Y_VERIFY(gatheredByLeavesTarget.PointDer2OrWeights.GetObjectsSlice().Size() == 0,
                      "There are weights, use hist2 instead");
-            CB_ENSURE(
-                PointwiseHistograms.GetMapping().SingleObjectSize() == 1,
-                "Unexcepted object size " << PointwiseHistograms.GetMapping().SingleObjectSize());
+            Y_VERIFY(PointwiseHistograms.GetMapping().SingleObjectSize() == 1);
 
             ComputeBlockHistogram1(Policy,
                                    blockGrid,
@@ -279,13 +277,6 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                    LambdaDiag,    //classic l2 adjust
                    streamId);
 
-        if (result->SqrtMatrices) {
-            CopyReducedTempResult(sqrtMatrix.AsConstBuf(),
-                                  flatResultsSlice,
-                                  *result->SqrtMatrices,
-                                  streamId);
-        }
-
         //if only pairwise ders, then we don't need last row
         const bool removeLastRow = !NeedPointwiseWeights;
 
@@ -306,9 +297,16 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                       streamId);
 
         if (result->LinearSystems) {
-            CopyReducedTempResult(linearSystem.AsConstBuf(),
+            CopyReducedTempResult(linearSystem,
                                   flatResultsSlice,
                                   *result->LinearSystems,
+                                  streamId);
+        }
+
+        if (result->SqrtMatrices) {
+            CopyReducedTempResult(sqrtMatrix,
+                                  flatResultsSlice,
+                                  *result->SqrtMatrices,
                                   streamId);
         }
     }
@@ -365,15 +363,13 @@ TMirrorBuffer<const TCBinFeature>& NCatboostCuda::TComputePairwiseScoresHelper::
         });
 
     } else {
-        auto& cachedBinFeatures = DataSet.GetCacheHolder().Cache(DataSet, Policy, [&]() -> TMirrorBuffer<const TCBinFeature> {
+        return DataSet.GetCacheHolder().Cache(DataSet, Policy, [&]() -> TMirrorBuffer<const TCBinFeature> {
             TMirrorBuffer<TCBinFeature> mirrorBinFeatures;
             mirrorBinFeatures.Reset(NCudaLib::TMirrorMapping(DataSet.GetBinFeatures(Policy).size()));
             mirrorBinFeatures.Write(DataSet.GetBinFeatures(Policy));
             NCudaLib::GetCudaManager().Barrier();
             return mirrorBinFeatures.ConstCopyView();
         });
-
-        return cachedBinFeatures;
     }
 }
 

@@ -2,7 +2,6 @@
 
 #include "fwd.h"
 
-#include "model_estimated_features.h"
 #include "online_ctr.h"
 
 #include <catboost/libs/helpers/guid.h>
@@ -196,98 +195,45 @@ private:
     bool IsUsedInModel = true;
 };
 
-struct TEmbeddingFeature {
-public:
-    TFeaturePosition Position;
-    TString FeatureId;
-    int Dimension = 0;
-public:
-    TEmbeddingFeature() = default;
-
-    TEmbeddingFeature(
-        bool usedInModel,
-        int featureIndex,
-        int flatFeatureIndex,
-        TString featureId,
-        int dimension
-    )
-        : Position(featureIndex, flatFeatureIndex)
-        , FeatureId(std::move(featureId))
-        , Dimension(dimension)
-        , IsUsedInModel(usedInModel)
-    {}
-
-    bool operator==(const TEmbeddingFeature& other) const {
-        return std::tie(Position, FeatureId, Dimension) ==
-            std::tie(other.Position, other.FeatureId, other.Dimension);
-    }
-    bool operator!=(const TEmbeddingFeature& other) const {
-        return !(*this == other);
-    }
-
-    bool UsedInModel() const {
-        return IsUsedInModel;
-    };
-
-    void SetUsedInModel(bool isUsedInModel) {
-        IsUsedInModel = isUsedInModel;
-    }
-
-    flatbuffers::Offset<NCatBoostFbs::TEmbeddingFeature> FBSerialize(
-        flatbuffers::FlatBufferBuilder& builder
-    ) const;
-    void FBDeserialize(const NCatBoostFbs::TEmbeddingFeature* fbObj);
-    Y_SAVELOAD_DEFINE(IsUsedInModel, Position, FeatureId, Dimension);
-
-private:
-    bool IsUsedInModel = true;
-};
-
 struct TEstimatedFeature {
-public:
-    TModelEstimatedFeature ModelEstimatedFeature;
+    int SourceFeatureIndex = -1;
+    NCB::TGuid CalcerId;
+    int LocalIndex = -1;
     TVector<float> Borders;
 
 public:
     TEstimatedFeature() = default;
 
     TEstimatedFeature(
-        int sourceFeatureId,
-        NCB::TGuid calcerId,
-        int localId,
-        EEstimatedSourceFeatureType sourceFeatureType
+        int sourceFeatureIndex,
+        const NCB::TGuid& calcerId,
+        int localIndex
     )
-        : ModelEstimatedFeature(TModelEstimatedFeature(sourceFeatureId, calcerId, localId, sourceFeatureType))
-    {}
-
-    TEstimatedFeature(
-        int sourceFeatureId,
-        int localId,
-        EEstimatedSourceFeatureType sourceFeatureType
-    )
-        : ModelEstimatedFeature(TModelEstimatedFeature(sourceFeatureId, localId, sourceFeatureType))
-    {}
-
-    TEstimatedFeature(
-        const TModelEstimatedFeature& modelEstimatedFeature
-    )
-        : ModelEstimatedFeature(modelEstimatedFeature)
-    {}
-
-    TEstimatedFeature(
-        const TModelEstimatedFeature& modelEstimatedFeature,
-        const TVector<float>& borders
-    )
-        : ModelEstimatedFeature(modelEstimatedFeature)
-        , Borders(borders)
+        : SourceFeatureIndex(sourceFeatureIndex)
+        , CalcerId(calcerId)
+        , LocalIndex(localIndex)
     {}
 
     bool operator<(const TEstimatedFeature& other) const {
-        return std::tie(ModelEstimatedFeature) < std::tie(other.ModelEstimatedFeature);
+        return std::tie(
+            SourceFeatureIndex,
+            CalcerId,
+            LocalIndex) <
+               std::tie(
+                   other.SourceFeatureIndex,
+                   other.CalcerId,
+                   other.LocalIndex);
     }
 
     bool operator==(const TEstimatedFeature& other) const {
-        return std::tie(ModelEstimatedFeature) == std::tie(other.ModelEstimatedFeature);
+        return std::tie(
+            SourceFeatureIndex,
+            CalcerId,
+            LocalIndex) ==
+            std::tie(
+                other.SourceFeatureIndex,
+                other.CalcerId,
+                other.LocalIndex);
     }
 
     bool operator!=(const TEstimatedFeature& other) const {
@@ -298,7 +244,7 @@ public:
         flatbuffers::FlatBufferBuilder& builder
     ) const;
     void FBDeserialize(const NCatBoostFbs::TEstimatedFeature* fbObj);
-    Y_SAVELOAD_DEFINE(ModelEstimatedFeature, Borders);
+    Y_SAVELOAD_DEFINE(SourceFeatureIndex, CalcerId, LocalIndex, Borders);
 };
 
 class TModelPartsCachingSerializer;

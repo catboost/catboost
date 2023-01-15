@@ -77,12 +77,12 @@ public:
     }
 #ifdef _DEBUG
     TBoundCheck<T> operator[](size_t i) const {
-        Y_ASSERT(i < YSize);
+        Y_ASSERT(i >= 0 && i < YSize);
         return TBoundCheck<T>(PData[i], XSize);
     }
 #else
     T* operator[](size_t i) const {
-        Y_ASSERT(i < YSize);
+        Y_ASSERT(i >= 0 && i < YSize);
         return PData[i];
     }
 #endif

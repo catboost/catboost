@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -20,7 +20,7 @@
 #include <openssl/bn.h>
 #include <openssl/crypto.h>
 #include "internal/refcount.h"
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include "ssl_cert_table.h"
 #include "internal/thread_once.h"
 
@@ -601,6 +601,14 @@ static unsigned long xname_hash(const X509_NAME *a)
     return X509_NAME_hash((X509_NAME *)a);
 }
 
+/**
+ * Load CA certs from a file into a ::STACK. Note that it is somewhat misnamed;
+ * it doesn't really have anything to do with clients (except that a common use
+ * for a stack of CAs is to send it to the client). Actually, it doesn't have
+ * much to do with CAs, either, since it will load any old cert.
+ * \param file the file containing one or more certs.
+ * \return a ::STACK containing the certs.
+ */
 STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file)
 {
     BIO *in = BIO_new(BIO_s_file());
@@ -658,6 +666,15 @@ STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file)
     return ret;
 }
 
+/**
+ * Add a file of certs to a stack.
+ * \param stack the stack to add to.
+ * \param file the file to add from. All certs in this file that are not
+ * already in the stack will be added.
+ * \return 1 for success, 0 for failure. Note that in the case of failure some
+ * certs may have been added to \c stack.
+ */
+
 int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
                                         const char *file)
 {
@@ -707,6 +724,17 @@ int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
     (void)sk_X509_NAME_set_cmp_func(stack, oldcmp);
     return ret;
 }
+
+/**
+ * Add a directory of certs to a stack.
+ * \param stack the stack to append to.
+ * \param dir the directory to append from. All files in this directory will be
+ * examined as potential certs. Any that are acceptable to
+ * SSL_add_dir_cert_subjects_to_stack() that are not already in the stack will be
+ * included.
+ * \return 1 for success, 0 for failure. Note that in the case of failure some
+ * certs may have been added to \c stack.
+ */
 
 int SSL_add_dir_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
                                        const char *dir)
@@ -876,42 +904,18 @@ int ssl_cert_set_cert_store(CERT *c, X509_STORE *store, int chain, int ref)
     return 1;
 }
 
-int ssl_cert_get_cert_store(CERT *c, X509_STORE **pstore, int chain)
-{
-    *pstore = (chain ? c->chain_store : c->verify_store);
-    return 1;
-}
-
-int ssl_get_security_level_bits(const SSL *s, const SSL_CTX *ctx, int *levelp)
-{
-    int level;
-    static const int minbits_table[5 + 1] = { 0, 80, 112, 128, 192, 256 };
-
-    if (ctx != NULL)
-        level = SSL_CTX_get_security_level(ctx);
-    else
-        level = SSL_get_security_level(s);
-
-    if (level > 5)
-        level = 5;
-    else if (level < 0)
-        level = 0;
-
-    if (levelp != NULL)
-        *levelp = level;
-
-    return minbits_table[level];
-}
-
 static int ssl_security_default_callback(const SSL *s, const SSL_CTX *ctx,
                                          int op, int bits, int nid, void *other,
                                          void *ex)
 {
-    int level, minbits, pfs_mask;
+    int level, minbits;
+    static const int minbits_table[5] = { 80, 112, 128, 192, 256 };
+    if (ctx)
+        level = SSL_CTX_get_security_level(ctx);
+    else
+        level = SSL_get_security_level(s);
 
-    minbits = ssl_get_security_level_bits(s, ctx, &level);
-
-    if (level == 0) {
+    if (level <= 0) {
         /*
          * No EDH keys weaker than 1024-bits even at level 0, otherwise,
          * anything goes.
@@ -920,6 +924,9 @@ static int ssl_security_default_callback(const SSL *s, const SSL_CTX *ctx,
             return 0;
         return 1;
     }
+    if (level > 5)
+        level = 5;
+    minbits = minbits_table[level - 1];
     switch (op) {
     case SSL_SECOP_CIPHER_SUPPORTED:
     case SSL_SECOP_CIPHER_SHARED:
@@ -947,9 +954,8 @@ static int ssl_security_default_callback(const SSL *s, const SSL_CTX *ctx,
             if (level >= 2 && c->algorithm_enc == SSL_RC4)
                 return 0;
             /* Level 3: forward secure ciphersuites only */
-            pfs_mask = SSL_kDHE | SSL_kECDHE | SSL_kDHEPSK | SSL_kECDHEPSK;
             if (level >= 3 && c->min_tls != TLS1_3_VERSION &&
-                               !(c->algorithm_mkey & pfs_mask))
+                               !(c->algorithm_mkey & (SSL_kEDH | SSL_kEECDH)))
                 return 0;
             break;
         }

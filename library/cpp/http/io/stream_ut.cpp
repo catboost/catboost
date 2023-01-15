@@ -3,8 +3,8 @@
 
 #include <library/cpp/http/server/http_ex.h>
 
-#include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/testing/unittest/tests_data.h>
+#include <library/unittest/registar.h>
+#include <library/unittest/tests_data.h>
 
 #include <util/string/printf.h>
 #include <util/network/socket.h>
@@ -634,7 +634,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
             }
 
         private:
-            TString Data_{TStringBuf("HEAD / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n")};
+            TString Data_{AsStringBuf("HEAD / HTTP/1.1\r\nHost: yandex.ru\r\n\r\n")};
             size_t Pos_{0};
             bool Eof_{false};
         };
@@ -662,7 +662,7 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         out << "";
         out.Finish();
         TString result = outBuf.Str();
-        UNIT_ASSERT(!result.Contains(TStringBuf("0\r\n")));
+        UNIT_ASSERT(!result.Contains(AsStringBuf("0\r\n")));
     }
 
     Y_UNIT_TEST(TestHttpOutputDisableCompressionHeader) {

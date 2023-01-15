@@ -1,49 +1,61 @@
 {
     "test_traceback.test_traceback[custom-default]": {
         "stderr": {
+            "checksum": "6c1a9b47baa51cc6903b85fd43c529b5",
             "uri": "file://test_traceback.test_traceback_custom-default_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_custom-default_/stdout.txt"
         }
     },
     "test_traceback.test_traceback[custom-ultratb_color]": {
         "stderr": {
+            "checksum": "048e27049fb8db64bd295b17f505b0ad",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_color_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_color_/stdout.txt"
         }
     },
     "test_traceback.test_traceback[custom-ultratb_verbose]": {
         "stderr": {
+            "checksum": "e9af42aa3736141d9b67a1652eea412e",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_verbose_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_custom-ultratb_verbose_/stdout.txt"
         }
     },
     "test_traceback.test_traceback[main-default]": {
         "stderr": {
+            "checksum": "6c1a9b47baa51cc6903b85fd43c529b5",
             "uri": "file://test_traceback.test_traceback_main-default_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_main-default_/stdout.txt"
         }
     },
     "test_traceback.test_traceback[main-ultratb_color]": {
         "stderr": {
+            "checksum": "048e27049fb8db64bd295b17f505b0ad",
             "uri": "file://test_traceback.test_traceback_main-ultratb_color_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_main-ultratb_color_/stdout.txt"
         }
     },
     "test_traceback.test_traceback[main-ultratb_verbose]": {
         "stderr": {
+            "checksum": "e9af42aa3736141d9b67a1652eea412e",
             "uri": "file://test_traceback.test_traceback_main-ultratb_verbose_/stderr.txt"
         },
         "stdout": {
+            "checksum": "e120a1e0b7fdddc8e6b4d4b506403e89",
             "uri": "file://test_traceback.test_traceback_main-ultratb_verbose_/stdout.txt"
         }
     }

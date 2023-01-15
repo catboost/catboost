@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2020 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,14 +27,12 @@
 
 
 #include "mpdecimal.h"
-
 #include <assert.h>
-
-#include "constants.h"
-#include "fourstep.h"
 #include "numbertheory.h"
 #include "sixstep.h"
+#include "transpose.h"
 #include "umodarith.h"
+#include "fourstep.h"
 
 
 /* Bignum: Cache efficient Matrix Fourier Transform for arrays of the
@@ -189,7 +187,6 @@ four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 #if 0
     /* An unordered transform is sufficient for convolution. */
     /* Transpose the matrix. */
-    #include "transpose.h"
     transpose_3xpow2(a, R, C);
 #endif
 
@@ -220,7 +217,6 @@ inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 #if 0
     /* An unordered transform is sufficient for convolution. */
     /* Transpose the matrix, producing an R*C matrix. */
-    #include "transpose.h"
     transpose_3xpow2(a, C, R);
 #endif
 
@@ -257,3 +253,5 @@ inv_four_step_fnt(mpd_uint_t *a, mpd_size_t n, int modnum)
 
     return 1;
 }
+
+

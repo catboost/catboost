@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "re2/regexp.h"
 #include "re2/walker-inl.h"
@@ -13,16 +13,13 @@ namespace re2 {
 
 class NullWalker : public Regexp::Walker<bool> {
  public:
-  NullWalker() {}
+  NullWalker() { }
+  bool PostVisit(Regexp* re, bool parent_arg, bool pre_arg,
+                 bool* child_args, int nchild_args);
 
-  virtual bool PostVisit(Regexp* re, bool parent_arg, bool pre_arg,
-                         bool* child_args, int nchild_args);
-
-  virtual bool ShortVisit(Regexp* re, bool a) {
-    // Should never be called: we use Walk(), not WalkExponential().
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+  bool ShortVisit(Regexp* re, bool a) {
+    // Should never be called: we use Walk not WalkExponential.
     LOG(DFATAL) << "NullWalker::ShortVisit called";
-#endif
     return a;
   }
 

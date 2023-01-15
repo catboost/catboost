@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "re2/prog.h"
 #include "re2/regexp.h"
@@ -58,17 +58,17 @@ static PCRETest tests[] = {
 };
 
 TEST(MimicsPCRE, SimpleTests) {
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (int i = 0; i < arraysize(tests); i++) {
     const PCRETest& t = tests[i];
-    for (size_t j = 0; j < 2; j++) {
+    for (int j = 0; j < 2; j++) {
       Regexp::ParseFlags flags = Regexp::LikePerl;
       if (j == 0)
         flags = flags | Regexp::Latin1;
       Regexp* re = Regexp::Parse(t.regexp, flags, NULL);
-      ASSERT_TRUE(re != NULL) << " " << t.regexp;
-      ASSERT_EQ(t.should_match, re->MimicsPCRE())
+      CHECK(re) << " " << t.regexp;
+      CHECK_EQ(t.should_match, re->MimicsPCRE())
         << " " << t.regexp << " "
-        << (j == 0 ? "latin1" : "utf");
+        << (j==0 ? "latin1" : "utf");
       re->Decref();
     }
   }

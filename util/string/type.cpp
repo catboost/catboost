@@ -4,14 +4,11 @@
 #include <array>
 
 bool IsSpace(const char* s, size_t len) noexcept {
-    if (len == 0) {
+    if (len == 0)
         return false;
-    }
-    for (const char* p = s; p < s + len; ++p) {
-        if (!IsAsciiSpace(*p)) {
+    for (const char* p = s; p < s + len; ++p)
+        if (!IsAsciiSpace(*p))
             return false;
-        }
-    }
     return true;
 }
 
@@ -21,7 +18,12 @@ static bool IsNumberT(const TStringType& s) noexcept {
         return false;
     }
 
-    return std::all_of(s.begin(), s.end(), IsAsciiDigit<typename TStringType::value_type>);
+    for (auto ch : s) {
+        if (!IsAsciiDigit(ch)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool IsNumber(const TStringBuf s) noexcept {
@@ -38,7 +40,13 @@ static bool IsHexNumberT(const TStringType& s) noexcept {
         return false;
     }
 
-    return std::all_of(s.begin(), s.end(), IsAsciiHex<typename TStringType::value_type>);
+    for (auto ch : s) {
+        if (!IsAsciiHex(ch)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool IsHexNumber(const TStringBuf s) noexcept {
@@ -63,24 +71,24 @@ namespace {
 
 bool IsTrue(const TStringBuf v) noexcept {
     static constexpr std::array<TStringBuf, 7> trueOptions{
-        "true",
-        "t",
-        "yes",
-        "y",
-        "on",
-        "1",
-        "da"};
+        AsStringBuf("true"),
+        AsStringBuf("t"),
+        AsStringBuf("yes"),
+        AsStringBuf("y"),
+        AsStringBuf("on"),
+        AsStringBuf("1"),
+        AsStringBuf("da")};
     return IsCaseInsensitiveAnyOf(v, trueOptions);
 }
 
 bool IsFalse(const TStringBuf v) noexcept {
     static constexpr std::array<TStringBuf, 7> falseOptions{
-        "false",
-        "f",
-        "no",
-        "n",
-        "off",
-        "0",
-        "net"};
+        AsStringBuf("false"),
+        AsStringBuf("f"),
+        AsStringBuf("no"),
+		AsStringBuf("n"),
+        AsStringBuf("off"),
+        AsStringBuf("0"),
+        AsStringBuf("net")};
     return IsCaseInsensitiveAnyOf(v, falseOptions);
 }

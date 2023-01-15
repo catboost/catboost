@@ -6,8 +6,6 @@ import collections
 import optparse
 import pipes
 
-from process_whole_archive_option import ProcessWholeArchiveOption
-
 
 def shlex_join(cmd):
     # equivalent to shlex.join() in python 3
@@ -19,19 +17,15 @@ def shlex_join(cmd):
 
 def parse_export_file(p):
     with open(p, 'r') as f:
-        for l in f:
+        for l in f.read().split('\n'):
             l = l.strip()
 
             if l and '#' not in l:
-                words = l.split()
-                if len(words) == 2 and words[0] == 'linux_version':
-                    yield {'linux_version': words[1]}
-                elif len(words) == 2:
-                    yield {'lang': words[0], 'sym': words[1]}
-                elif len(words) == 1:
-                    yield {'lang': 'C', 'sym': words[0]}
+                x, y = l.split()
+                if x == 'linux_version':
+                    yield {'linux_version': y}
                 else:
-                    raise Exception('unsupported exports line: ' + l)
+                    yield {'lang': x, 'sym': y}
 
 
 def to_c(sym):
@@ -124,49 +118,30 @@ def fix_windows_param(ex):
         return ['/DEF:{}'.format(def_file.name)]
 
 
-MUSL_LIBS = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
-
-CUDA_LIBRARIES = {
-    '-lcublas_static': '-lcublas',
-    '-lcublasLt_static': '-lcublasLt',
-    '-lcudart_static': '-lcudart',
-    '-lcudnn_static': '-lcudnn',
-    '-lcufft_static_nocallback': '-lcufft',
-    '-lcurand_static': '-lcurand',
-    '-lcusolver_static': '-lcusolver',
-    '-lcusparse_static': '-lcusparse',
-    '-lmyelin_compiler_static': '-lmyelin',
-    '-lmyelin_executor_static': '-lnvcaffe_parser',
-    '-lmyelin_pattern_library_static': '',
-    '-lmyelin_pattern_runtime_static': '',
-    '-lnvinfer_static': '-lnvinfer',
-    '-lnvinfer_plugin_static': '-lnvinfer_plugin',
-    '-lnvonnxparser_static': '-lnvonnxparser',
-    '-lnvparsers_static': '-lnvparsers'
-}
+musl_libs = '-lc', '-lcrypt', '-ldl', '-lm', '-lpthread', '-lrt', '-lutil'
 
 
-def fix_cmd(arch, c):
+def fix_cmd(arch, musl, c):
     if arch == 'WINDOWS':
         prefix = '/DEF:'
         f = fix_windows_param
     else:
         prefix = '-Wl,--version-script='
-        if arch in ('DARWIN', 'IOS', 'IOSSIM'):
+        if arch in ('DARWIN', 'IOS'):
             f = fix_darwin_param
         else:
             f = lambda x: fix_gnu_param(arch, x)
 
     def do_fix(p):
+        if musl and p in musl_libs:
+            return []
+
         if p.startswith(prefix) and p.endswith('.exports'):
             fname = p[len(prefix):]
 
             return list(f(list(parse_export_file(fname))))
 
-        if p.endswith('.supp'):
-            return []
-
-        if p.endswith('.pkg.fake'):
+        if p.endswith('.supp.o'):
             return []
 
         return [p]
@@ -174,22 +149,58 @@ def fix_cmd(arch, c):
     return sum((do_fix(x) for x in c), [])
 
 
-def fix_cmd_for_musl(cmd):
-    flags = []
-    for flag in cmd:
-        if flag not in MUSL_LIBS:
-            flags.append(flag)
-    return flags
+def postprocess_whole_archive(opts, args):
+    if not opts.whole_archive:
+        return args
 
+    def match_peer_lib(arg, peers):
+        key = None
+        if arg.endswith('.a'):
+            key = os.path.dirname(arg)
+        return key if key and key in peers else None
 
-def fix_cmd_for_dynamic_cuda(cmd):
-    flags = []
-    for flag in cmd:
-        if flag in CUDA_LIBRARIES:
-            flags.append(CUDA_LIBRARIES[flag])
+    whole_archive_peers = { x : 0 for x in opts.whole_archive }
+
+    whole_archive_flag = '-Wl,--whole-archive'
+    no_whole_archive_flag = '-Wl,--no-whole-archive'
+
+    cmd = []
+    is_inside_whole_archive = False
+    is_whole_archive = False
+    # We are trying not to create excessive sequences of consecutive flags
+    # -Wl,--no-whole-archive  -Wl,--whole-archive ('externally' specified
+    # flags -Wl,--[no-]whole-archive are not taken for consideration in this
+    # optimization intentionally)
+    for arg in args:
+        if arg == whole_archive_flag:
+            is_inside_whole_archive = True
+            is_whole_archive = False
+        elif arg == no_whole_archive_flag:
+            is_inside_whole_archive = False
+            is_whole_archive = False
         else:
-            flags.append(flag)
-    return flags
+            key = match_peer_lib(arg, whole_archive_peers)
+            if key:
+                whole_archive_peers[key] += 1
+
+            if not is_inside_whole_archive:
+                if key:
+                    if not is_whole_archive:
+                        cmd.append(whole_archive_flag)
+                        is_whole_archive = True
+                elif is_whole_archive:
+                    cmd.append(no_whole_archive_flag)
+                    is_whole_archive = False
+
+        cmd.append(arg)
+
+    if is_whole_archive:
+        cmd.append(no_whole_archive_flag)
+
+    for key, value in whole_archive_peers.items():
+        assert value > 0, '"{}" specified in WHOLE_ARCHIVE() macro is not used on link command'.format(key)
+
+    return cmd
 
 
 def parse_args():
@@ -199,13 +210,8 @@ def parse_args():
     parser.add_option('--target')
     parser.add_option('--soname')
     parser.add_option('--fix-elf')
-    parser.add_option('--linker-output')
     parser.add_option('--musl', action='store_true')
-    parser.add_option('--dynamic-cuda', action='store_true')
-    parser.add_option('--whole-archive-peers', action='append')
-    parser.add_option('--whole-archive-libs', action='append')
-    parser.add_option('--custom-step')
-    parser.add_option('--python')
+    parser.add_option('--whole-archive', action='append')
     return parser.parse_args()
 
 
@@ -215,25 +221,9 @@ if __name__ == '__main__':
     assert opts.arch
     assert opts.target
 
-    cmd = fix_cmd(opts.arch, args)
-
-    if opts.musl:
-        cmd = fix_cmd_for_musl(cmd)
-    if opts.dynamic_cuda:
-        cmd = fix_cmd_for_dynamic_cuda(cmd)
-
-    cmd = ProcessWholeArchiveOption(opts.arch, opts.whole_archive_peers, opts.whole_archive_libs).construct_cmd(cmd)
-
-    if opts.custom_step:
-        assert opts.python
-        subprocess.check_call([opts.python] + [opts.custom_step] + cmd)
-
-    if opts.linker_output:
-        stdout = open(opts.linker_output, 'w')
-    else:
-        stdout = sys.stdout
-
-    proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=stdout)
+    cmd = fix_cmd(opts.arch, opts.musl, args)
+    cmd = postprocess_whole_archive(opts, cmd)
+    proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     proc.communicate()
 
     if proc.returncode:
@@ -273,7 +263,7 @@ C++ geobase5::hardcoded_service
 """
     filename = write_temp_file(export_file_content)
     args = ['-Wl,--version-script={}'.format(filename)]
-    assert fix_cmd('DARWIN', args) == [
+    assert fix_cmd('DARWIN', False, args) == [
         '-Wl,-exported_symbol,__ZN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTIN8geobase57details11lookup_impl*',
         '-Wl,-exported_symbol,__ZTSN8geobase57details11lookup_impl*',

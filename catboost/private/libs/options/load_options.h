@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/serialization.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -52,11 +52,6 @@ namespace NCatboostOptions {
         TString BordersFile;
 
         NCB::TPathWithScheme FeatureNamesPath;
-        NCB::TPathWithScheme PoolMetaInfoPath;
-
-        bool HostsAlreadyContainLoadedData = false;
-
-        TString PrecomputedMetadataFile;
 
         TPoolLoadParams() = default;
 
@@ -68,15 +63,9 @@ namespace NCatboostOptions {
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
-            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath, PoolMetaInfoPath,
-            HostsAlreadyContainLoadedData, PrecomputedMetadataFile
+            ClassLabels, IgnoredFeatures, BordersFile, FeatureNamesPath
         );
     };
-
-    void ValidatePoolParams(
-        const NCB::TPathWithScheme& poolPath,
-        const NCB::TDsvFormatOptions& dsvFormat
-    );
 
     void ValidatePoolParams(
         const NCB::TPathWithScheme& poolPath,

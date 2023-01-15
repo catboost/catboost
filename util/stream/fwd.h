@@ -45,7 +45,7 @@ struct TEol;
 template <typename TEndOfToken>
 class TStreamTokenizer;
 
-enum ETraceLevel: ui8;
+enum ETraceLevel : ui8;
 
 class IWalkInput;
 
@@ -54,7 +54,7 @@ struct TZLibCompressorError;
 struct TZLibDecompressorError;
 
 namespace ZLib {
-    enum StreamType: ui8;
+    enum StreamType : ui8;
 }
 
 class TZLibDecompress;

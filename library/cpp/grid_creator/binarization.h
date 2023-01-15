@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/fwd.h>
-#include <util/generic/hash_set.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>

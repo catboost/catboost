@@ -17,9 +17,6 @@ SRCS(
     kernel/pairwise_hist_binary.cu
     kernel/pairwise_hist_half_byte.cu
 
-    kernel/exact_estimation.cu
-    kernel/langevin_utils.cu
-
     kernel/pairwise_hist_one_byte_5bit.cu
     kernel/pairwise_hist_one_byte_6bit.cu
     kernel/pairwise_hist_one_byte_7bit.cu
@@ -54,8 +51,6 @@ SRCS(
     pointwise_score_calcer.cpp
     GLOBAL pointwise_kernels.cpp
     GLOBAL pairwise_kernels.cpp
-    GLOBAL exact_estimation.cpp
-    langevin_utils.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
     oblivious_tree_doc_parallel_structure_searcher.cpp
@@ -75,7 +70,6 @@ SRCS(
     tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
     pointwise_optimization_subsets.cpp
-    update_feature_weights.cpp
 
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/pairwise_scores_calcer.cpp
@@ -101,16 +95,8 @@ PEERDIR(
     catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/overfitting_detector
-    library/cpp/threading/local_executor
+    library/threading/local_executor
 )
-
-IF (NOT OPENSOURCE)
-    CFLAGS(GLOBAL -DUSE_CUSOLVER)
-    SRC(kernel/linear_cusolver.cu)
-    PEERDIR(contrib/libs/nvidia/cusolver)
-ELSE()
-    SRC(kernel/linear_cusolver_stub.cu)
-ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 

@@ -9,7 +9,7 @@
 
 #include <openssl/opensslv.h>
 #include <openssl/aes.h>
-#include "aes_local.h"
+#include "aes_locl.h"
 
 const char *AES_options(void)
 {

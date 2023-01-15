@@ -2,10 +2,8 @@ import _common as common
 
 
 def onacceleo(unit, *args):
-    if unit.get("YMAKE_JAVA_MODULES") == "yes":
-        return
     flat, kv = common.sort_by_keywords(
-        {'XSD': -1, 'MTL': -1, 'MTL_ROOT': 1, 'LANG': -1, 'OUT': -1, 'OUT_NOAUTO': -1, 'OUTPUT_INCLUDES': -1, 'DEBUG': 0},
+        {'XSD': -1, 'MTL': -1, 'MTL_ROOT': 1, 'MTL_EXTENSION': -1, 'LANG': -1, 'OUT': -1, 'OUT_NOAUTO': -1, 'OUTPUT_INCLUDES': -1, 'DEBUG': 0},
         args
     )
 
@@ -16,6 +14,7 @@ def onacceleo(unit, *args):
 
     classpath = ['$SCARAB', ]  # XXX special word for ya make to replace following paths with real classpath
     classpath.append('tools/acceleo')
+    classpath.extend(kv.get('MTL_EXTENSION', []))
 
     depends = []
     if not unit.get('IDE_MSVS_CALL'):

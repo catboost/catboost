@@ -1,4 +1,3 @@
-#include "exception.h"
 #include "mem_usage.h"
 
 #include <util/stream/format.h>
@@ -20,7 +19,7 @@ namespace NCB {
     ui64 GetMonopolisticFreeCpuRam() {
         const ui64 totalMemorySize = (ui64)NSystemInfo::TotalMemorySize();
         const ui64 currentProcessRSS = NMemInfo::GetMemInfo().RSS;
-        CB_ENSURE(totalMemorySize >= currentProcessRSS, "total memory size < current process RSS");
+        Y_VERIFY(totalMemorySize >= currentProcessRSS, "total memory size < current process RSS");
         return totalMemorySize - currentProcessRSS;
     }
 

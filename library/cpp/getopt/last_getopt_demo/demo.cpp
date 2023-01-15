@@ -11,12 +11,12 @@ Y_COMPLETER(HeaderCompleter) {
     bool addPostHeaders = false;
 
     for (int i = 0; i < argc; ++i) {
-        if (argv[i] == TStringBuf("--method") && i + 1 < argc) {
+        if (argv[i] == AsStringBuf("--method") && i + 1 < argc) {
             auto method = TString(argv[i + 1]);
             method.to_upper();
             addPostHeaders = method == "POST" || method == "PUT";
             break;
-        } else if (argv[i] == TStringBuf("--post-data") || argv[i] == TStringBuf("--post-file")) {
+        } else if (argv[i] == AsStringBuf("--post-data") || argv[i] == AsStringBuf("--post-file")) {
             addPostHeaders = true;
             break;
         }

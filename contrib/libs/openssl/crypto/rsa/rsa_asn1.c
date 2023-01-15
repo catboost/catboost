@@ -12,7 +12,7 @@
 #include <openssl/bn.h>
 #include <openssl/x509.h>
 #include <openssl/asn1t.h>
-#include "rsa_local.h"
+#include "rsa_locl.h"
 
 /*
  * Override the default free and new methods,

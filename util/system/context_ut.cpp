@@ -1,13 +1,12 @@
 #include "context.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/deque.h>
-#include <util/generic/yexception.h>
 
 Y_UNIT_TEST_SUITE(TestContext) {
     template <class F>
-    static TContClosure Wrap(F& f) {
+    static TContClosure Wrap(F & f) {
         struct TW: public ITrampoLine {
             inline TW(F* ff) noexcept
                 : F_(ff)
@@ -33,10 +32,10 @@ Y_UNIT_TEST_SUITE(TestContext) {
         TExceptionSafeContext main;
         TExceptionSafeContext* volatile nextPtr = nullptr;
 
-        bool hasUncaught = true;
+        bool uncaught = true;
 
-        auto func = [&]() {
-            hasUncaught = UncaughtException();
+        auto func = [&main, &nextPtr, &uncaught]() {
+            uncaught = std::uncaught_exception();
             nextPtr->SwitchTo(&main);
         };
 
@@ -66,6 +65,6 @@ Y_UNIT_TEST_SUITE(TestContext) {
         }
 
         UNIT_ASSERT(throwed);
-        UNIT_ASSERT(!hasUncaught);
+        UNIT_ASSERT(!uncaught);
     }
 }

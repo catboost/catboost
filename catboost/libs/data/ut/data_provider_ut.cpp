@@ -6,7 +6,7 @@
 
 #include <library/cpp/binsaver/util_stream_io.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -41,7 +41,6 @@ static void CreateQuantizedObjectsDataProviderTestData(
         /*hasAdditionalGroupWeight*/ false,
         /*hasTimestamps*/ false,
         hasPairs,
-        /*forceUnitAutoPairWeights*/ false,
         /*additionalBaselineCount*/ Nothing(),
         &featureId
     );
@@ -57,7 +56,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     );
 
     commonObjectsData.Order = EObjectsOrder::RandomShuffled;
-    commonObjectsData.GroupIds.GetMaybeNumData() = TVector<TGroupId>{
+    commonObjectsData.GroupIds = TVector<TGroupId>{
         CalcGroupIdFor("query0"),
         CalcGroupIdFor("query0"),
         CalcGroupIdFor("query1"),
@@ -66,11 +65,11 @@ static void CreateQuantizedObjectsDataProviderTestData(
         CalcGroupIdFor("Query 2")
     };
 
-    commonObjectsData.SubgroupIds.GetMaybeNumData() = TVector<TSubgroupId>{0, 12, 18, 21, 0, 2};
+    commonObjectsData.SubgroupIds = TVector<TSubgroupId>{0, 12, 18, 21, 0, 2};
     commonObjectsData.Timestamp = TVector<ui64>{10, 20, 10, 30, 50, 70};
 
 
-    TQuantizedObjectsData quantizedObjectsData;
+    TQuantizedForCPUObjectsData quantizedObjectsData;
 
     TVector<TVector<ui8>> quantizedFloatFeatures = {
         TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2, 0, 3, 4, 1},
@@ -87,14 +86,14 @@ static void CreateQuantizedObjectsDataProviderTestData(
         quantizedFloatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {0, 2, 4},
-        &quantizedObjectsData.FloatFeatures
+        &quantizedObjectsData.Data.FloatFeatures
     );
 
     InitQuantizedFeatures(
         quantizedCatFeatures,
         commonObjectsData.SubsetIndexing.Get(),
         {1, 3},
-        &quantizedObjectsData.CatFeatures
+        &quantizedObjectsData.Data.CatFeatures
     );
 
 
@@ -104,7 +103,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         ENanMode::Min
     );
 
-    quantizedObjectsData.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+    quantizedObjectsData.Data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
         *metaInfo->FeaturesLayout,
         TConstArrayRef<ui32>(),
         binarizationOptions
@@ -156,13 +155,13 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
     for (auto i : xrange(3)) {
         auto floatFeatureIdx = TFloatFeatureIdx(i);
-        quantizedObjectsData.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
-        quantizedObjectsData.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetBorders(floatFeatureIdx, std::move(borders[i]));
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->SetNanMode(floatFeatureIdx, nanModes[i]);
     }
 
     for (auto i : xrange(2)) {
         auto catFeatureIdx = TCatFeatureIdx(i);
-        quantizedObjectsData.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
+        quantizedObjectsData.Data.QuantizedFeaturesInfo->UpdateCategoricalFeaturesPerfectHash(
             catFeatureIdx,
             std::move(expectedPerfectHash[i])
         );
@@ -174,7 +173,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     );
     quantizedObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
         *metaInfo->FeaturesLayout,
-        *quantizedObjectsData.QuantizedFeaturesInfo,
+        *quantizedObjectsData.Data.QuantizedFeaturesInfo,
         quantizedObjectsData.ExclusiveFeatureBundlesData,
         true
     );
@@ -183,7 +182,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
         TVector<TFeaturesGroup>()
     );
 
-    *objectsData = MakeIntrusive<TQuantizedObjectsDataProvider>(
+    *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
         *objectsGrouping,
         std::move(commonObjectsData),
         std::move(quantizedObjectsData),
@@ -203,7 +202,7 @@ static TRawTargetData CreateRawTargetData() {
     };
     targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
     targetData.GroupWeights = TWeights<float>(6);
-    targetData.Pairs = TFlatPairsInfo{TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
 
     return targetData;
 }
@@ -219,7 +218,7 @@ static TRawTargetData CreateRawMultiTargetData() {
     };
     targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
     targetData.GroupWeights = TWeights<float>(6);
-    targetData.Pairs = TFlatPairsInfo{TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
 
     return targetData;
 }
@@ -245,7 +244,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
                 std::move(metaInfo),
                 std::move(objectsData),
                 objectsGrouping,
-                TRawTargetDataProvider(objectsGrouping, std::move(rawTargetData), false, false, &localExecutor)
+                TRawTargetDataProvider(objectsGrouping, std::move(rawTargetData), false, &localExecutor)
             );
         }
 
@@ -257,8 +256,8 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
     }
 
     Y_UNIT_TEST(Equal) {
-        TestEqual<TQuantizedObjectsDataProvider>(CreateRawTargetData);
-        TestEqual<TQuantizedObjectsDataProvider>(CreateRawMultiTargetData);
+        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawTargetData);
+        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawMultiTargetData);
     }
 }
 
@@ -294,7 +293,7 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
         {
             TBufferOutput out(buffer);
-            SerializeToArcadiaStream(out, trainingDataProvider);
+            SerializeToStream(out, trainingDataProvider);
         }
 
         TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider2;
@@ -463,9 +462,11 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
 
     Y_UNIT_TEST(Serialization) {
         TestSerialization<TQuantizedObjectsDataProvider>();
+        TestSerialization<TQuantizedForCPUObjectsDataProvider>();
     }
 
     Y_UNIT_TEST(MultiTargetSerialization) {
         TestMultiTargetSerialization<TQuantizedObjectsDataProvider>();
+        TestMultiTargetSerialization<TQuantizedForCPUObjectsDataProvider>();
     }
 }

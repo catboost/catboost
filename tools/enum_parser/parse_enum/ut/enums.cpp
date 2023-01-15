@@ -6,7 +6,7 @@
 
 // just to test that generated stuff works
 #include <util/generic/serialized_enum.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/singleton.h>
@@ -187,11 +187,6 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
         UNIT_ASSERT(names.contains(HThree));
         UNIT_ASSERT_VALUES_EQUAL(names.at(HThree), "HThree");
-    }
-
-    Y_UNIT_TEST(ToStringBufHeaderTest) {
-        UNIT_ASSERT_VALUES_EQUAL(ToStringBuf(HOne), "one"sv);
-        UNIT_ASSERT_VALUES_EQUAL(ToStringBuf(HTwo), "HTwo"sv);
     }
 
     Y_UNIT_TEST(EnumSerializerDestructionPriority) {

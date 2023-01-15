@@ -8,22 +8,16 @@
 #include <catboost/cuda/targets/kernel/query_cross_entropy.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
-#include <util/generic/cast.h>
-
 namespace NKernelHost {
     class TQueryCrossEntropyKernel: public TKernelBase<NKernel::TQueryLogitContext, false> {
     private:
         double Alpha;
-        float DefaultScale;
-        ui32 ApproxScaleSize;
         TCudaBufferPtr<const float> Targets;
         TCudaBufferPtr<const float> Weights;
         TCudaBufferPtr<const float> Values;
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const bool> IsSingleClassQueries;
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const float> ApproxScale;
-        TCudaBufferPtr<const ui32> TrueClassCount;
         TCudaBufferPtr<float> FunctionValue;
         TCudaBufferPtr<float> Ders;
         TCudaBufferPtr<float> Ders2llp;
@@ -42,32 +36,24 @@ namespace NKernelHost {
         TQueryCrossEntropyKernel() = default;
 
         TQueryCrossEntropyKernel(double alpha,
-                                 float defaultScale,
-                                 ui32 approxScaleSize,
                                  TCudaBufferPtr<const float> targets,
                                  TCudaBufferPtr<const float> weights,
                                  TCudaBufferPtr<const float> values,
                                  TCudaBufferPtr<const ui32> qids,
                                  TCudaBufferPtr<const bool> isSingleClassQueries,
                                  TCudaBufferPtr<const ui32> qOffsets,
-                                 TCudaBufferPtr<const float> approxScale,
-                                 TCudaBufferPtr<const ui32> trueClassCount,
                                  TCudaBufferPtr<float> functionValue,
                                  TCudaBufferPtr<float> ders,
                                  TCudaBufferPtr<float> ders2llp,
                                  TCudaBufferPtr<float> ders2llmax,
                                  TCudaBufferPtr<float> groupDers2)
             : Alpha(alpha)
-            , DefaultScale(defaultScale)
-            , ApproxScaleSize(approxScaleSize)
             , Targets(targets)
             , Weights(weights)
             , Values(values)
             , Qids(qids)
             , IsSingleClassQueries(isSingleClassQueries)
             , QueryOffsets(qOffsets)
-            , ApproxScale(approxScale)
-            , TrueClassCount(trueClassCount)
             , FunctionValue(functionValue)
             , Ders(ders)
             , Ders2llp(ders2llp)
@@ -76,12 +62,12 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(Alpha, DefaultScale, ApproxScaleSize, Targets, Weights, Values, Qids, IsSingleClassQueries,
-                          QueryOffsets, ApproxScale, TrueClassCount, FunctionValue, Ders, Ders2llp, Ders2llmax, GroupDers2);
+        Y_SAVELOAD_DEFINE(Alpha, Targets, Weights, Values, Qids, IsSingleClassQueries,
+                          QueryOffsets, FunctionValue, Ders, Ders2llp, Ders2llmax, GroupDers2);
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
+            Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::QueryCrossEntropy(context.QidCursor,
@@ -93,10 +79,6 @@ namespace NKernelHost {
                                        Qids.Get(),
                                        IsSingleClassQueries.Get(),
                                        QueryOffsets.Get(),
-                                       ApproxScale.Get(),
-                                       DefaultScale,
-                                       ApproxScaleSize,
-                                       TrueClassCount.Get(),
                                        static_cast<int>(Targets.Size()),
                                        FunctionValue.Get(),
                                        Ders.Get(),
@@ -128,8 +110,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, IsSingleQueryFlags, MatrixSize);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(QueryOffsets.Size() == MatrixSize.Size());
-            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
+            Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::ComputeQueryLogitMatrixSizes(QueryOffsets.Get(), IsSingleQueryFlags.Get(), queryCount, MatrixSize.Get(), stream.GetStream());
@@ -139,7 +120,7 @@ namespace NKernelHost {
     class TMakeQueryLogitPairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> QueryOffsets;
-        TCudaBufferPtr<const ui64> MatrixOffset;
+        TCudaBufferPtr<const ui32> MatrixOffset;
         TCudaBufferPtr<const bool> IsSingleQueryFlags;
         double MeanQuerySize;
         TCudaBufferPtr<uint2> Pairs;
@@ -148,7 +129,7 @@ namespace NKernelHost {
         TMakeQueryLogitPairsKernel() = default;
 
         TMakeQueryLogitPairsKernel(TCudaBufferPtr<const ui32> qOffsets,
-                                   TCudaBufferPtr<const ui64> matrixOffset,
+                                   TCudaBufferPtr<const ui32> matrixOffset,
                                    TCudaBufferPtr<const bool> isSingleQueryFlags,
                                    double meanQuerySize,
                                    TCudaBufferPtr<uint2> pairs)
@@ -163,7 +144,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(QueryOffsets, MatrixOffset, IsSingleQueryFlags, MeanQuerySize, Pairs);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
+            Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
             NKernel::MakeQueryLogitPairs(QueryOffsets.Get(),
@@ -183,7 +164,6 @@ namespace NKernelHost {
         TCudaBufferPtr<const ui32> QueryOffsets;
         double MeanQuerySize;
         TCudaBufferPtr<bool> IsSingleClassQuery;
-        TCudaBufferPtr<ui32> TrueClassCount;
 
     public:
         TMakeIsSingleClassFlagsKernel() = default;
@@ -192,31 +172,27 @@ namespace NKernelHost {
                                       TCudaBufferPtr<const ui32> loadIndices,
                                       TCudaBufferPtr<const ui32> queryOffsets,
                                       double meanQuerySize,
-                                      TCudaBufferPtr<bool> isSingleClassQuery,
-                                      TCudaBufferPtr<ui32> trueClassCount)
+                                      TCudaBufferPtr<bool> isSingleClassQuery)
             : Targets(targets)
             , LoadIndices(loadIndices)
             , QueryOffsets(queryOffsets)
             , MeanQuerySize(meanQuerySize)
             , IsSingleClassQuery(isSingleClassQuery)
-            , TrueClassCount(trueClassCount)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Targets, QueryOffsets, MeanQuerySize, LoadIndices, IsSingleClassQuery, TrueClassCount);
+        Y_SAVELOAD_DEFINE(Targets, QueryOffsets, MeanQuerySize, LoadIndices, IsSingleClassQuery);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(QueryOffsets.Size() > 0, "Need some query offsets");
-            CB_ENSURE(LoadIndices.Size() == IsSingleClassQuery.Size(), "Unexcepted size of buffer");
-            CB_ENSURE(LoadIndices.Size() == TrueClassCount.Size(), "Unexcepted size of buffer");
+            Y_VERIFY(QueryOffsets.Size() > 0);
+            Y_VERIFY(LoadIndices.Size() == IsSingleClassQuery.Size());
 
             const ui32 queryCount = QueryOffsets.Size() - 1;
             NKernel::MakeIsSingleClassFlags(Targets.Get(), LoadIndices.Get(),
                                             QueryOffsets.Get(),
                                             queryCount,
                                             MeanQuerySize,
-                                            IsSingleClassQuery.Get(),
-                                            TrueClassCount.Get(), stream.GetStream());
+                                            IsSingleClassQuery.Get(), stream.GetStream());
         }
     };
 
@@ -258,16 +234,12 @@ namespace NKernelHost {
 
 template <class TMapping>
 inline void QueryCrossEntropy(double alpha,
-                              float defaultScale,
-                              ui32 approxScaleSize,
                               const TCudaBuffer<const float, TMapping>& target,
                               const TCudaBuffer<const float, TMapping>& weights,
                               const TCudaBuffer<const float, TMapping>& point,
                               const TCudaBuffer<ui32, TMapping>& qids,
                               const TCudaBuffer<bool, TMapping>& isSingleQueryFlags,
                               const TCudaBuffer<ui32, TMapping>& queryOffsets,
-                              const TCudaBuffer<const float, NCudaLib::TMirrorMapping>& approxScale,
-                              const TCudaBuffer<ui32, TMapping>& trueClassCount,
                               TCudaBuffer<float, TMapping>* score,
                               TCudaBuffer<float, TMapping>* weightedFullDer,
                               TCudaBuffer<float, TMapping>* weightedDer2NonShifted,
@@ -278,16 +250,12 @@ inline void QueryCrossEntropy(double alpha,
     LaunchKernels<TKernel>(target.NonEmptyDevices(),
                            stream,
                            alpha,
-                           defaultScale,
-                           approxScaleSize,
                            target,
                            weights,
                            point,
                            qids,
                            isSingleQueryFlags,
                            queryOffsets,
-                           approxScale,
-                           trueClassCount,
                            score,
                            weightedFullDer,
                            weightedDer2NonShifted,
@@ -329,7 +297,7 @@ inline void FillPairDer2AndRemapPairDocuments(const TCudaBuffer<float, TMapping>
 
 template <class TMapping>
 inline void MakePairsQueryLogit(const TCudaBuffer<ui32, TMapping>& sampledQidOffsets,
-                                const TCudaBuffer<ui64, TMapping>& matrixOffsets,
+                                const TCudaBuffer<ui32, TMapping>& matrixOffsets,
                                 const TCudaBuffer<bool, TMapping>& sampledFlags,
                                 double meanQuerySize,
                                 TCudaBuffer<uint2, TMapping>* pairs,
@@ -350,7 +318,6 @@ inline void MakeIsSingleClassQueryFlags(const TCudaBuffer<const float, TMapping>
                                         const TCudaBuffer<const ui32, TMapping>& queryOffsets,
                                         double meanQuerySize,
                                         TCudaBuffer<bool, TMapping>* flags,
-                                        TCudaBuffer<ui32, TMapping>* trueClassCount,
                                         ui32 stream = 0) {
     using TKernel = NKernelHost::TMakeIsSingleClassFlagsKernel;
     LaunchKernels<TKernel>(targets.NonEmptyDevices(),
@@ -359,6 +326,5 @@ inline void MakeIsSingleClassQueryFlags(const TCudaBuffer<const float, TMapping>
                            order,
                            queryOffsets,
                            meanQuerySize,
-                           flags,
-                           trueClassCount);
+                           flags);
 }

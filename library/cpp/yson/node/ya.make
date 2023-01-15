@@ -4,7 +4,6 @@ GENERATE_ENUM_SERIALIZATION(node.h)
 
 PEERDIR(
     library/cpp/yson
-    library/cpp/yson/json
 )
 
 
@@ -19,7 +18,4 @@ SRCS(
 
 END()
 
-RECURSE(
-    benchmark
-    ut
-)
+RECURSE_FOR_TESTS(ut)

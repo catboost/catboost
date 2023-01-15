@@ -7,10 +7,10 @@ SIZE(MEDIUM)
 IF (SANITIZER_TYPE)
     TAG(ya:not_autocheck)
 ELSE()
-    TAG(ya:yt)
+    TAG(ya:noretries ya:yt)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 
 SRCS(
     test_auc.cpp
@@ -18,8 +18,6 @@ SRCS(
     test_multi_logit.cpp
     test_query_cross_entropy.cpp
     test_combination.cpp
-    test_tweedie.cpp
-    test_huber.cpp
 )
 
 PEERDIR(

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tuning_policy_enums.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 

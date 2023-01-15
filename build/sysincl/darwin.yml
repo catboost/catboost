@@ -25,15 +25,11 @@
   - AvailabilityMacros.h
   - Block.h
   - CommonCrypto/CommonCrypto.h
-  - CommonCrypto/CommonCryptoError.h
   - CommonCrypto/CommonCryptor.h
   - CommonCrypto/CommonDigest.h
   - CommonCrypto/CommonHMAC.h
   - CommonCrypto/CommonKeyDerivation.h
-  - CommonCrypto/CommonRandom.h
   - ConditionalMacros.h
-  - DiskArbitration/DiskArbitration.h
-  - Endian.h
   - MacTypes.h
   - TargetConditionals.h
   - architecture/byte_order.h
@@ -57,12 +53,10 @@
   - libkern/OSCacheControl.h
   - libproc.h
   - mach-o/dyld.h
-  - mach-o/fixup-chains.h
   - mach-o/getsect.h
   - mach-o/loader.h
   - mach/clock.h
   - mach/clock_types.h
-  - mach/error.h
   - mach/host_info.h
   - mach/kern_return.h
   - mach/mach.h
@@ -75,7 +69,6 @@
   - mach/mach_types.h
   - mach/mach_vm.h
   - mach/machine.h
-  - mach/machine/vm_param.h
   - mach/processor_info.h
   - mach/semaphore.h
   - mach/shared_memory_server.h
@@ -85,7 +78,6 @@
   - mach/thread_info.h
   - mach/thread_policy.h
   - mach/vm_map.h
-  - mach/vm_page_size.h
   - mach/vm_param.h
   - mach/vm_statistics.h
   - machine/_limits.h
@@ -113,25 +105,19 @@
   - netinet/udp_var.h
   - netinet6/in6.h
   - nlist.h
-  - objc/objc-sync.h
   - objc/runtime.h
   - os/lock.h
-  - os/log.h
-  - os/proc.h
-  - os/trace.h
   - panel.h
   - pthread_spis.h
   - readline/history.h
   - readline/readline.h
   - readpassphrase.h
   - runetype.h
-  - simd/simd.h
   - strhash.h
   - sys/_types.h
   - sys/acl.h
   - sys/aio.h
   - sys/attr.h
-  - sys/clonefile.h
   - sys/dirent.h
   - sys/disk.h
   - sys/domain.h
@@ -144,7 +130,6 @@
   - sys/malloc.h
   - sys/mbuf.h
   - sys/msgbuf.h
-  - sys/paths.h
   - sys/posix_shm.h
   - sys/proc.h
   - sys/proc_info.h
@@ -165,7 +150,7 @@
   - tzfile.h
   - util.h
   - vis.h
-  - xpc/xpc.h
+  - simd/simd.h
 
   # OSX frameworks
   - Accelerate/Accelerate.h
@@ -173,12 +158,8 @@
   - AppKit/NSView.h
   - ApplicationServices/ApplicationServices.h
   - AudioToolbox/AudioToolbox.h
-  - AVFoundation/AVFoundation.h
-  - CFNetwork/CFNetwork.h
   - Cocoa/Cocoa.h
-  - CoreFoundation/CFArray.h
   - CoreFoundation/CFBase.h
-  - CoreFoundation/CFBundle.h
   - CoreFoundation/CFData.h
   - CoreFoundation/CFDictionary.h
   - CoreFoundation/CFLocale.h
@@ -187,7 +168,6 @@
   - CoreFoundation/CFRunLoop.h
   - CoreFoundation/CFString.h
   - CoreFoundation/CFTimeZone.h
-  - CoreFoundation/CFUUID.h
   - CoreFoundation/CoreFoundation.h
   - CoreGraphics/CoreGraphics.h
   - CoreLocation/CoreLocation.h
@@ -221,7 +201,6 @@
   - OpenCL/cl_gl.h
   - OpenCL/opencl.h
   - OpenGLES/ES2/gl.h
-  - Speech/Speech.h
   - QuartzCore/QuartzCore.h
   - QuartzCore/CAEAGLLayer.h
   - QuartzCore/CAMetalLayer.h
@@ -231,10 +210,8 @@
   - Security/SecureTransport.h
   - Security/Security.h
   - SystemConfiguration/SystemConfiguration.h
-  - SystemConfiguration/SCDynamicStoreCopySpecific.h
   - UIKit/UIImage.h
   - UIKit/UIKit.h
-  - UIKit/UIScreen.h
   - UIKit/UIWebView.h
   - UIKit/UIView.h
   - VideoDecodeAcceleration/VDADecoder.h

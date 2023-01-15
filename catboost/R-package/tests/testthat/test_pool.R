@@ -93,8 +93,7 @@ test_that("pool: load_pool from matrix", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 allow_writing_files = FALSE)
+                 loss_function = "Logloss")
 
   prediction <- train_and_predict(pool_train, pool_test, iterations, params)
   accuracy <- calc_accuracy(prediction, target[-split])
@@ -119,8 +118,7 @@ test_that("pool: load_pool from data.frame", {
 
   iterations <- 10
   params <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 allow_writing_files = FALSE)
+                 loss_function = "Logloss")
 
   prediction <- train_and_predict(pool, pool, iterations, params)
   accuracy <- calc_accuracy(prediction, target)
@@ -144,8 +142,7 @@ test_that("pool: catboost.save_pool", {
   pool <- catboost.load_pool(data, target)
 
   params <- list(iterations = 10,
-                 loss_function = "MultiClass",
-                 allow_writing_files = FALSE)
+                 loss_function = "MultiClass")
 
   model <- catboost.train(pool, NULL, params)
   prediction <- catboost.predict(model, pool)
@@ -159,9 +156,6 @@ test_that("pool: catboost.save_pool", {
   loaded_pool_prediction <- catboost.predict(model, loaded_pool)
 
   expect_equal(prediction, loaded_pool_prediction)
-
-  unlink(pool_path)
-  unlink(column_description_path)
 })
 
 test_that("pool: data.frame weights", {
@@ -175,8 +169,7 @@ test_that("pool: data.frame weights", {
   data$f_character <- as.factor(data$f_character)
 
   params <- list(iterations = 10,
-                 loss_function = "Logloss",
-                 allow_writing_files = FALSE)
+                 loss_function = "Logloss")
 
   count <- table(target)
   weights <- ifelse(target == -1, 1 / count[1], 1 / count[2])
@@ -209,7 +202,7 @@ test_that("pool: nan", {
                         matrix(unlist(head(second_pool, nrow(second_pool))), nrow = nrow(second_pool), byrow = TRUE)))
 })
 
-test_that("pool: data.frame vs tibble::tbl_df vs pool", {
+test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
   pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
   column_description_path <- system.file("extdata", "adult.cd", package = "catboost")
 
@@ -218,12 +211,12 @@ test_that("pool: data.frame vs tibble::tbl_df vs pool", {
                                                                                       as.double(data_frame$Label))
   data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")])
 
-  tbl_df_pool <- catboost.load_pool(tibble::as_tibble(data_frame[, -which(names(data_frame) == "Label")]),
+  tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]),
                                                                                   as.double(data_frame$Label))
-  tbl_df_test_pool <- catboost.load_pool(tibble::as_tibble(data_frame[, -which(names(data_frame) == "Label")]))
+  tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]))
 
   params <- list(iterations = 10,
-                                  loss_function = "Logloss", allow_writing_files = FALSE)
+                                  loss_function = "Logloss")
 
   model <- catboost.train(data_frame_pool, NULL, params)
   model_tbl_df <- catboost.train(tbl_df_pool, NULL, params)
@@ -254,29 +247,4 @@ test_that("bad params handled correctly", {
   cd_path <- system.file("extdata", "adult.cd", package = "catboost")
   label <- list(1, 2, 3)
   expect_error(catboost.load_pool(pool_path, column_description = cd_path, label = label), ".*should be NULL.*")
-})
-
-test_that("pool: text features in data.frame", {
-  dfTrain <- data.frame(f_numeric = c(150, 120, 30), f_factor = factor(c('m', 'f', 'm')),
-                        text_feature = c('hello good I am good I hello good',
-                                        'good I hello I am good hello','bad bad bad bad'),
-                        target=c(0, 0, 1))
-  features <- dfTrain[, !(names(dfTrain) %in% c('target'))]
-  target <- dfTrain[, c('target')]
-  dfTest <- data.frame(f_numeric = c(150, 10), f_factor = factor(c('m', 'f')),
-                        f_text = c('hello I hello I hello good hello good I hello good',
-                                   'bad bad bad bad bad'))
-  train_pool <- catboost.load_pool(features, target)
-
-  expect_equal(nrow(train_pool), nrow(features))
-
-  iterations <- 10
-  params <- list(iterations = iterations,
-                 loss_function = "Logloss",
-                 allow_writing_files = FALSE)
-
-  prediction <- train_and_predict(train_pool, train_pool, iterations, params)
-  accuracy <- calc_accuracy(prediction, target)
-
-  expect_true(accuracy > 0)
 })

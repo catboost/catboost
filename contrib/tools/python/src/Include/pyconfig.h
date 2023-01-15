@@ -40,10 +40,6 @@
 #         error "Unsupported architecture for ios"
 #      endif // defined(_arm64_) || defined(_arm32_) || defined(_x86_64_) || defined(_i386_)
 #   else
-#       if defined(_arm64_)
-#           include "pyconfig.darwin.arm64.h"
-#       else 
-#           include "pyconfig.darwin.h"
-#       endif // _arm64_
+#       include "pyconfig.darwin.h"
 #   endif // __IOS__
 #endif

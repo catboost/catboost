@@ -33,14 +33,13 @@ def _find_c_source(base_path):
     return None
 
 
-def _find_dep_file_path(main_file, file_path, relative_path_search=False):
+def _find_dep_file_path(main_file, file_path):
     abs_path = os.path.abspath(file_path)
-    if not os.path.exists(abs_path) and (file_path.endswith('.pxi') or
-                                         relative_path_search):
-        # files are looked up relative to the main source file
-        rel_file_path = os.path.join(os.path.dirname(main_file), file_path)
-        if os.path.exists(rel_file_path):
-            abs_path = os.path.abspath(rel_file_path)
+    if file_path.endswith('.pxi') and not os.path.exists(abs_path):
+        # include files are looked up relative to the main source file
+        pxi_file_path = os.path.join(os.path.dirname(main_file), file_path)
+        if os.path.exists(pxi_file_path):
+            abs_path = os.path.abspath(pxi_file_path)
     # search sys.path for external locations if a valid file hasn't been found
     if not os.path.exists(abs_path):
         for sys_path in sys.path:
@@ -221,8 +220,7 @@ class Plugin(CoveragePlugin):
             self._c_files_map = {}
 
         for filename, code in code_lines.items():
-            abs_path = _find_dep_file_path(c_file, filename,
-                                           relative_path_search=True)
+            abs_path = _find_dep_file_path(c_file, filename)
             self._c_files_map[abs_path] = (c_file, filename, code)
 
         if sourcefile not in self._c_files_map:
@@ -472,6 +470,6 @@ if standalone():
         return None
 
 
-    def _find_dep_file_path(main_file, file_path, relative_path_search=False):
+    def _find_dep_file_path(main_file, file_path):
         # file_path is already arcadia root relative
         return canonical_filename(file_path)

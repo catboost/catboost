@@ -18,19 +18,19 @@ JAVA10_EXPORTS = [
     '--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
     '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
-    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED'
 ]
 
 
 def get_java_version(exe):
     p = subprocess.Popen([exe, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    for line in (out or '').strip().split("\n") + (err or '').strip().split("\n"):
-        m = re.match(r'java version "(.+)"', line)
+    for line in ((out or '').strip() + (err or '').strip()).split("\n"):
+        m = re.match('java version "(.+)"', line)
         if m:
             parts = m.groups()[0].split(".")
             return parts[1] if parts[0] == "1" else parts[0]
-        m = re.match(r'openjdk version "(\d+).*"', line)
+        m = re.match('openjdk version "(\d+).*"', line)
         if m:
             parts = m.groups()[0].split(".")
             return parts[0]
@@ -48,24 +48,14 @@ def get_classpath(cmd):
     return None
 
 
-def parse_args(argv):
-    parsed = []
-    for i in range(len(argv)):
-        if not argv[i].startswith('-'):
-            parsed.append(argv[i])
-            if len(parsed) >= 3:
-                break
-    return parsed + [argv[i + 1:]]
-
-
 def just_do_it(argv):
-    java, javac, error_prone_tool, javac_cmd = parse_args(argv)
+    java, javac, error_prone_tool, javac_cmd = argv[0], argv[1], argv[2], argv[3:]
     ver = get_java_version(java)
     if not ver:
         raise Exception("Can't determine java version")
     if int(ver) >= 10:
         for f in javac_cmd:
-            if f.startswith('-Xep'):
+            if f.startswith('-Xep:'):
                 ERROR_PRONE_FLAGS.append(f)
         for f in ERROR_PRONE_FLAGS:
             if f in javac_cmd:
@@ -81,6 +71,7 @@ def just_do_it(argv):
         sys.exit(subprocess.Popen(cmd).wait())
     else:
         os.execv(cmd[0], cmd)
+
 
 
 if __name__ == '__main__':

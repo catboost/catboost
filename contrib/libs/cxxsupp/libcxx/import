@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-rev=34313583
+rev=1a7e688b
 output_dir="libcxx-r$rev"
 if [ -z $1 ] ; then
     git clone https://github.com/llvm/llvm-project.git --no-checkout "$output_dir/tmp"
@@ -14,9 +14,7 @@ cp -R libcxx/src ../src
 cp libcxx/.clang-format ../.clang-format
 cp libcxx/CREDITS.TXT ../CREDITS.TXT
 cp libcxx/LICENSE.TXT ../LICENSE.TXT
+cp libcxx/NOTES.TXT ../NOTES.TXT
 cd ..
 rm -rf tmp
 rm src/CMakeLists.txt include/CMakeLists.txt
-
-# Fix tabs and trailing spaces
-find -type f | xargs sed -e 's/\t/    /g' -e 's/ *$//' -i

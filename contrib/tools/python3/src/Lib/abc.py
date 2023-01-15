@@ -11,8 +11,7 @@ def abstractmethod(funcobj):
     class that has a metaclass derived from ABCMeta cannot be
     instantiated unless all of its abstract methods are overridden.
     The abstract methods can be called using any of the normal
-    'super' call mechanisms.  abstractmethod() may be used to declare
-    abstract methods for properties and descriptors.
+    'super' call mechanisms.
 
     Usage:
 
@@ -28,14 +27,17 @@ def abstractmethod(funcobj):
 class abstractclassmethod(classmethod):
     """A decorator indicating abstract classmethods.
 
-    Deprecated, use 'classmethod' with 'abstractmethod' instead:
+    Similar to abstractmethod.
 
-        class C(ABC):
-            @classmethod
-            @abstractmethod
+    Usage:
+
+        class C(metaclass=ABCMeta):
+            @abstractclassmethod
             def my_abstract_classmethod(cls, ...):
                 ...
 
+    'abstractclassmethod' is deprecated. Use 'classmethod' with
+    'abstractmethod' instead.
     """
 
     __isabstractmethod__ = True
@@ -48,14 +50,17 @@ class abstractclassmethod(classmethod):
 class abstractstaticmethod(staticmethod):
     """A decorator indicating abstract staticmethods.
 
-    Deprecated, use 'staticmethod' with 'abstractmethod' instead:
+    Similar to abstractmethod.
 
-        class C(ABC):
-            @staticmethod
-            @abstractmethod
+    Usage:
+
+        class C(metaclass=ABCMeta):
+            @abstractstaticmethod
             def my_abstract_staticmethod(...):
                 ...
 
+    'abstractstaticmethod' is deprecated. Use 'staticmethod' with
+    'abstractmethod' instead.
     """
 
     __isabstractmethod__ = True
@@ -68,14 +73,29 @@ class abstractstaticmethod(staticmethod):
 class abstractproperty(property):
     """A decorator indicating abstract properties.
 
-    Deprecated, use 'property' with 'abstractmethod' instead:
+    Requires that the metaclass is ABCMeta or derived from it.  A
+    class that has a metaclass derived from ABCMeta cannot be
+    instantiated unless all of its abstract properties are overridden.
+    The abstract properties can be called using any of the normal
+    'super' call mechanisms.
 
-        class C(ABC):
-            @property
-            @abstractmethod
+    Usage:
+
+        class C(metaclass=ABCMeta):
+            @abstractproperty
             def my_abstract_property(self):
                 ...
 
+    This defines a read-only property; you can also define a read-write
+    abstract property using the 'long' form of property declaration:
+
+        class C(metaclass=ABCMeta):
+            def getx(self): ...
+            def setx(self, value): ...
+            x = abstractproperty(getx, setx)
+
+    'abstractproperty' is deprecated. Use 'property' with 'abstractmethod'
+    instead.
     """
 
     __isabstractmethod__ = True
@@ -141,44 +161,6 @@ else:
         def _abc_caches_clear(cls):
             """Clear the caches (for debugging or testing)."""
             _reset_caches(cls)
-
-
-def update_abstractmethods(cls):
-    """Recalculate the set of abstract methods of an abstract class.
-
-    If a class has had one of its abstract methods implemented after the
-    class was created, the method will not be considered implemented until
-    this function is called. Alternatively, if a new abstract method has been
-    added to the class, it will only be considered an abstract method of the
-    class after this function is called.
-
-    This function should be called before any use is made of the class,
-    usually in class decorators that add methods to the subject class.
-
-    Returns cls, to allow usage as a class decorator.
-
-    If cls is not an instance of ABCMeta, does nothing.
-    """
-    if not hasattr(cls, '__abstractmethods__'):
-        # We check for __abstractmethods__ here because cls might by a C
-        # implementation or a python implementation (especially during
-        # testing), and we want to handle both cases.
-        return cls
-
-    abstracts = set()
-    # Check the existing abstract methods of the parents, keep only the ones
-    # that are not implemented.
-    for scls in cls.__bases__:
-        for name in getattr(scls, '__abstractmethods__', ()):
-            value = getattr(cls, name, None)
-            if getattr(value, "__isabstractmethod__", False):
-                abstracts.add(name)
-    # Also add any other newly added abstract methods.
-    for name, value in cls.__dict__.items():
-        if getattr(value, "__isabstractmethod__", False):
-            abstracts.add(name)
-    cls.__abstractmethods__ = frozenset(abstracts)
-    return cls
 
 
 class ABC(metaclass=ABCMeta):

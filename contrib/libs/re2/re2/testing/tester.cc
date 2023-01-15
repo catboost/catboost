@@ -18,15 +18,14 @@
 #include "re2/re2.h"
 #include "re2/regexp.h"
 
-DEFINE_FLAG(bool, dump_prog, false, "dump regexp program");
-DEFINE_FLAG(bool, log_okay, false, "log successful runs");
-DEFINE_FLAG(bool, dump_rprog, false, "dump reversed regexp program");
+DEFINE_bool(dump_prog, false, "dump regexp program");
+DEFINE_bool(log_okay, false, "log successful runs");
+DEFINE_bool(dump_rprog, false, "dump reversed regexp program");
 
-DEFINE_FLAG(int, max_regexp_failures, 100,
-            "maximum number of regexp test failures (-1 = unlimited)");
+DEFINE_int32(max_regexp_failures, 100,
+             "maximum number of regexp test failures (-1 = unlimited)");
 
-DEFINE_FLAG(std::string, regexp_engines, "",
-            "pattern to select regexp engines to test");
+DEFINE_string(regexp_engines, "", "pattern to select regexp engines to test");
 
 namespace re2 {
 
@@ -63,11 +62,11 @@ static uint32_t Engines() {
   if (did_parse)
     return cached_engines;
 
-  if (GetFlag(FLAGS_regexp_engines).empty()) {
+  if (FLAGS_regexp_engines.empty()) {
     cached_engines = ~0;
   } else {
     for (Engine i = static_cast<Engine>(0); i < kEngineMax; i++)
-      if (GetFlag(FLAGS_regexp_engines).find(EngineName(i)) != std::string::npos)
+      if (FLAGS_regexp_engines.find(EngineName(i)) != string::npos)
         cached_engines |= 1<<i;
   }
 
@@ -86,20 +85,6 @@ static uint32_t Engines() {
 
 // The result of running a match.
 struct TestInstance::Result {
-  Result()
-      : skipped(false),
-        matched(false),
-        untrusted(false),
-        have_submatch(false),
-        have_submatch0(false) {
-    ClearSubmatch();
-  }
-
-  void ClearSubmatch() {
-    for (int i = 0; i < kMaxSubmatch; i++)
-      submatch[i] = StringPiece();
-  }
-
   bool skipped;         // test skipped: wasn't applicable
   bool matched;         // found a match
   bool untrusted;       // don't really trust the answer
@@ -112,13 +97,11 @@ typedef TestInstance::Result Result;
 
 // Formats a single capture range s in text in the form (a,b)
 // where a and b are the starting and ending offsets of s in text.
-static std::string FormatCapture(const StringPiece& text,
-                                 const StringPiece& s) {
-  if (s.data() == NULL)
+static string FormatCapture(const StringPiece& text, const StringPiece& s) {
+  if (s.begin() == NULL)
     return "(?,?)";
   return StringPrintf("(%td,%td)",
-                      BeginPtr(s) - BeginPtr(text),
-                      EndPtr(s) - BeginPtr(text));
+                      s.begin() - text.begin(), s.end() - text.begin());
 }
 
 // Returns whether text contains non-ASCII (>= 0x80) bytes.
@@ -130,7 +113,7 @@ static bool NonASCII(const StringPiece& text) {
 }
 
 // Returns string representation of match kind.
-static std::string FormatKind(Prog::MatchKind kind) {
+static string FormatKind(Prog::MatchKind kind) {
   switch (kind) {
     case Prog::kFullMatch:
       return "full match";
@@ -145,7 +128,7 @@ static std::string FormatKind(Prog::MatchKind kind) {
 }
 
 // Returns string representation of anchor kind.
-static std::string FormatAnchor(Prog::Anchor anchor) {
+static string FormatAnchor(Prog::Anchor anchor) {
   switch (anchor) {
     case Prog::kAnchored:
       return "anchored";
@@ -157,7 +140,7 @@ static std::string FormatAnchor(Prog::Anchor anchor) {
 
 struct ParseMode {
   Regexp::ParseFlags parse_flags;
-  std::string desc;
+  string desc;
 };
 
 static const Regexp::ParseFlags single_line =
@@ -173,8 +156,8 @@ static ParseMode parse_modes[] = {
   { multi_line|Regexp::Latin1,     "multiline, latin1"    },
 };
 
-static std::string FormatMode(Regexp::ParseFlags flags) {
-  for (size_t i = 0; i < arraysize(parse_modes); i++)
+static string FormatMode(Regexp::ParseFlags flags) {
+  for (int i = 0; i < arraysize(parse_modes); i++)
     if (parse_modes[i].parse_flags == flags)
       return parse_modes[i].desc;
   return StringPrintf("%#x", static_cast<uint32_t>(flags));
@@ -214,7 +197,7 @@ TestInstance::TestInstance(const StringPiece& regexp_str, Prog::MatchKind kind,
     error_ = true;
     return;
   }
-  if (GetFlag(FLAGS_dump_prog)) {
+  if (FLAGS_dump_prog) {
     LOG(INFO) << "Prog for "
               << " regexp "
               << CEscape(regexp_str_)
@@ -232,12 +215,12 @@ TestInstance::TestInstance(const StringPiece& regexp_str, Prog::MatchKind kind,
       error_ = true;
       return;
     }
-    if (GetFlag(FLAGS_dump_rprog))
+    if (FLAGS_dump_rprog)
       LOG(INFO) << rprog_->Dump();
   }
 
   // Create re string that will be used for RE and RE2.
-  std::string re = std::string(regexp_str);
+  string re = regexp_str.ToString();
   // Accomodate flags.
   // Regexp::Latin1 will be accomodated below.
   if (!(flags & Regexp::OneLine))
@@ -305,7 +288,8 @@ void TestInstance::RunSearch(Engine type,
                              const StringPiece& orig_text,
                              const StringPiece& orig_context,
                              Prog::Anchor anchor,
-                             Result* result) {
+                             Result *result) {
+  memset(result, 0, sizeof *result);
   if (regexp_ == NULL) {
     result->skipped = true;
     return;
@@ -378,8 +362,8 @@ void TestInstance::RunSearch(Engine type,
 
     case kEngineOnePass:
       if (prog_ == NULL ||
-          !prog_->IsOnePass() ||
           anchor == Prog::kUnanchored ||
+          !prog_->IsOnePass() ||
           nsubmatch > Prog::kMaxOnePassCapture) {
         result->skipped = true;
         break;
@@ -390,8 +374,7 @@ void TestInstance::RunSearch(Engine type,
       break;
 
     case kEngineBitState:
-      if (prog_ == NULL ||
-          !prog_->CanBitState()) {
+      if (prog_ == NULL) {
         result->skipped = true;
         break;
       }
@@ -403,7 +386,7 @@ void TestInstance::RunSearch(Engine type,
     case kEngineRE2:
     case kEngineRE2a:
     case kEngineRE2b: {
-      if (!re2_ || EndPtr(text) != EndPtr(context)) {
+      if (!re2_ || text.end() != context.end()) {
         result->skipped = true;
         break;
       }
@@ -418,8 +401,8 @@ void TestInstance::RunSearch(Engine type,
 
       result->matched = re2_->Match(
           context,
-          static_cast<size_t>(BeginPtr(text) - BeginPtr(context)),
-          static_cast<size_t>(EndPtr(text) - BeginPtr(context)),
+          static_cast<size_t>(text.begin() - context.begin()),
+          static_cast<size_t>(text.end() - context.begin()),
           re_anchor,
           result->submatch,
           nsubmatch);
@@ -428,8 +411,8 @@ void TestInstance::RunSearch(Engine type,
     }
 
     case kEnginePCRE: {
-      if (!re_ || BeginPtr(text) != BeginPtr(context) ||
-          EndPtr(text) != EndPtr(context)) {
+      if (!re_ || text.begin() != context.begin() ||
+          text.end() != context.end()) {
         result->skipped = true;
         break;
       }
@@ -482,6 +465,14 @@ void TestInstance::RunSearch(Engine type,
         break;
       }
       result->have_submatch = true;
+
+      // Work around RE interface bug: PCRE returns -1 as the
+      // offsets for an unmatched subexpression, and RE should
+      // turn that into StringPiece(NULL) but in fact it uses
+      // StringPiece(text.begin() - 1, 0).  Oops.
+      for (int i = 0; i < nsubmatch; i++)
+        if (result->submatch[i].begin() == text.begin() - 1)
+          result->submatch[i] = StringPiece();
       delete[] argptr;
       delete[] a;
       break;
@@ -489,7 +480,7 @@ void TestInstance::RunSearch(Engine type,
   }
 
   if (!result->matched)
-    result->ClearSubmatch();
+    memset(result->submatch, 0, sizeof result->submatch);
 }
 
 // Checks whether r is okay given that correct is the right answer.
@@ -502,7 +493,7 @@ static bool ResultOkay(const Result& r, const Result& correct) {
     return false;
   if (r.have_submatch || r.have_submatch0) {
     for (int i = 0; i < kMaxSubmatch; i++) {
-      if (correct.submatch[i].data() != r.submatch[i].data() ||
+      if (correct.submatch[i].begin() != r.submatch[i].begin() ||
           correct.submatch[i].size() != r.submatch[i].size())
         return false;
       if (!r.have_submatch)
@@ -541,7 +532,7 @@ bool TestInstance::RunCase(const StringPiece& text, const StringPiece& context,
     Result r;
     RunSearch(i, text, context, anchor, &r);
     if (ResultOkay(r, correct)) {
-      if (GetFlag(FLAGS_log_okay))
+      if (FLAGS_log_okay)
         LogMatch(r.skipped ? "Skipped: " : "Okay: ", i, text, context, anchor);
       continue;
     }
@@ -568,8 +559,8 @@ bool TestInstance::RunCase(const StringPiece& text, const StringPiece& context,
       }
     }
     for (int i = 0; i < 1+num_captures_; i++) {
-      if (r.submatch[i].data() != correct.submatch[i].data() ||
-          r.submatch[i].size() != correct.submatch[i].size()) {
+      if (r.submatch[i].begin() != correct.submatch[i].begin() ||
+          r.submatch[i].end() != correct.submatch[i].end()) {
         LOG(INFO) <<
           StringPrintf("   $%d: should be %s is %s",
                        i,
@@ -584,10 +575,7 @@ bool TestInstance::RunCase(const StringPiece& text, const StringPiece& context,
   }
 
   if (!all_okay) {
-    // This will be initialised once (after flags have been initialised)
-    // and that is desirable because we want to enforce a global limit.
-    static int max_regexp_failures = GetFlag(FLAGS_max_regexp_failures);
-    if (max_regexp_failures > 0 && --max_regexp_failures == 0)
+    if (FLAGS_max_regexp_failures > 0 && --FLAGS_max_regexp_failures == 0)
       LOG(QFATAL) << "Too many regexp failures.";
   }
 
@@ -606,9 +594,9 @@ void TestInstance::LogMatch(const char* prefix, Engine e,
     << " text "
     << CEscape(text)
     << " ("
-    << BeginPtr(text) - BeginPtr(context)
+    << text.begin() - context.begin()
     << ","
-    << EndPtr(text) - BeginPtr(context)
+    << text.end() - context.begin()
     << ") of context "
     << CEscape(context)
     << " (" << FormatKind(kind_)
@@ -626,8 +614,8 @@ static Prog::MatchKind kinds[] = {
 // Test all possible match kinds and parse modes.
 Tester::Tester(const StringPiece& regexp) {
   error_ = false;
-  for (size_t i = 0; i < arraysize(kinds); i++) {
-    for (size_t j = 0; j < arraysize(parse_modes); j++) {
+  for (int i = 0; i < arraysize(kinds); i++) {
+    for (int j = 0; j < arraysize(parse_modes); j++) {
       TestInstance* t = new TestInstance(regexp, kinds[i],
                                          parse_modes[j].parse_flags);
       error_ |= t->error();
@@ -656,7 +644,7 @@ static Prog::Anchor anchors[] = {
 
 bool Tester::TestInput(const StringPiece& text) {
   bool okay = TestInputInContext(text, text);
-  if (!text.empty()) {
+  if (text.size() > 0) {
     StringPiece sp;
     sp = text;
     sp.remove_prefix(1);
@@ -671,7 +659,7 @@ bool Tester::TestInput(const StringPiece& text) {
 bool Tester::TestInputInContext(const StringPiece& text,
                                 const StringPiece& context) {
   bool okay = true;
-  for (size_t i = 0; i < arraysize(anchors); i++)
+  for (int i = 0; i < arraysize(anchors); i++)
     okay &= TestCase(text, context, anchors[i]);
   return okay;
 }

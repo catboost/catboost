@@ -20,4 +20,4 @@ void GreedyTensorSearch(
     TProfileInfo& profile,
     TFold* fold,
     TLearnContext* ctx,
-    std::variant<TSplitTree, TNonSymmetricTreeStructure>* resSplitTree);
+    TVariant<TSplitTree, TNonSymmetricTreeStructure>* resSplitTree);

@@ -11,8 +11,8 @@
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
 #include <openssl/x509.h>
-#include "crypto/asn1.h"
-#include "crypto/evp.h"
+#include "internal/asn1_int.h"
+#include "internal/evp_int.h"
 
 int i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp)
 {

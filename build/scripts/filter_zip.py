@@ -1,20 +1,22 @@
 import argparse
 import os
 import re
+import shutil
 import uuid
 import zipfile
 
 
 def pattern_to_regexp(p):
-    return re.compile(
-        '^'
-        + re.escape(p)
-        .replace(r'\*\*\/', '[_DIR_]')
-        .replace(r'\*', '[_FILE_]')
-        .replace('[_DIR_]', '(.*/)?')
-        .replace('[_FILE_]', '([^/]*)')
-        + '$'
-    )
+    return re.compile('^' + \
+           re.escape(p).replace(
+               r'\*\*\/', '[_DIR_]'
+           ).replace(
+               r'\*', '[_FILE_]'
+           ).replace(
+               '[_DIR_]', '(.*/)?'
+           ).replace(
+               '[_FILE_]', '([^/]*)'
+           ) + '$')
 
 
 def is_deathman(positive_filter, negative_filter, candidate):
@@ -69,3 +71,4 @@ def just_do_it():
 
 if __name__ == '__main__':
     just_do_it()
+

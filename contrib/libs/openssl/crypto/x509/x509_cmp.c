@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -13,7 +13,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
-#include "crypto/x509.h"
+#include "internal/x509_int.h"
 
 int X509_issuer_and_serial_cmp(const X509 *a, const X509 *b)
 {
@@ -34,17 +34,16 @@ unsigned long X509_issuer_and_serial_hash(X509 *a)
     unsigned long ret = 0;
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
     unsigned char md[16];
-    char *f = NULL;
+    char *f;
 
     if (ctx == NULL)
         goto err;
     f = X509_NAME_oneline(a->cert_info.issuer, NULL, 0);
-    if (f == NULL)
-        goto err;
     if (!EVP_DigestInit_ex(ctx, EVP_md5(), NULL))
         goto err;
     if (!EVP_DigestUpdate(ctx, (unsigned char *)f, strlen(f)))
         goto err;
+    OPENSSL_free(f);
     if (!EVP_DigestUpdate
         (ctx, (unsigned char *)a->cert_info.serialNumber.data,
          (unsigned long)a->cert_info.serialNumber.length))
@@ -55,7 +54,6 @@ unsigned long X509_issuer_and_serial_hash(X509 *a)
            ((unsigned long)md[2] << 16L) | ((unsigned long)md[3] << 24L)
         ) & 0xffffffffL;
  err:
-    OPENSSL_free(f);
     EVP_MD_CTX_free(ctx);
     return ret;
 }
@@ -135,21 +133,14 @@ unsigned long X509_subject_name_hash_old(X509 *x)
  */
 int X509_cmp(const X509 *a, const X509 *b)
 {
-    int rv = 0;
+    int rv;
+    /* ensure hash is valid */
+    X509_check_purpose((X509 *)a, -1, 0);
+    X509_check_purpose((X509 *)b, -1, 0);
 
-    if (a == b) /* for efficiency */
-        return 0;
-
-    /* try to make sure hash is valid */
-    (void)X509_check_purpose((X509 *)a, -1, 0);
-    (void)X509_check_purpose((X509 *)b, -1, 0);
-
-    if ((a->ex_flags & EXFLAG_NO_FINGERPRINT) == 0
-            && (b->ex_flags & EXFLAG_NO_FINGERPRINT) == 0)
-        rv = memcmp(a->sha1_hash, b->sha1_hash, SHA_DIGEST_LENGTH);
-    if (rv != 0)
+    rv = memcmp(a->sha1_hash, b->sha1_hash, SHA_DIGEST_LENGTH);
+    if (rv)
         return rv;
-
     /* Check for match against stored encoding too */
     if (!a->cert_info.enc.modified && !b->cert_info.enc.modified) {
         if (a->cert_info.enc.len < b->cert_info.enc.len)

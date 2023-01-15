@@ -7,7 +7,7 @@
 #include <contrib/libs/base64/plain64/libbase64.h>
 #include <contrib/libs/base64/ssse3/libbase64.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/vector.h>
 #include <util/random/fast.h>
@@ -15,8 +15,6 @@
 #include <util/system/platform.h>
 
 #include <array>
-
-using namespace std::string_view_literals;
 
 #define BASE64_UT_DECLARE_BASE64_IMPL(prefix, encFunction, decFunction)                                                        \
     Y_DECLARE_UNUSED                                                                                                           \
@@ -163,7 +161,7 @@ void Out<NB64Etalon::TImpls::EImpl>(IOutputStream& o, typename TTypeTraits<NB64E
     }
 }
 
-static void TestEncodeDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl, const TString& encodedUrlNoPadding) {
+static void TestEncodeDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl) {
     TString a, b;
 
     Base64Encode(plain, a);
@@ -177,12 +175,6 @@ static void TestEncodeDecodeIntoString(const TString& plain, const TString& enco
 
     Base64Decode(a, b);
     UNIT_ASSERT_VALUES_EQUAL(b, plain);
-
-    Base64EncodeUrlNoPadding(plain, a);
-    UNIT_ASSERT_VALUES_EQUAL(a, encodedUrlNoPadding);
-
-    TString c = Base64DecodeUneven(a);
-    UNIT_ASSERT_VALUES_EQUAL(c, plain);
 }
 
 static void TestEncodeStrictDecodeIntoString(const TString& plain, const TString& encoded, const TString& encodedUrl) {
@@ -231,16 +223,8 @@ Y_UNIT_TEST_SUITE(TBase64) {
                 "oqOkpaanqKmqq6ytrq-wsbKztLW2t7i5uru8vb6_wMHCw8TFxsfIyc"
                 "rLzM3Oz9DR0tPU1dbX2Nna29zd3t_g4eLj5OXm5-jp6uvs7e7v8PHy"
                 "8_T19vf4-fr7_P3-_w,,";
-            const TString base64UrlWithoutPadding =
-                "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJy"
-                "gpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9Q"
-                "UVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eH"
-                "l6e3x9fn-AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6Ch"
-                "oqOkpaanqKmqq6ytrq-wsbKztLW2t7i5uru8vb6_wMHCw8TFxsfIyc"
-                "rLzM3Oz9DR0tPU1dbX2Nna29zd3t_g4eLj5OXm5-jp6uvs7e7v8PHy"
-                "8_T19vf4-fr7_P3-_w";
 
-            TestEncodeDecodeIntoString(str, base64, base64Url, base64UrlWithoutPadding);
+            TestEncodeDecodeIntoString(str, base64, base64Url);
             TestEncodeStrictDecodeIntoString(str, base64, base64Url);
         }
 
@@ -249,9 +233,8 @@ Y_UNIT_TEST_SUITE(TBase64) {
 
             const TString base64 = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q/cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA==";
             const TString base64Url = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q_cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA,,";
-            const TString base64UrlWithoutPadding = "aHR0cDovL3lhbmRleC5ydToxMjM0L3JlcXVlc3Q_cGFyYW09dmFsdWUmbGxsPWZmZiNmcmFnbWVudA";
 
-            TestEncodeDecodeIntoString(str, base64, base64Url, base64UrlWithoutPadding);
+            TestEncodeDecodeIntoString(str, base64, base64Url);
             TestEncodeStrictDecodeIntoString(str, base64, base64Url);
         }
     }
@@ -308,15 +291,12 @@ Y_UNIT_TEST_SUITE(TBase64) {
         }
         TString output;
         TString encoded = Base64Encode(input);
-        TString encodedUrl = TString::Uninitialized(Base64EncodeBufSize(input.length()));
-        Base64EncodeUrlNoPadding(input, encodedUrl);
         UNIT_ASSERT_VALUES_EQUAL(Base64Decode(encoded), input);
         UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecode(encoded), input);
-        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven(encodedUrl), input);
     }
 
     Y_UNIT_TEST(TestAllPossibleOctets) {
-        const TString x("\0\x01\x02\x03\x04\x05\x06\x07\b\t\n\x0B\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F"sv);
+        const TString x(AsStringBuf("\0\x01\x02\x03\x04\x05\x06\x07\b\t\n\x0B\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F"));
         const TString xEnc = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -325,7 +305,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTwoPaddingCharacters) {
-        const TString x("a");
+        const TString x(AsStringBuf("a"));
         const TString xEnc = "YQ==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -334,7 +314,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestOnePaddingCharacter) {
-        const TString x("aa");
+        const TString x(AsStringBuf("aa"));
         const TString xEnc = "YWE=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -343,7 +323,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestNoPaddingCharacters) {
-        const TString x("aaa");
+        const TString x(AsStringBuf("aaa"));
         const TString xEnc = "YWFh";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -352,7 +332,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTrailingZero) {
-        const TString x("foo\0"sv);
+        const TString x(AsStringBuf("foo\0"));
         const TString xEnc = "Zm9vAA==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -361,7 +341,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestTwoTrailingZeroes) {
-        const TString x("foo\0\0"sv);
+        const TString x(AsStringBuf("foo\0\0"));
         const TString xEnc = "Zm9vAAA=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -370,7 +350,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestZero) {
-        const TString x("\0"sv);
+        const TString x(AsStringBuf("\0"));
         const TString xEnc = "AA==";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -379,7 +359,7 @@ Y_UNIT_TEST_SUITE(TBase64) {
     }
 
     Y_UNIT_TEST(TestSymbolsAfterZero) {
-        const TString x("\0a"sv);
+        const TString x(AsStringBuf("\0a"));
         const TString xEnc = "AGE=";
         const TString y = Base64Decode(xEnc);
         const TString yEnc = Base64Encode(x);
@@ -477,12 +457,6 @@ Y_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    Y_UNIT_TEST(TestDecodeURLEncodedWithoutPadding) {
-        const auto x = "1";
-        const auto xDec = Base64DecodeUneven("MQ");
-        UNIT_ASSERT_VALUES_EQUAL(x, xDec);
-    }
-
     Y_UNIT_TEST(TestDecodeNoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?a";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9h");
@@ -517,23 +491,5 @@ Y_UNIT_TEST_SUITE(TBase64) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ,,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
-    }
-
-    Y_UNIT_TEST(TestDecodeUnevenDst) {
-        const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
-        TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ";
-        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
-        Base64DecodeUneven(buf.begin(), b64);
-        TString res(buf.data());
-        UNIT_ASSERT_VALUES_EQUAL(x, res);
-    }
-
-    Y_UNIT_TEST(TestDecodeUnevenDst2) {
-        const auto x = "How do I convert between big-endian and little-endian values in C++?";
-        TString b64 = "SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz8";
-        TVector<char> buf(Base64DecodeBufSize(b64.Size()), '\0');
-        Base64DecodeUneven(buf.begin(), b64);
-        TString res(buf.data());
-        UNIT_ASSERT_VALUES_EQUAL(x, res);
     }
 }

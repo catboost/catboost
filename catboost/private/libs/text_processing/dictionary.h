@@ -40,7 +40,6 @@ namespace NCB {
 
         void Save(IOutputStream* stream) const;
         void Load(IInputStream* stream);
-        void LoadNonOwning(TMemoryInput* in);
 
     private:
         TDictionaryPtr DictionaryImpl;
@@ -68,7 +67,7 @@ namespace NCB {
         }
 
         template <class F>
-        void ForEach(F&& visitor, NPar::ILocalExecutor* localExecutor) const {
+        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
             NPar::ParallelFor(
                 *localExecutor,
                 0,
@@ -100,7 +99,7 @@ namespace NCB {
         }
 
         template <class F>
-        void ForEach(F&& visitor, NPar::ILocalExecutor* localExecutor) const {
+        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
             TextFeature->ParallelForEach(visitor, localExecutor);
         }
 

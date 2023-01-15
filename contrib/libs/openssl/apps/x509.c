@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -72,7 +72,7 @@ const OPTIONS x509_options[] = {
     {"outform", OPT_OUTFORM, 'f',
      "Output format - default PEM (one of DER or PEM)"},
     {"out", OPT_OUT, '>', "Output file - default stdout"},
-    {"keyform", OPT_KEYFORM, 'E', "Private key format - default PEM"},
+    {"keyform", OPT_KEYFORM, 'F', "Private key format - default PEM"},
     {"passin", OPT_PASSIN, 's', "Private key password/pass-phrase source"},
     {"serial", OPT_SERIAL, '-', "Print serial number value"},
     {"subject_hash", OPT_HASH, '-', "Print subject hash value"},
@@ -107,7 +107,7 @@ const OPTIONS x509_options[] = {
     {"checkend", OPT_CHECKEND, 'M',
      "Check whether the cert expires in the next arg seconds"},
     {OPT_MORE_STR, 1, 1, "Exit 1 if so, 0 if not"},
-    {"signkey", OPT_SIGNKEY, 's', "Self sign cert with arg"},
+    {"signkey", OPT_SIGNKEY, '<', "Self sign cert with arg"},
     {"x509toreq", OPT_X509TOREQ, '-',
      "Output a certification request object"},
     {"req", OPT_REQ, '-', "Input is a certificate request, sign and output"},
@@ -130,7 +130,7 @@ const OPTIONS x509_options[] = {
     {"checkemail", OPT_CHECKEMAIL, 's', "Check certificate matches email"},
     {"checkip", OPT_CHECKIP, 's', "Check certificate matches ipaddr"},
     {"CAform", OPT_CAFORM, 'F', "CA format - default PEM"},
-    {"CAkeyform", OPT_CAKEYFORM, 'E', "CA key format - default PEM"},
+    {"CAkeyform", OPT_CAKEYFORM, 'f', "CA key format - default PEM"},
     {"sigopt", OPT_SIGOPT, 's', "Signature parameter in n:v form"},
     {"force_pubkey", OPT_FORCE_PUBKEY, '<', "Force the Key to put inside certificate"},
     {"next_serial", OPT_NEXT_SERIAL, '-', "Increment current certificate serial number"},
@@ -140,9 +140,9 @@ const OPTIONS x509_options[] = {
     {"", OPT_MD, '-', "Any supported digest"},
 #ifndef OPENSSL_NO_MD5
     {"subject_hash_old", OPT_SUBJECT_HASH_OLD, '-',
-     "Print old-style (MD5) subject hash value"},
-    {"issuer_hash_old", OPT_ISSUER_HASH_OLD, '-',
      "Print old-style (MD5) issuer hash value"},
+    {"issuer_hash_old", OPT_ISSUER_HASH_OLD, '-',
+     "Print old-style (MD5) subject hash value"},
 #endif
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
@@ -217,7 +217,7 @@ int x509_main(int argc, char **argv)
                 goto opthelp;
             break;
         case OPT_KEYFORM:
-            if (!opt_format(opt_arg(), OPT_FMT_PDE, &keyformat))
+            if (!opt_format(opt_arg(), OPT_FMT_PEMDER, &keyformat))
                 goto opthelp;
             break;
         case OPT_CAFORM:
@@ -225,7 +225,7 @@ int x509_main(int argc, char **argv)
                 goto opthelp;
             break;
         case OPT_CAKEYFORM:
-            if (!opt_format(opt_arg(), OPT_FMT_PDE, &CAkeyformat))
+            if (!opt_format(opt_arg(), OPT_FMT_ANY, &CAkeyformat))
                 goto opthelp;
             break;
         case OPT_OUT:
@@ -400,7 +400,7 @@ int x509_main(int argc, char **argv)
             aliasout = ++num;
             break;
         case OPT_CACREATESERIAL:
-            CA_createserial = 1;
+            CA_createserial = ++num;
             break;
         case OPT_CLREXT:
             clrext = 1;
@@ -589,8 +589,6 @@ int x509_main(int argc, char **argv)
     if (CA_flag) {
         xca = load_cert(CAfile, CAformat, "CA Certificate");
         if (xca == NULL)
-            goto end;
-        if (reqfile && !X509_set_issuer_name(x, X509_get_subject_name(xca)))
             goto end;
     }
 
@@ -916,7 +914,6 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile,
     char *buf = NULL;
     ASN1_INTEGER *bs = NULL;
     BIGNUM *serial = NULL;
-    int defaultfile = 0, file_exists;
 
     if (serialfile == NULL) {
         const char *p = strrchr(CAfile, '.');
@@ -926,10 +923,9 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile,
         memcpy(buf, CAfile, len);
         memcpy(buf + len, POSTFIX, sizeof(POSTFIX));
         serialfile = buf;
-        defaultfile = 1;
     }
 
-    serial = load_serial(serialfile, &file_exists, create || defaultfile, NULL);
+    serial = load_serial(serialfile, create, NULL);
     if (serial == NULL)
         goto end;
 
@@ -938,10 +934,8 @@ static ASN1_INTEGER *x509_load_serial(const char *CAfile,
         goto end;
     }
 
-    if (file_exists || create)
-        save_serial(serialfile, NULL, serial, &bs);
-    else
-        bs = BN_to_ASN1_INTEGER(serial, NULL);
+    if (!save_serial(serialfile, NULL, serial, &bs))
+        goto end;
 
  end:
     OPENSSL_free(buf);

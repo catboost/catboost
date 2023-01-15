@@ -1,4 +1,3 @@
-#include "pycore_interp.h"    // _PyInterpreterState.pythread_stacksize
 
 /* This code implemented by Dag.Gruneau@elsa.preseco.comm.se */
 /* Fast NonRecursiveMutex support by Yakov Markovitch, markovitch@iso.ru */
@@ -76,22 +75,16 @@ EnterNonRecursiveMutex(PNRMUTEX mutex, DWORD milliseconds)
         }
     } else if (milliseconds != 0) {
         /* wait at least until the target */
-        _PyTime_t now = _PyTime_GetPerfCounter();
-        if (now <= 0) {
-            Py_FatalError("_PyTime_GetPerfCounter() == 0");
-        }
-        _PyTime_t nanoseconds = _PyTime_FromNanoseconds((_PyTime_t)milliseconds * 1000000);
-        _PyTime_t target = now + nanoseconds;
+        DWORD now, target = GetTickCount() + milliseconds;
         while (mutex->locked) {
-            _PyTime_t microseconds = _PyTime_AsMicroseconds(nanoseconds, _PyTime_ROUND_TIMEOUT);
-            if (PyCOND_TIMEDWAIT(&mutex->cv, &mutex->cs, microseconds) < 0) {
+            if (PyCOND_TIMEDWAIT(&mutex->cv, &mutex->cs, (long long)milliseconds*1000) < 0) {
                 result = WAIT_FAILED;
                 break;
             }
-            now = _PyTime_GetPerfCounter();
+            now = GetTickCount();
             if (target <= now)
                 break;
-            nanoseconds = target - now;
+            milliseconds = target-now;
         }
     }
     if (!mutex->locked) {
@@ -150,10 +143,6 @@ LeaveNonRecursiveMutex(PNRMUTEX mutex)
 
 unsigned long PyThread_get_thread_ident(void);
 
-#ifdef PY_HAVE_THREAD_NATIVE_ID
-unsigned long PyThread_get_thread_native_id(void);
-#endif
-
 /*
  * Initialization of the C package, should not be needed.
  */
@@ -201,7 +190,7 @@ PyThread_start_new_thread(void (*func)(void *), void *arg)
         return PYTHREAD_INVALID_THREAD_ID;
     obj->func = func;
     obj->arg = arg;
-    PyThreadState *tstate = _PyThreadState_GET();
+    PyThreadState *tstate = PyThreadState_GET();
     size_t stacksize = tstate ? tstate->interp->pythread_stacksize : 0;
     hThread = (HANDLE)_beginthreadex(0,
                       Py_SAFE_DOWNCAST(stacksize, Py_ssize_t, unsigned int),
@@ -238,26 +227,7 @@ PyThread_get_thread_ident(void)
     return GetCurrentThreadId();
 }
 
-#ifdef PY_HAVE_THREAD_NATIVE_ID
-/*
- * Return the native Thread ID (TID) of the calling thread.
- * The native ID of a thread is valid and guaranteed to be unique system-wide
- * from the time the thread is created until the thread has been terminated.
- */
-unsigned long
-PyThread_get_thread_native_id(void)
-{
-    if (!initialized) {
-        PyThread_init_thread();
-    }
-
-    DWORD native_id;
-    native_id = GetCurrentThreadId();
-    return (unsigned long) native_id;
-}
-#endif
-
-void _Py_NO_RETURN
+void
 PyThread_exit_thread(void)
 {
     dprintf(("%lu: PyThread_exit_thread called\n", PyThread_get_thread_ident()));
@@ -365,13 +335,13 @@ _pythread_nt_set_stacksize(size_t size)
 {
     /* set to default */
     if (size == 0) {
-        _PyInterpreterState_GET()->pythread_stacksize = 0;
+        PyThreadState_GET()->interp->pythread_stacksize = 0;
         return 0;
     }
 
     /* valid range? */
     if (size >= THREAD_MIN_STACKSIZE && size < THREAD_MAX_STACKSIZE) {
-        _PyInterpreterState_GET()->pythread_stacksize = size;
+        PyThreadState_GET()->interp->pythread_stacksize = size;
         return 0;
     }
 

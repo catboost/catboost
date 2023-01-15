@@ -200,7 +200,7 @@ cdef class Dictionary:
             tokens.clear()
             if isinstance(line, string_types):
                 if useTokenizer:
-                    dereference(tokenizer.Get()).Tokenize(to_arcadia_string(line), &tokens, <TVector[ETokenType]*>nullptr)
+                    dereference(tokenizer.Get()).Tokenize(line, &tokens, <TVector[ETokenType]*>nullptr)
                 else:
                     tokens.push_back(to_arcadia_string(line))
             elif isinstance(line, (list, np.ndarray, Series)):

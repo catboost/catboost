@@ -13,7 +13,8 @@ namespace NPrivate {
 
         static inline T* Get() {
 #if defined(Y_HAVE_FAST_POD_TLS)
-            Y_POD_STATIC_THREAD(T*) fast(nullptr);
+            Y_POD_STATIC_THREAD(T*)
+            fast(nullptr);
 
             if (Y_UNLIKELY(!fast)) {
                 fast = GetSlow();

@@ -22,7 +22,9 @@
 #include "util/strutil.h"
 
 // Silence warnings about the wacky formatting in the operator() functions.
-#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ >= 6
+// Note that we test for Clang first because it defines __GNUC__ as well.
+#if defined(__clang__)
+#elif defined(__GNUC__) && __GNUC__ >= 6
 #pragma GCC diagnostic ignored "-Wmisleading-indentation"
 #endif
 
@@ -33,10 +35,9 @@
 // not exceed main thread stacks.  Note that other threads
 // often have smaller stacks, and therefore tightening
 // regexp_stack_limit may frequently be necessary.
-DEFINE_FLAG(int, regexp_stack_limit, 256 << 10,
-            "default PCRE stack limit (bytes)");
-DEFINE_FLAG(int, regexp_match_limit, 1000000,
-            "default PCRE match limit (function calls)");
+DEFINE_int32(regexp_stack_limit, 256<<10, "default PCRE stack limit (bytes)");
+DEFINE_int32(regexp_match_limit, 1000000,
+             "default PCRE match limit (function calls)");
 
 #ifndef USEPCRE
 
@@ -98,7 +99,7 @@ const PCRE::ConsumeFunctor PCRE::Consume = { };
 const PCRE::FindAndConsumeFunctor PCRE::FindAndConsume = { };
 
 // If a regular expression has no error, its error_ field points here
-static const std::string empty_string;
+static const string empty_string;
 
 void PCRE::Init(const char* pattern, Option options, int match_limit,
               int stack_limit, bool report_errors) {
@@ -113,7 +114,7 @@ void PCRE::Init(const char* pattern, Option options, int match_limit,
   re_partial_ = NULL;
 
   if (options & ~(EnabledCompileOptions | EnabledExecOptions)) {
-    error_ = new std::string("illegal regexp option");
+    error_ = new string("illegal regexp option");
     PCREPORT(ERROR)
         << "Error compiling '" << pattern << "': illegal regexp option";
   } else {
@@ -130,13 +131,13 @@ PCRE::PCRE(const char* pattern) {
 PCRE::PCRE(const char* pattern, Option option) {
   Init(pattern, option, 0, 0, true);
 }
-PCRE::PCRE(const std::string& pattern) {
+PCRE::PCRE(const string& pattern) {
   Init(pattern.c_str(), None, 0, 0, true);
 }
-PCRE::PCRE(const std::string& pattern, Option option) {
+PCRE::PCRE(const string& pattern, Option option) {
   Init(pattern.c_str(), option, 0, 0, true);
 }
-PCRE::PCRE(const std::string& pattern, const PCRE_Options& re_option) {
+PCRE::PCRE(const string& pattern, const PCRE_Options& re_option) {
   Init(pattern.c_str(), re_option.option(), re_option.match_limit(),
        re_option.stack_limit(), re_option.report_errors());
 }
@@ -175,7 +176,7 @@ pcre* PCRE::Compile(Anchor anchor) {
   } else {
     // Tack a '\z' at the end of PCRE.  Parenthesize it first so that
     // the '\z' applies to all top-level alternatives in the regexp.
-    std::string wrapped = "(?:";  // A non-counting grouping operator
+    string wrapped = "(?:";  // A non-counting grouping operator
     wrapped += pattern_;
     wrapped += ")\\z";
     re = pcre_compile(wrapped.c_str(),
@@ -183,7 +184,7 @@ pcre* PCRE::Compile(Anchor anchor) {
                       &error, &eoffset, NULL);
   }
   if (re == NULL) {
-    if (error_ == &empty_string) error_ = new std::string(error);
+    if (error_ == &empty_string) error_ = new string(error);
     PCREPORT(ERROR) << "Error compiling '" << pattern_ << "': " << error;
   }
   return re;
@@ -375,7 +376,7 @@ done:
   }
 }
 
-bool PCRE::Replace(std::string *str,
+bool PCRE::Replace(string *str,
                  const PCRE& pattern,
                  const StringPiece& rewrite) {
   int vec[kVecSize] = {};
@@ -383,7 +384,7 @@ bool PCRE::Replace(std::string *str,
   if (matches == 0)
     return false;
 
-  std::string s;
+  string s;
   if (!pattern.Rewrite(&s, rewrite, *str, vec, matches))
     return false;
 
@@ -393,12 +394,12 @@ bool PCRE::Replace(std::string *str,
   return true;
 }
 
-int PCRE::GlobalReplace(std::string *str,
+int PCRE::GlobalReplace(string *str,
                       const PCRE& pattern,
                       const StringPiece& rewrite) {
   int count = 0;
   int vec[kVecSize] = {};
-  std::string out;
+  string out;
   size_t start = 0;
   bool last_match_was_empty_string = false;
 
@@ -454,7 +455,7 @@ int PCRE::GlobalReplace(std::string *str,
 bool PCRE::Extract(const StringPiece &text,
                  const PCRE& pattern,
                  const StringPiece &rewrite,
-                 std::string *out) {
+                 string *out) {
   int vec[kVecSize] = {};
   int matches = pattern.TryMatch(text, 0, UNANCHORED, true, vec, kVecSize);
   if (matches == 0)
@@ -463,8 +464,8 @@ bool PCRE::Extract(const StringPiece &text,
   return pattern.Rewrite(out, rewrite, text, vec, matches);
 }
 
-std::string PCRE::QuoteMeta(const StringPiece& unquoted) {
-  std::string result;
+string PCRE::QuoteMeta(const StringPiece& unquoted) {
+  string result;
   result.reserve(unquoted.size() << 1);
 
   // Escape any ascii character not in [A-Za-z_0-9].
@@ -522,12 +523,12 @@ int PCRE::TryMatch(const StringPiece& text,
 
   int match_limit = match_limit_;
   if (match_limit <= 0) {
-    match_limit = GetFlag(FLAGS_regexp_match_limit);
+    match_limit = FLAGS_regexp_match_limit;
   }
 
   int stack_limit = stack_limit_;
   if (stack_limit <= 0) {
-    stack_limit = GetFlag(FLAGS_regexp_stack_limit);
+    stack_limit = FLAGS_regexp_stack_limit;
   }
 
   pcre_extra extra = { 0 };
@@ -612,11 +613,6 @@ bool PCRE::DoMatchImpl(const StringPiece& text,
                        int* vec,
                        int vecsize) const {
   assert((1 + n) * 3 <= vecsize);  // results + PCRE workspace
-  if (NumberOfCapturingGroups() < n) {
-    // RE has fewer capturing groups than number of Arg pointers passed in.
-    return false;
-  }
-
   int matches = TryMatch(text, 0, anchor, true, vec, vecsize);
   assert(matches >= 0);  // TryMatch never returns negatives
   if (matches == 0)
@@ -628,6 +624,10 @@ bool PCRE::DoMatchImpl(const StringPiece& text,
     // We are not interested in results
     return true;
   }
+  if (NumberOfCapturingGroups() < n) {
+    // PCRE has fewer capturing groups than number of arg pointers passed in
+    return false;
+  }
 
   // If we got here, we must have matched the whole pattern.
   // We do not need (can not do) any more checks on the value of 'matches' here
@@ -635,17 +635,7 @@ bool PCRE::DoMatchImpl(const StringPiece& text,
   for (int i = 0; i < n; i++) {
     const int start = vec[2*(i+1)];
     const int limit = vec[2*(i+1)+1];
-
-    // Avoid invoking undefined behavior when text.data() happens
-    // to be null and start happens to be -1, the latter being the
-    // case for an unmatched subexpression. Even if text.data() is
-    // not null, pointing one byte before was a longstanding bug.
-    const char* addr = NULL;
-    if (start != -1) {
-      addr = text.data() + start;
-    }
-
-    if (!args[i]->Parse(addr, limit-start)) {
+    if (!args[i]->Parse(text.data() + start, limit-start)) {
       // TODO: Should we indicate what the error was?
       return false;
     }
@@ -668,7 +658,7 @@ bool PCRE::DoMatch(const StringPiece& text,
   return b;
 }
 
-bool PCRE::Rewrite(std::string *out, const StringPiece &rewrite,
+bool PCRE::Rewrite(string *out, const StringPiece &rewrite,
                  const StringPiece &text, int *vec, int veclen) const {
   int number_of_capturing_groups = NumberOfCapturingGroups();
   for (const char *s = rewrite.data(), *end = s + rewrite.size();
@@ -704,8 +694,7 @@ bool PCRE::Rewrite(std::string *out, const StringPiece &rewrite,
   return true;
 }
 
-bool PCRE::CheckRewriteString(const StringPiece& rewrite,
-                              std::string* error) const {
+bool PCRE::CheckRewriteString(const StringPiece& rewrite, string* error) const {
   int max_token = -1;
   for (const char *s = rewrite.data(), *end = s + rewrite.size();
        s < end; s++) {
@@ -733,10 +722,9 @@ bool PCRE::CheckRewriteString(const StringPiece& rewrite,
   }
 
   if (max_token > NumberOfCapturingGroups()) {
-    *error = StringPrintf(
-        "Rewrite schema requests %d matches, but the regexp only has %d "
-        "parenthesized subexpressions.",
-        max_token, NumberOfCapturingGroups());
+    SStringPrintf(error, "Rewrite schema requests %d matches, "
+                  "but the regexp only has %d parenthesized subexpressions.",
+                  max_token, NumberOfCapturingGroups());
     return false;
   }
   return true;
@@ -770,7 +758,7 @@ bool PCRE::Arg::parse_null(const char* str, size_t n, void* dest) {
 
 bool PCRE::Arg::parse_string(const char* str, size_t n, void* dest) {
   if (dest == NULL) return true;
-  reinterpret_cast<std::string*>(dest)->assign(str, n);
+  reinterpret_cast<string*>(dest)->assign(str, n);
   return true;
 }
 
@@ -976,7 +964,32 @@ static bool parse_double_float(const char* str, size_t n, bool isfloat,
   } else {
     r = strtod(buf, &end);
   }
-  if (end != buf + n) return false;   // Leftover junk
+  if (end != buf + n) {
+#ifdef _WIN32
+    // Microsoft's strtod() doesn't handle inf and nan, so we have to
+    // handle it explicitly.  Speed is not important here because this
+    // code is only called in unit tests.
+    bool pos = true;
+    const char* i = buf;
+    if ('-' == *i) {
+      pos = false;
+      ++i;
+    } else if ('+' == *i) {
+      ++i;
+    }
+    if (0 == _stricmp(i, "inf") || 0 == _stricmp(i, "infinity")) {
+      r = std::numeric_limits<double>::infinity();
+      if (!pos)
+        r = -r;
+    } else if (0 == _stricmp(i, "nan")) {
+      r = std::numeric_limits<double>::quiet_NaN();
+    } else {
+      return false;
+    }
+#else
+    return false;   // Leftover junk
+#endif
+  }
   if (errno) return false;
   if (dest == NULL) return true;
   if (isfloat) {

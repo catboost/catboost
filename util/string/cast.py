@@ -1,6 +1,5 @@
 print 'static const ui8 SAFE_LENS[4][15] = {'
 
-
 def nb(n, b):
     if n == 0:
         return [0]
@@ -15,7 +14,6 @@ def nb(n, b):
 
 
 for p in (1, 2, 4, 8):
-
     def it1():
         for base in range(2, 17):
             m = 2 ** (8 * p) - 1

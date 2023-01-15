@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2017 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -13,7 +13,7 @@
 #include <openssl/asn1.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
-#include "crypto/x509.h"
+#include "internal/x509_int.h"
 #include <openssl/ocsp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -41,13 +41,6 @@ int NETSCAPE_SPKI_verify(NETSCAPE_SPKI *a, EVP_PKEY *r)
 
 int X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
 {
-    /*
-     * Setting the modified flag before signing it. This makes the cached
-     * encoding to be ignored, so even if the certificate fields have changed,
-     * they are signed correctly.
-     * The X509_sign_ctx, X509_REQ_sign{,_ctx}, X509_CRL_sign{,_ctx} functions
-     * which exist below are the same.
-     */
     x->cert_info.enc.modified = 1;
     return (ASN1_item_sign(ASN1_ITEM_rptr(X509_CINF), &x->cert_info.signature,
                            &x->sig_alg, &x->signature, &x->cert_info, pkey,
@@ -72,14 +65,12 @@ int X509_http_nbio(OCSP_REQ_CTX *rctx, X509 **pcert)
 
 int X509_REQ_sign(X509_REQ *x, EVP_PKEY *pkey, const EVP_MD *md)
 {
-    x->req_info.enc.modified = 1;
     return (ASN1_item_sign(ASN1_ITEM_rptr(X509_REQ_INFO), &x->sig_alg, NULL,
                            x->signature, &x->req_info, pkey, md));
 }
 
 int X509_REQ_sign_ctx(X509_REQ *x, EVP_MD_CTX *ctx)
 {
-    x->req_info.enc.modified = 1;
     return ASN1_item_sign_ctx(ASN1_ITEM_rptr(X509_REQ_INFO),
                               &x->sig_alg, NULL, x->signature, &x->req_info,
                               ctx);
@@ -371,8 +362,7 @@ int X509_pubkey_digest(const X509 *data, const EVP_MD *type,
 int X509_digest(const X509 *data, const EVP_MD *type, unsigned char *md,
                 unsigned int *len)
 {
-    if (type == EVP_sha1() && (data->ex_flags & EXFLAG_SET) != 0
-            && (data->ex_flags & EXFLAG_NO_FINGERPRINT) == 0) {
+    if (type == EVP_sha1() && (data->ex_flags & EXFLAG_SET) != 0) {
         /* Asking for SHA1 and we already computed it. */
         if (len != NULL)
             *len = sizeof(data->sha1_hash);
@@ -386,8 +376,7 @@ int X509_digest(const X509 *data, const EVP_MD *type, unsigned char *md,
 int X509_CRL_digest(const X509_CRL *data, const EVP_MD *type,
                     unsigned char *md, unsigned int *len)
 {
-    if (type == EVP_sha1() && (data->flags & EXFLAG_SET) != 0
-            && (data->flags & EXFLAG_INVALID) == 0) {
+    if (type == EVP_sha1() && (data->flags & EXFLAG_SET) != 0) {
         /* Asking for SHA1; always computed in CRL d2i. */
         if (len != NULL)
             *len = sizeof(data->sha1_hash);

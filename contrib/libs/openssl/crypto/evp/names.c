@@ -10,9 +10,9 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
-#include "crypto/objects.h"
+#include "internal/objects.h"
 #include <openssl/x509.h>
-#include "crypto/evp.h"
+#include "internal/evp_int.h"
 
 int EVP_add_cipher(const EVP_CIPHER *c)
 {

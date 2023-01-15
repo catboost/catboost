@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===--------------------------- mutex ------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -112,7 +112,7 @@ template <class... MutexTypes>
 class scoped_lock // C++17
 {
 public:
-    using mutex_type = Mutex;  // Only if sizeof...(MutexTypes) == 1
+    using mutex_type = Mutex;  // If MutexTypes... consists of the single type Mutex
 
     explicit scoped_lock(MutexTypes&... m);
     scoped_lock(adopt_lock_t, MutexTypes&... m);
@@ -188,22 +188,21 @@ template<class Callable, class ...Args>
 
 #include <__config>
 #include <__mutex_base>
-#include <__threading_support>
-#include <__utility/forward.h>
 #include <cstdint>
 #include <functional>
 #include <memory>
 #ifndef _LIBCPP_CXX03_LANG
-# include <tuple>
+#include <tuple>
 #endif
 #include <version>
+#include <__threading_support>
 
 #if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG)
 #include <atomic>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 _LIBCPP_PUSH_MACROS
@@ -219,12 +218,14 @@ class _LIBCPP_TYPE_VIS recursive_mutex
     __libcpp_recursive_mutex_t __m_;
 
 public:
-    recursive_mutex();
-    ~recursive_mutex();
+     recursive_mutex();
+     ~recursive_mutex();
 
-    recursive_mutex(const recursive_mutex&) = delete;
-    recursive_mutex& operator=(const recursive_mutex&) = delete;
+private:
+    recursive_mutex(const recursive_mutex&); // = delete;
+    recursive_mutex& operator=(const recursive_mutex&); // = delete;
 
+public:
     void lock();
     bool try_lock() _NOEXCEPT;
     void unlock()  _NOEXCEPT;
@@ -244,8 +245,9 @@ public:
      timed_mutex();
      ~timed_mutex();
 
-    timed_mutex(const timed_mutex&) = delete;
-    timed_mutex& operator=(const timed_mutex&) = delete;
+private:
+    timed_mutex(const timed_mutex&); // = delete;
+    timed_mutex& operator=(const timed_mutex&); // = delete;
 
 public:
     void lock();
@@ -284,12 +286,14 @@ class _LIBCPP_TYPE_VIS recursive_timed_mutex
     size_t             __count_;
     __thread_id        __id_;
 public:
-    recursive_timed_mutex();
-    ~recursive_timed_mutex();
+     recursive_timed_mutex();
+     ~recursive_timed_mutex();
 
-    recursive_timed_mutex(const recursive_timed_mutex&) = delete;
-    recursive_timed_mutex& operator=(const recursive_timed_mutex&) = delete;
+private:
+    recursive_timed_mutex(const recursive_timed_mutex&); // = delete;
+    recursive_timed_mutex& operator=(const recursive_timed_mutex&); // = delete;
 
+public:
     void lock();
     bool try_lock() _NOEXCEPT;
     template <class _Rep, class _Period>
@@ -365,7 +369,7 @@ try_lock(_L0& __l0, _L1& __l1, _L2& __l2, _L3&... __l3)
     return __r;
 }
 
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
 template <class _L0, class _L1>
 void
@@ -469,7 +473,7 @@ void __unlock(_L0& __l0, _L1& __l1, _L2& __l2, _L3&... __l3) {
     _VSTD::__unlock(__l2, __l3...);
 }
 
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
 #if _LIBCPP_STD_VER > 14
 template <class ..._Mutexes>
@@ -568,23 +572,23 @@ template<class _Callable>
 _LIBCPP_INLINE_VISIBILITY
 void call_once(once_flag&, const _Callable&);
 
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
 struct _LIBCPP_TEMPLATE_VIS once_flag
 {
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR
         once_flag() _NOEXCEPT : __state_(0) {}
-    once_flag(const once_flag&) = delete;
-    once_flag& operator=(const once_flag&) = delete;
-
 #if defined(_LIBCPP_ABI_MICROSOFT)
-   typedef uintptr_t _State_type;
+    typedef uintptr_t _State_type;
 #else
-   typedef unsigned long _State_type;
+    typedef unsigned long _State_type;
 #endif
 
 private:
+    once_flag(const once_flag&); // = delete;
+    once_flag& operator=(const once_flag&); // = delete;
+
 #if defined(_LIBCPP_ABI_MICROSOFT)
     atomic<_State_type> __state_;
 #else
@@ -603,7 +607,7 @@ private:
     template<class _Callable>
     friend
     void call_once(once_flag&, const _Callable&);
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 };
 
 #ifndef _LIBCPP_CXX03_LANG
@@ -628,7 +632,7 @@ private:
     _LIBCPP_INLINE_VISIBILITY
     void __execute(__tuple_indices<_Indices...>)
     {
-        _VSTD::__invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
+        __invoke(_VSTD::get<0>(_VSTD::move(__f_)), _VSTD::get<_Indices>(_VSTD::move(__f_))...);
     }
 };
 
@@ -661,10 +665,10 @@ __call_once_proxy(void* __vp)
 
 #ifdef _LIBCPP_ABI_MICROSOFT
 _LIBCPP_FUNC_VIS void __call_once(volatile atomic<once_flag::_State_type>&, void*,
-                                  void (*)(void*));
+                                  void(*)(void*));
 #else
 _LIBCPP_FUNC_VIS void __call_once(volatile once_flag::_State_type&, void*,
-                                  void (*)(void*));
+                                  void(*)(void*));
 #endif
 
 #ifndef _LIBCPP_CXX03_LANG
@@ -721,10 +725,10 @@ call_once(once_flag& __flag, const _Callable& __func)
     }
 }
 
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
 _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif // _LIBCPP_MUTEX
+#endif  // _LIBCPP_MUTEX

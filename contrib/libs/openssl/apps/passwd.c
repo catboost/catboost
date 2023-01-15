@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2000-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -407,7 +407,7 @@ static char *md5crypt(const char *passwd, const char *magic, const char *salt)
         n >>= 1;
     }
     if (!EVP_DigestFinal_ex(md, buf, NULL))
-        goto err;
+        return NULL;
 
     for (i = 0; i < 1000; i++) {
         if (!EVP_DigestInit_ex(md2, EVP_md5(), NULL))
@@ -633,7 +633,7 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
         n >>= 1;
     }
     if (!EVP_DigestFinal_ex(md, buf, NULL))
-        goto err;
+        return NULL;
 
     /* P sequence */
     if (!EVP_DigestInit_ex(md2, sha, NULL))
@@ -644,7 +644,7 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
             goto err;
 
     if (!EVP_DigestFinal_ex(md2, temp_buf, NULL))
-        goto err;
+        return NULL;
 
     if ((p_bytes = OPENSSL_zalloc(passwd_len)) == NULL)
         goto err;
@@ -661,7 +661,7 @@ static char *shacrypt(const char *passwd, const char *magic, const char *salt)
             goto err;
 
     if (!EVP_DigestFinal_ex(md2, temp_buf, NULL))
-        goto err;
+        return NULL;
 
     if ((s_bytes = OPENSSL_zalloc(salt_len)) == NULL)
         goto err;
@@ -807,7 +807,7 @@ static int do_passwd(int passed_salt, char **salt_p, char **salt_malloc_p,
             (*salt_p)[i] = cov_2char[(*salt_p)[i] & 0x3f]; /* 6 bits */
         (*salt_p)[i] = 0;
 # ifdef CHARSET_EBCDIC
-        /* The password encryption function will convert back to ASCII */
+        /* The password encryption funtion will convert back to ASCII */
         ascii2ebcdic(*salt_p, *salt_p, saltlen);
 # endif
     }

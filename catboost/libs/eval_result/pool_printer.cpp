@@ -1,10 +1,7 @@
 #include "pool_printer.h"
 
-#include "eval_helpers.h"
-
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/quantized_pool/serialization.h>
 
 #include <util/generic/xrange.h>
@@ -15,24 +12,18 @@
 
 
 namespace NCB {
+
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
-        TLineDataPoolColumnsPrinterPushArgs&& args
+        const TPathWithScheme& testSetPath,
+        const TDsvFormatOptions& format,
+        const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo
     )
-        : LineDataReader(std::move(args.Reader))
-        , Delimiter(args.Format.Delimiter)
+        : LineDataReader(GetLineDataReader(testSetPath, format))
+        , Delimiter(format.Delimiter)
         , DocId(-1)
-        , ColumnsMetaInfo(args.ColumnsMetaInfo)
     {
-        UpdateColumnTypeInfo(args.ColumnsMetaInfo);
+        UpdateColumnTypeInfo(columnsMetaInfo);
     }
-
-    TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
-        : TDSVPoolColumnsPrinter(TLineDataPoolColumnsPrinterPushArgs{
-            GetLineDataReader(args.PoolPath, args.Format),
-            args.Format,
-            args.ColumnsMetaInfo})
-    {}
-
 
     void TDSVPoolColumnsPrinter::OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) {
         CB_ENSURE(FromColumnTypeToColumnId.contains(columnType),
@@ -40,8 +31,8 @@ namespace NCB {
         *outStream << GetCell(docId, FromColumnTypeToColumnId[columnType]);
     }
 
-    void TDSVPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 featureId) {
-        *outStream << GetCell(docId, FromExternalIdToColumnId[featureId]);
+    void TDSVPoolColumnsPrinter::OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) {
+        *outStream << GetCell(docId, columnId);
     }
 
     void TDSVPoolColumnsPrinter::UpdateColumnTypeInfo(const TMaybe<TDataColumnsMetaInfo>& columnsMetaInfo) {
@@ -52,16 +43,8 @@ namespace NCB {
                 if (columnType == EColumn::SampleId) {
                     HasDocIdColumn = true;
                 }
-                if (IsFactorColumn(columnType)) {
-                    FromExternalIdToColumnId.push_back(columnId);
-                }
             }
         }
-    }
-
-    std::type_index TDSVPoolColumnsPrinter::GetOutputFeatureType(ui32 featureId) {
-        const auto columnType = ColumnsMetaInfo->Columns[FromExternalIdToColumnId[featureId]].Type;
-        return columnType == EColumn::Num ? typeid(double) : typeid(TString);
     }
 
     const TString& TDSVPoolColumnsPrinter::GetCell(ui64 docId, ui32 colId) {
@@ -79,8 +62,8 @@ namespace NCB {
         return Columns[colId];
     }
 
-    TQuantizedPoolColumnsPrinter::TQuantizedPoolColumnsPrinter(TPoolColumnsPrinterPullArgs&& args)
-        : QuantizedPool(LoadQuantizedPool(args.PoolPath, {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns(!IsSharedFs(args.PoolPath))}))
+    TQuantizedPoolColumnsPrinter::TQuantizedPoolColumnsPrinter(const TPathWithScheme& testSetPath)
+        : QuantizedPool(LoadQuantizedPool(testSetPath, {/*LockMemory=*/false, /*Precharge=*/false, TDatasetSubset::MakeColumns()}))
     {
         for (const ui32 columnId : xrange(QuantizedPool.ColumnTypes.size())) {
             const auto columnType = QuantizedPool.ColumnTypes[columnId];
@@ -127,7 +110,6 @@ namespace NCB {
             case EColumn::GroupId:
             case EColumn::SubgroupId:
                 token = GetStringColumnToken(docId, columnType);
-                break;
             default:
                 CB_ENSURE("Unsupported output columnType for Quantized pool.");
         }
@@ -135,11 +117,7 @@ namespace NCB {
         *outStream << token;
     }
 
-    void TQuantizedPoolColumnsPrinter::OutputFeatureColumnByIndex(IOutputStream* /*outStream*/, ui64 /*docId*/, ui32 /*columnId*/) {
-        CB_ENSURE(false, "Not Implemented for Quantized Pools");
-    }
-
-    std::type_index TQuantizedPoolColumnsPrinter::GetOutputFeatureType(ui32 /*featureId*/) {
+    void TQuantizedPoolColumnsPrinter::OutputColumnByIndex(IOutputStream* /*outStream*/, ui64 /*docId*/, ui32 /*columnId*/) {
         CB_ENSURE(false, "Not Implemented for Quantized Pools");
     }
 
@@ -199,11 +177,5 @@ namespace NCB {
         }
         return columnInfo.CurrentToken;
     }
-
-    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DefPoolColumnsPrinter("");
-
-    TPoolColumnsPrinterLoaderFactory::TRegistrator<TDSVPoolColumnsPrinter> DsvPoolColumnsPrinter("dsv");
-
-    TPoolColumnsPrinterLoaderFactory::TRegistrator<TQuantizedPoolColumnsPrinter> QuantizedPoolColumnsPrinter("quantized");
 
 } // namespace NCB

@@ -31,69 +31,6 @@ namespace NKernel {
         }
     };
 
-    struct TTweedieTarget  {
-        float VariancePower;
-
-        __host__ __device__ __forceinline__ TTweedieTarget(float variancePower = 1.5)
-                : VariancePower(variancePower) {
-        }
-
-        __device__ __forceinline__ float Score(float target, float prediction) const {
-            const float val = -target * std::exp((1 - VariancePower) * prediction) / (1 - VariancePower);
-            const float delta = std::exp((2 - VariancePower) * prediction) / (2 - VariancePower);
-            return val + delta;
-        }
-
-        __device__ __forceinline__ float Der(float target, float prediction) const {
-            const float der = target * std::exp((1 - VariancePower) * prediction);
-            const float delta = std::exp((2 - VariancePower) * prediction);
-            return der - delta;
-        }
-
-        __device__ __forceinline__ float Der2(float target, float prediction) const {
-            const float der2 = target * std::exp((1 - VariancePower) * prediction) * (1 - VariancePower);
-            const float delta = std::exp((2 - VariancePower) * prediction) * (2 - VariancePower);
-            return der2 - delta;
-        }
-    };
-
-    struct THuberTarget  {
-        static constexpr double HUBER_DER2 = -1.0;
-
-        float Delta;
-
-        __host__ __device__ __forceinline__ THuberTarget(float delta)
-                : Delta(delta) {
-        }
-
-        __device__ __forceinline__ float Score(float target, float prediction) const {
-            const float targetMismatch = fabs(target - prediction);
-            if (targetMismatch < Delta) {
-                return 0.5 * targetMismatch * targetMismatch;
-            } else {
-                return Delta * (targetMismatch - 0.5 * Delta);
-            }
-        }
-
-        __device__ __forceinline__ float Der(float target, float prediction) const {
-            const float diff = target - prediction;
-            if (fabs(diff) < Delta) {
-                return diff;
-            } else {
-                return diff > 0.0 ? Delta : -Delta;
-            }
-        }
-
-        __device__ __forceinline__ float Der2(float target, float prediction) const {
-            const float diff = target - prediction;
-            if (fabs(diff) < Delta) {
-                return HUBER_DER2;
-            } else {
-                return 0.0;
-            }
-        }
-    };
-
     struct TExpectileTarget  {
         float Alpha;
 
@@ -502,18 +439,6 @@ namespace NKernel {
             case ELossFunction::NumErrors:
             {
                 TNumErrorsMetric target(alpha);
-                POINTWISE_TARGET()
-                break;
-            }
-            case ELossFunction::Tweedie:
-            {
-                TTweedieTarget target(alpha);
-                POINTWISE_TARGET()
-                break;
-            }
-            case ELossFunction::Huber:
-            {
-                THuberTarget target(alpha);
                 POINTWISE_TARGET()
                 break;
             }

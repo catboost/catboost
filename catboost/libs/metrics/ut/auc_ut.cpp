@@ -1,10 +1,8 @@
 #include <catboost/libs/metrics/auc.h>
-#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <catboost/private/libs/data_types/query.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>
@@ -158,7 +156,6 @@ static double CalcAucSingleThread(TVector<TSample>* samples, double* outWeightSu
     return (optimisticAUC + pessimisticAUC) / 2.0;
 }
 
-
 Y_UNIT_TEST_SUITE(AUCMetricTests) {
     static void TestAuc(
         const TVector<double>& prediction,
@@ -173,7 +170,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         for (ui32 i = 0; i < prediction.size(); ++i) {
             samples.emplace_back(target[i], prediction[i], weight[i]);
         }
-        double scoreParallel = CalcAUC(&samples, nullptr, nullptr, &executor);
+        double scoreParallel = CalcAUC(&samples, &executor);
         Shuffle(samples.begin(), samples.end());
         double score = CalcAUC(&samples);
         Shuffle(samples.begin(), samples.end());
@@ -181,48 +178,6 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         Shuffle(samples.begin(), samples.end());
         UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, CalcAucSingleThread(&samples), eps);
         UNIT_ASSERT_DOUBLES_EQUAL(scoreParallel, score, eps);
-    }
-
-    static void TestQueryAuc(
-        TString description,
-        TVector<TVector<double>> prediction,
-        const TVector<float>& targets,
-        const TVector<float>& weights,
-        const TVector<TQueryInfo> queryInfos,
-        const double eps)
-    {
-        NPar::TLocalExecutor executor;
-        executor.RunAdditionalThreads(31);
-
-        TMetricHolder metricHm(2);
-
-        for (const auto& info: queryInfos) {
-            TVector<NMetrics::TSample> samples;
-            auto startIdx = info.Begin;
-            auto querySize = info.End - info.Begin;
-
-            for (ui32 i = 0; i < querySize; ++i) {
-                samples.emplace_back(targets[startIdx + i], prediction[0][startIdx + i], weights[startIdx + i]);
-            }
-
-            metricHm.Stats[0] += CalcAUC(&samples);
-            metricHm.Stats[1] += 1;
-        }
-
-        const auto queryAUC = std::move(CreateMetricsFromDescription({description}, 1).front());
-        const auto metric = dynamic_cast<const ISingleTargetEval*>(queryAUC.Get())->Eval(
-            prediction,
-            targets,
-            weights,
-            queryInfos,
-            0,
-            queryInfos.size(),
-            executor);
-
-        UNIT_ASSERT_VALUES_EQUAL(metricHm.Stats.size(), 2);
-        UNIT_ASSERT_VALUES_EQUAL(metricHm.Stats.size(), metric.Stats.size());
-        UNIT_ASSERT_DOUBLES_EQUAL(metricHm.Stats[1], metric.Stats[1], eps);
-        UNIT_ASSERT_DOUBLES_EQUAL(metricHm.Stats[0], metric.Stats[0], eps);
     }
 
     static void TestBinClassAuc(
@@ -254,7 +209,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         Shuffle(positiveSamples.begin(), positiveSamples.end());
         Shuffle(negativeSamples.begin(), negativeSamples.end());
         double scoreManyThreads = CalcBinClassAuc(&positiveSamples, &negativeSamples, 32);
-        double usualAucScore = CalcAUC(&samples, nullptr, nullptr, &executor);
+        double usualAucScore = CalcAUC(&samples, &executor);
         Shuffle(samples.begin(), samples.end());
         double usualAucScoreOneThread = CalcAUC(&samples);
         double naiveRealizationScore = MyAUC(prediction, doubleTarget, weight);
@@ -368,46 +323,6 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
         );
     }
 
-    Y_UNIT_TEST(SimpleQueryAucTest) {
-        {
-
-            TQueryInfo info(0, 10);
-            TestQueryAuc(
-                "QueryAUC:type=Ranking;use_weights=true",
-                {{1, 1, 2, 3, 1, 4, 1, 2, 3, 1}}, // predicts
-                {1, 2, 3, 4, 5, 5, 4, 3, 2, 1}, // targets
-                {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3}, // weights
-                {info},
-                EPS
-            );
-        }
-
-        {
-            TQueryInfo info(0, 3);
-            TestQueryAuc(
-                "QueryAUC:type=Ranking;use_weights=true",
-                {{3, 2, 1}}, // predicts
-                {0, 1, 0}, // targets
-                {1, 1, 1}, // weights
-                {info},
-                EPS
-            );
-        }
-            TQueryInfo info1(0, 10);
-            TQueryInfo info2(10, 13);
-            TestQueryAuc(
-                "QueryAUC:type=Ranking;use_weights=true",
-                {{1, 1, 2, 3, 1, 4, 1, 2, 3, 1, 3, 2, 1}}, // predicts
-                {1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0, 1, 0}, // targets
-                {1, 0.5, 2, 1, 1, 0.75, 1, 1.5, 1.25, 3, 1, 1, 1}, // weights
-                {info1, info2},
-                EPS
-            );
-        {
-
-        }
-    }
-
     Y_UNIT_TEST(ParallelizationOnTest) {
         TVector<double> approx{3, 2, 1};
         TVector<double> target{0, 1, 0};
@@ -421,7 +336,7 @@ Y_UNIT_TEST_SUITE(AUCMetricTests) {
             samples.emplace_back(target[i], approx[i], weight[i]);
         }
 
-        double score = CalcAUC(&samples, nullptr, nullptr, &executor);
+        double score = CalcAUC(&samples, &executor);
         UNIT_ASSERT_DOUBLES_EQUAL(score, 0.5, 1e-6);
     }
 

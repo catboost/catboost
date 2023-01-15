@@ -17,7 +17,7 @@ IF(HAVE_CUDA)
     )
 ENDIF()
 
-IF(NOT OPENSOURCE)
+IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         catboost//private/libs/for_python_package
     )

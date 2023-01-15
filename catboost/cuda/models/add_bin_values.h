@@ -128,10 +128,9 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));
             CB_ENSURE(Bins.Size() == Features.Size());
-            CB_ENSURE(Bins.Size() < 32, "Tree depth " << Bins.Size() << " is too large, should be < 32");
             NKernel::ComputeObliviousTreeBins(Features.Get(),
                                               Bins.Get(),
-                                              (ui32)Bins.Size(), // depth
+                                              (ui32)Bins.Size(),
                                               DataSet.Get(),
                                               ReadIndices.Get(),
                                               WriteIndices.Get(),

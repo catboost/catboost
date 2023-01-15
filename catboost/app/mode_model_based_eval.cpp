@@ -1,4 +1,4 @@
-#include <catboost/private/libs/app_helpers/bind_options.h>
+#include "bind_options.h"
 #include "modes.h"
 
 #include <catboost/private/libs/algo/helpers.h>
@@ -6,10 +6,9 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
-#include <catboost/private/libs/options/pool_metainfo_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/cpp/json/json_reader.h>
+#include <library/json/json_reader.h>
 
 #include <util/generic/ptr.h>
 
@@ -27,7 +26,6 @@ int mode_model_based_eval(int argc, const char* argv[]) {
     NJson::TJsonValue catBoostJsonOptions;
     NJson::TJsonValue outputOptionsJson;
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
-    NCatboostOptions::LoadPoolMetaInfoOptions(poolLoadParams.PoolMetaInfoPath, &catBoostJsonOptions);
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
@@ -43,11 +41,6 @@ int mode_model_based_eval(int argc, const char* argv[]) {
     for (ui32 feature : featuresToEvaluate) {
         CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Error: feature " + ToString(feature) + " is ignored");
     }
-    if (outputOptions.IsMetricPeriodSet() && outputOptions.GetMetricPeriod() > 1) {
-        CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
-            "model-based feature evaluation needs metric values on each iteration" << Endl;
-    }
-    outputOptions.SetMetricPeriod(1);
 
     ModelBasedEval(poolLoadParams, outputOptions, catBoostJsonOptions);
 

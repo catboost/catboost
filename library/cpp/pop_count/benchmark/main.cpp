@@ -1,9 +1,9 @@
 #include <util/stream/output.h>
 #include <util/datetime/cputimer.h>
-#include <util/system/type_name.h>
+#include <util/generic/type_name.h>
 
 #include <library/cpp/pop_count/popcount.h>
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 template <class F, class I>
 inline void DoRun(F&& f, I&& i) {

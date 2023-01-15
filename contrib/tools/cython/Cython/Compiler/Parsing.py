@@ -882,7 +882,6 @@ def p_string_literal(s, kind_override=None):
     pos = s.position()
     is_python3_source = s.context.language_level >= 3
     has_non_ascii_literal_characters = False
-    string_start_pos = (pos[0], pos[1], pos[2] + len(s.systring))
     kind_string = s.systring.rstrip('"\'').lower()
     if len(kind_string) > 1:
         if len(set(kind_string)) != len(kind_string):
@@ -966,7 +965,7 @@ def p_string_literal(s, kind_override=None):
                 s.error("bytes can only contain ASCII literal characters.", pos=pos)
             bytes_value = None
     if kind == 'f':
-        unicode_value = p_f_string(s, unicode_value, string_start_pos, is_raw='r' in kind_string)
+        unicode_value = p_f_string(s, unicode_value, pos, is_raw='r' in kind_string)
     s.next()
     return (kind, bytes_value, unicode_value)
 
@@ -1038,10 +1037,6 @@ _parse_escape_sequences_raw, _parse_escape_sequences = [re.compile((
     for is_raw in (True, False)]
 
 
-def _f_string_error_pos(pos, string, i):
-    return (pos[0], pos[1], pos[2] + i + 1)  # FIXME: handle newlines in string
-
-
 def p_f_string(s, unicode_value, pos, is_raw):
     # Parses a PEP 498 f-string literal into a list of nodes. Nodes are either UnicodeNodes
     # or FormattedValueNodes.
@@ -1049,13 +1044,15 @@ def p_f_string(s, unicode_value, pos, is_raw):
     next_start = 0
     size = len(unicode_value)
     builder = StringEncoding.UnicodeLiteralBuilder()
+    error_pos = list(pos)  # [src, line, column]
     _parse_seq = _parse_escape_sequences_raw if is_raw else _parse_escape_sequences
 
     while next_start < size:
         end = next_start
+        error_pos[2] = pos[2] + end  # FIXME: handle newlines in string
         match = _parse_seq(unicode_value, next_start)
         if match is None:
-            error(_f_string_error_pos(pos, unicode_value, next_start), "Invalid escape sequence")
+            error(tuple(error_pos), "Invalid escape sequence")
 
         next_start = match.end()
         part = match.group()
@@ -1079,8 +1076,7 @@ def p_f_string(s, unicode_value, pos, is_raw):
             if part == '}}':
                 builder.append('}')
             else:
-                error(_f_string_error_pos(pos, unicode_value, end),
-                      "f-string: single '}' is not allowed")
+                s.error("f-string: single '}' is not allowed", pos=tuple(error_pos))
         else:
             builder.append(part)
 
@@ -1101,20 +1097,16 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
     nested_depth = 0
     quote_char = NO_CHAR
     in_triple_quotes = False
-    backslash_reported = False
 
     while True:
         if i >= size:
-            break  # error will be reported below
+            s.error("missing '}' in format string expression")
         c = unicode_value[i]
 
         if quote_char != NO_CHAR:
             if c == '\\':
-                # avoid redundant error reports along '\' sequences
-                if not backslash_reported:
-                    error(_f_string_error_pos(pos, unicode_value, i),
-                          "backslashes not allowed in f-strings")
-                backslash_reported = True
+                error_pos = (pos[0], pos[1] + i, pos[2])  # FIXME: handle newlines in string
+                error(error_pos, "backslashes not allowed in f-strings")
             elif c == quote_char:
                 if in_triple_quotes:
                     if i + 2 < size and unicode_value[i + 1] == c and unicode_value[i + 2] == c:
@@ -1133,8 +1125,7 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
         elif nested_depth != 0 and c in '}])':
             nested_depth -= 1
         elif c == '#':
-            error(_f_string_error_pos(pos, unicode_value, i),
-                  "format string cannot include #")
+            s.error("format string cannot include #")
         elif nested_depth == 0 and c in '!:}':
             # allow != as a special case
             if c == '!' and i + 1 < size and unicode_value[i + 1] == '=':
@@ -1150,13 +1141,12 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
     expr_pos = (pos[0], pos[1], pos[2] + starting_index + 2)  # TODO: find exact code position (concat, multi-line, ...)
 
     if not expr_str.strip():
-        error(_f_string_error_pos(pos, unicode_value, starting_index),
-              "empty expression not allowed in f-string")
+        error(expr_pos, "empty expression not allowed in f-string")
 
     if terminal_char == '!':
         i += 1
         if i + 2 > size:
-            pass  # error will be reported below
+            error(expr_pos, "invalid conversion char at end of string")
         else:
             conversion_char = unicode_value[i]
             i += 1
@@ -1169,7 +1159,7 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
         start_format_spec = i + 1
         while True:
             if i >= size:
-                break  # error will be reported below
+                s.error("missing '}' in format specifier", pos=expr_pos)
             c = unicode_value[i]
             if not in_triple_quotes and not in_string:
                 if c == '{':
@@ -1191,9 +1181,7 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
         format_spec_str = unicode_value[start_format_spec:i]
 
     if terminal_char != '}':
-        error(_f_string_error_pos(pos, unicode_value, i),
-              "missing '}' in format string expression" + (
-                  ", found '%s'" % terminal_char if terminal_char else ""))
+        s.error("missing '}' in format string expression', found '%s'" % terminal_char)
 
     # parse the expression as if it was surrounded by parentheses
     buf = StringIO('(%s)' % expr_str)
@@ -1202,7 +1190,7 @@ def p_f_string_expr(s, unicode_value, pos, starting_index, is_raw):
 
     # validate the conversion char
     if conversion_char is not None and not ExprNodes.FormattedValueNode.find_conversion_func(conversion_char):
-        error(expr_pos, "invalid conversion character '%s'" % conversion_char)
+        error(pos, "invalid conversion character '%s'" % conversion_char)
 
     # the format spec is itself treated like an f-string
     if format_spec_str:
@@ -2254,7 +2242,7 @@ def p_statement(s, ctx, first_statement = 0):
             s.error('decorator not allowed here')
         s.level = ctx.level
         decorators = p_decorators(s)
-        if not ctx.allow_struct_enum_decorator and s.sy not in ('def', 'cdef', 'cpdef', 'class', 'async'):
+        if not ctx.allow_struct_enum_decorator and s.sy not in ('def', 'cdef', 'cpdef', 'class'):
             if s.sy == 'IDENT' and s.systring == 'async':
                 pass  # handled below
             else:
@@ -2683,7 +2671,7 @@ def looking_at_expr(s):
             s.put_back(*saved)
         elif s.sy == '[':
             s.next()
-            is_type = s.sy == ']' or not looking_at_expr(s)  # could be a nested template type
+            is_type = s.sy == ']'
             s.put_back(*saved)
 
         dotted_path.reverse()
@@ -2825,8 +2813,6 @@ def p_c_func_declarator(s, pos, ctx, base, cmethod_flag):
     s.expect(')')
     nogil = p_nogil(s)
     exc_val, exc_check = p_exception_value_clause(s)
-    # TODO - warning to enforce preferred exception specification order
-    nogil = nogil or p_nogil(s)
     with_gil = p_with_gil(s)
     return Nodes.CFuncDeclaratorNode(pos,
         base = base, args = args, has_varargs = ellipsis,
@@ -2945,11 +2931,7 @@ def p_with_gil(s):
 def p_exception_value_clause(s):
     exc_val = None
     exc_check = 0
-
-    if s.sy == 'IDENT' and s.systring == 'noexcept':
-        s.next()
-        exc_check = False  # No-op in Cython 0.29.x
-    elif s.sy == 'except':
+    if s.sy == 'except':
         s.next()
         if s.sy == '*':
             exc_check = 1

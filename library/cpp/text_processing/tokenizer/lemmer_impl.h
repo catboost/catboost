@@ -1,7 +1,7 @@
 #pragma once
 
-#include <library/cpp/langs/langs.h>
-#include <library/cpp/object_factory/object_factory.h>
+#include <library/langs/langs.h>
+#include <library/object_factory/object_factory.h>
 
 namespace NTextProcessing::NTokenizer {
     enum class EImplementationType {

@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DONNX_ML=1 -DONNX_NAMESPACE=onnx /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DONNX_ML=1 -DONNX_NAMESPACE=onnx -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
-      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)$(Configuration)/contrib/libs/onnx;$(SolutionDir)../contrib/libs/protobuf/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/onnx;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    </AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -83,186 +83,146 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\interned_strings.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\ir_pb_converter.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\model_helpers.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\path.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\status.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\attr_proto_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\controlflow\defs.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\controlflow\old.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\data_type_utils.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\experiments\defs.cc">
+      <ObjectFileName>$(IntDir)defs_extra1.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\experiments\experiments_functions.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\function.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\generator\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra1.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra2.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\generator\old.cc">
       <ObjectFileName>$(IntDir)old_extra1.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\logical\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra2.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra3.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\logical\old.cc">
       <ObjectFileName>$(IntDir)old_extra2.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra3.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra4.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\old.cc">
       <ObjectFileName>$(IntDir)old_extra3.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\utils.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\nn\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra4.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra5.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\nn\old.cc">
       <ObjectFileName>$(IntDir)old_extra4.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\object_detection\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra5.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\object_detection\old.cc">
-      <ObjectFileName>$(IntDir)old_extra5.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\optional\defs.cc">
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra6.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\optional\old.cc">
-      <ObjectFileName>$(IntDir)old_extra6.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\parser.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\printer.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\quantization\defs.cc">
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\rnn\defs.cc">
       <ObjectFileName>$(IntDir)defs_extra7.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\quantization\old.cc">
-      <ObjectFileName>$(IntDir)old_extra7.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra8.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\old.cc">
-      <ObjectFileName>$(IntDir)old_extra8.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\utils.cc">
-      <ObjectFileName>$(IntDir)utils_extra1.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\rnn\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra9.obj</ObjectFileName>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\rnn\old.cc">
-      <ObjectFileName>$(IntDir)old_extra9.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra5.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\schema.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\sequence\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra10.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\shape_inference.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra11.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra8.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\old.cc">
-      <ObjectFileName>$(IntDir)old_extra10.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra6.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\utils.cc">
-      <ObjectFileName>$(IntDir)utils_extra2.obj</ObjectFileName>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_proto_util.cc"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_util.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\traditionalml\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra12.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)defs_extra9.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\traditionalml\old.cc">
-      <ObjectFileName>$(IntDir)old_extra11.obj</ObjectFileName>
+      <ObjectFileName>$(IntDir)old_extra7.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\training\defs.cc">
-      <ObjectFileName>$(IntDir)defs_extra13.obj</ObjectFileName>
-    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi_utils.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\optimize.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass_manager.cc"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass_registry.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\shape_inference\implementation.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\convert.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\helper.cc"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\checker.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\array_ref.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\assertions.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\common.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\constants.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\file_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\graph_node_list.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\interned_strings.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\ir.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\ir_pb_converter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\model_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\path.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\platform_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\status.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\stl_backports.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\common\tensor.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\attr_proto_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\data_propagators.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\data_type_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\function.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\math\utils.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets-ml.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_ml.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_preview.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\operator_sets_training.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\parser.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\printer.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\reduction\utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\schema.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\shape_inference.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor\utils.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_proto_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\defs\tensor_util.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx-data_pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx-operators_pb.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnx_pb.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi_loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\onnxifi_utils.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\optimize.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass_manager.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\pass_registry.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_deadend.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_identity.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_nop_dropout.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_nop_monotone_argmax.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_nop_pad.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_nop_transpose.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\eliminate_unused_initializer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\extract_constant_to_initializer.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_add_bias_into_conv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_bn_into_conv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_consecutive_concats.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_consecutive_log_softmax.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_consecutive_reduce_unsqueeze.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_consecutive_squeezes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_consecutive_transposes.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_matmul_add_bias_into_gemm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_pad_into_conv.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\fuse_transpose_into_gemm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\lift_lexical_references.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\nop.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\optimizer\passes\split.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\proto_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\shape_inference\implementation.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\string_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\BaseConverter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\adapter.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\axes_attribute_to_input.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\axes_input_to_attribute.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\batch_normalization_13_14.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\averagepool_7_6.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\batch_normalization_6_5.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\batch_normalization_6_7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\broadcast_backward_compatibility.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\broadcast_forward_compatibility.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\cast_9_8.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\clip_10_11.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\compatible.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\dropout_11_12.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\extend_supported_types.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\concat_3_4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\dropout_6_7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\gemm_6_7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\gemm_7_6.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\maxpool_8_7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\no_previous_version.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\pad_10_11.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\remove_consumed_inputs.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\reshape_4_5.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\reshape_5_4.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\resize_10_11.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\scan_8_9.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\scan_9_8.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\scatter_10_11.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\slice_9_10.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\softmax_12_13.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_12_13.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_13_12.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\split_17_18.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\set_is_test.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\sum_8_7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\topk_9_10.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\transformers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\type_restriction.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\upsample_6_7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\upsample_8_9.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\upsample_9_10.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\adapters\upsample_9_8.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\convert.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\onnx\onnx\version_converter\helper.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
@@ -271,9 +231,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
-      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\onnx\proto\libs-onnx-proto.vcxproj">
       <Project>{53A49A97-A4C2-5A8F-A5D9-DAEC245E36A6}</Project>

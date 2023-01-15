@@ -96,12 +96,6 @@ public:
         insert(il.begin(), il.end());
     }
 
-    TMap(std::initializer_list<value_type> il, size_type initSize = INIT_SIZE)
-        : TBase(initSize)
-    {
-        insert(il.begin(), il.end());
-    }
-
     TMap(const TMap&) = default;
     TMap(TMap&&) = default;
 

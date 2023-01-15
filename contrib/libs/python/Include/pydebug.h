@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef USE_PYTHON3
-#error "No <pydebug.h> in Python3"
+#include <contrib/tools/python3/src/Include/pydebug.h>
 #else
 #include <contrib/tools/python/src/Include/pydebug.h>
 #endif

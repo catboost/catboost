@@ -15,6 +15,7 @@
 
 #include "Python.h"
 #include "pystrhex.h"
+#include "pythread.h"
 
 #include "../hashlib.h"
 #include "blake2ns.h"
@@ -33,7 +34,8 @@
 #include "impl/blake2s-ref.c"
 #endif
 
-extern PyType_Spec blake2s_type_spec;
+
+extern PyTypeObject PyBlake2_BLAKE2sType;
 
 typedef struct {
     PyObject_HEAD
@@ -74,12 +76,11 @@ _blake2.blake2s.__new__ as py_blake2s_new
     person: Py_buffer(c_default="NULL", py_default="b''") = None
     fanout: int = 1
     depth: int = 1
-    leaf_size: unsigned_long = 0
-    node_offset: unsigned_long_long = 0
+    leaf_size as leaf_size_obj: object(c_default="NULL") = 0
+    node_offset as node_offset_obj: object(c_default="NULL") = 0
     node_depth: int = 0
     inner_size: int = 0
     last_node: bool = False
-    usedforsecurity: bool = True
 
 Return a new BLAKE2s hash object.
 [clinic start generated code]*/
@@ -87,13 +88,16 @@ Return a new BLAKE2s hash object.
 static PyObject *
 py_blake2s_new_impl(PyTypeObject *type, PyObject *data, int digest_size,
                     Py_buffer *key, Py_buffer *salt, Py_buffer *person,
-                    int fanout, int depth, unsigned long leaf_size,
-                    unsigned long long node_offset, int node_depth,
-                    int inner_size, int last_node, int usedforsecurity)
-/*[clinic end generated code: output=556181f73905c686 input=4dda87723f23abb0]*/
+                    int fanout, int depth, PyObject *leaf_size_obj,
+                    PyObject *node_offset_obj, int node_depth,
+                    int inner_size, int last_node)
+/*[clinic end generated code: output=fe060b258a8cbfc6 input=3abfaabe7f5f62cc]*/
 {
     BLAKE2sObject *self = NULL;
     Py_buffer buf;
+
+    unsigned long leaf_size = 0;
+    unsigned long long node_offset = 0;
 
     self = new_BLAKE2sObject(type);
     if (self == NULL) {
@@ -149,13 +153,25 @@ py_blake2s_new_impl(PyTypeObject *type, PyObject *data, int digest_size,
     }
     self->param.depth = (uint8_t)depth;
 
-    if (leaf_size > 0xFFFFFFFFU) {
-        PyErr_SetString(PyExc_OverflowError, "leaf_size is too large");
-        goto error;
+    if (leaf_size_obj != NULL) {
+        leaf_size = PyLong_AsUnsignedLong(leaf_size_obj);
+        if (leaf_size == (unsigned long) -1 && PyErr_Occurred()) {
+            goto error;
+        }
+        if (leaf_size > 0xFFFFFFFFU) {
+            PyErr_SetString(PyExc_OverflowError, "leaf_size is too large");
+            goto error;
+        }
     }
     // NB: Simple assignment here would be incorrect on big endian platforms.
     store32(&(self->param.leaf_length), leaf_size);
 
+    if (node_offset_obj != NULL) {
+        node_offset = PyLong_AsUnsignedLongLong(node_offset_obj);
+        if (node_offset == (unsigned long long) -1 && PyErr_Occurred()) {
+            goto error;
+        }
+    }
 #ifdef HAVE_BLAKE2S
     if (node_offset > 0xFFFFFFFFFFFFULL) {
         /* maximum 2**48 - 1 */
@@ -390,24 +406,47 @@ py_blake2s_dealloc(PyObject *self)
         PyThread_free_lock(obj->lock);
         obj->lock = NULL;
     }
-
-    PyTypeObject *type = Py_TYPE(self);
-    PyObject_Free(self);
-    Py_DECREF(type);
+    PyObject_Del(self);
 }
 
-static PyType_Slot blake2s_type_slots[] = {
-    {Py_tp_dealloc, py_blake2s_dealloc},
-    {Py_tp_doc, (char *)py_blake2s_new__doc__},
-    {Py_tp_methods, py_blake2s_methods},
-    {Py_tp_getset, py_blake2s_getsetters},
-    {Py_tp_new, py_blake2s_new},
-    {0,0}
-};
 
-PyType_Spec blake2s_type_spec = {
-    .name = "_blake2.blake2s",
-    .basicsize =  sizeof(BLAKE2sObject),
-    .flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE,
-    .slots = blake2s_type_slots
+PyTypeObject PyBlake2_BLAKE2sType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_blake2.blake2s",        /* tp_name            */
+    sizeof(BLAKE2sObject),    /* tp_basicsize       */
+    0,                        /* tp_itemsize        */
+    py_blake2s_dealloc,       /* tp_dealloc         */
+    0,                        /* tp_print           */
+    0,                        /* tp_getattr         */
+    0,                        /* tp_setattr         */
+    0,                        /* tp_compare         */
+    0,                        /* tp_repr            */
+    0,                        /* tp_as_number       */
+    0,                        /* tp_as_sequence     */
+    0,                        /* tp_as_mapping      */
+    0,                        /* tp_hash            */
+    0,                        /* tp_call            */
+    0,                        /* tp_str             */
+    0,                        /* tp_getattro        */
+    0,                        /* tp_setattro        */
+    0,                        /* tp_as_buffer       */
+    Py_TPFLAGS_DEFAULT,       /* tp_flags           */
+    py_blake2s_new__doc__,    /* tp_doc             */
+    0,                        /* tp_traverse        */
+    0,                        /* tp_clear           */
+    0,                        /* tp_richcompare     */
+    0,                        /* tp_weaklistoffset  */
+    0,                        /* tp_iter            */
+    0,                        /* tp_iternext        */
+    py_blake2s_methods,       /* tp_methods         */
+    0,                        /* tp_members         */
+    py_blake2s_getsetters,    /* tp_getset          */
+    0,                        /* tp_base            */
+    0,                        /* tp_dict            */
+    0,                        /* tp_descr_get       */
+    0,                        /* tp_descr_set       */
+    0,                        /* tp_dictoffset      */
+    0,                        /* tp_init            */
+    0,                        /* tp_alloc           */
+    py_blake2s_new,           /* tp_new             */
 };

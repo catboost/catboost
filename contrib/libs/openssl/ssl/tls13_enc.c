@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2016-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -8,7 +8,7 @@
  */
 
 #include <stdlib.h>
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
@@ -44,7 +44,7 @@ int tls13_hkdf_expand(SSL *s, const EVP_MD *md, const unsigned char *secret,
      * prefix and label + bytes for the label itself + 1 byte length of hash
      * + bytes for the hash itself
      */
-    unsigned char hkdflabel[sizeof(uint16_t) + sizeof(uint8_t)
+    unsigned char hkdflabel[sizeof(uint16_t) + sizeof(uint8_t) +
                             + (sizeof(label_prefix) - 1) + TLS13_MAX_LABEL_LEN
                             + 1 + EVP_MAX_MD_SIZE];
     WPACKET pkt;
@@ -190,7 +190,6 @@ int tls13_generate_secret(SSL *s, const EVP_MD *md,
     if (!ossl_assert(mdleni >= 0)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS13_GENERATE_SECRET,
                  ERR_R_INTERNAL_ERROR);
-        EVP_PKEY_CTX_free(pctx);
         return 0;
     }
     mdlen = (size_t)mdleni;
@@ -391,18 +390,11 @@ static int derive_secret_key_and_iv(SSL *s, int sending, const EVP_MD *md,
         uint32_t algenc;
 
         ivlen = EVP_CCM_TLS_IV_LEN;
-        if (s->s3->tmp.new_cipher != NULL) {
-            algenc = s->s3->tmp.new_cipher->algorithm_enc;
-        } else if (s->session->cipher != NULL) {
+        if (s->s3->tmp.new_cipher == NULL) {
             /* We've not selected a cipher yet - we must be doing early data */
             algenc = s->session->cipher->algorithm_enc;
-        } else if (s->psksession != NULL && s->psksession->cipher != NULL) {
-            /* We must be doing early data with out-of-band PSK */
-            algenc = s->psksession->cipher->algorithm_enc;
         } else {
-            SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_DERIVE_SECRET_KEY_AND_IV,
-                     ERR_R_EVP_LIB);
-            goto err;
+            algenc = s->s3->tmp.new_cipher->algorithm_enc;
         }
         if (algenc & (SSL_AES128CCM8 | SSL_AES256CCM8))
             taglen = EVP_CCM8_TLS_TAG_LEN;

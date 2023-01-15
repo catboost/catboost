@@ -1,6 +1,6 @@
 #include <catboost/private/libs/functools/forward_as_const.h>
 
-#include <library/cpp/testing/unittest/gtest.h>
+#include <library/unittest/gtest.h>
 
 enum class ETestEnum {
     OptOne,

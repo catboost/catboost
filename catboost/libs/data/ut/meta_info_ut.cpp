@@ -1,7 +1,7 @@
 #include <catboost/libs/data/meta_info.h>
 
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -54,7 +54,6 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                 true,
                 false,
                 false,
-                true,
                 Nothing(),
                 &featureNames
             );
@@ -68,7 +67,6 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     false,
                     false,
                     false,
-                    true,
                     Nothing(),
                     &featureNames
                 );
@@ -96,7 +94,6 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
                     true,
                     false,
                     false,
-                    true,
                     Nothing(),
                     &featureNames3
                 );

@@ -16,7 +16,7 @@ namespace NMonoForest {
             FeatureTypes.emplace_back(EFeatureType::OneHot);
             InternalToExternalFeature.emplace_back(
                 catFeatures[oneHotFeature.CatFeatureIndex].Position.FlatIndex);
-            CatFeatureToInternalFeature[catFeatures[oneHotFeature.CatFeatureIndex].Position.Index] = nextInternalFeatureIdx;
+            CatFeatureToInternalFeature[catFeatures[oneHotFeature.CatFeatureIndex].Position.FlatIndex] = nextInternalFeatureIdx;
             Borders.emplace_back();
             for (auto value : oneHotFeature.Values) {
                 Borders.back().push_back(value);

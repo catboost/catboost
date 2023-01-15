@@ -27,9 +27,9 @@ cdef extern from "Python.h":
     void Py_EndInterpreter(PyThreadState *)
 
 
-    # _Py_PyAtExit is for the atexit module, Py_AtExit is for low-level
+    # Py_PyAtExit is for the atexit module, Py_AtExit is for low-level
     # exit functions.
-    void _Py_PyAtExit(void (*func)(object), object)
+    void _Py_PyAtExit(void (*func)())
     int Py_AtExit(void (*func)())
 
     void Py_Exit(int)

@@ -9,6 +9,8 @@
 
 
 struct TTreeStatistics {
+    TTreeStatistics() = default;
+
     ui32 LeafCount;
     TVector<ui32> LeafIndices; // [docCount] // leafId for every train docId.
     TVector<TVector<ui32>> LeavesDocId; // [leafCount] // docIds for every leafId.

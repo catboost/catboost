@@ -2,9 +2,9 @@ LIBRARY()
 
 
 
-SRC_C_AVX(float16_avx.cpp)
+SRC_CPP_AVX(float16_avx.cpp)
 
-IF (NOT MSVC OR CLANG_CL)
+IF (NOT MSVC)
     CFLAGS(-mf16c)
 ENDIF()
 

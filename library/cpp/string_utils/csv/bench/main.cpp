@@ -1,6 +1,6 @@
 #include <library/cpp/string_utils/csv/csv.cpp>
 #include <util/string/split.h>
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 TString TestString = "2015-12-22T14:46:32.490Z,38.8218346,-122.8453369,2.09,0.89,md,12,127,0.008152,0.02,nc,nc72570596,2015-12-22T14:48:05.760Z,earthquake";
 TString TripleQuotesString = "\"\"\"triple \"\" quotes\"\"\",\"\"\"triple \"\" quotes\"\"\"";

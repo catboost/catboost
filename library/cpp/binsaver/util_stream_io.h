@@ -71,7 +71,7 @@ public:
 };
 
 template <class T>
-inline void SerializeToArcadiaStream(IOutputStream& stream, T& c) {
+inline void SerializeToStream(IOutputStream& stream, T& c) {
     TYaStreamOutput f(stream);
     {
         IBinSaver bs(f, false);
@@ -82,5 +82,5 @@ inline void SerializeToArcadiaStream(IOutputStream& stream, T& c) {
 template <class T>
 inline void SerializeToFile(const TString& fileName, T& c) {
     TOFStream out(fileName);
-    SerializeToArcadiaStream(out, c);
+    SerializeToStream(out, c);
 }

@@ -1,13 +1,15 @@
+PROGRAM()
 
 
-IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/tools/rorescompiler/ya.make.prebuilt)
-ENDIF()
 
-IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/tools/rorescompiler/bin/ya.make)
-ENDIF()
-
-RECURSE(
-    bin
+PEERDIR(
+    library/resource
 )
+
+SRCS(
+    main.cpp
+)
+
+INDUCED_DEPS(cpp ${ARCADIA_ROOT}/library/resource/registry.h)
+
+END()

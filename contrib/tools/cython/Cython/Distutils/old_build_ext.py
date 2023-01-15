@@ -84,9 +84,9 @@ class old_build_ext(_build_ext.build_ext):
     description = "build C/C++ and Cython extensions (compile/link to build directory)"
 
     sep_by = _build_ext.build_ext.sep_by
-    user_options = _build_ext.build_ext.user_options[:]
-    boolean_options = _build_ext.build_ext.boolean_options[:]
-    help_options = _build_ext.build_ext.help_options[:]
+    user_options = _build_ext.build_ext.user_options
+    boolean_options = _build_ext.build_ext.boolean_options
+    help_options = _build_ext.build_ext.help_options
 
     # Add the pyrex specific data.
     user_options.extend([
@@ -191,8 +191,7 @@ class old_build_ext(_build_ext.build_ext):
 
         for ext in self.extensions:
             ext.sources = self.cython_sources(ext.sources, ext)
-        # Call original build_extensions
-        _build_ext.build_ext.build_extensions(self)
+            self.build_extension(ext)
 
     def cython_sources(self, sources, extension):
         """

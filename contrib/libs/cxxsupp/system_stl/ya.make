@@ -1,35 +1,30 @@
 LIBRARY()
 
-WITHOUT_LICENSE_TEXTS()
-
-LICENSE(YandexOpen)
-
 
 
 NO_PLATFORM()
 
 ADDINCL(GLOBAL contrib/libs/cxxsupp/system_stl/include)
 
-IF (OS_IOS OR OS_DARWIN)
-    LDFLAGS(-lc++)
-ELSEIF (OS_ANDROID)
+IF (NOT OS_IOS AND NOT OS_DARWIN)
+    IF (NOT OS_ANDROID)
+        LDFLAGS(
+            -lgcc_s
+        )
+    ENDIF()
     IF (STATIC_STL)
-        LDFLAGS(-l:libc++.a)
+        LDFLAGS(
+            -l:libstdc++.a
+        )
     ELSE()
-        LDFLAGS(-lc++)
+        LDFLAGS(
+            -lstdc++
+        )
     ENDIF()
 ELSE()
-    CFLAGS(GLOBAL -DLIBCXX_BUILDING_LIBGCC)
-    LDFLAGS(-lgcc_s)
-
-    # libatomic.a is needed in order to make atomic operations work
-    LDFLAGS(-l:libatomic.a)
-
-    IF (STATIC_STL)
-        LDFLAGS(-l:libstdc++.a)
-    ELSE()
-        LDFLAGS(-lstdc++)
-    ENDIF()
+    LDFLAGS(
+        -lc++
+    )
 ENDIF()
 
 END()

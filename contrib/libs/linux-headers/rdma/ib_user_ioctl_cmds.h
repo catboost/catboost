@@ -56,7 +56,6 @@ enum uverbs_default_objects {
 	UVERBS_OBJECT_FLOW_ACTION,
 	UVERBS_OBJECT_DM,
 	UVERBS_OBJECT_COUNTERS,
-	UVERBS_OBJECT_ASYNC_EVENT,
 };
 
 enum {
@@ -68,7 +67,6 @@ enum uverbs_methods_device {
 	UVERBS_METHOD_INVOKE_WRITE,
 	UVERBS_METHOD_INFO_HANDLES,
 	UVERBS_METHOD_QUERY_PORT,
-	UVERBS_METHOD_GET_CONTEXT,
 };
 
 enum uverbs_attrs_invoke_write_cmd_attr_ids {
@@ -80,11 +78,6 @@ enum uverbs_attrs_invoke_write_cmd_attr_ids {
 enum uverbs_attrs_query_port_cmd_attr_ids {
 	UVERBS_ATTR_QUERY_PORT_PORT_NUM,
 	UVERBS_ATTR_QUERY_PORT_RESP,
-};
-
-enum uverbs_attrs_get_context_attr_ids {
-	UVERBS_ATTR_GET_CONTEXT_NUM_COMP_VECTORS,
-	UVERBS_ATTR_GET_CONTEXT_CORE_SUPPORT,
 };
 
 enum uverbs_attrs_create_cq_cmd_attr_ids {
@@ -246,14 +239,6 @@ enum uverbs_methods_flow {
 
 enum uverbs_attrs_flow_destroy_ids {
 	UVERBS_ATTR_DESTROY_FLOW_HANDLE,
-};
-
-enum uverbs_method_async_event {
-	UVERBS_METHOD_ASYNC_EVENT_ALLOC,
-};
-
-enum uverbs_attrs_async_event_create {
-	UVERBS_ATTR_ASYNC_EVENT_ALLOC_FD_HANDLE,
 };
 
 #endif

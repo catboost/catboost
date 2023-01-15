@@ -102,7 +102,7 @@ def address_type(address):
         return 'AF_INET'
     elif type(address) is str and address.startswith('\\\\'):
         return 'AF_PIPE'
-    elif type(address) is str or util.is_abstract_socket_namespace(address):
+    elif type(address) is str:
         return 'AF_UNIX'
     else:
         raise ValueError('address type of %r unrecognized' % address)
@@ -389,33 +389,23 @@ class Connection(_ConnectionBase):
 
     def _send_bytes(self, buf):
         n = len(buf)
-        if n > 0x7fffffff:
-            pre_header = struct.pack("!i", -1)
-            header = struct.pack("!Q", n)
-            self._send(pre_header)
+        # For wire compatibility with 3.2 and lower
+        header = struct.pack("!i", n)
+        if n > 16384:
+            # The payload is large so Nagle's algorithm won't be triggered
+            # and we'd better avoid the cost of concatenation.
             self._send(header)
             self._send(buf)
         else:
-            # For wire compatibility with 3.7 and lower
-            header = struct.pack("!i", n)
-            if n > 16384:
-                # The payload is large so Nagle's algorithm won't be triggered
-                # and we'd better avoid the cost of concatenation.
-                self._send(header)
-                self._send(buf)
-            else:
-                # Issue #20540: concatenate before sending, to avoid delays due
-                # to Nagle's algorithm on a TCP socket.
-                # Also note we want to avoid sending a 0-length buffer separately,
-                # to avoid "broken pipe" errors if the other end closed the pipe.
-                self._send(header + buf)
+            # Issue #20540: concatenate before sending, to avoid delays due
+            # to Nagle's algorithm on a TCP socket.
+            # Also note we want to avoid sending a 0-length buffer separately,
+            # to avoid "broken pipe" errors if the other end closed the pipe.
+            self._send(header + buf)
 
     def _recv_bytes(self, maxsize=None):
         buf = self._recv(4)
         size, = struct.unpack("!i", buf.getvalue())
-        if size == -1:
-            buf = self._recv(8)
-            size, = struct.unpack("!Q", buf.getvalue())
         if maxsize is not None and size > maxsize:
             return None
         return self._recv(size)
@@ -597,8 +587,7 @@ class SocketListener(object):
         self._family = family
         self._last_accepted = None
 
-        if family == 'AF_UNIX' and not util.is_abstract_socket_namespace(address):
-            # Linux abstract socket namespaces do not need to be explicitly unlinked
+        if family == 'AF_UNIX':
             self._unlink = util.Finalize(
                 self, os.unlink, args=(address,), exitpriority=0
                 )

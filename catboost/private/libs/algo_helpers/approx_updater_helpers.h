@@ -5,9 +5,9 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/cpp/fast_exp/fast_exp.h>
+#include <library/fast_exp/fast_exp.h>
 #include <library/cpp/fast_log/fast_log.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -100,7 +100,7 @@ inline void UpdateApprox(
     const TUpdateFunc& updateFunc,
     const TVector<TVector<double>>& delta,
     TVector<TVector<double>>* approx,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     Y_ASSERT(delta.size() == approx->size());
     for (size_t dimensionIdx : xrange(delta.size())) {
@@ -112,7 +112,7 @@ inline void UpdateApprox(
             continue;
         }
 
-        NPar::ILocalExecutor::TExecRangeParams blockParams(0, approxDim.size());
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, approxDim.size());
         blockParams.SetBlockCount(AdjustBlockCountLimit(approxDim.size(), localExecutor->GetThreadCount() + 1));
         localExecutor->ExecRange(
             [=, &updateFunc](int idx) {
@@ -127,7 +127,7 @@ inline void UpdateApprox(
 inline void CopyApprox(
     const TVector<TVector<double>>& src,
     TVector<TVector<double>>* dst,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     if (dst->empty() && !src.empty()) {
         dst->resize(src.size());
@@ -148,13 +148,17 @@ void NormalizeLeafValues(
     TVector<TVector<double>>* treeValues
 );
 
-TVector<double> SumLeafWeights(
-    size_t leafCount,
-    TConstArrayRef<TIndexType> leafIndices,
+inline TVector<double> SumLeafWeights(size_t leafCount,
+    const TVector<TIndexType>& leafIndices,
     TConstArrayRef<ui32> learnPermutation,
-    TConstArrayRef<float> learnWeights, // can be empty
-    NPar::ILocalExecutor* localExecutor
-);
+    TConstArrayRef<float> learnWeights // can be empty
+) {
+    TVector<double> weightSum(leafCount);
+    for (size_t docIdx = 0; docIdx < learnPermutation.size(); ++docIdx) {
+        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights.empty() ? 1.0 : learnWeights[docIdx];
+    }
+    return weightSum;
+}
 
 template <typename TElementType>
 inline void AddElementwise(const TVector<TElementType>& value, TVector<TElementType>* accumulator) {
@@ -232,9 +236,3 @@ void InitApproxFromBaseline(
     }
 }
 
-void InitApproxes(
-    int size,
-    const TMaybe<TVector<double>>& startingApprox,
-    double approxDimension,
-    bool storeExpApproxes,
-    TVector<TVector<double>>* approx);

@@ -1,56 +1,67 @@
 {
     "test.test_cut": [
         {
+            "checksum": "7b947ad0f829ba8270db200d2d0c71a9",
             "uri": "file://test.test_cut/stdout"
         }
     ],
     "test.test_finite_vs_finite": [
         {
+            "checksum": "968e3db838026a432df76516774d9656",
             "uri": "file://test.test_finite_vs_finite/stdout"
         }
     ],
     "test.test_finite_vs_inf": [
         {
+            "checksum": "e6c6f4cce0d7ffe82134d9c37c1bb234",
             "uri": "file://test.test_finite_vs_inf/stdout"
         }
     ],
     "test.test_inf_vs_inf": [
         {
+            "checksum": "5773285f81d7457d80c851433c7e6719",
             "uri": "file://test.test_inf_vs_inf/stdout"
         }
     ],
     "test.test_no_diff_limit_1": [
         {
+            "checksum": "5773285f81d7457d80c851433c7e6719",
             "uri": "file://test.test_no_diff_limit_1/stdout"
         }
     ],
     "test.test_no_diff_limit_2": [
         {
+            "checksum": "89cb8de1728ad3123b956606ba5580dc",
             "uri": "file://test.test_no_diff_limit_2/stdout"
         }
     ],
     "test.test_tiny_vs_tiny": [
         {
+            "checksum": "e82e105aaa08d2724bff301f33c4509f",
             "uri": "file://test.test_tiny_vs_tiny/stdout"
         }
     ],
     "test.test_totally_different": [
         {
+            "checksum": "dc53703f749c11d48e674b2fdbd3c017",
             "uri": "file://test.test_totally_different/stdout"
         }
     ],
     "test.test_with_small_noise": [
         {
+            "checksum": "84e3a957592056f6b841c375b683f470",
             "uri": "file://test.test_with_small_noise/stdout"
         }
     ],
     "test.test_with_small_noise_outside_precision": [
         {
+            "checksum": "4154cf95a47d173edd85af2b00e8cdfe",
             "uri": "file://test.test_with_small_noise_outside_precision/stdout"
         }
     ],
     "test.test_with_vs_without_header": [
         {
+            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
             "uri": "file://test.test_with_vs_without_header/stdout"
         }
     ]

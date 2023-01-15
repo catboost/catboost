@@ -13,7 +13,7 @@ MAPPING = {"urllib":  [
                 ("urllib.request",
                     ["URLopener", "FancyURLopener", "urlretrieve",
                      "_urlopener", "urlopen", "urlcleanup",
-                     "pathname2url", "url2pathname", "getproxies"]),
+                     "pathname2url", "url2pathname"]),
                 ("urllib.parse",
                     ["quote", "quote_plus", "unquote", "unquote_plus",
                      "urlencode", "splitattr", "splithost", "splitnport",

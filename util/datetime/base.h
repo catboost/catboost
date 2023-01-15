@@ -12,22 +12,15 @@
 #include <util/generic/typetraits.h>
 #include <util/generic/yexception.h>
 
-#include <chrono>
-
-#if defined(__cpp_lib_three_way_comparison)
-    #include <compare>
-#endif
-
 #include <ctime>
 #include <cstdio>
-#include <ratio>
 
 #include <time.h>
 
 #ifdef _MSC_VER
-    #pragma warning(push)
-    #pragma warning(disable : 4244) // conversion from 'time_t' to 'long', possible loss of data
-#endif                              // _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4244) // conversion from 'time_t' to 'long', possible loss of data
+#endif                          // _MSC_VER
 
 // Microseconds since epoch
 class TInstant;
@@ -211,49 +204,6 @@ public:
     constexpr TDuration(const struct timeval& tv) noexcept
         : TBase(tv)
     {
-    }
-
-    /**
-     * TDuration is compatible with std::chrono::duration:
-     *   it can be constructed and compared with std::chrono::duration.
-     * But there is two significant and dangerous differencies between them:
-     *   1) TDuration is never negative and use saturation between 0 and maximum value.
-     *      std::chrono::duration can be negative and can overflow.
-     *   2) TDuration uses integer number of microseconds.
-     *      std::chrono::duration is flexible, can be integer of floating point,
-     *      can have different precisions.
-     * So when casted from std::chrono::duration to TDuration value is clamped and rounded.
-     * In arithmethic operations std::chrono::duration argument is only rounded,
-     *   result is TDuration and it clamped and rounded.
-     * In comparisons std::chrono::duration argument is rounded.
-     */
-    template <typename T, typename TRatio>
-    constexpr TDuration(std::chrono::duration<T, TRatio> duration) noexcept {
-        static_assert(
-            std::ratio_greater_equal<TRatio, std::micro>::value &&
-                (!std::is_floating_point<T>::value || std::ratio_greater<TRatio, std::micro>::value),
-            "Extremely likely it is loss of precision, because TDuration stores microseconds. "
-            "Cast you duration explicitly to microseconds if you really need it.");
-
-        if (duration.count() < 0) {
-            *this = TDuration::Zero(); // clamp from the bottom
-        } else {
-            if
-#if !defined(__NVCC__)
-                constexpr
-#endif
-                /* if [constexpr] */ (std::ratio_greater<TRatio, std::micro>::value || std::is_floating_point<T>::value) {
-                // clamp from the top
-                using TCommonDuration = std::chrono::duration<typename std::common_type<T, TValue>::type, TRatio>;
-                constexpr auto maxDuration = std::chrono::duration<TValue, std::micro>(::Max<TValue>());
-                if (std::chrono::duration_cast<TCommonDuration>(duration) >= std::chrono::duration_cast<TCommonDuration>(maxDuration)) {
-                    *this = TDuration::Max();
-                    return;
-                }
-            }
-            const TValue us = std::chrono::duration_cast<std::chrono::duration<TValue, std::micro>>(duration).count();
-            *this = TDuration::MicroSeconds(us);
-        }
     }
 
     static constexpr TDuration FromValue(TValue value) noexcept {
@@ -510,7 +460,7 @@ public:
     /// See #TryParseIso8601.
     static TInstant ParseIso8601(TStringBuf);
     /// See #TryParseRfc822.
-    static TInstant ParseRfc822(TStringBuf);
+    static TInstant ParseRfc822( TStringBuf);
     /// See #TryParseHttp.
     static TInstant ParseHttp(TStringBuf);
     /// See #TryParseX509.
@@ -667,130 +617,15 @@ constexpr TDuration operator+(const TDuration& l, const TDuration& r) noexcept {
     return TDuration::FromValue(::NDateTimeHelpers::SumWithSaturation(l.GetValue(), r.GetValue()));
 }
 
-template <typename T, typename TRatio>
-constexpr bool operator==(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r.count() >= 0 && l == TDuration(r);
-}
-
-#if defined(__cpp_lib_three_way_comparison)
-
-template <typename T, typename TRatio>
-constexpr std::strong_ordering operator<=>(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    if (r.count() < 0) {
-        return std::strong_ordering::greater;
-    }
-    return l.GetValue() <=> TDuration(r).GetValue();
-}
-
-#else
-
-template <typename T, typename TRatio>
-constexpr bool operator<(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r.count() >= 0 && l < TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator<=(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r.count() >= 0 && l <= TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator!=(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return !(l == r);
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator>(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r.count() < 0 || l > TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator>=(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r.count() < 0 || l >= TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator<(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r > l;
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator<=(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r >= l;
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator==(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r == l;
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator!=(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r != l;
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator>(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r < l;
-}
-
-template <typename T, typename TRatio>
-constexpr bool operator>=(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r >= l;
-}
-
-#endif
-
-template <typename T, typename TRatio>
-constexpr TDuration operator+(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r < r.zero() ? l - TDuration(-r) : l + TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr TDuration operator+(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return r + l;
-}
-
-template <typename T, typename TRatio>
-constexpr TDuration operator-(const TDuration& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return l + (-r);
-}
-
-template <typename T, typename TRatio>
-constexpr TDuration operator-(const std::chrono::duration<T, TRatio>& l, const TDuration& r) noexcept {
-    return TDuration(l) - r;
-}
-
-template <typename T, typename TRatio>
-constexpr TInstant operator+(const TInstant& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return r < r.zero() ? l - TDuration(-r) : l + TDuration(r);
-}
-
-template <typename T, typename TRatio>
-constexpr TInstant operator-(const TInstant& l, const std::chrono::duration<T, TRatio>& r) noexcept {
-    return l + (-r);
-}
-
 template <class T>
-inline TDuration operator*(TDuration d, T t) noexcept {
+inline TDuration operator*(const TDuration& d, const T& t) noexcept {
     Y_ASSERT(t >= T());
     Y_ASSERT(t == T() || Max<TDuration::TValue>() / t >= d.GetValue());
     return TDuration::FromValue(d.GetValue() * t);
 }
 
-template <>
-inline TDuration operator*(TDuration d, double t) noexcept {
-    Y_ASSERT(t >= 0 && MaxFloor<TDuration::TValue>() >= d.GetValue() * t);
-    return TDuration::FromValue(d.GetValue() * t);
-}
-
-template <>
-inline TDuration operator*(TDuration d, float t) noexcept {
-    return d * static_cast<double>(t);
-}
-
 template <class T>
-inline TDuration operator*(T t, TDuration d) noexcept {
+inline TDuration operator*(const T& t, const TDuration& d) noexcept {
     return d * t;
 }
 
@@ -819,5 +654,5 @@ static inline TInstant Now() noexcept {
 }
 
 #ifdef _MSC_VER
-    #pragma warning(pop)
+#pragma warning(pop)
 #endif // _MSC_VER

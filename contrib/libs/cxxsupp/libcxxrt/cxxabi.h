@@ -236,10 +236,6 @@ char* __cxa_demangle(const char* mangled_name,
                      char* buf,
                      size_t* n,
                      int* status);
-
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-size_t __cxa_collect_current_exception_backtrace(void** dest, size_t size);
-#endif
 #ifdef __cplusplus
 } // extern "C"
 } // namespace

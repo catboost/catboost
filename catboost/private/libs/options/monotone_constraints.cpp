@@ -11,7 +11,7 @@ using namespace NCB;
 using namespace NJson;
 using namespace NCatboostOptions;
 
-static constexpr TStringBuf constraintRegex = "0|1|-1";
+static constexpr auto constraintRegex = AsStringBuf("0|1|-1");
 
 static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOptions) {
     TJsonValue nonTrivialConstraints(EJsonValueType::JSON_MAP);
@@ -24,11 +24,12 @@ static void LeaveOnlyNonTrivialConstraints(TJsonValue* monotoneConstraintsJsonOp
     *monotoneConstraintsJsonOptions = nonTrivialConstraints;
 }
 
-void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* treeOptions) {
-    if (!treeOptions->Has("monotone_constraints")) {
+void ConvertMonotoneConstraintsToCanonicalFormat(TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    if (!treeOptions.Has("monotone_constraints")) {
         return;
     }
-    TJsonValue& constraintsRef = (*treeOptions)["monotone_constraints"];
-    ConvertFeatureOptionsToCanonicalFormat<int>(TStringBuf("monotone_constraints"), constraintRegex, &constraintsRef);
+    TJsonValue& constraintsRef = treeOptions["monotone_constraints"];
+    ConvertFeatureOptionsToCanonicalFormat<int>(AsStringBuf("monotone_constraints"), constraintRegex, &constraintsRef);
     LeaveOnlyNonTrivialConstraints(&constraintsRef);
 }

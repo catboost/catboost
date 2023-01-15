@@ -1,7 +1,5 @@
 
 
-SUBSCRIBER(g:util-subscribers)
-
 RECURSE(
     fastclp2
     fastclp2/metrics
@@ -12,8 +10,6 @@ RECURSE(
     singleton
     smart_pointers
     sort
-    string
     vector_count_ctor
     vector_count_ctor/metrics
-    cont_speed
 )

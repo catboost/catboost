@@ -425,7 +425,19 @@ class Profile:
         return self
 
     # This method is more useful to profile a single function call.
-    def runcall(self, func, /, *args, **kw):
+    def runcall(*args, **kw):
+        if len(args) >= 2:
+            self, func, *args = args
+        elif not args:
+            raise TypeError("descriptor 'runcall' of 'Profile' object "
+                            "needs an argument")
+        elif 'func' in kw:
+            func = kw.pop('func')
+            self, *args = args
+        else:
+            raise TypeError('runcall expected at least 1 positional argument, '
+                            'got %d' % (len(args)-1))
+
         self.set_cmd(repr(func))
         sys.setprofile(self.dispatcher)
         try:
@@ -553,13 +565,11 @@ def main():
     import os
     from optparse import OptionParser
 
-    usage = "profile.py [-o output_file_path] [-s sort] [-m module | scriptfile] [arg] ..."
+    usage = "profile.py [-o output_file_path] [-s sort] scriptfile [arg] ..."
     parser = OptionParser(usage=usage)
     parser.allow_interspersed_args = False
     parser.add_option('-o', '--outfile', dest="outfile",
         help="Save stats to <outfile>", default=None)
-    parser.add_option('-m', dest="module", action="store_true",
-        help="Profile a library module.", default=False)
     parser.add_option('-s', '--sort', dest="sort",
         help="Sort order when printing to stdout, based on pstats.Stats class",
         default=-1)
@@ -571,36 +581,18 @@ def main():
     (options, args) = parser.parse_args()
     sys.argv[:] = args
 
-    # The script that we're profiling may chdir, so capture the absolute path
-    # to the output file at startup.
-    if options.outfile is not None:
-        options.outfile = os.path.abspath(options.outfile)
-
     if len(args) > 0:
-        if options.module:
-            import runpy
-            code = "run_module(modname, run_name='__main__')"
-            globs = {
-                'run_module': runpy.run_module,
-                'modname': args[0]
-            }
-        else:
-            progname = args[0]
-            sys.path.insert(0, os.path.dirname(progname))
-            with open(progname, 'rb') as fp:
-                code = compile(fp.read(), progname, 'exec')
-            globs = {
-                '__file__': progname,
-                '__name__': '__main__',
-                '__package__': None,
-                '__cached__': None,
-            }
-        try:
-            runctx(code, globs, None, options.outfile, options.sort)
-        except BrokenPipeError as exc:
-            # Prevent "Exception ignored" during interpreter shutdown.
-            sys.stdout = None
-            sys.exit(exc.errno)
+        progname = args[0]
+        sys.path.insert(0, os.path.dirname(progname))
+        with open(progname, 'rb') as fp:
+            code = compile(fp.read(), progname, 'exec')
+        globs = {
+            '__file__': progname,
+            '__name__': '__main__',
+            '__package__': None,
+            '__cached__': None,
+        }
+        runctx(code, globs, None, options.outfile, options.sort)
     else:
         parser.print_usage()
     return parser

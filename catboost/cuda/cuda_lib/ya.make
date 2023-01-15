@@ -13,7 +13,6 @@ SRCS(
     cuda_profiler.cpp
     device_id.cpp
     device_provider.cpp
-    devices_provider.cpp
     devices_list.cpp
     future/local_promise_future.cpp
     future/mpi_promise_future.cpp
@@ -50,43 +49,32 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
-    library/cpp/blockcodecs
-    library/cpp/cuda/wrappers
+    library/blockcodecs
+    library/cuda/wrappers
     library/cpp/threading/future
-    library/cpp/threading/local_executor
-    library/cpp/threading/name_guard
-    library/cpp/deprecated/atomic
+    library/threading/local_executor
+    library/threading/name_guard
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 
 IF (USE_CUDA_MALLOC)
-    CFLAGS(
-        GLOBAL -DUSE_CUDA_MALLOC
-    )
+    CFLAGS(GLOBAL -DUSE_CUDA_MALLOC)
 ENDIF()
 
 IF (USE_MPI)
-    CFLAGS(
-        GLOBAL -DUSE_MPI
-    )
+    CFLAGS(GLOBAL -DUSE_MPI)
     EXTRALIBS(-lmpi)
     IF (WITHOUT_CUDA_AWARE_MPI)
-        CFLAGS(
-            GLOBAL -DWITHOUT_CUDA_AWARE_MPI
-        )
+        CFLAGS(GLOBAL -DWITHOUT_CUDA_AWARE_MPI)
     ENDIF()
     IF (WRITE_MPI_MESSAGE_LOG)
-        CFLAGS(
-            GLOBAL -DWRITE_MPI_MESSAGE_LOG
-        )
+        CFLAGS(GLOBAL -DWRITE_MPI_MESSAGE_LOG)
     ENDIF()
 ENDIF()
 
 IF (WITH_HWLOC)
-    CFLAGS(
-        GLOBAL -DWITH_HWLOC
-    )
+    CFLAGS(GLOBAL -DWITH_HWLOC)
     EXTRALIBS(-lhwloc)
 ENDIF()
 

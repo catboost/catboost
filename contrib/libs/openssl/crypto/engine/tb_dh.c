@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "eng_local.h"
+#include "eng_int.h"
 
 static ENGINE_TABLE *dh_table = NULL;
 static const int dummy_nid = 1;

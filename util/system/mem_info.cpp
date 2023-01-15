@@ -1,6 +1,8 @@
 #include "mem_info.h"
 
 #include <util/generic/strbuf.h>
+#include <util/generic/utility.h>
+#include <util/generic/yexception.h>
 #include <util/stream/file.h>
 #include <util/string/cast.h>
 #include <util/string/builder.h>
@@ -8,22 +10,24 @@
 #include "info.h"
 
 #if defined(_unix_)
-    #if defined(_freebsd_)
-        #include <sys/sysctl.h>
-        #include <sys/types.h>
-        #include <sys/user.h>
-    #elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
-        #include <libproc.h>
-    #elif defined(__MACH__) && defined(__APPLE__)
-        #include <mach/mach.h>
-    #endif
+#include <errno.h>
+#include <unistd.h>
+#if defined(_freebsd_)
+#include <sys/sysctl.h>
+#include <sys/types.h>
+#include <sys/user.h>
+#elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
+#include <libproc.h>
+#elif defined(__MACH__) && defined(__APPLE__)
+#include <mach/mach.h>
+#endif
 #elif defined(_win_)
-    #include <Windows.h>
-    #include <util/generic/ptr.h>
+#include <Windows.h>
+#include <util/generic/ptr.h>
 
 using NTSTATUS = LONG;
-    #define STATUS_INFO_LENGTH_MISMATCH 0xC0000004
-    #define STATUS_BUFFER_TOO_SMALL 0xC0000023
+#define STATUS_INFO_LENGTH_MISMATCH 0xC0000004
+#define STATUS_BUFFER_TOO_SMALL 0xC0000023
 
 typedef struct _UNICODE_STRING {
     USHORT Length;
@@ -99,18 +103,16 @@ namespace NMemInfo {
         TMemInfo result;
 
 #if defined(_unix_)
-
-    #if defined(_linux_) || defined(_freebsd_) || defined(_cygwin_)
-        const ui32 pagesize = NSystemInfo::GetPageSize();
-    #endif
-
-    #if defined(_linux_) || defined(_cygwin_)
-        TString path;
         if (!pid) {
-            path = "/proc/self/statm";
-        } else {
-            path = TStringBuilder() << TStringBuf("/proc/") << pid << TStringBuf("/statm");
+            pid = getpid();
         }
+
+#if defined(_linux_) || defined(_freebsd_) || defined(_cygwin_)
+        const ui32 pagesize = NSystemInfo::GetPageSize();
+#endif
+
+#if defined(_linux_) || defined(_cygwin_)
+        const TString path = TStringBuilder() << AsStringBuf("/proc/") << pid << AsStringBuf("/statm");
         const TString stats = TUnbufferedFileInput(path).ReadAll();
 
         TStringBuf statsiter(stats);
@@ -118,11 +120,11 @@ namespace NMemInfo {
         result.VMS = FromString<ui64>(statsiter.NextTok(' ')) * pagesize;
         result.RSS = FromString<ui64>(statsiter.NextTok(' ')) * pagesize;
 
-        #if defined(_cygwin_)
+#if defined(_cygwin_)
         //cygwin not very accurate
         result.VMS = Max(result.VMS, result.RSS);
-        #endif
-    #elif defined(_freebsd_)
+#endif
+#elif defined(_freebsd_)
         int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
         size_t size = sizeof(struct kinfo_proc);
 
@@ -138,10 +140,7 @@ namespace NMemInfo {
 
         result.VMS = proc.ki_size;
         result.RSS = proc.ki_rssize * pagesize;
-    #elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
-        if (!pid) {
-            pid = getpid();
-        }
+#elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
         struct proc_taskinfo taskInfo;
         const int r = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
 
@@ -152,8 +151,7 @@ namespace NMemInfo {
         }
         result.VMS = taskInfo.pti_virtual_size;
         result.RSS = taskInfo.pti_resident_size;
-    #elif defined(__MACH__) && defined(__APPLE__)
-        Y_UNUSED(pid);
+#elif defined(__MACH__) && defined(__APPLE__)
         struct mach_task_basic_info taskInfo;
         mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
 
@@ -165,10 +163,9 @@ namespace NMemInfo {
         }
         result.VMS = taskInfo.virtual_size;
         result.RSS = taskInfo.resident_size;
-    #elif defined(_arm_)
-        Y_UNUSED(pid);
+#elif defined(_arm_)
         ythrow yexception() << "arm is not supported";
-    #endif
+#endif
 #elif defined(_win_)
         if (!pid) {
             pid = GetCurrentProcessId();

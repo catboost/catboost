@@ -12,7 +12,7 @@ class TLearnContext;
 
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 void CalcApproxDeltaMulti(

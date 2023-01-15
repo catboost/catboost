@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DZLIB -DDSO_NONE -DAESNI_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DVPAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DZLIB -DDSO_NONE -DAESNI_ASM -DECP_NISTZ256_ASM -DPOLY1305_ASM -DKECCAK1600_ASM -DVPAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF  /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DDSO_NONE -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DPOLY1305_ASM -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DKECCAK1600_ASM -DVPAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DDSO_NONE -DECP_NISTZ256_ASM -DOPENSSL_BN_ASM_MONT -DOPENSSL_CPUID_OBJ -DPOLY1305_ASM -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DKECCAK1600_ASM -DVPAES_ASM -DGHASH_ASM -DL_ENDIAN -DMD5_ASM -DOPENSSL_BN_ASM_GF2m -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_IA32_SSE2 -DPADLOCK_ASM -DRC4_ASM -DX25519_ASM -DENGINESDIR="\"C:\\\\Program\ Files\\\\OpenSSL\\\\lib\\\\engines-1_1\"" -DOPENSSLDIR="\"C:\\\\Program\ Files\\\\Common\ Files\\\\SSL\"" -DOPENSSL_SYS_WIN32 -DUNICODE -DWIN32_LEAN_AND_MEAN -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -D_WINSOCK_DEPRECATED_NO_WARNINGS /GF -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/openssl/crypto;$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448;$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32;$(SolutionDir)../contrib/libs/openssl/crypto/modes;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/zlib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/openssl;$(SolutionDir)../contrib/libs/openssl/crypto;$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448;$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32;$(SolutionDir)../contrib/libs/openssl/crypto/include;$(SolutionDir)../contrib/libs/openssl/crypto/modes;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/libs/zlib;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    </AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -627,6 +627,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\conf\conf_ssl.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cpt_err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cryptlib.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_b64.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -655,6 +661,12 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_x509v3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ctype.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cversion.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\des\cbc_cksm.c">
@@ -811,6 +823,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dso\dso_win32.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ebcdic.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve25519.c">
@@ -1185,6 +1200,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\pmeth_lib.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ex_data.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\getenv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\hmac\hm_ameth.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1207,6 +1228,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\i_skey.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\init.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\kdf\hkdf.c">
@@ -1245,6 +1269,15 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mdc2\mdc2dgst.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_dbg.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_sec.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\cbc128.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1273,6 +1306,24 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\xts128.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_dir.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fips.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fopen.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_init.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_str.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_time.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\o_names.c">
@@ -1629,6 +1680,15 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\store\store_strings.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_none.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_pthread.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_win.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ts\ts_asn1.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -1678,6 +1738,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ui\ui_util.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\uid.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\whrlpool\wp_dgst.c">
@@ -1902,76 +1965,11 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\v3err.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cpt_err.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cryptlib.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ctype.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cversion.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ebcdic.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ex_data.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\getenv.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\init.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_dbg.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\mem_sec.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_dir.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fips.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_fopen.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_init.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_str.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\o_time.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_none.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_pthread.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\threads_win.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\uid.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-mb-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-mb-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1982,9 +1980,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -1992,17 +1988,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-mb-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-mb-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-mb-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-mb-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-mb-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha1-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha1-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2013,9 +2007,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha1-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2023,17 +2015,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha1-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-sha1-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha1-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha1-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-sha1-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha256-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha256-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2044,9 +2034,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-sha256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2054,17 +2042,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha256-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-sha256-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-sha256-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-sha256-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-sha256-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2075,9 +2061,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/aesni-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2085,17 +2069,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/aesni-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\aesni-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\aesni-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\vpaes-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\vpaes-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2106,9 +2088,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/aes/vpaes-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2116,17 +2096,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\vpaes-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\vpaes-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/aes/vpaes-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\aes\vpaes-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\aes\vpaes-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-avx2.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-avx2.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2137,9 +2115,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-avx2.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2147,17 +2123,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-avx2.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\rsaz-avx2.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-avx2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-avx2.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\rsaz-avx2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2168,9 +2142,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/rsaz-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2178,17 +2150,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\rsaz-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/rsaz-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\rsaz-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\rsaz-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-gf2m.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-gf2m.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2199,9 +2169,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-gf2m.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2209,17 +2177,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-gf2m.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-gf2m.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-gf2m.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-gf2m.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-gf2m.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2230,9 +2196,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2240,17 +2204,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-mont.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-mont.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont5.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont5.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2261,9 +2223,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/bn/x86_64-mont5.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2271,17 +2231,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont5.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-mont5.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/bn/x86_64-mont5.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\bn\x86_64-mont5.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\bn\x86_64-mont5.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\camellia\cmll-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\camellia\cmll-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2292,9 +2250,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/camellia/cmll-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2302,17 +2258,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\camellia\cmll-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\camellia\cmll-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/camellia/cmll-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\camellia\cmll-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\camellia\cmll-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\chacha\chacha-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\chacha\chacha-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2323,9 +2277,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/chacha/chacha-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2333,17 +2285,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\chacha\chacha-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\chacha\chacha-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/chacha/chacha-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\chacha\chacha-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\chacha\chacha-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\ecp_nistz256-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\ecp_nistz256-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2354,9 +2304,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/ecp_nistz256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2364,17 +2312,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\ecp_nistz256-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\ec\ecp_nistz256-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/ecp_nistz256-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\ecp_nistz256-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\ec\ecp_nistz256-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\x25519-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\x25519-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2385,9 +2331,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/ec/x25519-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2395,17 +2339,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\x25519-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\ec\x25519-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/ec/x25519-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\ec\x25519-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\ec\x25519-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\md5\md5-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\md5\md5-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2416,9 +2358,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/md5/md5-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2426,17 +2366,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\md5\md5-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\md5\md5-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/md5/md5-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\md5\md5-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\md5\md5-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\aesni-gcm-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\aesni-gcm-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2447,9 +2385,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/aesni-gcm-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2457,17 +2393,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\aesni-gcm-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\modes\aesni-gcm-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/aesni-gcm-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\aesni-gcm-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\modes\aesni-gcm-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\ghash-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\ghash-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2478,9 +2412,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/modes/ghash-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2488,17 +2420,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\ghash-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\modes\ghash-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/modes/ghash-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\modes\ghash-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\modes\ghash-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\poly1305\poly1305-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\poly1305\poly1305-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2509,9 +2439,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/poly1305/poly1305-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2519,17 +2447,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\poly1305\poly1305-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\poly1305\poly1305-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/poly1305/poly1305-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\poly1305\poly1305-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\poly1305\poly1305-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-md5-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-md5-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2540,9 +2466,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-md5-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2550,17 +2474,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-md5-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\rc4\rc4-md5-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-md5-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-md5-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\rc4\rc4-md5-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2571,9 +2493,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/rc4/rc4-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2581,17 +2501,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\rc4\rc4-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/rc4/rc4-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\rc4\rc4-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\rc4\rc4-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\keccak1600-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\keccak1600-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2602,9 +2520,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/keccak1600-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2612,17 +2528,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\keccak1600-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\keccak1600-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/keccak1600-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\keccak1600-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\keccak1600-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-mb-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-mb-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2633,9 +2547,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2643,17 +2555,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-mb-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha1-mb-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-mb-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-mb-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha1-mb-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2664,9 +2574,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha1-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2674,17 +2582,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha1-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha1-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha1-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha1-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-mb-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-mb-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2695,9 +2601,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-mb-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2705,17 +2609,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-mb-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha256-mb-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-mb-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-mb-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha256-mb-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2726,9 +2628,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha256-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2736,17 +2636,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha256-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha256-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha256-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha256-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha512-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha512-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2757,9 +2655,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/sha/sha512-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2767,17 +2663,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha512-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha512-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/sha/sha512-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\sha\sha512-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\sha\sha512-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\uplink-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\whrlpool\wp-x86_64.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2788,9 +2682,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/uplink-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2798,17 +2690,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/uplink-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\uplink-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\uplink-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\whrlpool\wp-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\whrlpool\wp-x86_64.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\whrlpool\wp-x86_64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\x86_64cpuid.asm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2819,9 +2709,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
 if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/whrlpool/wp-x86_64.masm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2829,138 +2717,148 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/whrlpool/wp-x86_64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\whrlpool\wp-x86_64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\whrlpool\wp-x86_64.masm.obj;</Outputs>
+      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\x86_64cpuid.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\x86_64cpuid.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\x86_64cpuid.masm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)"
-if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/crypto/x86_64cpuid.masm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/crypto/__/asm/windows/crypto/x86_64cpuid.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\contrib\libs\openssl\asm\windows\crypto\x86_64cpuid.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\crypto\__\asm\windows\crypto\x86_64cpuid.masm.obj;</Outputs>
-    </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\aes\aes_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\aes\aes_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\arm_arch.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\asn1_item_list.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\asn1_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\asn1_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\charmap.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\standard_methods.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\asn1\tbl_standard.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\async\arch\async_null.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\async\arch\async_posix.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\async\arch\async_win.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\async\async_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bf\bf_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\async\async_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bf\bf_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bf\bf_pi.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bio\bio_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bio\bio_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\blake2\blake2_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\blake2\blake2_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\bn_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\blake2\blake2_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\bn_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\bn_prime.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\bn\rsaz_exp.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-arm.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-i686.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-android-x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-ios-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-linux_aarch64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\buildinf.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\camellia\cmll_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cast\cast_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\camellia\cmll_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cast\cast_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cast\cast_s.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cms\cms_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\comp\comp_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\cms\cms_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\comp\comp_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\conf\conf_def.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\conf\conf_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\des\des_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\conf\conf_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ct\ct_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\des\des_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\des\spr.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dh\dh_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dsa\dsa_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dso\dso_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dh\dh_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dsa\dsa_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\dso\dso_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\arch_32\arch_intrinsics.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\arch_32\f_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\curve448_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\curve448_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\curve448utils.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\ed448.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\field.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\point_448.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\curve448\word.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\ec_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\engine\eng_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\evp_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\hmac\hmac_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\idea_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\lhash\lhash_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\md4\md4_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\md5\md5_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\modes_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ec\ec_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\engine\eng_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\evp_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\hmac\hmac_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\idea_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\aria.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\asn1_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\async.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-i686.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-osx-linux_aarch64-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_dh.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_srp.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\chacha.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\cryptlib_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\ctype.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\dso_conf-osx-linux_aarch64-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\dso_conf-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\dso_conf.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\ec_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\err_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\evp_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\lhash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\md32_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\objects.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\poly1305.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\rand_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\sha.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\siphash.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\sm2.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\sm2err.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\sm3.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\sm4.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\store.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\store_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\x509_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\lhash\lhash_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\md4\md4_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\md5\md5_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\modes\modes_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\obj_dat.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\obj_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\obj_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\objects\obj_xref.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ocsp\ocsp_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\pkcs12\p12_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ocsp\ocsp_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\pkcs12\p12_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\poly1305\poly1305_local.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ppc_arch.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rand\rand_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rc2\rc2_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ripemd\rmd_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rand\rand_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rc2\rc2_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ripemd\rmd_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ripemd\rmdconst.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rsa\rsa_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\rsa\rsa_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\s390x_arch.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\seed\seed_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\sha\sha_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\seed\seed_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\sha\sha_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\siphash\siphash_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\sm3\sm3_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\sm3\sm3_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\sparc_arch.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\store\store_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ts\ts_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ui\ui_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\store\store_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ts\ts_lcl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ui\ui_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\vms_rms.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\whrlpool\wp_local.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509\x509_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\whrlpool\wp_locl.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509\x509_lcl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\ext_dat.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\pcy_local.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\pcy_int.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\standard_exts.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\x509v3\v3_admis.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

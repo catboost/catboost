@@ -22,7 +22,7 @@ def just_do_it(argv):
     java, error_prone_tool, javac_cmd = argv[0], argv[1], argv[2:]
     if java.endswith('javac') or java.endswith('javac.exe'):
         for f in javac_cmd:
-            if f.startswith('-Xep'):
+            if f.startswith('-Xep:'):
                 ERROR_PRONE_FLAGS.append(f)
         for f in ERROR_PRONE_FLAGS:
             if f in javac_cmd:

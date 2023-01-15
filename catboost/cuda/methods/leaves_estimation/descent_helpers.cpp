@@ -5,7 +5,7 @@
 #include <catboost/libs/helpers/matrix.h>
 #include <catboost/private/libs/lapack/linear_system.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 
@@ -38,7 +38,7 @@ namespace NCatboostCuda {
 
         class TDirectionEstimator {
         public:
-            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::ILocalExecutor* localExecutor)
+            TDirectionEstimator(TPointWithFuncInfo&& point, NPar::TLocalExecutor* localExecutor)
                 : CurrentPoint(std::move(point))
                 , LocalExecutor(localExecutor)
             {
@@ -120,13 +120,13 @@ namespace NCatboostCuda {
             TPointWithFuncInfo CurrentPoint;
             TVector<float> MoveDirection;
 
-            NPar::ILocalExecutor* LocalExecutor;
+            NPar::TLocalExecutor* LocalExecutor;
         };
     }
 
     TVector<float> TNewtonLikeWalker::Estimate(
         TVector<float> startPoint,
-        NPar::ILocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor) {
         startPoint.resize(Oracle.PointDim());
         const int hessianBlockSize = Oracle.HessianBlockSize();
 
@@ -137,10 +137,8 @@ namespace NCatboostCuda {
                 Oracle.MoveTo(point.Point);
                 Oracle.WriteValueAndFirstDerivatives(&point.Value,
                                                      &point.Gradient);
-                Oracle.AddLangevinNoiseToDerivatives(&point.Gradient, localExecutor);
 
                 Oracle.WriteSecondDerivatives(&point.Hessian);
-                Oracle.AddLangevinNoiseToDerivatives(&point.Hessian, localExecutor);
 
                 return point;
             }(),
@@ -180,14 +178,12 @@ namespace NCatboostCuda {
                 Oracle.MoveTo(nextPoint);
                 Oracle.WriteValueAndFirstDerivatives(&nextPointWithFuncInfo.Value,
                                                      &nextPointWithFuncInfo.Gradient);
-                Oracle.AddLangevinNoiseToDerivatives(&nextPointWithFuncInfo.Gradient, localExecutor);
 
                 if (stepEstimation->IsSatisfied(step,
                                                 nextPointWithFuncInfo.Value,
                                                 nextPointWithFuncInfo.Gradient))
                 {
                     Oracle.WriteSecondDerivatives(&nextPointWithFuncInfo.Hessian);
-                    Oracle.AddLangevinNoiseToDerivatives(&nextPointWithFuncInfo.Gradient, localExecutor);
                     double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
                     CATBOOST_DEBUG_LOG

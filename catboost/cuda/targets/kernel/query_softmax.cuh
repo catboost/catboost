@@ -23,7 +23,6 @@ namespace NKernel
                                const float* maximals,
                                const ui32* writeMap,
                                float* approxExp,
-                               float beta,
                                TCudaStream stream);
 
     void ComputeGroupSums(const float* data,
@@ -34,7 +33,7 @@ namespace NKernel
     void ApproximateQuerySoftMax(const float* target, const float* weights,
                                  const float* approxExp,
                                  const ui32* qids,
-                                 float lambdaReg, float beta, ui32 size,
+                                 float lambdaReg, ui32 size,
                                  const float* approxExpSum,
                                  const float* sumWeightedTargets,
                                  const ui32* writeMap,

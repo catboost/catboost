@@ -2,7 +2,7 @@
 
 #include "holder.h"
 
-#include <openssl/evp.h>
+#include <contrib/libs/openssl/include/openssl/evp.h>
 
 namespace NOpenSSL {
     class TEvpCipherCtx : public THolder<EVP_CIPHER_CTX, EVP_CIPHER_CTX_new, EVP_CIPHER_CTX_free> {

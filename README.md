@@ -11,28 +11,28 @@
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/catboost.svg)](https://anaconda.org/conda-forge/catboost)
 [![GitHub issues](https://img.shields.io/github/issues/catboost/catboost.svg)](https://github.com/catboost/catboost/issues)
 [![Telegram](https://img.shields.io/badge/chat-on%20Telegram-2ba2d9.svg)](https://t.me/catboost_en)
-[![Twitter](https://img.shields.io/badge/@CatBoostML--_.svg?style=social&logo=twitter)](https://twitter.com/CatBoostML)
 
 CatBoost is a machine learning method based on [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) over decision trees.
 
 Main advantages of CatBoost:
---------------
   - Superior quality when [compared](https://github.com/catboost/benchmarks/blob/master/README.md) with other GBDT libraries on many datasets.
   - Best in class [prediction](https://catboost.ai/docs/concepts/c-plus-plus-api.html) speed.
   - Support for both [numerical and categorical](https://catboost.ai/docs/concepts/algorithm-main-stages.html) features.
   - Fast GPU and multi-GPU support for training out of the box.
   - Visualization tools [included](https://catboost.ai/docs/features/visualization.html).
-  - Fast and reproducible distributed training with [Apache Spark](https://catboost.ai/en/docs/concepts/spark-overview) and [CLI](https://catboost.ai/en/docs/concepts/cli-distributed-learning).
+
+Gradient Boosting Survey
+--------------
+We want to make the best Gradient Boosting library in the world. Please, help us to do so! Complete our [survey](https://forms.yandex.ru/surveys/10011699/?lang=en) to help us understand what is important for GBDT users.
 
 Get Started and Documentation
 --------------
-All CatBoost documentation is available [here](https://catboost.ai/docs/).
+All CatBoost documentation is available [here](https://catboost.ai/docs/concepts/about.html).
 
 Install CatBoost by following the guide for the
- * [Python package](https://catboost.ai/en/docs/concepts/python-installation)
- * [R-package](https://catboost.ai/en/docs/concepts/r-installation)
- * [Сommand line](https://catboost.ai/en/docs/concepts/cli-installation)
- * [Package for Apache Spark](https://catboost.ai/en/docs/concepts/spark-installation)
+ * [Python package](https://catboost.ai/docs/concepts/python-installation.html)
+ * [R-package](https://catboost.ai/docs/concepts/r-installation.html)
+ * [command line](https://catboost.ai/docs/concepts/cli-installation.html)
 
 Next you may want to investigate:
 * [Tutorials](https://github.com/catboost/tutorials/#readme)
@@ -41,9 +41,6 @@ Next you may want to investigate:
 * [Parameters tuning](https://catboost.ai/docs/concepts/parameter-tuning.html)
 * [Feature importance calculation](https://catboost.ai/docs/features/feature-importances-calculation.html)
 * [Regular](https://catboost.ai/docs/features/prediction.html#prediction) and [staged](https://catboost.ai/docs/features/staged-prediction.html#staged-prediction) predictions
-* CatBoost for Apache Spark videos: [Introduction](https://youtu.be/47-mAVms-b8) and [Architecture](https://youtu.be/nrGt5VKZpzc)
-
-If you cannot open documentation in your browser try adding yastatic.net and yastat.net to the list of allowed domains in your privacy badger. 
 
 Catboost models in production
 --------------
@@ -57,7 +54,7 @@ Questions and bug reports
 
 Help to Make CatBoost Better
 ----------------------------
-* Check out [open problems](https://github.com/catboost/catboost/blob/master/open_problems/open_problems.md) and [help wanted issues](https://github.com/catboost/catboost/labels/help%20wanted) to see what can be improved, or open an issue if you want something.
+* Check out [help wanted](https://github.com/catboost/catboost/labels/help%20wanted) issues to see what can be improved, or open an issue if you want something.
 * Add your stories and experience to [Awesome CatBoost](AWESOME.md).
 * To contribute to CatBoost you need to first read CLA text and add to your pull request, that you agree to the terms of the CLA. More information can be found
 in [CONTRIBUTING.md](https://github.com/catboost/catboost/blob/master/CONTRIBUTING.md)
@@ -76,4 +73,4 @@ at NIPS 2017.
 
 License
 -------
-© YANDEX LLC, 2017-2022. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.
+© YANDEX LLC, 2017-2019. Licensed under the Apache License, Version 2.0. See LICENSE file for more details.

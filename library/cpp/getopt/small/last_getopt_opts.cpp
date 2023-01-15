@@ -22,7 +22,7 @@ namespace NLastGetoptPrivate {
 }
 
 namespace NLastGetopt {
-    static const TStringBuf SPad = "  ";
+    static const TStringBuf SPad = AsStringBuf("  ");
 
     void PrintVersionAndExit(const TOptsParser*) {
         Cout << (NLastGetoptPrivate::VersionString() ? NLastGetoptPrivate::VersionString() : "program version: not linked with library/cpp/getopt") << Endl;

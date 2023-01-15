@@ -41,7 +41,6 @@ public:
 
     virtual void Set(const TChange& change) = 0;
     virtual void Wait(TEvents& events, TInstant deadLine) = 0;
-    virtual EContPoller PollEngine() const = 0;
 
     static THolder<IPollerFace> Default();
     static THolder<IPollerFace> Construct(TStringBuf name);

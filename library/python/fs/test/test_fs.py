@@ -4,10 +4,8 @@ import errno
 import os
 import pytest
 import shutil
-import six
 
 import library.python.fs
-import library.python.strings
 import library.python.tmp
 import library.python.windows
 
@@ -18,16 +16,13 @@ def in_env(case):
     def wrapped_case(*args, **kwargs):
         with library.python.tmp.temp_dir() as temp_dir:
             case(lambda path: os.path.join(temp_dir, path))
-
     return wrapped_case
 
 
 def mkfile(path, data=''):
-    with open(path, 'wb') as f:
+    with file(path, 'wb') as f:
         if data:
-            f.write(data) if isinstance(data, six.binary_type) else f.write(
-                data.encode(library.python.strings.fs_encoding())
-            )
+            f.write(data)
 
 
 def mktree_example(path, name):
@@ -40,8 +35,8 @@ def mktree_example(path, name):
 
 
 def file_data(path):
-    with open(path, 'rb') as f:
-        return f.read().decode('utf-8')
+    with file(path, 'rb') as f:
+        return f.read()
 
 
 def serialize_tree(path):
@@ -92,8 +87,7 @@ def test_errorfix_win():
         erroneous_func()
     assert errinfo.value.errno == errno.EACCES
     assert errinfo.value.filename == 'unknown/file'
-    # See transcode_error, which encodes strerror, in library/python/windows/__init__.py
-    assert isinstance(errinfo.value.strerror, (six.binary_type, six.text_type))
+    assert isinstance(errinfo.value.strerror, basestring)
     assert errinfo.value.strerror
 
 
@@ -101,8 +95,7 @@ def test_custom_fs_error():
     with pytest.raises(OSError) as errinfo:
         raise library.python.fs.CustomFsError(errno.EACCES, filename='some/file')
     assert errinfo.value.errno == errno.EACCES
-    # See transcode_error, which encodes strerror, in library/python/windows/__init__.py
-    assert isinstance(errinfo.value.strerror, (six.binary_type, six.text_type))
+    assert isinstance(errinfo.value.strerror, basestring)
     assert errinfo.value.filename == 'some/file'
 
 
@@ -806,35 +799,29 @@ def test_copy_tree_file_exists(path):
 @in_env
 def test_read_file(path):
     mkfile(path('src'), 'SRC')
-    assert library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding()) == 'SRC'
+    assert library.python.fs.read_file(path('src')) == 'SRC'
     assert library.python.fs.read_file(path('src'), binary=False) == 'SRC'
 
 
 @in_env
 def test_read_file_empty(path):
     mkfile(path('src'))
-    assert library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding()) == ''
+    assert library.python.fs.read_file(path('src')) == ''
     assert library.python.fs.read_file(path('src'), binary=False) == ''
 
 
 @in_env
 def test_read_file_multiline(path):
     mkfile(path('src'), 'SRC line 1\nSRC line 2\n')
-    assert (
-        library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding())
-        == 'SRC line 1\nSRC line 2\n'
-    )
+    assert library.python.fs.read_file(path('src')) == 'SRC line 1\nSRC line 2\n'
     assert library.python.fs.read_file(path('src'), binary=False) == 'SRC line 1\nSRC line 2\n'
 
 
 @in_env
 def test_read_file_multiline_crlf(path):
     mkfile(path('src'), 'SRC line 1\r\nSRC line 2\r\n')
-    assert (
-        library.python.fs.read_file(path('src')).decode(library.python.strings.fs_encoding())
-        == 'SRC line 1\r\nSRC line 2\r\n'
-    )
-    if library.python.windows.on_win() or six.PY3:  # universal newlines are by default in text mode in python3
+    assert library.python.fs.read_file(path('src')) == 'SRC line 1\r\nSRC line 2\r\n'
+    if library.python.windows.on_win():
         assert library.python.fs.read_file(path('src'), binary=False) == 'SRC line 1\nSRC line 2\n'
     else:
         assert library.python.fs.read_file(path('src'), binary=False) == 'SRC line 1\r\nSRC line 2\r\n'
@@ -879,7 +866,7 @@ def test_read_file_unicode_multiline_crlf(path):
     mkfile(path('src_cp1251'), s.encode('cp1251'))
     assert library.python.fs.read_file_unicode(path('src')) == s
     assert library.python.fs.read_file_unicode(path('src_cp1251'), enc='cp1251') == s
-    if library.python.windows.on_win() or six.PY3:  # universal newlines are by default in text mode in python3
+    if library.python.windows.on_win():
         assert library.python.fs.read_file_unicode(path('src'), binary=False) == u'АБВ\nИ еще\n'
         assert library.python.fs.read_file_unicode(path('src_cp1251'), binary=False, enc='cp1251') == u'АБВ\nИ еще\n'
     else:
@@ -984,14 +971,14 @@ def test_hardlink_or_copy():
 def test_remove_tree_unicode():
     path = u"test_remove_tree_unicode/русский".encode("utf-8")
     os.makedirs(path)
-    library.python.fs.remove_tree(six.text_type("test_remove_tree_unicode"))
+    library.python.fs.remove_tree(unicode("test_remove_tree_unicode"))
     assert not os.path.exists("test_remove_tree_unicode")
 
 
 def test_remove_tree_safe_unicode():
     path = u"test_remove_tree_safe_unicode/русский".encode("utf-8")
     os.makedirs(path)
-    library.python.fs.remove_tree_safe(six.text_type("test_remove_tree_safe_unicode"))
+    library.python.fs.remove_tree_safe(unicode("test_remove_tree_safe_unicode"))
     assert not os.path.exists("test_remove_tree_safe_unicode")
 
 
@@ -1005,33 +992,7 @@ def test_copy_tree_custom_copy_function():
         shutil.copy2(src, dst)
         copied.append(dst)
 
-    library.python.fs.copy_tree(
-        "test_copy_tree_src", yatest.common.work_path("test_copy_tree_dst"), copy_function=copy_function
-    )
+    library.python.fs.copy_tree("test_copy_tree_src", yatest.common.work_path("test_copy_tree_dst"), copy_function=copy_function)
     assert len(copied) == 2
     assert yatest.common.work_path("test_copy_tree_dst/deepper/deepper.txt") in copied
     assert yatest.common.work_path("test_copy_tree_dst/deepper/inner/inner.txt") in copied
-
-
-def test_copy2():
-    library.python.fs.symlink("non-existent", "link")
-    library.python.fs.copy2("link", "link2", follow_symlinks=False)
-
-    assert os.path.islink("link2")
-    assert os.readlink("link2") == "non-existent"
-
-
-def test_commonpath():
-    pj = os.path.join
-    pja = lambda *x: os.path.abspath(pj(*x))
-
-    assert library.python.fs.commonpath(['a', 'b']) == ''
-    assert library.python.fs.commonpath([pj('t', '1')]) == pj('t', '1')
-    assert library.python.fs.commonpath([pj('t', '1'), pj('t', '2')]) == pj('t')
-    assert library.python.fs.commonpath([pj('t', '1', '2'), pj('t', '1', '2')]) == pj('t', '1', '2')
-    assert library.python.fs.commonpath([pj('t', '1', '1'), pj('t', '1', '2')]) == pj('t', '1')
-    assert library.python.fs.commonpath([pj('t', '1', '1'), pj('t', '1', '2'), pj('t', '1', '3')]) == pj('t', '1')
-
-    assert library.python.fs.commonpath([pja('t', '1', '1'), pja('t', '1', '2')]) == pja('t', '1')
-
-    assert library.python.fs.commonpath({pj('t', '1'), pj('t', '2')}) == pj('t')

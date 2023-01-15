@@ -18,12 +18,15 @@
 
 #include <string>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "util/strutil.h"
 #include "util/utf.h"
 #include "re2/stringpiece.h"
 #include "re2/regexp.h"
+
+// Cause a link error if this file is used outside of testing.
+DECLARE_string(test_tmpdir);
 
 namespace re2 {
 
@@ -54,9 +57,9 @@ static const char* kOpcodeNames[] = {
 
 // Create string representation of regexp with explicit structure.
 // Nothing pretty, just for testing.
-static void DumpRegexpAppending(Regexp* re, std::string* s) {
+static void DumpRegexpAppending(Regexp* re, string* s) {
   if (re->op() < 0 || re->op() >= arraysize(kOpcodeNames)) {
-    *s += StringPrintf("op%d", re->op());
+    StringAppendF(s, "op%d", re->op());
   } else {
     switch (re->op()) {
       default:
@@ -133,7 +136,7 @@ static void DumpRegexpAppending(Regexp* re, std::string* s) {
       DumpRegexpAppending(re->sub()[0], s);
       break;
     case kRegexpCharClass: {
-      std::string sep;
+      string sep;
       for (CharClass::iterator it = re->cc()->begin();
            it != re->cc()->end(); ++it) {
         RuneRange rr = *it;
@@ -150,12 +153,15 @@ static void DumpRegexpAppending(Regexp* re, std::string* s) {
   s->append("}");
 }
 
-std::string Regexp::Dump() {
-  // Make sure that we are being called from a unit test.
-  // Should cause a link error if used outside of testing.
-  CHECK(!::testing::TempDir().empty());
+string Regexp::Dump() {
+  string s;
 
-  std::string s;
+  // Make sure being called from a unit test.
+  if (FLAGS_test_tmpdir.empty()) {
+    LOG(ERROR) << "Cannot use except for testing.";
+    return s;
+  }
+
   DumpRegexpAppending(this, &s);
   return s;
 }

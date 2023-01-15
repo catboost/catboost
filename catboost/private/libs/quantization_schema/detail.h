@@ -7,8 +7,6 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/yexception.h>
-#include <util/system/types.h>
-
 
 namespace NCB {
     namespace NQuantizationSchemaDetail {

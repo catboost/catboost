@@ -34,21 +34,6 @@
 #include <stdlib.h>
 #include "stdexcept.h"
 
-namespace {
-	/**
-	 * Throw an exception if we're compiling with exceptions, otherwise abort.
-	 */
-	template<typename T>
-	void throw_exception()
-	{
-#if !defined(_CXXRT_NO_EXCEPTIONS)
-		throw T();
-#else
-		abort();
-#endif
-	}
-}
-
 /**
  * Called to generate a bad cast exception.  This function is intended to allow
  * compilers to insert code generating this exception without needing to
@@ -56,7 +41,7 @@ namespace {
  */
 extern "C" void __cxa_bad_cast()
 {
-	throw_exception<std::bad_cast>();
+    throw std::bad_cast();
 }
 
 /**
@@ -66,7 +51,7 @@ extern "C" void __cxa_bad_cast()
  */
 extern "C" void __cxa_bad_typeid()
 {
-	throw_exception<std::bad_typeid>();
+    throw std::bad_typeid();
 }
 
 /**
@@ -77,7 +62,7 @@ extern "C" void __cxa_bad_typeid()
  */
 extern "C" void __cxa_pure_virtual()
 {
-	abort();
+    abort();
 }
 
 /**
@@ -88,10 +73,10 @@ extern "C" void __cxa_pure_virtual()
  */
 extern "C" void __cxa_deleted_virtual()
 {
-	abort();
+    abort();
 }
 
 extern "C" void __cxa_throw_bad_array_new_length()
 {
-	throw_exception<std::bad_array_new_length>();
+	throw std::bad_array_new_length();
 }

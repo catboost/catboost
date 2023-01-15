@@ -1,26 +1,16 @@
 - includes:
-  - aaudio/AAudio.h
-  - android/asset_manager.h
-  - android/asset_manager_jni.h
-  - android/dlext.h
   - android/log.h
   - android/native_window_jni.h
   - cpu-features.h: contrib/libs/android_cpufeatures/cpu-features.h
-  - ifaddrs.h: contrib/libs/libc_compat/include/ifaddrs/ifaddrs.h
+  - ifaddrs.h: contrib/libs/android_ifaddrs/ifaddrs.h
   - jni.h
   - vulkan/vulkan.h
   - vulkan/vk_sdk_platform.h
-  - EGL/egl.h
-  - EGL/eglext.h
-  - GLES2/gl2.h
-  - GLES2/gl2ext.h
-  - GLES3/gl31.h
   - SLES/OpenSLES.h
   - SLES/OpenSLES_Android.h
   - SLES/OpenSLES_AndroidConfiguration.h
   - SLES/OpenSLES_AndroidMetadata.h
   - SLES/OpenSLES_Platform.h
-  - linux/ashmem.h
 
 - source_filter: "^contrib/libs/breakpad/src"
   includes:
@@ -29,3 +19,4 @@
     - sys/procfs.h: contrib/libs/breakpad/src/common/android/include/sys/procfs.h
     - sys/signal.h: contrib/libs/breakpad/src/common/android/include/sys/signal.h
     - sys/user.h:   contrib/libs/breakpad/src/common/android/include/sys/user.h
+    - ucontext.h:   contrib/libs/breakpad/src/common/android/include/ucontext.h

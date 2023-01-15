@@ -1,7 +1,5 @@
 #include "order.h"
 
-#include <catboost/libs/helpers/exception.h>
-
 #include <util/system/yassert.h>
 
 namespace NCB {
@@ -23,7 +21,7 @@ namespace NCB {
                         return EObjectsOrder::Undefined;
                 }
         }
-        CB_ENSURE(false, "This place can't be reached");
+        Y_FAIL("This place can't be reached");
         return EObjectsOrder::Undefined; // to make compiler happy
     }
 

@@ -56,7 +56,6 @@ struct TMemoryMapCommon {
         oAccessMask = 7,
         oNotGreedy = 8,
         oPrecharge = 16,
-        oPopulate = 32, // Populate page table entries (see mmap's MAP_POPULATE)
     };
     Y_DECLARE_FLAGS(EOpenMode, EOpenModeFlag)
 
@@ -64,7 +63,7 @@ struct TMemoryMapCommon {
      * Name that will be printed in exceptions if not specified.
      * Overridden by name obtained from `TFile` if it's not empty.
      */
-    static const TString& UnknownFileName();
+    static const TString UnknownFileName;
 };
 Y_DECLARE_OPERATORS_FOR_FLAGS(TMemoryMapCommon::EOpenMode)
 
@@ -73,10 +72,10 @@ public:
     explicit TMemoryMap(const TString& name);
     explicit TMemoryMap(const TString& name, EOpenMode om);
     TMemoryMap(const TString& name, i64 length, EOpenMode om);
-    TMemoryMap(FILE* f, TString dbgName = UnknownFileName());
-    TMemoryMap(FILE* f, EOpenMode om, TString dbgName = UnknownFileName());
-    TMemoryMap(const TFile& file, const TString& dbgName = UnknownFileName());
-    TMemoryMap(const TFile& file, EOpenMode om, const TString& dbgName = UnknownFileName());
+    TMemoryMap(FILE* f, TString dbgName = UnknownFileName);
+    TMemoryMap(FILE* f, EOpenMode om, TString dbgName = UnknownFileName);
+    TMemoryMap(const TFile& file, TString dbgName = UnknownFileName);
+    TMemoryMap(const TFile& file, EOpenMode om, TString dbgName = UnknownFileName);
 
     ~TMemoryMap();
 
@@ -112,8 +111,8 @@ public:
     TFileMap(const TString& name);
     TFileMap(const TString& name, EOpenMode om);
     TFileMap(const TString& name, i64 length, EOpenMode om);
-    TFileMap(FILE* f, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName());
-    TFileMap(const TFile& file, EOpenMode om = oRdOnly, const TString& dbgName = UnknownFileName());
+    TFileMap(FILE* f, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName);
+    TFileMap(const TFile& file, EOpenMode om = oRdOnly, TString dbgName = UnknownFileName);
     TFileMap(const TFileMap& fm) noexcept;
 
     ~TFileMap();
@@ -252,11 +251,13 @@ public:
         return *Dummy_;
     }
     /// for STL compatibility only, Empty() usage is recommended
-    Y_PURE_FUNCTION bool empty() const noexcept {
+    Y_PURE_FUNCTION
+    bool empty() const noexcept {
         return Empty();
     }
 
-    Y_PURE_FUNCTION bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    bool Empty() const noexcept {
         return 0 == Size_;
     }
     /// for STL compatibility only, Begin() usage is recommended
@@ -287,16 +288,16 @@ private:
     }
 };
 
-class TMappedAllocation: TMoveOnly {
+class TMappedAllocation : TMoveOnly {
 public:
     TMappedAllocation(size_t size = 0, bool shared = false, void* addr = nullptr);
     ~TMappedAllocation() {
         Dealloc();
     }
-    TMappedAllocation(TMappedAllocation&& other) noexcept {
+    TMappedAllocation(TMappedAllocation&& other) {
         this->swap(other);
     }
-    TMappedAllocation& operator=(TMappedAllocation&& other) noexcept {
+    TMappedAllocation& operator=(TMappedAllocation&& other) {
         this->swap(other);
         return *this;
     }
@@ -317,7 +318,7 @@ public:
     size_t MappedSize() const {
         return Size_;
     }
-    void swap(TMappedAllocation& with) noexcept;
+    void swap(TMappedAllocation& with);
 
 private:
     void* Ptr_ = nullptr;

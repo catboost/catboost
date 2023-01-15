@@ -39,50 +39,13 @@ PyDoc_STRVAR(array_array_count__doc__,
     {"count", (PyCFunction)array_array_count, METH_O, array_array_count__doc__},
 
 PyDoc_STRVAR(array_array_index__doc__,
-"index($self, v, start=0, stop=sys.maxsize, /)\n"
+"index($self, v, /)\n"
 "--\n"
 "\n"
-"Return index of first occurrence of v in the array.\n"
-"\n"
-"Raise ValueError if the value is not present.");
+"Return index of first occurrence of v in the array.");
 
 #define ARRAY_ARRAY_INDEX_METHODDEF    \
-    {"index", (PyCFunction)(void(*)(void))array_array_index, METH_FASTCALL, array_array_index__doc__},
-
-static PyObject *
-array_array_index_impl(arrayobject *self, PyObject *v, Py_ssize_t start,
-                       Py_ssize_t stop);
-
-static PyObject *
-array_array_index(arrayobject *self, PyObject *const *args, Py_ssize_t nargs)
-{
-    PyObject *return_value = NULL;
-    PyObject *v;
-    Py_ssize_t start = 0;
-    Py_ssize_t stop = PY_SSIZE_T_MAX;
-
-    if (!_PyArg_CheckPositional("index", nargs, 1, 3)) {
-        goto exit;
-    }
-    v = args[0];
-    if (nargs < 2) {
-        goto skip_optional;
-    }
-    if (!_PyEval_SliceIndexNotNone(args[1], &start)) {
-        goto exit;
-    }
-    if (nargs < 3) {
-        goto skip_optional;
-    }
-    if (!_PyEval_SliceIndexNotNone(args[2], &stop)) {
-        goto exit;
-    }
-skip_optional:
-    return_value = array_array_index_impl(self, v, start, stop);
-
-exit:
-    return return_value;
-}
+    {"index", (PyCFunction)array_array_index, METH_O, array_array_index__doc__},
 
 PyDoc_STRVAR(array_array_remove__doc__,
 "remove($self, v, /)\n"
@@ -102,7 +65,7 @@ PyDoc_STRVAR(array_array_pop__doc__,
 "i defaults to -1.");
 
 #define ARRAY_ARRAY_POP_METHODDEF    \
-    {"pop", (PyCFunction)(void(*)(void))array_array_pop, METH_FASTCALL, array_array_pop__doc__},
+    {"pop", (PyCFunction)array_array_pop, METH_FASTCALL, array_array_pop__doc__},
 
 static PyObject *
 array_array_pop_impl(arrayobject *self, Py_ssize_t i);
@@ -113,25 +76,10 @@ array_array_pop(arrayobject *self, PyObject *const *args, Py_ssize_t nargs)
     PyObject *return_value = NULL;
     Py_ssize_t i = -1;
 
-    if (!_PyArg_CheckPositional("pop", nargs, 0, 1)) {
+    if (!_PyArg_ParseStack(args, nargs, "|n:pop",
+        &i)) {
         goto exit;
     }
-    if (nargs < 1) {
-        goto skip_optional;
-    }
-    {
-        Py_ssize_t ival = -1;
-        PyObject *iobj = _PyNumber_Index(args[0]);
-        if (iobj != NULL) {
-            ival = PyLong_AsSsize_t(iobj);
-            Py_DECREF(iobj);
-        }
-        if (ival == -1 && PyErr_Occurred()) {
-            goto exit;
-        }
-        i = ival;
-    }
-skip_optional:
     return_value = array_array_pop_impl(self, i);
 
 exit:
@@ -145,30 +93,7 @@ PyDoc_STRVAR(array_array_extend__doc__,
 "Append items to the end of the array.");
 
 #define ARRAY_ARRAY_EXTEND_METHODDEF    \
-    {"extend", (PyCFunction)(void(*)(void))array_array_extend, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, array_array_extend__doc__},
-
-static PyObject *
-array_array_extend_impl(arrayobject *self, PyTypeObject *cls, PyObject *bb);
-
-static PyObject *
-array_array_extend(arrayobject *self, PyTypeObject *cls, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
-{
-    PyObject *return_value = NULL;
-    static const char * const _keywords[] = {"", NULL};
-    static _PyArg_Parser _parser = {NULL, _keywords, "extend", 0};
-    PyObject *argsbuf[1];
-    PyObject *bb;
-
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 1, 1, 0, argsbuf);
-    if (!args) {
-        goto exit;
-    }
-    bb = args[0];
-    return_value = array_array_extend_impl(self, cls, bb);
-
-exit:
-    return return_value;
-}
+    {"extend", (PyCFunction)array_array_extend, METH_O, array_array_extend__doc__},
 
 PyDoc_STRVAR(array_array_insert__doc__,
 "insert($self, i, v, /)\n"
@@ -177,7 +102,7 @@ PyDoc_STRVAR(array_array_insert__doc__,
 "Insert a new item v into the array before position i.");
 
 #define ARRAY_ARRAY_INSERT_METHODDEF    \
-    {"insert", (PyCFunction)(void(*)(void))array_array_insert, METH_FASTCALL, array_array_insert__doc__},
+    {"insert", (PyCFunction)array_array_insert, METH_FASTCALL, array_array_insert__doc__},
 
 static PyObject *
 array_array_insert_impl(arrayobject *self, Py_ssize_t i, PyObject *v);
@@ -189,22 +114,10 @@ array_array_insert(arrayobject *self, PyObject *const *args, Py_ssize_t nargs)
     Py_ssize_t i;
     PyObject *v;
 
-    if (!_PyArg_CheckPositional("insert", nargs, 2, 2)) {
+    if (!_PyArg_ParseStack(args, nargs, "nO:insert",
+        &i, &v)) {
         goto exit;
     }
-    {
-        Py_ssize_t ival = -1;
-        PyObject *iobj = _PyNumber_Index(args[0]);
-        if (iobj != NULL) {
-            ival = PyLong_AsSsize_t(iobj);
-            Py_DECREF(iobj);
-        }
-        if (ival == -1 && PyErr_Occurred()) {
-            goto exit;
-        }
-        i = ival;
-    }
-    v = args[1];
     return_value = array_array_insert_impl(self, i, v);
 
 exit:
@@ -287,7 +200,7 @@ PyDoc_STRVAR(array_array_fromfile__doc__,
 "Read n objects from the file object f and append them to the end of the array.");
 
 #define ARRAY_ARRAY_FROMFILE_METHODDEF    \
-    {"fromfile", (PyCFunction)(void(*)(void))array_array_fromfile, METH_FASTCALL, array_array_fromfile__doc__},
+    {"fromfile", (PyCFunction)array_array_fromfile, METH_FASTCALL, array_array_fromfile__doc__},
 
 static PyObject *
 array_array_fromfile_impl(arrayobject *self, PyObject *f, Py_ssize_t n);
@@ -299,21 +212,9 @@ array_array_fromfile(arrayobject *self, PyObject *const *args, Py_ssize_t nargs)
     PyObject *f;
     Py_ssize_t n;
 
-    if (!_PyArg_CheckPositional("fromfile", nargs, 2, 2)) {
+    if (!_PyArg_ParseStack(args, nargs, "On:fromfile",
+        &f, &n)) {
         goto exit;
-    }
-    f = args[0];
-    {
-        Py_ssize_t ival = -1;
-        PyObject *iobj = _PyNumber_Index(args[1]);
-        if (iobj != NULL) {
-            ival = PyLong_AsSsize_t(iobj);
-            Py_DECREF(iobj);
-        }
-        if (ival == -1 && PyErr_Occurred()) {
-            goto exit;
-        }
-        n = ival;
     }
     return_value = array_array_fromfile_impl(self, f, n);
 
@@ -357,11 +258,45 @@ array_array_tolist(arrayobject *self, PyObject *Py_UNUSED(ignored))
     return array_array_tolist_impl(self);
 }
 
+PyDoc_STRVAR(array_array_fromstring__doc__,
+"fromstring($self, buffer, /)\n"
+"--\n"
+"\n"
+"Appends items from the string, interpreting it as an array of machine values, as if it had been read from a file using the fromfile() method).\n"
+"\n"
+"This method is deprecated. Use frombytes instead.");
+
+#define ARRAY_ARRAY_FROMSTRING_METHODDEF    \
+    {"fromstring", (PyCFunction)array_array_fromstring, METH_O, array_array_fromstring__doc__},
+
+static PyObject *
+array_array_fromstring_impl(arrayobject *self, Py_buffer *buffer);
+
+static PyObject *
+array_array_fromstring(arrayobject *self, PyObject *arg)
+{
+    PyObject *return_value = NULL;
+    Py_buffer buffer = {NULL, NULL};
+
+    if (!PyArg_Parse(arg, "s*:fromstring", &buffer)) {
+        goto exit;
+    }
+    return_value = array_array_fromstring_impl(self, &buffer);
+
+exit:
+    /* Cleanup for buffer */
+    if (buffer.obj) {
+       PyBuffer_Release(&buffer);
+    }
+
+    return return_value;
+}
+
 PyDoc_STRVAR(array_array_frombytes__doc__,
 "frombytes($self, buffer, /)\n"
 "--\n"
 "\n"
-"Appends items from the string, interpreting it as an array of machine values, as if it had been read from a file using the fromfile() method.");
+"Appends items from the string, interpreting it as an array of machine values, as if it had been read from a file using the fromfile() method).");
 
 #define ARRAY_ARRAY_FROMBYTES_METHODDEF    \
     {"frombytes", (PyCFunction)array_array_frombytes, METH_O, array_array_frombytes__doc__},
@@ -375,11 +310,7 @@ array_array_frombytes(arrayobject *self, PyObject *arg)
     PyObject *return_value = NULL;
     Py_buffer buffer = {NULL, NULL};
 
-    if (PyObject_GetBuffer(arg, &buffer, PyBUF_SIMPLE) != 0) {
-        goto exit;
-    }
-    if (!PyBuffer_IsContiguous(&buffer, 'C')) {
-        _PyArg_BadArgument("frombytes", "argument", "contiguous buffer", arg);
+    if (!PyArg_Parse(arg, "y*:frombytes", &buffer)) {
         goto exit;
     }
     return_value = array_array_frombytes_impl(self, &buffer);
@@ -411,6 +342,26 @@ array_array_tobytes(arrayobject *self, PyObject *Py_UNUSED(ignored))
     return array_array_tobytes_impl(self);
 }
 
+PyDoc_STRVAR(array_array_tostring__doc__,
+"tostring($self, /)\n"
+"--\n"
+"\n"
+"Convert the array to an array of machine values and return the bytes representation.\n"
+"\n"
+"This method is deprecated. Use tobytes instead.");
+
+#define ARRAY_ARRAY_TOSTRING_METHODDEF    \
+    {"tostring", (PyCFunction)array_array_tostring, METH_NOARGS, array_array_tostring__doc__},
+
+static PyObject *
+array_array_tostring_impl(arrayobject *self);
+
+static PyObject *
+array_array_tostring(arrayobject *self, PyObject *Py_UNUSED(ignored))
+{
+    return array_array_tostring_impl(self);
+}
+
 PyDoc_STRVAR(array_array_fromunicode__doc__,
 "fromunicode($self, ustr, /)\n"
 "--\n"
@@ -425,23 +376,20 @@ PyDoc_STRVAR(array_array_fromunicode__doc__,
     {"fromunicode", (PyCFunction)array_array_fromunicode, METH_O, array_array_fromunicode__doc__},
 
 static PyObject *
-array_array_fromunicode_impl(arrayobject *self, PyObject *ustr);
+array_array_fromunicode_impl(arrayobject *self, const Py_UNICODE *ustr,
+                             Py_ssize_clean_t ustr_length);
 
 static PyObject *
 array_array_fromunicode(arrayobject *self, PyObject *arg)
 {
     PyObject *return_value = NULL;
-    PyObject *ustr;
+    const Py_UNICODE *ustr;
+    Py_ssize_clean_t ustr_length;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("fromunicode", "argument", "str", arg);
+    if (!PyArg_Parse(arg, "u#:fromunicode", &ustr, &ustr_length)) {
         goto exit;
     }
-    if (PyUnicode_READY(arg) == -1) {
-        goto exit;
-    }
-    ustr = arg;
-    return_value = array_array_fromunicode_impl(self, ustr);
+    return_value = array_array_fromunicode_impl(self, ustr, ustr_length);
 
 exit:
     return return_value;
@@ -495,7 +443,7 @@ PyDoc_STRVAR(array__array_reconstructor__doc__,
 "Internal. Used for pickling support.");
 
 #define ARRAY__ARRAY_RECONSTRUCTOR_METHODDEF    \
-    {"_array_reconstructor", (PyCFunction)(void(*)(void))array__array_reconstructor, METH_FASTCALL, array__array_reconstructor__doc__},
+    {"_array_reconstructor", (PyCFunction)array__array_reconstructor, METH_FASTCALL, array__array_reconstructor__doc__},
 
 static PyObject *
 array__array_reconstructor_impl(PyObject *module, PyTypeObject *arraytype,
@@ -512,27 +460,10 @@ array__array_reconstructor(PyObject *module, PyObject *const *args, Py_ssize_t n
     enum machine_format_code mformat_code;
     PyObject *items;
 
-    if (!_PyArg_CheckPositional("_array_reconstructor", nargs, 4, 4)) {
+    if (!_PyArg_ParseStack(args, nargs, "OCiO:_array_reconstructor",
+        &arraytype, &typecode, &mformat_code, &items)) {
         goto exit;
     }
-    arraytype = (PyTypeObject *)args[0];
-    if (!PyUnicode_Check(args[1])) {
-        _PyArg_BadArgument("_array_reconstructor", "argument 2", "a unicode character", args[1]);
-        goto exit;
-    }
-    if (PyUnicode_READY(args[1])) {
-        goto exit;
-    }
-    if (PyUnicode_GET_LENGTH(args[1]) != 1) {
-        _PyArg_BadArgument("_array_reconstructor", "argument 2", "a unicode character", args[1]);
-        goto exit;
-    }
-    typecode = PyUnicode_READ_CHAR(args[1], 0);
-    mformat_code = _PyLong_AsInt(args[2]);
-    if (mformat_code == -1 && PyErr_Occurred()) {
-        goto exit;
-    }
-    items = args[3];
     return_value = array__array_reconstructor_impl(module, arraytype, typecode, mformat_code, items);
 
 exit:
@@ -574,4 +505,4 @@ PyDoc_STRVAR(array_arrayiterator___setstate____doc__,
 
 #define ARRAY_ARRAYITERATOR___SETSTATE___METHODDEF    \
     {"__setstate__", (PyCFunction)array_arrayiterator___setstate__, METH_O, array_arrayiterator___setstate____doc__},
-/*[clinic end generated code: output=eb727e087d64f017 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=2d0fb1937dea02c2 input=a9049054013a1b77]*/

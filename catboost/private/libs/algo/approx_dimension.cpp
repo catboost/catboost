@@ -13,14 +13,7 @@ namespace NCB {
         ui32 targetDimension
     ) {
         const ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
-        if (lossFunction == ELossFunction::RMSEWithUncertainty) {
-            return ui32(2);
-        } else if (lossFunction == ELossFunction::MultiQuantile) {
-            const auto& paramsMap = catBoostOptions.LossFunctionDescription.Get().GetLossParams().GetParamsMap();
-            return NCatboostOptions::GetAlphaMultiQuantile(paramsMap).size();
-        } else if (lossFunction == ELossFunction::SurvivalAft) {
-            return ui32(1);
-        } else if (IsMultiTargetObjective(lossFunction)) {
+        if (IsMultiRegressionObjective(lossFunction)) {
             return targetDimension;
         } else {
             if (labelConverter.IsInitialized()) {

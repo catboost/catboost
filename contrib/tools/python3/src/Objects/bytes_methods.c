@@ -1,7 +1,6 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include "pycore_abstract.h"   // _PyIndex_Check()
-#include "pycore_bytes_methods.h"
+#include "bytes_methods.h"
 
 PyDoc_STRVAR_shared(_Py_isspace__doc__,
 "B.isspace() -> bool\n\
@@ -13,7 +12,7 @@ PyObject*
 _Py_bytes_isspace(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
 
     /* Shortcut for single character strings */
@@ -43,7 +42,7 @@ PyObject*
 _Py_bytes_isalpha(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
 
     /* Shortcut for single character strings */
@@ -73,7 +72,7 @@ PyObject*
 _Py_bytes_isalnum(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
 
     /* Shortcut for single character strings */
@@ -100,14 +99,14 @@ Return True if B is empty or all characters in B are ASCII,\n\
 False otherwise.");
 
 // Optimization is copied from ascii_decode in unicodeobject.c
-/* Mask to quickly check whether a C 'size_t' contains a
+/* Mask to quickly check whether a C 'long' contains a
    non-ASCII, UTF8-encoded char. */
-#if (SIZEOF_SIZE_T == 8)
-# define ASCII_CHAR_MASK 0x8080808080808080ULL
-#elif (SIZEOF_SIZE_T == 4)
-# define ASCII_CHAR_MASK 0x80808080U
+#if (SIZEOF_LONG == 8)
+# define ASCII_CHAR_MASK 0x8080808080808080UL
+#elif (SIZEOF_LONG == 4)
+# define ASCII_CHAR_MASK 0x80808080UL
 #else
-# error C 'size_t' size should be either 4 or 8!
+# error C 'long' size should be either 4 or 8!
 #endif
 
 PyObject*
@@ -115,19 +114,20 @@ _Py_bytes_isascii(const char *cptr, Py_ssize_t len)
 {
     const char *p = cptr;
     const char *end = p + len;
+    const char *aligned_end = (const char *) _Py_ALIGN_DOWN(end, SIZEOF_LONG);
 
     while (p < end) {
         /* Fast path, see in STRINGLIB(utf8_decode) in stringlib/codecs.h
            for an explanation. */
-        if (_Py_IS_ALIGNED(p, ALIGNOF_SIZE_T)) {
+        if (_Py_IS_ALIGNED(p, SIZEOF_LONG)) {
             /* Help allocation */
             const char *_p = p;
-            while (_p + SIZEOF_SIZE_T <= end) {
-                size_t value = *(const size_t *) _p;
+            while (_p < aligned_end) {
+                unsigned long value = *(unsigned long *) _p;
                 if (value & ASCII_CHAR_MASK) {
                     Py_RETURN_FALSE;
                 }
-                _p += SIZEOF_SIZE_T;
+                _p += SIZEOF_LONG;
             }
             p = _p;
             if (_p == end)
@@ -154,7 +154,7 @@ PyObject*
 _Py_bytes_isdigit(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
 
     /* Shortcut for single character strings */
@@ -184,7 +184,7 @@ PyObject*
 _Py_bytes_islower(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
     int cased;
 
@@ -218,7 +218,7 @@ PyObject*
 _Py_bytes_isupper(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
     int cased;
 
@@ -254,7 +254,7 @@ PyObject*
 _Py_bytes_istitle(const char *cptr, Py_ssize_t len)
 {
     const unsigned char *p
-        = (const unsigned char *) cptr;
+        = (unsigned char *) cptr;
     const unsigned char *e;
     int cased, previous_is_cased;
 
@@ -361,9 +361,23 @@ and the rest lower-cased.");
 void
 _Py_bytes_capitalize(char *result, const char *s, Py_ssize_t len)
 {
-    if (len > 0) {
-        *result = Py_TOUPPER(*s);
-        _Py_bytes_lower(result + 1, s + 1, len - 1);
+    Py_ssize_t i;
+
+    if (0 < len) {
+        int c = Py_CHARMASK(*s++);
+        if (Py_ISLOWER(c))
+            *result = Py_TOUPPER(c);
+        else
+            *result = c;
+        result++;
+    }
+    for (i = 1; i < len; i++) {
+        int c = Py_CHARMASK(*s++);
+        if (Py_ISUPPER(c))
+            *result = Py_TOLOWER(c);
+        else
+            *result = c;
+        result++;
     }
 }
 
@@ -466,7 +480,7 @@ parse_args_finds_byte(const char *function_name, PyObject *args,
         return 1;
     }
 
-    if (!_PyIndex_Check(tmp_subobj)) {
+    if (!PyIndex_Check(tmp_subobj)) {
         PyErr_Format(PyExc_TypeError,
                      "argument should be integer or bytes-like object, "
                      "not '%.200s'",
@@ -831,3 +845,33 @@ _Py_bytes_endswith(const char *str, Py_ssize_t len, PyObject *args)
 {
     return _Py_bytes_tailmatch(str, len, "endswith", args, +1);
 }
+
+PyDoc_STRVAR_shared(_Py_expandtabs__doc__,
+"B.expandtabs(tabsize=8) -> copy of B\n\
+\n\
+Return a copy of B where all tab characters are expanded using spaces.\n\
+If tabsize is not given, a tab size of 8 characters is assumed.");
+
+PyDoc_STRVAR_shared(_Py_ljust__doc__,
+"B.ljust(width[, fillchar]) -> copy of B\n"
+"\n"
+"Return B left justified in a string of length width. Padding is\n"
+"done using the specified fill character (default is a space).");
+
+PyDoc_STRVAR_shared(_Py_rjust__doc__,
+"B.rjust(width[, fillchar]) -> copy of B\n"
+"\n"
+"Return B right justified in a string of length width. Padding is\n"
+"done using the specified fill character (default is a space)");
+
+PyDoc_STRVAR_shared(_Py_center__doc__,
+"B.center(width[, fillchar]) -> copy of B\n"
+"\n"
+"Return B centered in a string of length width.  Padding is\n"
+"done using the specified fill character (default is a space).");
+
+PyDoc_STRVAR_shared(_Py_zfill__doc__,
+"B.zfill(width) -> copy of B\n"
+"\n"
+"Pad a numeric string B with zeros on the left, to fill a field\n"
+"of the specified width.  B is never truncated.");

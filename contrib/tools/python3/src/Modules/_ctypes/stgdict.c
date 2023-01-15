@@ -133,10 +133,10 @@ PyTypeObject PyCStgDict_Type = {
     sizeof(StgDictObject),
     0,
     (destructor)PyCStgDict_dealloc,             /* tp_dealloc */
-    0,                                          /* tp_vectorcall_offset */
+    0,                                          /* tp_print */
     0,                                          /* tp_getattr */
     0,                                          /* tp_setattr */
-    0,                                          /* tp_as_async */
+    0,                                          /* tp_reserved */
     0,                                          /* tp_repr */
     0,                                          /* tp_as_number */
     0,                                          /* tp_as_sequence */
@@ -191,7 +191,7 @@ PyType_stgdict(PyObject *obj)
 StgDictObject *
 PyObject_stgdict(PyObject *self)
 {
-    PyTypeObject *type = Py_TYPE(self);
+    PyTypeObject *type = self->ob_type;
     if (!type->tp_dict || !PyCStgDict_CheckExact(type->tp_dict))
         return NULL;
     return (StgDictObject *)type->tp_dict;
@@ -232,7 +232,7 @@ MakeFields(PyObject *type, CFieldObject *descr,
             Py_DECREF(fieldlist);
             return -1;
         }
-        if (!Py_IS_TYPE(fdescr, &PyCField_Type)) {
+        if (Py_TYPE(fdescr) != &PyCField_Type) {
             PyErr_SetString(PyExc_TypeError, "unexpected type");
             Py_DECREF(fdescr);
             Py_DECREF(fieldlist);
@@ -255,7 +255,7 @@ MakeFields(PyObject *type, CFieldObject *descr,
             Py_DECREF(fieldlist);
             return -1;
         }
-        assert(Py_IS_TYPE(new_descr, &PyCField_Type));
+        assert(Py_TYPE(new_descr) == &PyCField_Type);
         new_descr->size = fdescr->size;
         new_descr->offset = fdescr->offset + offset;
         new_descr->index = fdescr->index + index;
@@ -282,15 +282,13 @@ MakeFields(PyObject *type, CFieldObject *descr,
 static int
 MakeAnonFields(PyObject *type)
 {
-    _Py_IDENTIFIER(_anonymous_);
     PyObject *anon;
     PyObject *anon_names;
     Py_ssize_t i;
 
-    if (_PyObject_LookupAttrId(type, &PyId__anonymous_, &anon) < 0) {
-        return -1;
-    }
+    anon = PyObject_GetAttrString(type, "_anonymous_");
     if (anon == NULL) {
+        PyErr_Clear();
         return 0;
     }
     anon_names = PySequence_Fast(anon, "_anonymous_ must be a sequence");
@@ -305,7 +303,7 @@ MakeAnonFields(PyObject *type)
             Py_DECREF(anon_names);
             return -1;
         }
-        if (!Py_IS_TYPE(descr, &PyCField_Type)) {
+        if (Py_TYPE(descr) != &PyCField_Type) {
             PyErr_Format(PyExc_AttributeError,
                          "'%U' is specified in _anonymous_ but not in "
                          "_fields_",
@@ -338,23 +336,19 @@ MakeAnonFields(PyObject *type)
 int
 PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct)
 {
-    _Py_IDENTIFIER(_swappedbytes_);
-    _Py_IDENTIFIER(_use_broken_old_ctypes_structure_semantics_);
-    _Py_IDENTIFIER(_pack_);
     StgDictObject *stgdict, *basedict;
     Py_ssize_t len, offset, size, align, i;
     Py_ssize_t union_size, total_align;
     Py_ssize_t field_size = 0;
     int bitofs;
-    PyObject *tmp;
-    int isPacked;
-    int pack;
+    PyObject *isPacked;
+    int pack = 0;
     Py_ssize_t ffi_ofs;
     int big_endian;
     int arrays_seen = 0;
 
     /* HACK Alert: I cannot be bothered to fix ctypes.com, so there has to
-       be a way to use the old, broken semantics: _fields_ are not extended
+       be a way to use the old, broken sematics: _fields_ are not extended
        but replaced in subclasses.
 
        XXX Remove this in ctypes 1.0!
@@ -364,68 +358,38 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
     if (fields == NULL)
         return 0;
 
-    if (_PyObject_LookupAttrId(type, &PyId__swappedbytes_, &tmp) < 0) {
-        return -1;
-    }
-    if (tmp) {
-        Py_DECREF(tmp);
-        big_endian = !PY_BIG_ENDIAN;
-    }
-    else {
-        big_endian = PY_BIG_ENDIAN;
-    }
+#ifdef WORDS_BIGENDIAN
+    big_endian = PyObject_HasAttrString(type, "_swappedbytes_") ? 0 : 1;
+#else
+    big_endian = PyObject_HasAttrString(type, "_swappedbytes_") ? 1 : 0;
+#endif
 
-    if (_PyObject_LookupAttrId(type,
-                &PyId__use_broken_old_ctypes_structure_semantics_, &tmp) < 0)
-    {
-        return -1;
-    }
-    if (tmp) {
-        Py_DECREF(tmp);
-        use_broken_old_ctypes_semantics = 1;
-    }
-    else {
-        use_broken_old_ctypes_semantics = 0;
-    }
+    use_broken_old_ctypes_semantics = \
+        PyObject_HasAttrString(type, "_use_broken_old_ctypes_structure_semantics_");
 
-    if (_PyObject_LookupAttrId(type, &PyId__pack_, &tmp) < 0) {
-        return -1;
-    }
-    if (tmp) {
-        isPacked = 1;
-        pack = _PyLong_AsInt(tmp);
-        Py_DECREF(tmp);
-        if (pack < 0) {
-            if (!PyErr_Occurred() ||
-                PyErr_ExceptionMatches(PyExc_TypeError) ||
-                PyErr_ExceptionMatches(PyExc_OverflowError))
-            {
-                PyErr_SetString(PyExc_ValueError,
-                                "_pack_ must be a non-negative integer");
-            }
+    isPacked = PyObject_GetAttrString(type, "_pack_");
+    if (isPacked) {
+        pack = _PyLong_AsInt(isPacked);
+        if (pack < 0 || PyErr_Occurred()) {
+            Py_XDECREF(isPacked);
+            PyErr_SetString(PyExc_ValueError,
+                            "_pack_ must be a non-negative integer");
             return -1;
         }
-    }
-    else {
-        isPacked = 0;
-        pack = 0;
-    }
+        Py_DECREF(isPacked);
+    } else
+        PyErr_Clear();
 
-    len = PySequence_Size(fields);
+    len = PySequence_Length(fields);
     if (len == -1) {
-        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-            PyErr_SetString(PyExc_TypeError,
-                            "'_fields_' must be a sequence of pairs");
-        }
+        PyErr_SetString(PyExc_TypeError,
+                        "'_fields_' must be a sequence of pairs");
         return -1;
     }
 
     stgdict = PyType_stgdict(type);
-    if (!stgdict) {
-        PyErr_SetString(PyExc_TypeError,
-                        "ctypes state is not initialized");
+    if (!stgdict)
         return -1;
-    }
     /* If this structure/union is already marked final we cannot assign
        _fields_ anymore. */
 
@@ -542,7 +506,9 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             case FFI_TYPE_SINT16:
             case FFI_TYPE_SINT32:
                 if (dict->getfunc != _ctypes_get_fielddesc("c")->getfunc
+#ifdef CTYPES_UNICODE
                     && dict->getfunc != _ctypes_get_fielddesc("u")->getfunc
+#endif
                     )
                     break;
                 /* else fall through */
@@ -849,7 +815,7 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
                 element_types[element_index++] = &dict->ffi_type_pointer;
             }
             else {
-                Py_ssize_t length = dict->length;
+                int length = dict->length;
                 StgDictObject *edict;
 
                 edict = PyType_stgdict(dict->proto);

@@ -1,18 +1,21 @@
 #include "completer.h"
 #include "completer_command.h"
+#include "completion_generator.h"
 #include "last_getopt.h"
 #include "modchooser.h"
 
 #include <library/cpp/colorizer/colors.h>
 
 #include <util/stream/output.h>
+#include <util/stream/format.h>
 #include <util/generic/yexception.h>
 #include <util/generic/ptr.h>
 #include <util/string/builder.h>
+#include <util/string/join.h>
 
 class PtrWrapper: public TMainClass {
 public:
-    explicit PtrWrapper(const TMainFunctionPtr& main)
+    explicit PtrWrapper(const TMainFunctionPtr main)
         : Main(main)
     {
     }
@@ -27,7 +30,7 @@ private:
 
 class PtrvWrapper: public TMainClass {
 public:
-    explicit PtrvWrapper(const TMainFunctionPtrV& main)
+    explicit PtrvWrapper(const TMainFunctionPtrV main)
         : Main(main)
     {
     }
@@ -86,12 +89,12 @@ void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, 
 }
 
 void TModChooser::AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden, bool noCompletion) {
-    Wrappers.push_back(MakeHolder<PtrWrapper>(func));
+    Wrappers.push_back(new PtrWrapper(func));
     AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
 void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden, bool noCompletion) {
-    Wrappers.push_back(MakeHolder<PtrvWrapper>(func));
+    Wrappers.push_back(new PtrvWrapper(func));
     AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
@@ -100,16 +103,16 @@ void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& 
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
 
-    Modes[mode] = UnsortedModes.emplace_back(MakeHolder<TMode>(mode, func, description, hidden, noCompletion)).Get();
+    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, func, description, hidden, noCompletion)).Get();
 }
 
 void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden, bool noCompletion) {
-    Wrappers.push_back(MakeHolder<ClassWrapper>(func));
+    Wrappers.push_back(new ClassWrapper(func));
     AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
 void TModChooser::AddGroupModeDescription(const TString& description, bool hidden, bool noCompletion) {
-    UnsortedModes.push_back(MakeHolder<TMode>(TString(), nullptr, description.data(), hidden, noCompletion));
+    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data(), hidden, noCompletion));
 }
 
 void TModChooser::SetDefaultMode(const TString& mode) {
@@ -203,7 +206,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
 
     if (shiftArgs) {
         TString firstArg;
-        TVector<const char*> nargv(Reserve(argc));
+        TVector<const char*> nargv(Reserve(argc - 1));
 
         if (PrintShortCommandInUsage) {
             firstArg = modeIter->second->Name;
@@ -216,26 +219,19 @@ int TModChooser::Run(const int argc, const char** argv) const {
         for (int i = 2; i < argc; ++i) {
             nargv.push_back(argv[i]);
         }
-        // According to the standard, "argv[argc] shall be a null pointer" (5.1.2.2.1).
-        // http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1336
-        nargv.push_back(nullptr);
 
-        return (*modeIter->second->Main)(nargv.size() - 1, nargv.data());
+        return (*modeIter->second->Main)(nargv.size(), nargv.data());
     } else {
         return (*modeIter->second->Main)(argc, argv);
     }
 }
 
 int TModChooser::Run(const TVector<TString>& argv) const {
-    TVector<const char*> nargv(Reserve(argv.size() + 1));
+    TVector<const char*> nargv(Reserve(argv.size()));
     for (auto& arg : argv) {
         nargv.push_back(arg.c_str());
     }
-    // According to the standard, "argv[argc] shall be a null pointer" (5.1.2.2.1).
-    // http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1336
-    nargv.push_back(nullptr);
-
-    return Run(nargv.size() - 1, nargv.data());
+    return Run(nargv.size(), nargv.data());
 }
 
 size_t TModChooser::TMode::CalculateFullNameLen() const {

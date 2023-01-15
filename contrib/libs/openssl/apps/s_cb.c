@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -74,28 +74,22 @@ int verify_callback(int ok, X509_STORE_CTX *ctx)
     }
     switch (err) {
     case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
-        if (err_cert != NULL) {
-            BIO_puts(bio_err, "issuer= ");
-            X509_NAME_print_ex(bio_err, X509_get_issuer_name(err_cert),
-                               0, get_nameopt());
-            BIO_puts(bio_err, "\n");
-        }
+        BIO_puts(bio_err, "issuer= ");
+        X509_NAME_print_ex(bio_err, X509_get_issuer_name(err_cert),
+                           0, get_nameopt());
+        BIO_puts(bio_err, "\n");
         break;
     case X509_V_ERR_CERT_NOT_YET_VALID:
     case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-        if (err_cert != NULL) {
-            BIO_printf(bio_err, "notBefore=");
-            ASN1_TIME_print(bio_err, X509_get0_notBefore(err_cert));
-            BIO_printf(bio_err, "\n");
-        }
+        BIO_printf(bio_err, "notBefore=");
+        ASN1_TIME_print(bio_err, X509_get0_notBefore(err_cert));
+        BIO_printf(bio_err, "\n");
         break;
     case X509_V_ERR_CERT_HAS_EXPIRED:
     case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-        if (err_cert != NULL) {
-            BIO_printf(bio_err, "notAfter=");
-            ASN1_TIME_print(bio_err, X509_get0_notAfter(err_cert));
-            BIO_printf(bio_err, "\n");
-        }
+        BIO_printf(bio_err, "notAfter=");
+        ASN1_TIME_print(bio_err, X509_get0_notAfter(err_cert));
+        BIO_printf(bio_err, "\n");
         break;
     case X509_V_ERR_NO_EXPLICIT_POLICY:
         if (!verify_args.quiet)
@@ -194,7 +188,6 @@ static STRINT_PAIR cert_type_list[] = {
     {"RSA fixed ECDH", TLS_CT_RSA_FIXED_ECDH},
     {"ECDSA fixed ECDH", TLS_CT_ECDSA_FIXED_ECDH},
     {"GOST01 Sign", TLS_CT_GOST01_SIGN},
-    {"GOST12 Sign", TLS_CT_GOST12_SIGN},
     {NULL}
 };
 
@@ -825,9 +818,7 @@ int generate_stateless_cookie_callback(SSL *ssl, unsigned char *cookie,
 {
     unsigned int temp;
     int res = generate_cookie_callback(ssl, cookie, &temp);
-
-    if (res != 0)
-        *cookie_len = temp;
+    *cookie_len = temp;
     return res;
 }
 
@@ -942,8 +933,7 @@ static int set_cert_cb(SSL *ssl, void *arg)
                 if (!SSL_build_cert_chain(ssl, 0))
                     return 0;
             } else if (exc->chain != NULL) {
-                if (!SSL_set1_chain(ssl, exc->chain))
-                    return 0;
+                SSL_set1_chain(ssl, exc->chain);
             }
         }
         exc = exc->prev;

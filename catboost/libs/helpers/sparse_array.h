@@ -254,7 +254,7 @@ namespace NCB {
 
     public:
         using TImpl =
-            std::variant<TSparseSubsetIndices<TSize>, TSparseSubsetBlocks<TSize>, TSparseSubsetHybridIndex<TSize>>;
+            TVariant<TSparseSubsetIndices<TSize>, TSparseSubsetBlocks<TSize>, TSparseSubsetHybridIndex<TSize>>;
 
     public:
         // needed for IBinSaver serialization
@@ -492,10 +492,6 @@ namespace NCB {
         // f is a visitor function that will be repeatedly called with (index, value) arguments
         template <class F>
         inline void ForEachNonDefault(F&& f, TSize maxBlockSize = TSize(128)) const;
-
-        // f is a visitor function that will be repeatedly called with (indexBlock, valueBlock) arguments
-        template <class F>
-        inline void ForBlockNonDefault(F&& f, TSize maxBlockSize = TSize(128)) const;
 
         TVector<TNonConstValue> ExtractValues() const;
 

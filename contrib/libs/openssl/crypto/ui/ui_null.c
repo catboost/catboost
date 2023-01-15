@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "ui_local.h"
+#include "ui_locl.h"
 
 static const UI_METHOD ui_null = {
     "OpenSSL NULL UI",

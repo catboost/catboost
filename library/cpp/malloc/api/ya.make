@@ -9,8 +9,3 @@ SRCS(
 )
 
 END()
-
-RECURSE(
-    helpers
-    ut
-)

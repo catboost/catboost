@@ -9,7 +9,7 @@
 
 #include <util/system/compiler.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -23,7 +23,7 @@ inline void ReadAndProceedPoolInBlocks(
     const TPathWithScheme& cdFilePath,
     ui32 blockSize,
     TConsumer&& poolConsumer,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::TLocalExecutor* localExecutor) {
 
     const auto loadSubset = TDatasetSubset::MakeColumns();
     auto datasetLoader = GetProcessor<IDatasetLoader>(
@@ -39,7 +39,6 @@ inline void ReadAndProceedPoolInBlocks(
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
                 /*FeatureNamesPath*/TPathWithScheme(),
-                /*PoolMetaInfoPath*/TPathWithScheme(),
                 /* ClassLabels */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),
@@ -47,8 +46,6 @@ inline void ReadAndProceedPoolInBlocks(
                 EObjectsOrder::Undefined,
                 blockSize,
                 loadSubset,
-                /*ForceUnitPairWeights*/ false,
-                /*LoadColumnsAsString*/ false,
                 localExecutor
             }
         }
@@ -130,7 +127,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
     static TSrcData GetNonGroupedSrcData() {
         TSrcData srcData;
-        srcData.CdFileData = TStringBuf(
+        srcData.CdFileData = AsStringBuf(
             "0\tTarget\n"
             "1\tTimestamp\n"
             "2\tBaseline\n"
@@ -142,7 +139,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             "8\tCateg\tCountry3\n"
             "9\tNum\tfloat4\n"
         );
-        srcData.DatasetFileData = TStringBuf(
+        srcData.DatasetFileData = AsStringBuf(
             "0.12\t0\t0.0\t0.1\t0.5\t0.1\tMale\t0.2\tGermany\t0.11\n"
             "0.22\t1\t0.12\t0.23\t0.22\t0.97\tFemale\t0.82\tRussia\t0.33\n"
             "0.34\t1\t0.1\t0.11\t0.67\t0.81\tMale\t0.22\tUSA\t0.23\n"
@@ -181,14 +178,14 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
 
     static TSrcData GetGroupedSrcData() {
         TSrcData srcData;
-        srcData.CdFileData = TStringBuf(
+        srcData.CdFileData = AsStringBuf(
             "0\tTarget\n"
             "1\tTimestamp\n"
             "2\tGroupId\n"
@@ -203,7 +200,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             "11\tCateg\tCountry3\n"
             "12\tNum\tfloat4\n"
         );
-        srcData.DatasetFileData = TStringBuf(
+        srcData.DatasetFileData = AsStringBuf(
             "0.12\t0\tgroup0\tsubgroup0\t1.0\t0.0\t0.1\t0.5\t0.1\tMale\t0.2\tGermany\t0.11\n"
             "0.22\t0\tgroup0\tsubgroup1\t1.0\t0.12\t0.23\t0.22\t0.97\tFemale\t0.82\tRussia\t0.33\n"
             "0.34\t0\tgroup0\tsubgroup0\t1.0\t0.1\t0.11\t0.67\t0.81\tMale\t0.22\tUSA\t0.23\n"
@@ -246,7 +243,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
@@ -780,7 +777,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
         TTestCase testCase;
 
         TSrcData srcData;
-        testCase.SrcData.CdFileData = TStringBuf(
+        testCase.SrcData.CdFileData = AsStringBuf(
             "0\tTarget\n"
             "1\tTimestamp\n"
             "2\tGroupId\n"
@@ -795,7 +792,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             "11\tCateg\tCountry3\n"
             "12\tNum\tfloat4\n"
         );
-        testCase.SrcData.DatasetFileData = TStringBuf(
+        testCase.SrcData.DatasetFileData = AsStringBuf(
             "0.12\t0\tgroup0\tsubgroup0\t1.0\t0.0\t0.1\t0.5\t0.1\tMale\t0.2\tGermany\t0.11\n"
             "0.22\t0\tgroup0\tsubgroup1\t1.0\t0.12\t0.23\t0.22\t0.97\tFemale\t0.82\tRussia\t0.33\n"
 

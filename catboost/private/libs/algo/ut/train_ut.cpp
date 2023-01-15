@@ -1,9 +1,9 @@
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
-#include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/json/json_reader.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/unittest/registar.h>
+#include <library/json/json_reader.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
@@ -42,7 +42,6 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                 metaInfo.TargetCount = 1;
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     FactorCount,
-                    TVector<ui32>{},
                     TVector<ui32>{},
                     TVector<ui32>{},
                     TVector<TString>{});
@@ -99,7 +98,6 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             nullptr,
             Nothing(),
             Nothing(),
-            Nothing(),
             dataProviders,
             /*initModel*/ Nothing(),
             /*initLearnProgress*/ nullptr,
@@ -111,7 +109,6 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             TrainModel(
                 plainFitParams,
                 nullptr,
-                Nothing(),
                 Nothing(),
                 Nothing(),
                 dataProviders,

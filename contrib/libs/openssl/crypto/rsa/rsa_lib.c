@@ -11,11 +11,11 @@
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
 #include "internal/refcount.h"
-#include "crypto/bn.h"
+#include "internal/bn_int.h"
 #include <openssl/engine.h>
 #include <openssl/evp.h>
-#include "crypto/evp.h"
-#include "rsa_local.h"
+#include "internal/evp_int.h"
+#include "rsa_locl.h"
 
 RSA *RSA_new(void)
 {
@@ -449,11 +449,6 @@ const BIGNUM *RSA_get0_dmq1(const RSA *r)
 const BIGNUM *RSA_get0_iqmp(const RSA *r)
 {
     return r->iqmp;
-}
-
-const RSA_PSS_PARAMS *RSA_get0_pss_params(const RSA *r)
-{
-    return r->pss;
 }
 
 void RSA_clear_flags(RSA *r, int flags)

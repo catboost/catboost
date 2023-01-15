@@ -116,10 +116,6 @@ msvcrt_locking_impl(PyObject *module, int fd, int mode, long nbytes)
 {
     int err;
 
-    if (PySys_Audit("msvcrt.locking", "iil", fd, mode, nbytes) < 0) {
-        return NULL;
-    }
-
     Py_BEGIN_ALLOW_THREADS
     _Py_BEGIN_SUPPRESS_IPH
     err = _locking(fd, mode, nbytes);
@@ -177,11 +173,15 @@ static long
 msvcrt_open_osfhandle_impl(PyObject *module, void *handle, int flags)
 /*[clinic end generated code: output=b2fb97c4b515e4e6 input=d5db190a307cf4bb]*/
 {
-    if (PySys_Audit("msvcrt.open_osfhandle", "Ki", handle, flags) < 0) {
-        return -1;
-    }
+    int fd;
 
-    return _Py_open_osfhandle(handle, flags);
+    _Py_BEGIN_SUPPRESS_IPH
+    fd = _open_osfhandle((intptr_t)handle, flags);
+    _Py_END_SUPPRESS_IPH
+    if (fd == -1)
+        PyErr_SetFromErrno(PyExc_OSError);
+
+    return fd;
 }
 
 /*[clinic input]
@@ -199,11 +199,15 @@ static void *
 msvcrt_get_osfhandle_impl(PyObject *module, int fd)
 /*[clinic end generated code: output=aca01dfe24637374 input=5fcfde9b17136aa2]*/
 {
-    if (PySys_Audit("msvcrt.get_osfhandle", "(i)", fd) < 0) {
-        return NULL;
-    }
+    intptr_t handle = -1;
 
-    return _Py_get_osfhandle(fd);
+    _Py_BEGIN_SUPPRESS_IPH
+    handle = _get_osfhandle(fd);
+    _Py_END_SUPPRESS_IPH
+    if (handle == -1)
+        PyErr_SetFromErrno(PyExc_OSError);
+
+    return (HANDLE)handle;
 }
 
 /* Console I/O */
@@ -467,25 +471,6 @@ msvcrt_set_error_mode_impl(PyObject *module, int mode)
 #endif /* _DEBUG */
 
 /*[clinic input]
-msvcrt.GetErrorMode
-
-Wrapper around GetErrorMode.
-[clinic start generated code]*/
-
-static PyObject *
-msvcrt_GetErrorMode_impl(PyObject *module)
-/*[clinic end generated code: output=3103fc6145913591 input=5a7fb083b6dd71fd]*/
-{
-    unsigned int res;
-
-    _Py_BEGIN_SUPPRESS_IPH
-    res = GetErrorMode();
-    _Py_END_SUPPRESS_IPH
-
-    return PyLong_FromUnsignedLong(res);
-}
-
-/*[clinic input]
 msvcrt.SetErrorMode
 
     mode: unsigned_int(bitwise=True)
@@ -523,7 +508,6 @@ static struct PyMethodDef msvcrt_functions[] = {
     MSVCRT_GETCHE_METHODDEF
     MSVCRT_PUTCH_METHODDEF
     MSVCRT_UNGETCH_METHODDEF
-    MSVCRT_GETERRORMODE_METHODDEF
     MSVCRT_SETERRORMODE_METHODDEF
     MSVCRT_CRTSETREPORTFILE_METHODDEF
     MSVCRT_CRTSETREPORTMODE_METHODDEF

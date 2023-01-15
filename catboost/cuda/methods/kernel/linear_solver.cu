@@ -1,8 +1,7 @@
 #include "split_pairwise.cuh"
-#include "linear_solver.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
@@ -331,18 +330,16 @@ namespace NKernel {
 
         __syncthreads();
 
-        float averageDiag = pseudoRank > 0 ? trace / pseudoRank : 0;
-
         #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
                 if (col == row && val <= 1e-7f) {
-                    val += averageDiag + 0.1f;
+                    val += trace / pseudoRank + 0.1f;
                 }
                 if (col == row) {
-                    val += 0.05f * averageDiag + 1e-20f;
+                    val += 0.05f * trace / pseudoRank + 1e-20f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 WriteThrough(lower + row * (row + 1) / 2 + col,  val);
@@ -506,7 +503,6 @@ namespace NKernel {
         }
     }
 
-
     template <int BLOCK_SIZE>
     inline void RunCalcScores(const float* linearSystem, const float* solutions, int rowSize, float* scores,
                               int matCount, TCudaStream stream) {
@@ -533,12 +529,10 @@ namespace NKernel {
         }
     }
 
-    void CholeskySolver(float* matrices, float* solutions, int rowSize, int matCount, bool removeLast, TCholeskySolverContext& context, TCudaStream stream)
+    void CholeskySolver(float* matrices, float* solutions, int rowSize, int matCount, bool removeLast, TCudaStream stream)
     {
 
-        if (TCholeskySolverContext::UseCuSolver(rowSize, matCount)) {
-            RunCholeskyCuSolver(matrices, solutions, rowSize, matCount, removeLast, context, stream);
-        } else if (removeLast) {
+        if (removeLast) {
             RunCholeskySolver<128, 256, 1>(matrices, solutions, rowSize, matCount, stream);
         } else {
             RunCholeskySolver<128, 256, 0>(matrices, solutions, rowSize, matCount, stream);

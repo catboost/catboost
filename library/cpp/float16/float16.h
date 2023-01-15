@@ -116,28 +116,12 @@ namespace std {
     template <>
     class numeric_limits<TFloat16> {
     public:
-        static constexpr TFloat16 min() noexcept {
-            return TFloat16::Load(0b0'00001'0000000000);
-        }
-
-        static constexpr TFloat16 denorm_min() noexcept {
-            return TFloat16::Load(0b0'00000'0000000001);
-        }
-
         static constexpr TFloat16 max() noexcept {
-            return TFloat16::Load(0b0'11110'1111111111);
-        }
-
-        static constexpr TFloat16 quiet_NaN() noexcept {
-            return TFloat16::Load(0b0'11111'1000000001);
-        }
-
-        static constexpr TFloat16 signaling_NaN() noexcept {
-            return TFloat16::Load(0b0'11111'0000000001);
+            return TFloat16::Load(0x7bff);
         }
 
         static constexpr TFloat16 infinity() noexcept {
-            return TFloat16::Load(0b0'11111'0000000000);
+            return TFloat16::Load(0x7c00);
         }
     };
 }

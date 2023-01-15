@@ -8,9 +8,6 @@ import json
 import argparse
 import errno
 
-import process_command_files as pcf
-import process_whole_archive_option as pwa
-
 
 procs = []
 build_kekeke = 45
@@ -29,30 +26,6 @@ def run_subprocess(*args, **kwargs):
     procs.append(p)
 
     return p
-
-
-def run_subprocess_with_timeout(timeout, args):
-    attempts_remaining = 5
-    delay = 1
-    p = None
-    while True:
-        try:
-            p = run_subprocess(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate(timeout=timeout)
-            return p, stdout, stderr
-        except subprocess.TimeoutExpired as e:
-            print >>sys.stderr, 'timeout running {0}, error {1}, delay {2} seconds'.format(args, str(e), delay)
-            if p is not None:
-                try:
-                    p.kill()
-                    p.wait(timeout=1)
-                except Exception:
-                    pass
-            attempts_remaining -= 1
-            if attempts_remaining == 0:
-                raise
-            time.sleep(delay)
-            delay = min(2 * delay, 4)
 
 
 def terminate_slaves():
@@ -226,7 +199,7 @@ def is_good_file(p):
     if os.path.getsize(p) < 300:
         return False
 
-    asm_pattern = re.compile(r'asm(\.\w+)?\.obj$')
+    asm_pattern = re.compile('asm(\.\w+)?\.obj$')
     if asm_pattern.search(p):
         pass
     elif p.endswith('.obj'):
@@ -343,14 +316,16 @@ def colorize(out):
 
 
 def trim_path(path, winepath):
-    p1, p1_stdout, p1_stderr = run_subprocess_with_timeout(60, [winepath, '-w', path])
+    p1 = run_subprocess([winepath, '-w', path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p1_stdout, p1_stderr = p1.communicate()
     win_path = p1_stdout.strip()
 
     if p1.returncode != 0 or not win_path:
         # Fall back to only winepath -s
         win_path = path
 
-    p2, p2_stdout, p2_stderr = run_subprocess_with_timeout(60, [winepath, '-s', win_path])
+    p2 = run_subprocess([winepath, '-s', win_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p2_stdout, p2_stderr = p2.communicate()
     short_path = p2_stdout.strip()
 
     check_path = short_path
@@ -358,10 +333,7 @@ def trim_path(path, winepath):
         check_path = check_path[2:]
 
     if not check_path[1:].startswith((path[1:4], path[1:4].upper())):
-        raise Exception(
-            'Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(
-            path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr
-        ))
+        raise Exception('Cannot trim path {}; 1st winepath exit code: {}, stdout:\n{}\n  stderr:\n{}\n 2nd winepath exit code: {}, stdout:\n{}\n  stderr:\n{}'.format(path, p1.returncode, p1_stdout, p1_stderr, p2.returncode, p2_stdout, p2_stderr))
 
     return short_path
 
@@ -385,7 +357,7 @@ def make_full_path_arg(arg, bld_root, short_root):
     return arg
 
 
-def fix_path(p):
+def run_main():
     topdirs = ['/%s/' % d for d in os.listdir('/')]
 
     def abs_path_start(path, pos):
@@ -393,52 +365,23 @@ def fix_path(p):
             return False
         return pos == 0 or path[pos - 1] == ':'
 
-    pp = None
-    for pr in topdirs:
-        pp2 = p.find(pr)
-        if abs_path_start(p, pp2) and (pp is None or pp > pp2):
-            pp = pp2
-    if pp is not None:
-        return p[:pp] + 'Z:' + p[pp:].replace('/', '\\')
-    if p.startswith('/Fo'):
-        return '/Fo' + p[3:].replace('/', '\\')
-    return p
+    def fix_path(p):
+        pp = None
 
+        for pr in topdirs:
+            pp2 = p.find(pr)
 
-def process_free_args(args, wine, bld_root, mode):
-    whole_archive_prefix = '/WHOLEARCHIVE:'
-    short_names = {}
-    winepath = os.path.join(os.path.dirname(wine), 'winepath')
-    short_names[bld_root] = trim_path(bld_root, winepath)
-    # Slow for no benefit.
-    # arc_root = args.arcadia_root
-    # short_names[arc_root] = trim_path(arc_root, winepath)
+            if abs_path_start(p, pp2) and (pp is None or pp > pp2):
+                pp = pp2
 
-    free_args, wa_peers, wa_libs = pwa.get_whole_archive_peers_and_libs(pcf.skip_markers(args))
+        if pp is not None:
+            return p[:pp] + 'Z:' + p[pp:].replace('/', '\\')
 
-    process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+        if p.startswith('/Fo'):
+            return '/Fo' + p[3:].replace('/', '\\')
 
-    def process_arg(arg):
-        with_wa_prefix = arg.startswith(whole_archive_prefix)
-        prefix = whole_archive_prefix if with_wa_prefix else ''
-        without_prefix_arg = arg[len(prefix):]
-        return prefix + fix_path(process_link(downsize_path(without_prefix_arg, short_names)))
+        return p
 
-    result = []
-    for arg in free_args:
-        if pcf.is_cmdfile_arg(arg):
-            cmd_file_path = pcf.cmdfile_path(arg)
-            cf_args = pcf.read_from_command_file(cmd_file_path)
-            with open(cmd_file_path, 'w') as afile:
-                for cf_arg in cf_args:
-                    afile.write(process_arg(cf_arg) + "\n")
-            result.append(arg)
-        else:
-            result.append(process_arg(arg))
-    return pwa.ProcessWholeArchiveOption('WINDOWS', wa_peers, wa_libs).construct_cmd(result)
-
-
-def run_main():
     parser = argparse.ArgumentParser()
     parser.add_argument('wine', action='store')
     parser.add_argument('-v', action='store', dest='version', default='120')
@@ -448,7 +391,6 @@ def run_main():
     parser.add_argument('arcadia_build_root', action='store')
     parser.add_argument('binary', action='store')
     parser.add_argument('free_args', nargs=argparse.REMAINDER)
-    # By now just unpack. Ideally we should fix path and pack arguments back into command file
     args = parser.parse_args()
 
     wine = args.wine
@@ -456,8 +398,8 @@ def run_main():
     binary = args.binary
     version = args.version
     incl_paths = args.incl_paths
-    bld_root = args.arcadia_build_root
     free_args = args.free_args
+    bld_root = args.arcadia_build_root
 
     wine_dir = os.path.dirname(os.path.dirname(wine))
     bin_dir = os.path.dirname(binary)
@@ -481,7 +423,16 @@ def run_main():
     env['LIB'] = fix_path(tc_dir + '/VC/lib/amd64')
     env['LD_LIBRARY_PATH'] = ':'.join(wine_dir + d for d in ['/lib', '/lib64', '/lib64/wine'])
 
-    cmd = [binary] + process_free_args(free_args, wine, bld_root, mode)
+    short_names = {}
+    winepath = os.path.join(os.path.dirname(wine), 'winepath')
+    short_names[bld_root] = trim_path(bld_root, winepath)
+    # Slow for no benefit.
+    # arc_root = args.arcadia_root
+    # short_names[arc_root] = trim_path(arc_root, winepath)
+
+    process_link = lambda x: make_full_path_arg(x, bld_root, short_names[bld_root]) if mode in ('link', 'lib') else x
+
+    cmd = [binary] + [fix_path(process_link(downsize_path(x, short_names))) for x in free_args]
 
     for x in ('/NOLOGO', '/nologo', '/FD'):
         try:

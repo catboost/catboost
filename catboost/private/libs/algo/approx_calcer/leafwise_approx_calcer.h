@@ -14,7 +14,7 @@ void CalcLeafValues(
     const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
     TRestorableFastRng64* rng,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TArrayRef<TDers> weightedDers = {});
 
 void AssignLeafValues(

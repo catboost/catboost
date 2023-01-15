@@ -5,23 +5,16 @@
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/quantization.h>
-#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
-#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/catboost_options.h>
-#include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
-#include <catboost/private/libs/target/target_converter.h>
-#include <catboost/private/libs/feature_estimator/classification_target.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
-#include <catboost/private/libs/feature_estimator/embedding_feature_estimators.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/string/builder.h>
@@ -29,7 +22,7 @@
 
 namespace NCB {
 
-    TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
+    static TVector<NCatboostOptions::TLossDescription> GetMetricDescriptions(
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;
@@ -65,7 +58,6 @@ namespace NCB {
 
     TTrainingDataProviderPtr GetTrainingData(
         TDataProviderPtr srcData,
-        bool dataCanBeEmpty,
         bool isLearnData,
         TStringBuf datasetName,
         const TMaybe<TString>& bordersFile,
@@ -76,7 +68,7 @@ namespace NCB {
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
         TMaybe<float>* targetBorder,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel) {
 
@@ -87,8 +79,8 @@ namespace NCB {
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
-        if (auto* quantizedObjectsDataProvider
-                = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
+        if (auto* quantizedForCPUObjectsDataProvider
+                = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
             if (params->GetTaskType() == ETaskType::CPU) {
                 /*
@@ -96,7 +88,14 @@ namespace NCB {
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
                  */
                 if (ensureConsecutiveIfDenseFeaturesDataForCpu) {
-                    EnsureObjectsDataIsConsecutiveIfQuantized(cpuRamLimit, localExecutor, &srcData);
+                    if (!quantizedForCPUObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
+                        // TODO(akhropov): make it work in non-shared case
+                        CB_ENSURE_INTERNAL(
+                            (srcData->RefCount() <= 1) && (quantizedForCPUObjectsDataProvider->RefCount() <= 1),
+                            "Cannot modify QuantizedForCPUObjectsDataProvider because it's shared"
+                        );
+                        quantizedForCPUObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
+                    }
                 }
             } else { // GPU
                 /*
@@ -106,19 +105,19 @@ namespace NCB {
                  */
                 CB_ENSURE(
                     (srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() == 0) ||
-                    quantizedObjectsDataProvider,
+                    quantizedForCPUObjectsDataProvider,
                     "Quantized objects data is not compatible with final CTR calculation"
                 );
             }
 
             if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
-                trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
-                    quantizedObjectsDataProvider->GetFeaturesSubset(
+                trainingData->ObjectsData = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                    quantizedForCPUObjectsDataProvider->GetFeaturesSubset(
                         params->DataProcessingOptions.Get().IgnoredFeatures,
                         localExecutor).Get()
                 );
             } else {
-                trainingData->ObjectsData = quantizedObjectsDataProvider;
+                trainingData->ObjectsData = quantizedForCPUObjectsDataProvider;
             }
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
@@ -155,15 +154,13 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo {
             dataProcessingOptions.ClassesCount.Get() ? TMaybe<ui32>(dataProcessingOptions.ClassesCount.Get()) : Nothing(),
             dataProcessingOptions.ClassWeights.Get(),
-            dataProcessingOptions.AutoClassWeights.Get(),
             dataProcessingOptions.ClassLabels.Get(),
             *targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
             dataProcessingOptions.ClassLabels.Get(),
             labelConverter,
-            *targetBorder,
-            dataProcessingOptions.ClassWeights.Get()
+            *targetBorder
         };
         TOutputPairsInfo outputPairsInfo;
 
@@ -174,31 +171,22 @@ namespace NCB {
             inputClassificationInfo
         );
 
-        CB_ENSURE(dataCanBeEmpty || srcData->RawTargetData.GetObjectCount() > 0, "Dataset " << datasetName  << " is empty");
+        CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");
 
-        try {
-            trainingData->TargetData = CreateTargetDataProvider(
-                srcData->RawTargetData,
-                trainingData->ObjectsData->GetSubgroupIds(),
-                /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
-                &params->LossFunctionDescription.Get(),
-                /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
-                /*knownModelApproxDimension*/ Nothing(),
-                targetCreationOptions,
-                inputClassificationInfo,
-                &outputClassificationInfo,
-                rand,
-                localExecutor,
-                &outputPairsInfo
-            );
-        } catch (const TUnknownClassLabelException& e) {
-            if (!isLearnData) {
-                ythrow TCatBoostException() << "Dataset " << datasetName << " contains class label \"" << e.GetUnknownClassLabel()
-                    << "\" that is not present in the learn dataset";
-            } else {
-                throw;
-            }
-        }
+        trainingData->TargetData = CreateTargetDataProvider(
+            srcData->RawTargetData,
+            trainingData->ObjectsData->GetSubgroupIds(),
+            /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
+            &params->LossFunctionDescription.Get(),
+            /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
+            /*knownModelApproxDimension*/ Nothing(),
+            targetCreationOptions,
+            inputClassificationInfo,
+            &outputClassificationInfo,
+            rand,
+            localExecutor,
+            &outputPairsInfo
+        );
 
         CheckTargetConsistency(
             trainingData->TargetData,
@@ -213,14 +201,8 @@ namespace NCB {
 
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
-        trainingData->MetaInfo.HasWeights |= inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None;
-        trainingData->MetaInfo.ClassLabels = outputClassificationInfo.ClassLabels;
         dataProcessingOptions.ClassLabels.Get() = outputClassificationInfo.ClassLabels;
         *targetBorder = outputClassificationInfo.TargetBorder;
-
-        if (!outputClassificationInfo.ClassWeights.Empty()) {
-            dataProcessingOptions.ClassWeights.Get() = *outputClassificationInfo.ClassWeights.Get();
-        }
 
         trainingData->UpdateMetaInfo();
 
@@ -270,7 +252,7 @@ namespace NCB {
     static TTextDataSetPtr CreateTextDataSet(
         const TQuantizedObjectsDataProvider& dataProvider,
         ui32 tokenizedTextFeatureIdx,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         const TTextDigitizers& digitizers = dataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers();
         auto dictionary = digitizers.GetDigitizer(tokenizedTextFeatureIdx).Dictionary;
@@ -287,134 +269,65 @@ namespace NCB {
         Y_UNREACHABLE();
     }
 
-    static TEmbeddingDataSetPtr CreateEmbeddingDataSet(
-        const TQuantizedObjectsDataProvider& dataProvider,
-        ui32 embeddingFeatureIdx,
-        NPar::ILocalExecutor* localExecutor
-    ) {
-        const TEmbeddingValuesHolder* embeddingColumn = *dataProvider.GetEmbeddingFeature(embeddingFeatureIdx);
-
-        const auto* denseData = dynamic_cast<const TEmbeddingArrayValuesHolder*>(embeddingColumn);
-        TMaybeOwningArrayHolder<TConstEmbedding> embeddingData = denseData->ExtractValues(localExecutor);
-        TMaybeOwningConstArrayHolder<TConstEmbedding> constEmbeddingData
-            = TMaybeOwningConstArrayHolder<TConstEmbedding>::CreateOwning(*embeddingData,
-                                                                            embeddingData.GetResourceHolder());
-        return MakeIntrusive<TEmbeddingDataSet>(std::move(constEmbeddingData));
-    }
-
-    static TClassificationTargetPtr CreateClassificationTarget(const TTargetDataProvider& targetDataProvider) {
+    static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        const auto extractClasses = [&](auto isBinClass) {
-            TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
-            TVector<ui32> classes;
-            classes.yresize(target.size());
+        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
+        TVector<ui32> classes;
+        classes.resize(target.size());
 
-            for (ui32 i = 0; i < target.size(); i++) {
-                classes[i] = static_cast<ui32>(isBinClass ? target[i] > 0.5f : target[i]);
-            }
-            return classes;
-        };
-        return MakeIntrusive<TClassificationTarget>(
-            DispatchGenericLambda(extractClasses, numClasses == 2),
-            numClasses
-        );
+        for (ui32 i = 0; i < target.size(); i++) {
+            classes[i] = static_cast<ui32>(target[i]);
+        }
+        return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
     }
 
     static TFeatureEstimatorsPtr CreateEstimators(
-        bool isClassification,
-        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TVector<NCatboostOptions::TTokenizedFeatureDescription> tokenizedFeaturesDescription,
         TTrainingDataProviders pools,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
-        auto tokenizedFeaturesDescription = quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions();
-
         TFeatureEstimatorsBuilder estimatorsBuilder;
 
         const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
+        auto learnTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
 
-        TClassificationTargetPtr learnClassificationTarget;
-        if (isClassification) {
-            learnClassificationTarget = CreateClassificationTarget(*pools.Learn->TargetData);
-        }
+        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
+            [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
 
-        if (quantizedFeaturesInfo->GetFeaturesLayout()->GetTextFeatureCount()) {
-            ui32 sourceTextsCount = learnDataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers().GetSourceTextsCount();
+                const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
+                auto learnTexts = CreateTextDataSet(learnDataProvider, tokenizedFeatureIdx, localExecutor);
 
-            pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
-                [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
-
-                    const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
-                    auto learnTexts = CreateTextDataSet(learnDataProvider, tokenizedFeatureIdx, localExecutor);
-
-                    TVector<TTextDataSetPtr> testTexts;
-                    for (const auto& testDataProvider : pools.Test) {
-                        testTexts.emplace_back(
-                            CreateTextDataSet(
-                                *testDataProvider->ObjectsData,
-                                tokenizedFeatureIdx,
-                                localExecutor
-                            ));
-                    }
-
-                    const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount];
-                    auto offlineEstimators = CreateTextEstimators(
-                        featureDescription.FeatureEstimators.Get(),
-                        learnTexts,
-                        testTexts
-                    );
-
-                    const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx - sourceTextsCount].TextFeatureId;
-                    TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
-                    for (auto&& estimator : offlineEstimators) {
-                        estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
-                    }
-
-                    if (isClassification) {
-                        // There're no online text estimators for regression for now
-
-                        auto onlineEstimators = CreateTextEstimators(
-                            featureDescription.FeatureEstimators.Get(),
-
-                            learnClassificationTarget,
-                            learnTexts,
-                            testTexts
-                        );
-                        for (auto&& estimator : onlineEstimators) {
-                            estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
-                        }
-                    }
-                }
-            );
-        }
-
-        auto embeddingFeaturesDescription = quantizedFeaturesInfo->GetEmbeddingProcessingOptions().GetFeatureDescriptions();
-        pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Embedding>(
-            [&](TEmbeddingFeatureIdx embeddingFeature) {
-
-                const ui32 embeddingFeatureIdx = embeddingFeature.Idx;
-                auto learnEmbeddings = CreateEmbeddingDataSet(learnDataProvider, embeddingFeatureIdx, localExecutor);
-
-                TVector<TEmbeddingDataSetPtr> testEmbeddings;
+                TVector<TTextDataSetPtr> testTexts;
                 for (const auto& testDataProvider : pools.Test) {
-                    testEmbeddings.emplace_back(
-                        CreateEmbeddingDataSet(
+                    testTexts.emplace_back(
+                        CreateTextDataSet(
                             *testDataProvider->ObjectsData,
-                            embeddingFeatureIdx,
+                            tokenizedFeatureIdx,
                             localExecutor
                         ));
                 }
 
-                const auto& featureDescription = embeddingFeaturesDescription[embeddingFeatureIdx];
-                const ui32 featureId = embeddingFeaturesDescription[embeddingFeatureIdx].EmbeddingFeatureId;
-                TEstimatorSourceId sourceFeatureIdx{featureId, embeddingFeatureIdx};
-                TConstArrayRef<float> learnTarget = *pools.Learn->TargetData->GetOneDimensionalTarget();
-
-                auto onlineEstimators = CreateEmbeddingEstimators(
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
+                TEmbeddingPtr embedding;
+                auto offlineEstimators = CreateEstimators(
                     featureDescription.FeatureEstimators.Get(),
+                    embedding,
+                    learnTexts,
+                    testTexts
+                );
+
+                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx].TextFeatureId;
+                TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
+                for (auto&& estimator : offlineEstimators) {
+                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
+                }
+
+                auto onlineEstimators = CreateEstimators(
+                    featureDescription.FeatureEstimators.Get(),
+                    embedding,
                     learnTarget,
-                    learnClassificationTarget,
-                    learnEmbeddings,
-                    testEmbeddings
+                    learnTexts,
+                    testTexts
                 );
                 for (auto&& estimator : onlineEstimators) {
                     estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
@@ -428,7 +341,6 @@ namespace NCB {
 
     TTrainingDataProviders GetTrainingData(
         TDataProviders srcData,
-        bool trainDataCanBeEmpty,
         const TMaybe<TString>& bordersFile, // load borders from it if specified
         bool ensureConsecutiveIfDenseLearnFeaturesDataForCpu,
         bool allowWriteFiles,
@@ -436,7 +348,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo, // can be nullptr, then create it
         NCatboostOptions::TCatBoostOptions* params,
         TLabelConverter* labelConverter,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel) {
 
@@ -445,8 +357,7 @@ namespace NCB {
         TMaybe<float> targetBorder = params->DataProcessingOptions->TargetBorder;
         trainingData.Learn = GetTrainingData(
             std::move(srcData.Learn),
-            trainDataCanBeEmpty,
-            /*isLearnData*/ true,
+            /*isLearnData*/ !params->SystemOptions->IsWorker(),
             "learn",
             bordersFile,
             /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles && srcData.Test.empty(),
@@ -467,7 +378,6 @@ namespace NCB {
             trainingData.Test.push_back(
                 GetTrainingData(
                     std::move(srcData.Test[testIdx]),
-                    /*dataCanBeEmpty*/ true,
                     /*isLearnData*/ false,
                     TStringBuilder() << "test #" << testIdx,
                     Nothing(), // borders already loaded
@@ -485,12 +395,13 @@ namespace NCB {
             );
         }
 
-        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0
-            || trainingData.Learn->MetaInfo.FeaturesLayout->GetEmbeddingFeatureCount() > 0) {
-
-            trainingData.FeatureEstimators = CreateEstimators(
+        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0) {
+            CB_ENSURE(
                 IsClassificationObjective(params->LossFunctionDescription->LossFunction),
-                quantizedFeaturesInfo,
+                "Computation of online text features is supported only for classification task"
+            );
+            trainingData.FeatureEstimators = CreateEstimators(
+                quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions(),
                 trainingData,
                 localExecutor);
 
@@ -520,89 +431,4 @@ namespace NCB {
         return trainingData;
     }
 
-    static TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
-        const TVector<ui32>& ignoredFeatures,
-        NCB::TTrainingDataProviderPtr trainingDataProvider
-    ) {
-        TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedObjectsDataProvider*>(
-            trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
-        CB_ENSURE(
-            newObjects,
-            "Objects data provider must be TQuantizedObjectsDataProvider or TQuantizedObjectsDataProvider");
-        TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
-        newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
-        return MakeIntrusive<TTrainingDataProvider>(
-            trainingDataProvider->OriginalFeaturesLayout,
-            TDataMetaInfo(newMetaInfo),
-            trainingDataProvider->ObjectsGrouping,
-            newObjects,
-            trainingDataProvider->TargetData);
-    }
-
-    TTrainingDataProviders MakeFeatureSubsetTrainingData(
-        const TVector<ui32>& ignoredFeatures,
-        const NCB::TTrainingDataProviders& trainingData
-    ) {
-        TTrainingDataProviders newTrainingData;
-        newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
-        newTrainingData.Test.reserve(trainingData.Test.size());
-        for (const auto& test : trainingData.Test) {
-            newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, test));
-        }
-
-        newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
-
-        // TODO(akhropov): correctly support ignoring indices based on source data
-        newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
-
-        return newTrainingData;
-    }
-
-    bool HaveFeaturesInMemory(
-        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-        const TMaybe<TPathWithScheme>& maybePathWithScheme
-    ) {
-        #if defined(USE_MPI)
-        const bool isGpuDistributed = catBoostOptions.GetTaskType() == ETaskType::GPU;
-        #else
-        const bool isGpuDistributed = false;
-        #endif
-        const bool isCpuDistributed = catBoostOptions.SystemOptions->IsMaster();
-        if (!isCpuDistributed && !isGpuDistributed) {
-            return true;
-        }
-        if (const auto* pathWithScheme = maybePathWithScheme.Get()) {
-            const bool isQuantized = pathWithScheme->Scheme.find("quantized") != std::string::npos;
-            return !IsSharedFs(*pathWithScheme) || !isQuantized;
-        } else {
-            return true;
-        }
-    }
-
-    void EnsureObjectsDataIsConsecutiveIfQuantized(
-        ui64 cpuUsedRamLimit,
-        NPar::ILocalExecutor* localExecutor,
-        TDataProviderPtr* dataProvider
-    ) {
-        if (auto* quantizedObjectsDataProvider
-                = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get()))
-        {
-            if (!quantizedObjectsDataProvider->GetFeaturesArraySubsetIndexing().IsConsecutive()) {
-                if (dataProvider->RefCount() > 1) {
-                    CATBOOST_DEBUG_LOG << "Copy dataProvider to enusure data is consecutive";
-                    *dataProvider = (*dataProvider)->Clone(cpuUsedRamLimit, localExecutor);
-                    quantizedObjectsDataProvider
-                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
-                }
-                if (quantizedObjectsDataProvider->RefCount() > 1) {
-                    CATBOOST_DEBUG_LOG << "Copy dataProvider->ObjectsData to enusure data is consecutive";
-                    (*dataProvider)->ObjectsData = (*dataProvider)->ObjectsData->Clone(localExecutor);
-                    (*dataProvider)->ObjectsGrouping = (*dataProvider)->ObjectsData->GetObjectsGrouping();
-                    quantizedObjectsDataProvider
-                        = dynamic_cast<TQuantizedObjectsDataProvider*>((*dataProvider)->ObjectsData.Get());
-                }
-                quantizedObjectsDataProvider->EnsureConsecutiveIfDenseFeaturesData(localExecutor);
-            }
-        }
-    }
 }

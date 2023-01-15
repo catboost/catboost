@@ -1,4 +1,4 @@
-//===----------------------------------------------------------------------===//
+//===-------------------- condition_variable.cpp --------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,39 +6,37 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <__config>
+#include "__config"
 
 #ifndef _LIBCPP_HAS_NO_THREADS
 
-#include <condition_variable>
-#include <thread>
-#include <system_error>
+#include "condition_variable"
+#include "thread"
+#include "system_error"
+#include "__undef_macros"
 
 #if defined(__ELF__) && defined(_LIBCPP_LINK_PTHREAD_LIB)
-#  pragma comment(lib, "pthread")
+#pragma comment(lib, "pthread")
 #endif
-
-_LIBCPP_PUSH_MACROS
-#include <__undef_macros>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 // ~condition_variable is defined elsewhere.
 
 void
-condition_variable::notify_one() noexcept
+condition_variable::notify_one() _NOEXCEPT
 {
     __libcpp_condvar_signal(&__cv_);
 }
 
 void
-condition_variable::notify_all() noexcept
+condition_variable::notify_all() _NOEXCEPT
 {
     __libcpp_condvar_broadcast(&__cv_);
 }
 
 void
-condition_variable::wait(unique_lock<mutex>& lk) noexcept
+condition_variable::wait(unique_lock<mutex>& lk) _NOEXCEPT
 {
     if (!lk.owns_lock())
         __throw_system_error(EPERM,
@@ -50,7 +48,7 @@ condition_variable::wait(unique_lock<mutex>& lk) noexcept
 
 void
 condition_variable::__do_timed_wait(unique_lock<mutex>& lk,
-     chrono::time_point<chrono::system_clock, chrono::nanoseconds> tp) noexcept
+     chrono::time_point<chrono::system_clock, chrono::nanoseconds> tp) _NOEXCEPT
 {
     using namespace chrono;
     if (!lk.owns_lock())
@@ -91,7 +89,5 @@ notify_all_at_thread_exit(condition_variable& cond, unique_lock<mutex> lk)
 }
 
 _LIBCPP_END_NAMESPACE_STD
-
-_LIBCPP_POP_MACROS
 
 #endif // !_LIBCPP_HAS_NO_THREADS

@@ -1,10 +1,11 @@
 #include "hash_primes.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/vector.h>
 #include <util/string/builder.h>
 #include <util/random/fast.h>
+
 
 Y_UNIT_TEST_SUITE(TestHashPrimes) {
     Y_UNIT_TEST(Test1) {

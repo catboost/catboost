@@ -3,14 +3,11 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/object_factory/object_factory.h>
+#include <library/object_factory/object_factory.h>
 
-#include <util/digest/multi.h>
-#include <util/generic/hash.h>
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
-#include <util/ysaveload.h>
 
 
 namespace NCB {
@@ -25,7 +22,7 @@ namespace NCB {
 
         explicit TPathWithScheme(TStringBuf pathWithScheme, TStringBuf defaultScheme = "") {
             TStringBuf part1, part2;
-            pathWithScheme.Split(TStringBuf("://"), part1, part2);
+            pathWithScheme.Split(AsStringBuf("://"), part1, part2);
             if (part1 == pathWithScheme) { // no scheme in pathWithScheme
                 Scheme = defaultScheme;
                 Path = part1;
@@ -39,24 +36,12 @@ namespace NCB {
         }
 
         SAVELOAD(Scheme, Path);
-        Y_SAVELOAD_DEFINE(Scheme, Path);
 
         bool Inited() const {
             return !Path.empty();
         }
-
-        bool operator==(const TPathWithScheme& rhs) const {
-            return std::tie(Scheme, Path) == std::tie(rhs.Scheme, rhs.Path);
-        }
-
-        bool operator!=(const TPathWithScheme& rhs) const {
-            return !(rhs == *this);
-        }
-
-        ui64 GetHash() const {
-            return MultiHash(Scheme, Path);
-        }
     };
+
 
     template <class ISchemeDependentProcessor, class... TArgs>
     THolder<ISchemeDependentProcessor> GetProcessor(TPathWithScheme pathWithScheme, TArgs&&... args) {
@@ -65,14 +50,9 @@ namespace NCB {
             );
         CB_ENSURE(res != nullptr,
                   "Processor for scheme [" << pathWithScheme.Scheme << "] not found");
-        return THolder<ISchemeDependentProcessor>(res);
+        return res;
     }
 
 }
 
-template <>
-struct THash<NCB::TPathWithScheme> {
-    inline size_t operator()(const NCB::TPathWithScheme& value) const {
-        return value.GetHash();
-    }
-};
+

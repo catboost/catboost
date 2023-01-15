@@ -251,7 +251,7 @@ namespace NCatboostCuda {
                     break;
                 }
                 case ELossFunction::Lq: {
-                    Alpha = FromString<double>(targetOptions.GetLossParamsMap().at("q"));
+                    Alpha = FromString<double>(targetOptions.GetLossParams().at("q"));
                     break;
                 }
                 case ELossFunction::MAE: {
@@ -269,14 +269,6 @@ namespace NCatboostCuda {
                 }
                 case ELossFunction::Logloss: {
                     Border = NCatboostOptions::GetLogLossBorder(targetOptions);
-                    break;
-                }
-                case ELossFunction::Tweedie: {
-                    VariancePower = NCatboostOptions::GetTweedieParam(targetOptions);
-                    break;
-                }
-                case ELossFunction::Huber: {
-                    Alpha = NCatboostOptions::GetHuberParam(targetOptions);
                     break;
                 }
                 default: {
@@ -336,7 +328,6 @@ namespace NCatboostCuda {
         ELossFunction Type = ELossFunction::PythonUserDefinedPerObject;
         double Alpha = 0;
         double Border = 0;
-        double VariancePower = 1.5;
         TString MetricName;
     };
 

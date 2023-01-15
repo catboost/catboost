@@ -3,7 +3,6 @@
 
 .p2align	5
 __KeccakF1600:
-
 	movq	60(%rdi),%rax
 	movq	68(%rdi),%rbx
 	movq	76(%rdi),%rcx
@@ -256,7 +255,6 @@ L$oop:
 
 	leaq	-192(%r15),%r15
 	.byte	0xf3,0xc3
-
 
 
 

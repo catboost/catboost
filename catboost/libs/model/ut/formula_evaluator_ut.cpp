@@ -6,7 +6,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace NCB;
 using namespace NCB::NModelEvaluation;
@@ -80,12 +80,11 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestFlatCalcFloatWithScaleAndBias) {
         auto model = SimpleFloatModel();
-        model.SetScaleAndBias({0.5, {0.125}});
+        model.SetScaleAndBias({0.5, 0.125});
         auto norm = model.GetScaleAndBias();
         TVector<double> expectedPredicts;
-        double bias = norm.GetOneDimensionalBias();
         for (int sampleId : xrange(8)) {
-            expectedPredicts.push_back(sampleId * norm.Scale + bias);
+            expectedPredicts.push_back(sampleId * norm.Scale + norm.Bias);
         }
         CheckFlatCalcResult(model, expectedPredicts, xrange<ui32>(8));
         model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
@@ -175,7 +174,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             ui32 treeIndex = estimatedFeatureId;
             model.Calc(
                 {},
-                TConstArrayRef<TVector<TStringBuf>>{},
+                {},
                 transposedTextFeatures,
                 treeIndex,
                 treeIndex + 1,
@@ -194,7 +193,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestTextOnlyModel) {
         TVector<NCBTest::TTextFeature> features;
-        TMap<ui32, NCBTest::TTokenizedTextFeature> tokenizedFeatures;
+        TVector<NCBTest::TTokenizedTextFeature> tokenizedFeatures;
         TVector<TDigitizer> digitizers;
         TVector<TTextFeatureCalcerPtr> calcers;
         TVector<TVector<ui32>> perFeatureDigitizers;

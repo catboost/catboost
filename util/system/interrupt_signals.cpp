@@ -1,14 +1,20 @@
 #include "interrupt_signals.h"
 
+#include "compiler.h"
+#include "error.h"
+
 #include <util/generic/yexception.h>
 
 #include <csignal>
 
+
 static void (*InterruptSignalsHandler)(int signum) = nullptr;
+
 
 #ifdef _win_
 
-    #include <windows.h>
+#include <windows.h>
+
 
 static BOOL WINAPI WindowsSignalsHandler(_In_ DWORD dwCtrlType) {
     if (!InterruptSignalsHandler) {
@@ -39,6 +45,7 @@ extern "C" void CppSignalsHandler(int signum) {
         InterruptSignalsHandler(signum);
     }
 }
+
 
 void SetInterruptSignalsHandler(void (*handler)(int signum)) {
     InterruptSignalsHandler = handler;

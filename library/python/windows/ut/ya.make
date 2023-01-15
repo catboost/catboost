@@ -1,6 +1,6 @@
 
 
-PY2TEST()
+PYTEST()
 
 TEST_SRCS(test_windows.py)
 

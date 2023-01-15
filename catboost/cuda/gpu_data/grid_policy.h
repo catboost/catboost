@@ -8,7 +8,8 @@ namespace NCatboostCuda {
     enum class EFeaturesGroupingPolicy {
         BinaryFeatures,
         HalfByteFeatures,
-        OneByteFeatures
+        OneByteFeatures,
+        TwoByteFeatures
     };
 
     template <EFeaturesGroupingPolicy>
@@ -40,6 +41,17 @@ namespace NCatboostCuda {
     struct TFeaturePolicyTraits<EFeaturesGroupingPolicy::OneByteFeatures> {
         static constexpr ui32 BitsPerFeature() {
             return 8u;
+        }
+
+        static constexpr ui32 FeaturesPerInt() {
+            return 32 / BitsPerFeature();
+        }
+    };
+
+    template <>
+    struct TFeaturePolicyTraits<EFeaturesGroupingPolicy::TwoByteFeatures> {
+        static constexpr ui32 BitsPerFeature() {
+            return 16u;
         }
 
         static constexpr ui32 FeaturesPerInt() {

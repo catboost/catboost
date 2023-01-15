@@ -1,7 +1,5 @@
 #pragma once
 
-#include "exception.h"
-
 #include <util/digest/numeric.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/algorithm.h>
@@ -37,7 +35,7 @@ namespace NCatboost {
             : HashMask(bucketsRef.size() - 1)
             , Buckets(bucketsRef)
         {
-            CB_ENSURE(IsPowerOf2(bucketsRef.size()), "Dense hash view must have 2^k buckets");
+            Y_ENSURE(IsPowerOf2(bucketsRef.size()), "Dense hash view must have 2^k buckets");
         }
 
         size_t GetBucketCount() const {
@@ -79,7 +77,7 @@ namespace NCatboost {
             : HashMask(bucketsRef.size() - 1)
             , Buckets(bucketsRef)
         {
-            CB_ENSURE(IsPowerOf2(bucketsRef.size()), "Dense hash view must have 2^k buckets");
+            Y_ENSURE(IsPowerOf2(bucketsRef.size()), "Dense hash view must have 2^k buckets");
             TBucket emptyBucket = {TBucket::InvalidHashValue, 0};
             std::fill(bucketsRef.begin(), bucketsRef.end(), emptyBucket);
         }

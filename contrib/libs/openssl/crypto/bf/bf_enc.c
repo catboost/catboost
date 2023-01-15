@@ -8,7 +8,7 @@
  */
 
 #include <openssl/blowfish.h>
-#include "bf_local.h"
+#include "bf_locl.h"
 
 /*
  * Blowfish as implemented from 'Blowfish: Springer-Verlag paper' (From

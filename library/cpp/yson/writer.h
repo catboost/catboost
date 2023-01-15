@@ -9,7 +9,7 @@
 class IOutputStream;
 class IZeroCopyInput;
 
-namespace NYson {
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     class TYsonWriter
@@ -27,11 +27,11 @@ namespace NYson {
     public:
         TYsonWriter(
             IOutputStream* stream,
-            EYsonFormat format = EYsonFormat::Binary,
-            EYsonType type = ::NYson::EYsonType::Node,
+            EYsonFormat format = YF_BINARY,
+            EYsonType type = YT_NODE,
             bool enableRaw = false);
 
-        void OnStringScalar(TStringBuf value) override;
+        void OnStringScalar(const TStringBuf& value) override;
         void OnInt64Scalar(i64 value) override;
         void OnUint64Scalar(ui64 value) override;
         void OnDoubleScalar(double value) override;
@@ -43,13 +43,13 @@ namespace NYson {
         void OnEndList() override;
 
         void OnBeginMap() override;
-        void OnKeyedItem(TStringBuf key) override;
+        void OnKeyedItem(const TStringBuf& key) override;
         void OnEndMap() override;
 
         void OnBeginAttributes() override;
         void OnEndAttributes() override;
 
-        void OnRaw(TStringBuf yson, EYsonType type = ::NYson::EYsonType::Node) override;
+        void OnRaw(const TStringBuf& yson, EYsonType type = YT_NODE) override;
 
         TState State() const;
         void Reset(const TState& state);
@@ -81,9 +81,9 @@ namespace NYson {
     void ReformatYsonStream(
         IInputStream* input,
         IOutputStream* output,
-        EYsonFormat format = EYsonFormat::Binary,
-        EYsonType type = ::NYson::EYsonType::Node);
+        EYsonFormat format = YF_BINARY,
+        EYsonType type = YT_NODE);
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

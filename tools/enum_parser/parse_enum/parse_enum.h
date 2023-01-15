@@ -24,7 +24,7 @@ public:
         void NormalizeValue() {
             if (!Value)
                 return;
-            StripInPlace(*Value);
+            Strip(*Value);
         }
 
     };

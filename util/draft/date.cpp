@@ -20,16 +20,14 @@ time_t GetDateStart(time_t ts) {
 static time_t ParseDate(const char* date, const char* format) {
     tm dateTm;
     memset(&dateTm, 0, sizeof(tm));
-    if (!strptime(date, format, &dateTm)) {
+    if (!strptime(date, format, &dateTm))
         ythrow yexception() << "Invalid date string and format: " << date << ", " << format;
-    }
     return mktime(&dateTm);
 }
 
 static time_t ParseDate(const char* dateStr) {
-    if (strlen(dateStr) != 8) {
+    if (strlen(dateStr) != 8)
         ythrow yexception() << "Invalid date string: " << dateStr;
-    }
 
     return ParseDate(dateStr, "%Y%m%d");
 }
@@ -67,19 +65,8 @@ TDate::TDate(unsigned year, unsigned month, unsigned monthDay) {
     dateTm.tm_mday = monthDay;
     dateTm.tm_isdst = -1;
     Timestamp = mktime(&dateTm);
-    if (Timestamp == (time_t)-1) {
+    if (Timestamp == (time_t)-1)
         ythrow yexception() << "Invalid TDate args:(" << year << ',' << month << ',' << monthDay << ')';
-    }
-}
-
-time_t TDate::GetStartUTC() const {
-    tm dateTm;
-    localtime_r(&Timestamp, &dateTm);
-    dateTm.tm_isdst = -1;
-    dateTm.tm_sec = 0;
-    dateTm.tm_min = 0;
-    dateTm.tm_hour = 0;
-    return TimeGM(&dateTm);
 }
 
 TString TDate::ToStroka(const char* format) const {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -13,7 +13,7 @@
 #include <openssl/err.h>
 #include <openssl/opensslv.h>
 
-#include "ec_local.h"
+#include "ec_lcl.h"
 
 /* functions for EC_GROUP objects */
 
@@ -211,7 +211,6 @@ int EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
 
     dest->asn1_flag = src->asn1_flag;
     dest->asn1_form = src->asn1_form;
-    dest->decoded_from_explicit_params = src->decoded_from_explicit_params;
 
     if (src->seed) {
         OPENSSL_free(dest->seed);
@@ -1008,14 +1007,14 @@ int EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     size_t i = 0;
     BN_CTX *new_ctx = NULL;
 
+    if ((scalar == NULL) && (num == 0)) {
+        return EC_POINT_set_to_infinity(group, r);
+    }
+
     if (!ec_point_is_compat(r, group)) {
         ECerr(EC_F_EC_POINTS_MUL, EC_R_INCOMPATIBLE_OBJECTS);
         return 0;
     }
-
-    if (scalar == NULL && num == 0)
-        return EC_POINT_set_to_infinity(group, r);
-
     for (i = 0; i < num; i++) {
         if (!ec_point_is_compat(points[i], group)) {
             ECerr(EC_F_EC_POINTS_MUL, EC_R_INCOMPATIBLE_OBJECTS);

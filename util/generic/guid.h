@@ -17,6 +17,9 @@
 struct TGUID {
     ui32 dw[4] = {};
 
+    constexpr TGUID() {
+    }
+
     constexpr bool IsEmpty() const noexcept {
         return (dw[0] | dw[1] | dw[2] | dw[3]) == 0;
     }
@@ -24,24 +27,6 @@ struct TGUID {
     constexpr explicit operator bool() const noexcept {
         return !IsEmpty();
     }
-
-    // xxxx-xxxx-xxxx-xxxx
-    TString AsGuidString() const;
-
-    /**
-    * RFC4122 GUID, which described in
-    * https://en.wikipedia.org/wiki/Universally_unique_identifier
-    * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-    **/
-    TString AsUuidString() const;
-
-    static TGUID Create();
-
-    /**
-    * Generate time based UUID version 1 RFC4122 GUID
-    * https://datatracker.ietf.org/doc/html/rfc4122#section-4.1
-    **/
-    static TGUID CreateTimebased();
 };
 
 constexpr bool operator==(const TGUID& a, const TGUID& b) noexcept {
@@ -68,12 +53,12 @@ struct THash<TGUID> {
 void CreateGuid(TGUID* res);
 TString GetGuidAsString(const TGUID& g);
 TString CreateGuidAsString();
-TGUID GetGuid(TStringBuf s);
-bool GetGuid(TStringBuf s, TGUID& result);
+TGUID GetGuid(const TString& s);
+bool GetGuid(const TString& s, TGUID& result);
 
 /**
 * Functions for correct parsing RFC4122 GUID, which described in
 * https://en.wikipedia.org/wiki/Universally_unique_identifier
 **/
-TGUID GetUuid(TStringBuf s);
-bool GetUuid(TStringBuf s, TGUID& result);
+TGUID GetUuid(const TString& s);
+bool GetUuid(const TString& s, TGUID& result);

@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "crypto/ctype.h"
+#include "internal/ctype.h"
 #include "openssl/ebcdic.h"
 
 /*

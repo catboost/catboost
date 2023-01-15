@@ -28,7 +28,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const override {
             Y_UNUSED(localExecutor);
             return MakeHolder<TSparsePolymorphicArrayValuesHolder>(
@@ -37,7 +37,7 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::ILocalExecutor* localExecutor) const override {
+        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             return TMaybeOwningArrayHolder<T>::CreateOwning(Data.ExtractValues());
         }
@@ -74,7 +74,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const override {
             Y_UNUSED(localExecutor);
             return MakeHolder<TSparseCompressedValuesHolderImpl>(
@@ -91,7 +91,7 @@ namespace NCB {
             return Data;
         }
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             ui32 checkSum = 0;
             constexpr size_t BLOCK_SIZE = 10000;

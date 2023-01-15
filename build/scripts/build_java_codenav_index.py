@@ -22,7 +22,7 @@ def modify_sources_file(origin, target, source_roots_map):
 
 
 def just_do_it(argv):
-    corpus_name, build_root, arcadia_root, sources_file, javac_tail_cmd = argv[0], argv[1], argv[2], argv[3], argv[4:]
+    java, kythe_tool, corpus_name, build_root, arcadia_root, sources_file, javac_tail_cmd = argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6:]
     fake_arcadia_root = os.path.join(build_root, FAKE_ARCADIA_ROOT)
     fake_build_root = os.path.join(build_root, FAKE_BUILD_ROOT)
     fake_source_roots = {
@@ -40,7 +40,7 @@ def just_do_it(argv):
     os.symlink(arcadia_root, fake_arcadia_root)
     os.symlink(build_root, fake_build_root)
     try:
-        subprocess.check_call(javac_tail_cmd, env=env)
+        subprocess.check_call([java, '-jar', kythe_tool] + javac_tail_cmd, env=env)
     finally:
         os.unlink(fake_arcadia_root)
         os.unlink(fake_build_root)

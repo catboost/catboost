@@ -2,7 +2,9 @@
 
 LIBRARY()
 
-LICENSE(LGPL-2.1-or-later)
+LICENSE(
+    LGPL
+)
 
 
 NO_UTIL()

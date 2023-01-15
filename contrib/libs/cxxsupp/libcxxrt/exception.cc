@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2010-2011 PathScale, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS
  * IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
@@ -56,7 +56,7 @@ static void saveLandingPad(struct _Unwind_Context *context,
 	ucb->barrier_cache.bitpattern[3] = reinterpret_cast<uint32_t>(landingPad);
 #endif
 	// Cache the results for the phase 2 unwind, if we found a handler
-	// and this is not a foreign exception.  
+	// and this is not a foreign exception.
 	if (ex)
 	{
 		ex->handlerSwitchValue = selector;
@@ -156,7 +156,7 @@ struct __cxa_thread_info
 	 * caught if we have just caught an exception and rethrown if we are
 	 * rethrowing it.
 	 */
-	enum 
+	enum
 	{
 		none,
 		caught,
@@ -169,7 +169,7 @@ struct __cxa_thread_info
 	__cxa_eh_globals globals;
 };
 /**
- * Dependent exception.  This 
+ * Dependent exception.  This
  */
 struct __cxa_dependent_exception
 {
@@ -177,7 +177,7 @@ struct __cxa_dependent_exception
 	void *primaryException;
 #endif
 	std::type_info *exceptionType;
-	void (*exceptionDestructor) (void *); 
+	void (*exceptionDestructor) (void *);
 	unexpected_handler unexpectedHandler;
 	terminate_handler terminateHandler;
 	__cxa_exception *nextException;
@@ -197,7 +197,6 @@ struct __cxa_dependent_exception
 	_Unwind_Exception unwindHeader;
 };
 
-static_assert(sizeof(__cxa_dependent_exception) == sizeof(__cxa_exception));
 
 namespace std
 {
@@ -219,27 +218,19 @@ namespace std
  * various checks may test for equality of the class, which is incorrect.
  */
 static const uint64_t exception_class =
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_PRIMARY_CLASS;
-#else
 	EXCEPTION_CLASS('G', 'N', 'U', 'C', 'C', '+', '+', '\0');
-#endif
 /**
- * Class used for dependent exceptions.  
+ * Class used for dependent exceptions.
  */
 static const uint64_t dependent_exception_class =
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_DEPENDENT_CLASS;
-#else
 	EXCEPTION_CLASS('G', 'N', 'U', 'C', 'C', '+', '+', '\x01');
-#endif
 /**
  * The low four bytes of the exception class, indicating that we conform to the
  * Itanium C++ ABI.  This is currently unused, but should be used in the future
  * if we change our exception class, to allow this library and libsupc++ to be
  * linked to the same executable and both to interoperate.
  */
-static const uint32_t abi_exception_class = 
+static const uint32_t abi_exception_class =
 	GENERIC_EXCEPTION_CLASS('C', '+', '+', '\0');
 
 static bool isCXXException(uint64_t cls)
@@ -268,7 +259,7 @@ namespace std
 {
 	// Forward declaration of standard library terminate() function used to
 	// abort execution.
-	void terminate(void) noexcept;
+    void terminate(void) noexcept;
 }
 
 using namespace ABI_NAMESPACE;
@@ -347,20 +338,16 @@ static pthread_key_t eh_key;
  * Cleanup function, allowing foreign exception handlers to correctly destroy
  * this exception if they catch it.
  */
-static void exception_cleanup(_Unwind_Reason_Code reason, 
+static void exception_cleanup(_Unwind_Reason_Code reason,
                               struct _Unwind_Exception *ex)
 {
-	// Exception layout:
-	// [__cxa_exception [_Unwind_Exception]] [exception object]
-	//
-	// __cxa_free_exception expects a pointer to the exception object
-	__cxa_free_exception(static_cast<void*>(ex + 1));
+	__cxa_free_exception(static_cast<void*>(ex));
 }
-static void dependent_exception_cleanup(_Unwind_Reason_Code reason, 
+static void dependent_exception_cleanup(_Unwind_Reason_Code reason,
                               struct _Unwind_Exception *ex)
 {
 
-	__cxa_free_dependent_exception(static_cast<void*>(ex + 1));
+	__cxa_free_dependent_exception(static_cast<void*>(ex));
 }
 
 /**
@@ -428,8 +415,7 @@ static void thread_cleanup(void* thread_info)
 		if (info->foreign_exception_state != __cxa_thread_info::none)
 		{
 			_Unwind_Exception *e = reinterpret_cast<_Unwind_Exception*>(info->globals.caughtExceptions);
-			if (e->exception_cleanup)
-				e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
+			e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
 		}
 		else
 		{
@@ -451,9 +437,9 @@ static void init_key(void)
 {
 	pthread_key_create(&eh_key, thread_cleanup);
 	pthread_setspecific(eh_key, reinterpret_cast<void *>(0x42));
-   if (pthread_getspecific(eh_key) != reinterpret_cast<void *>(0x42)) {
-       abort();
-   }
+    if (pthread_getspecific(eh_key) != reinterpret_cast<void *>(0x42)) {
+        abort();
+    }
 	pthread_setspecific(eh_key, 0);
 }
 
@@ -464,17 +450,16 @@ static __thread __cxa_thread_info* THR_INFO = nullptr;
  */
 static __cxa_thread_info *thread_info()
 {
-	if (THR_INFO) {
-		return THR_INFO;
-   }
-   pthread_once(&once_control, init_key);
+    if (THR_INFO) {
+        return THR_INFO;
+    }
+	pthread_once(&once_control, init_key);
 	__cxa_thread_info *info = static_cast<__cxa_thread_info*>(pthread_getspecific(eh_key));
-	if (0 == info)
-	{
-       info = alloc_thread_info();
+	if (0 == info) {
+		info = alloc_thread_info();
 		pthread_setspecific(eh_key, info);
 	}
-   THR_INFO = info;
+    THR_INFO = info;
 	return info;
 }
 
@@ -491,9 +476,9 @@ static struct InitMainTls {
  */
 static __cxa_thread_info *thread_info_fast()
 {
-   if (THR_INFO) {
-       return THR_INFO;
-   }
+    if (THR_INFO) {
+        return THR_INFO;
+    }
 	return static_cast<__cxa_thread_info*>(pthread_getspecific(eh_key));
 }
 /**
@@ -601,7 +586,7 @@ static void emergency_malloc_free(char *ptr)
 			break;
 		}
 	}
-	assert(buffer >= 0 &&
+	assert(buffer > 0 &&
 	       "Trying to free something that is not an emergency buffer!");
 	// emergency_malloc() is expected to return 0-initialized data.  We don't
 	// zero the buffer when allocating it, because the static buffers will
@@ -628,7 +613,7 @@ static char *alloc_or_die(size_t size)
 	{
 		buffer = emergency_malloc(size);
 		// This is only reached if the allocation is greater than 1KB, and
-		// anyone throwing objects that big really should know better.  
+		// anyone throwing objects that big really should know better.
 		if (0 == buffer)
 		{
 			fprintf(stderr, "Out of memory attempting to allocate exception\n");
@@ -641,7 +626,7 @@ static void free_exception(char *e)
 {
 	// If this allocation is within the address range of the emergency buffer,
 	// don't call free() because it was not allocated with malloc()
-	if ((e >= emergency_buffer) &&
+	if ((e > emergency_buffer) &&
 	    (e < (emergency_buffer + sizeof(emergency_buffer))))
 	{
 		emergency_malloc_free(e);
@@ -660,18 +645,6 @@ static_assert(align_to(15, 16) == 16);
 static_assert(align_to(16, 16) == 16);
 static_assert(align_to(17, 16) == 32);
 
-static constexpr size_t exception_size = align_to(sizeof(__cxa_exception), 16);
-static constexpr size_t dependent_exception_size = align_to(sizeof(__cxa_dependent_exception), 16);
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-static constexpr size_t backtrace_buffer_size = align_to(sizeof(_Unwind_Backtrace_Buffer), 16);
-
-static_assert(
-    _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_MAGIC_OFFSET ==
-    offsetof(__cxa_exception, unwindHeader) + backtrace_buffer_size - sizeof(_Unwind_Backtrace_Buffer));
-#else
-static constexpr size_t backtrace_buffer_size = 0;
-#endif
-
 /**
  * Allocates an exception structure.  Returns a pointer to the space that can
  * be used to store an object of thrown_size bytes.  This function will use an
@@ -680,19 +653,16 @@ static constexpr size_t backtrace_buffer_size = 0;
  */
 extern "C" void *__cxa_allocate_exception(size_t thrown_size)
 {
-	size_t size = thrown_size + exception_size + backtrace_buffer_size;
+	size_t size = thrown_size + align_to(sizeof(__cxa_exception), 16);
 	char *buffer = alloc_or_die(size);
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-	((_Unwind_Backtrace_Buffer *)buffer)->size = 0;
-#endif
-	return buffer + exception_size + backtrace_buffer_size;
+	return buffer+align_to(sizeof(__cxa_exception), 16);
 }
 
 extern "C" void *__cxa_allocate_dependent_exception(void)
 {
-	size_t size = dependent_exception_size + backtrace_buffer_size;
+	size_t size = align_to(sizeof(__cxa_dependent_exception), 16);
 	char *buffer = alloc_or_die(size);
-	return buffer + dependent_exception_size + backtrace_buffer_size;
+	return buffer+align_to(sizeof(__cxa_dependent_exception), 16);
 }
 
 /**
@@ -720,8 +690,7 @@ extern "C" void __cxa_free_exception(void *thrown_exception)
 		}
 	}
 
-	free_exception(
-		reinterpret_cast<char*>(thrown_exception) - exception_size - backtrace_buffer_size);
+	free_exception(reinterpret_cast<char*>(thrown_exception) - align_to(sizeof(__cxa_exception), 16));
 }
 
 static void releaseException(__cxa_exception *exception)
@@ -748,7 +717,7 @@ void __cxa_free_dependent_exception(void *thrown_exception)
 	{
 		releaseException(realExceptionFromException(reinterpret_cast<__cxa_exception*>(ex)));
 	}
-	free_exception(reinterpret_cast<char*>(thrown_exception) - dependent_exception_size - backtrace_buffer_size);
+	free_exception(reinterpret_cast<char*>(thrown_exception) - align_to(sizeof(__cxa_dependent_exception), 16));
 }
 
 /**
@@ -778,36 +747,6 @@ static void report_failure(_Unwind_Reason_Code err, __cxa_exception *thrown_exce
 		case _URC_END_OF_STACK:
 			__cxa_begin_catch (&(thrown_exception->unwindHeader));
  			std::terminate();
-			fprintf(stderr, "uncaught exception:\n    address -> %p\n", 
-					static_cast<void*>(thrown_exception));
-			thrown_exception = realExceptionFromException(thrown_exception);
-			static const __class_type_info *e_ti =
-				static_cast<const __class_type_info*>(&typeid(std::exception));
-			const __class_type_info *throw_ti =
-				dynamic_cast<const __class_type_info*>(thrown_exception->exceptionType);
-			if (throw_ti)
-			{
-				std::exception *e =
-					static_cast<std::exception*>(e_ti->cast_to(static_cast<void*>(thrown_exception+1),
-							throw_ti));
-				if (e)
-				{
-					fprintf(stderr, " what() -> \"%s\"\n", e->what());
-				}
-			}
-
-			size_t bufferSize = 128;
-			char *demangled = static_cast<char*>(malloc(bufferSize));
-			const char *mangled = thrown_exception->exceptionType->name();
-			int status;
-			demangled = __cxa_demangle(mangled, demangled, &bufferSize, &status);
-			fprintf(stderr, "    type -> %s\n", 
-				status == 0 ? demangled : mangled);
-			if (status == 0) { free(demangled); }
-			// Print a back trace if no handler is found.
-			// TODO: Make this optional
-			_Unwind_Backtrace(trace, 0);
-
 			// Just abort. No need to call std::terminate for the second time
 			abort();
 			break;
@@ -859,9 +798,9 @@ extern "C" void __cxa_throw(void *thrown_exception,
 
 	ex->referenceCount = 1;
 	ex->exceptionType = tinfo;
-	
+
 	ex->exceptionDestructor = dest;
-	
+
 	ex->unwindHeader.exception_class = exception_class;
 	ex->unwindHeader.exception_cleanup = exception_cleanup;
 
@@ -910,32 +849,6 @@ extern "C" void __cxa_decrement_exception_refcount(void* thrown_exception)
 	releaseException(ex);
 }
 
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-static size_t __cxa_collect_backtrace(__cxa_exception* ex, void** dest, size_t size) {
-    if (!ex) {
-        return 0;
-    }
-    if (!isCXXException(ex->unwindHeader.exception_class)) {
-        return 0;
-    }
-    size_t i = 0;
-    if (isDependentException(ex->unwindHeader.exception_class)) {
-        i = __cxa_collect_backtrace(
-                (__cxa_exception *)((__cxa_dependent_exception *)ex)->primaryException - 1, dest, size);
-    }
-    _Unwind_Backtrace_Buffer* backtraceBuffer = (_Unwind_Backtrace_Buffer*)(
-            (char *)(ex + 1) - exception_size - backtrace_buffer_size);
-    for (size_t j = 0; i != size && j != backtraceBuffer->size; ++i, ++j) {
-        dest[i] = backtraceBuffer->backtrace[j];
-    }
-    return i;
-}
-
-extern "C" size_t __cxa_collect_current_exception_backtrace(void** dest, size_t size) {
-    return __cxa_collect_backtrace(__cxa_get_globals()->caughtExceptions, dest, size);
-}
-#endif
-
 /**
  * ABI function.  Rethrows the current exception.  Does not remove the
  * exception from the stack or decrement its handler count - the compiler is
@@ -970,18 +883,13 @@ extern "C" void __cxa_rethrow()
 		return;
 	}
 
-	assert(ex->handlerCount > 0 && "Rethrowing uncaught exception!");
+    ++globals->uncaughtExceptions;
 
-	// `globals->uncaughtExceptions` was decremented by `__cxa_begin_catch`.
-	// It's normally incremented by `throw_exception`, but this path invokes
-	// `_Unwind_Resume_or_Rethrow` directly to rethrow the exception.
-	// This path is only reachable if we're rethrowing a C++ exception -
-	// foreign exceptions don't adjust any of this state.
-	globals->uncaughtExceptions++;
+	assert(ex->handlerCount > 0 && "Rethrowing uncaught exception!");
 
 	// ex->handlerCount will be decremented in __cxa_end_catch in enclosing
 	// catch block
-	
+
 	// Make handler count negative. This will tell __cxa_end_catch that
 	// exception was rethrown and exception object should not be destroyed
 	// when handler count become zero
@@ -1003,7 +911,7 @@ static std::type_info *get_type_info_entry(_Unwind_Context *context,
                                            int filter)
 {
 	// Get the address of the record in the table.
-	dw_eh_ptr_t record = lsda->type_table - 
+	dw_eh_ptr_t record = lsda->type_table -
 		dwarf_size_of_fixed_size_field(lsda->type_table_encoding)*filter;
 	//record -= 4;
 	dw_eh_ptr_t start = record;
@@ -1090,7 +998,7 @@ static handler_type check_action_record(_Unwind_Context *context,
 		int filter = read_sleb128(&action_record);
 		dw_eh_ptr_t action_record_offset_base = action_record;
 		int displacement = read_sleb128(&action_record);
-		action_record = displacement ? 
+		action_record = displacement ?
 			action_record_offset_base + displacement : 0;
 		// We only check handler types for C++ exceptions - foreign exceptions
 		// are only allowed for cleanups and catchalls.
@@ -1218,7 +1126,7 @@ BEGIN_PERSONALITY_FUNCTION(__gxx_personality_v0)
 	// These two variables define how the exception will be handled.
 	dwarf_eh_action action = {0};
 	unsigned long selector = 0;
-	
+
 	// During the search phase, we do a complete lookup.  If we return
 	// _URC_HANDLER_FOUND, then the phase 2 unwind will call this function with
 	// a _UA_HANDLER_FRAME action, telling us to install the handler frame.  If
@@ -1244,7 +1152,7 @@ BEGIN_PERSONALITY_FUNCTION(__gxx_personality_v0)
 			// caught inside a cleanup (destructor).  We should call
 			// terminate() in this case.  The catchTemp (landing pad) field of
 			// exception object will contain null when personality function is
-			// called with _UA_HANDLER_FRAME action for phase 2 unwinding.  
+			// called with _UA_HANDLER_FRAME action for phase 2 unwinding.
 			return _URC_HANDLER_FOUND;
 		}
 
@@ -1331,13 +1239,11 @@ extern "C" void *__cxa_begin_catch(void *e)
 	// we see is a foreign exception then we won't have called it yet.
 	__cxa_thread_info *ti = thread_info();
 	__cxa_eh_globals *globals = &ti->globals;
+	globals->uncaughtExceptions--;
 	_Unwind_Exception *exceptionObject = static_cast<_Unwind_Exception*>(e);
 
 	if (isCXXException(exceptionObject->exception_class))
 	{
-		// Only exceptions thrown with a C++ exception throwing function will
-		// increment this, so don't decrement it here.
-		globals->uncaughtExceptions--;
 		__cxa_exception *ex =  exceptionFromPointer(exceptionObject);
 
 		if (ex->handlerCount == 0)
@@ -1355,7 +1261,7 @@ extern "C" void *__cxa_begin_catch(void *e)
 			// Clear the rethrow flag (make value positive) - we are allowed
 			// to delete this exception at the end of the catch block, as long
 			// as it isn't thrown again later.
-			
+
 			// Code pattern:
 			//
 			// try {
@@ -1376,7 +1282,7 @@ extern "C" void *__cxa_begin_catch(void *e)
 			ex->handlerCount++;
 		}
 		ti->foreign_exception_state = __cxa_thread_info::none;
-		
+
 		return ex->adjustedPtr;
 	}
 	else
@@ -1411,16 +1317,15 @@ extern "C" void __cxa_end_catch()
 	__cxa_exception *ex = globals->caughtExceptions;
 
 	assert(0 != ex && "Ending catch when no exception is on the stack!");
-	
+
 	if (ti->foreign_exception_state != __cxa_thread_info::none)
 	{
+		globals->caughtExceptions = 0;
 		if (ti->foreign_exception_state != __cxa_thread_info::rethrown)
 		{
 			_Unwind_Exception *e = reinterpret_cast<_Unwind_Exception*>(ti->globals.caughtExceptions);
-			if (e->exception_cleanup)
-				e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
+			e->exception_cleanup(_URC_FOREIGN_EXCEPTION_CAUGHT, e);
 		}
-		globals->caughtExceptions = 0;
 		ti->foreign_exception_state = __cxa_thread_info::none;
 		return;
 	}
@@ -1444,7 +1349,7 @@ extern "C" void __cxa_end_catch()
 		//     }
 		// }
 		//
-		
+
 		ex->handlerCount++;
 		deleteException = false;
 	}
@@ -1474,39 +1379,25 @@ extern "C" std::type_info *__cxa_current_exception_type()
 }
 
 /**
- * Cleanup, ensures that `__cxa_end_catch` is called to balance an explicit
- * `__cxa_begin_catch` call.
- */
-static void end_catch(char *)
-{
-	__cxa_end_catch();
-}
-/**
  * ABI function, called when an exception specification is violated.
  *
  * This function does not return.
  */
-extern "C" void __cxa_call_unexpected(void*exception) 
+extern "C" void __cxa_call_unexpected(void*exception)
 {
 	_Unwind_Exception *exceptionObject = static_cast<_Unwind_Exception*>(exception);
-	// Wrap the call to the unexpected handler in calls to `__cxa_begin_catch`
-	// and `__cxa_end_catch` so that we correctly update exception counts if
-	// the unexpected handler throws an exception.
-	__cxa_begin_catch(exceptionObject);
-	__attribute__((cleanup(end_catch)))
-	char unused;
 	if (exceptionObject->exception_class == exception_class)
 	{
 		__cxa_exception *ex =  exceptionFromPointer(exceptionObject);
 		if (ex->unexpectedHandler)
 		{
 			ex->unexpectedHandler();
-			// Should not be reached.  
+			// Should not be reached.
 			abort();
 		}
 	}
 	std::unexpected();
-	// Should not be reached.  
+	// Should not be reached.
 	abort();
 }
 
@@ -1536,7 +1427,7 @@ namespace pathscale
 		thread_local_handlers = flag;
 	}
 	/**
-	 * Sets a thread-local unexpected handler.  
+	 * Sets a thread-local unexpected handler.
 	 */
 	unexpected_handler set_unexpected(unexpected_handler f) noexcept
 	{
@@ -1546,7 +1437,7 @@ namespace pathscale
 		return old;
 	}
 	/**
-	 * Sets a thread-local terminate handler.  
+	 * Sets a thread-local terminate handler.
 	 */
 	terminate_handler set_terminate(terminate_handler f) noexcept
 	{
@@ -1582,7 +1473,7 @@ namespace std
 	 * Terminates the program, calling a custom terminate implementation if
 	 * required.
 	 */
-	void terminate() noexcept
+    void terminate(void) noexcept
 	{
 		static __cxa_thread_info *info = thread_info();
 		if (0 != info && 0 != info->terminateHandler)

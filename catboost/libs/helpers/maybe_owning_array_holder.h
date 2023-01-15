@@ -39,16 +39,14 @@ namespace NCB {
         template <class T2>
         static TMaybeOwningArrayHolder CreateOwning(TVector<T2>&& data) {
             auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
-            const TArrayRef<T> dataRef{vectorHolder->Data};
-            return TMaybeOwningArrayHolder(dataRef, std::move(vectorHolder));
+            return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }
 
         // for Cython that does not support move semantics
         template <class T2>
         static TMaybeOwningArrayHolder CreateOwningMovedFrom(TVector<T2>& data) {
             auto vectorHolder = MakeIntrusive<NCB::TVectorHolder<T2>>(std::move(data));
-            const TArrayRef<T> dataRef{vectorHolder->Data};
-            return TMaybeOwningArrayHolder(dataRef, std::move(vectorHolder));
+            return TMaybeOwningArrayHolder(vectorHolder->Data, std::move(vectorHolder));
         }
 
         template <class T2>

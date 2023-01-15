@@ -4,12 +4,12 @@
 #include <errno.h>
 
 #if defined(_win_)
-    #include "winint.h"
+#include "winint.h"
 #else
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
-class TMutex::TImpl {
+class TSysMutex::TImpl {
 public:
     inline TImpl() {
 #if defined(_win_)
@@ -66,7 +66,7 @@ public:
 
 #if defined(_win_)
     static bool TryEnterCriticalSectionInt(CRITICAL_SECTION* obj) {
-    #if (_WIN32_WINNT < 0x0400)
+#if (_WIN32_WINNT < 0x0400)
         if (-1L == ::InterlockedCompareExchange(&obj->LockCount, 0, -1)) {
             obj->OwningThread = (HANDLE)(DWORD_PTR)::GetCurrentThreadId();
             obj->RecursionCount = 1;
@@ -81,9 +81,9 @@ public:
         }
 
         return false;
-    #else  // _WIN32_WINNT < 0x0400
+#else  // _WIN32_WINNT < 0x0400
         return TryEnterCriticalSection(obj);
-    #endif // _WIN32_WINNT < 0x0400
+#endif // _WIN32_WINNT < 0x0400
     }
 #endif // _win_
 
@@ -120,27 +120,27 @@ private:
 #endif
 };
 
-TMutex::TMutex()
+TSysMutex::TSysMutex()
     : Impl_(new TImpl())
 {
 }
 
-TMutex::TMutex(TMutex&&) noexcept = default;
+TSysMutex::TSysMutex(TSysMutex&&) = default;
 
-TMutex::~TMutex() = default;
+TSysMutex::~TSysMutex() = default;
 
-void TMutex::Acquire() noexcept {
+void TSysMutex::Acquire() noexcept {
     Impl_->Acquire();
 }
 
-bool TMutex::TryAcquire() noexcept {
+bool TSysMutex::TryAcquire() noexcept {
     return Impl_->TryAcquire();
 }
 
-void TMutex::Release() noexcept {
+void TSysMutex::Release() noexcept {
     Impl_->Release();
 }
 
-void* TMutex::Handle() const noexcept {
+void* TSysMutex::Handle() const noexcept {
     return Impl_->Handle();
 }

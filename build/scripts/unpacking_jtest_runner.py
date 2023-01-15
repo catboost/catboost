@@ -60,8 +60,8 @@ def dump_event(etype, data, filename):
         afile.write(unicode(json.dumps(event) + '\n'))
 
 
-def dump_chunk_event(data, filename):
-    return dump_event('chunk-event', data, filename)
+def dump_suite_event(data, filename):
+    return dump_event('suite-event', data, filename)
 
 
 def extract_jars(dest, archive):
@@ -89,7 +89,6 @@ def make_command_file_from_cp(class_path, out):
 
 
 def main():
-    s = time.time()
     opts, args = parse_args()
 
     # unpack tests jar
@@ -100,13 +99,18 @@ def main():
         build_root = ''
         dest = os.path.abspath('test-classes')
 
+    s = time.time()
+
     extract_jars(dest, opts.tests_jar_path)
 
-    metrics = {
-        'suite_jtest_extract_jars_(seconds)': time.time() - s,
-    }
+    if (opts.trace_file):
+        metrics = {
+            'metrics': {
+                'suite_jtest_extract_jars_(seconds)': int(time.time() - s),
+            }
+        }
+        dump_suite_event(metrics, opts.trace_file)
 
-    s = time.time()
     # fix java classpath
     cp_idx = args.index('-classpath')
     if args[cp_idx + 1].startswith('@'):
@@ -131,12 +135,6 @@ def main():
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
         args = fix_cmd(args[:cp_idx]) + args[cp_idx:]
-
-    metrics['suite_jtest_fix_classpath_(seconds)'] = time.time() - s
-
-    if opts.trace_file:
-        dump_chunk_event({'metrics': metrics}, opts.trace_file)
-
     # run java cmd
     if platform.system() == 'Windows':
         sys.exit(subprocess.Popen(args).wait())

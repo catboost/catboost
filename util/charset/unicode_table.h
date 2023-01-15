@@ -3,6 +3,7 @@
 #include <util/system/yassert.h>
 #include <util/system/defaults.h>
 #include <util/generic/typetraits.h>
+#include <util/generic/yexception.h>
 
 namespace NUnicodeTable {
     template <class Value>

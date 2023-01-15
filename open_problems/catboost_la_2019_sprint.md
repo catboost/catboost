@@ -153,7 +153,7 @@ util/generic/maybe.h
 TMaybe<T> ≈ std::optional
 
 util/generic/variant.h
-std::variant<T> ≈ std::variant:
+TVariant<T> ≈ std::variant:
 
 ## Code Style:
 

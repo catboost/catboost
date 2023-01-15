@@ -8,5 +8,5 @@ namespace NCB {
         TVector<const TModelCtr*> ModelCtrs;
     };
 
-    TVector<TCompressedModelCtr> CompressModelCtrs(const TConstArrayRef<TModelCtr> neededCtrs);
+    TVector<TCompressedModelCtr> CompressModelCtrs(const TVector<TModelCtr>& neededCtrs);
 } // namespace NCB

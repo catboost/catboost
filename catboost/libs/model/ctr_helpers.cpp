@@ -1,7 +1,7 @@
 #include "ctr_helpers.h"
 
 namespace NCB {
-    TVector<TCompressedModelCtr> CompressModelCtrs(const TConstArrayRef<TModelCtr> neededCtrs) {
+    TVector<TCompressedModelCtr> CompressModelCtrs(const TVector<TModelCtr>& neededCtrs) {
         TVector<TCompressedModelCtr> compressedModelCtrs;
         compressedModelCtrs.emplace_back(TCompressedModelCtr{&neededCtrs[0].Base.Projection, {&neededCtrs[0]}});
         for (size_t i = 1; i < neededCtrs.size(); ++i) {

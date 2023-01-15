@@ -4,7 +4,6 @@
 #include <catboost/private/libs/options/oblivious_tree_options.h>
 
 #include <util/generic/algorithm.h>
-#include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/system/guard.h>
@@ -31,7 +30,7 @@ TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(
         } else {
             splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
             splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[splitEnsemble] = THolder<TVector<TBucketStats, TPoolAllocator>>(splitStats);
+            Stats[splitEnsemble] = splitStats;
             *areStatsDirty = true;
         }
     }
@@ -60,7 +59,7 @@ TVector<TBucketStats> TBucketStatsCache::GetStatsInUse(int segmentCount,
     return stats;
 }
 
-void TCalcScoreFold::TVectorSlicing::Create(const NPar::ILocalExecutor::TExecRangeParams& docBlockParams) {
+void TCalcScoreFold::TVectorSlicing::Create(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams) {
     Total = docBlockParams.LastId;
     Slices.yresize(docBlockParams.GetBlockCount());
     for (int sliceIdx = 0; sliceIdx < docBlockParams.GetBlockCount(); ++sliceIdx) {
@@ -70,9 +69,9 @@ void TCalcScoreFold::TVectorSlicing::Create(const NPar::ILocalExecutor::TExecRan
 }
 
 void TCalcScoreFold::TVectorSlicing::CreateByControl(
-    const NPar::ILocalExecutor::TExecRangeParams& docBlockParams,
+    const NPar::TLocalExecutor::TExecRangeParams& docBlockParams,
     const TUnsizedVector<bool>& control,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     Slices.yresize(docBlockParams.GetBlockCount());
     const bool* controlData = GetDataPtr(control);
@@ -101,7 +100,7 @@ void TCalcScoreFold::TVectorSlicing::CreateByControl(
 
 void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfo(
     const TVector<TQueryInfo>& srcQueriesInfo,
-    const NPar::ILocalExecutor::TExecRangeParams& queryBlockParams
+    const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams
 ) {
     CB_ENSURE(srcQueriesInfo.size() > 0, "Empty srcQueriesInfo");
 
@@ -119,10 +118,10 @@ void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfo(
 
 void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfoAndControl(
     const TVector<TQueryInfo>& srcQueriesInfo,
-    const NPar::ILocalExecutor::TExecRangeParams& queryBlockParams,
+    const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams,
     const TUnsizedVector<bool>& control,
     bool isPairwiseScoring,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TQueryInfo>* dstQueriesInfo
 ) {
     int srcQueriesSize = srcQueriesInfo.ysize();
@@ -292,81 +291,6 @@ void TCalcScoreFold::Create(
     LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
 }
 
-
-template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
-static inline void SetElementsDenseUnrolled(
-    TArrayRef<const bool> srcControlRef,
-    TSrcRef srcRef,
-    TGetElementFunc GetElementFunc,
-    TDstRef dstRef,
-    size_t* endElementIdx,
-    size_t* sourceIdx
-) {
-    const auto* sourceData = srcRef.data();
-    const size_t sourceCount = srcRef.size();
-    auto* __restrict destinationData = dstRef.data();
-    const size_t destinationCount = dstRef.size();
-    const bool* controlData = srcControlRef.data();
-    size_t dstIdx = *endElementIdx;
-    size_t srcIdx = *sourceIdx;
-    for (; srcIdx + 4 <= sourceCount && dstIdx + 4 <= destinationCount; srcIdx += 4) {
-        const auto sourceElement0 = GetElementFunc(sourceData, srcIdx + 0);
-        const auto sourceElement1 = GetElementFunc(sourceData, srcIdx + 1);
-        const auto sourceElement2 = GetElementFunc(sourceData, srcIdx + 2);
-        const auto sourceElement3 = GetElementFunc(sourceData, srcIdx + 3);
-        const auto destinationIdx0 = dstIdx;
-        const auto destinationIdx1 = destinationIdx0 + controlData[srcIdx + 0];
-        const auto destinationIdx2 = destinationIdx1 + controlData[srcIdx + 1];
-        const auto destinationIdx3 = destinationIdx2 + controlData[srcIdx + 2];
-        dstIdx = destinationIdx3 + controlData[srcIdx + 3];
-        destinationData[destinationIdx0] = sourceElement0;
-        destinationData[destinationIdx1] = sourceElement1;
-        destinationData[destinationIdx2] = sourceElement2;
-        destinationData[destinationIdx3] = sourceElement3;
-    }
-    *endElementIdx = dstIdx;
-    *sourceIdx = srcIdx;
-}
-
-
-template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
-static inline void SetElementsSparse(
-    TArrayRef<const bool> srcControlRef,
-    TSrcRef srcRef,
-    TGetElementFunc GetElementFunc,
-    TDstRef dstRef,
-    size_t* endElementIdx,
-    size_t* sourceIdx
-) {
-    const auto* sourceData = srcRef.data();
-    const size_t sourceCount = srcRef.size();
-    auto* __restrict destinationData = dstRef.data();
-    const size_t destinationCount = dstRef.size();
-    const bool* controlData = srcControlRef.data();
-    size_t dstIdx = *endElementIdx;
-    size_t srcIdx = *sourceIdx;
-    constexpr auto boolsPerUi64 = sizeof(ui64) / sizeof(bool);
-    while (dstIdx < destinationCount) {
-        for (; srcIdx + boolsPerUi64 <= sourceCount; srcIdx += boolsPerUi64) {
-            if (*reinterpret_cast<const ui64*>(controlData + srcIdx) != 0) {
-                break;
-            }
-        }
-        while (srcIdx < sourceCount && !controlData[srcIdx]) {
-            ++srcIdx;
-        }
-        if (srcIdx >= sourceCount) {
-            break;
-        }
-        destinationData[dstIdx] = GetElementFunc(sourceData, srcIdx);
-        ++dstIdx;
-        ++srcIdx;
-    }
-    *endElementIdx = dstIdx;
-    *sourceIdx = srcIdx;
-}
-
-
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
 static inline void SetElements(
     TArrayRef<const bool> srcControlRef,
@@ -377,20 +301,20 @@ static inline void SetElements(
 ) {
     const auto* sourceData = srcRef.data();
     const size_t sourceCount = srcRef.size();
+    auto* __restrict destinationData = dstRef.data();
     const size_t destinationCount = dstRef.size();
     if (sourceData != nullptr && srcControlRef.size() == destinationCount) {
-        auto* __restrict destinationData = dstRef.data();
         Copy(sourceData, sourceData + sourceCount, destinationData);
         *dstCount = sourceCount;
         return;
     }
+    const bool* controlData = srcControlRef.data();
     size_t endElementIdx = 0;
-    size_t sourceIdx = 0;
-    const bool isDenseControl = sourceCount <= destinationCount * 64;
-    if (isDenseControl) {
-        SetElementsDenseUnrolled(srcControlRef, srcRef, GetElementFunc, dstRef, &endElementIdx, &sourceIdx);
+#pragma unroll(4)
+    for (size_t sourceIdx = 0; sourceIdx < sourceCount && endElementIdx < destinationCount; ++sourceIdx) {
+        destinationData[endElementIdx] = GetElementFunc(sourceData, sourceIdx);
+        endElementIdx += controlData[sourceIdx];
     }
-    SetElementsSparse(srcControlRef, srcRef, GetElementFunc, dstRef, &endElementIdx, &sourceIdx);
     *dstCount = endElementIdx;
 }
 
@@ -508,7 +432,7 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
 void TCalcScoreFold::SelectSmallestSplitSide(
     int curDepth,
     const TCalcScoreFold& fold,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     SetSmallestSideControl(curDepth, fold.DocCount, fold.Indices, localExecutor);
 
@@ -576,7 +500,7 @@ static void CalcCumulativeOffsets(const TVector<ui32>& counts, TVector<ui32>* of
 }
 
 // primarily for sampling per tree level
-void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::ILocalExecutor* localExecutor) {
+void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* localExecutor) {
     if (leafCount == 1) {
         LeavesCount = 1;
         LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
@@ -625,7 +549,7 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::ILocalExecutor* l
                 ++blockDocsInLeaf[indicesRef[doc]];
             }
         },
-        NPar::ILocalExecutor::TExecRangeParams(0, blockCount),
+        NPar::TLocalExecutor::TExecRangeParams(0, blockCount),
         NPar::TLocalExecutor::WAIT_COMPLETE);
 
     // count total docs for each leaf
@@ -690,7 +614,7 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::ILocalExecutor* l
                 }
             }
         },
-        NPar::ILocalExecutor::TExecRangeParams(0, blockCount),
+        NPar::TLocalExecutor::TExecRangeParams(0, blockCount),
         NPar::TLocalExecutor::WAIT_COMPLETE);
 
     SampleWeights = std::move(newSampleWeights);
@@ -713,20 +637,19 @@ void TCalcScoreFold::Sample(
     const TFold& fold,
     ESamplingUnit samplingUnit,
     bool hasOfflineEstimatedFeatures,
-    TConstArrayRef<TIndexType> indices,
+    const TVector<TIndexType>& indices,
     TRestorableFastRng64* rand,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     bool performRandomChoice,
     bool shouldSortByLeaf,
     ui32 leavesCount
 ) {
-    int objectCount = SafeIntegerCast<int>(indices.size());
     if (performRandomChoice) {
-        SetSampledControl(objectCount, samplingUnit, fold.LearnQueriesInfo, rand);
+        SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
     } else {
         BernoulliSampleRate = 0.0f;
         Y_ASSERT(samplingUnit == ESamplingUnit::Object);
-        SetControlNoZeroWeighted(objectCount, fold.SampleWeights.data());
+        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data());
     }
 
     TVectorSlicing srcBlocks;
@@ -735,7 +658,7 @@ void TCalcScoreFold::Sample(
 
     CreateBlocksAndUpdateQueriesInfoByControl(
         localExecutor,
-        objectCount,
+        indices.ysize(),
         fold.LearnQueriesInfo,
         &blockCount,
         &srcBlocks,
@@ -788,8 +711,8 @@ void TCalcScoreFold::Sample(
     }
 }
 
-void TCalcScoreFold::UpdateIndices(TConstArrayRef<TIndexType> indices, NPar::ILocalExecutor* localExecutor) {
-    NPar::ILocalExecutor::TExecRangeParams blockParams(0, indices.size());
+void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, indices.ysize());
     blockParams.SetBlockSize(2000);
     const int blockCount = blockParams.GetBlockCount();
     TVectorSlicing srcBlocks;
@@ -874,7 +797,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
     TIndexType leftChildIdx,
     TIndexType rightChildIdx,
     const TVector<TIndexType>& indices,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TFoldPartitionOutput::TSlice* out
 ) {
     const auto leafBounds = LeavesBounds[leaf];
@@ -997,7 +920,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
     TIndexType leftChildIdx,
     TIndexType rightChildIdx,
     const TVector<TIndexType>& indices,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     Y_ASSERT(GetBodyTailCount() == 1);
 
@@ -1018,7 +941,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
     const TVector<TIndexType>& leafs,
     const TVector<TIndexType>& childs,
     const TVector<TIndexType>& indices,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     Y_ASSERT(GetBodyTailCount() == 1);
     Y_ASSERT(childs.size() == 2 * leafs.size());
@@ -1043,7 +966,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
                 &slice);
         },
         0,
-        SafeIntegerCast<int>(leafs.size()),
+        leafs.size(),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
 
@@ -1058,7 +981,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
 }
 
 // for symmetric
-void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::ILocalExecutor* localExecutor) {
+void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
     TVector<TIndexType> leafs(LeavesCount);
     TVector<TIndexType> childs(2 * LeavesCount);
     for (auto idx : xrange(LeavesCount)) {
@@ -1098,11 +1021,11 @@ void TCalcScoreFold::SetSmallestSideControl(
     int curDepth,
     int docCount,
     const TUnsizedVector<TIndexType>& indices,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     Y_ASSERT(curDepth > 0);
 
-    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockSize(4000);
     const int blockCount = blockParams.GetBlockCount();
 
@@ -1161,16 +1084,19 @@ void TCalcScoreFold::SetSampledControl(
         Fill(Control.begin(), Control.end(), true);
         return;
     }
+    ui32 sampleSize = 0;
     if (samplingUnit == ESamplingUnit::Group) {
         for (auto& queryInfo : queriesInfo) {
             auto itBegin = GetDataPtr(Control, queryInfo.Begin);
             auto itEnd = GetDataPtr(Control, queryInfo.End);
             auto isTaken = rand->GenRandReal1() < BernoulliSampleRate;
+            sampleSize += isTaken;
             Fill(itBegin, itEnd, isTaken);
         }
     } else {
         for (int docIdx = 0; docIdx < docCount; ++docIdx) {
             Control[docIdx] = rand->GenRandReal1() < BernoulliSampleRate;
+            sampleSize += Control[docIdx];
         }
     }
 }
@@ -1180,13 +1106,15 @@ void TCalcScoreFold::SetControlNoZeroWeighted(
     const float* sampleWeights
 ) {
     constexpr float EPS = std::numeric_limits<float>::epsilon();
+    ui32 sampleSize = 0;
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
         Control[docIdx] = sampleWeights[docIdx] > EPS;
+        sampleSize += Control[docIdx];
     }
 }
 
 void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     int srcDocCount,
     const TVector<TQueryInfo>& srcQueriesInfo,
     int* blockCount,
@@ -1195,7 +1123,7 @@ void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
     TVector<TQueryInfo>* dstQueriesInfo
 ) {
     if ((srcDocCount > 0) && (srcQueriesInfo.size() > 1)) {
-        NPar::ILocalExecutor::TExecRangeParams queryBlockParams(0, srcQueriesInfo.size());
+        NPar::TLocalExecutor::TExecRangeParams queryBlockParams(0, srcQueriesInfo.size());
         queryBlockParams.SetBlockSize(Max((int)(2000 * i64(srcQueriesInfo.ysize()) / srcDocCount), 1));
         *blockCount = queryBlockParams.GetBlockCount();
 
@@ -1209,7 +1137,7 @@ void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
             dstQueriesInfo
         );
     } else {
-        NPar::ILocalExecutor::TExecRangeParams docBlockParams(0, srcDocCount);
+        NPar::TLocalExecutor::TExecRangeParams docBlockParams(0, srcDocCount);
         docBlockParams.SetBlockSize(2000);
         *blockCount = docBlockParams.GetBlockCount();
 

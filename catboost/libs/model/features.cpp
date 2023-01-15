@@ -49,7 +49,7 @@ void TFloatFeature::FBDeserialize(const NCatBoostFbs::TFloatFeature* fbObj) {
         Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
     }
     if (fbObj->FeatureId()) {
-        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
+        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->Length());
     }
 }
 
@@ -120,19 +120,6 @@ flatbuffers::Offset<NCatBoostFbs::TTextFeature> TTextFeature::FBSerialize(
     );
 }
 
-flatbuffers::Offset<NCatBoostFbs::TEmbeddingFeature> TEmbeddingFeature::FBSerialize(
-        flatbuffers::FlatBufferBuilder& builder
-) const {
-    return NCatBoostFbs::CreateTEmbeddingFeatureDirect(
-        builder,
-        Position.Index,
-        Position.FlatIndex,
-        FeatureId.empty() ? nullptr : FeatureId.data(),
-        Dimension,
-        IsUsedInModel
-    );
-}
-
 void TTextFeature::FBDeserialize(const NCatBoostFbs::TTextFeature* fbObj) {
     Position.Index = fbObj->Index();
     Position.FlatIndex = fbObj->FlatIndex();
@@ -142,36 +129,24 @@ void TTextFeature::FBDeserialize(const NCatBoostFbs::TTextFeature* fbObj) {
     IsUsedInModel = fbObj->UsedInModel();
 }
 
-void TEmbeddingFeature::FBDeserialize(const NCatBoostFbs::TEmbeddingFeature* fbObj) {
-    Position.Index = fbObj->Index();
-    Position.FlatIndex = fbObj->FlatIndex();
-    if (fbObj->FeatureId()) {
-        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
-    }
-    Dimension = fbObj->Dimension();
-    IsUsedInModel = fbObj->UsedInModel();
-}
-
 flatbuffers::Offset<NCatBoostFbs::TEstimatedFeature> TEstimatedFeature::FBSerialize(
     flatbuffers::FlatBufferBuilder& builder
 ) const {
-    const auto calcerFbsGuid = CreateFbsGuid(ModelEstimatedFeature.CalcerId);
+    const auto calcerFbsGuid = CreateFbsGuid(CalcerId);
     return NCatBoostFbs::CreateTEstimatedFeatureDirect(
         builder,
-        ModelEstimatedFeature.SourceFeatureId,
+        SourceFeatureIndex,
         &calcerFbsGuid,
-        ModelEstimatedFeature.LocalId,
-        &Borders,
-        SourceFeatureTypeToFbsEnumValue(ModelEstimatedFeature.SourceFeatureType)
+        LocalIndex,
+        &Borders
     );
 }
 
 void TEstimatedFeature::FBDeserialize(const NCatBoostFbs::TEstimatedFeature* fbObj) {
-    ModelEstimatedFeature.SourceFeatureId = fbObj->SourceFeatureIndex();
-    ModelEstimatedFeature.CalcerId = GuidFromFbs(fbObj->CalcerId());
-    ModelEstimatedFeature.LocalId = fbObj->LocalIndex();
+    SourceFeatureIndex = fbObj->SourceFeatureIndex();
+    CalcerId = GuidFromFbs(fbObj->CalcerId());
+    LocalIndex = fbObj->LocalIndex();
     if (fbObj->Borders()) {
         Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
     }
-    ModelEstimatedFeature.SourceFeatureType = SourceFeatureTypeFromFbsEnumValue(fbObj->SourceFeatureType());
 }

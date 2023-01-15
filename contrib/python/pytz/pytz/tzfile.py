@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 $Id: tzfile.py,v 1.8 2004/06/03 00:15:24 zenzen Exp $
 '''

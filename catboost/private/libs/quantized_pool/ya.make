@@ -24,7 +24,7 @@ PEERDIR(
     catboost/private/libs/quantization_schema
     catboost/private/libs/validate_fb
     contrib/libs/flatbuffers
-    library/cpp/object_factory
+    library/object_factory
 )
 
 GENERATE_ENUM_SERIALIZATION(print.h)

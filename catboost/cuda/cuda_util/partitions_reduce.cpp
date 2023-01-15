@@ -6,8 +6,6 @@
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/update_part_props.cuh>
 
-#include <util/generic/cast.h>
-
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TSingleMapping;
 using NCudaLib::TStripeMapping;
@@ -48,7 +46,7 @@ namespace {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), SafeIntegerCast<ui32>(PartIds.Size()));
+            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), PartIds.Size());
             context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
             return context;
         }
@@ -56,10 +54,10 @@ namespace {
         void Run(const TCudaStream& stream, TKernelContext& context) const {
             NKernel::UpdatePartitionsProps(Partitions.Get(),
                                            PartIds.Get(),
-                                           SafeIntegerCast<ui32>(PartIds.Size()),
+                                           PartIds.Size(),
                                            Input.Get(),
                                            Input.GetColumnCount(),
-                                           SafeIntegerCast<ui32>(Input.AlignedColumnSize()),
+                                           Input.AlignedColumnSize(),
                                            context.TempVarsCount,
                                            context.PartResults.Get(),
                                            Output.Get(),
@@ -126,7 +124,7 @@ namespace {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), SafeIntegerCast<ui32>(Offsets.Size()));
+            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), Offsets.Size());
             context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
             return context;
         }
@@ -135,10 +133,10 @@ namespace {
             CB_ENSURE(Input.GetColumnCount());
             CB_ENSURE(Offsets.Size() > 1);
             NKernel::UpdatePartitionsPropsForOffsets(Offsets.Get(),
-                                                     SafeIntegerCast<ui32>(Offsets.Size()) - 1,
+                                                     Offsets.Size() - 1,
                                                      Input.Get(),
                                                      Input.GetColumnCount(),
-                                                     SafeIntegerCast<ui32>(Input.AlignedColumnSize()),
+                                                     Input.AlignedColumnSize(),
                                                      context.TempVarsCount,
                                                      context.PartResults.Get(),
                                                      Output.Get(),

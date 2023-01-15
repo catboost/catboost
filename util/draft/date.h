@@ -38,8 +38,6 @@ public:
         return Timestamp;
     }
 
-    time_t GetStartUTC() const;
-
     TString ToStroka(const char* format = "%Y%m%d") const;
 
     TDate& operator++() {

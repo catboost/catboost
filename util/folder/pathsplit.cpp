@@ -1,5 +1,7 @@
 #include "pathsplit.h"
 
+#include "dirut.h"
+
 #include <util/stream/output.h>
 #include <util/generic/yexception.h>
 
@@ -15,8 +17,8 @@ static inline size_t ToReserve(const T& t) {
 }
 
 void TPathSplitTraitsUnix::DoParseFirstPart(const TStringBuf part) {
-    if (part == TStringBuf(".")) {
-        push_back(TStringBuf("."));
+    if (part == AsStringBuf(".")) {
+        push_back(AsStringBuf("."));
 
         return;
     }
@@ -44,8 +46,8 @@ void TPathSplitTraitsUnix::DoParsePart(const TStringBuf part0) {
 void TPathSplitTraitsWindows::DoParseFirstPart(const TStringBuf part0) {
     TStringBuf part(part0);
 
-    if (part == TStringBuf(".")) {
-        push_back(TStringBuf("."));
+    if (part == AsStringBuf(".")) {
+        push_back(AsStringBuf("."));
 
         return;
     }
@@ -105,9 +107,9 @@ TString TPathSplitStore::DoReconstruct(const TStringBuf slash) const {
 }
 
 void TPathSplitStore::AppendComponent(const TStringBuf comp) {
-    if (!comp || comp == TStringBuf(".")) {
+    if (!comp || comp == AsStringBuf(".")) {
         ; // ignore
-    } else if (comp == TStringBuf("..") && !empty() && back() != TStringBuf("..")) {
+    } else if (comp == AsStringBuf("..") && !empty() && back() != AsStringBuf("..")) {
         pop_back();
     } else {
         // push back first .. also

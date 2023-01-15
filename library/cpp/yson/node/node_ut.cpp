@@ -1,7 +1,7 @@
 #include "node.h"
 #include "node_io.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/ysaveload.h>
 
@@ -345,14 +345,12 @@ Y_UNIT_TEST_SUITE(YtNodeTest) {
         UNIT_ASSERT_EXCEPTION(TNode(-5.3).ConvertTo<ui8>(), TNode::TTypeError);
         UNIT_ASSERT_EXCEPTION(TNode(-5.3).ConvertTo<ui64>(), TNode::TTypeError);
 
-        UNIT_ASSERT_VALUES_EQUAL(TNode(127.0).ConvertTo<i8>(), 127);
-        UNIT_ASSERT_EXCEPTION(TNode(128.0).ConvertTo<i8>(), TNode::TTypeError);
-        UNIT_ASSERT_VALUES_EQUAL(TNode(255.0).ConvertTo<ui8>(), 255);
+        UNIT_ASSERT_EXCEPTION(TNode(256.0).ConvertTo<i8>(), TNode::TTypeError);
         UNIT_ASSERT_EXCEPTION(TNode(256.0).ConvertTo<ui8>(), TNode::TTypeError);
         UNIT_ASSERT_EXCEPTION(TNode(1e100).ConvertTo<i64>(), TNode::TTypeError);
         UNIT_ASSERT_EXCEPTION(TNode(1e100).ConvertTo<ui64>(), TNode::TTypeError);
         {
-            double v = 1ull << 63;
+            double v = (1ull << 63) + (1ull);
             TNode node = v;
             UNIT_ASSERT(node.IsDouble());
             UNIT_ASSERT_EXCEPTION(node.ConvertTo<i64>(), TNode::TTypeError);

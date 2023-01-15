@@ -1,7 +1,7 @@
 #include "bitops.h"
 #include "ymath.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/output.h>
 #include <util/datetime/cputimer.h>

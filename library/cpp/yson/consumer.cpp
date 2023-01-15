@@ -1,15 +1,14 @@
 #include "consumer.h"
-#include "string.h"
+
 #include "parser.h"
 
-namespace NYson {
-
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
-    void TYsonConsumerBase::OnRaw(TStringBuf str, NYT::NYson::EYsonType type) {
-        ParseYsonStringBuffer(str, this, type);
+    void TYsonConsumerBase::OnRaw(const TStringBuf& yson, EYsonType type) {
+        ParseYsonStringBuffer(yson, this, type);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

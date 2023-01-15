@@ -4,11 +4,10 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/fastlz
+    contrib/libs/lz4
     contrib/libs/minilzo
     contrib/libs/quicklz
-
-    library/cpp/streams/lz/snappy
-    library/cpp/streams/lz/lz4
+    contrib/libs/snappy
 )
 
 SRCS(
@@ -16,7 +15,3 @@ SRCS(
 )
 
 END()
-
-RECURSE_FOR_TESTS(
-    ut
-)

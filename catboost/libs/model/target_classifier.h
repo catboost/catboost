@@ -10,16 +10,15 @@ class TTargetClassifier {
 public:
     TTargetClassifier() = default;
 
-    TTargetClassifier(const TVector<float>& borders, ui32 targetId)
-        : TargetId(targetId), Borders(borders)
+    explicit TTargetClassifier(const TVector<float>& borders)
+        : Borders(borders)
     {
     }
-
     bool operator==(const TTargetClassifier& other) const {
-        return Borders == other.Borders && TargetId == other.TargetId;
+        return Borders == other.Borders;
     }
-    SAVELOAD(TargetId, Borders);
-    Y_SAVELOAD_DEFINE(TargetId, Borders);
+    SAVELOAD(Borders);
+    Y_SAVELOAD_DEFINE(Borders);
 
     int GetTargetClass(double target) const {
         int resClass = 0;
@@ -33,11 +32,6 @@ public:
         return Borders.ysize() + 1;
     }
 
-    ui32 GetTargetId() const {
-        return TargetId;
-    }
-
 private:
-    ui32 TargetId = 0;
     TVector<float> Borders;
 };

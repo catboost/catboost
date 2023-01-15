@@ -10,7 +10,7 @@ TVector<TLeafStatistics> BuildSubset(
     int sampleCount,
     double sumWeight,
     bool needSampleWeights,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     const int approxDimension = approx.ysize();
     TVector<TLeafStatistics> leafStatistics(

@@ -32,7 +32,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/grid_creator
-    library/cpp/threading/local_executor
+    library/threading/local_executor
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
     catboost/cuda/data
@@ -41,7 +41,6 @@ PEERDIR(
     catboost/libs/data
     catboost/libs/helpers
     catboost/private/libs/quantization
-    catboost/private/libs/quantized_pool
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

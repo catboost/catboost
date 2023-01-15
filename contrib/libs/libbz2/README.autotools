@@ -1,0 +1,39 @@
+bzip2 autoconfiscated
+=====================
+
+Temporarily at http://ftp.suse.com/pub/people/sbrabec/bzip2/ expecting
+that it will become a new upstream version to prevent per-distribution
+shared library patching done by nearly each Linux vendor separately.
+
+Autoconfiscation brings standard ./configure ; make ; make install
+installation, seamless support of DESTDIR, automatic check for supported
+CFLAGS, standard shared library support, automatic large files CFLAGS
+check and all things that are supported by automake.
+
+It makes obsolete Makefile-libbz2_so and README.COMPILATION.PROBLEMS.
+Now configure should automatically detect correct build flags.
+
+In case of any problem or question with autotools support feel free to
+contact me: Stanislav Brabec <sbrabec@suse.cz>
+
+Autoconfiscated version bzip2-1.0.6.0.1.tar.gz binaries are exactly
+equal to bzip2-1.0.6.tar.gz. There are only few changes. See below.
+
+
+New features:
+
+Trivial link man pages for bzcat and bunzip2 added.
+
+bzip2.pc file for pkg-config. Packages can use it for checks.
+
+
+Incompatible changes:
+
+soname change. Libtool has no support for two parts soname suffix (e. g.
+libbz2.so.1.0). It must be a single number (e. g. libbz2.so.1). That is
+why soname must change. But I see not a big problem with it. Several
+distributions already use the new number instead of the non-standard
+number from Makefile-libbz2_so.
+
+To be super-safe, I incremented minor number of the library file, so
+both instances of the shared library can live together.

@@ -12,7 +12,7 @@ namespace NCB {
         return (it != featurePenalties.end() ? it->second : NCatboostOptions::DEFAULT_FEATURE_WEIGHT);
     }
 
-    float GetSplitFeatureWeight(
+    static float GetSplitFeatureWeight(
         const TSplit& split,
         const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
         const TFeaturesLayout& layout,
@@ -156,7 +156,7 @@ namespace NCB {
         return result;
     }
 
-    void PenalizeBestSplits(
+    void AddFeaturePenaltiesToBestSplits(
         const TVector<TIndexType>& leaves,
         const TLearnContext& ctx,
         const TTrainingDataProviders& trainingData,
@@ -165,6 +165,7 @@ namespace NCB {
         TVector<TCandidateInfo>* candidates
     ) {
         const auto& featurePenaltiesOptions = ctx.Params.ObliviousTreeOptions->FeaturePenalties.Get();
+        const NCatboostOptions::TPerFeaturePenalty& featureWeights = featurePenaltiesOptions.FeatureWeights;
         const float penaltiesCoefficient = featurePenaltiesOptions.PenaltiesCoefficient;
         const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty = featurePenaltiesOptions.FirstFeatureUsePenalty;
         const NCatboostOptions::TPerFeaturePenalty& perObjectPenalty = featurePenaltiesOptions.PerObjectFeaturePenalty;
@@ -182,12 +183,15 @@ namespace NCB {
         ); // caches results for already calculated features
 
         for (auto& cand : *candidates) {
-            if (cand.BestScore.Val == MINIMAL_SCORE) {
-                continue;
-            }
+            double& score = cand.BestScore.Val;
             const auto bestSplit = cand.GetBestSplit(trainingData, fold, oneHotMaxSize);
 
-            double& score = cand.BestScore.Val;
+            score *= GetSplitFeatureWeight(
+                bestSplit,
+                ctx.LearnProgress->EstimatedFeaturesContext,
+                layout,
+                featureWeights
+            );
             score -= GetSplitFirstFeatureUsePenalty(
                 bestSplit,
                 ctx.LearnProgress->EstimatedFeaturesContext,

@@ -13,15 +13,9 @@
 
 #ifdef USE_INTEL_AES
 
-#if defined(__clang__)
-#define TARGET_AES __attribute__((__target__("aes")))
-#else
-#define TARGET_AES
-#endif
-
 #include <wmmintrin.h>
 
-void TARGET_AES MY_FAST_CALL AesCbc_Encode_Intel(__m128i *p, __m128i *data, size_t numBlocks)
+void MY_FAST_CALL AesCbc_Encode_Intel(__m128i *p, __m128i *data, size_t numBlocks)
 {
   __m128i m = *p;
   for (; numBlocks != 0; numBlocks--, data++)
@@ -58,7 +52,7 @@ void TARGET_AES MY_FAST_CALL AesCbc_Encode_Intel(__m128i *p, __m128i *data, size
 #define AES_ENC(n) AES_OP_W(_mm_aesenc_si128, n)
 #define AES_ENC_LAST(n) AES_OP_W(_mm_aesenclast_si128, n)
 
-void TARGET_AES MY_FAST_CALL AesCbc_Decode_Intel(__m128i *p, __m128i *data, size_t numBlocks)
+void MY_FAST_CALL AesCbc_Decode_Intel(__m128i *p, __m128i *data, size_t numBlocks)
 {
   __m128i iv = *p;
   for (; numBlocks >= NUM_WAYS; numBlocks -= NUM_WAYS, data += NUM_WAYS)
@@ -113,10 +107,12 @@ void TARGET_AES MY_FAST_CALL AesCbc_Decode_Intel(__m128i *p, __m128i *data, size
   *p = iv;
 }
 
-void TARGET_AES MY_FAST_CALL AesCtr_Code_Intel(__m128i *p, __m128i *data, size_t numBlocks)
+void MY_FAST_CALL AesCtr_Code_Intel(__m128i *p, __m128i *data, size_t numBlocks)
 {
   __m128i ctr = *p;
-  __m128i one = _mm_set_epi64x(1, 0);
+  __m128i one;
+  one.m128i_u64[0] = 1;
+  one.m128i_u64[1] = 0;
   for (; numBlocks >= NUM_WAYS; numBlocks -= NUM_WAYS, data += NUM_WAYS)
   {
     UInt32 numRounds2 = *(const UInt32 *)(p + 1) - 1;

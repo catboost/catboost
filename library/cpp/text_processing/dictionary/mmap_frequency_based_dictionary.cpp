@@ -3,9 +3,16 @@
 #include "mmap_frequency_based_dictionary_impl.h"
 #include "util.h"
 
+#include <library/json/json_reader.h>
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/charset/wide.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
+#include <util/string/split.h>
+#include <util/string/join.h>
+#include <util/string/vector.h>
 
 using namespace NTextProcessing::NDictionary;
 
@@ -162,14 +169,4 @@ void TMMapDictionary::InitFromMemory(const void* data, size_t size) {
     const ui64 restSize = size - (ptr - reinterpret_cast<const ui8*>(data));
     Y_ENSURE(restSize + 16 + dictionaryMetaInfoBufferSize == totalSize, "Incorrect data");
     DictionaryImpl->InitFromMemory(ptr, restSize);
-}
-
-size_t TMMapDictionary::CalculateExpectedSize(const void *data, size_t size) {
-    const ui8* ptr = reinterpret_cast<const ui8*>(data);
-    Y_ENSURE(size >= 16 + 8); // проверяем, что можем прочитать total size и заголовок
-    Y_ENSURE(!std::memcmp(ptr, MAGIC, MAGIC_SIZE));
-    ptr += 16;
-    const ui64 totalSize = *reinterpret_cast<const ui64*>(ptr);
-    Y_ENSURE(totalSize + 16 <= size);
-    return totalSize + 16;
 }

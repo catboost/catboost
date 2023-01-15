@@ -1,6 +1,8 @@
 import os
 import pytest
 
+pytest_plugins = "allure.pytest_plugin"
+
 
 @pytest.mark.tryfirst
 def pytest_configure(config):

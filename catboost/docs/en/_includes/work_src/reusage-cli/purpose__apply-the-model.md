@@ -1,2 +1,0 @@
-
-Apply the model.

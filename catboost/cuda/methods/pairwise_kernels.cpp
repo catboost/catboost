@@ -1,7 +1,5 @@
 #include "pairwise_kernels.h"
 
-#include <util/generic/cast.h>
-
 using namespace NKernelHost;
 
 namespace NCudaLib {
@@ -68,19 +66,7 @@ void TZeroMeanKernel::Run(const TCudaStream& stream) const {
     NKernel::ZeroMean(Solutions.GetForObject(SolutionsSlice.Left), rowSize, SolutionsSlice.Size(), stream.GetStream());
 }
 
-THolder<TCholeskySolverKernel::TKernelContext> TCholeskySolverKernel::PrepareContext(IMemoryManager& manager) const {
-    const ui32 rowSize = Solutions.ObjectSize();
-    if (!TKernelContext::UseCuSolver(rowSize, Matrices.ObjectCount())) {
-        return MakeHolder<TKernelContext>();
-    }
-
-    auto context = MakeHolder<TKernelContext>(rowSize);
-    context->AllocateBuffers(manager);
-
-    return context;
-}
-
-void TCholeskySolverKernel::Run(const TCudaStream& stream, TCholeskySolverKernel::TKernelContext& context) const {
+void TCholeskySolverKernel::Run(const TCudaStream& stream) const {
     const ui32 rowSize = Solutions.ObjectSize();
     CB_ENSURE(rowSize * (rowSize + 1) / 2 == Matrices.ObjectSize());
     CB_ENSURE(Matrices.ObjectCount() == SolutionsSlice.Size());
@@ -90,7 +76,6 @@ void TCholeskySolverKernel::Run(const TCudaStream& stream, TCholeskySolverKernel
                             rowSize,
                             static_cast<int>(SolutionsSlice.Size()),
                             RemoveLast,
-                            context,
                             stream.GetStream());
 
     if (RemoveLast) {
@@ -121,7 +106,7 @@ void TCalcScoresKernel::Run(const TCudaStream& stream) const {
 
 void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const {
     if (Depth == 0) {
-        CB_ENSURE(FullPass, "Depth 0 requires full pass");
+        Y_VERIFY(FullPass);
     }
     const auto leavesCount = static_cast<ui32>(1u << Depth);
     const ui32 partCount = leavesCount * leavesCount;
@@ -131,7 +116,7 @@ void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const {
                         static_cast<int>(Features.Size()),             \
                         FoldsHist.FeatureCountForBits(FromBit, ToBit), \
                         CompressedIndex.Get(),                         \
-                        Pairs.Get(), SafeIntegerCast<ui32>(Pairs.Size()),\
+                        Pairs.Get(), Pairs.Size(),                     \
                         Weight.Get(),                                  \
                         Partition.Get(),                               \
                         partCount,                                     \

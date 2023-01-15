@@ -1,11 +1,11 @@
 #include "main.h"
 
 #ifndef CATBOOST_OPENSOURCE
-#include <library/cpp/charset/recyr.hh>
+#include <library/charset/recyr.hh>
 #endif
 
-#include <library/cpp/containers/comptrie/comptrie.h>
-#include <library/cpp/deprecated/mapped_file/mapped_file.h>
+#include <library/comptrie/comptrie.h>
+#include <library/deprecated/mapped_file/mapped_file.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/charset/wide.h>
@@ -380,7 +380,7 @@ static int VerifyFile(const TOptions& o, const TPacker& packer) {
 
 template <class TRecord, class TPacker>
 static int SelectInput(const TOptions& o, const TPacker& packer) {
-    if ("-"sv == o.Infile) {
+    if (AsStringBuf("-") == o.Infile) {
         TBufferedInput wrapper{&Cin};
         return ProcessFile<TRecord>(wrapper, o, packer);
     }

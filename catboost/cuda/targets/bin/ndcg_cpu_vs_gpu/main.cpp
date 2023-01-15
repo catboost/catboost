@@ -8,7 +8,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/getopt/last_getopt.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/map.h>
@@ -194,7 +194,7 @@ static double RunOnCpu(
     for (ui32 iteration = 0; iteration < iterationCount; ++iteration) {
         CATBOOST_INFO_LOG << "cpu: " << LabeledOutput(description, threadCount, iteration) << "; started" << '\n';
         timer.Reset();
-        const auto ndcg = dynamic_cast<const ISingleTargetEval*>(evaluator.Get())->Eval(
+        const auto ndcg = evaluator->Eval(
             approxes,
             data.Targets,
             dummyWeights,

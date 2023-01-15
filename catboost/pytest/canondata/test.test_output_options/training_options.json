@@ -5,7 +5,6 @@
         "approx_on_full_history" : false,
         "fold_len_multiplier" : 2,
         "fold_permutation_block" : 0,
-        "posterior_sampling" : false,
         "boosting_type" : "Plain",
         "iterations" : 10,
         "model_shrink_rate" : 0,
@@ -17,9 +16,6 @@
         "boost_from_average" : false,
         "permutation_count" : 4,
         "learning_rate" : 0.133344993
-    },
-    "pool_metainfo_options" : {
-        "tags" : { }
     },
     "metrics" : {
         "objective_metric" : {
@@ -131,36 +127,27 @@
     },
     "logging_level" : "Verbose",
     "data_processing_options" : {
-        "ignored_features" : [ ],
+        "per_float_feature_quantization" : { },
+        "has_time" : false,
+        "dev_default_value_fraction_for_sparse" : 0.8299999833,
+        "allow_const_label" : false,
+        "class_names" : [
+            "0",
+            "1"
+        ],
+        "class_weights" : [ ],
+        "target_border" : null,
+        "dev_leafwise_scoring" : false,
+        "dev_sparse_array_indexing" : "Indices",
         "float_features_binarization" : {
             "border_count" : 254,
             "dev_max_subset_size_for_build_borders" : 200000,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
-        "has_time" : false,
-        "dev_sparse_array_indexing" : "Indices",
-        "allow_const_label" : false,
-        "dev_default_value_fraction_for_sparse" : 0.8299999833,
-        "class_names" : [
-            "0",
-            "1"
-        ],
-        "embedding_processing_options" : {
-            "embedding_processing" : {
-                "default" : [
-                    "LDA",
-                    "KNN"
-                ]
-            }
-        },
         "dev_group_features" : false,
-        "eval_fraction" : 0,
         "classes_count" : 0,
-        "dev_leafwise_scoring" : false,
-        "auto_class_weights" : "None",
-        "target_border" : null,
-        "force_unit_auto_pair_weights" : false,
+        "ignored_features" : [ ],
         "text_processing_options" : {
             "feature_processing" : {
                 "default" : [
@@ -233,9 +220,7 @@
                     "separator_type" : "ByDelimiter"
                 }
             ]
-        },
-        "class_weights" : [ ],
-        "per_float_feature_quantization" : { }
+        }
     },
     "loss_function" : {
         "type" : "Logloss",

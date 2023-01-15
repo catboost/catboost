@@ -20,11 +20,11 @@ value falls back to the end of the month.
 Additional resources about date/time string formats can be found below:
 
 - `A summary of the international standard date and time notation
-  <https://www.cl.cam.ac.uk/~mgk25/iso-time.html>`_
-- `W3C Date and Time Formats <https://www.w3.org/TR/NOTE-datetime>`_
+  <http://www.cl.cam.ac.uk/~mgk25/iso-time.html>`_
+- `W3C Date and Time Formats <http://www.w3.org/TR/NOTE-datetime>`_
 - `Time Formats (Planetary Rings Node) <https://pds-rings.seti.org:443/tools/time_formats.html>`_
 - `CPAN ParseDate module
-  <https://metacpan.org/pod/release/MUIR/Time-modules-2013.0912/lib/Time/ParseDate.pm>`_
+  <http://search.cpan.org/~muir/Time-modules-2013.0912/lib/Time/ParseDate.pm>`_
 - `Java SimpleDateFormat Class
   <https://docs.oracle.com/javase/6/docs/api/java/text/SimpleDateFormat.html>`_
 """
@@ -60,8 +60,14 @@ class _timelex(object):
     _split_decimal = re.compile("([.,])")
 
     def __init__(self, instream):
-        if isinstance(instream, (bytes, bytearray)):
-            instream = instream.decode()
+        if six.PY2:
+            # In Python 2, we can't duck type properly because unicode has
+            # a 'decode' function, and we'd be double-decoding
+            if isinstance(instream, (bytes, bytearray)):
+                instream = instream.decode()
+        else:
+            if getattr(instream, 'decode', None) is not None:
+                instream = instream.decode()
 
         if isinstance(instream, text_type):
             instream = StringIO(instream)
@@ -648,7 +654,7 @@ class parser(object):
         try:
             ret = self._build_naive(res, default)
         except ValueError as e:
-            six.raise_from(ParserError(str(e) + ": %s", timestr), e)
+            six.raise_from(ParserError(e.args[0] + ": %s", timestr), e)
 
         if not ignoretz:
             ret = self._build_tzaware(ret, res, tzinfos)
@@ -1353,10 +1359,10 @@ def parse(timestr, parserinfo=None, **kwargs):
         first element being a :class:`datetime.datetime` object, the second
         a tuple containing the fuzzy tokens.
 
-    :raises ParserError:
-        Raised for invalid or unknown string formats, if the provided
-        :class:`tzinfo` is not in a valid format, or if an invalid date would
-        be created.
+    :raises ValueError:
+        Raised for invalid or unknown string format, if the provided
+        :class:`tzinfo` is not in a valid format, or if an invalid date
+        would be created.
 
     :raises OverflowError:
         Raised if the parsed date exceeds the largest valid C integer on
@@ -1587,27 +1593,17 @@ def _parsetz(tzstr):
 
 
 class ParserError(ValueError):
-    """Exception subclass used for any failure to parse a datetime string.
-
-    This is a subclass of :py:exc:`ValueError`, and should be raised any time
-    earlier versions of ``dateutil`` would have raised ``ValueError``.
-
-    .. versionadded:: 2.8.1
-    """
+    """Error class for representing failure to parse a datetime string."""
     def __str__(self):
         try:
             return self.args[0] % self.args[1:]
         except (TypeError, IndexError):
             return super(ParserError, self).__str__()
 
-    def __repr__(self):
-        args = ", ".join("'%s'" % arg for arg in self.args)
-        return "%s(%s)" % (self.__class__.__name__, args)
+        def __repr__(self):
+            return "%s(%s)" % (self.__class__.__name__, str(self))
 
 
 class UnknownTimezoneWarning(RuntimeWarning):
-    """Raised when the parser finds a timezone it cannot parse into a tzinfo.
-
-    .. versionadded:: 2.7.0
-    """
+    """Raised when the parser finds a timezone it cannot parse into a tzinfo"""
 # vim:ts=4:sw=4:et

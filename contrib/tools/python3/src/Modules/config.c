@@ -52,14 +52,12 @@ extern PyObject* PyInit__io(void); // _io
 extern PyObject* PyInit__json(void); // _json
 extern PyObject* PyInit__locale(void); // _locale
 extern PyObject* PyInit__lsprof(void); // _lsprof
-extern PyObject* PyInit__lzma(void); // _lzma
 extern PyObject* PyInit__md5(void); // _md5
 extern PyObject* PyInit__multibytecodec(void); // _multibytecodec
 extern PyObject* PyInit__multiprocessing(void); // _multiprocessing
 extern PyObject* PyInit__opcode(void); // _opcode
 extern PyObject* PyInit__operator(void); // _operator
 extern PyObject* PyInit__pickle(void); // _pickle
-extern PyObject* PyInit__posixshmem(void); // _posixshmem
 #if !defined(_MSC_VER)
 extern PyObject* PyInit__posixsubprocess(void); // _posixsubprocess
 #endif
@@ -74,16 +72,13 @@ extern PyObject* PyInit__socket(void); // _socket
 extern PyObject* PyInit__sre(void); // _sre
 extern PyObject* PyInit__ssl(void); // _ssl
 extern PyObject* PyInit__stat(void); // _stat
-extern PyObject* PyInit__statistics(void); // _statistics
 extern PyObject* PyInit__string(void); // _string
 extern PyObject* PyInit__struct(void); // _struct
 extern PyObject* PyInit__symtable(void); // _symtable
 extern PyObject* PyInit__thread(void); // _thread
 extern PyObject* PyInit__tracemalloc(void); // _tracemalloc
 extern PyObject* PyInit__weakref(void); // _weakref
-extern PyObject* PyInit__xxsubinterpreters(void); // _xxsubinterpreters
 extern PyObject* PyInit__xxtestfuzz(void); // _xxtestfuzz
-extern PyObject* PyInit__zoneinfo(void); // _zoneinfo
 extern PyObject* PyInit_array(void); // array
 extern PyObject* PyInit_atexit(void); // atexit
 extern PyObject* PyInit_audioop(void); // audioop
@@ -94,15 +89,16 @@ extern PyObject* PyInit_faulthandler(void); // faulthandler
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_fcntl(void); // fcntl
 #endif
-#if defined(_MSC_VER)
-extern PyObject* PyInit_nt(void); // nt
-#endif
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_grp(void); // grp
 #endif
 extern PyObject* PyInit_itertools(void); // itertools
 extern PyObject* PyInit_math(void); // math
 extern PyObject* PyInit_mmap(void); // mmap
+#if defined(_MSC_VER)
+extern PyObject* PyInit_nt(void); // nt
+#endif
+extern PyObject* PyInit_parser(void); // parser
 #if !defined(_MSC_VER)
 extern PyObject* PyInit_posix(void); // posix
 #endif
@@ -125,6 +121,7 @@ extern PyObject* PyInit_termios(void); // termios
 #endif
 extern PyObject* PyInit_time(void); // time
 extern PyObject* PyInit_unicodedata(void); // unicodedata
+extern PyObject* PyInit_zipimport(void); // zipimport
 extern PyObject* PyInit_zlib(void); // zlib
 #if defined(__APPLE__)
 extern PyObject* PyInit__scproxy(void); // _scproxy
@@ -184,14 +181,12 @@ struct _inittab _PyImport_Inittab[] = {
     {"_json", PyInit__json},
     {"_locale", PyInit__locale},
     {"_lsprof", PyInit__lsprof},
-    {"_lzma", PyInit__lzma},
     {"_md5", PyInit__md5},
     {"_multibytecodec", PyInit__multibytecodec},
     {"_multiprocessing", PyInit__multiprocessing},
     {"_opcode", PyInit__opcode},
     {"_operator", PyInit__operator},
     {"_pickle", PyInit__pickle},
-    {"_posixshmem", PyInit__posixshmem},
 #if !defined(_MSC_VER)
     {"_posixsubprocess", PyInit__posixsubprocess},
 #endif
@@ -206,25 +201,19 @@ struct _inittab _PyImport_Inittab[] = {
     {"_sre", PyInit__sre},
     {"_ssl", PyInit__ssl},
     {"_stat", PyInit__stat},
-    {"_statistics", PyInit__statistics},
     {"_string", PyInit__string},
     {"_struct", PyInit__struct},
     {"_symtable", PyInit__symtable},
     {"_thread", PyInit__thread},
     {"_tracemalloc", PyInit__tracemalloc},
     {"_weakref", PyInit__weakref},
-    {"_xxsubinterpreters", PyInit__xxsubinterpreters},
     {"_xxtestfuzz", PyInit__xxtestfuzz},
-    {"_zoneinfo", PyInit__zoneinfo},
     {"array", PyInit_array},
     {"atexit", PyInit_atexit},
     {"audioop", PyInit_audioop},
     {"binascii", PyInit_binascii},
     {"cmath", PyInit_cmath},
     {"errno", PyInit_errno},
-#if defined(_MSC_VER)
-    {"nt", PyInit_nt},
-#endif
     {"faulthandler", PyInit_faulthandler},
 #if !defined(_MSC_VER)
     {"fcntl", PyInit_fcntl},
@@ -235,6 +224,10 @@ struct _inittab _PyImport_Inittab[] = {
     {"itertools", PyInit_itertools},
     {"math", PyInit_math},
     {"mmap", PyInit_mmap},
+#if defined(_MSC_VER)
+    {"nt", PyInit_nt},
+#endif
+    {"parser", PyInit_parser},
 #if !defined(_MSC_VER)
     {"posix", PyInit_posix},
 #endif
@@ -257,6 +250,7 @@ struct _inittab _PyImport_Inittab[] = {
 #endif
     {"time", PyInit_time},
     {"unicodedata", PyInit_unicodedata},
+    {"zipimport", PyInit_zipimport},
     {"zlib", PyInit_zlib},
 #if defined(__APPLE__)
     {"_scproxy", PyInit__scproxy},

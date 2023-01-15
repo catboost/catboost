@@ -28,4 +28,3 @@ TFullModel MultiValueFloatModel();
 // Deterministically train model that has only 3 categorical features.
 TFullModel TrainCatOnlyModel();
 
-TFullModel TrainCatOnlyNoOneHotModel();

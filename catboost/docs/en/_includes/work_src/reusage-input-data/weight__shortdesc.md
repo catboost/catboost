@@ -1,2 +1,0 @@
-
-The object's weight.

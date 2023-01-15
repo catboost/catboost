@@ -4,7 +4,6 @@
 #include "custom_objective_descriptor.h"
 #include "ders_holder.h"
 #include "hessian.h"
-#include "survival_aft_utils.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/model/eval_processing.h>
@@ -13,8 +12,8 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 #include <library/cpp/containers/2d_array/2d_array.h>
-#include <library/cpp/fast_exp/fast_exp.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/fast_exp/fast_exp.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
@@ -23,7 +22,6 @@
 #include <util/system/yassert.h>
 
 #include <cmath>
-#include <memory>
 
 class IDerCalcer {
 public:
@@ -122,7 +120,7 @@ public:
         const TVector<TQueryInfo>& /*queriesInfo*/,
         TArrayRef<TDers> /*ders*/,
         ui64 /*randomSeed*/,
-        NPar::ILocalExecutor* /*localExecutor*/
+        NPar::TLocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -218,133 +216,6 @@ public:
     }
 };
 
-class TMultiRMSEErrorWithMissingValues final : public TMultiDerCalcer {
-public:
-    explicit TMultiRMSEErrorWithMissingValues()
-        : TMultiDerCalcer(EHessianType::Diagonal) {
-    }
-
-    void CalcDers(
-        TConstArrayRef<double> approx,
-        TConstArrayRef<float> target,
-        float weight,
-        TVector<double>* der,
-        THessianInfo* der2
-    ) const override {
-        const int dim = target.size();
-        for (auto i : xrange(dim)) {
-            if (IsNan(target[i])) {
-                (*der)[i] = 0.0;
-            } else {
-                (*der)[i] = weight * (target[i] - approx[i]);
-            }
-        }
-
-        if (der2 != nullptr) {
-            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
-                     der2->ApproxDimension == dim);
-
-            for (auto i : xrange(dim)) {
-                if (IsNan(target[i])) {
-                    der2->Data[i] = 0.0;
-                } else {
-                    der2->Data[i] = -weight;
-                }
-            }
-        }
-    }
-};
-
-class TSurvivalAftError final : public TMultiDerCalcer {
-public:
-    const double Scale;
-    std::unique_ptr<NCB::IDistribution> Distribution;
-
-public:
-    explicit TSurvivalAftError(std::unique_ptr<NCB::IDistribution> distribution, double scale)
-        : TMultiDerCalcer(EHessianType::Diagonal)
-        , Scale(scale)
-        , Distribution(std::move(distribution))
-    {
-        CB_ENSURE(Scale > 0, "Scale should be positive");
-    }
-
-    void CalcDers(
-        TConstArrayRef<double> approx,
-        TConstArrayRef<float> target,
-        float weight,
-        TVector<double>* der,
-        THessianInfo* der2
-    ) const override;
-};
-
-class TRMSEWithUncertaintyError final : public TMultiDerCalcer {
-public:
-    explicit TRMSEWithUncertaintyError()
-        : TMultiDerCalcer(EHessianType::Diagonal)
-    {
-    }
-
-    void CalcDers(
-        TConstArrayRef<double> approx,
-        TConstArrayRef<float> target,
-        float weight,
-        TVector<double>* der,
-        THessianInfo* der2
-    ) const override {
-        const int dim = 2;
-        Y_ASSERT(target.size() == 1);
-        const double diff = (target[0] - approx[0]);
-        double prec = -2 * approx[1];
-        FastExpInplace(&prec, /*count*/ 1);
-        (*der)[0] = weight * diff;
-        (*der)[1] = weight * (Sqr(diff) * prec - 1);
-
-        if (der2 != nullptr) {
-            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
-                     der2->ApproxDimension == dim);
-
-            der2->Data[0] = -weight;
-            der2->Data[1] = -2 * weight * Sqr(diff) * prec;
-        }
-    }
-};
-
-class TMultiQuantileError final : public IDerCalcer {
-public:
-    static constexpr double QUANTILE_DER2_AND_DER3 = 0.0;
-
-public:
-    const TVector<double> Alpha;
-    const double Delta;
-
-public:
-    explicit TMultiQuantileError(bool isExpApprox)
-        : IDerCalcer(isExpApprox)
-        , Alpha({0.5})
-        , Delta(1e-6)
-    {
-    }
-
-    TMultiQuantileError(const TVector<double>& alpha, double delta, bool isExpApprox)
-        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, /*errorType*/ PerObjectError, EHessianType::Diagonal)
-        , Alpha(alpha)
-        , Delta(delta)
-    {
-        Y_ASSERT(AllOf(Alpha, [] (double a) { return a > -1e-6 && a < 1.0 + 1e-6; }));
-        Y_ASSERT(Delta >= 0 && Delta <= 1e-2);
-    }
-
-    void CalcDersMulti(
-        const TVector<double>& approx,
-        float target,
-        float weight,
-        TVector<double>* der,
-        THessianInfo* der2
-    ) const override;
-
-};
-
 class TCrossEntropyError final : public IDerCalcer {
 public:
     explicit TCrossEntropyError(bool isExpApprox)
@@ -398,57 +269,6 @@ private:
     double CalcDer3(double /*approx*/, float /*target*/) const override {
         return RMSE_DER3;
     }
-};
-
-class TLogCoshError final : public IDerCalcer {
-public:
-    explicit TLogCoshError(bool isExpApprox)
-        : IDerCalcer(isExpApprox)
-    {
-        CB_ENSURE(isExpApprox == false, "Approx format does not match");
-    }
-
-private:
-    double CalcDer(double approx, float target) const override {
-        return -tanh(approx - target);
-    }
-
-    double CalcDer2(double approx, float target) const override {
-        return -1 / (cosh(approx - target) * cosh(approx - target));
-    }
-
-    double CalcDer3(double approx, float target) const override {
-        return 2 * tanh(approx - target) / (cosh(approx - target) * cosh(approx - target));
-    }
-};
-
-class TCoxError final : public IDerCalcer {
-public:
-    explicit TCoxError(bool isExpApprox, ui32 maxDerivativeOrder = 3)
-        : IDerCalcer(isExpApprox, maxDerivativeOrder)
-    {
-    }
-
-    void CalcDersRange(
-        int start,
-        int count,
-        bool calcThirdDer,
-        const double* approxes,
-        const double* approxDeltas,
-        const float* targets,
-        const float* weights,
-        TDers* ders
-    ) const;
-
-    void CalcFirstDerRange(
-        int start,
-        int count,
-        const double* approxes,
-        const double* approxDeltas,
-        const float* targets,
-        const float* weights,
-        double* firstDers
-    ) const;
 };
 
 class TQuantileError final : public IDerCalcer {
@@ -747,51 +567,6 @@ public:
     }
 };
 
-class TMultiCrossEntropyError final : public TMultiDerCalcer {
-public:
-    explicit TMultiCrossEntropyError()
-        : TMultiDerCalcer(EHessianType::Diagonal){}
-
-    void CalcDers(
-        TConstArrayRef<double> approx,
-        TConstArrayRef<float> target,
-        float weight,
-        TVector<double>* der,
-        THessianInfo* der2
-    ) const override {
-        const int approxDimension = approx.ysize();
-        TArrayRef<double> derRef(*der);
-        CopyN(approx.data(), approx.ysize(), derRef.data());
-
-        FastExpInplace(derRef.data(), derRef.ysize());
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            derRef[dim] = -derRef[dim] / (1 + derRef[dim]);
-        }
-
-        if (der2 != nullptr) {
-            Y_ASSERT(der2->HessianType == EHessianType::Diagonal && der2->ApproxDimension == approxDimension);
-            for (int dim = 0; dim < approxDimension; ++ dim) {
-                der2->Data[dim] = derRef[dim] * (1 + derRef[dim]);
-            }
-        }
-
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            derRef[dim] += target[dim];
-        }
-
-        if (weight != 1) {
-            for (int dim = 0; dim < approxDimension; ++dim) {
-                derRef[dim] *= weight;
-            }
-            if (der2 != nullptr) {
-                for (int dim = 0; dim < approxDimension; ++dim) {
-                    der2->Data[dim] *= weight;
-                }
-            }
-        }
-    }
-};
-
 class TPairLogitError final : public IDerCalcer {
 public:
     explicit TPairLogitError(bool isExpApprox)
@@ -809,7 +584,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
@@ -857,7 +632,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         const int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -907,13 +682,11 @@ private:
 class TQuerySoftMaxError final : public IDerCalcer {
 public:
     const double LambdaReg;
-    const double Beta;
 
 public:
-    explicit TQuerySoftMaxError(double lambdaReg, double beta, bool isExpApprox)
+    explicit TQuerySoftMaxError(double lambdaReg, bool isExpApprox)
         : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
         , LambdaReg(lambdaReg)
-        , Beta(beta)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
@@ -927,7 +700,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 /*randomSeed*/,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const override {
         int start = queriesInfo[queryStartIndex].Begin;
         NPar::ParallelFor(
@@ -1038,10 +811,10 @@ private:
     TCustomObjectiveDescriptor Descriptor;
 };
 
-class TMultiTargetCustomError final : public TMultiDerCalcer {
+class TMultiRegressionCustomError final : public TMultiDerCalcer {
 public:
 
-    TMultiTargetCustomError(
+    TMultiRegressionCustomError(
         const NCatboostOptions::TCatBoostOptions& params,
         const TMaybe<TCustomObjectiveDescriptor>& descriptor
     )
@@ -1058,7 +831,7 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        Descriptor.CalcDersMultiTarget(approx, target, weight, der, der2, Descriptor.CustomData);
+        Descriptor.CalcDersMultiRegression(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
 private:
@@ -1126,9 +899,9 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 randomSeed,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const override {
-        NPar::ILocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
+        NPar::TLocalExecutor::TExecRangeParams blockParams(queryStartIndex, queryEndIndex);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
         const int blockSize = blockParams.GetBlockSize();
         const int blockCount = blockParams.GetBlockCount();
@@ -1200,58 +973,6 @@ private:
     }
 };
 
-class TLambdaMartError final : public IDerCalcer{
-    ELossFunction TargetMetric;
-    int TopSize;
-    ENdcgMetricType NumeratorType;          // for (N)DCG
-    ENdcgDenominatorType DenominatorType;   // for (N)DCG
-    double Sigma;
-    bool Norm;
-
-public:
-    TLambdaMartError(
-        ELossFunction targetMetric,
-        const TMap<TString, TString>& metricParams,
-        double sigma,
-        bool norm);
-
-    void CalcDersForQueries(
-        int queryStartIndex,
-        int queryEndIndex,
-        const TVector<double>& approxes,
-        const TVector<float>& target,
-        const TVector<float>& /*weights*/,
-        const TVector<TQueryInfo>& queriesInfo,
-        TArrayRef<TDers> ders,
-        ui64 /*randomSeed*/,
-        NPar::ILocalExecutor* localExecutor
-    ) const override;
-
-private:
-    void CalcDersForSingleQuery(
-        TConstArrayRef<double> approxes,
-        TConstArrayRef<float> targets,
-        TArrayRef<TDers> ders
-    ) const;
-
-    inline double CalcNumerator(float target) const {
-        return NumeratorType == ENdcgMetricType::Exp ? (Exp2(target) - 1) : target;
-    }
-
-    inline double CalcDenominator(size_t pos) const {
-        return DenominatorType == ENdcgDenominatorType::LogPosition ? Log2(2.0 + pos) : (1.0 + pos);
-    }
-
-    inline size_t GetQueryTopSize(size_t docCount) const {
-        if (TopSize == -1 || TopSize > (int)docCount) {
-            return docCount;
-        }
-        return TopSize;
-    }
-
-    double CalcIdealMetric(TConstArrayRef<float> target, size_t queryTopSize) const;
-};
-
 class TStochasticRankError final : public IDerCalcer {
     ELossFunction TargetMetric;
     int TopSize;
@@ -1286,7 +1007,7 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TArrayRef<TDers> ders,
         ui64 randomSeed,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const override;
 
 private:
@@ -1313,7 +1034,6 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
-        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1336,7 +1056,6 @@ private:
         const TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
-        const TVector<double>& scores,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1346,7 +1065,6 @@ private:
         TConstArrayRef<float> targets,
         const TVector<size_t>& order,
         const TVector<double>& posWeights,
-        const TVector<double>& scores,
         TArrayRef<double> cumSumRef,
         TArrayRef<double> cumSumUpRef,
         TArrayRef<double> cumSumLowRef

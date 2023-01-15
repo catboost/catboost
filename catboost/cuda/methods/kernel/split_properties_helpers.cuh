@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/inplace_scan.cuh>
@@ -22,9 +22,9 @@ namespace NKernel {
         return multiplier;
     }
 
-    __forceinline__ __device__ ui32 GetMaxBinCount(const TCFeature* features, int fCount, ui32* smem) {
+    __forceinline__ __device__ int GetMaxBinCount(const TCFeature* features, int fCount, int* smem) {
 
-        ui32 binCount = threadIdx.x < fCount ? features[threadIdx.x].Folds : 0;
+        int binCount = threadIdx.x < fCount ? features[threadIdx.x].Folds : 0;
         smem[threadIdx.x] = binCount;
         __syncthreads();
 
@@ -37,7 +37,7 @@ namespace NKernel {
             smem[threadIdx.x] = max(smem[threadIdx.x], smem[threadIdx.x + 1]);
         }
         __syncthreads();
-        ui32 result = smem[0];
+        int result = smem[0];
         __syncthreads();
 
         return result;
@@ -185,11 +185,11 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE>
-    __forceinline__ __device__  float ComputeSum(const float* buffer, ui32 count) {
+    __forceinline__ __device__  float ComputeSum(const float* buffer, int count) {
         float sum = 0.f;
-        const ui32 tid = threadIdx.x;
+        const int tid = threadIdx.x;
 #pragma unroll 16
-        for (ui32 i = tid; i < count; i += BLOCK_SIZE) {
+        for (int i = tid; i < count; i += BLOCK_SIZE) {
             sum += __ldg(buffer + i);
         }
         return sum;

@@ -8,29 +8,29 @@
 #include <util/system/byteorder.h>
 
 #if defined(_unix_)
-    #include <netdb.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <sys/un.h>
-    #include <sys/ioctl.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
 #endif
 
 #if defined(_freebsd_)
-    #include <sys/module.h>
-    #define ACCEPT_FILTER_MOD
-    #include <sys/socketvar.h>
+#include <sys/module.h>
+#define ACCEPT_FILTER_MOD
+#include <sys/socketvar.h>
 #endif
 
 #if defined(_win_)
-    #include <cerrno>
-    #include <winsock2.h>
-    #include <ws2tcpip.h>
-    #include <wspiapi.h>
+#include <cerrno>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <wspiapi.h>
 
-    #include <util/system/compat.h>
+#include <util/system/compat.h>
 #endif
 
 #include <util/generic/ylimits.h>
@@ -44,7 +44,6 @@
 #include <util/generic/hash_set.h>
 
 #include <stddef.h>
-#include <sys/uio.h>
 
 using namespace NAddr;
 
@@ -61,7 +60,7 @@ int inet_aton(const char* cp, struct in_addr* inp) {
     return 0;
 }
 
-    #if (_WIN32_WINNT < 0x0600)
+#if (_WIN32_WINNT < 0x0600)
 const char* inet_ntop(int af, const void* src, char* dst, socklen_t size) {
     if (af != AF_INET) {
         errno = EINVAL;
@@ -236,7 +235,7 @@ int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept {
         return -1;
     }
 }
-    #endif
+#endif
 
 #endif
 
@@ -271,13 +270,13 @@ void SetSocketTimeout(SOCKET s, long timeout) {
 
 void SetSocketTimeout(SOCKET s, long sec, long msec) {
 #ifdef SO_SNDTIMEO
-    #ifdef _darwin_
+#ifdef _darwin_
     const timeval timeout = {sec, (__darwin_suseconds_t)msec * 1000};
-    #elif defined(_unix_)
+#elif defined(_unix_)
     const timeval timeout = {sec, msec * 1000};
-    #else
+#else
     const int timeout = sec * 1000 + msec;
-    #endif
+#endif
     CheckedSetSockOpt(s, SOL_SOCKET, SO_RCVTIMEO, timeout, "recv timeout");
     CheckedSetSockOpt(s, SOL_SOCKET, SO_SNDTIMEO, timeout, "send timeout");
 #endif
@@ -308,7 +307,7 @@ void SetInputBuffer(SOCKET s, unsigned value) {
 }
 
 #if defined(_linux_) && !defined(SO_REUSEPORT)
-    #define SO_REUSEPORT 15
+#define SO_REUSEPORT 15
 #endif
 
 void SetReusePort(SOCKET s, bool value) {
@@ -423,15 +422,6 @@ void SetSocketToS(SOCKET s, int tos) {
     SetSocketToS(s, &addr, tos);
 }
 
-void SetSocketPriority(SOCKET s, int priority) {
-#if defined(SO_PRIORITY)
-    CheckedSetSockOpt(s, SOL_SOCKET, SO_PRIORITY, priority, "priority");
-#else
-    Y_UNUSED(s);
-    Y_UNUSED(priority);
-#endif
-}
-
 bool HasLocalAddress(SOCKET socket) {
     TOpaqueAddr localAddr;
     if (getsockname(socket, localAddr.MutableAddr(), localAddr.LenPtr()) != 0) {
@@ -450,9 +440,9 @@ bool HasLocalAddress(SOCKET socket) {
 
 namespace {
 #if defined(_linux_)
-    #if !defined(TCP_FASTOPEN)
-        #define TCP_FASTOPEN 23
-    #endif
+#if !defined(TCP_FASTOPEN)
+#define TCP_FASTOPEN 23
+#endif
 #endif
 
 #if defined(TCP_FASTOPEN)
@@ -523,21 +513,44 @@ static int MsgPeek(SOCKET s) {
 }
 
 bool IsNotSocketClosedByOtherSide(SOCKET s) {
-    return HasSocketDataToRead(s) != ESocketReadStatus::SocketClosed;
-}
-
-ESocketReadStatus HasSocketDataToRead(SOCKET s) {
     const int r = MsgPeek(s);
-    if (r == -1 && IsBlocked(LastSystemError())) {
-        return ESocketReadStatus::NoData;
-    }
-    if (r > 0) {
-        return ESocketReadStatus::HasData;
-    }
-    return ESocketReadStatus::SocketClosed;
+    return r > 0 || (r == -1 && IsBlocked(LastSystemError()));
 }
 
 #if defined(_win_)
+ssize_t readv(SOCKET sock, const struct iovec* iov, int iovcnt) {
+    WSABUF* wsabuf = (WSABUF*)alloca(iovcnt * sizeof(WSABUF));
+    for (int i = 0; i < iovcnt; ++i) {
+        wsabuf[i].buf = iov[i].iov_base;
+        wsabuf[i].len = (u_long)iov[i].iov_len;
+    }
+    DWORD numberOfBytesRecv;
+    DWORD flags = 0;
+    int res = WSARecv(sock, wsabuf, iovcnt, &numberOfBytesRecv, &flags, nullptr, nullptr);
+    if (res == SOCKET_ERROR) {
+        errno = EIO;
+        return -1;
+    }
+    return numberOfBytesRecv;
+}
+#endif
+
+#if defined(_win_)
+ssize_t writev(SOCKET sock, const struct iovec* iov, int iovcnt) {
+    WSABUF* wsabuf = (WSABUF*)alloca(iovcnt * sizeof(WSABUF));
+    for (int i = 0; i < iovcnt; ++i) {
+        wsabuf[i].buf = iov[i].iov_base;
+        wsabuf[i].len = (u_long)iov[i].iov_len;
+    }
+    DWORD numberOfBytesSent;
+    int res = WSASend(sock, wsabuf, iovcnt, &numberOfBytesSent, 0, nullptr, nullptr);
+    if (res == SOCKET_ERROR) {
+        errno = EIO;
+        return -1;
+    }
+    return numberOfBytesSent;
+}
+
 static ssize_t DoSendMsg(SOCKET sock, const struct iovec* iov, int iovcnt) {
     return writev(sock, iov, iovcnt);
 }
@@ -565,7 +578,7 @@ void TSocketHolder::Close() noexcept {
 #elif defined(_unix_)
             Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
         }
 
@@ -612,15 +625,13 @@ private:
 
 template <>
 void Out<const struct addrinfo*>(IOutputStream& os, const struct addrinfo* ai) {
-    if (ai->ai_flags & AI_CANONNAME) {
+    if (ai->ai_flags & AI_CANONNAME)
         os << "`" << ai->ai_canonname << "' ";
-    }
 
     os << '[';
     for (int i = 0; ai; ++i, ai = ai->ai_next) {
-        if (i > 0) {
+        if (i > 0)
             os << ", ";
-        }
 
         os << (const IRemoteAddr&)TAddrInfo(ai);
     }
@@ -682,9 +693,8 @@ static inline SOCKET DoConnectImpl(const struct addrinfo* res, const TInstant& d
 
                 CheckedGetSockOpt(s, SOL_SOCKET, SO_ERROR, err, "socket error");
 
-                if (!err) {
+                if (!err)
                     return s.Release();
-                }
             }
 
             res = Iterate(res, addr0, err);
@@ -786,15 +796,13 @@ public:
     ssize_t SendV(SOCKET fd, const TPart* parts, size_t count) override {
         ssize_t ret = SendVImpl(fd, parts, count);
 
-        if (ret < 0) {
+        if (ret < 0)
             return ret;
-        }
 
         size_t len = TContIOVector::Bytes(parts, count);
 
-        if ((size_t)ret == len) {
+        if ((size_t)ret == len)
             return ret;
-        }
 
         return SendVPartial(fd, parts, count, ret);
     }
@@ -820,9 +828,8 @@ ssize_t TCommonSockOps::SendVPartial(SOCKET fd, const TPart* constParts, size_t 
     while (!vec.Complete()) {
         ssize_t ret = SendVImpl(fd, vec.Parts(), vec.Count());
 
-        if (ret < 0) {
+        if (ret < 0)
             return ret;
-        }
 
         written += ret;
 
@@ -975,21 +982,20 @@ private:
     public:
         TAddrInfoDeleter(bool useFreeAddrInfo = true)
             : UseFreeAddrInfo_(useFreeAddrInfo)
-        {
-        }
+        {}
 
         void operator()(struct addrinfo* ai) noexcept {
             if (!UseFreeAddrInfo_ && ai != NULL) {
                 if (ai->ai_addr != NULL) {
-                    free(ai->ai_addr);
+                    delete ai->ai_addr;
                 }
 
-                struct addrinfo* p;
+                struct addrinfo *p;
                 while (ai != NULL) {
                     p = ai;
                     ai = ai->ai_next;
-                    free(p->ai_canonname);
-                    free(p);
+                    delete p->ai_canonname;
+                    delete p;
                 }
             } else if (ai != NULL) {
                 freeaddrinfo(ai);
@@ -1035,14 +1041,13 @@ public:
     inline TImpl(const char* path, int flags)
         : Info_(nullptr, TAddrInfoDeleter{/* useFreeAddrInfo = */ false})
     {
-        THolder<struct sockaddr_un, TFree> sockAddr(
-            reinterpret_cast<struct sockaddr_un*>(malloc(sizeof(struct sockaddr_un))));
+        THolder<struct sockaddr_un> sockAddr = new struct sockaddr_un;
 
         Y_ENSURE(strlen(path) < sizeof(sockAddr->sun_path), "Unix socket path more than " << sizeof(sockAddr->sun_path));
         sockAddr->sun_family = AF_UNIX;
         strcpy(sockAddr->sun_path, path);
 
-        TAddrInfoPtr hints(reinterpret_cast<struct addrinfo*>(malloc(sizeof(struct addrinfo))), TAddrInfoDeleter{/* useFreeAddrInfo = */ false});
+        TAddrInfoPtr hints(new struct addrinfo, TAddrInfoDeleter{/* useFreeAddrInfo = */ false});
         memset(hints.get(), 0, sizeof(*hints));
 
         hints->ai_flags = flags;
@@ -1097,15 +1102,7 @@ TNetworkResolutionError::TNetworkResolutionError(int error) {
 #else
     errMsg = gai_strerror(error);
 #endif
-    (*this) << errMsg << "(" << error;
-
-#if defined(_unix_)
-    if (error == EAI_SYSTEM) {
-        (*this) << "; errno=" << LastSystemError();
-    }
-#endif
-
-    (*this) << "): ";
+    (*this) << errMsg;
 }
 
 #if defined(_unix_)
@@ -1184,20 +1181,20 @@ static inline bool IsNonBlockSocket(SOCKET fd) {
 
 void SetNonBlock(SOCKET fd, bool value) {
 #if defined(_unix_)
-    #if defined(FIONBIO)
+#if defined(FIONBIO)
     Y_UNUSED(SetFlag); // shut up clang about unused function
     int nb = value;
 
     if (ioctl(fd, FIONBIO, &nb) < 0) {
         ythrow TSystemError() << "ioctl failed";
     }
-    #else
+#else
     SetFlag(fd, O_NONBLOCK, value);
-    #endif
+#endif
 #elif defined(_win_)
     SetNonBlockSocket(fd, value);
 #else
-    #error todo
+#error todo
 #endif
 }
 
@@ -1207,7 +1204,7 @@ bool IsNonBlock(SOCKET fd) {
 #elif defined(_win_)
     return IsNonBlockSocket(fd);
 #else
-    #error todo
+#error todo
 #endif
 }
 

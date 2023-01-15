@@ -17,8 +17,7 @@ table TCollectionHeader {
 enum EPartType : ubyte {
     Tokenizer,
     Dictionary,
-    FeatureCalcer,
-    Terminate,
+    FeatureCalcer
 }
 
 table TCollectionPart {

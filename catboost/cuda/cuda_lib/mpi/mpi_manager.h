@@ -7,8 +7,8 @@
 #include <catboost/cuda/cuda_lib/device_id.h>
 #include <catboost/cuda/cuda_lib/serialization/task_factory.h>
 #include <catboost/cuda/utils/spin_wait.h>
-#include <library/cpp/blockcodecs/codecs.h>
-#include <library/cpp/threading/chunk_queue/queue.h>
+#include <library/blockcodecs/codecs.h>
+#include <library/threading/chunk_queue/queue.h>
 #include <util/thread/singleton.h>
 #include <util/system/types.h>
 #include <util/stream/buffer.h>
@@ -59,7 +59,7 @@ namespace NCudaLib {
                 if (!IsComplete()) {
                     WaitEvent.WaitT(interval);
                 }
-                CB_ENSURE(IsComplete(), "Error: event is not complete");
+                Y_VERIFY(IsComplete(), "Error: event is not complete");
             }
 
             void Abort() {
@@ -83,7 +83,7 @@ namespace NCudaLib {
                 } else if (state == 2) {
                     return EState::Completed;
                 } else {
-                    CB_ENSURE(state == 3, "Unexpected request state");
+                    Y_VERIFY(state == 3);
                     return EState::Canceled;
                 }
             }
@@ -96,7 +96,7 @@ namespace NCudaLib {
                 } else if (state == EState::Completed) {
                     AtomicSet(State, 2);
                 } else {
-                    CB_ENSURE(state == EState::Canceled, "Unexpected request state");
+                    Y_VERIFY(state == EState::Canceled);
                     AtomicSet(State, 3);
                 }
             }

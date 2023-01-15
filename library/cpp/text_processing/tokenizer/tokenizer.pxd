@@ -1,11 +1,16 @@
 from libcpp cimport bool as bool_t
-
-from util.generic.hash_set cimport THashSet
 from util.generic.vector cimport TVector
 from util.generic.string cimport TString, TStringBuf
 
 
-cdef extern from "library/cpp/langs/langs.h" nogil:
+# TODO(kirillovs): this is stub. Add missing methods and move to hash.pxd
+cdef extern from "util/generic/hash.h" nogil:
+    cdef cppclass THashSet[T]:
+        void insert(const T&) except +
+        void clear() except +
+
+
+cdef extern from "library/langs/langs.h" nogil:
     cdef cppclass ELanguage:
         pass
 

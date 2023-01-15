@@ -9,7 +9,6 @@
 
 #include <util/generic/bitops.h>
 #include <util/generic/cast.h>
-#include <util/generic/overloaded.h>
 #include <util/generic/xrange.h>
 
 #include <util/system/compiler.h>
@@ -376,7 +375,7 @@ namespace NCB {
         , NonDefaultSize(0) // properly inited later
         , Size(0) // properly inited later
     {
-        std::visit(
+        Visit(
             [&](const auto& impl) {
                 NonDefaultSize = impl.GetSize();
                 InitSize(size, impl.GetUpperBound());
@@ -401,11 +400,15 @@ namespace NCB {
 
     template <class TSize>
     ESparseArrayIndexingType TSparseArrayIndexing<TSize>::GetType() const {
-        return std::visit(TOverloaded{
-            [](const TSparseSubsetIndices<TSize>&) { return ESparseArrayIndexingType::Indices; },
-            [](const TSparseSubsetBlocks<TSize>&) { return ESparseArrayIndexingType::Blocks; },
-            [](const TSparseSubsetHybridIndex<TSize>&) { return ESparseArrayIndexingType::HybridIndex; }
-        }, Impl);
+        switch (Impl.index()) {
+            case TVariantIndexV<TSparseSubsetIndices<TSize>, TImpl>:
+                return ESparseArrayIndexingType::Indices;
+            case TVariantIndexV<TSparseSubsetBlocks<TSize>, TImpl>:
+                return ESparseArrayIndexingType::Blocks;
+            case TVariantIndexV<TSparseSubsetHybridIndex<TSize>, TImpl>:
+                return ESparseArrayIndexingType::HybridIndex;
+        }
+        Y_UNREACHABLE();
     }
 
     template <class TSize>
@@ -436,17 +439,19 @@ namespace NCB {
 
     template <class TSize>
     IDynamicIteratorPtr<TSize> TSparseArrayIndexing<TSize>::GetIterator() const {
-        return std::visit(TOverloaded{
-            [](const TSparseSubsetIndices<TSize>& indices) -> IDynamicIteratorPtr<TSize> {
-                return MakeHolder<TStaticIteratorRangeAsDynamic<const TSize*>>(indices);
-            },
-            [](const TSparseSubsetBlocks<TSize>& blocks) -> IDynamicIteratorPtr<TSize> {
-                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(blocks);
-            },
-            [](const TSparseSubsetHybridIndex<TSize>& hybrid) -> IDynamicIteratorPtr<TSize> {
-                return MakeHolder<TSparseSubsetHybridIndexIterator<TSize>>(hybrid);
-            }
-        }, Impl);
+        switch (Impl.index()) {
+            case TVariantIndexV<TSparseSubsetIndices<TSize>, TImpl>:
+                return MakeHolder<TStaticIteratorRangeAsDynamic<const TSize*>>(
+                    Get<TSparseSubsetIndices<TSize>>(Impl));
+            case TVariantIndexV<TSparseSubsetBlocks<TSize>, TImpl>:
+                return MakeHolder<TSparseSubsetBlocksIterator<TSize>>(Get<TSparseSubsetBlocks<TSize>>(Impl));
+            case TVariantIndexV<TSparseSubsetHybridIndex<TSize>, TImpl>:
+                return MakeHolder<TSparseSubsetHybridIndexIterator<TSize>>(
+                    Get<TSparseSubsetHybridIndex<TSize>>(Impl));
+            default:
+                Y_UNREACHABLE();
+        }
+        Y_UNREACHABLE();
     }
 
     template <class TSize>
@@ -650,7 +655,7 @@ namespace NCB {
         IDynamicIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        std::visit(
+        Visit(
             [&](const auto& impl) {
                 GetIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },
@@ -663,7 +668,7 @@ namespace NCB {
         ISparseArrayIndexingBlockIteratorPtr<TSize>* iterator,
         TSize* nonDefaultBegin) const {
 
-        std::visit(
+        Visit(
             [&](const auto& impl) {
                 GetBlockIteratorAndNonDefaultBeginImpl(impl, begin, iterator, nonDefaultBegin);
             },
@@ -997,22 +1002,6 @@ namespace NCB {
         F&& f,
         TSize maxBlockSize
     ) const {
-        ForBlockNonDefault(
-            [f] (auto indexingBlock, auto valuesBlock) {
-                for (auto i : xrange(indexingBlock.size())) {
-                    f(indexingBlock[i], valuesBlock[i]);
-                }
-            },
-            maxBlockSize
-        );
-    }
-
-    template <class TValue, class TContainer, class TSize>
-    template <class F>
-    inline void TSparseArrayBase<TValue, TContainer, TSize>::ForBlockNonDefault(
-        F&& f,
-        TSize maxBlockSize
-    ) const {
         ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIterator;
         TSize nonDefaultBegin = 0;
         Indexing->GetBlockIteratorAndNonDefaultBegin(
@@ -1030,7 +1019,9 @@ namespace NCB {
             TConstArrayRef<TValue> valuesBlock = nonDefaultValuesBlockIterator.NextExact(
                 indexingBlock.size()
             );
-            f(indexingBlock, valuesBlock);
+            for (auto i : xrange(indexingBlock.size())) {
+                f(indexingBlock[i], valuesBlock[i]);
+            }
         }
     }
 
@@ -1162,7 +1153,7 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return 0;
         }
 
@@ -1182,7 +1173,7 @@ namespace NCB {
                 ramUsedForDstIndexing = (sizeof(TSize) + sizeof(ui64)) * GetNonDefaultSize();
                 break;
             default:
-                CB_ENSURE(false, "Unexpected sparse array indexing type");
+                Y_UNREACHABLE();
         }
 
         const ui64 ramUsedForDstValues = sizeof(TValue) * GetNonDefaultSize();
@@ -1207,12 +1198,12 @@ namespace NCB {
         const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
         ESparseArrayIndexingType sparseArrayIndexingType) const {
 
-        if (std::holds_alternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
+        if (HoldsAlternative<TFullSubset<TSize>>(subsetInvertedIndexing)) {
             return *this;
         }
 
         const TInvertedIndexedSubset<TSize>& invertedIndexedSubset
-            = std::get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
+            = Get<TInvertedIndexedSubset<TSize>>(subsetInvertedIndexing);
 
         TConstArrayRef<TSize> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 

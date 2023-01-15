@@ -8,7 +8,7 @@
  */
 
 #include <openssl/idea.h>
-#include "idea_local.h"
+#include "idea_lcl.h"
 
 /*
  * The input and output encrypted as though 64bit cfb mode is being used.

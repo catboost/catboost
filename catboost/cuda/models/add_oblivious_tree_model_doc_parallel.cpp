@@ -88,7 +88,7 @@ namespace NCatboostCuda {
                          ui32 stream) {
                 auto& cursor = *Cursors[taskId];
                 ComputeObliviousTreeLeaves(CompressedIndex->GetStorage(),
-                                           features.AsConstBuf(),
+                                           features,
                                            bins,
                                            cursor,
                                            stream);
@@ -189,7 +189,7 @@ namespace NCatboostCuda {
                                                            const TMirrorBuffer<ui8>& bins, const TMirrorBuffer<float>& values,
                                                            ui32 stream) {
         auto& cursor = *Cursors[taskId];
-        AddObliviousTree(CompressedIndex->GetStorage(), features.AsConstBuf(), bins, values, cursor, stream);
+        AddObliviousTree(CompressedIndex->GetStorage(), features, bins, values, cursor, stream);
     }
 
     void ComputeBinsForModel(const TObliviousTreeStructure& structure, const TDocParallelDataSet& dataSet,

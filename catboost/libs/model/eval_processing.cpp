@@ -31,7 +31,7 @@ NCB::NModelEvaluation::TEvalResultProcessor::TEvalResultProcessor(
         CB_ENSURE(probabilityBorder > 0 && probabilityBorder < 1, "probability border should be in (0;1)");
         BinclassRawValueBorder = -log((1 / probabilityBorder) - 1);
     }
-    if (ApproxDimension > 1 && (predictionType == EPredictionType::Class || predictionType == EPredictionType::Probability) ) {
+    if (ApproxDimension > 1) {
         CB_ENSURE_IDENTITY(ScaleAndBias, "normalizing a multiclass model");
     }
 }

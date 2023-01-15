@@ -19,7 +19,7 @@
 #endif
 
 #include <openssl/crypto.h>
-#include "des_local.h"
+#include "des_locl.h"
 
 /*
  * Added more values to handle illegal salt values the way normal crypt()

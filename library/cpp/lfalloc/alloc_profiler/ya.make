@@ -10,7 +10,6 @@ SRCS(
 PEERDIR(
     library/cpp/lfalloc/dbg_info
     library/cpp/cache
-    library/cpp/deprecated/atomic
 )
 
 END()

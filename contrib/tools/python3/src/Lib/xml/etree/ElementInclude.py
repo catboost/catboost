@@ -42,7 +42,7 @@
 # --------------------------------------------------------------------
 
 # Licensed to PSF under a Contributor Agreement.
-# See https://www.python.org/psf/license for licensing details.
+# See http://www.python.org/psf/license for licensing details.
 
 ##
 # Limited XInclude support for the ElementTree package.
@@ -50,27 +50,17 @@
 
 import copy
 from . import ElementTree
-from urllib.parse import urljoin
 
 XINCLUDE = "{http://www.w3.org/2001/XInclude}"
 
 XINCLUDE_INCLUDE = XINCLUDE + "include"
 XINCLUDE_FALLBACK = XINCLUDE + "fallback"
 
-# For security reasons, the inclusion depth is limited to this read-only value by default.
-DEFAULT_MAX_INCLUSION_DEPTH = 6
-
-
 ##
 # Fatal include error.
 
 class FatalIncludeError(SyntaxError):
     pass
-
-
-class LimitedRecursiveIncludeError(FatalIncludeError):
-    pass
-
 
 ##
 # Default loader.  This loader reads an included resource from disk.
@@ -102,33 +92,13 @@ def default_loader(href, parse, encoding=None):
 # @param loader Optional resource loader.  If omitted, it defaults
 #     to {@link default_loader}.  If given, it should be a callable
 #     that implements the same interface as <b>default_loader</b>.
-# @param base_url The base URL of the original file, to resolve
-#     relative include file references.
-# @param max_depth The maximum number of recursive inclusions.
-#     Limited to reduce the risk of malicious content explosion.
-#     Pass a negative value to disable the limitation.
-# @throws LimitedRecursiveIncludeError If the {@link max_depth} was exceeded.
 # @throws FatalIncludeError If the function fails to include a given
 #     resource, or if the tree contains malformed XInclude elements.
-# @throws IOError If the function fails to load a given resource.
-# @returns the node or its replacement if it was an XInclude node
+# @throws OSError If the function fails to load a given resource.
 
-def include(elem, loader=None, base_url=None,
-            max_depth=DEFAULT_MAX_INCLUSION_DEPTH):
-    if max_depth is None:
-        max_depth = -1
-    elif max_depth < 0:
-        raise ValueError("expected non-negative depth or None for 'max_depth', got %r" % max_depth)
-
-    if hasattr(elem, 'getroot'):
-        elem = elem.getroot()
+def include(elem, loader=None):
     if loader is None:
         loader = default_loader
-
-    _include(elem, loader, base_url, max_depth, set())
-
-
-def _include(elem, loader, base_url, max_depth, _parent_hrefs):
     # look for xinclude elements
     i = 0
     while i < len(elem):
@@ -136,24 +106,14 @@ def _include(elem, loader, base_url, max_depth, _parent_hrefs):
         if e.tag == XINCLUDE_INCLUDE:
             # process xinclude directive
             href = e.get("href")
-            if base_url:
-                href = urljoin(base_url, href)
             parse = e.get("parse", "xml")
             if parse == "xml":
-                if href in _parent_hrefs:
-                    raise FatalIncludeError("recursive include of %s" % href)
-                if max_depth == 0:
-                    raise LimitedRecursiveIncludeError(
-                        "maximum xinclude depth reached when including file %s" % href)
-                _parent_hrefs.add(href)
                 node = loader(href, parse)
                 if node is None:
                     raise FatalIncludeError(
                         "cannot load %r as %r" % (href, parse)
                         )
-                node = copy.copy(node)  # FIXME: this makes little sense with recursive includes
-                _include(node, loader, href, max_depth - 1, _parent_hrefs)
-                _parent_hrefs.remove(href)
+                node = copy.copy(node)
                 if e.tail:
                     node.tail = (node.tail or "") + e.tail
                 elem[i] = node
@@ -163,13 +123,11 @@ def _include(elem, loader, base_url, max_depth, _parent_hrefs):
                     raise FatalIncludeError(
                         "cannot load %r as %r" % (href, parse)
                         )
-                if e.tail:
-                    text += e.tail
                 if i:
                     node = elem[i-1]
-                    node.tail = (node.tail or "") + text
+                    node.tail = (node.tail or "") + text + (e.tail or "")
                 else:
-                    elem.text = (elem.text or "") + text
+                    elem.text = (elem.text or "") + text + (e.tail or "")
                 del elem[i]
                 continue
             else:
@@ -181,5 +139,5 @@ def _include(elem, loader, base_url, max_depth, _parent_hrefs):
                 "xi:fallback tag must be child of xi:include (%r)" % e.tag
                 )
         else:
-            _include(e, loader, base_url, max_depth, _parent_hrefs)
-        i += 1
+            include(e, loader)
+        i = i + 1

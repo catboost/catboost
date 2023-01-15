@@ -8,9 +8,9 @@
  */
 
 #include "internal/cryptlib.h"
-#include "crypto/bn.h"
-#include "rsa_local.h"
-#include "internal/constant_time.h"
+#include "internal/bn_int.h"
+#include "rsa_locl.h"
+#include "internal/constant_time_locl.h"
 
 static int rsa_ossl_public_encrypt(int flen, const unsigned char *from,
                                   unsigned char *to, RSA *rsa, int padding);

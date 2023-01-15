@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>
@@ -26,7 +26,7 @@ namespace NCB {
      */
     template <class TOutput, class TMapFunc, class TMergeFunc>
     void MapMerge(
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         const IIndexRangesGenerator<int>& indexRangesGenerator,
         TMapFunc&& mapFunc, // void(NCB::TIndexRange, TOutput*)
         TMergeFunc&& mergeFunc, // void(TOutput*, TVector<TOutput>&&)

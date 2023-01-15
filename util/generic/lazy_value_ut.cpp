@@ -1,15 +1,15 @@
 #include "lazy_value.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     Y_UNIT_TEST(TestLazyValue) {
         TLazyValue<int> value([]() {
             return 5;
         });
-        UNIT_ASSERT(!value.WasLazilyInitialized());
+        UNIT_ASSERT(!value);
         UNIT_ASSERT_EQUAL(*value, 5);
-        UNIT_ASSERT(value.WasLazilyInitialized());
+        UNIT_ASSERT(value);
     }
 
     Y_UNIT_TEST(TestLazyValueInitialization) {
@@ -26,19 +26,19 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
 
     Y_UNIT_TEST(TestLazyValueCopy) {
         TLazyValue<int> value([]() { return 5; });
-        UNIT_ASSERT(!value.WasLazilyInitialized());
+        UNIT_ASSERT(!value);
 
         TLazyValue<int> emptyCopy = value;
-        UNIT_ASSERT(!emptyCopy.WasLazilyInitialized());
+        UNIT_ASSERT(!emptyCopy);
 
         UNIT_ASSERT_EQUAL(*emptyCopy, 5);
-        UNIT_ASSERT(emptyCopy.WasLazilyInitialized());
-        UNIT_ASSERT(!value.WasLazilyInitialized());
+        UNIT_ASSERT(emptyCopy);
+        UNIT_ASSERT(!value);
 
         UNIT_ASSERT_EQUAL(*value, 5);
 
         TLazyValue<int> notEmptyCopy = value;
-        UNIT_ASSERT(notEmptyCopy.WasLazilyInitialized());
+        UNIT_ASSERT(notEmptyCopy);
         UNIT_ASSERT_EQUAL(*notEmptyCopy, 5);
     }
 
@@ -75,7 +75,7 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     Y_UNIT_TEST(TestLazyValueMoveValueInitialization) {
         size_t numCopies = 0;
         TCopyCounter counter{numCopies};
-        TLazyValue<TCopyCounter> value{[v = std::move(counter)]() mutable { return std::move(v); }};
+        TLazyValue<TCopyCounter> value{[v=std::move(counter)]() mutable { return std::move(v); }};
         value.InitDefault();
         UNIT_ASSERT_EQUAL(numCopies, 0);
     }
@@ -83,7 +83,7 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     Y_UNIT_TEST(TestLazyValueCopyValueInitialization) {
         size_t numCopies = 0;
         TCopyCounter counter{numCopies};
-        TLazyValue<TCopyCounter> value{[&counter]() { return counter; }};
+        TLazyValue<TCopyCounter> value{[&counter](){ return counter; }};
         UNIT_ASSERT_EQUAL(numCopies, 0);
         value.InitDefault();
         UNIT_ASSERT_EQUAL(numCopies, 1);
@@ -94,16 +94,16 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         static size_t CountParseDataCalled;
 
         TValueProvider()
-            : Data_([&] { return this->ParseData(); })
+            : Data([&] { return this->ParseData(); })
         {
         }
 
         const TString& GetData() const {
-            return *Data_;
+            return *Data;
         }
 
     private:
-        TLazyValue<TString> Data_;
+        TLazyValue<TString> Data;
 
         TString ParseData() {
             CountParseDataCalled++;
@@ -150,8 +150,8 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         auto lv = MakeLazy([] {
             return 100500;
         });
-        UNIT_ASSERT(!lv.WasLazilyInitialized());
+        UNIT_ASSERT(!lv);
         UNIT_ASSERT(lv.GetRef() == 100500);
-        UNIT_ASSERT(lv.WasLazilyInitialized());
+        UNIT_ASSERT(lv);
     }
 }

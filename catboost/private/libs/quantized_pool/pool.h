@@ -72,6 +72,5 @@ namespace NCB {
         size_t NonFeatureColumnCount = 0;
 
         size_t ClassesCount = 0;
-        size_t EstimatedIdsLength = 0;
     };
 }

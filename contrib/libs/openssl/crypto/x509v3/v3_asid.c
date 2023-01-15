@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2006-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -20,7 +20,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/x509v3.h>
 #include <openssl/x509.h>
-#include "crypto/x509.h"
+#include "internal/x509_int.h"
 #include <openssl/bn.h>
 #include "ext_dat.h"
 
@@ -256,7 +256,6 @@ static int extract_min_max(ASIdOrRange *aor,
 static int ASIdentifierChoice_is_canonical(ASIdentifierChoice *choice)
 {
     ASN1_INTEGER *a_max_plus_one = NULL;
-    ASN1_INTEGER *orig;
     BIGNUM *bn = NULL;
     int i, ret = 0;
 
@@ -299,15 +298,9 @@ static int ASIdentifierChoice_is_canonical(ASIdentifierChoice *choice)
          */
         if ((bn == NULL && (bn = BN_new()) == NULL) ||
             ASN1_INTEGER_to_BN(a_max, bn) == NULL ||
-            !BN_add_word(bn, 1)) {
-            X509V3err(X509V3_F_ASIDENTIFIERCHOICE_IS_CANONICAL,
-                      ERR_R_MALLOC_FAILURE);
-            goto done;
-        }
-
-        if ((a_max_plus_one =
-                BN_to_ASN1_INTEGER(bn, orig = a_max_plus_one)) == NULL) {
-            a_max_plus_one = orig;
+            !BN_add_word(bn, 1) ||
+            (a_max_plus_one =
+             BN_to_ASN1_INTEGER(bn, a_max_plus_one)) == NULL) {
             X509V3err(X509V3_F_ASIDENTIFIERCHOICE_IS_CANONICAL,
                       ERR_R_MALLOC_FAILURE);
             goto done;
@@ -358,7 +351,6 @@ int X509v3_asid_is_canonical(ASIdentifiers *asid)
 static int ASIdentifierChoice_canonize(ASIdentifierChoice *choice)
 {
     ASN1_INTEGER *a_max_plus_one = NULL;
-    ASN1_INTEGER *orig;
     BIGNUM *bn = NULL;
     int i, ret = 0;
 
@@ -424,15 +416,9 @@ static int ASIdentifierChoice_canonize(ASIdentifierChoice *choice)
          */
         if ((bn == NULL && (bn = BN_new()) == NULL) ||
             ASN1_INTEGER_to_BN(a_max, bn) == NULL ||
-            !BN_add_word(bn, 1)) {
-            X509V3err(X509V3_F_ASIDENTIFIERCHOICE_CANONIZE,
-                      ERR_R_MALLOC_FAILURE);
-            goto done;
-        }
-
-        if ((a_max_plus_one =
-                 BN_to_ASN1_INTEGER(bn, orig = a_max_plus_one)) == NULL) {
-            a_max_plus_one = orig;
+            !BN_add_word(bn, 1) ||
+            (a_max_plus_one =
+             BN_to_ASN1_INTEGER(bn, a_max_plus_one)) == NULL) {
             X509V3err(X509V3_F_ASIDENTIFIERCHOICE_CANONIZE,
                       ERR_R_MALLOC_FAILURE);
             goto done;
@@ -700,28 +686,15 @@ static int asid_contains(ASIdOrRanges *parent, ASIdOrRanges *child)
  */
 int X509v3_asid_subset(ASIdentifiers *a, ASIdentifiers *b)
 {
-    int subset;
-
-    if (a == NULL || a == b)
-        return 1;
-
-    if (b == NULL)
-        return 0;
-
-    if (X509v3_asid_inherits(a) || X509v3_asid_inherits(b))
-        return 0;
-
-    subset = a->asnum == NULL
-             || (b->asnum != NULL
-                 && asid_contains(b->asnum->u.asIdsOrRanges,
-                                  a->asnum->u.asIdsOrRanges));
-    if (!subset)
-        return 0;
-
-    return a->rdi == NULL
-           || (b->rdi != NULL
-               && asid_contains(b->rdi->u.asIdsOrRanges,
-                                a->rdi->u.asIdsOrRanges));
+    return (a == NULL ||
+            a == b ||
+            (b != NULL &&
+             !X509v3_asid_inherits(a) &&
+             !X509v3_asid_inherits(b) &&
+             asid_contains(b->asnum->u.asIdsOrRanges,
+                           a->asnum->u.asIdsOrRanges) &&
+             asid_contains(b->rdi->u.asIdsOrRanges,
+                           a->rdi->u.asIdsOrRanges)));
 }
 
 /*

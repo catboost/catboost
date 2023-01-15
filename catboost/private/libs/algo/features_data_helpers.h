@@ -46,8 +46,7 @@ namespace NCB {
 
     namespace NDetail {
 
-        template <class TObjectsDataProviderType, class TFloatValue, class TCatValue,
-                  class TTextValue, class TEmbeddingValue, class TAccessor>
+        template <class TObjectsDataProviderType, class TFloatValue, class TCatValue, class TTextValue, class TAccessor>
         class TFeaturesBlockIteratorBase : public IFeaturesBlockIterator {
         public:
             TFeaturesBlockIteratorBase(
@@ -62,11 +61,9 @@ namespace NCB {
                 FloatBlockIterators.resize(flatFeatureCount);
                 CatBlockIterators.resize(flatFeatureCount);
                 TextBlockIterators.resize(flatFeatureCount);
-                EmbeddingBlockIterators.resize(flatFeatureCount);
                 FloatValues.resize(flatFeatureCount);
                 CatValues.resize(flatFeatureCount);
                 TextValues.resize(flatFeatureCount);
-                EmbeddingValues.resize(flatFeatureCount);
 
                 for (const auto&[modelFlatFeatureIdx, dataFlatFeatureIdx] : columnReorderMap) {
                     AddFeature(modelFlatFeatureIdx, dataFlatFeatureIdx, objectOffset);
@@ -82,12 +79,6 @@ namespace NCB {
                         CatValues[flatFeatureIdx] = CatBlockIterators[flatFeatureIdx]->Next(size);
                     } else if (TextBlockIterators[flatFeatureIdx]) {
                         TextValues[flatFeatureIdx] = TextBlockIterators[flatFeatureIdx]->Next(size);
-                    }  else if (EmbeddingBlockIterators[flatFeatureIdx]) {
-                        auto block = EmbeddingBlockIterators[flatFeatureIdx]->Next(size);
-                        EmbeddingValues[flatFeatureIdx].resize(block.size());
-                        for (auto i : xrange(block.size())) {
-                            EmbeddingValues[flatFeatureIdx][i] = *block[i];
-                        }
                     }
                 }
             }
@@ -110,21 +101,17 @@ namespace NCB {
                     auto* floatIteratorPtr = dynamic_cast<IDynamicBlockIterator<TFloatValue>*>(maybeFloatIterator.Get());
                     CB_ENSURE_INTERNAL(floatIteratorPtr, "Should be IDynamicBlockIteratorPtr<TFloatValue>");
                     Y_UNUSED(maybeFloatIterator.Release());
-                    FloatBlockIterators[modelFlatFeatureIdx] = IDynamicBlockIteratorPtr<TFloatValue>(floatIteratorPtr);
+                    FloatBlockIterators[modelFlatFeatureIdx] = floatIteratorPtr;
                 } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
                     auto maybeCatIterator = (*ObjectsData.GetCatFeature(internalFeatureIdx))
                         ->GetBlockIterator(objectOffset);
                     auto* catIteratorPtr = dynamic_cast<IDynamicBlockIterator<TCatValue>*>(maybeCatIterator.Get());
                     CB_ENSURE_INTERNAL(catIteratorPtr, "Should be IDynamicBlockIteratorPtr<TCatValue>");
                     Y_UNUSED(maybeCatIterator.Release());
-                    CatBlockIterators[modelFlatFeatureIdx] = IDynamicBlockIteratorPtr<TCatValue>(catIteratorPtr);
+                    CatBlockIterators[modelFlatFeatureIdx] = catIteratorPtr;
                 } else if (featureMetaInfo.Type == EFeatureType::Text) {
                     TextBlockIterators[modelFlatFeatureIdx]
                         = (*ObjectsData.GetTextFeature(internalFeatureIdx))
-                            ->GetBlockIterator(objectOffset);
-                } else if (featureMetaInfo.Type == EFeatureType::Embedding) {
-                    EmbeddingBlockIterators[modelFlatFeatureIdx]
-                        = (*ObjectsData.GetEmbeddingFeature(internalFeatureIdx))
                             ->GetBlockIterator(objectOffset);
                 } else {
                     CB_ENSURE(
@@ -147,22 +134,16 @@ namespace NCB {
                 return TextValues;
             }
 
-            TConstArrayRef<TVector<TEmbeddingValue>> GetEmbeddingValues() const {
-                return EmbeddingValues;
-            }
-
         private:
             const TObjectsDataProviderType& ObjectsData;
 
             TVector<IDynamicBlockIteratorPtr<TFloatValue>> FloatBlockIterators; // [repackedFlatIndex]
             TVector<IDynamicBlockIteratorPtr<TCatValue>> CatBlockIterators; // [repackedFlatIndex]
             TVector<IDynamicBlockIteratorPtr<TTextValue>> TextBlockIterators; // [repackedFlatIndex]
-            TVector<IDynamicBlockIteratorPtr<TMaybeOwningConstArrayHolder<float>>> EmbeddingBlockIterators; // [repackedFlatIndex]
 
             TVector<TConstArrayRef<TFloatValue>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
             TVector<TConstArrayRef<TCatValue>> CatValues; // [repackedFlatIndex][inBlockObjectIdx]
             TVector<TConstArrayRef<TTextValue>> TextValues; // [repackedFlatIndex][inBlockObjectIdx]
-            TVector<TVector<TEmbeddingValue>> EmbeddingValues; // [repackedFlatIndex][inBlockObjectIdx]
         };
 
     }
@@ -173,10 +154,8 @@ namespace NCB {
 
         Y_FORCE_INLINE auto GetFloatAccessor() const {
             return [this](TFeaturePosition position, size_t index) -> float {
-                CB_ENSURE_INTERNAL(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size(),
-                                   "position.FlatIndex " << position.FlatIndex << ", FloatValues.size() " << FloatValues.size());
-                CB_ENSURE_INTERNAL(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size(),
-                                   "index " << index << ", size " << FloatValues[position.FlatIndex].size());
+                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < FloatValues.size());
+                Y_ASSERT(SafeIntegerCast<size_t>(index) < FloatValues[position.FlatIndex].size());
                 return FloatValues[position.FlatIndex][index];
             };
         }
@@ -196,30 +175,19 @@ namespace NCB {
                 return TextValues[position.FlatIndex][index];
             };
         }
-
-        Y_FORCE_INLINE auto GetEmbeddingAccessor() const {
-            return [this] (TFeaturePosition position, size_t index) -> TConstArrayRef<float> {
-                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < EmbeddingValues.size());
-                Y_ASSERT(SafeIntegerCast<size_t>(index) < EmbeddingValues[position.FlatIndex].size());
-                return EmbeddingValues[position.FlatIndex][index];
-            };
-        }
     private:
         TConstArrayRef<TConstArrayRef<float>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<ui32>> CatValues;  // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<TString>> TextValues; // [repackedFlatIndex][inBlockObjectIdx]
-        TConstArrayRef<TVector<TConstArrayRef<float>>> EmbeddingValues; // [repackedFlatIndex][inBlockObjectIdx]
     };
 
 
     class TRawFeaturesBlockIterator
-        : public NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString,
-                                                     TConstArrayRef<float>, TRawFeatureAccessor>
+        : public NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString, TRawFeatureAccessor>
     {
     public:
         using TBase
-            = NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString,
-                                                  TConstArrayRef<float>, TRawFeatureAccessor>;
+            = NDetail::TFeaturesBlockIteratorBase<TRawObjectsDataProvider, float, ui32, TString, TRawFeatureAccessor>;
 
     public:
         TRawFeaturesBlockIterator(
@@ -244,7 +212,6 @@ namespace NCB {
         : FloatValues(rawFeaturesBlockIterator.GetFloatValues())
         , CatValues(rawFeaturesBlockIterator.GetCatValues())
         , TextValues(rawFeaturesBlockIterator.GetTextValues())
-        , EmbeddingValues(rawFeaturesBlockIterator.GetEmbeddingValues())
     {}
 
 
@@ -260,21 +227,17 @@ namespace NCB {
             };
         }
 
-        // returns hashed cat value
         Y_FORCE_INLINE auto GetCatAccessor() const {
-            return [this](TFeaturePosition position, size_t index) -> ui32 {
-                Y_ASSERT(SafeIntegerCast<size_t>(position.FlatIndex) < CatValues.size());
-                Y_ASSERT(SafeIntegerCast<size_t>(index) < CatValues[position.FlatIndex].size());
-                return CatFeatureBinToHashedValueRemap[position.FlatIndex][CatValues[position.FlatIndex][index]];
+             return [] (TFeaturePosition , size_t ) -> ui32 {
+                 Y_FAIL();
+                 return 0;
             };
         };
     private:
         TConstArrayRef<TConstArrayRef<ui8>> FloatValues; // [repackedFlatIndex][inBlockObjectIdx]
         TConstArrayRef<TConstArrayRef<ui8>> FloatBinsRemap; // [repackedFlatIndex][binInData]
-
-        TConstArrayRef<TConstArrayRef<ui32>> CatValues; // [repackedFlatIndex][inBlockObjectIdx]
-        TConstArrayRef<TConstArrayRef<ui32>> CatFeatureBinToHashedValueRemap; // [repackedFlatIndex][binInData]
     };
+
 
     class TQuantizedFeaturesBlockIterator
         : public NDetail::TFeaturesBlockIteratorBase<
@@ -282,7 +245,6 @@ namespace NCB {
             ui8,
             ui32,
             NCB::TText,
-            TConstArrayRef<float>,
             TQuantizedFeatureAccessor>
     {
     public:
@@ -291,7 +253,6 @@ namespace NCB {
             ui8,
             ui32,
             NCB::TText,
-            TConstArrayRef<float>,
             TQuantizedFeatureAccessor>;
 
     public:
@@ -301,25 +262,8 @@ namespace NCB {
             const THashMap<ui32, ui32>& columnReorderMap,
             ui32 objectOffset)
             : TBase(model, objectsData, columnReorderMap, objectOffset)
-            , FloatBinsRemap(
-                GetFloatFeaturesBordersRemap(
-                    model,
-                    columnReorderMap,
-                    *objectsData.GetQuantizedFeaturesInfo()
-                )
-              )
+            , FloatBinsRemap(GetFloatFeaturesBordersRemap(model, *objectsData.GetQuantizedFeaturesInfo()))
             , FloatBinsRemapRef(FloatBinsRemap.begin(), FloatBinsRemap.end())
-            , CatFeatureBinToHashedValueRemap(
-                GetCatFeaturesBinToHashedValueRemap(
-                    model,
-                    columnReorderMap,
-                    *objectsData.GetQuantizedFeaturesInfo()
-                )
-              )
-            , CatFeatureBinToHashedValueRemapRef(
-                CatFeatureBinToHashedValueRemap.begin(),
-                CatFeatureBinToHashedValueRemap.end()
-              )
         {}
 
         void Accept(IFeaturesBlockIteratorVisitor* visitor) const override {
@@ -334,16 +278,9 @@ namespace NCB {
             return FloatBinsRemapRef;
         }
 
-        TConstArrayRef<TConstArrayRef<ui32>> GetCatFeatureBinToHashedValueRemap() const {
-            return CatFeatureBinToHashedValueRemapRef;
-        }
-
     private:
         TVector<TVector<ui8>> FloatBinsRemap;
         TVector<TConstArrayRef<ui8>> FloatBinsRemapRef;
-
-        TVector<TVector<ui32>> CatFeatureBinToHashedValueRemap;
-        TVector<TConstArrayRef<ui32>> CatFeatureBinToHashedValueRemapRef;
     };
 
 
@@ -351,8 +288,6 @@ namespace NCB {
         const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator)
         : FloatValues(quantizedFeaturesBlockIterator.GetFloatValues())
         , FloatBinsRemap(quantizedFeaturesBlockIterator.GetFloatBinsRemap())
-        , CatValues(quantizedFeaturesBlockIterator.GetCatValues())
-        , CatFeatureBinToHashedValueRemap(quantizedFeaturesBlockIterator.GetCatFeatureBinToHashedValueRemap())
     {}
 
 

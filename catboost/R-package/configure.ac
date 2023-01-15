@@ -3,7 +3,7 @@
 ##### INIT ####################################################################
 
 AC_INIT(catboost,
-        m4_esyscmd([cat DESCRIPTION | grep Version: | cut -d " " -f 2 | tr -d '\n']),
+        m4_esyscmd([cat DESCRIPTION | grep Version: | sed -e 's/^Version: \([0-9]*[.][0-9]*\).*$/\1/' | tr -d '\n']),
         [https://github.com/catboost/catboost/issues])
 
 ##### OPTIONS #################################################################
@@ -15,7 +15,7 @@ AC_ARG_VAR(R_HOME, [Override the default directory with R installation,
    Note that $R_HOME/bin/R should point to the R executable.])
 
 AC_ARG_VAR(CATBOOST_DYNLIB, [Optional path to already downloaded or built
-   CatBoost dynamic library; either an absolute path or a path relative to
+   CatBoost dynamic library; either an absolute path or a path relative to 
    <package-source-dir>/src.])
 
 ##### CHECK FOR R #############################################################
@@ -34,7 +34,7 @@ fi
 AC_MSG_RESULT($R_HOME)
 AC_SUBST(R_HOME)
 
-# ...and then R_PATH
+# ...and then R_PATH 
 AC_MSG_CHECKING(for R)
 R_PATH="${R_HOME}/bin/R" # see "Writing R Extensions"
 if test ! -e "${R_PATH}"; then
@@ -48,21 +48,6 @@ AC_MSG_RESULT($R_PATH)
 
 ##### Get CatBoost dyn lib #####################################################
 CATBOOST_FOUND=0
-OS_TYPE=$(uname)
-
-# set dynlib suffix
-if [[[ $OS_TYPE == 'Darwin' ]]]; then
-   DYNLIB_SUFFIX='dylib'
-   echo "*** creating .so -> .dylib symlink for working with different R installations"
-   ln -s 'libcatboostr.dylib' 'src/libcatboostr.so'
-elif [[[ $OS_TYPE == 'Linux' ]]]; then
-   DYNLIB_SUFFIX='so'
-else
-   echo "*** Unsupported system type: not Darwin nor Linux."
-   exit 1
-fi
-
-DYNLIB_PATH="src/libcatboostr.${DYNLIB_SUFFIX}"
 
 # checking for CATBOOST_DYNLIB variable
 AC_MSG_CHECKING(for local CATBOOST_DYNLIB)
@@ -74,16 +59,16 @@ if test -n "$CATBOOST_DYNLIB"; then
       fi
    fi
    if test -f "$CATBOOST_DYNLIB"; then
-      AC_MSG_RESULT($CATBOOST_DYNLIB copying into $DYNLIB_PATH)
-      cp -f $CATBOOST_DYNLIB $DYNLIB_PATH
+      AC_MSG_RESULT($CATBOOST_DYNLIB copying into src/libcatboost.so)
+      cp -f $CATBOOST_DYNLIB src/libcatboostr.so
       CATBOOST_FOUND=1
    fi
 fi
 
-if test $CATBOOST_FOUND = 0; then
-   # check if src/libcatboostr.{so/darwin} exists already
-   if test -f "$DYNLIB_PATH"; then
-      CATBOOST_DYNLIB=$DYNLIB_PATH
+if test $CATBOOST_FOUND = 0; then 
+   # check if src/libcatboostr.so exists already
+   if test -f "src/libcatboostr.so"; then
+      CATBOOST_DYNLIB="src/libcatboostr.so"
       AC_MSG_RESULT($CATBOOST_DYNLIB)
       CATBOOST_FOUND=1
    else

@@ -1,6 +1,6 @@
 
 
-Y_BENCHMARK()
+BENCHMARK()
 
 # to minimize allocations overhead
 ALLOCATOR(B)

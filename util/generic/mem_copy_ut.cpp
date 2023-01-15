@@ -1,6 +1,6 @@
 #include "mem_copy.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 namespace {
     class TAssignBCalled: public yexception {
@@ -73,7 +73,7 @@ Y_UNIT_TEST_SUITE(TestMemCopy) {
     }
 
     template <class T>
-    inline void FillX(T* b, T* e) {
+    inline void FillX(T * b, T * e) {
         int tmp = 0;
 
         while (b != e) {

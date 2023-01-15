@@ -4,7 +4,6 @@ LIBRARY()
 
 
 SRCS(
-    GLOBAL cuda_trainer_env.cpp
     GLOBAL train.cpp
     GLOBAL query_cross_entropy.cpp
     GLOBAL pointwise.cpp
@@ -43,9 +42,9 @@ PEERDIR(
     catboost/libs/overfitting_detector
     catboost/private/libs/quantization
     catboost/libs/train_lib
-    library/cpp/json
-    library/cpp/object_factory
-    library/cpp/threading/local_executor
+    library/json
+    library/object_factory
+    library/threading/local_executor
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

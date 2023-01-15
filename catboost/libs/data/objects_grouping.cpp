@@ -2,7 +2,6 @@
 
 #include <catboost/libs/helpers/permutation.h>
 
-#include <util/generic/overloaded.h>
 #include <util/generic/xrange.h>
 #include <util/random/shuffle.h>
 
@@ -29,9 +28,11 @@ TObjectsGroupingSubset NCB::GetSubset(
     TArraySubsetIndexing<ui32>&& groupsSubset,
     EObjectsOrder groupSubsetOrder
 ) {
+    using TSubsetVariantType = typename TArraySubsetIndexing<ui32>::TBase;
+
     if (objectsGrouping->IsTrivial()) {
         return TObjectsGroupingSubset(
-            ::std::holds_alternative<TFullSubset<ui32>>(groupsSubset) ?
+            ::HoldsAlternative<TFullSubset<ui32>>(groupsSubset) ?
                 objectsGrouping : MakeIntrusive<TObjectsGrouping>(groupsSubset.Size()),
             std::move(groupsSubset),
             groupSubsetOrder
@@ -40,76 +41,85 @@ TObjectsGroupingSubset NCB::GetSubset(
         TMaybe<TArraySubsetIndexing<ui32>> objectsSubset;
         TVector<TGroupBounds> subsetGroupBounds;
 
-        if (std::holds_alternative<TFullSubset<ui32>>(groupsSubset)) {
-            objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
-                TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-            );
-            return TObjectsGroupingSubset(
-                objectsGrouping,
-                std::move(groupsSubset),
-                groupSubsetOrder,
-                MakeMaybe<TArraySubsetIndexing<ui32>>(
+        switch (groupsSubset.index()) {
+            case TVariantIndexV<TFullSubset<ui32>, TSubsetVariantType>:
+                objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
                     TFullSubset<ui32>(objectsGrouping->GetObjectCount())
-                ),
-                groupSubsetOrder
-            );
-        } else if (const auto* ranges = std::get_if<TRangesSubset<ui32>>(&groupsSubset)) {
-            const auto& groupsSubsetBlocks = ranges->Blocks;
-
-            ui32 srcObjectCount = objectsGrouping->GetObjectCount();
-            auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
-
-            subsetGroupBounds.reserve(groupsSubset.Size());
-
-            TVector<TSubsetBlock<ui32>> objectsSubsetBlocks;
-            objectsSubsetBlocks.reserve(groupsSubsetBlocks.size());
-
-            ui32 objectsDstBegin = 0;
-            for (const auto& groupSubsetBlock : groupsSubsetBlocks) {
-                objectsSubsetBlocks.emplace_back(
-                    TIndexRange<ui32>(
-                        nontrivialSrcGroups[groupSubsetBlock.SrcBegin].Begin,
-                        (groupSubsetBlock.SrcEnd == nontrivialSrcGroups.size() ?
-                            srcObjectCount : nontrivialSrcGroups[groupSubsetBlock.SrcEnd].Begin)
+                );
+                return TObjectsGroupingSubset(
+                    objectsGrouping,
+                    std::move(groupsSubset),
+                    groupSubsetOrder,
+                    MakeMaybe<TArraySubsetIndexing<ui32>>(
+                        TFullSubset<ui32>(objectsGrouping->GetObjectCount())
                     ),
-                    objectsDstBegin
+                    groupSubsetOrder
                 );
+            case TVariantIndexV<TRangesSubset<ui32>, TSubsetVariantType>: {
+                    const auto& groupsSubsetBlocks =
+                        groupsSubset.template Get<TRangesSubset<ui32>>().Blocks;
 
-                for (auto srcGroupIdx : xrange(groupSubsetBlock.SrcBegin, groupSubsetBlock.SrcEnd)) {
-                    subsetGroupBounds.emplace_back(
-                        objectsDstBegin,
-                        objectsDstBegin + nontrivialSrcGroups[srcGroupIdx].GetSize()
+                    ui32 srcObjectCount = objectsGrouping->GetObjectCount();
+                    auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
+
+                    subsetGroupBounds.reserve(groupsSubset.Size());
+
+                    TVector<TSubsetBlock<ui32>> objectsSubsetBlocks;
+                    objectsSubsetBlocks.reserve(groupsSubsetBlocks.size());
+
+                    ui32 objectsDstBegin = 0;
+                    for (const auto& groupSubsetBlock : groupsSubsetBlocks) {
+                        objectsSubsetBlocks.emplace_back(
+                            TIndexRange<ui32>(
+                                nontrivialSrcGroups[groupSubsetBlock.SrcBegin].Begin,
+                                (groupSubsetBlock.SrcEnd == nontrivialSrcGroups.size() ?
+                                    srcObjectCount : nontrivialSrcGroups[groupSubsetBlock.SrcEnd].Begin)
+                            ),
+                            objectsDstBegin
+                        );
+
+                        for (auto srcGroupIdx : xrange(groupSubsetBlock.SrcBegin, groupSubsetBlock.SrcEnd)) {
+                            subsetGroupBounds.emplace_back(
+                                objectsDstBegin,
+                                objectsDstBegin + nontrivialSrcGroups[srcGroupIdx].GetSize()
+                            );
+                            objectsDstBegin += subsetGroupBounds.back().GetSize();
+                        }
+                    }
+
+                    objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
+                        TRangesSubset<ui32>(objectsDstBegin, std::move(objectsSubsetBlocks))
                     );
-                    objectsDstBegin += subsetGroupBounds.back().GetSize();
                 }
-            }
+                break;
+            case TVariantIndexV<TIndexedSubset<ui32>, TSubsetVariantType>: {
+                    const auto& groupsSubsetIndices =
+                        groupsSubset.template Get<TIndexedSubset<ui32>>();
 
-            objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
-                TRangesSubset<ui32>(objectsDstBegin, std::move(objectsSubsetBlocks))
-            );
-        } else if (const auto* groupsSubsetIndices = std::get_if<TIndexedSubset<ui32>>(&groupsSubset)) {
-            auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
+                    auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
 
-            subsetGroupBounds.reserve(groupsSubset.Size());
+                    subsetGroupBounds.reserve(groupsSubset.Size());
 
-            TVector<TSubsetBlock<ui32>> objectsSubsetBlocks;
-            objectsSubsetBlocks.reserve(groupsSubsetIndices->size());
+                    TVector<TSubsetBlock<ui32>> objectsSubsetBlocks;
+                    objectsSubsetBlocks.reserve(groupsSubsetIndices.size());
 
-            ui32 objectsDstBegin = 0;
-            for (auto srcGroupIdx : *groupsSubsetIndices) {
-                objectsSubsetBlocks.emplace_back(nontrivialSrcGroups[srcGroupIdx], objectsDstBegin);
+                    ui32 objectsDstBegin = 0;
+                    for (auto srcGroupIdx : groupsSubsetIndices) {
+                        objectsSubsetBlocks.emplace_back(nontrivialSrcGroups[srcGroupIdx], objectsDstBegin);
 
-                subsetGroupBounds.emplace_back(
-                    objectsDstBegin,
-                    objectsDstBegin + nontrivialSrcGroups[srcGroupIdx].GetSize()
-                );
+                        subsetGroupBounds.emplace_back(
+                            objectsDstBegin,
+                            objectsDstBegin + nontrivialSrcGroups[srcGroupIdx].GetSize()
+                        );
 
-                objectsDstBegin += subsetGroupBounds.back().GetSize();
-            }
+                        objectsDstBegin += subsetGroupBounds.back().GetSize();
+                    }
 
-            objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
-                TRangesSubset<ui32>(objectsDstBegin, std::move(objectsSubsetBlocks))
-            );
+                    objectsSubset = MakeMaybe<TArraySubsetIndexing<ui32>>(
+                        TRangesSubset<ui32>(objectsDstBegin, std::move(objectsSubsetBlocks))
+                    );
+                }
+                break;
         }
 
         return TObjectsGroupingSubset(
@@ -140,10 +150,10 @@ TObjectsGroupingSubset NCB::GetGroupingSubsetFromObjectsSubset(
         }
         ui32 subsetCurrentGroupOffset = 0;
 
-        constexpr TStringBuf INVARIANT_MESSAGE =
+        constexpr TStringBuf INVARIANT_MESSAGE = AsStringBuf(
             " subset groups invariant (if group is present in the subset all it's member objects"
             " must present and be in the same order within a group). This constraint might be"
-            " relaxed in the future.";
+            " relaxed in the future.");
         // TODO(kirillovs): get rid of N * log(N)
         objectsSubset.ForEach(
             [&](ui32 idx, ui32 srcIdx) {

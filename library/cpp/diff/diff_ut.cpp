@@ -1,6 +1,6 @@
 #include "diff.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace NDiff;
 

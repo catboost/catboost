@@ -46,7 +46,7 @@ public:
     void InitCtrHelper(
         const NCatboostOptions::TCatFeatureParams& catFeatureParams,
         const NCB::TFeaturesLayout& layout,
-        NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> targets,
+        NCB::TMaybeData<TConstArrayRef<float>> target,
         ELossFunction loss,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         bool allowConstLabel);

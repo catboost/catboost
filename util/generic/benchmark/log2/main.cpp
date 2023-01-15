@@ -1,4 +1,4 @@
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <library/cpp/fast_log/fast_log.h>
 

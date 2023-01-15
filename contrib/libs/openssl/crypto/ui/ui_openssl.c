@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -53,7 +53,7 @@
 #  endif
 # endif
 
-# include "ui_local.h"
+# include "ui_locl.h"
 # include "internal/cryptlib.h"
 
 # ifdef OPENSSL_SYS_VMS          /* prototypes for sys$whatever */
@@ -439,16 +439,6 @@ static int open_console(UI *ui)
             is_a_tty = 0;
         else
 #  endif
-#  ifdef EPERM
-            /*
-             * Linux can return EPERM (Operation not permitted),
-             * e.g. if a daemon executes openssl via fork()+execve()
-             * This should be ok
-             */
-        if (errno == EPERM)
-            is_a_tty = 0;
-        else
-#  endif
 #  ifdef ENODEV
             /*
              * MacOS X returns ENODEV (Operation not supported by device),
@@ -572,8 +562,6 @@ static int echo_console(UI *ui)
 
 static int close_console(UI *ui)
 {
-    int ret = 1;
-
     if (tty_in != stdin)
         fclose(tty_in);
     if (tty_out != stderr)
@@ -586,12 +574,12 @@ static int close_console(UI *ui)
         BIO_snprintf(tmp_num, sizeof(tmp_num) - 1, "%%X%08X", status);
         UIerr(UI_F_CLOSE_CONSOLE, UI_R_SYSDASSGN_ERROR);
         ERR_add_error_data(2, "status=", tmp_num);
-        ret = 0;
+        return 0;
     }
 # endif
     CRYPTO_THREAD_unlock(ui->lock);
 
-    return ret;
+    return 1;
 }
 
 # if !defined(OPENSSL_SYS_WINCE)

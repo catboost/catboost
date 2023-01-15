@@ -119,42 +119,12 @@ namespace NLastGetopt {
         return Parser_->Argc_ - GetFreeArgsPos();
     }
 
-    void FindUserTypos(const TString& arg, const TOpts* options) {
-        if (arg.size() < 4 || !arg.StartsWith("-")) {
-            return;
-        }
-
-        for (auto opt: options->Opts_) {
-            for (auto name: opt->GetLongNames()) {
-                if ("-" + name == arg) {
-                    throw TUsageException() << "did you mean `-" << arg << "` (with two dashes)?";
-                }
-            }
-        }
-    }
-
     void TOptsParseResult::Init(const TOpts* options, int argc, const char** argv) {
         try {
             Parser_.Reset(new TOptsParser(options, argc, argv));
             while (Parser_->Next()) {
                 TOptParseResult& r = OptParseResult();
                 r.AddValue(Parser_->CurValOrOpt().data());
-            }
-
-            Y_ENSURE(options);
-            const auto freeArgs = GetFreeArgs();
-            for (size_t i = 0; i < freeArgs.size(); ++i) {
-                if (i >= options->ArgBindings_.size()) {
-                    break;
-                }
-
-                options->ArgBindings_[i](freeArgs[i]);
-            }
-
-            if (options->CheckUserTypos_) {
-                for (auto arg: TVector<TString>(argv, std::next(argv, argc))) {
-                    FindUserTypos(arg, options);
-                }
             }
         } catch (...) {
             HandleError();

@@ -39,5 +39,17 @@ namespace NCB {
         const TDictionaryPtr Dictionary;
     };
 
+    struct TTextClassificationTarget : public TThrRefBase {
+        TTextClassificationTarget(TVector<ui32>&& classes, ui32 numClasses)
+        : Classes(std::move(classes))
+        , NumClasses(numClasses)
+        {}
+
+    public:
+        TVector<ui32> Classes;
+        ui32 NumClasses;
+    };
+
     using TTextDataSetPtr = TIntrusivePtr<TTextDataSet>;
+    using TTextClassificationTargetPtr = TIntrusivePtr<TTextClassificationTarget>;
 }

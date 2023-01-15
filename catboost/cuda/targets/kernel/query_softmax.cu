@@ -70,15 +70,14 @@ namespace NKernel {
                                               const ui32* qids, ui32 size,
                                               const float* maximals,
                                               const ui32* writeMap,
-                                              float* approxExp,
-                                              float beta) {
+                                              float* approxExp) {
 
         const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         const float weight =  (weights && (i < size)) ? weights[i] : 1.0f;
         const float approx = i < size ? approxExp[i] : 0;
         const float apprMax = i < size ? __ldg(maximals + __ldg(qids + i)) : 0;
-        const float apprExp = __expf(beta * (approx - apprMax)) * weight;
+        const float apprExp = __expf(approx - apprMax) * weight;
 
         if (i < size) {
             approxExp[i] = apprExp;
@@ -90,11 +89,10 @@ namespace NKernel {
                                const float* maximals,
                                const ui32* writeMap,
                                float* approxExp,
-                               float beta,
                                TCudaStream stream) {
         const ui32 blockSize = 1024;
         const ui32 numBlocks = (size + blockSize - 1) / blockSize;
-        ComputeQueryExponentsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(weights, qids, size, maximals, writeMap, approxExp, beta);
+        ComputeQueryExponentsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(weights, qids, size, maximals, writeMap, approxExp);
     }
 
     template <int BLOCK_SIZE>
@@ -152,7 +150,7 @@ namespace NKernel {
     __global__ void QuerySoftMaxImpl(const float* target, const float* weights,
                                      const float* approxExp,
                                      const ui32* qids,
-                                     float lambdaReg, float beta, ui32 size,
+                                     float lambdaReg, ui32 size,
                                      const float* approxExpSum,
                                      const float* sumWeightedTargets,
                                      const ui32* writeMap,
@@ -178,10 +176,10 @@ namespace NKernel {
             const ui32 dstIdx = writeMap != nullptr ? writeMap[i] : i;
 
             if (der) {
-                der[dstIdx] = beta * (((weight > 0 && sumTargets > 0) ? (-sumTargets * softmax) : 0) + wt);
+                der[dstIdx] = ((weight > 0 && sumTargets > 0) ? (-sumTargets * softmax) : 0) + wt;
             }
             if (der2) {
-                der2[dstIdx] = (weight > 0 && sumTargets > 0) ? beta * sumTargets * (beta * softmax * (1 - softmax) + lambdaReg) : 0;
+                der2[dstIdx] = (weight > 0 && sumTargets > 0) ? sumTargets * (softmax * (1 - softmax) + lambdaReg) : 0;
             }
         }
 
@@ -201,7 +199,7 @@ namespace NKernel {
     void ApproximateQuerySoftMax(const float* target, const float* weights,
                                  const float* approxExp,
                                  const ui32* qids,
-                                 float lambdaReg, float beta, ui32 size,
+                                 float lambdaReg, ui32 size,
                                  const float* approxExpSum,
                                  const float* sumWeightedTargets,
                                  const ui32* writeMap,
@@ -215,7 +213,7 @@ namespace NKernel {
         if (functionValue) {
             FillBuffer(functionValue, 0.0f, 1, stream);
         }
-        QuerySoftMaxImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(target, weights, approxExp, qids, lambdaReg, beta, size, approxExpSum, sumWeightedTargets, writeMap, functionValue, der, der2);
+        QuerySoftMaxImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(target, weights, approxExp, qids, lambdaReg, size, approxExpSum, sumWeightedTargets, writeMap, functionValue, der, der2);
     }
 
 }

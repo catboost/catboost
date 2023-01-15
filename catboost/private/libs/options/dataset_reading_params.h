@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -28,9 +28,6 @@ namespace NCatboostOptions {
 
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme FeatureNamesPath;
-        NCB::TPathWithScheme PoolMetaInfoPath;
-
-        bool ForceUnitAutoPairWeights;
 
         TVector<ui32> IgnoredFeatures;
     };

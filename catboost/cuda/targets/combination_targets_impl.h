@@ -158,13 +158,13 @@ namespace NCatboostCuda {
             TAdditiveStatistic totalStats;
             for (ui32 idx : xrange(QuerywiseLosses.size())) {
                 const auto& metrics = CreateMetricFromDescription(QuerywiseLosses[idx].Loss, /*approxDimension*/ 1);
-                const auto& stats = QuerywiseTargets[idx]->ComputeStats(point, QuerywiseLosses[idx].Loss.GetLossParamsMap());
+                const auto& stats = QuerywiseTargets[idx]->ComputeStats(point, QuerywiseLosses[idx].Loss.GetLossParams());
                 const double value = metrics[0]->GetFinalError(stats);
                 totalStats.Add(MakeSimpleAdditiveStatistic(value * QuerywiseLosses[idx].Weight, 0));
             }
             for (ui32 idx : xrange(PointwiseLosses.size())) {
                 const auto& metrics = CreateMetricFromDescription(PointwiseLosses[idx].Loss, /*approxDimension*/ 1);
-                const auto& stats = PointwiseTargets[idx]->ComputeStats(point, PointwiseLosses[idx].Loss.GetLossParamsMap());
+                const auto& stats = PointwiseTargets[idx]->ComputeStats(point, PointwiseLosses[idx].Loss.GetLossParams());
                 const double value = metrics[0]->GetFinalError(stats);
                 totalStats.Add(MakeSimpleAdditiveStatistic(value * PointwiseLosses[idx].Weight, 0));
             }
@@ -285,15 +285,7 @@ namespace NCatboostCuda {
                 FillBuffer(*der2, 0.0f, stream);
             }
             for (ui32 idx : xrange(QuerywiseLosses.size())) {
-                QuerywiseTargets[idx]->ApproximateForPermutation(
-                    point.AsConstBuf(),
-                    indices,
-                    &scratchValue,
-                    &scratchDer,
-                    der2Row,
-                    &scratchDer2,
-                    stream
-                );
+                QuerywiseTargets[idx]->ApproximateForPermutation(point, indices, &scratchValue, &scratchDer, der2Row, &scratchDer2, stream);
                 const float weight = QuerywiseLosses[idx].Weight;
                 MultiplyAddVector(*value, scratchValue, weight, stream);
                 MultiplyAddVector(*der, scratchDer, weight, stream);
@@ -310,16 +302,7 @@ namespace NCatboostCuda {
             Gather(weights, GetTarget().GetWeights(), inverseIndices, stream);
 
             for (ui32 idx : xrange(PointwiseLosses.size())) {
-                PointwiseTargets[idx]->Approximate(
-                    target.AsConstBuf(),
-                    weights.AsConstBuf(),
-                    point.AsConstBuf(),
-                    &scratchValue,
-                    &scratchDer,
-                    0,
-                    &scratchDer2,
-                    stream
-                );
+                PointwiseTargets[idx]->Approximate(target, weights, point, &scratchValue, &scratchDer, 0, &scratchDer2, stream);
                 const float weight = PointwiseLosses[idx].Weight;
                 MultiplyAddVector(*value, scratchValue, weight, stream);
                 MultiplyAddVector(*der, scratchDer, weight, stream);
@@ -365,7 +348,7 @@ namespace NCatboostCuda {
         void CreateLosses(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Combination,  "Only combination loss is supported");
             IterateOverCombination(
-                targetOptions.GetLossParamsMap(),
+                targetOptions.GetLossParams(),
                 [&] (const auto& loss, float weight) {
                     const auto lossFunction = loss.GetLossFunction();
                     if (IsDiagQuerywiseLoss(lossFunction)) {

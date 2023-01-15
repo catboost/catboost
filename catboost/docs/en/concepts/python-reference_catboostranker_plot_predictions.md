@@ -1,1 +1,0 @@
-{% include [python-reference_catboost_plot_predictions](python-reference_catboost_plot_predictions.md) %}

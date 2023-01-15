@@ -15,11 +15,10 @@
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
 #include <library/cpp/getopt/small/last_getopt.h>
-#include <library/cpp/json/json_value.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/serialized_enum.h>
-#include <util/string/split.h>
 #include <util/system/mutex.h>
 
 using namespace NCB;
@@ -33,7 +32,7 @@ namespace {
         TMaybe<EModelType> OutputModelType;
         NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
         TMaybe<double> Scale;
-        TMaybe<TVector<double>> Bias;
+        TMaybe<double> Bias;
         ELoggingLevel LoggingLevel;
         int ThreadCount;
         TVector<TPathWithScheme> PoolPaths;
@@ -50,12 +49,7 @@ namespace {
                 .Help("Scale")
                 ;
             parser.AddLongOption("set-bias").RequiredArgument("BIAS")
-                .Handler1T<TStringBuf>([=](auto bias) {
-                    Bias = TVector<double>(0);
-                    for (const auto& biasValue : StringSplitter(bias).Split(':')) {
-                        Bias->push_back(FromString<double>(biasValue.Token()));
-                    }
-                })
+                .Handler1T<double>([=](auto bias){ Bias = bias; })
                 .Help("Bias")
                 ;
             parser.AddLongOption("print-scale-and-bias").NoArgument()
@@ -97,26 +91,26 @@ namespace {
 
             TFullModel model = ReadModel(modeParams.ModelFileName, modeParams.ModelType);
             CB_ENSURE(model.GetTreeCount() > 0, "Cannot normalize empty model");
-            CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multitarget model");
+            CB_ENSURE(model.GetDimensionsCount() == 1, "No sense in normalizing a multiclass/multiregression model");
             TScaleAndBias inputScaleAndBias = model.GetScaleAndBias();
             if (modeParams.PrintScaleAndBias) {
                 Cout << "Input model"
                     << " scale " << inputScaleAndBias.Scale
-                    << " bias " << inputScaleAndBias.GetOneDimensionalBiasOrZero()
+                    << " bias " << inputScaleAndBias.Bias
                     << Endl;
             }
 
             if (modeParams.PoolPaths) {
                 CB_ENSURE(!modeParams.Scale.Defined() && !modeParams.Bias.Defined(), "Conflicting options: -i and --set-scale/bias");
-                model.SetScaleAndBias({1.0, {}});
+                model.SetScaleAndBias({1.0, 0.0});
                 auto approx = CalcMinMaxOnAllPools(model, modeParams);
                 CB_ENSURE(approx.Min < approx.Max, "Model gives same result on all docs");
                 double scale = 1.0 / (approx.Max - approx.Min);
                 double bias = - scale * approx.Min;
-                model.SetScaleAndBias({scale, {bias}});
+                model.SetScaleAndBias({scale, bias});
             } else {
                 double scale = modeParams.Scale.GetOrElse(model.GetScaleAndBias().Scale);
-                auto bias = modeParams.Bias.GetOrElse(model.GetScaleAndBias().GetBiasRef());
+                double bias = modeParams.Bias.GetOrElse(model.GetScaleAndBias().Bias);
                 model.SetScaleAndBias({scale, bias});
             }
 
@@ -124,7 +118,7 @@ namespace {
                 if (modeParams.PrintScaleAndBias) {
                     Cout << "Output model"
                         << " scale " << model.GetScaleAndBias().Scale
-                        << " bias " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero()
+                        << " bias " << model.GetScaleAndBias().Bias
                         << Endl;
                 }
                 const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName;
@@ -154,7 +148,7 @@ namespace {
             const TFullModel& model,
             const TPathWithScheme& poolPath,
             const TModeParams& modeParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const {
             TMinMax<double> result{+DBL_MAX, -DBL_MAX};
             TMutex result_guard;
@@ -165,8 +159,6 @@ namespace {
                     TVector<NJson::TJsonValue>(),  // ClassLabels
                     TPathWithScheme(),  // PairsFilePath
                     TPathWithScheme(),  // FeatureNamesPath
-                    TPathWithScheme(),  // PoolMetaInfoPath
-                    false,  // ForceUnitAutoPairWeights
                     TVector<ui32>(),  // IgnoredFeatures
                 },
                 10000,  // blockSize

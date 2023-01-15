@@ -3,49 +3,29 @@
 #include <util/system/types.h>
 #include <util/system/compiler.h>
 
-#include <numeric>
-
 /**
  * Dot product (Inner product or scalar product) implementation using SSE when possible.
  */
-namespace NDotProductImpl {
-    extern i32 (*DotProductI8Impl)(const i8* lhs, const i8* rhs, size_t length) noexcept;
-    extern ui32 (*DotProductUi8Impl)(const ui8* lhs, const ui8* rhs, size_t length) noexcept;
-    extern i64 (*DotProductI32Impl)(const i32* lhs, const i32* rhs, size_t length) noexcept;
-    extern float (*DotProductFloatImpl)(const float* lhs, const float* rhs, size_t length) noexcept;
-    extern double (*DotProductDoubleImpl)(const double* lhs, const double* rhs, size_t length) noexcept;
-}
+Y_PURE_FUNCTION
+i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
-inline i32 DotProduct(const i8* lhs, const i8* rhs, size_t length) noexcept {
-    return NDotProductImpl::DotProductI8Impl(lhs, rhs, length);
-}
+ui32 DotProduct(const ui8* lhs, const ui8* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
-inline ui32 DotProduct(const ui8* lhs, const ui8* rhs, size_t length) noexcept {
-    return NDotProductImpl::DotProductUi8Impl(lhs, rhs, length);
-}
+i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
-inline i64 DotProduct(const i32* lhs, const i32* rhs, size_t length) noexcept {
-    return NDotProductImpl::DotProductI32Impl(lhs, rhs, length);
-}
+float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
-inline float DotProduct(const float* lhs, const float* rhs, size_t length) noexcept {
-    return NDotProductImpl::DotProductFloatImpl(lhs, rhs, length);
-}
-
-Y_PURE_FUNCTION
-inline double DotProduct(const double* lhs, const double* rhs, size_t length) noexcept {
-    return NDotProductImpl::DotProductDoubleImpl(lhs, rhs, length);
-}
+double DotProduct(const double* lhs, const double* rhs, ui32 length) noexcept;
 
 /**
  * Dot product to itself
  */
 Y_PURE_FUNCTION
-float L2NormSquared(const float* v, size_t length) noexcept;
+float L2NormSquared(const float* v, ui32 length) noexcept;
 
 // TODO(yazevnul): make `L2NormSquared` for double, this should be faster than `DotProduct`
 // where `lhs == rhs` because it will save N load instructions.
@@ -70,15 +50,33 @@ enum class ETriWayDotProductComputeMask: unsigned {
 };
 
 Y_PURE_FUNCTION
-TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, size_t length, unsigned mask) noexcept;
+TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui32 length, unsigned mask) noexcept;
 
 /**
  * For two vectors L and R computes 3 dot-products: L·L, L·R, R·R
  */
 Y_PURE_FUNCTION
-static inline TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, size_t length, ETriWayDotProductComputeMask mask = ETriWayDotProductComputeMask::All) noexcept {
+static inline TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const float* rhs, ui32 length, ETriWayDotProductComputeMask mask = ETriWayDotProductComputeMask::All) noexcept {
     return TriWayDotProduct(lhs, rhs, length, static_cast<unsigned>(mask));
 }
+
+/**
+ * Dot product implementation without SSE optimizations.
+ */
+Y_PURE_FUNCTION
+ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept;
+
+Y_PURE_FUNCTION
+i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept;
+
+Y_PURE_FUNCTION
+i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept;
+
+Y_PURE_FUNCTION
+float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept;
+
+Y_PURE_FUNCTION
+double DotProductSlow(const double* lhs, const double* rhs, ui32 length) noexcept;
 
 namespace NDotProduct {
     // Simpler wrapper allowing to use this functions as template argument.
@@ -86,11 +84,8 @@ namespace NDotProduct {
     struct TDotProduct {
         using TResult = decltype(DotProduct(static_cast<const T*>(nullptr), static_cast<const T*>(nullptr), 0));
         Y_PURE_FUNCTION
-        inline TResult operator()(const T* l, const T* r, size_t length) const {
+        inline TResult operator()(const T* l, const T* r, ui32 length) const {
             return DotProduct(l, r, length);
         }
     };
-
-    void DisableAvx2();
 }
-

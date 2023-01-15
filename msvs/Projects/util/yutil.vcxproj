@@ -23,7 +23,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ArcadiaProps"/>
@@ -57,18 +57,18 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /permissive- /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4005 /wd4117 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DARCADIA_ROOT=$(SolutionDir).. /DARCADIA_BUILD_ROOT=$(SolutionDir)$(Configuration) /DFAKEID=10157985 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1  -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes -DUSE_STL_SYSTEM /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++latest /Zc:__cplusplus /D_CRT_USE_BUILTIN_OFFSETOF    -DCATBOOST_OPENSOURCE=yes -DCATBOOST_OPENSOURCE=yes </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion;$(SolutionDir)../contrib/libs/libc_compat/include/windows;$(SolutionDir)../contrib/libs/libc_compat/reallocarray;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;comdlg32.lib;crypt32.lib;dnsapi.lib;gdi32.lib;iphlpapi.lib;kernel32.lib;mswsock.lib;ole32.lib;oleaut32.lib;psapi.lib;rpcrt4.lib;secur32.lib;shell32.lib;shlwapi.lib;user32.lib;userenv.lib;uuid.lib;version.lib;winmm.lib;winspool.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL     </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL    </AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
       <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
@@ -89,9 +89,11 @@
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\random\random.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\string\cast.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\util\system\err.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\fs_win.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\system\mktemp_system.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\util\system\strlcpy.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\system\winint.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_datetime.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_digest.cpp"/>
@@ -106,60 +108,59 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_2.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_thread.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_util.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\util\system\compiler.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_datetime.cpp" "--ya-start-command-file" "util/datetime/base.cpp" "util/datetime/constants.cpp" "util/datetime/cputimer.cpp" "util/datetime/systime.cpp" "util/datetime/uptime.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_datetime.cpp" "util/datetime/base.cpp" "util/datetime/constants.cpp" "util/datetime/cputimer.cpp" "util/datetime/systime.cpp" "util/datetime/uptime.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_digest.cpp" "--ya-start-command-file" "util/digest/fnv.cpp" "util/digest/multi.cpp" "util/digest/murmur.cpp" "util/digest/numeric.cpp" "util/digest/sequence.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_digest.cpp" "util/digest/fnv.cpp" "util/digest/multi.cpp" "util/digest/murmur.cpp" "util/digest/numeric.cpp" "util/digest/sequence.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_folder.cpp" "--ya-start-command-file" "util/folder/dirut.cpp" "util/folder/filelist.cpp" "util/folder/fts.cpp" "util/folder/fwd.cpp" "util/folder/iterator.cpp" "util/folder/path.cpp" "util/folder/pathsplit.cpp" "util/folder/tempdir.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_folder.cpp" "util/folder/dirut.cpp" "util/folder/filelist.cpp" "util/folder/fts.cpp" "util/folder/iterator.cpp" "util/folder/path.cpp" "util/folder/pathsplit.cpp" "util/folder/tempdir.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_generic.cpp" "--ya-start-command-file" "util/generic/adaptor.cpp" "util/generic/algorithm.cpp" "util/generic/array_ref.cpp" "util/generic/array_size.cpp" "util/generic/bitmap.cpp" "util/generic/bitops.cpp" "util/generic/bt_exception.cpp" "util/generic/buffer.cpp" "util/generic/cast.cpp" "util/generic/deque.cpp" "util/generic/explicit_type.cpp" "util/generic/fastqueue.cpp" "util/generic/flags.cpp" "util/generic/function.cpp" "util/generic/function_ref.cpp" "util/generic/fwd.cpp" "util/generic/guid.cpp" "util/generic/hash.cpp" "util/generic/hash_multi_map.cpp" "util/generic/hash_table.cpp" "util/generic/hash_primes.cpp" "util/generic/hash_set.cpp" "util/generic/hide_ptr.cpp" "util/generic/intrlist.cpp" "util/generic/is_in.cpp" "util/generic/iterator.cpp" "util/generic/iterator_range.cpp" "util/generic/lazy_value.cpp" "util/generic/list.cpp" "util/generic/map.cpp" "util/generic/mapfindptr.cpp" "util/generic/maybe.cpp" "util/generic/mem_copy.cpp" "util/generic/noncopyable.cpp" "util/generic/object_counter.cpp" "util/generic/overloaded.cpp" "util/generic/ptr.cpp" "util/generic/queue.cpp" "util/generic/refcount.cpp" "util/generic/scope.cpp" "util/generic/serialized_enum.cpp" "util/generic/set.cpp" "util/generic/singleton.cpp" "util/generic/size_literals.cpp" "util/generic/stack.cpp" "util/generic/store_policy.cpp" "util/generic/strbuf.cpp" "util/generic/strfcpy.cpp" "util/generic/string.cpp" "util/generic/typelist.cpp" "util/generic/typetraits.cpp" "util/generic/utility.cpp" "util/generic/va_args.cpp" "util/generic/variant.cpp" "util/generic/vector.cpp" "util/generic/xrange.cpp" "util/generic/yexception.cpp" "util/generic/ylimits.cpp" "util/generic/ymath.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_generic.cpp" "util/generic/scope.cpp" "util/generic/adaptor.cpp" "util/generic/algorithm.cpp" "util/generic/array_ref.cpp" "util/generic/array_size.cpp" "util/generic/bitmap.cpp" "util/generic/bitops.cpp" "util/generic/bt_exception.cpp" "util/generic/buffer.cpp" "util/generic/cast.cpp" "util/generic/chartraits.cpp" "util/generic/deque.cpp" "util/generic/explicit_type.cpp" "util/generic/fastqueue.cpp" "util/generic/flags.cpp" "util/generic/function.cpp" "util/generic/fwd.cpp" "util/generic/guid.cpp" "util/generic/hash.cpp" "util/generic/hash_primes.cpp" "util/generic/hash_set.cpp" "util/generic/hide_ptr.cpp" "util/generic/intrlist.cpp" "util/generic/is_in.cpp" "util/generic/iterator.cpp" "util/generic/iterator_range.cpp" "util/generic/lazy_value.cpp" "util/generic/list.cpp" "util/generic/map.cpp" "util/generic/mapfindptr.cpp" "util/generic/maybe.cpp" "util/generic/mem_copy.cpp" "util/generic/noncopyable.cpp" "util/generic/object_counter.cpp" "util/generic/ptr.cpp" "util/generic/queue.cpp" "util/generic/refcount.cpp" "util/generic/serialized_enum.cpp" "util/generic/set.cpp" "util/generic/singleton.cpp" "util/generic/size_literals.cpp" "util/generic/stack.cpp" "util/generic/store_policy.cpp" "util/generic/strbuf.cpp" "util/generic/strfcpy.cpp" "util/generic/string.cpp" "util/generic/typelist.cpp" "util/generic/type_name.cpp" "util/generic/typetraits.cpp" "util/generic/utility.cpp" "util/generic/va_args.cpp" "util/generic/vector.cpp" "util/generic/xrange.cpp" "util/generic/yexception.cpp" "util/generic/ylimits.cpp" "util/generic/ymath.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_memory.cpp" "--ya-start-command-file" "util/memory/addstorage.cpp" "util/memory/alloc.cpp" "util/memory/blob.cpp" "util/memory/mmapalloc.cpp" "util/memory/pool.cpp" "util/memory/segmented_string_pool.cpp" "util/memory/segpool_alloc.cpp" "util/memory/smallobj.cpp" "util/memory/tempbuf.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_memory.cpp" "util/memory/addstorage.cpp" "util/memory/alloc.cpp" "util/memory/blob.cpp" "util/memory/mmapalloc.cpp" "util/memory/pool.cpp" "util/memory/segmented_string_pool.cpp" "util/memory/segpool_alloc.cpp" "util/memory/smallobj.cpp" "util/memory/tempbuf.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_network.cpp" "--ya-start-command-file" "util/network/address.cpp" "util/network/endpoint.cpp" "util/network/hostip.cpp" "util/network/init.cpp" "util/network/interface.cpp" "util/network/iovec.cpp" "util/network/ip.cpp" "util/network/nonblock.cpp" "util/network/pair.cpp" "util/network/poller.cpp" "util/network/pollerimpl.cpp" "util/network/sock.cpp" "util/network/socket.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_network.cpp" "util/network/address.cpp" "util/network/endpoint.cpp" "util/network/hostip.cpp" "util/network/init.cpp" "util/network/interface.cpp" "util/network/iovec.cpp" "util/network/ip.cpp" "util/network/netloss.cpp" "util/network/nonblock.cpp" "util/network/pair.cpp" "util/network/poller.cpp" "util/network/pollerimpl.cpp" "util/network/sock.cpp" "util/network/socket.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_random.cpp" "--ya-start-command-file" "util/random/common_ops.cpp" "util/random/easy.cpp" "util/random/entropy.cpp" "util/random/fast.cpp" "util/random/lcg_engine.cpp" "util/random/mersenne32.cpp" "util/random/mersenne64.cpp" "util/random/mersenne.cpp" "util/random/normal.cpp" "util/random/shuffle.cpp" "util/random/init_atfork.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_random.cpp" "util/random/common_ops.cpp" "util/random/easy.cpp" "util/random/entropy.cpp" "util/random/fast.cpp" "util/random/lcg_engine.cpp" "util/random/mersenne32.cpp" "util/random/mersenne64.cpp" "util/random/mersenne.cpp" "util/random/normal.cpp" "util/random/shuffle.cpp" "util/random/init_atfork.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_stream.cpp" "--ya-start-command-file" "util/stream/aligned.cpp" "util/stream/buffer.cpp" "util/stream/buffered.cpp" "util/stream/debug.cpp" "util/stream/direct_io.cpp" "util/stream/file.cpp" "util/stream/format.cpp" "util/stream/fwd.cpp" "util/stream/hex.cpp" "util/stream/holder.cpp" "util/stream/input.cpp" "util/stream/labeled.cpp" "util/stream/length.cpp" "util/stream/mem.cpp" "util/stream/multi.cpp" "util/stream/null.cpp" "util/stream/output.cpp" "util/stream/pipe.cpp" "util/stream/printf.cpp" "util/stream/str.cpp" "util/stream/tee.cpp" "util/stream/tempbuf.cpp" "util/stream/tokenizer.cpp" "util/stream/trace.cpp" "util/stream/walk.cpp" "util/stream/zerocopy.cpp" "util/stream/zerocopy_output.cpp" "util/stream/zlib.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_stream.cpp" "util/stream/aligned.cpp" "util/stream/buffer.cpp" "util/stream/buffered.cpp" "util/stream/debug.cpp" "util/stream/direct_io.cpp" "util/stream/file.cpp" "util/stream/format.cpp" "util/stream/fwd.cpp" "util/stream/hex.cpp" "util/stream/holder.cpp" "util/stream/input.cpp" "util/stream/labeled.cpp" "util/stream/length.cpp" "util/stream/mem.cpp" "util/stream/multi.cpp" "util/stream/null.cpp" "util/stream/output.cpp" "util/stream/pipe.cpp" "util/stream/printf.cpp" "util/stream/str.cpp" "util/stream/tee.cpp" "util/stream/tempbuf.cpp" "util/stream/tokenizer.cpp" "util/stream/trace.cpp" "util/stream/walk.cpp" "util/stream/zerocopy.cpp" "util/stream/zerocopy_output.cpp" "util/stream/zlib.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_string.cpp" "--ya-start-command-file" "util/string/ascii.cpp" "util/string/builder.cpp" "util/string/cstriter.cpp" "util/string/escape.cpp" "util/string/hex.cpp" "util/string/join.cpp" "util/string/printf.cpp" "util/string/reverse.cpp" "util/string/split.cpp" "util/string/strip.cpp" "util/string/strspn.cpp" "util/string/subst.cpp" "util/string/type.cpp" "util/string/util.cpp" "util/string/vector.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_string.cpp" "util/string/ascii.cpp" "util/string/builder.cpp" "util/string/cstriter.cpp" "util/string/escape.cpp" "util/string/hex.cpp" "util/string/join.cpp" "util/string/printf.cpp" "util/string/split.cpp" "util/string/strip.cpp" "util/string/strspn.cpp" "util/string/subst.cpp" "util/string/type.cpp" "util/string/util.cpp" "util/string/vector.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_1.cpp" "--ya-start-command-file" "util/system/atexit.cpp" "util/system/backtrace.cpp" "util/system/compat.cpp" "util/system/condvar.cpp" "util/system/context.cpp" "util/system/daemon.cpp" "util/system/datetime.cpp" "util/system/defaults.c" "util/system/direct_io.cpp" "util/system/dynlib.cpp" "util/system/env.cpp" "util/system/error.cpp" "util/system/event.cpp" "util/system/execpath.cpp" "util/system/fasttime.cpp" "util/system/file.cpp" "util/system/file_lock.cpp" "util/system/filemap.cpp" "util/system/flock.cpp" "util/system/fs.cpp" "util/system/fstat.cpp" "util/system/getpid.cpp" "util/system/hi_lo.cpp" "util/system/hostname.cpp" "util/system/hp_timer.cpp" "util/system/info.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_1.cpp" "util/system/atexit.cpp" "util/system/backtrace.cpp" "util/system/compat.cpp" "util/system/compiler.cpp" "util/system/condvar.cpp" "util/system/context.cpp" "util/system/daemon.cpp" "util/system/datetime.cpp" "util/system/defaults.c" "util/system/demangle.cpp" "util/system/direct_io.cpp" "util/system/dynlib.cpp" "util/system/env.cpp" "util/system/err.cpp" "util/system/error.cpp" "util/system/event.cpp" "util/system/execpath.cpp" "util/system/fasttime.cpp" "util/system/file.cpp" "util/system/file_lock.cpp" "util/system/filemap.cpp" "util/system/flock.cpp" "util/system/fs.cpp" "util/system/fstat.cpp" "util/system/getpid.cpp" "util/system/hi_lo.cpp" "util/system/hostname.cpp" "util/system/hp_timer.cpp" "util/system/info.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_2.cpp" "--ya-start-command-file" "util/system/align.cpp" "util/system/byteorder.cpp" "util/system/cpu_id.cpp" "util/system/fhandle.cpp" "util/system/guard.cpp" "util/system/interrupt_signals.cpp" "util/system/madvise.cpp" "util/system/maxlen.cpp" "util/system/mem_info.cpp" "util/system/mincore.cpp" "util/system/mktemp.cpp" "util/system/mlock.cpp" "util/system/mutex.cpp" "util/system/nice.cpp" "util/system/pipe.cpp" "util/system/platform.cpp" "util/system/progname.cpp" "util/system/protect.cpp" "util/system/rusage.cpp" "util/system/rwlock.cpp" "util/system/sanitizers.cpp" "util/system/sem.cpp" "util/system/shellcommand.cpp" "util/system/shmat.cpp" "util/system/sigset.cpp" "util/system/spinlock.cpp" "util/system/spin_wait.cpp" "util/system/src_location.cpp" "util/system/sys_alloc.cpp" "util/system/sysstat.cpp" "util/system/tempfile.cpp" "util/system/thread.cpp" "util/system/tls.cpp" "util/system/types.cpp" "util/system/type_name.cpp" "util/system/unaligned_mem.cpp" "util/system/user.cpp" "util/system/utime.cpp" "util/system/yassert.cpp" "util/system/yield.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_2.cpp" "util/system/align.cpp" "util/system/atomic.cpp" "util/system/byteorder.cpp" "util/system/cpu_id.cpp" "util/system/fhandle.cpp" "util/system/guard.cpp" "util/system/interrupt_signals.cpp" "util/system/madvise.cpp" "util/system/maxlen.cpp" "util/system/mem_info.cpp" "util/system/mincore.cpp" "util/system/mktemp.cpp" "util/system/mlock.cpp" "util/system/mutex.cpp" "util/system/nice.cpp" "util/system/pipe.cpp" "util/system/platform.cpp" "util/system/progname.cpp" "util/system/protect.cpp" "util/system/rusage.cpp" "util/system/rwlock.cpp" "util/system/sanitizers.cpp" "util/system/sem.cpp" "util/system/shellcommand.cpp" "util/system/shmat.cpp" "util/system/sigset.cpp" "util/system/spinlock.cpp" "util/system/spin_wait.cpp" "util/system/src_location.cpp" "util/system/sys_alloc.cpp" "util/system/sysstat.cpp" "util/system/tempfile.cpp" "util/system/thread.cpp" "util/system/tls.cpp" "util/system/types.cpp" "util/system/unaligned_mem.cpp" "util/system/user.cpp" "util/system/utime.cpp" "util/system/yassert.cpp" "util/system/yield.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_thread.cpp" "--ya-start-command-file" "util/thread/factory.cpp" "util/thread/fwd.cpp" "util/thread/lfqueue.cpp" "util/thread/lfstack.cpp" "util/thread/pool.cpp" "util/thread/singleton.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_thread.cpp" "util/thread/factory.cpp" "util/thread/fwd.cpp" "util/thread/lfqueue.cpp" "util/thread/lfstack.cpp" "util/thread/pool.cpp" "util/thread/singleton.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_util.cpp" "--ya-start-command-file" "util/ysafeptr.cpp" "util/ysaveload.cpp" "util/str_stl.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_util.cpp" "util/ysafeptr.cpp" "util/ysaveload.cpp" "util/str_stl.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -170,55 +171,55 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_datetime.cpp" "--ya-start-command-file" "util/datetime/base.cpp" "util/datetime/constants.cpp" "util/datetime/cputimer.cpp" "util/datetime/systime.cpp" "util/datetime/uptime.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_datetime.cpp" "util/datetime/base.cpp" "util/datetime/constants.cpp" "util/datetime/cputimer.cpp" "util/datetime/systime.cpp" "util/datetime/uptime.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_digest.cpp" "--ya-start-command-file" "util/digest/fnv.cpp" "util/digest/multi.cpp" "util/digest/murmur.cpp" "util/digest/numeric.cpp" "util/digest/sequence.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_digest.cpp" "util/digest/fnv.cpp" "util/digest/multi.cpp" "util/digest/murmur.cpp" "util/digest/numeric.cpp" "util/digest/sequence.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_folder.cpp" "--ya-start-command-file" "util/folder/dirut.cpp" "util/folder/filelist.cpp" "util/folder/fts.cpp" "util/folder/fwd.cpp" "util/folder/iterator.cpp" "util/folder/path.cpp" "util/folder/pathsplit.cpp" "util/folder/tempdir.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_folder.cpp" "util/folder/dirut.cpp" "util/folder/filelist.cpp" "util/folder/fts.cpp" "util/folder/iterator.cpp" "util/folder/path.cpp" "util/folder/pathsplit.cpp" "util/folder/tempdir.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_generic.cpp" "--ya-start-command-file" "util/generic/adaptor.cpp" "util/generic/algorithm.cpp" "util/generic/array_ref.cpp" "util/generic/array_size.cpp" "util/generic/bitmap.cpp" "util/generic/bitops.cpp" "util/generic/bt_exception.cpp" "util/generic/buffer.cpp" "util/generic/cast.cpp" "util/generic/deque.cpp" "util/generic/explicit_type.cpp" "util/generic/fastqueue.cpp" "util/generic/flags.cpp" "util/generic/function.cpp" "util/generic/function_ref.cpp" "util/generic/fwd.cpp" "util/generic/guid.cpp" "util/generic/hash.cpp" "util/generic/hash_multi_map.cpp" "util/generic/hash_table.cpp" "util/generic/hash_primes.cpp" "util/generic/hash_set.cpp" "util/generic/hide_ptr.cpp" "util/generic/intrlist.cpp" "util/generic/is_in.cpp" "util/generic/iterator.cpp" "util/generic/iterator_range.cpp" "util/generic/lazy_value.cpp" "util/generic/list.cpp" "util/generic/map.cpp" "util/generic/mapfindptr.cpp" "util/generic/maybe.cpp" "util/generic/mem_copy.cpp" "util/generic/noncopyable.cpp" "util/generic/object_counter.cpp" "util/generic/overloaded.cpp" "util/generic/ptr.cpp" "util/generic/queue.cpp" "util/generic/refcount.cpp" "util/generic/scope.cpp" "util/generic/serialized_enum.cpp" "util/generic/set.cpp" "util/generic/singleton.cpp" "util/generic/size_literals.cpp" "util/generic/stack.cpp" "util/generic/store_policy.cpp" "util/generic/strbuf.cpp" "util/generic/strfcpy.cpp" "util/generic/string.cpp" "util/generic/typelist.cpp" "util/generic/typetraits.cpp" "util/generic/utility.cpp" "util/generic/va_args.cpp" "util/generic/variant.cpp" "util/generic/vector.cpp" "util/generic/xrange.cpp" "util/generic/yexception.cpp" "util/generic/ylimits.cpp" "util/generic/ymath.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_generic.cpp" "util/generic/scope.cpp" "util/generic/adaptor.cpp" "util/generic/algorithm.cpp" "util/generic/array_ref.cpp" "util/generic/array_size.cpp" "util/generic/bitmap.cpp" "util/generic/bitops.cpp" "util/generic/bt_exception.cpp" "util/generic/buffer.cpp" "util/generic/cast.cpp" "util/generic/chartraits.cpp" "util/generic/deque.cpp" "util/generic/explicit_type.cpp" "util/generic/fastqueue.cpp" "util/generic/flags.cpp" "util/generic/function.cpp" "util/generic/fwd.cpp" "util/generic/guid.cpp" "util/generic/hash.cpp" "util/generic/hash_primes.cpp" "util/generic/hash_set.cpp" "util/generic/hide_ptr.cpp" "util/generic/intrlist.cpp" "util/generic/is_in.cpp" "util/generic/iterator.cpp" "util/generic/iterator_range.cpp" "util/generic/lazy_value.cpp" "util/generic/list.cpp" "util/generic/map.cpp" "util/generic/mapfindptr.cpp" "util/generic/maybe.cpp" "util/generic/mem_copy.cpp" "util/generic/noncopyable.cpp" "util/generic/object_counter.cpp" "util/generic/ptr.cpp" "util/generic/queue.cpp" "util/generic/refcount.cpp" "util/generic/serialized_enum.cpp" "util/generic/set.cpp" "util/generic/singleton.cpp" "util/generic/size_literals.cpp" "util/generic/stack.cpp" "util/generic/store_policy.cpp" "util/generic/strbuf.cpp" "util/generic/strfcpy.cpp" "util/generic/string.cpp" "util/generic/typelist.cpp" "util/generic/type_name.cpp" "util/generic/typetraits.cpp" "util/generic/utility.cpp" "util/generic/va_args.cpp" "util/generic/vector.cpp" "util/generic/xrange.cpp" "util/generic/yexception.cpp" "util/generic/ylimits.cpp" "util/generic/ymath.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_memory.cpp" "--ya-start-command-file" "util/memory/addstorage.cpp" "util/memory/alloc.cpp" "util/memory/blob.cpp" "util/memory/mmapalloc.cpp" "util/memory/pool.cpp" "util/memory/segmented_string_pool.cpp" "util/memory/segpool_alloc.cpp" "util/memory/smallobj.cpp" "util/memory/tempbuf.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_memory.cpp" "util/memory/addstorage.cpp" "util/memory/alloc.cpp" "util/memory/blob.cpp" "util/memory/mmapalloc.cpp" "util/memory/pool.cpp" "util/memory/segmented_string_pool.cpp" "util/memory/segpool_alloc.cpp" "util/memory/smallobj.cpp" "util/memory/tempbuf.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_network.cpp" "--ya-start-command-file" "util/network/address.cpp" "util/network/endpoint.cpp" "util/network/hostip.cpp" "util/network/init.cpp" "util/network/interface.cpp" "util/network/iovec.cpp" "util/network/ip.cpp" "util/network/nonblock.cpp" "util/network/pair.cpp" "util/network/poller.cpp" "util/network/pollerimpl.cpp" "util/network/sock.cpp" "util/network/socket.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_network.cpp" "util/network/address.cpp" "util/network/endpoint.cpp" "util/network/hostip.cpp" "util/network/init.cpp" "util/network/interface.cpp" "util/network/iovec.cpp" "util/network/ip.cpp" "util/network/netloss.cpp" "util/network/nonblock.cpp" "util/network/pair.cpp" "util/network/poller.cpp" "util/network/pollerimpl.cpp" "util/network/sock.cpp" "util/network/socket.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_random.cpp" "--ya-start-command-file" "util/random/common_ops.cpp" "util/random/easy.cpp" "util/random/entropy.cpp" "util/random/fast.cpp" "util/random/lcg_engine.cpp" "util/random/mersenne32.cpp" "util/random/mersenne64.cpp" "util/random/mersenne.cpp" "util/random/normal.cpp" "util/random/shuffle.cpp" "util/random/init_atfork.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_random.cpp" "util/random/common_ops.cpp" "util/random/easy.cpp" "util/random/entropy.cpp" "util/random/fast.cpp" "util/random/lcg_engine.cpp" "util/random/mersenne32.cpp" "util/random/mersenne64.cpp" "util/random/mersenne.cpp" "util/random/normal.cpp" "util/random/shuffle.cpp" "util/random/init_atfork.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_stream.cpp" "--ya-start-command-file" "util/stream/aligned.cpp" "util/stream/buffer.cpp" "util/stream/buffered.cpp" "util/stream/debug.cpp" "util/stream/direct_io.cpp" "util/stream/file.cpp" "util/stream/format.cpp" "util/stream/fwd.cpp" "util/stream/hex.cpp" "util/stream/holder.cpp" "util/stream/input.cpp" "util/stream/labeled.cpp" "util/stream/length.cpp" "util/stream/mem.cpp" "util/stream/multi.cpp" "util/stream/null.cpp" "util/stream/output.cpp" "util/stream/pipe.cpp" "util/stream/printf.cpp" "util/stream/str.cpp" "util/stream/tee.cpp" "util/stream/tempbuf.cpp" "util/stream/tokenizer.cpp" "util/stream/trace.cpp" "util/stream/walk.cpp" "util/stream/zerocopy.cpp" "util/stream/zerocopy_output.cpp" "util/stream/zlib.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_stream.cpp" "util/stream/aligned.cpp" "util/stream/buffer.cpp" "util/stream/buffered.cpp" "util/stream/debug.cpp" "util/stream/direct_io.cpp" "util/stream/file.cpp" "util/stream/format.cpp" "util/stream/fwd.cpp" "util/stream/hex.cpp" "util/stream/holder.cpp" "util/stream/input.cpp" "util/stream/labeled.cpp" "util/stream/length.cpp" "util/stream/mem.cpp" "util/stream/multi.cpp" "util/stream/null.cpp" "util/stream/output.cpp" "util/stream/pipe.cpp" "util/stream/printf.cpp" "util/stream/str.cpp" "util/stream/tee.cpp" "util/stream/tempbuf.cpp" "util/stream/tokenizer.cpp" "util/stream/trace.cpp" "util/stream/walk.cpp" "util/stream/zerocopy.cpp" "util/stream/zerocopy_output.cpp" "util/stream/zlib.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_string.cpp" "--ya-start-command-file" "util/string/ascii.cpp" "util/string/builder.cpp" "util/string/cstriter.cpp" "util/string/escape.cpp" "util/string/hex.cpp" "util/string/join.cpp" "util/string/printf.cpp" "util/string/reverse.cpp" "util/string/split.cpp" "util/string/strip.cpp" "util/string/strspn.cpp" "util/string/subst.cpp" "util/string/type.cpp" "util/string/util.cpp" "util/string/vector.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_string.cpp" "util/string/ascii.cpp" "util/string/builder.cpp" "util/string/cstriter.cpp" "util/string/escape.cpp" "util/string/hex.cpp" "util/string/join.cpp" "util/string/printf.cpp" "util/string/split.cpp" "util/string/strip.cpp" "util/string/strspn.cpp" "util/string/subst.cpp" "util/string/type.cpp" "util/string/util.cpp" "util/string/vector.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_1.cpp" "--ya-start-command-file" "util/system/atexit.cpp" "util/system/backtrace.cpp" "util/system/compat.cpp" "util/system/condvar.cpp" "util/system/context.cpp" "util/system/daemon.cpp" "util/system/datetime.cpp" "util/system/defaults.c" "util/system/direct_io.cpp" "util/system/dynlib.cpp" "util/system/env.cpp" "util/system/error.cpp" "util/system/event.cpp" "util/system/execpath.cpp" "util/system/fasttime.cpp" "util/system/file.cpp" "util/system/file_lock.cpp" "util/system/filemap.cpp" "util/system/flock.cpp" "util/system/fs.cpp" "util/system/fstat.cpp" "util/system/getpid.cpp" "util/system/hi_lo.cpp" "util/system/hostname.cpp" "util/system/hp_timer.cpp" "util/system/info.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_1.cpp" "util/system/atexit.cpp" "util/system/backtrace.cpp" "util/system/compat.cpp" "util/system/compiler.cpp" "util/system/condvar.cpp" "util/system/context.cpp" "util/system/daemon.cpp" "util/system/datetime.cpp" "util/system/defaults.c" "util/system/demangle.cpp" "util/system/direct_io.cpp" "util/system/dynlib.cpp" "util/system/env.cpp" "util/system/err.cpp" "util/system/error.cpp" "util/system/event.cpp" "util/system/execpath.cpp" "util/system/fasttime.cpp" "util/system/file.cpp" "util/system/file_lock.cpp" "util/system/filemap.cpp" "util/system/flock.cpp" "util/system/fs.cpp" "util/system/fstat.cpp" "util/system/getpid.cpp" "util/system/hi_lo.cpp" "util/system/hostname.cpp" "util/system/hp_timer.cpp" "util/system/info.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_2.cpp" "--ya-start-command-file" "util/system/align.cpp" "util/system/byteorder.cpp" "util/system/cpu_id.cpp" "util/system/fhandle.cpp" "util/system/guard.cpp" "util/system/interrupt_signals.cpp" "util/system/madvise.cpp" "util/system/maxlen.cpp" "util/system/mem_info.cpp" "util/system/mincore.cpp" "util/system/mktemp.cpp" "util/system/mlock.cpp" "util/system/mutex.cpp" "util/system/nice.cpp" "util/system/pipe.cpp" "util/system/platform.cpp" "util/system/progname.cpp" "util/system/protect.cpp" "util/system/rusage.cpp" "util/system/rwlock.cpp" "util/system/sanitizers.cpp" "util/system/sem.cpp" "util/system/shellcommand.cpp" "util/system/shmat.cpp" "util/system/sigset.cpp" "util/system/spinlock.cpp" "util/system/spin_wait.cpp" "util/system/src_location.cpp" "util/system/sys_alloc.cpp" "util/system/sysstat.cpp" "util/system/tempfile.cpp" "util/system/thread.cpp" "util/system/tls.cpp" "util/system/types.cpp" "util/system/type_name.cpp" "util/system/unaligned_mem.cpp" "util/system/user.cpp" "util/system/utime.cpp" "util/system/yassert.cpp" "util/system/yield.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_system_2.cpp" "util/system/align.cpp" "util/system/atomic.cpp" "util/system/byteorder.cpp" "util/system/cpu_id.cpp" "util/system/fhandle.cpp" "util/system/guard.cpp" "util/system/interrupt_signals.cpp" "util/system/madvise.cpp" "util/system/maxlen.cpp" "util/system/mem_info.cpp" "util/system/mincore.cpp" "util/system/mktemp.cpp" "util/system/mlock.cpp" "util/system/mutex.cpp" "util/system/nice.cpp" "util/system/pipe.cpp" "util/system/platform.cpp" "util/system/progname.cpp" "util/system/protect.cpp" "util/system/rusage.cpp" "util/system/rwlock.cpp" "util/system/sanitizers.cpp" "util/system/sem.cpp" "util/system/shellcommand.cpp" "util/system/shmat.cpp" "util/system/sigset.cpp" "util/system/spinlock.cpp" "util/system/spin_wait.cpp" "util/system/src_location.cpp" "util/system/sys_alloc.cpp" "util/system/sysstat.cpp" "util/system/tempfile.cpp" "util/system/thread.cpp" "util/system/tls.cpp" "util/system/types.cpp" "util/system/unaligned_mem.cpp" "util/system/user.cpp" "util/system/utime.cpp" "util/system/yassert.cpp" "util/system/yield.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_thread.cpp" "--ya-start-command-file" "util/thread/factory.cpp" "util/thread/fwd.cpp" "util/thread/lfqueue.cpp" "util/thread/lfstack.cpp" "util/thread/pool.cpp" "util/thread/singleton.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_thread.cpp" "util/thread/factory.cpp" "util/thread/fwd.cpp" "util/thread/lfqueue.cpp" "util/thread/lfstack.cpp" "util/thread/pool.cpp" "util/thread/singleton.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"/tmp/tmp.fpENB8BpzE/tools/v3/3877390008/python3" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_util.cpp" "--ya-start-command-file" "util/ysafeptr.cpp" "util/ysaveload.cpp" "util/str_stl.cpp" "--ya-end-command-file"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/all_util.cpp" "util/ysafeptr.cpp" "util/ysaveload.cpp" "util/str_stl.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -227,7 +228,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/util/all_datetime.cpp	$B/util/all_digest.cpp	$B/util/all_folder.cpp	$B/util/all_generic.cpp	$B/util/all_memory.cpp	$B/util/all_network.cpp	$B/util/all_random.cpp	$B/util/all_stream.cpp	$B/util/all_string.cpp	$B/util/all_system_1.cpp	$B/util/all_system_2.cpp	$B/util/all_thread.cpp	$B/util/all_util.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\build\scripts\process_command_files.py;$(SolutionDir)..\util\datetime\base.cpp;$(SolutionDir)..\util\datetime\constants.cpp;$(SolutionDir)..\util\datetime\cputimer.cpp;$(SolutionDir)..\util\datetime\systime.cpp;$(SolutionDir)..\util\datetime\uptime.cpp;$(SolutionDir)..\util\digest\fnv.cpp;$(SolutionDir)..\util\digest\multi.cpp;$(SolutionDir)..\util\digest\murmur.cpp;$(SolutionDir)..\util\digest\numeric.cpp;$(SolutionDir)..\util\digest\sequence.cpp;$(SolutionDir)..\util\folder\dirut.cpp;$(SolutionDir)..\util\folder\filelist.cpp;$(SolutionDir)..\util\folder\fts.cpp;$(SolutionDir)..\util\folder\fwd.cpp;$(SolutionDir)..\util\folder\iterator.cpp;$(SolutionDir)..\util\folder\path.cpp;$(SolutionDir)..\util\folder\pathsplit.cpp;$(SolutionDir)..\util\folder\tempdir.cpp;$(SolutionDir)..\util\generic\adaptor.cpp;$(SolutionDir)..\util\generic\algorithm.cpp;$(SolutionDir)..\util\generic\array_ref.cpp;$(SolutionDir)..\util\generic\array_size.cpp;$(SolutionDir)..\util\generic\bitmap.cpp;$(SolutionDir)..\util\generic\bitops.cpp;$(SolutionDir)..\util\generic\bt_exception.cpp;$(SolutionDir)..\util\generic\buffer.cpp;$(SolutionDir)..\util\generic\cast.cpp;$(SolutionDir)..\util\generic\deque.cpp;$(SolutionDir)..\util\generic\explicit_type.cpp;$(SolutionDir)..\util\generic\fastqueue.cpp;$(SolutionDir)..\util\generic\flags.cpp;$(SolutionDir)..\util\generic\function.cpp;$(SolutionDir)..\util\generic\function_ref.cpp;$(SolutionDir)..\util\generic\fwd.cpp;$(SolutionDir)..\util\generic\guid.cpp;$(SolutionDir)..\util\generic\hash.cpp;$(SolutionDir)..\util\generic\hash_multi_map.cpp;$(SolutionDir)..\util\generic\hash_table.cpp;$(SolutionDir)..\util\generic\hash_primes.cpp;$(SolutionDir)..\util\generic\hash_set.cpp;$(SolutionDir)..\util\generic\hide_ptr.cpp;$(SolutionDir)..\util\generic\intrlist.cpp;$(SolutionDir)..\util\generic\is_in.cpp;$(SolutionDir)..\util\generic\iterator.cpp;$(SolutionDir)..\util\generic\iterator_range.cpp;$(SolutionDir)..\util\generic\lazy_value.cpp;$(SolutionDir)..\util\generic\list.cpp;$(SolutionDir)..\util\generic\map.cpp;$(SolutionDir)..\util\generic\mapfindptr.cpp;$(SolutionDir)..\util\generic\maybe.cpp;$(SolutionDir)..\util\generic\mem_copy.cpp;$(SolutionDir)..\util\generic\noncopyable.cpp;$(SolutionDir)..\util\generic\object_counter.cpp;$(SolutionDir)..\util\generic\overloaded.cpp;$(SolutionDir)..\util\generic\ptr.cpp;$(SolutionDir)..\util\generic\queue.cpp;$(SolutionDir)..\util\generic\refcount.cpp;$(SolutionDir)..\util\generic\scope.cpp;$(SolutionDir)..\util\generic\serialized_enum.cpp;$(SolutionDir)..\util\generic\set.cpp;$(SolutionDir)..\util\generic\singleton.cpp;$(SolutionDir)..\util\generic\size_literals.cpp;$(SolutionDir)..\util\generic\stack.cpp;$(SolutionDir)..\util\generic\store_policy.cpp;$(SolutionDir)..\util\generic\strbuf.cpp;$(SolutionDir)..\util\generic\strfcpy.cpp;$(SolutionDir)..\util\generic\string.cpp;$(SolutionDir)..\util\generic\typelist.cpp;$(SolutionDir)..\util\generic\typetraits.cpp;$(SolutionDir)..\util\generic\utility.cpp;$(SolutionDir)..\util\generic\va_args.cpp;$(SolutionDir)..\util\generic\variant.cpp;$(SolutionDir)..\util\generic\vector.cpp;$(SolutionDir)..\util\generic\xrange.cpp;$(SolutionDir)..\util\generic\yexception.cpp;$(SolutionDir)..\util\generic\ylimits.cpp;$(SolutionDir)..\util\generic\ymath.cpp;$(SolutionDir)..\util\memory\addstorage.cpp;$(SolutionDir)..\util\memory\alloc.cpp;$(SolutionDir)..\util\memory\blob.cpp;$(SolutionDir)..\util\memory\mmapalloc.cpp;$(SolutionDir)..\util\memory\pool.cpp;$(SolutionDir)..\util\memory\segmented_string_pool.cpp;$(SolutionDir)..\util\memory\segpool_alloc.cpp;$(SolutionDir)..\util\memory\smallobj.cpp;$(SolutionDir)..\util\memory\tempbuf.cpp;$(SolutionDir)..\util\network\address.cpp;$(SolutionDir)..\util\network\endpoint.cpp;$(SolutionDir)..\util\network\hostip.cpp;$(SolutionDir)..\util\network\init.cpp;$(SolutionDir)..\util\network\interface.cpp;$(SolutionDir)..\util\network\iovec.cpp;$(SolutionDir)..\util\network\ip.cpp;$(SolutionDir)..\util\network\nonblock.cpp;$(SolutionDir)..\util\network\pair.cpp;$(SolutionDir)..\util\network\poller.cpp;$(SolutionDir)..\util\network\pollerimpl.cpp;$(SolutionDir)..\util\network\sock.cpp;$(SolutionDir)..\util\network\socket.cpp;$(SolutionDir)..\util\random\common_ops.cpp;$(SolutionDir)..\util\random\easy.cpp;$(SolutionDir)..\util\random\entropy.cpp;$(SolutionDir)..\util\random\fast.cpp;$(SolutionDir)..\util\random\lcg_engine.cpp;$(SolutionDir)..\util\random\mersenne32.cpp;$(SolutionDir)..\util\random\mersenne64.cpp;$(SolutionDir)..\util\random\mersenne.cpp;$(SolutionDir)..\util\random\normal.cpp;$(SolutionDir)..\util\random\shuffle.cpp;$(SolutionDir)..\util\random\init_atfork.cpp;$(SolutionDir)..\util\stream\aligned.cpp;$(SolutionDir)..\util\stream\buffer.cpp;$(SolutionDir)..\util\stream\buffered.cpp;$(SolutionDir)..\util\stream\debug.cpp;$(SolutionDir)..\util\stream\direct_io.cpp;$(SolutionDir)..\util\stream\file.cpp;$(SolutionDir)..\util\stream\format.cpp;$(SolutionDir)..\util\stream\fwd.cpp;$(SolutionDir)..\util\stream\hex.cpp;$(SolutionDir)..\util\stream\holder.cpp;$(SolutionDir)..\util\stream\input.cpp;$(SolutionDir)..\util\stream\labeled.cpp;$(SolutionDir)..\util\stream\length.cpp;$(SolutionDir)..\util\stream\mem.cpp;$(SolutionDir)..\util\stream\multi.cpp;$(SolutionDir)..\util\stream\null.cpp;$(SolutionDir)..\util\stream\output.cpp;$(SolutionDir)..\util\stream\pipe.cpp;$(SolutionDir)..\util\stream\printf.cpp;$(SolutionDir)..\util\stream\str.cpp;$(SolutionDir)..\util\stream\tee.cpp;$(SolutionDir)..\util\stream\tempbuf.cpp;$(SolutionDir)..\util\stream\tokenizer.cpp;$(SolutionDir)..\util\stream\trace.cpp;$(SolutionDir)..\util\stream\walk.cpp;$(SolutionDir)..\util\stream\zerocopy.cpp;$(SolutionDir)..\util\stream\zerocopy_output.cpp;$(SolutionDir)..\util\stream\zlib.cpp;$(SolutionDir)..\util\string\ascii.cpp;$(SolutionDir)..\util\string\builder.cpp;$(SolutionDir)..\util\string\cstriter.cpp;$(SolutionDir)..\util\string\escape.cpp;$(SolutionDir)..\util\string\hex.cpp;$(SolutionDir)..\util\string\join.cpp;$(SolutionDir)..\util\string\printf.cpp;$(SolutionDir)..\util\string\reverse.cpp;$(SolutionDir)..\util\string\split.cpp;$(SolutionDir)..\util\string\strip.cpp;$(SolutionDir)..\util\string\strspn.cpp;$(SolutionDir)..\util\string\subst.cpp;$(SolutionDir)..\util\string\type.cpp;$(SolutionDir)..\util\string\util.cpp;$(SolutionDir)..\util\string\vector.cpp;$(SolutionDir)..\util\system\atexit.cpp;$(SolutionDir)..\util\system\backtrace.cpp;$(SolutionDir)..\util\system\compat.cpp;$(SolutionDir)..\util\system\condvar.cpp;$(SolutionDir)..\util\system\context.cpp;$(SolutionDir)..\util\system\daemon.cpp;$(SolutionDir)..\util\system\datetime.cpp;$(SolutionDir)..\util\system\defaults.c;$(SolutionDir)..\util\system\direct_io.cpp;$(SolutionDir)..\util\system\dynlib.cpp;$(SolutionDir)..\util\system\env.cpp;$(SolutionDir)..\util\system\error.cpp;$(SolutionDir)..\util\system\event.cpp;$(SolutionDir)..\util\system\execpath.cpp;$(SolutionDir)..\util\system\fasttime.cpp;$(SolutionDir)..\util\system\file.cpp;$(SolutionDir)..\util\system\file_lock.cpp;$(SolutionDir)..\util\system\filemap.cpp;$(SolutionDir)..\util\system\flock.cpp;$(SolutionDir)..\util\system\fs.cpp;$(SolutionDir)..\util\system\fstat.cpp;$(SolutionDir)..\util\system\getpid.cpp;$(SolutionDir)..\util\system\hi_lo.cpp;$(SolutionDir)..\util\system\hostname.cpp;$(SolutionDir)..\util\system\hp_timer.cpp;$(SolutionDir)..\util\system\info.cpp;$(SolutionDir)..\util\system\align.cpp;$(SolutionDir)..\util\system\byteorder.cpp;$(SolutionDir)..\util\system\cpu_id.cpp;$(SolutionDir)..\util\system\fhandle.cpp;$(SolutionDir)..\util\system\guard.cpp;$(SolutionDir)..\util\system\interrupt_signals.cpp;$(SolutionDir)..\util\system\madvise.cpp;$(SolutionDir)..\util\system\maxlen.cpp;$(SolutionDir)..\util\system\mem_info.cpp;$(SolutionDir)..\util\system\mincore.cpp;$(SolutionDir)..\util\system\mktemp.cpp;$(SolutionDir)..\util\system\mlock.cpp;$(SolutionDir)..\util\system\mutex.cpp;$(SolutionDir)..\util\system\nice.cpp;$(SolutionDir)..\util\system\pipe.cpp;$(SolutionDir)..\util\system\platform.cpp;$(SolutionDir)..\util\system\progname.cpp;$(SolutionDir)..\util\system\protect.cpp;$(SolutionDir)..\util\system\rusage.cpp;$(SolutionDir)..\util\system\rwlock.cpp;$(SolutionDir)..\util\system\sanitizers.cpp;$(SolutionDir)..\util\system\sem.cpp;$(SolutionDir)..\util\system\shellcommand.cpp;$(SolutionDir)..\util\system\shmat.cpp;$(SolutionDir)..\util\system\sigset.cpp;$(SolutionDir)..\util\system\spinlock.cpp;$(SolutionDir)..\util\system\spin_wait.cpp;$(SolutionDir)..\util\system\src_location.cpp;$(SolutionDir)..\util\system\sys_alloc.cpp;$(SolutionDir)..\util\system\sysstat.cpp;$(SolutionDir)..\util\system\tempfile.cpp;$(SolutionDir)..\util\system\thread.cpp;$(SolutionDir)..\util\system\tls.cpp;$(SolutionDir)..\util\system\types.cpp;$(SolutionDir)..\util\system\type_name.cpp;$(SolutionDir)..\util\system\unaligned_mem.cpp;$(SolutionDir)..\util\system\user.cpp;$(SolutionDir)..\util\system\utime.cpp;$(SolutionDir)..\util\system\yassert.cpp;$(SolutionDir)..\util\system\yield.cpp;$(SolutionDir)..\util\thread\factory.cpp;$(SolutionDir)..\util\thread\fwd.cpp;$(SolutionDir)..\util\thread\lfqueue.cpp;$(SolutionDir)..\util\thread\lfstack.cpp;$(SolutionDir)..\util\thread\pool.cpp;$(SolutionDir)..\util\thread\singleton.cpp;$(SolutionDir)..\util\ysafeptr.cpp;$(SolutionDir)..\util\ysaveload.cpp;$(SolutionDir)..\util\str_stl.cpp;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)..\util\datetime\base.cpp;$(SolutionDir)..\util\datetime\constants.cpp;$(SolutionDir)..\util\datetime\cputimer.cpp;$(SolutionDir)..\util\datetime\systime.cpp;$(SolutionDir)..\util\datetime\uptime.cpp;$(SolutionDir)..\util\digest\fnv.cpp;$(SolutionDir)..\util\digest\multi.cpp;$(SolutionDir)..\util\digest\murmur.cpp;$(SolutionDir)..\util\digest\numeric.cpp;$(SolutionDir)..\util\digest\sequence.cpp;$(SolutionDir)..\util\folder\dirut.cpp;$(SolutionDir)..\util\folder\filelist.cpp;$(SolutionDir)..\util\folder\fts.cpp;$(SolutionDir)..\util\folder\iterator.cpp;$(SolutionDir)..\util\folder\path.cpp;$(SolutionDir)..\util\folder\pathsplit.cpp;$(SolutionDir)..\util\folder\tempdir.cpp;$(SolutionDir)..\util\generic\scope.cpp;$(SolutionDir)..\util\generic\adaptor.cpp;$(SolutionDir)..\util\generic\algorithm.cpp;$(SolutionDir)..\util\generic\array_ref.cpp;$(SolutionDir)..\util\generic\array_size.cpp;$(SolutionDir)..\util\generic\bitmap.cpp;$(SolutionDir)..\util\generic\bitops.cpp;$(SolutionDir)..\util\generic\bt_exception.cpp;$(SolutionDir)..\util\generic\buffer.cpp;$(SolutionDir)..\util\generic\cast.cpp;$(SolutionDir)..\util\generic\chartraits.cpp;$(SolutionDir)..\util\generic\deque.cpp;$(SolutionDir)..\util\generic\explicit_type.cpp;$(SolutionDir)..\util\generic\fastqueue.cpp;$(SolutionDir)..\util\generic\flags.cpp;$(SolutionDir)..\util\generic\function.cpp;$(SolutionDir)..\util\generic\fwd.cpp;$(SolutionDir)..\util\generic\guid.cpp;$(SolutionDir)..\util\generic\hash.cpp;$(SolutionDir)..\util\generic\hash_primes.cpp;$(SolutionDir)..\util\generic\hash_set.cpp;$(SolutionDir)..\util\generic\hide_ptr.cpp;$(SolutionDir)..\util\generic\intrlist.cpp;$(SolutionDir)..\util\generic\is_in.cpp;$(SolutionDir)..\util\generic\iterator.cpp;$(SolutionDir)..\util\generic\iterator_range.cpp;$(SolutionDir)..\util\generic\lazy_value.cpp;$(SolutionDir)..\util\generic\list.cpp;$(SolutionDir)..\util\generic\map.cpp;$(SolutionDir)..\util\generic\mapfindptr.cpp;$(SolutionDir)..\util\generic\maybe.cpp;$(SolutionDir)..\util\generic\mem_copy.cpp;$(SolutionDir)..\util\generic\noncopyable.cpp;$(SolutionDir)..\util\generic\object_counter.cpp;$(SolutionDir)..\util\generic\ptr.cpp;$(SolutionDir)..\util\generic\queue.cpp;$(SolutionDir)..\util\generic\refcount.cpp;$(SolutionDir)..\util\generic\serialized_enum.cpp;$(SolutionDir)..\util\generic\set.cpp;$(SolutionDir)..\util\generic\singleton.cpp;$(SolutionDir)..\util\generic\size_literals.cpp;$(SolutionDir)..\util\generic\stack.cpp;$(SolutionDir)..\util\generic\store_policy.cpp;$(SolutionDir)..\util\generic\strbuf.cpp;$(SolutionDir)..\util\generic\strfcpy.cpp;$(SolutionDir)..\util\generic\string.cpp;$(SolutionDir)..\util\generic\typelist.cpp;$(SolutionDir)..\util\generic\type_name.cpp;$(SolutionDir)..\util\generic\typetraits.cpp;$(SolutionDir)..\util\generic\utility.cpp;$(SolutionDir)..\util\generic\va_args.cpp;$(SolutionDir)..\util\generic\vector.cpp;$(SolutionDir)..\util\generic\xrange.cpp;$(SolutionDir)..\util\generic\yexception.cpp;$(SolutionDir)..\util\generic\ylimits.cpp;$(SolutionDir)..\util\generic\ymath.cpp;$(SolutionDir)..\util\memory\addstorage.cpp;$(SolutionDir)..\util\memory\alloc.cpp;$(SolutionDir)..\util\memory\blob.cpp;$(SolutionDir)..\util\memory\mmapalloc.cpp;$(SolutionDir)..\util\memory\pool.cpp;$(SolutionDir)..\util\memory\segmented_string_pool.cpp;$(SolutionDir)..\util\memory\segpool_alloc.cpp;$(SolutionDir)..\util\memory\smallobj.cpp;$(SolutionDir)..\util\memory\tempbuf.cpp;$(SolutionDir)..\util\network\address.cpp;$(SolutionDir)..\util\network\endpoint.cpp;$(SolutionDir)..\util\network\hostip.cpp;$(SolutionDir)..\util\network\init.cpp;$(SolutionDir)..\util\network\interface.cpp;$(SolutionDir)..\util\network\iovec.cpp;$(SolutionDir)..\util\network\ip.cpp;$(SolutionDir)..\util\network\netloss.cpp;$(SolutionDir)..\util\network\nonblock.cpp;$(SolutionDir)..\util\network\pair.cpp;$(SolutionDir)..\util\network\poller.cpp;$(SolutionDir)..\util\network\pollerimpl.cpp;$(SolutionDir)..\util\network\sock.cpp;$(SolutionDir)..\util\network\socket.cpp;$(SolutionDir)..\util\random\common_ops.cpp;$(SolutionDir)..\util\random\easy.cpp;$(SolutionDir)..\util\random\entropy.cpp;$(SolutionDir)..\util\random\fast.cpp;$(SolutionDir)..\util\random\lcg_engine.cpp;$(SolutionDir)..\util\random\mersenne32.cpp;$(SolutionDir)..\util\random\mersenne64.cpp;$(SolutionDir)..\util\random\mersenne.cpp;$(SolutionDir)..\util\random\normal.cpp;$(SolutionDir)..\util\random\shuffle.cpp;$(SolutionDir)..\util\random\init_atfork.cpp;$(SolutionDir)..\util\stream\aligned.cpp;$(SolutionDir)..\util\stream\buffer.cpp;$(SolutionDir)..\util\stream\buffered.cpp;$(SolutionDir)..\util\stream\debug.cpp;$(SolutionDir)..\util\stream\direct_io.cpp;$(SolutionDir)..\util\stream\file.cpp;$(SolutionDir)..\util\stream\format.cpp;$(SolutionDir)..\util\stream\fwd.cpp;$(SolutionDir)..\util\stream\hex.cpp;$(SolutionDir)..\util\stream\holder.cpp;$(SolutionDir)..\util\stream\input.cpp;$(SolutionDir)..\util\stream\labeled.cpp;$(SolutionDir)..\util\stream\length.cpp;$(SolutionDir)..\util\stream\mem.cpp;$(SolutionDir)..\util\stream\multi.cpp;$(SolutionDir)..\util\stream\null.cpp;$(SolutionDir)..\util\stream\output.cpp;$(SolutionDir)..\util\stream\pipe.cpp;$(SolutionDir)..\util\stream\printf.cpp;$(SolutionDir)..\util\stream\str.cpp;$(SolutionDir)..\util\stream\tee.cpp;$(SolutionDir)..\util\stream\tempbuf.cpp;$(SolutionDir)..\util\stream\tokenizer.cpp;$(SolutionDir)..\util\stream\trace.cpp;$(SolutionDir)..\util\stream\walk.cpp;$(SolutionDir)..\util\stream\zerocopy.cpp;$(SolutionDir)..\util\stream\zerocopy_output.cpp;$(SolutionDir)..\util\stream\zlib.cpp;$(SolutionDir)..\util\string\ascii.cpp;$(SolutionDir)..\util\string\builder.cpp;$(SolutionDir)..\util\string\cstriter.cpp;$(SolutionDir)..\util\string\escape.cpp;$(SolutionDir)..\util\string\hex.cpp;$(SolutionDir)..\util\string\join.cpp;$(SolutionDir)..\util\string\printf.cpp;$(SolutionDir)..\util\string\split.cpp;$(SolutionDir)..\util\string\strip.cpp;$(SolutionDir)..\util\string\strspn.cpp;$(SolutionDir)..\util\string\subst.cpp;$(SolutionDir)..\util\string\type.cpp;$(SolutionDir)..\util\string\util.cpp;$(SolutionDir)..\util\string\vector.cpp;$(SolutionDir)..\util\system\atexit.cpp;$(SolutionDir)..\util\system\backtrace.cpp;$(SolutionDir)..\util\system\compat.cpp;$(SolutionDir)..\util\system\compiler.cpp;$(SolutionDir)..\util\system\condvar.cpp;$(SolutionDir)..\util\system\context.cpp;$(SolutionDir)..\util\system\daemon.cpp;$(SolutionDir)..\util\system\datetime.cpp;$(SolutionDir)..\util\system\defaults.c;$(SolutionDir)..\util\system\demangle.cpp;$(SolutionDir)..\util\system\direct_io.cpp;$(SolutionDir)..\util\system\dynlib.cpp;$(SolutionDir)..\util\system\env.cpp;$(SolutionDir)..\util\system\err.cpp;$(SolutionDir)..\util\system\error.cpp;$(SolutionDir)..\util\system\event.cpp;$(SolutionDir)..\util\system\execpath.cpp;$(SolutionDir)..\util\system\fasttime.cpp;$(SolutionDir)..\util\system\file.cpp;$(SolutionDir)..\util\system\file_lock.cpp;$(SolutionDir)..\util\system\filemap.cpp;$(SolutionDir)..\util\system\flock.cpp;$(SolutionDir)..\util\system\fs.cpp;$(SolutionDir)..\util\system\fstat.cpp;$(SolutionDir)..\util\system\getpid.cpp;$(SolutionDir)..\util\system\hi_lo.cpp;$(SolutionDir)..\util\system\hostname.cpp;$(SolutionDir)..\util\system\hp_timer.cpp;$(SolutionDir)..\util\system\info.cpp;$(SolutionDir)..\util\system\align.cpp;$(SolutionDir)..\util\system\atomic.cpp;$(SolutionDir)..\util\system\byteorder.cpp;$(SolutionDir)..\util\system\cpu_id.cpp;$(SolutionDir)..\util\system\fhandle.cpp;$(SolutionDir)..\util\system\guard.cpp;$(SolutionDir)..\util\system\interrupt_signals.cpp;$(SolutionDir)..\util\system\madvise.cpp;$(SolutionDir)..\util\system\maxlen.cpp;$(SolutionDir)..\util\system\mem_info.cpp;$(SolutionDir)..\util\system\mincore.cpp;$(SolutionDir)..\util\system\mktemp.cpp;$(SolutionDir)..\util\system\mlock.cpp;$(SolutionDir)..\util\system\mutex.cpp;$(SolutionDir)..\util\system\nice.cpp;$(SolutionDir)..\util\system\pipe.cpp;$(SolutionDir)..\util\system\platform.cpp;$(SolutionDir)..\util\system\progname.cpp;$(SolutionDir)..\util\system\protect.cpp;$(SolutionDir)..\util\system\rusage.cpp;$(SolutionDir)..\util\system\rwlock.cpp;$(SolutionDir)..\util\system\sanitizers.cpp;$(SolutionDir)..\util\system\sem.cpp;$(SolutionDir)..\util\system\shellcommand.cpp;$(SolutionDir)..\util\system\shmat.cpp;$(SolutionDir)..\util\system\sigset.cpp;$(SolutionDir)..\util\system\spinlock.cpp;$(SolutionDir)..\util\system\spin_wait.cpp;$(SolutionDir)..\util\system\src_location.cpp;$(SolutionDir)..\util\system\sys_alloc.cpp;$(SolutionDir)..\util\system\sysstat.cpp;$(SolutionDir)..\util\system\tempfile.cpp;$(SolutionDir)..\util\system\thread.cpp;$(SolutionDir)..\util\system\tls.cpp;$(SolutionDir)..\util\system\types.cpp;$(SolutionDir)..\util\system\unaligned_mem.cpp;$(SolutionDir)..\util\system\user.cpp;$(SolutionDir)..\util\system\utime.cpp;$(SolutionDir)..\util\system\yassert.cpp;$(SolutionDir)..\util\system\yield.cpp;$(SolutionDir)..\util\thread\factory.cpp;$(SolutionDir)..\util\thread\fwd.cpp;$(SolutionDir)..\util\thread\lfqueue.cpp;$(SolutionDir)..\util\thread\lfstack.cpp;$(SolutionDir)..\util\thread\pool.cpp;$(SolutionDir)..\util\thread\singleton.cpp;$(SolutionDir)..\util\ysafeptr.cpp;$(SolutionDir)..\util\ysaveload.cpp;$(SolutionDir)..\util\str_stl.cpp;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\util\all_datetime.cpp;$(SolutionDir)$(Configuration)\util\all_digest.cpp;$(SolutionDir)$(Configuration)\util\all_folder.cpp;$(SolutionDir)$(Configuration)\util\all_generic.cpp;$(SolutionDir)$(Configuration)\util\all_memory.cpp;$(SolutionDir)$(Configuration)\util\all_network.cpp;$(SolutionDir)$(Configuration)\util\all_random.cpp;$(SolutionDir)$(Configuration)\util\all_stream.cpp;$(SolutionDir)$(Configuration)\util\all_string.cpp;$(SolutionDir)$(Configuration)\util\all_system_1.cpp;$(SolutionDir)$(Configuration)\util\all_system_2.cpp;$(SolutionDir)$(Configuration)\util\all_thread.cpp;$(SolutionDir)$(Configuration)\util\all_util.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\run_tool.py">
@@ -257,16 +258,259 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\run_tool.py;$(SolutionDir)..\util\datetime\parser.rl6;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\ragel6.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\util\_\datetime\parser.rl6.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\base.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\constants.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\cputimer.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\parser.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\systime.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\datetime\uptime.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\city.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\fnv.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\multi.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\murmur.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\numeric.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\digest\sequence.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\dirent_win.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\dirut.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\filelist.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\fts.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\lstat_win.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\path.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\pathsplit.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\folder\tempdir.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\adaptor.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\algorithm.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\array_ref.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\array_size.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\bitmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\bitops.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\bt_exception.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\cast.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\chartraits.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\deque.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\explicit_type.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\fastqueue.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\flags.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\function.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\fwd.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\guid.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\hash_primes.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\hash_set.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\hide_ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\intrlist.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\is_in.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\iterator.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\iterator_range.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\lazy_value.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\list.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\map.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\mapfindptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\maybe.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\maybe_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\mem_copy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\noncopyable.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\object_counter.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\ptr.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\queue.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\refcount.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\reserve.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\scope.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\serialized_enum.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\set.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\singleton.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\size_literals.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\stack.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\store_policy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\strbase.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\strbuf.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\strfcpy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\string.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\type_name.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\typelist.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\typetraits.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\utility.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\va_args.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\variant.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\variant_traits.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\vector.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\xrange.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\yexception.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\ylimits.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\ymath.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\addstorage.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\alloc.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\blob.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\mmapalloc.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\segmented_string_pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\segpool_alloc.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\smallobj.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\memory\tempbuf.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\address.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\endpoint.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\hostip.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\init.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\interface.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\iovec.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\ip.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\netloss.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\nonblock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\pair.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\poller.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\pollerimpl.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\sock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\network\socket.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\common_ops.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\easy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\entropy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\fast.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\init_atfork.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\lcg_engine.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\mersenne.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\mersenne32.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\mersenne64.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\normal.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\random.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\random\shuffle.h"/>
     <ClInclude Include="$(SolutionDir)..\util\str_stl.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\aligned.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\buffer.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\buffered.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\debug.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\direct_io.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\file.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\format.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\fwd.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\hex.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\holder.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\input.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\labeled.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\length.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\mem.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\multi.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\null.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\output.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\pipe.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\printf.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\str.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\tee.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\tempbuf.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\tokenizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\trace.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\walk.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\zerocopy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\zerocopy_output.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\stream\zlib.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\ascii.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\cast.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\cstriter.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\escape.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\hex.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\join.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\printf.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\split.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\strip.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\strspn.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\subst.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\type.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\util.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\string\vector.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\align.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\atexit.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\atomic.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\atomic_gcc.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\atomic_ops.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\atomic_win.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\backtrace.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\byteorder.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\compat.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\compat_c.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\compiler.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\condvar.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\context.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\context_aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\context_i686.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\context_x86.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\context_x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\cpu_id.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\daemon.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\datetime.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\defaults.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\demangle.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\direct_io.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\dynlib.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\env.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\error.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\event.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\execpath.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\fasttime.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\fhandle.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\file.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\file_lock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\filemap.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\flock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\fs.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\fs_win.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\fstat.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\getpid.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\guard.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\hi_lo.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\hostname.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\hp_timer.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\info.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\interrupt_signals.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\madvise.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\maxlen.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\mem_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\mincore.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\mktemp.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\mlock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\mutex.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\nice.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\pipe.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\platform.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\progname.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\protect.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\rusage.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\rwlock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\sanitizers.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\sem.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\shellcommand.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\shmat.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\sigset.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\spin_wait.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\spinlock.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\src_location.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\src_root.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\sys_alloc.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\sysstat.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\tempfile.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\thread.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\tls.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\types.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\unaligned_mem.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\user.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\utime.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\valgrind.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\winint.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\yassert.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\yield.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\factory.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\fwd.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\lfqueue.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\lfstack.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\thread\singleton.h"/>
     <ClInclude Include="$(SolutionDir)..\util\ysafeptr.h"/>
     <ClInclude Include="$(SolutionDir)..\util\ysaveload.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\build\platform\python\ymake_python3\platform-python-ymake_python3.pkg.fake.vcxproj">
-      <Project>{BC317830-B909-CC3D-9F3C-EFF9856C3415}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
@@ -275,9 +519,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
       <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
-      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>

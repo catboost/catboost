@@ -15,7 +15,7 @@ def fix_files(args):
             with open(arg[1:]) as f:
                 fixed = [i.strip() for i in f]
                 if args.build_root:
-                    fixed = [os.path.join(args.build_root, i) for ln in fixed for i in ln.split(os.path.pathsep)]
+                    fixed = [os.path.join(args.build_root, i) for i in fixed]
                 fixed = os.pathsep.join([i.strip() for i in fixed])
             fixed_name = list(os.path.splitext(arg))
             fixed_name[0] += '_fixed'

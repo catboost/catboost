@@ -1,7 +1,6 @@
 /* -*- Mode: C; c-file-style: "python" -*- */
 
 #include <Python.h>
-#include "pycore_dtoa.h"
 #include <locale.h>
 
 /* Case-insensitive string match used for nan and inf detection; t should be
@@ -255,7 +254,7 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
         char *copy, *c;
         /* Create a copy of the input, with the '.' converted to the
            locale-specific decimal point */
-        copy = (char *)PyMem_Malloc(end - digits_pos +
+        copy = (char *)PyMem_MALLOC(end - digits_pos +
                                     1 + decimal_point_len);
         if (copy == NULL) {
             *endptr = (char *)nptr;
@@ -286,7 +285,7 @@ _PyOS_ascii_strtod(const char *nptr, char **endptr)
                     (fail_pos - copy);
         }
 
-        PyMem_Free(copy);
+        PyMem_FREE(copy);
 
     }
     else {
@@ -343,7 +342,9 @@ PyOS_string_to_double(const char *s,
     char *fail_pos;
 
     errno = 0;
+    PyFPE_START_PROTECT("PyOS_string_to_double", return -1.0)
     x = _PyOS_ascii_strtod(s, &fail_pos);
+    PyFPE_END_PROTECT(x)
 
     if (errno == ENOMEM) {
         PyErr_NoMemory();
@@ -352,15 +353,15 @@ PyOS_string_to_double(const char *s,
     else if (!endptr && (fail_pos == s || *fail_pos != '\0'))
         PyErr_Format(PyExc_ValueError,
                       "could not convert string to float: "
-                      "'%.200s'", s);
+                      "%.200s", s);
     else if (fail_pos == s)
         PyErr_Format(PyExc_ValueError,
                       "could not convert string to float: "
-                      "'%.200s'", s);
+                      "%.200s", s);
     else if (errno == ERANGE && fabs(x) >= 1.0 && overflow_exception)
         PyErr_Format(overflow_exception,
                       "value too large to convert to float: "
-                      "'%.200s'", s);
+                      "%.200s", s);
     else
         result = x;
 
@@ -793,7 +794,7 @@ _PyOS_ascii_formatd(char       *buffer,
 
 /* The fallback code to use if _Py_dg_dtoa is not available. */
 
-char * PyOS_double_to_string(double val,
+PyAPI_FUNC(char *) PyOS_double_to_string(double val,
                                          char format_code,
                                          int precision,
                                          int flags,
@@ -1240,7 +1241,7 @@ format_float_short(double d, char format_code,
 }
 
 
-char * PyOS_double_to_string(double val,
+PyAPI_FUNC(char *) PyOS_double_to_string(double val,
                                          char format_code,
                                          int precision,
                                          int flags,

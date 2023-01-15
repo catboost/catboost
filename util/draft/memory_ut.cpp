@@ -1,22 +1,22 @@
 #include "memory.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #pragma pack(1)
-struct Y_PACKED TSampleStruct1 {
+struct _packed TSampleStruct1 {
     ui8 A;
     ui8 B;
 };
 
 #pragma pack(1)
-struct Y_PACKED TSampleStruct2 {
+struct _packed TSampleStruct2 {
     ui8 A;
     ui16 B;
     i32 C;
 };
 
 #pragma pack(1)
-struct Y_PACKED TSampleStruct3 {
+struct _packed TSampleStruct3 {
     TSampleStruct2 A;
     ui64 B;
 };

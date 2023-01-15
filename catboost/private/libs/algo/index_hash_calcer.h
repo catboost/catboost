@@ -2,6 +2,7 @@
 
 #include <catboost/libs/data/exclusive_feature_bundling.h>
 #include <catboost/libs/data/objects.h>
+#include <catboost/libs/helpers/clear_array.h>
 
 #include <library/cpp/containers/dense_hash/dense_hash.h>
 
@@ -28,12 +29,12 @@ struct TProjection;
 /// @param begin, @param end - Result range
 void CalcHashes(
     const TProjection& proj,
-    const NCB::TQuantizedObjectsDataProvider& objectsDataProvider,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     ui64* begin,
     ui64* end,
-    NPar::ILocalExecutor* localExecutor);
+    NPar::TLocalExecutor* localExecutor);
 
 
 /// Compute reindexHash and reindex hash values in range [begin,end).

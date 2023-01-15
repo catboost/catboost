@@ -52,16 +52,6 @@ def main():
         '-fcoverage-mapping',
         '/Zc:inline',  # disable unreferenced functions (kernel registrators) remove
         '-Wno-c++17-extensions',
-        '-flto',
-        '-faligned-allocation',
-        '-fsized-deallocation',
-        # While it might be reasonable to compile host part of .cu sources with these optimizations enabled,
-        # nvcc passes these options down towards cicc which lacks x86_64 extensions support.
-        '-msse2',
-        '-msse3',
-        '-mssse3',
-        '-msse4.1',
-        '-msse4.2',
     ]
 
     if skip_nocxxinc:
@@ -77,14 +67,8 @@ def main():
         '-fsanitize-blacklist=',
         '--system-header-prefix',
     ]
-    new_cflags = []
-    for flag in cflags:
-        if all(not flag.startswith(skip_prefix) for skip_prefix in skip_prefix_list):
-            if flag.startswith('-fopenmp-version='):
-                new_cflags.append('-fopenmp-version=45')  # Clang 11 only supports OpenMP 4.5, but the default is 5.0, so we need to forcefully redefine it.
-            else:
-                new_cflags.append(flag)
-    cflags = new_cflags
+    for prefix in skip_prefix_list:
+        cflags = [i for i in cflags if not i.startswith(prefix)]
 
     if not is_clang(command):
         def good(arg):

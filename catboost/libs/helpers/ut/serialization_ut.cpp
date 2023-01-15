@@ -5,7 +5,7 @@
 #include <util/generic/string.h>
 #include <util/stream/buffer.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 Y_UNIT_TEST_SUITE(BinSaverSerialization) {
@@ -91,7 +91,7 @@ Y_UNIT_TEST_SUITE(BinSaverSerialization) {
             object.SharedInt = MakeAtomicShared<int>(42);
 
             TBufferOutput out(buffer);
-            SerializeToArcadiaStream(out, object);
+            SerializeToStream(out, object);
         }
 
         {
@@ -139,7 +139,7 @@ Y_UNIT_TEST_SUITE(BinSaverSerialization) {
             object.HolderString = MakeHolder<TString>("Sample");
 
             TBufferOutput out(buffer);
-            SerializeToArcadiaStream(out, object);
+            SerializeToStream(out, object);
         }
 
         {

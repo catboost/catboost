@@ -1,4 +1,4 @@
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/random/fast.h>
 #include <util/random/random.h>
@@ -46,39 +46,39 @@ namespace {
 }
 
 #ifdef _sse2_
-    #define IS_ASCII_BENCHMARK(length)                                                                                                                                           \
-        Y_CPU_BENCHMARK(IsStringASCII##length, iface) {                                                                                                                          \
-            const auto& data = *Singleton<RAS##length>();                                                                                                                        \
-            for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
-                Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCII(data.begin(), data.end()));                                                                                    \
-            }                                                                                                                                                                    \
-        }                                                                                                                                                                        \
-        Y_CPU_BENCHMARK(IsStringASCIISlow##length, iface) {                                                                                                                      \
-            const auto& data = *Singleton<RAS##length>();                                                                                                                        \
-            for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
-                Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISlow(data.begin(), data.end()));                                                                                \
-            }                                                                                                                                                                    \
-        }                                                                                                                                                                        \
-        Y_CPU_BENCHMARK(IsStringASCIISSE##length, iface) {                                                                                                                       \
-            const auto& data = *Singleton<RAS##length>();                                                                                                                        \
-            for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
-                Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISSE(reinterpret_cast<const unsigned char*>(data.begin()), reinterpret_cast<const unsigned char*>(data.end()))); \
-            }                                                                                                                                                                    \
-        }
+#define IS_ASCII_BENCHMARK(length)                                                                                                                                           \
+    Y_CPU_BENCHMARK(IsStringASCII##length, iface) {                                                                                                                          \
+        const auto& data = *Singleton<RAS##length>();                                                                                                                        \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
+            Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCII(data.begin(), data.end()));                                                                                    \
+        }                                                                                                                                                                    \
+    }                                                                                                                                                                        \
+    Y_CPU_BENCHMARK(IsStringASCIISlow##length, iface) {                                                                                                                      \
+        const auto& data = *Singleton<RAS##length>();                                                                                                                        \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
+            Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISlow(data.begin(), data.end()));                                                                                \
+        }                                                                                                                                                                    \
+    }                                                                                                                                                                        \
+    Y_CPU_BENCHMARK(IsStringASCIISSE##length, iface) {                                                                                                                       \
+        const auto& data = *Singleton<RAS##length>();                                                                                                                        \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                                                                                    \
+            Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISSE(reinterpret_cast<const unsigned char*>(data.begin()), reinterpret_cast<const unsigned char*>(data.end()))); \
+        }                                                                                                                                                                    \
+    }
 #else //no sse
-    #define IS_ASCII_BENCHMARK(length)                                                            \
-        Y_CPU_BENCHMARK(IsStringASCIIScalar##length, iface) {                                     \
-            const auto& data = *Singleton<RAS##length>();                                         \
-            for (size_t x = 0; x < iface.Iterations(); ++x) {                                     \
-                Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCII(data.begin(), data.end()));     \
-            }                                                                                     \
-        }                                                                                         \
-        Y_CPU_BENCHMARK(IsStringASCIISlow##length, iface) {                                       \
-            const auto& data = *Singleton<RAS##length>();                                         \
-            for (size_t x = 0; x < iface.Iterations(); ++x) {                                     \
-                Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISlow(data.begin(), data.end())); \
-            }                                                                                     \
-        }
+#define IS_ASCII_BENCHMARK(length)                                                            \
+    Y_CPU_BENCHMARK(IsStringASCIIScalar##length, iface) {                                     \
+        const auto& data = *Singleton<RAS##length>();                                         \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                     \
+            Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCII(data.begin(), data.end()));     \
+        }                                                                                     \
+    }                                                                                         \
+    Y_CPU_BENCHMARK(IsStringASCIISlow##length, iface) {                                       \
+        const auto& data = *Singleton<RAS##length>();                                         \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                     \
+            Y_DO_NOT_OPTIMIZE_AWAY(::NDetail::DoIsStringASCIISlow(data.begin(), data.end())); \
+        }                                                                                     \
+    }
 #endif
 
 IS_ASCII_BENCHMARK(1);

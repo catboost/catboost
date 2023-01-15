@@ -1,23 +1,33 @@
 #include "platform.h"
 
+#include <stdlib.h>
+
 #if defined(_solaris_)
-    #include <stdlib.h>
+#include <stdlib.h>
 #elif defined(_darwin_)
-    #include <mach-o/dyld.h>
-    #include <util/generic/function.h>
+#include <mach-o/dyld.h>
 #elif defined(_win_)
-    #include "winint.h"
-    #include <io.h>
+#include "winint.h"
+#include <io.h>
 #elif defined(_linux_)
+#include <unistd.h>
 #elif defined(_freebsd_)
-    #include <string.h>
-    #include <sys/types.h> // for u_int not defined in sysctl.h
-    #include <sys/sysctl.h>
-    #include <unistd.h>
+#include <string.h>
+#include <sys/types.h> // for u_int not defined in sysctl.h
+#include <sys/sysctl.h>
+#include <unistd.h>
 #endif
 
+#include <util/folder/dirut.h>
 #include <util/generic/singleton.h>
+#include <util/generic/function.h>
+#include <util/generic/yexception.h>
+#include <util/memory/tempbuf.h>
+#include <util/stream/file.h>
+#include <util/stream/pipe.h>
+#include <util/string/cast.h>
 
+#include "filemap.h"
 #include "execpath.h"
 #include "fs.h"
 
@@ -48,12 +58,7 @@ static inline TString FreeBSDGetExecPath() {
     if (r == 0) {
         return TString(buf.Data(), buf.Filled() - 1);
     } else if (r == ENOTSUP) { // older FreeBSD version
-        /*
-         * BSD analogue for /proc/self is /proc/curproc.
-         * See:
-         * https://www.freebsd.org/cgi/man.cgi?query=procfs&sektion=5&format=html
-         */
-        TString path("/proc/curproc/file");
+        TString path("/proc/" + ToString(getpid()) + "/file");
         return NFs::ReadLink(path);
     } else {
         return TString();
@@ -118,7 +123,7 @@ static TString GetExecPathImpl() {
         }
     }
 #elif defined(_linux_) || defined(_cygwin_)
-    TString path("/proc/self/exe");
+    TString path("/proc/" + ToString(getpid()) + "/exe");
     return NFs::ReadLink(path);
 // TODO(yoda): check if the filename ends with " (deleted)"
 #elif defined(_freebsd_)
@@ -141,7 +146,7 @@ static TString GetExecPathImpl() {
 
     ythrow yexception() << "can not resolve exec path";
 #else
-    #error dont know how to implement GetExecPath on this platform
+#error dont know how to implement GetExecPath on this platform
 #endif
 }
 

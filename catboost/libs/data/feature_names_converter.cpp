@@ -3,35 +3,67 @@
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/json_helper.h>
-#include <catboost/private/libs/options/pool_metainfo_options.h>
 
 #include <util/string/split.h>
 #include <util/string/type.h>
 
-static bool IsArrayOfIntegers(const NJson::TJsonValue& jsonArray) {
-    return AllOf(jsonArray.GetArray(), [](const NJson::TJsonValue& item) {
-        return item.IsInteger();
+static bool TryParseRange(const TString& ignoredFeatureDescription, ui32& left, ui32& right) {
+    return StringSplitter(ignoredFeatureDescription).Split('-').TryCollectInto(&left, &right);
+}
+
+static bool IsNumberOrRange(const TString& ignoredFeatureDescription) {
+    ui32 left, right;
+    return IsNumber(ignoredFeatureDescription) || TryParseRange(ignoredFeatureDescription, left, right);
+}
+
+static void ConvertStringIndicesIntoIntegerIndices(NJson::TJsonValue* ignoredFeaturesJson) {
+    NJson::TJsonValue ignoredFeaturesIndicesJson(NJson::JSON_ARRAY);
+    for (NJson::TJsonValue ignoredFeature : ignoredFeaturesJson->GetArray()) {
+        if (IsNumber(ignoredFeature.GetString())) {
+            ignoredFeaturesIndicesJson.AppendValue(FromString<ui32>(ignoredFeature.GetString()));
+        } else {
+            ui32 left, right;
+            CB_ENSURE_INTERNAL(TryParseRange(ignoredFeature.GetString(), left, right), "Bad feature range");
+            for (ui32 index = left; index <= right; index++) {
+                ignoredFeaturesIndicesJson.AppendValue(index);
+            }
+        }
+    }
+    ignoredFeaturesJson->Swap(ignoredFeaturesIndicesJson);
+}
+
+static void ConvertNamesIntoIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* ignoredFeaturesJson) {
+    NJson::TJsonValue ignoredFeaturesIndicesJson(NJson::JSON_ARRAY);
+    for (NJson::TJsonValue ignoredFeature : ignoredFeaturesJson->GetArray()) {
+        CB_ENSURE(indicesFromNames.contains(ignoredFeature.GetString()), "There is no feature with name '" + ignoredFeature.GetString() + "' in dataset");
+        ignoredFeaturesIndicesJson.AppendValue(indicesFromNames.at(ignoredFeature.GetString()));
+    }
+    ignoredFeaturesJson->Swap(ignoredFeaturesIndicesJson);
+}
+
+static bool IsNumbersOrRangesConvert(const NJson::TJsonValue& ignoredFeaturesJson) {
+    return AllOf(ignoredFeaturesJson.GetArray(), [](const NJson::TJsonValue& ignoredFeature) {
+        return IsNumberOrRange(ignoredFeature.GetString());
     });
 }
 
-static void ConvertNamesIntoIndices(const TIndicesMapper& mapper,
-                                    NJson::TJsonValue* featuresArrayJson) {
-    if (IsArrayOfIntegers(*featuresArrayJson)) {
-        return;
-    }
-    NJson::TJsonValue featuresIndicesArrayJson(NJson::JSON_ARRAY);
-    for (NJson::TJsonValue featureOrRange : featuresArrayJson->GetArray()) {
-        for (ui32 feature : mapper.Map(featureOrRange.GetString())) {
-            featuresIndicesArrayJson.AppendValue(feature);
-        }
-    }
-    featuresArrayJson->Swap(featuresIndicesArrayJson);
+static bool IsNumbersConvert(const NJson::TJsonValue& ignoredFeaturesJson) {
+    return AllOf(ignoredFeaturesJson.GetArray(), [](const NJson::TJsonValue& ignoredFeature) {
+        return IsNumber(ignoredFeature.GetString());
+    });
 }
 
-TMap<TString, ui32> MakeIndicesFromNamesByCdFile(const NCB::TPathWithScheme& cdFilePath) {
+static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
+    return AllOf(ignoredFeaturesJson.GetArray(), [](const NJson::TJsonValue& ignoredFeature) {
+        return ignoredFeature.IsInteger();
+    });
+}
+
+TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
     TMap<TString, ui32> indicesFromNames;
-    if (cdFilePath.Inited()) {
-        const TVector<TColumn> columns = ReadCD(cdFilePath, TCdParserDefaults(EColumn::Num));
+    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
+        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
+                                                TCdParserDefaults(EColumn::Num));
         ui32 featureIdx = 0;
         for (const auto& column : columns) {
             if (IsFactorColumn(column.Type)) {
@@ -43,11 +75,6 @@ TMap<TString, ui32> MakeIndicesFromNamesByCdFile(const NCB::TPathWithScheme& cdF
         }
     }
     return indicesFromNames;
-}
-
-TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
-    // TODO: support 'feature-names' option and header in tsv file
-    return MakeIndicesFromNamesByCdFile(poolLoadParams.ColumnarPoolFormatParams.CdFilePath);
 }
 
 TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
@@ -62,44 +89,46 @@ TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
     return indicesFromNames;
 }
 
-static THashMap<TString, TVector<ui32>> MakeIndicesFromTagsFromPoolMetaInfo(const NCB::TPathWithScheme& poolMetaInfoPath) {
-    const auto featureTags = NCatboostOptions::LoadPoolMetaInfoOptions(poolMetaInfoPath).Tags.Get();
-    THashMap<TString, TVector<ui32>> indicesFromTags;
-    for (const auto& [tag, description] : featureTags) {
-        indicesFromTags[tag] = description.Features;
+static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* ignoredFeaturesJson) {
+    if (IsNumbersOrRangesConvert(*ignoredFeaturesJson)) {
+        ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
+    } else {
+        CB_ENSURE(!poolLoadParams.LearnSetPath.Scheme.Contains("quantized") || poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
+                "quatized pool without CD file doesn't support ignoring features by names");
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
+        ConvertNamesIntoIndices(indicesFromNames, ignoredFeaturesJson);
     }
-    return indicesFromTags;
 }
 
-THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
-    return MakeIndicesFromTagsFromPoolMetaInfo(poolLoadParams.PoolMetaInfoPath);
-}
-
-THashMap<TString, TVector<ui32>> MakeIndicesFromTags(const NCB::TDataMetaInfo& metaInfo) {
-    return metaInfo.FeaturesLayout->GetTagToExternalIndices();
-}
-
-void ConvertFeaturesFromStringToIndices(const NCB::TPathWithScheme& cdFilePath, const NCB::TPathWithScheme& poolMetaInfoPath, NJson::TJsonValue* featuresArrayJson) {
-    auto indicesFromNames = MakeIndicesFromNamesByCdFile(cdFilePath);
-    auto indicesFromTags = MakeIndicesFromTagsFromPoolMetaInfo(poolMetaInfoPath);
-    ConvertNamesIntoIndices(TIndicesMapper(std::move(indicesFromNames), std::move(indicesFromTags)), featuresArrayJson);
+static void ConvertStringsArrayIntoIndicesArray(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* ignoredFeaturesJson) {
+    if (IsArrayOfIntegers(*ignoredFeaturesJson)) {
+        return;
+    }
+    if (IsNumbersConvert(*ignoredFeaturesJson)) {
+        ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
+    } else {
+        TMap<TString, ui32> indicesFromNames;
+        ui32 currentId = 0;
+        auto featuresArray = metaInfo.FeaturesLayout.Get()->GetExternalFeaturesMetaInfo();
+        for (const auto& feature : featuresArray) {
+            if (!feature.Name.empty()) {
+                indicesFromNames[feature.Name] = currentId;
+            }
+            currentId++;
+        }
+        ConvertNamesIntoIndices(indicesFromNames, ignoredFeaturesJson);
+    }
 }
 
 void ConvertIgnoredFeaturesFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
     if (catBoostJsonOptions->Has("ignored_features")) {
-        ConvertNamesIntoIndices(TIndicesMapper(poolLoadParams), &(*catBoostJsonOptions)["ignored_features"]);
+        ConvertStringsArrayIntoIndicesArray(poolLoadParams, &(*catBoostJsonOptions)["ignored_features"]);
     }
 }
 
 void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
     if (catBoostJsonOptions->Has("ignored_features")) {
-        ConvertNamesIntoIndices(TIndicesMapper(metaInfo), &(*catBoostJsonOptions)["ignored_features"]);
-    }
-}
-
-void ConvertFixedBinarySplitsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
-    if (catBoostJsonOptions->Has("fixed_binary_splits")) {
-        ConvertNamesIntoIndices(TIndicesMapper(poolLoadParams), &(*catBoostJsonOptions)["fixed_binary_splits"]);
+        ConvertStringsArrayIntoIndicesArray(metaInfo, &(*catBoostJsonOptions)["ignored_features"]);
     }
 }
 
@@ -150,9 +179,20 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPool
     ConvertPerFeatureOptionsFromStringToIndices(poolLoadParams, &treeOptions["monotone_constraints"]);
 }
 
+ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
+    if (IsNumber(nameOrIndex)) {
+        return FromString<ui32>(nameOrIndex);
+    } else {
+        CB_ENSURE(
+            indicesFromNames.contains(nameOrIndex),
+            "String " + nameOrIndex + " is not a feature name");
+        return indicesFromNames.at(nameOrIndex);
+    }
+}
+
 void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
     if (catBoostJsonOptions->Has("features_to_evaluate")) {
-        TIndicesMapper mapper(poolLoadParams);
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
         const auto& featureNamesToEvaluate = (*catBoostJsonOptions)["features_to_evaluate"].GetString();
         TVector<TVector<int>> featuresToEvaluate;
         for (const auto& nameSet : StringSplitter(featureNamesToEvaluate).Split(';')) {
@@ -160,7 +200,10 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
             featuresToEvaluate.emplace_back(TVector<int>{});
             for (const auto& nameOrRange : StringSplitter(nameSetAsString).Split(',')) {
                 const TString nameOrRangeAsString(nameOrRange);
-                for (ui32 idx : mapper.Map(nameOrRangeAsString)) {
+                auto left = nameOrRangeAsString;
+                auto right = nameOrRangeAsString;
+                StringSplitter(nameOrRangeAsString).Split('-').TryCollectInto(&left, &right);
+                for (ui32 idx : xrange(ConvertToIndex(left, indicesFromNames), ConvertToIndex(right, indicesFromNames) + 1)) {
                     featuresToEvaluate.back().emplace_back(idx);
                 }
             }
@@ -170,44 +213,3 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
             &(*catBoostJsonOptions)["features_to_evaluate"]);
     }
 }
-
-
-static const TStringBuf FEATURE_NAMES_DEPENDENT_KEYS[] = {
-    TStringBuf("features_to_evaluate"),
-    TStringBuf("ignored_features"),
-    TStringBuf("monotone_constraints"),
-    TStringBuf("penalties")
-};
-
-
-NJson::TJsonValue ExtractFeatureNamesDependentParams(NJson::TJsonValue* catBoostJsonOptions) {
-    NJson::TJsonValue result(NJson::EJsonValueType::JSON_MAP);
-    auto& treeOptionsMap = (*catBoostJsonOptions)["tree_learner_options"].GetMapSafe();
-
-    auto& resultTreeOptions = result["tree_learner_options"];
-    resultTreeOptions.SetType(NJson::EJsonValueType::JSON_MAP);
-
-    for (const auto& key : FEATURE_NAMES_DEPENDENT_KEYS) {
-        auto it = treeOptionsMap.find(key);
-        if (it != treeOptionsMap.end()) {
-            resultTreeOptions.InsertValue(key, it->second);
-            treeOptionsMap.erase(it);
-        }
-    }
-
-    return result;
-}
-
-// feature names - dependent params are added to catBoostJsonOptions
-void AddFeatureNamesDependentParams(const NJson::TJsonValue& featureNamesDependentOptions, NJson::TJsonValue* catBoostJsonOptions) {
-    const auto& treeOptionsMap = featureNamesDependentOptions["tree_learner_options"].GetMapSafe();
-    auto& resultTreeOptionsMap = (*catBoostJsonOptions)["tree_learner_options"].GetMapSafe();
-
-    for (const auto& key : FEATURE_NAMES_DEPENDENT_KEYS) {
-        auto it = treeOptionsMap.find(key);
-        if (it != treeOptionsMap.end()) {
-            resultTreeOptionsMap.insert(*it);
-        }
-    }
-}
-

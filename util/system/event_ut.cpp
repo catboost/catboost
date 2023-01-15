@@ -1,16 +1,21 @@
 #include "event.h"
+#include "atomic.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/thread/pool.h>
 
-#include <atomic>
-
 namespace {
     struct TSharedData {
-        std::atomic<size_t> Counter = 0;
+        TSharedData()
+            : Counter(0)
+            , failed(false)
+        {
+        }
+
+        TAtomic Counter;
         TManualEvent event;
-        bool failed = false;
+        bool failed;
     };
 
     struct TThreadTask: public IObjectInQueue {
@@ -26,7 +31,7 @@ namespace {
 
             if (Id_ == 0) {
                 usleep(100);
-                bool cond = Data_.Counter.load() == 0;
+                bool cond = Data_.Counter == 0;
                 if (!cond) {
                     Data_.failed = true;
                 }
@@ -34,7 +39,7 @@ namespace {
             } else {
                 while (!Data_.event.WaitT(TDuration::Seconds(100))) {
                 }
-                Data_.Counter += Id_;
+                AtomicAdd(Data_.Counter, Id_);
             }
         }
 
@@ -45,16 +50,19 @@ namespace {
 
     class TSignalTask: public IObjectInQueue {
     private:
-        TManualEvent& Ev_;
+        TManualEvent& Barrier;
+        TManualEvent& Ev;
 
     public:
-        TSignalTask(TManualEvent& ev)
-            : Ev_(ev)
+        TSignalTask(TManualEvent& barrier, TManualEvent& ev)
+            : Barrier(barrier)
+            , Ev(ev)
         {
         }
 
         void Process(void*) override {
-            Ev_.Signal();
+            Y_UNUSED(Barrier);
+            Ev.Signal();
         }
     };
 
@@ -86,7 +94,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
             UNIT_ASSERT(queue.Add(new TThreadTask(data, i)));
         }
         queue.Stop();
-        UNIT_ASSERT(data.Counter.load() == 10);
+        UNIT_ASSERT(data.Counter == 10);
         UNIT_ASSERT(!data.failed);
     }
 
@@ -94,11 +102,12 @@ Y_UNIT_TEST_SUITE(EventTest) {
         // test for problem detected by thread-sanitizer (signal/wait race) SEARCH-2113
         const size_t limit = 200;
         TManualEvent event[limit];
+        TManualEvent barrier;
         TThreadPool queue;
         queue.Start(limit);
         TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < limit; ++i) {
-            tasks.emplace_back(MakeHolder<TSignalTask>(event[i]));
+            tasks.emplace_back(MakeHolder<TSignalTask>(barrier, event[i]));
             UNIT_ASSERT(queue.Add(tasks.back().Get()));
         }
         for (size_t i = limit; i != 0; --i) {
@@ -113,7 +122,7 @@ Y_UNIT_TEST_SUITE(EventTest) {
         TVector<THolder<IObjectInQueue>> tasks;
         for (size_t i = 0; i < 1000; ++i) {
             auto owner = MakeHolder<TOwnerTask>();
-            tasks.emplace_back(MakeHolder<TSignalTask>(*owner->Ev));
+            tasks.emplace_back(MakeHolder<TSignalTask>(owner->Barrier, *owner->Ev));
             tasks.emplace_back(std::move(owner));
         }
 

@@ -96,8 +96,7 @@ Y_MAP_ARGS(
     (int, TSingleMapping),
     (float, TStripeMapping),
     (ui32, TStripeMapping),
-    (int, TStripeMapping),
-    (ui64, TStripeMapping));
+    (int, TStripeMapping));
 
 #undef Y_CATBOOST_CUDA_F_IMPL
 #undef Y_CATBOOST_CUDA_F_IMPL_PROXY
@@ -293,7 +292,7 @@ namespace {
         Y_SAVELOAD_DEFINE(Input, Offsets, Output, Type);
 
         void Run(const TCudaStream& stream, TKernelContext& context) const {
-            CB_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
+            Y_ENSURE(Output.Size() + 1 == Offsets.Size(), TStringBuilder() << "Error: outputSize " << Output.Size() << "; Offsets size " << Offsets.Size());
             CUDA_SAFE_CALL(NKernel::SegmentedReduce(Input.Get(), Input.Size(),
                                                     Offsets.Get(), Offsets.Size() - 1,
                                                     Output.Get(), Type, context, stream.GetStream()));
@@ -342,7 +341,6 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0xAE0001, TReduceKernel, float)
     REGISTER_KERNEL_TEMPLATE(0xAE0005, TReduceKernel, ui32)
     REGISTER_KERNEL_TEMPLATE(0xAE0006, TReduceKernel, int)
-    REGISTER_KERNEL_TEMPLATE(0xAE0007, TReduceKernel, ui64)
     REGISTER_KERNEL_TEMPLATE_2(0xAE0002, TSegmentedReduceKernel, float, EPtrType::CudaDevice)
     REGISTER_KERNEL_TEMPLATE_2(0xAE0003, TSegmentedReduceKernel, float, EPtrType::CudaHost)
     REGISTER_KERNEL_TEMPLATE_2(0xAE0004, TReduceByKeyKernel, float, ui32)

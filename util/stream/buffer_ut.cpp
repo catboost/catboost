@@ -1,6 +1,6 @@
 #include "buffer.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/buffer.h>
 
@@ -68,10 +68,10 @@ Y_UNIT_TEST_SUITE(TBufferTest) {
                << "55555";
 
         UNIT_ASSERT(0 == memcmp(buffer.data(), "1"
-                                               "22"
-                                               "333"
-                                               "4444"
-                                               "55555",
+                                         "22"
+                                         "333"
+                                         "4444"
+                                         "55555",
                                 buffer.size()));
     }
 

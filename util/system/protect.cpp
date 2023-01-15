@@ -2,32 +2,29 @@
 
 #include <util/generic/yexception.h>
 #include <util/generic/string.h>
+#include <util/stream/output.h>
 
 #include "yassert.h"
 
 #if defined(_unix_) || defined(_darwin_)
-    #include <sys/mman.h>
+#include <sys/mman.h>
 #endif
 
 #ifdef _win_
-    #include <Windows.h>
+#include <Windows.h>
 #endif
 
 static TString ModeToString(const EProtectMemory mode) {
     TString strMode;
-    if (mode == PM_NONE) {
+    if (mode == PM_NONE)
         return "PM_NONE";
-    }
 
-    if (mode & PM_READ) {
+    if (mode & PM_READ)
         strMode += "PM_READ|";
-    }
-    if (mode & PM_WRITE) {
+    if (mode & PM_WRITE)
         strMode += "PM_WRITE|";
-    }
-    if (mode & PM_EXEC) {
+    if (mode & PM_EXEC)
         strMode += "PM_EXEC|";
-    }
     return strMode.substr(0, strMode.size() - 1);
 }
 
@@ -36,19 +33,15 @@ void ProtectMemory(void* addr, const size_t length, const EProtectMemory mode) {
 
 #if defined(_unix_) || defined(_darwin_)
     int mpMode = PROT_NONE;
-    if (mode & PM_READ) {
+    if (mode & PM_READ)
         mpMode |= PROT_READ;
-    }
-    if (mode & PM_WRITE) {
+    if (mode & PM_WRITE)
         mpMode |= PROT_WRITE;
-    }
-    if (mode & PM_EXEC) {
+    if (mode & PM_EXEC)
         mpMode |= PROT_EXEC;
-    }
     // some old manpages for mprotect say 'const void* addr', but that's wrong
-    if (mprotect(addr, length, mpMode) == -1) {
+    if (mprotect(addr, length, mpMode) == -1)
         ythrow TSystemError() << "Memory protection failed for mode " << ModeToString(mode) << ". ";
-    }
 #endif
 
 #ifdef _win_

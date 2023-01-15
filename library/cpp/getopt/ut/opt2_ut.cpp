@@ -1,6 +1,6 @@
 #include <library/cpp/getopt/opt2.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 //using namespace NLastGetopt;
 

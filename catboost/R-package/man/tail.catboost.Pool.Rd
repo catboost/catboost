@@ -17,16 +17,14 @@ Default value: 10}
 
 \item{...}{not currently used}
 }
-\value{
-A matrix containing the last \code{n} objects of the dataset.
-}
 \description{
 Return a list with the last n objects of the dataset.
-
-             Each line of this list contains the following information for each object:
-             \itemize{
-                 \item The target value.
-                 \item The weight value.
-                 \item The feature values.
-             }
+}
+\details{
+Each line of this list contains the following information for each object:
+\itemize{
+    \item The target value.
+    \item The weight value.
+    \item The feature values.
+}
 }

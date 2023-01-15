@@ -1,13 +1,28 @@
+PROGRAM()
 
 
-IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/python/bootstrap/ya.make.prebuilt)
-ENDIF()
 
-IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/bootstrap/bin/ya.make)
-ENDIF()
+INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 
-RECURSE(
-    bin
+PEERDIR(
+    ${PYTHON_DIR}/base
 )
+
+ADDINCL(
+    ${PYTHON_SRC_DIR}
+    ${PYTHON_SRC_DIR}/Include
+)
+
+SRCDIR(
+    ${PYTHON_SRC_DIR}
+)
+
+CFLAGS(${PYTHON_FLAGS} -DLIBDIR="${PYTHON_SRC_ROOT}/Lib" -DPYLIB="${PYTHON_SRC_DIR}/Lib")
+
+SRCS(
+    Python/frozen.c
+    python.c
+    vars.cpp
+)
+
+END()

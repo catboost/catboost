@@ -1,6 +1,6 @@
 
 
-PY3TEST()
+PYTEST()
 
 TEST_SRCS(
     conftest.py
@@ -22,14 +22,13 @@ IF(AUTOCHECK)
     SPLIT_FACTOR(240)
     REQUIREMENTS(cpu:4 network:full)
 ELSE()
-    REQUIREMENTS(cpu:2 network:full ram:19)
+    REQUIREMENTS(cpu:2 network:full)
 ENDIF()
 
 PEERDIR(
     catboost/pytest/lib
     catboost/python-package/lib
     contrib/python/numpy
-    contrib/python/pandas
 )
 
 DEPENDS(
@@ -40,7 +39,7 @@ DATA(
     arcadia/catboost/pytest/data
 )
 
-IF (OPENSOURCE AND AUTOCHECK)
+IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
 ENDIF()
 

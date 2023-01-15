@@ -52,8 +52,9 @@
 #include <sys/poll.h>
 #endif
 
-#ifdef _MSC_VER
-#include <wincrypt.h>
+#ifndef MS_WINDOWS
+/* inet_pton */
+#include <arpa/inet.h>
 #endif
 
 /* Don't warn about deprecated functions */

@@ -1,4 +1,4 @@
-// Copyright 2014-2020 The OpenSSL Project Authors. All Rights Reserved.
+// Copyright 2014-2019 The OpenSSL Project Authors. All Rights Reserved.
 //
 // Licensed under the OpenSSL license (the "License").  You may not use
 // this file except in compliance with the License.  You can obtain a copy
@@ -59,7 +59,6 @@
 .text
 
 
-.private_extern	_OPENSSL_armcap_P
 .globl	_sha256_block_data_order
 
 .align	6
@@ -2061,3 +2060,6 @@ L_00_48:
 	add	sp,sp,#16*4+16
 	ret
 
+#ifndef	__KERNEL__
+.comm	_OPENSSL_armcap_P,4,4
+#endif

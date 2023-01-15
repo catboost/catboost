@@ -1,7 +1,6 @@
 UNITTEST_FOR(util)
 
 
-SUBSCRIBER(g:util-subscribers)
 
 FORK_TESTS()
 
@@ -20,12 +19,13 @@ IF (OS_DARWIN)
 ENDIF()
 
 PEERDIR(
-    library/cpp/testing/benchmark
+    library/testing/benchmark
 )
 
 SRCS(
     system/align_ut.cpp
     system/atexit_ut.cpp
+    system/atomic_ut.cpp
     system/backtrace_ut.cpp
     system/byteorder_ut.cpp
     system/compat_ut.cpp
@@ -34,6 +34,7 @@ SRCS(
     system/condvar_ut.cpp
     system/cpu_id_ut.cpp
     system/datetime_ut.cpp
+    system/demangle_ut.cpp
     system/daemon_ut.cpp
     system/direct_io_ut.cpp
     system/env_ut.cpp
@@ -70,21 +71,15 @@ SRCS(
     system/thread_ut.cpp
     system/tls_ut.cpp
     system/types_ut.cpp
-    system/type_name_ut.cpp
     system/user_ut.cpp
     system/unaligned_mem_ut.cpp
     system/yassert_ut.cpp
 )
 
 IF (OS_WINDOWS)
-    SRCS(
-        system/fs_win_ut.cpp
-    )
     DEPENDS(
         util/system/ut/stdin_osfhandle
     )
 ENDIF()
-
-REQUIREMENTS(ram:12)
 
 END()

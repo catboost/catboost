@@ -11,7 +11,7 @@ import builtins
 import io
 import _compression
 
-__all__ = ["BadGzipFile", "GzipFile", "open", "compress", "decompress"]
+__all__ = ["GzipFile", "open", "compress", "decompress"]
 
 FTEXT, FHCRC, FEXTRA, FNAME, FCOMMENT = 1, 2, 4, 8, 16
 
@@ -22,7 +22,7 @@ _COMPRESS_LEVEL_TRADEOFF = 6
 _COMPRESS_LEVEL_BEST = 9
 
 
-def open(filename, mode="rb", compresslevel=_COMPRESS_LEVEL_BEST,
+def open(filename, mode="rb", compresslevel=9,
          encoding=None, errors=None, newline=None):
     """Open a gzip-compressed file in binary or text mode.
 
@@ -62,7 +62,6 @@ def open(filename, mode="rb", compresslevel=_COMPRESS_LEVEL_BEST,
         raise TypeError("filename must be a str or bytes object, or a file")
 
     if "t" in mode:
-        encoding = io.text_encoding(encoding)
         return io.TextIOWrapper(binary_file, encoding, errors, newline)
     else:
         return binary_file
@@ -113,11 +112,6 @@ class _PaddedFile:
     def seekable(self):
         return True  # Allows fast-forwarding even in unseekable streams
 
-
-class BadGzipFile(OSError):
-    """Exception raised in some cases for invalid gzip files."""
-
-
 class GzipFile(_compression.BaseStream):
     """The GzipFile class simulates most of the methods of a file object with
     the exception of the truncate() method.
@@ -132,7 +126,7 @@ class GzipFile(_compression.BaseStream):
     myfileobj = None
 
     def __init__(self, filename=None, mode=None,
-                 compresslevel=_COMPRESS_LEVEL_BEST, fileobj=None, mtime=None):
+                 compresslevel=9, fileobj=None, mtime=None):
         """Constructor for the GzipFile class.
 
         At least one of fileobj and filename must be given a
@@ -178,7 +172,6 @@ class GzipFile(_compression.BaseStream):
                 filename = ''
         else:
             filename = os.fspath(filename)
-        origmode = mode
         if mode is None:
             mode = getattr(fileobj, 'mode', 'rb')
 
@@ -189,13 +182,6 @@ class GzipFile(_compression.BaseStream):
             self.name = filename
 
         elif mode.startswith(('w', 'a', 'x')):
-            if origmode is None:
-                import warnings
-                warnings.warn(
-                    "GzipFile was opened for writing, but this will "
-                    "change in future Python releases.  "
-                    "Specify the mode argument for opening it for writing.",
-                    FutureWarning, 2)
             self.mode = WRITE
             self._init_write(filename)
             self.compress = zlib.compressobj(compresslevel,
@@ -278,7 +264,7 @@ class GzipFile(_compression.BaseStream):
         if self.fileobj is None:
             raise ValueError("write() on closed GzipFile object")
 
-        if isinstance(data, (bytes, bytearray)):
+        if isinstance(data, bytes):
             length = len(data)
         else:
             # accept any data that supports the buffer protocol
@@ -303,7 +289,7 @@ class GzipFile(_compression.BaseStream):
     def read1(self, size=-1):
         """Implements BufferedIOBase.read1()
 
-        Reads up to a buffer's worth of data if size is negative."""
+        Reads up to a buffer's worth of data is size is negative."""
         self._check_not_closed()
         if self.mode != READ:
             import errno
@@ -433,12 +419,12 @@ class _GzipReader(_compression.DecompressReader):
             return False
 
         if magic != b'\037\213':
-            raise BadGzipFile('Not a gzipped file (%r)' % magic)
+            raise OSError('Not a gzipped file (%r)' % magic)
 
         (method, flag,
          self._last_mtime) = struct.unpack("<BBIxx", self._read_exact(8))
         if method != 8:
-            raise BadGzipFile('Unknown compression method')
+            raise OSError('Unknown compression method')
 
         if flag & FEXTRA:
             # Read & discard the extra field, if present
@@ -517,15 +503,15 @@ class _GzipReader(_compression.DecompressReader):
 
     def _read_eof(self):
         # We've read to the end of the file
-        # We check that the computed CRC and size of the
+        # We check the that the computed CRC and size of the
         # uncompressed data matches the stored values.  Note that the size
         # stored is the true file size mod 2**32.
         crc32, isize = struct.unpack("<II", self._read_exact(8))
         if crc32 != self._crc:
-            raise BadGzipFile("CRC check failed %s != %s" % (hex(crc32),
-                                                             hex(self._crc)))
+            raise OSError("CRC check failed %s != %s" % (hex(crc32),
+                                                         hex(self._crc)))
         elif isize != (self._stream_size & 0xffffffff):
-            raise BadGzipFile("Incorrect length of data produced")
+            raise OSError("Incorrect length of data produced")
 
         # Gzip files can be padded with zeroes and still have archives.
         # Consume all zero bytes and set the file position to the first
@@ -540,12 +526,12 @@ class _GzipReader(_compression.DecompressReader):
         super()._rewind()
         self._new_member = True
 
-def compress(data, compresslevel=_COMPRESS_LEVEL_BEST, *, mtime=None):
+def compress(data, compresslevel=9):
     """Compress data in one shot and return the compressed string.
     Optional argument is the compression level, in range of 0-9.
     """
     buf = io.BytesIO()
-    with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel, mtime=mtime) as f:
+    with GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel) as f:
         f.write(data)
     return buf.getvalue()
 
@@ -557,46 +543,36 @@ def decompress(data):
         return f.read()
 
 
-def main():
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description=
-        "A simple command line interface for the gzip module: act like gzip, "
-        "but do not delete the input file.")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('--fast', action='store_true', help='compress faster')
-    group.add_argument('--best', action='store_true', help='compress better')
-    group.add_argument("-d", "--decompress", action="store_true",
-                        help="act like gunzip instead of gzip")
-
-    parser.add_argument("args", nargs="*", default=["-"], metavar='file')
-    args = parser.parse_args()
-
-    compresslevel = _COMPRESS_LEVEL_TRADEOFF
-    if args.fast:
-        compresslevel = _COMPRESS_LEVEL_FAST
-    elif args.best:
-        compresslevel = _COMPRESS_LEVEL_BEST
-
-    for arg in args.args:
-        if args.decompress:
+def _test():
+    # Act like gzip; with -d, act like gunzip.
+    # The input file is not deleted, however, nor are any other gzip
+    # options or features supported.
+    args = sys.argv[1:]
+    decompress = args and args[0] == "-d"
+    if decompress:
+        args = args[1:]
+    if not args:
+        args = ["-"]
+    for arg in args:
+        if decompress:
             if arg == "-":
                 f = GzipFile(filename="", mode="rb", fileobj=sys.stdin.buffer)
                 g = sys.stdout.buffer
             else:
                 if arg[-3:] != ".gz":
-                    sys.exit(f"filename doesn't end in .gz: {arg!r}")
+                    print("filename doesn't end in .gz:", repr(arg))
+                    continue
                 f = open(arg, "rb")
                 g = builtins.open(arg[:-3], "wb")
         else:
             if arg == "-":
                 f = sys.stdin.buffer
-                g = GzipFile(filename="", mode="wb", fileobj=sys.stdout.buffer,
-                             compresslevel=compresslevel)
+                g = GzipFile(filename="", mode="wb", fileobj=sys.stdout.buffer)
             else:
                 f = builtins.open(arg, "rb")
                 g = open(arg + ".gz", "wb")
         while True:
-            chunk = f.read(io.DEFAULT_BUFFER_SIZE)
+            chunk = f.read(1024)
             if not chunk:
                 break
             g.write(chunk)
@@ -606,4 +582,4 @@ def main():
             f.close()
 
 if __name__ == '__main__':
-    main()
+    _test()

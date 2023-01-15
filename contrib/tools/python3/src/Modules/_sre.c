@@ -15,7 +15,7 @@
  * 2001-05-14 fl   fixes for 1.5.2 compatibility
  * 2001-07-01 fl   added BIGCHARSET support (from Martin von Loewis)
  * 2001-10-18 fl   fixed group reset issue (from Matthew Mueller)
- * 2001-10-20 fl   added split primitive; re-enable unicode for 1.6/2.0/2.1
+ * 2001-10-20 fl   added split primitive; reenable unicode for 1.6/2.0/2.1
  * 2001-10-21 fl   added sub/subn primitive
  * 2001-10-24 fl   added finditer primitive (for 2.2 only)
  * 2001-12-07 fl   fixed memory leak in sub/subn (Guido van Rossum)
@@ -41,9 +41,7 @@ static const char copyright[] =
 #define PY_SSIZE_T_CLEAN
 
 #include "Python.h"
-#include "pycore_long.h"          // _PyLong_GetZero()
-#include "pycore_moduleobject.h"  // _PyModule_GetState()
-#include "structmember.h"         // PyMemberDef
+#include "structmember.h" /* offsetof */
 
 #include "sre.h"
 
@@ -89,17 +87,24 @@ static const char copyright[] =
 /* search engine state */
 
 #define SRE_IS_DIGIT(ch)\
-    ((ch) <= '9' && Py_ISDIGIT(ch))
+    ((ch) < 128 && Py_ISDIGIT(ch))
 #define SRE_IS_SPACE(ch)\
-    ((ch) <= ' ' && Py_ISSPACE(ch))
+    ((ch) < 128 && Py_ISSPACE(ch))
 #define SRE_IS_LINEBREAK(ch)\
     ((ch) == '\n')
+#define SRE_IS_ALNUM(ch)\
+    ((ch) < 128 && Py_ISALNUM(ch))
 #define SRE_IS_WORD(ch)\
-    ((ch) <= 'z' && (Py_ISALNUM(ch) || (ch) == '_'))
+    ((ch) < 128 && (Py_ISALNUM(ch) || (ch) == '_'))
 
 static unsigned int sre_lower_ascii(unsigned int ch)
 {
     return ((ch) < 128 ? Py_TOLOWER(ch) : ch);
+}
+
+static unsigned int sre_upper_ascii(unsigned int ch)
+{
+    return ((ch) < 128 ? Py_TOUPPER(ch) : ch);
 }
 
 /* locale-specific character predicates */
@@ -198,7 +203,7 @@ static void
 data_stack_dealloc(SRE_STATE* state)
 {
     if (state->data_stack) {
-        PyMem_Free(state->data_stack);
+        PyMem_FREE(state->data_stack);
         state->data_stack = NULL;
     }
     state->data_stack_size = state->data_stack_base = 0;
@@ -213,8 +218,8 @@ data_stack_grow(SRE_STATE* state, Py_ssize_t size)
     if (cursize < minsize) {
         void* stack;
         cursize = minsize+minsize/4+1024;
-        TRACE(("allocate/grow stack %zd\n", cursize));
-        stack = PyMem_Realloc(state->data_stack, cursize);
+        TRACE(("allocate/grow stack %" PY_FORMAT_SIZE_T "d\n", cursize));
+        stack = PyMem_REALLOC(state->data_stack, cursize);
         if (!stack) {
             data_stack_dealloc(state);
             return SRE_ERROR_MEMORY;
@@ -249,36 +254,22 @@ data_stack_grow(SRE_STATE* state, Py_ssize_t size)
 /* -------------------------------------------------------------------- */
 /* factories and destructors */
 
-/* module state */
-typedef struct {
-    PyTypeObject *Pattern_Type;
-    PyTypeObject *Match_Type;
-    PyTypeObject *Scanner_Type;
-} _sremodulestate;
-
-static _sremodulestate *
-get_sre_module_state(PyObject *m)
-{
-    _sremodulestate *state = (_sremodulestate *)_PyModule_GetState(m);
-    assert(state);
-    return state;
-}
-
-static struct PyModuleDef sremodule;
-#define get_sre_module_state_by_class(cls) \
-    (get_sre_module_state(PyType_GetModule(cls)))
-
 /* see sre.h for object declarations */
-static PyObject*pattern_new_match(_sremodulestate *, PatternObject*, SRE_STATE*, Py_ssize_t);
-static PyObject *pattern_scanner(_sremodulestate *, PatternObject *, PyObject *, Py_ssize_t, Py_ssize_t);
+static PyObject*pattern_new_match(PatternObject*, SRE_STATE*, Py_ssize_t);
+static PyObject *pattern_scanner(PatternObject *, PyObject *, Py_ssize_t, Py_ssize_t);
+
 
 /*[clinic input]
 module _sre
-class _sre.SRE_Pattern "PatternObject *" "get_sre_module_state_by_class(tp)->Pattern_Type"
-class _sre.SRE_Match "MatchObject *" "get_sre_module_state_by_class(tp)->Match_Type"
-class _sre.SRE_Scanner "ScannerObject *" "get_sre_module_state_by_class(tp)->Scanner_Type"
+class _sre.SRE_Pattern "PatternObject *" "&Pattern_Type"
+class _sre.SRE_Match "MatchObject *" "&Match_Type"
+class _sre.SRE_Scanner "ScannerObject *" "&Scanner_Type"
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=fe2966e32b66a231]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=b0230ec19a0deac8]*/
+
+static PyTypeObject Pattern_Type;
+static PyTypeObject Match_Type;
+static PyTypeObject Scanner_Type;
 
 /*[clinic input]
 _sre.getcodesize -> int
@@ -304,7 +295,7 @@ _sre_ascii_iscased_impl(PyObject *module, int character)
 /*[clinic end generated code: output=4f454b630fbd19a2 input=9f0bd952812c7ed3]*/
 {
     unsigned int ch = (unsigned int)character;
-    return ch < 128 && Py_ISALPHA(ch);
+    return ch != sre_lower_ascii(ch) || ch != sre_upper_ascii(ch);
 }
 
 /*[clinic input]
@@ -367,7 +358,7 @@ state_reset(SRE_STATE* state)
     data_stack_dealloc(state);
 }
 
-static const void*
+static void*
 getstring(PyObject* string, Py_ssize_t* p_length,
           int* p_isbytes, int* p_charsize,
           Py_buffer *view)
@@ -414,11 +405,11 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
 
     Py_ssize_t length;
     int isbytes, charsize;
-    const void* ptr;
+    void* ptr;
 
     memset(state, 0, sizeof(SRE_STATE));
 
-    state->mark = PyMem_New(const void *, pattern->groups * 2);
+    state->mark = PyMem_New(void *, pattern->groups * 2);
     if (!state->mark) {
         PyErr_NoMemory();
         goto err;
@@ -470,10 +461,7 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
 
     return string;
   err:
-    /* We add an explicit cast here because MSVC has a bug when
-       compiling C code where it believes that `const void**` cannot be
-       safely casted to `void*`, see bpo-39943 for details. */
-    PyMem_Free((void*) state->mark);
+    PyMem_Del(state->mark);
     state->mark = NULL;
     if (state->buffer.buf)
         PyBuffer_Release(&state->buffer);
@@ -487,8 +475,7 @@ state_fini(SRE_STATE* state)
         PyBuffer_Release(&state->buffer);
     Py_XDECREF(state->string);
     data_stack_dealloc(state);
-    /* See above PyMem_Del for why we explicitly cast here. */
-    PyMem_Free((void*) state->mark);
+    PyMem_Del(state->mark);
     state->mark = NULL;
 }
 
@@ -562,37 +549,15 @@ pattern_error(Py_ssize_t status)
     }
 }
 
-static int
-pattern_traverse(PatternObject *self, visitproc visit, void *arg)
-{
-    Py_VISIT(Py_TYPE(self));
-    Py_VISIT(self->groupindex);
-    Py_VISIT(self->indexgroup);
-    Py_VISIT(self->pattern);
-    return 0;
-}
-
-static int
-pattern_clear(PatternObject *self)
-{
-    Py_CLEAR(self->groupindex);
-    Py_CLEAR(self->indexgroup);
-    Py_CLEAR(self->pattern);
-    return 0;
-}
-
 static void
 pattern_dealloc(PatternObject* self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
-
-    PyObject_GC_UnTrack(self);
-    if (self->weakreflist != NULL) {
+    if (self->weakreflist != NULL)
         PyObject_ClearWeakRefs((PyObject *) self);
-    }
-    (void)pattern_clear(self);
-    tp->tp_free(self);
-    Py_DECREF(tp);
+    Py_XDECREF(self->pattern);
+    Py_XDECREF(self->groupindex);
+    Py_XDECREF(self->indexgroup);
+    PyObject_DEL(self);
 }
 
 LOCAL(Py_ssize_t)
@@ -620,8 +585,6 @@ sre_search(SRE_STATE* state, SRE_CODE* pattern)
 /*[clinic input]
 _sre.SRE_Pattern.match
 
-    cls: defining_class
-    /
     string: object
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
@@ -630,12 +593,10 @@ Matches zero or more characters at the beginning of the string.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_match_impl(PatternObject *self, PyTypeObject *cls,
-                            PyObject *string, Py_ssize_t pos,
-                            Py_ssize_t endpos)
-/*[clinic end generated code: output=ec6208ea58a0cca0 input=4bdb9c3e564d13ac]*/
+_sre_SRE_Pattern_match_impl(PatternObject *self, PyObject *string,
+                            Py_ssize_t pos, Py_ssize_t endpos)
+/*[clinic end generated code: output=ea2d838888510661 input=a2ba191647abebe5]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     SRE_STATE state;
     Py_ssize_t status;
     PyObject *match;
@@ -655,7 +616,7 @@ _sre_SRE_Pattern_match_impl(PatternObject *self, PyTypeObject *cls,
         return NULL;
     }
 
-    match = pattern_new_match(module_state, self, &state, status);
+    match = pattern_new_match(self, &state, status);
     state_fini(&state);
     return match;
 }
@@ -663,8 +624,6 @@ _sre_SRE_Pattern_match_impl(PatternObject *self, PyTypeObject *cls,
 /*[clinic input]
 _sre.SRE_Pattern.fullmatch
 
-    cls: defining_class
-    /
     string: object
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
@@ -673,12 +632,10 @@ Matches against all of the string.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_fullmatch_impl(PatternObject *self, PyTypeObject *cls,
-                                PyObject *string, Py_ssize_t pos,
-                                Py_ssize_t endpos)
-/*[clinic end generated code: output=625b75b027ef94da input=50981172ab0fcfdd]*/
+_sre_SRE_Pattern_fullmatch_impl(PatternObject *self, PyObject *string,
+                                Py_ssize_t pos, Py_ssize_t endpos)
+/*[clinic end generated code: output=5833c47782a35f4a input=d9fb03a7625b5828]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     SRE_STATE state;
     Py_ssize_t status;
     PyObject *match;
@@ -699,7 +656,7 @@ _sre_SRE_Pattern_fullmatch_impl(PatternObject *self, PyTypeObject *cls,
         return NULL;
     }
 
-    match = pattern_new_match(module_state, self, &state, status);
+    match = pattern_new_match(self, &state, status);
     state_fini(&state);
     return match;
 }
@@ -707,8 +664,6 @@ _sre_SRE_Pattern_fullmatch_impl(PatternObject *self, PyTypeObject *cls,
 /*[clinic input]
 _sre.SRE_Pattern.search
 
-    cls: defining_class
-    /
     string: object
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
@@ -719,12 +674,10 @@ Return None if no position in the string matches.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_search_impl(PatternObject *self, PyTypeObject *cls,
-                             PyObject *string, Py_ssize_t pos,
-                             Py_ssize_t endpos)
-/*[clinic end generated code: output=bd7f2d9d583e1463 input=afa9afb66a74a4b3]*/
+_sre_SRE_Pattern_search_impl(PatternObject *self, PyObject *string,
+                             Py_ssize_t pos, Py_ssize_t endpos)
+/*[clinic end generated code: output=25f302a644e951e8 input=4ae5cb7dc38fed1b]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     SRE_STATE state;
     Py_ssize_t status;
     PyObject *match;
@@ -743,7 +696,7 @@ _sre_SRE_Pattern_search_impl(PatternObject *self, PyTypeObject *cls,
         return NULL;
     }
 
-    match = pattern_new_match(module_state, self, &state, status);
+    match = pattern_new_match(self, &state, status);
     state_fini(&state);
     return match;
 }
@@ -875,8 +828,6 @@ error:
 /*[clinic input]
 _sre.SRE_Pattern.finditer
 
-    cls: defining_class
-    /
     string: object
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
@@ -887,17 +838,15 @@ For each match, the iterator returns a match object.
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_finditer_impl(PatternObject *self, PyTypeObject *cls,
-                               PyObject *string, Py_ssize_t pos,
-                               Py_ssize_t endpos)
-/*[clinic end generated code: output=1791dbf3618ade56 input=812e332a4848cbaf]*/
+_sre_SRE_Pattern_finditer_impl(PatternObject *self, PyObject *string,
+                               Py_ssize_t pos, Py_ssize_t endpos)
+/*[clinic end generated code: output=0bbb1a0aeb38bb14 input=612aab69e9fe08e4]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     PyObject* scanner;
     PyObject* search;
     PyObject* iterator;
 
-    scanner = pattern_scanner(module_state, self, string, pos, endpos);
+    scanner = pattern_scanner(self, string, pos, endpos);
     if (!scanner)
         return NULL;
 
@@ -915,8 +864,6 @@ _sre_SRE_Pattern_finditer_impl(PatternObject *self, PyTypeObject *cls,
 /*[clinic input]
 _sre.SRE_Pattern.scanner
 
-    cls: defining_class
-    /
     string: object
     pos: Py_ssize_t = 0
     endpos: Py_ssize_t(c_default="PY_SSIZE_T_MAX") = sys.maxsize
@@ -924,14 +871,11 @@ _sre.SRE_Pattern.scanner
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_scanner_impl(PatternObject *self, PyTypeObject *cls,
-                              PyObject *string, Py_ssize_t pos,
-                              Py_ssize_t endpos)
-/*[clinic end generated code: output=f70cd506112f1bd9 input=2e487e5151bcee4c]*/
+_sre_SRE_Pattern_scanner_impl(PatternObject *self, PyObject *string,
+                              Py_ssize_t pos, Py_ssize_t endpos)
+/*[clinic end generated code: output=54ea548aed33890b input=3aacdbde77a3a637]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-
-    return pattern_scanner(module_state, self, string, pos, endpos);
+    return pattern_scanner(self, string, pos, endpos);
 }
 
 /*[clinic input]
@@ -954,7 +898,7 @@ _sre_SRE_Pattern_split_impl(PatternObject *self, PyObject *string,
     Py_ssize_t status;
     Py_ssize_t n;
     Py_ssize_t i;
-    const void* last;
+    void* last;
 
     assert(self->codesize != 0);
 
@@ -1038,12 +982,8 @@ error:
 }
 
 static PyObject*
-pattern_subx(_sremodulestate* module_state,
-             PatternObject* self,
-             PyObject* ptemplate,
-             PyObject* string,
-             Py_ssize_t count,
-             Py_ssize_t subn)
+pattern_subx(PatternObject* self, PyObject* ptemplate, PyObject* string,
+             Py_ssize_t count, Py_ssize_t subn)
 {
     SRE_STATE state;
     PyObject* list;
@@ -1051,7 +991,7 @@ pattern_subx(_sremodulestate* module_state,
     PyObject* item;
     PyObject* filter;
     PyObject* match;
-    const void* ptr;
+    void* ptr;
     Py_ssize_t status;
     Py_ssize_t n;
     Py_ssize_t i, b, e;
@@ -1069,6 +1009,7 @@ pattern_subx(_sremodulestate* module_state,
         int literal;
         view.buf = NULL;
         ptr = getstring(ptemplate, &n, &isbytes, &charsize, &view);
+        b = charsize;
         if (ptr) {
             if (charsize == 1)
                 literal = memchr(ptr, '\\', n) == NULL;
@@ -1145,10 +1086,10 @@ pattern_subx(_sremodulestate* module_state,
 
         if (filter_is_callable) {
             /* pass match object through filter */
-            match = pattern_new_match(module_state, self, &state, 1);
+            match = pattern_new_match(self, &state, 1);
             if (!match)
                 goto error;
-            item = PyObject_CallOneArg(filter, match);
+            item = PyObject_CallFunctionObjArgs(filter, match, NULL);
             Py_DECREF(match);
             if (!item)
                 goto error;
@@ -1225,8 +1166,6 @@ error:
 /*[clinic input]
 _sre.SRE_Pattern.sub
 
-    cls: defining_class
-    /
     repl: object
     string: object
     count: Py_ssize_t = 0
@@ -1235,20 +1174,16 @@ Return the string obtained by replacing the leftmost non-overlapping occurrences
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_sub_impl(PatternObject *self, PyTypeObject *cls,
-                          PyObject *repl, PyObject *string, Py_ssize_t count)
-/*[clinic end generated code: output=4be141ab04bca60d input=d8d1d4ac2311a07c]*/
+_sre_SRE_Pattern_sub_impl(PatternObject *self, PyObject *repl,
+                          PyObject *string, Py_ssize_t count)
+/*[clinic end generated code: output=1dbf2ec3479cba00 input=c53d70be0b3caf86]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-
-    return pattern_subx(module_state, self, repl, string, count, 0);
+    return pattern_subx(self, repl, string, count, 0);
 }
 
 /*[clinic input]
 _sre.SRE_Pattern.subn
 
-    cls: defining_class
-    /
     repl: object
     string: object
     count: Py_ssize_t = 0
@@ -1257,14 +1192,11 @@ Return the tuple (new_string, number_of_subs_made) found by replacing the leftmo
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Pattern_subn_impl(PatternObject *self, PyTypeObject *cls,
-                           PyObject *repl, PyObject *string,
-                           Py_ssize_t count)
-/*[clinic end generated code: output=da02fd85258b1e1f input=8b78a65b8302e58d]*/
+_sre_SRE_Pattern_subn_impl(PatternObject *self, PyObject *repl,
+                           PyObject *string, Py_ssize_t count)
+/*[clinic end generated code: output=0d9522cd529e9728 input=e7342d7ce6083577]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
-
-    return pattern_subx(module_state, self, repl, string, count, 1);
+    return pattern_subx(self, repl, string, count, 1);
 }
 
 /*[clinic input]
@@ -1409,13 +1341,12 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
 {
     /* "compile" pattern descriptor to pattern object */
 
-    _sremodulestate *module_state = get_sre_module_state(module);
     PatternObject* self;
     Py_ssize_t i, n;
 
     n = PyList_GET_SIZE(code);
     /* coverity[ampersand_in_size] */
-    self = PyObject_GC_NewVar(PatternObject, module_state->Pattern_Type, n);
+    self = PyObject_NEW_VAR(PatternObject, &Pattern_Type, n);
     if (!self)
         return NULL;
     self->weakreflist = NULL;
@@ -1435,7 +1366,6 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
             break;
         }
     }
-    PyObject_GC_Track(self);
 
     if (PyErr_Occurred()) {
         Py_DECREF(self);
@@ -1519,7 +1449,7 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
 #endif
 
 /* Report failure */
-#define FAIL do { VTRACE(("FAIL: %d\n", __LINE__)); return -1; } while (0)
+#define FAIL do { VTRACE(("FAIL: %d\n", __LINE__)); return 0; } while (0)
 
 /* Extract opcode, argument, or skip count from code array */
 #define GET_OP                                          \
@@ -1543,7 +1473,7 @@ _sre_compile_impl(PyObject *module, PyObject *pattern, int flags,
         skip = *code;                                   \
         VTRACE(("%lu (skip to %p)\n",                   \
                (unsigned long)skip, code+skip));        \
-        if (skip-adj > (uintptr_t)(end - code))         \
+        if (skip-adj > (uintptr_t)(end - code))      \
             FAIL;                                       \
         code++;                                         \
     } while (0)
@@ -1632,10 +1562,9 @@ _validate_charset(SRE_CODE *code, SRE_CODE *end)
         }
     }
 
-    return 0;
+    return 1;
 }
 
-/* Returns 0 on success, -1 on failure, and 1 if the last op is JUMP. */
 static int
 _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
 {
@@ -1713,7 +1642,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
         case SRE_OP_IN_LOC_IGNORE:
             GET_SKIP;
             /* Stop 1 before the end; we check the FAILURE below */
-            if (_validate_charset(code, code+skip-2))
+            if (!_validate_charset(code, code+skip-2))
                 FAIL;
             if (code[skip-2] != SRE_OP_FAILURE)
                 FAIL;
@@ -1767,7 +1696,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                 }
                 /* Validate the charset */
                 if (flags & SRE_INFO_CHARSET) {
-                    if (_validate_charset(code, newcode-1))
+                    if (!_validate_charset(code, newcode-1))
                         FAIL;
                     if (newcode[-1] != SRE_OP_FAILURE)
                         FAIL;
@@ -1788,7 +1717,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                     if (skip == 0)
                         break;
                     /* Stop 2 before the end; we check the JUMP below */
-                    if (_validate_inner(code, code+skip-3, groups))
+                    if (!_validate_inner(code, code+skip-3, groups))
                         FAIL;
                     code += skip-3;
                     /* Check that it ends with a JUMP, and that each JUMP
@@ -1802,8 +1731,6 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                     else if (code+skip-1 != target)
                         FAIL;
                 }
-                if (code != target)
-                    FAIL;
             }
             break;
 
@@ -1818,7 +1745,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                     FAIL;
                 if (max > SRE_MAXREPEAT)
                     FAIL;
-                if (_validate_inner(code, code+skip-4, groups))
+                if (!_validate_inner(code, code+skip-4, groups))
                     FAIL;
                 code += skip-4;
                 GET_OP;
@@ -1837,7 +1764,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                     FAIL;
                 if (max > SRE_MAXREPEAT)
                     FAIL;
-                if (_validate_inner(code, code+skip-3, groups))
+                if (!_validate_inner(code, code+skip-3, groups))
                     FAIL;
                 code += skip-3;
                 GET_OP;
@@ -1889,17 +1816,24 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
                to allow arbitrary jumps anywhere in the code; so we just look
                for a JUMP opcode preceding our skip target.
             */
-            VTRACE(("then part:\n"));
-            int rc = _validate_inner(code+1, code+skip-1, groups);
-            if (rc == 1) {
-                VTRACE(("else part:\n"));
+            if (skip >= 3 && skip-3 < (uintptr_t)(end - code) &&
+                code[skip-3] == SRE_OP_JUMP)
+            {
+                VTRACE(("both then and else parts present\n"));
+                if (!_validate_inner(code+1, code+skip-3, groups))
+                    FAIL;
                 code += skip-2; /* Position after JUMP, at <skipno> */
                 GET_SKIP;
-                rc = _validate_inner(code, code+skip-1, groups);
+                if (!_validate_inner(code, code+skip-1, groups))
+                    FAIL;
+                code += skip-1;
             }
-            if (rc)
-                FAIL;
-            code += skip-1;
+            else {
+                VTRACE(("only a then part present\n"));
+                if (!_validate_inner(code+1, code+skip-1, groups))
+                    FAIL;
+                code += skip-1;
+            }
             break;
 
         case SRE_OP_ASSERT:
@@ -1910,19 +1844,13 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
             if (arg & 0x80000000)
                 FAIL; /* Width too large */
             /* Stop 1 before the end; we check the SUCCESS below */
-            if (_validate_inner(code+1, code+skip-2, groups))
+            if (!_validate_inner(code+1, code+skip-2, groups))
                 FAIL;
             code += skip-2;
             GET_OP;
             if (op != SRE_OP_SUCCESS)
                 FAIL;
             break;
-
-        case SRE_OP_JUMP:
-            if (code + 1 != end)
-                FAIL;
-            VTRACE(("JUMP: %d\n", __LINE__));
-            return 1;
 
         default:
             FAIL;
@@ -1931,7 +1859,7 @@ _validate_inner(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
     }
 
     VTRACE(("okay\n"));
-    return 0;
+    return 1;
 }
 
 static int
@@ -1946,7 +1874,7 @@ _validate_outer(SRE_CODE *code, SRE_CODE *end, Py_ssize_t groups)
 static int
 _validate(PatternObject *self)
 {
-    if (_validate_outer(self->code, self->code+self->codesize, self->groups))
+    if (!_validate_outer(self->code, self->code+self->codesize, self->groups))
     {
         PyErr_SetString(PyExc_RuntimeError, "invalid SRE code");
         return 0;
@@ -1959,34 +1887,13 @@ _validate(PatternObject *self)
 /* -------------------------------------------------------------------- */
 /* match methods */
 
-static int
-match_traverse(MatchObject *self, visitproc visit, void *arg)
-{
-    Py_VISIT(Py_TYPE(self));
-    Py_VISIT(self->string);
-    Py_VISIT(self->regs);
-    Py_VISIT(self->pattern);
-    return 0;
-}
-
-static int
-match_clear(MatchObject *self)
-{
-    Py_CLEAR(self->string);
-    Py_CLEAR(self->regs);
-    Py_CLEAR(self->pattern);
-    return 0;
-}
-
 static void
 match_dealloc(MatchObject* self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
-
-    PyObject_GC_UnTrack(self);
-    (void)match_clear(self);
-    tp->tp_free(self);
-    Py_DECREF(tp);
+    Py_XDECREF(self->regs);
+    Py_XDECREF(self->string);
+    Py_DECREF(self->pattern);
+    PyObject_DEL(self);
 }
 
 static PyObject*
@@ -1996,10 +1903,18 @@ match_getslice_by_index(MatchObject* self, Py_ssize_t index, PyObject* def)
     int isbytes, charsize;
     Py_buffer view;
     PyObject *result;
-    const void* ptr;
+    void* ptr;
     Py_ssize_t i, j;
 
-    assert(0 <= index && index < self->groups);
+    if (index < 0 || index >= self->groups) {
+        /* raise IndexError if we were given a bad group number */
+        PyErr_SetString(
+            PyExc_IndexError,
+            "no such group"
+            );
+        return NULL;
+    }
+
     index *= 2;
 
     if (self->string == Py_None || self->mark[index] < 0) {
@@ -2032,24 +1947,16 @@ match_getindex(MatchObject* self, PyObject* index)
         return 0;
 
     if (PyIndex_Check(index)) {
-        i = PyNumber_AsSsize_t(index, NULL);
+        return PyNumber_AsSsize_t(index, NULL);
     }
-    else {
-        i = -1;
 
-        if (self->pattern->groupindex) {
-            index = PyDict_GetItemWithError(self->pattern->groupindex, index);
-            if (index && PyLong_Check(index)) {
-                i = PyLong_AsSsize_t(index);
-            }
+    i = -1;
+
+    if (self->pattern->groupindex) {
+        index = PyDict_GetItem(self->pattern->groupindex, index);
+        if (index && PyLong_Check(index)) {
+            i = PyLong_AsSsize_t(index);
         }
-    }
-    if (i < 0 || i >= self->groups) {
-        /* raise IndexError if we were given a bad group number */
-        if (!PyErr_Occurred()) {
-            PyErr_SetString(PyExc_IndexError, "no such group");
-        }
-        return -1;
     }
 
     return i;
@@ -2058,13 +1965,7 @@ match_getindex(MatchObject* self, PyObject* index)
 static PyObject*
 match_getslice(MatchObject* self, PyObject* index, PyObject* def)
 {
-    Py_ssize_t i = match_getindex(self, index);
-
-    if (i < 0) {
-        return NULL;
-    }
-
-    return match_getslice_by_index(self, i, def);
+    return match_getslice_by_index(self, match_getindex(self, index), def);
 }
 
 /*[clinic input]
@@ -2096,7 +1997,7 @@ match_group(MatchObject* self, PyObject* args)
 
     switch (size) {
     case 0:
-        result = match_getslice(self, _PyLong_GetZero(), Py_None);
+        result = match_getslice(self, _PyLong_Zero, Py_None);
         break;
     case 1:
         result = match_getslice(self, PyTuple_GET_ITEM(args, 0), Py_None);
@@ -2220,7 +2121,11 @@ _sre_SRE_Match_start_impl(MatchObject *self, PyObject *group)
 {
     Py_ssize_t index = match_getindex(self, group);
 
-    if (index < 0) {
+    if (index < 0 || index >= self->groups) {
+        PyErr_SetString(
+            PyExc_IndexError,
+            "no such group"
+            );
         return -1;
     }
 
@@ -2243,7 +2148,11 @@ _sre_SRE_Match_end_impl(MatchObject *self, PyObject *group)
 {
     Py_ssize_t index = match_getindex(self, group);
 
-    if (index < 0) {
+    if (index < 0 || index >= self->groups) {
+        PyErr_SetString(
+            PyExc_IndexError,
+            "no such group"
+            );
         return -1;
     }
 
@@ -2293,7 +2202,11 @@ _sre_SRE_Match_span_impl(MatchObject *self, PyObject *group)
 {
     Py_ssize_t index = match_getindex(self, group);
 
-    if (index < 0) {
+    if (index < 0 || index >= self->groups) {
+        PyErr_SetString(
+            PyExc_IndexError,
+            "no such group"
+            );
         return NULL;
     }
 
@@ -2415,10 +2328,7 @@ match_repr(MatchObject *self)
 
 
 static PyObject*
-pattern_new_match(_sremodulestate* module_state,
-                  PatternObject* pattern,
-                  SRE_STATE* state,
-                  Py_ssize_t status)
+pattern_new_match(PatternObject* pattern, SRE_STATE* state, Py_ssize_t status)
 {
     /* create match object (from state object) */
 
@@ -2431,9 +2341,8 @@ pattern_new_match(_sremodulestate* module_state,
 
         /* create match object (with room for extra group marks) */
         /* coverity[ampersand_in_size] */
-        match = PyObject_GC_NewVar(MatchObject,
-                                   module_state->Match_Type,
-                                   2*(pattern->groups+1));
+        match = PyObject_NEW_VAR(MatchObject, &Match_Type,
+                                 2*(pattern->groups+1));
         if (!match)
             return NULL;
 
@@ -2466,7 +2375,6 @@ pattern_new_match(_sremodulestate* module_state,
 
         match->lastindex = state->lastindex;
 
-        PyObject_GC_Track(match);
         return (PyObject*) match;
 
     } else if (status == 0) {
@@ -2485,89 +2393,40 @@ pattern_new_match(_sremodulestate* module_state,
 /* -------------------------------------------------------------------- */
 /* scanner methods (experimental) */
 
-static int
-scanner_traverse(ScannerObject *self, visitproc visit, void *arg)
-{
-    Py_VISIT(Py_TYPE(self));
-    Py_VISIT(self->pattern);
-    return 0;
-}
-
-static int
-scanner_clear(ScannerObject *self)
-{
-    Py_CLEAR(self->pattern);
-    return 0;
-}
-
 static void
 scanner_dealloc(ScannerObject* self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
-
-    PyObject_GC_UnTrack(self);
     state_fini(&self->state);
-    (void)scanner_clear(self);
-    tp->tp_free(self);
-    Py_DECREF(tp);
-}
-
-static int
-scanner_begin(ScannerObject* self)
-{
-    if (self->executing) {
-        PyErr_SetString(PyExc_ValueError,
-                        "regular expression scanner already executing");
-        return 0;
-    }
-    self->executing = 1;
-    return 1;
-}
-
-static void
-scanner_end(ScannerObject* self)
-{
-    assert(self->executing);
-    self->executing = 0;
+    Py_XDECREF(self->pattern);
+    PyObject_DEL(self);
 }
 
 /*[clinic input]
 _sre.SRE_Scanner.match
 
-    cls: defining_class
-    /
-
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
-/*[clinic end generated code: output=6e22c149dc0f0325 input=b5146e1f30278cb7]*/
+_sre_SRE_Scanner_match_impl(ScannerObject *self)
+/*[clinic end generated code: output=936b30c63d4b81eb input=881a0154f8c13d9a]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     SRE_STATE* state = &self->state;
     PyObject* match;
     Py_ssize_t status;
 
-    if (!scanner_begin(self)) {
-        return NULL;
-    }
-    if (state->start == NULL) {
-        scanner_end(self);
+    if (state->start == NULL)
         Py_RETURN_NONE;
-    }
 
     state_reset(state);
 
     state->ptr = state->start;
 
     status = sre_match(state, PatternObject_GetCode(self->pattern));
-    if (PyErr_Occurred()) {
-        scanner_end(self);
+    if (PyErr_Occurred())
         return NULL;
-    }
 
-    match = pattern_new_match(module_state, (PatternObject*) self->pattern,
-                              state, status);
+    match = pattern_new_match((PatternObject*) self->pattern,
+                               state, status);
 
     if (status == 0)
         state->start = NULL;
@@ -2576,7 +2435,6 @@ _sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
         state->start = state->ptr;
     }
 
-    scanner_end(self);
     return match;
 }
 
@@ -2584,40 +2442,29 @@ _sre_SRE_Scanner_match_impl(ScannerObject *self, PyTypeObject *cls)
 /*[clinic input]
 _sre.SRE_Scanner.search
 
-    cls: defining_class
-    /
-
 [clinic start generated code]*/
 
 static PyObject *
-_sre_SRE_Scanner_search_impl(ScannerObject *self, PyTypeObject *cls)
-/*[clinic end generated code: output=23e8fc78013f9161 input=056c2d37171d0bf2]*/
+_sre_SRE_Scanner_search_impl(ScannerObject *self)
+/*[clinic end generated code: output=7dc211986088f025 input=161223ee92ef9270]*/
 {
-    _sremodulestate *module_state = get_sre_module_state_by_class(cls);
     SRE_STATE* state = &self->state;
     PyObject* match;
     Py_ssize_t status;
 
-    if (!scanner_begin(self)) {
-        return NULL;
-    }
-    if (state->start == NULL) {
-        scanner_end(self);
+    if (state->start == NULL)
         Py_RETURN_NONE;
-    }
 
     state_reset(state);
 
     state->ptr = state->start;
 
     status = sre_search(state, PatternObject_GetCode(self->pattern));
-    if (PyErr_Occurred()) {
-        scanner_end(self);
+    if (PyErr_Occurred())
         return NULL;
-    }
 
-    match = pattern_new_match(module_state, (PatternObject*) self->pattern,
-                              state, status);
+    match = pattern_new_match((PatternObject*) self->pattern,
+                               state, status);
 
     if (status == 0)
         state->start = NULL;
@@ -2626,25 +2473,19 @@ _sre_SRE_Scanner_search_impl(ScannerObject *self, PyTypeObject *cls)
         state->start = state->ptr;
     }
 
-    scanner_end(self);
     return match;
 }
 
 static PyObject *
-pattern_scanner(_sremodulestate *module_state,
-                PatternObject *self,
-                PyObject *string,
-                Py_ssize_t pos,
-                Py_ssize_t endpos)
+pattern_scanner(PatternObject *self, PyObject *string, Py_ssize_t pos, Py_ssize_t endpos)
 {
     ScannerObject* scanner;
 
     /* create scanner object */
-    scanner = PyObject_GC_New(ScannerObject, module_state->Scanner_Type);
+    scanner = PyObject_NEW(ScannerObject, &Scanner_Type);
     if (!scanner)
         return NULL;
     scanner->pattern = NULL;
-    scanner->executing = 0;
 
     /* create search state object */
     if (!state_init(&scanner->state, self, string, pos, endpos)) {
@@ -2655,7 +2496,6 @@ pattern_scanner(_sremodulestate *module_state,
     Py_INCREF(self);
     scanner->pattern = (PyObject*) self;
 
-    PyObject_GC_Track(scanner);
     return (PyObject*) scanner;
 }
 
@@ -2685,8 +2525,6 @@ pattern_hash(PatternObject *self)
 static PyObject*
 pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
 {
-    PyTypeObject *tp = Py_TYPE(lefto);
-    _sremodulestate *module_state = get_sre_module_state_by_class(tp);
     PatternObject *left, *right;
     int cmp;
 
@@ -2694,8 +2532,7 @@ pattern_richcompare(PyObject *lefto, PyObject *righto, int op)
         Py_RETURN_NOTIMPLEMENTED;
     }
 
-    if (!Py_IS_TYPE(righto, module_state->Pattern_Type))
-    {
+    if (Py_TYPE(lefto) != &Pattern_Type || Py_TYPE(righto) != &Pattern_Type) {
         Py_RETURN_NOTIMPLEMENTED;
     }
 
@@ -2745,8 +2582,6 @@ static PyMethodDef pattern_methods[] = {
     _SRE_SRE_PATTERN_SCANNER_METHODDEF
     _SRE_SRE_PATTERN___COPY___METHODDEF
     _SRE_SRE_PATTERN___DEEPCOPY___METHODDEF
-    {"__class_getitem__", (PyCFunction)Py_GenericAlias, METH_O|METH_CLASS,
-     PyDoc_STR("See PEP 585")},
     {NULL, NULL}
 };
 
@@ -2764,31 +2599,47 @@ static PyMemberDef pattern_members[] = {
      "The regex matching flags."},
     {"groups",     T_PYSSIZET,  PAT_OFF(groups),        READONLY,
      "The number of capturing groups in the pattern."},
-    {"__weaklistoffset__", T_PYSSIZET, offsetof(PatternObject, weakreflist), READONLY},
     {NULL}  /* Sentinel */
 };
 
-static PyType_Slot pattern_slots[] = {
-    {Py_tp_dealloc, (destructor)pattern_dealloc},
-    {Py_tp_repr, (reprfunc)pattern_repr},
-    {Py_tp_hash, (hashfunc)pattern_hash},
-    {Py_tp_doc, (void *)pattern_doc},
-    {Py_tp_richcompare, pattern_richcompare},
-    {Py_tp_methods, pattern_methods},
-    {Py_tp_members, pattern_members},
-    {Py_tp_getset, pattern_getset},
-    {Py_tp_traverse, pattern_traverse},
-    {Py_tp_clear, pattern_clear},
-    {0, NULL},
+static PyTypeObject Pattern_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "re.Pattern",
+    sizeof(PatternObject), sizeof(SRE_CODE),
+    (destructor)pattern_dealloc,        /* tp_dealloc */
+    0,                                  /* tp_print */
+    0,                                  /* tp_getattr */
+    0,                                  /* tp_setattr */
+    0,                                  /* tp_reserved */
+    (reprfunc)pattern_repr,             /* tp_repr */
+    0,                                  /* tp_as_number */
+    0,                                  /* tp_as_sequence */
+    0,                                  /* tp_as_mapping */
+    (hashfunc)pattern_hash,             /* tp_hash */
+    0,                                  /* tp_call */
+    0,                                  /* tp_str */
+    0,                                  /* tp_getattro */
+    0,                                  /* tp_setattro */
+    0,                                  /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,                 /* tp_flags */
+    pattern_doc,                        /* tp_doc */
+    0,                                  /* tp_traverse */
+    0,                                  /* tp_clear */
+    pattern_richcompare,                /* tp_richcompare */
+    offsetof(PatternObject, weakreflist),       /* tp_weaklistoffset */
+    0,                                  /* tp_iter */
+    0,                                  /* tp_iternext */
+    pattern_methods,                    /* tp_methods */
+    pattern_members,                    /* tp_members */
+    pattern_getset,                     /* tp_getset */
 };
 
-static PyType_Spec pattern_spec = {
-    .name = "re.Pattern",
-    .basicsize = sizeof(PatternObject),
-    .itemsize = sizeof(SRE_CODE),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
-    .slots = pattern_slots,
+/* Match objects do not support length or assignment, but do support
+   __getitem__. */
+static PyMappingMethods match_as_mapping = {
+    NULL,
+    (binaryfunc)match_getitem,
+    NULL
 };
 
 static PyMethodDef match_methods[] = {
@@ -2801,8 +2652,6 @@ static PyMethodDef match_methods[] = {
     _SRE_SRE_MATCH_EXPAND_METHODDEF
     _SRE_SRE_MATCH___COPY___METHODDEF
     _SRE_SRE_MATCH___DEEPCOPY___METHODDEF
-    {"__class_getitem__", (PyCFunction)Py_GenericAlias, METH_O|METH_CLASS,
-     PyDoc_STR("See PEP 585")},
     {NULL, NULL}
 };
 
@@ -2830,33 +2679,37 @@ static PyMemberDef match_members[] = {
 
 /* FIXME: implement setattr("string", None) as a special case (to
    detach the associated string, if any */
-static PyType_Slot match_slots[] = {
-    {Py_tp_dealloc, match_dealloc},
-    {Py_tp_repr, match_repr},
-    {Py_tp_doc, (void *)match_doc},
-    {Py_tp_methods, match_methods},
-    {Py_tp_members, match_members},
-    {Py_tp_getset, match_getset},
-    {Py_tp_traverse, match_traverse},
-    {Py_tp_clear, match_clear},
 
-    /* As mapping.
-     *
-     * Match objects do not support length or assignment, but do support
-     * __getitem__.
-     */
-    {Py_mp_subscript, match_getitem},
-
-    {0, NULL},
-};
-
-static PyType_Spec match_spec = {
-    .name = "re.Match",
-    .basicsize = sizeof(MatchObject),
-    .itemsize = sizeof(Py_ssize_t),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
-    .slots = match_slots,
+static PyTypeObject Match_Type = {
+    PyVarObject_HEAD_INIT(NULL,0)
+    "re.Match",
+    sizeof(MatchObject), sizeof(Py_ssize_t),
+    (destructor)match_dealloc,  /* tp_dealloc */
+    0,                          /* tp_print */
+    0,                          /* tp_getattr */
+    0,                          /* tp_setattr */
+    0,                          /* tp_reserved */
+    (reprfunc)match_repr,       /* tp_repr */
+    0,                          /* tp_as_number */
+    0,                          /* tp_as_sequence */
+    &match_as_mapping,          /* tp_as_mapping */
+    0,                          /* tp_hash */
+    0,                          /* tp_call */
+    0,                          /* tp_str */
+    0,                          /* tp_getattro */
+    0,                          /* tp_setattro */
+    0,                          /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,         /* tp_flags */
+    match_doc,                  /* tp_doc */
+    0,                          /* tp_traverse */
+    0,                          /* tp_clear */
+    0,                          /* tp_richcompare */
+    0,                          /* tp_weaklistoffset */
+    0,                          /* tp_iter */
+    0,                          /* tp_iternext */
+    match_methods,              /* tp_methods */
+    match_members,              /* tp_members */
+    match_getset,               /* tp_getset */
 };
 
 static PyMethodDef scanner_methods[] = {
@@ -2871,21 +2724,36 @@ static PyMemberDef scanner_members[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyType_Slot scanner_slots[] = {
-    {Py_tp_dealloc, scanner_dealloc},
-    {Py_tp_methods, scanner_methods},
-    {Py_tp_members, scanner_members},
-    {Py_tp_traverse, scanner_traverse},
-    {Py_tp_clear, scanner_clear},
-    {0, NULL},
-};
-
-static PyType_Spec scanner_spec = {
-    .name = "_" SRE_MODULE ".SRE_Scanner",
-    .basicsize = sizeof(ScannerObject),
-    .flags = (Py_TPFLAGS_DEFAULT | Py_TPFLAGS_IMMUTABLETYPE |
-              Py_TPFLAGS_DISALLOW_INSTANTIATION | Py_TPFLAGS_HAVE_GC),
-    .slots = scanner_slots,
+static PyTypeObject Scanner_Type = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_" SRE_MODULE ".SRE_Scanner",
+    sizeof(ScannerObject), 0,
+    (destructor)scanner_dealloc,/* tp_dealloc */
+    0,                          /* tp_print */
+    0,                          /* tp_getattr */
+    0,                          /* tp_setattr */
+    0,                          /* tp_reserved */
+    0,                          /* tp_repr */
+    0,                          /* tp_as_number */
+    0,                          /* tp_as_sequence */
+    0,                          /* tp_as_mapping */
+    0,                          /* tp_hash */
+    0,                          /* tp_call */
+    0,                          /* tp_str */
+    0,                          /* tp_getattro */
+    0,                          /* tp_setattro */
+    0,                          /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT,         /* tp_flags */
+    0,                          /* tp_doc */
+    0,                          /* tp_traverse */
+    0,                          /* tp_clear */
+    0,                          /* tp_richcompare */
+    0,                          /* tp_weaklistoffset */
+    0,                          /* tp_iter */
+    0,                          /* tp_iternext */
+    scanner_methods,            /* tp_methods */
+    scanner_members,            /* tp_members */
+    0,                          /* tp_getset */
 };
 
 static PyMethodDef _functions[] = {
@@ -2898,108 +2766,64 @@ static PyMethodDef _functions[] = {
     {NULL, NULL}
 };
 
-static int
-sre_traverse(PyObject *module, visitproc visit, void *arg)
-{
-    _sremodulestate *state = get_sre_module_state(module);
-
-    Py_VISIT(state->Pattern_Type);
-    Py_VISIT(state->Match_Type);
-    Py_VISIT(state->Scanner_Type);
-
-    return 0;
-}
-
-static int
-sre_clear(PyObject *module)
-{
-    _sremodulestate *state = get_sre_module_state(module);
-
-    Py_CLEAR(state->Pattern_Type);
-    Py_CLEAR(state->Match_Type);
-    Py_CLEAR(state->Scanner_Type);
-
-    return 0;
-}
-
-static void
-sre_free(void *module)
-{
-    sre_clear((PyObject *)module);
-}
-
-#define CREATE_TYPE(m, type, spec)                                  \
-do {                                                                \
-    type = (PyTypeObject *)PyType_FromModuleAndSpec(m, spec, NULL); \
-    if (type == NULL) {                                             \
-        goto error;                                                 \
-    }                                                               \
-} while (0)
-
-#define ADD_ULONG_CONSTANT(module, name, value)           \
-    do {                                                  \
-        PyObject *o = PyLong_FromUnsignedLong(value);     \
-        if (!o)                                           \
-            goto error;                                   \
-        int res = PyModule_AddObjectRef(module, name, o); \
-        Py_DECREF(o);                                     \
-        if (res < 0) {                                    \
-            goto error;                                   \
-        }                                                 \
-} while (0)
-
-static int
-sre_exec(PyObject *m)
-{
-    _sremodulestate *state;
-
-    /* Create heap types */
-    state = get_sre_module_state(m);
-    CREATE_TYPE(m, state->Pattern_Type, &pattern_spec);
-    CREATE_TYPE(m, state->Match_Type, &match_spec);
-    CREATE_TYPE(m, state->Scanner_Type, &scanner_spec);
-
-    if (PyModule_AddIntConstant(m, "MAGIC", SRE_MAGIC) < 0) {
-        goto error;
-    }
-
-    if (PyModule_AddIntConstant(m, "CODESIZE", sizeof(SRE_CODE)) < 0) {
-        goto error;
-    }
-
-    ADD_ULONG_CONSTANT(m, "MAXREPEAT", SRE_MAXREPEAT);
-    ADD_ULONG_CONSTANT(m, "MAXGROUPS", SRE_MAXGROUPS);
-
-    if (PyModule_AddStringConstant(m, "copyright", copyright) < 0) {
-        goto error;
-    }
-
-    return 0;
-
-error:
-    return -1;
-}
-
-static PyModuleDef_Slot sre_slots[] = {
-    {Py_mod_exec, sre_exec},
-    {0, NULL},
-};
-
 static struct PyModuleDef sremodule = {
-    .m_base = PyModuleDef_HEAD_INIT,
-    .m_name = "_" SRE_MODULE,
-    .m_size = sizeof(_sremodulestate),
-    .m_methods = _functions,
-    .m_slots = sre_slots,
-    .m_traverse = sre_traverse,
-    .m_free = sre_free,
-    .m_clear = sre_clear,
+        PyModuleDef_HEAD_INIT,
+        "_" SRE_MODULE,
+        NULL,
+        -1,
+        _functions,
+        NULL,
+        NULL,
+        NULL,
+        NULL
 };
 
-PyMODINIT_FUNC
-PyInit__sre(void)
+PyMODINIT_FUNC PyInit__sre(void)
 {
-    return PyModuleDef_Init(&sremodule);
+    PyObject* m;
+    PyObject* d;
+    PyObject* x;
+
+    /* Patch object types */
+    if (PyType_Ready(&Pattern_Type) || PyType_Ready(&Match_Type) ||
+        PyType_Ready(&Scanner_Type))
+        return NULL;
+
+    m = PyModule_Create(&sremodule);
+    if (m == NULL)
+        return NULL;
+    d = PyModule_GetDict(m);
+
+    x = PyLong_FromLong(SRE_MAGIC);
+    if (x) {
+        PyDict_SetItemString(d, "MAGIC", x);
+        Py_DECREF(x);
+    }
+
+    x = PyLong_FromLong(sizeof(SRE_CODE));
+    if (x) {
+        PyDict_SetItemString(d, "CODESIZE", x);
+        Py_DECREF(x);
+    }
+
+    x = PyLong_FromUnsignedLong(SRE_MAXREPEAT);
+    if (x) {
+        PyDict_SetItemString(d, "MAXREPEAT", x);
+        Py_DECREF(x);
+    }
+
+    x = PyLong_FromUnsignedLong(SRE_MAXGROUPS);
+    if (x) {
+        PyDict_SetItemString(d, "MAXGROUPS", x);
+        Py_DECREF(x);
+    }
+
+    x = PyUnicode_FromString(copyright);
+    if (x) {
+        PyDict_SetItemString(d, "copyright", x);
+        Py_DECREF(x);
+    }
+    return m;
 }
 
 /* vim:ts=4:sw=4:et

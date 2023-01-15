@@ -20,7 +20,7 @@ TUnbufferedFileInput::TUnbufferedFileInput(const TFile& file)
 }
 
 size_t TUnbufferedFileInput::DoRead(void* buf, size_t len) {
-    return File_.ReadOrFail(buf, len);
+    return File_.Read(buf, len);
 }
 
 size_t TUnbufferedFileInput::DoSkip(size_t len) {
@@ -72,7 +72,7 @@ void TUnbufferedFileOutput::DoFlush() {
 
 class TMappedFileInput::TImpl: public TBlob {
 public:
-    inline TImpl(const TFile& file)
+    inline TImpl(TFile file)
         : TBlob(TBlob::FromFile(file))
     {
     }

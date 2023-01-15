@@ -1,13 +1,8 @@
 LIBRARY()
 
 
-SUBSCRIBER(g:util-subscribers)
 
 NO_UTIL()
-
-IF (TSTRING_IS_STD_STRING)
-    CFLAGS(GLOBAL -DTSTRING_IS_STD_STRING)
-ENDIF()
 
 JOIN_SRCS(
     all_charset.cpp
@@ -20,7 +15,7 @@ JOIN_SRCS(
 )
 
 IF (ARCH_X86_64 AND NOT DISABLE_INSTRUCTION_SETS)
-    SRC_C_SSE41(wide_sse41.cpp)
+    SRC_CPP_SSE41(wide_sse41.cpp)
 ELSE()
     SRC(
         wide_sse41.cpp
@@ -29,7 +24,3 @@ ELSE()
 ENDIF()
 
 END()
-
-RECURSE_FOR_TESTS(
-    ut
-)

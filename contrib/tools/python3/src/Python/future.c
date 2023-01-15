@@ -1,5 +1,10 @@
 #include "Python.h"
-#include "pycore_ast.h"           // _PyAST_GetDocString()
+#include "Python-ast.h"
+#include "node.h"
+#include "token.h"
+#include "graminit.h"
+#include "code.h"
+#include "symtable.h"
 
 #define UNDEFINED_FUTURE_FEATURE "future feature %.100s is not defined"
 #define ERR_LATE_FUTURE \
@@ -9,10 +14,11 @@ static int
 future_check_features(PyFutureFeatures *ff, stmt_ty s, PyObject *filename)
 {
     int i;
+    asdl_seq *names;
 
     assert(s->kind == ImportFrom_kind);
 
-    asdl_alias_seq *names = s->v.ImportFrom.names;
+    names = s->v.ImportFrom.names;
     for (i = 0; i < asdl_seq_LEN(names); i++) {
         alias_ty name = (alias_ty)asdl_seq_GET(names, i);
         const char *feature = PyUnicode_AsUTF8(name->name);
@@ -41,12 +47,12 @@ future_check_features(PyFutureFeatures *ff, stmt_ty s, PyObject *filename)
         } else if (strcmp(feature, "braces") == 0) {
             PyErr_SetString(PyExc_SyntaxError,
                             "not a chance");
-            PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset + 1);
+            PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset);
             return 0;
         } else {
             PyErr_Format(PyExc_SyntaxError,
                          UNDEFINED_FUTURE_FEATURE, feature);
-            PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset + 1);
+            PyErr_SyntaxLocationObject(filename, s->lineno, s->col_offset);
             return 0;
         }
     }
@@ -57,6 +63,7 @@ static int
 future_parse(PyFutureFeatures *ff, mod_ty mod, PyObject *filename)
 {
     int i, done = 0, prev_line = 0;
+    stmt_ty first;
 
     if (!(mod->kind == Module_kind || mod->kind == Interactive_kind))
         return 1;
@@ -73,7 +80,11 @@ future_parse(PyFutureFeatures *ff, mod_ty mod, PyObject *filename)
     */
 
     i = 0;
-    if (_PyAST_GetDocString(mod->v.Module.body) != NULL)
+    first = (stmt_ty)asdl_seq_GET(mod->v.Module.body, i);
+    if (first->kind == Expr_kind
+        && (first->v.Expr.value->kind == Str_kind
+            || (first->v.Expr.value->kind == Constant_kind
+                && PyUnicode_CheckExact(first->v.Expr.value->v.Constant.value))))
         i++;
 
     for (; i < asdl_seq_LEN(mod->v.Module.body); i++) {
@@ -116,7 +127,7 @@ future_parse(PyFutureFeatures *ff, mod_ty mod, PyObject *filename)
 
 
 PyFutureFeatures *
-_PyFuture_FromAST(mod_ty mod, PyObject *filename)
+PyFuture_FromASTObject(mod_ty mod, PyObject *filename)
 {
     PyFutureFeatures *ff;
 
@@ -132,5 +143,20 @@ _PyFuture_FromAST(mod_ty mod, PyObject *filename)
         PyObject_Free(ff);
         return NULL;
     }
+    return ff;
+}
+
+
+PyFutureFeatures *
+PyFuture_FromAST(mod_ty mod, const char *filename_str)
+{
+    PyFutureFeatures *ff;
+    PyObject *filename;
+
+    filename = PyUnicode_DecodeFSDefault(filename_str);
+    if (filename == NULL)
+        return NULL;
+    ff = PyFuture_FromASTObject(mod, filename);
+    Py_DECREF(filename);
     return ff;
 }

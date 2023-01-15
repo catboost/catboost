@@ -2,7 +2,7 @@
 
 #include <library/cpp/containers/heap_dict/heap_dict.h>
 
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/random/fast.h>
 #include <util/generic/set.h>

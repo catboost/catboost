@@ -3,7 +3,7 @@ UNITTEST_FOR(library/cpp/lfalloc/alloc_profiler)
 
 
 PEERDIR(
-    library/cpp/testing/unittest
+    library/unittest
 )
 
 IF (ARCH_AARCH64)
@@ -16,7 +16,6 @@ ENDIF()
 
 SRCS(
     profiler_ut.cpp
-    align_ut.cpp
 )
 
 END()

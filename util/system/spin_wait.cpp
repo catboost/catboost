@@ -1,25 +1,23 @@
 #include "spin_wait.h"
 #include "yield.h"
 #include "compat.h"
+#include "thread.h"
 #include "spinlock.h"
 
 #include <util/digest/numeric.h>
 #include <util/generic/utility.h>
 
-#include <atomic>
+template <class T>
+static inline T RandomizeSleepTime(T t) noexcept {
+    static TAtomic counter = 0;
+    const T rndNum = IntHash((T)AtomicIncrement(counter));
 
-namespace {
-    unsigned RandomizeSleepTime(unsigned t) noexcept {
-        static std::atomic<unsigned> counter = 0;
-        const unsigned rndNum = IntHash(++counter);
-
-        return (t * 4 + (rndNum % t) * 2) / 5;
-    }
-
-    //arbitrary values
-    constexpr unsigned MIN_SLEEP_TIME = 500;
-    constexpr unsigned MAX_SPIN_COUNT = 0x7FF;
+    return (t * (T)4 + (rndNum % t) * (T)2) / (T)5;
 }
+
+//arbitrary values
+#define MIN_SLEEP_TIME 500
+#define MAX_SPIN_COUNT 0x7FF
 
 TSpinWait::TSpinWait() noexcept
     : T(MIN_SLEEP_TIME)
@@ -35,7 +33,7 @@ void TSpinWait::Sleep() noexcept {
     } else if ((C & MAX_SPIN_COUNT) == 0) {
         usleep(RandomizeSleepTime(T));
 
-        T = Min<unsigned>(T * 3 / 2, 20000);
+        T = Min<unsigned>((T * 3) / 2, 20000);
     } else {
         SpinLockPause();
     }

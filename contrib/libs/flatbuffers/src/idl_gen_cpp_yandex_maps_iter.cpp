@@ -16,22 +16,19 @@
 
 // independent from idl_parser, since this code is not needed for most clients
 
-#include <unordered_set>
-
 #include "flatbuffers/code_generators.h"
 #include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/flatc.h"
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
+
+#include <unordered_set>
 
 namespace flatbuffers {
 
 // Pedantic warning free version of toupper().
-inline char ToUpper(char c) {
-  return static_cast<char>(::toupper(static_cast<unsigned char>(c)));
-}
+inline char ToUpper(char c) { return static_cast<char>(::toupper(c)); }
 
-static std::string GeneratedIterFileName(const std::string &path,
+static std::string GeneratedFileName(const std::string &path,
                                      const std::string &file_name) {
   return path + file_name + ".iter.fbs.h";
 }
@@ -41,106 +38,105 @@ class CppIterGenerator : public BaseGenerator {
  public:
   CppIterGenerator(const Parser &parser, const std::string &path,
                const std::string &file_name)
-      : BaseGenerator(parser, path, file_name, "", "::", "h"),
+      : BaseGenerator(parser, path, file_name, "", "::"),
         cur_name_space_(nullptr) {
-    static const char *const keywords[] = {
-      "alignas",
-      "alignof",
-      "and",
-      "and_eq",
-      "asm",
-      "atomic_cancel",
-      "atomic_commit",
-      "atomic_noexcept",
-      "auto",
-      "bitand",
-      "bitor",
-      "bool",
-      "break",
-      "case",
-      "catch",
-      "char",
-      "char16_t",
-      "char32_t",
-      "class",
-      "compl",
-      "concept",
-      "const",
-      "constexpr",
-      "const_cast",
-      "continue",
-      "co_await",
-      "co_return",
-      "co_yield",
-      "decltype",
-      "default",
-      "delete",
-      "do",
-      "double",
-      "dynamic_cast",
-      "else",
-      "enum",
-      "explicit",
-      "export",
-      "extern",
-      "false",
-      "float",
-      "for",
-      "friend",
-      "goto",
-      "if",
-      "import",
-      "inline",
-      "int",
-      "long",
-      "module",
-      "mutable",
-      "namespace",
-      "new",
-      "noexcept",
-      "not",
-      "not_eq",
-      "nullptr",
-      "operator",
-      "or",
-      "or_eq",
-      "private",
-      "protected",
-      "public",
-      "register",
-      "reinterpret_cast",
-      "requires",
-      "return",
-      "short",
-      "signed",
-      "sizeof",
-      "static",
-      "static_assert",
-      "static_cast",
-      "struct",
-      "switch",
-      "synchronized",
-      "template",
-      "this",
-      "thread_local",
-      "throw",
-      "true",
-      "try",
-      "typedef",
-      "typeid",
-      "typename",
-      "union",
-      "unsigned",
-      "using",
-      "virtual",
-      "void",
-      "volatile",
-      "wchar_t",
-      "while",
-      "xor",
-      "xor_eq",
-      nullptr,
-    };
+    static const char * const keywords[] = {
+                               "alignas",
+                               "alignof",
+                               "and",
+                               "and_eq",
+                               "asm",
+                               "atomic_cancel",
+                               "atomic_commit",
+                               "atomic_noexcept",
+                               "auto",
+                               "bitand",
+                               "bitor",
+                               "bool",
+                               "break",
+                               "case",
+                               "catch",
+                               "char",
+                               "char16_t",
+                               "char32_t",
+                               "class",
+                               "compl",
+                               "concept",
+                               "const",
+                               "constexpr",
+                               "const_cast",
+                               "continue",
+                               "co_await",
+                               "co_return",
+                               "co_yield",
+                               "decltype",
+                               "default",
+                               "delete",
+                               "do",
+                               "double",
+                               "dynamic_cast",
+                               "else",
+                               "enum",
+                               "explicit",
+                               "export",
+                               "extern",
+                               "false",
+                               "float",
+                               "for",
+                               "friend",
+                               "goto",
+                               "if",
+                               "import",
+                               "inline",
+                               "int",
+                               "long",
+                               "module",
+                               "mutable",
+                               "namespace",
+                               "new",
+                               "noexcept",
+                               "not",
+                               "not_eq",
+                               "nullptr",
+                               "operator",
+                               "or",
+                               "or_eq",
+                               "private",
+                               "protected",
+                               "public",
+                               "register",
+                               "reinterpret_cast",
+                               "requires",
+                               "return",
+                               "short",
+                               "signed",
+                               "sizeof",
+                               "static",
+                               "static_assert",
+                               "static_cast",
+                               "struct",
+                               "switch",
+                               "synchronized",
+                               "template",
+                               "this",
+                               "thread_local",
+                               "throw",
+                               "true",
+                               "try",
+                               "typedef",
+                               "typeid",
+                               "typename",
+                               "union",
+                               "unsigned",
+                               "using",
+                               "virtual",
+                               "void",
+                               "volatile",
+                               "wchar_t",
+                               "while",
+                               "xor",
+                               "xor_eq",
+                               nullptr };
     for (auto kw = keywords; *kw; kw++) keywords_.insert(*kw);
   }
 
@@ -319,7 +315,7 @@ class CppIterGenerator : public BaseGenerator {
     // Close the include guard.
     code_ += "#endif  // " + include_guard;
 
-    const auto file_path = GeneratedIterFileName(path_, file_name_);
+    const auto file_path = GeneratedFileName(path_, file_name_);
     const auto final_code = code_.ToString();
     return SaveFile(file_path.c_str(), final_code, false);
   }
@@ -377,14 +373,15 @@ class CppIterGenerator : public BaseGenerator {
 
   // Return a C++ type from the table in idl.h
   std::string GenTypeBasic(const Type &type, bool user_facing_type) const {
-    // clang-format off
     static const char * const ctypename[] = {
-      #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, ...) \
-        #CTYPE,
+    // clang-format off
+    #define FLATBUFFERS_TD(ENUM, IDLTYPE, CTYPE, JTYPE, GTYPE, NTYPE, PTYPE, \
+                           RTYPE) \
+            #CTYPE,
         FLATBUFFERS_GEN_TYPES(FLATBUFFERS_TD)
-      #undef FLATBUFFERS_TD
+    #undef FLATBUFFERS_TD
+      // clang-format on
     };
-    // clang-format on
     if (user_facing_type) {
       if (type.enum_def) return WrapInNameSpace(*type.enum_def);
       if (type.base_type == BASE_TYPE_BOOL) return "bool";
@@ -485,7 +482,7 @@ class CppIterGenerator : public BaseGenerator {
   void GenVerifyCall(const FieldDef &field, const char *prefix) {
     code_.SetValue("PRE", prefix);
     code_.SetValue("NAME", Name(field));
-    code_.SetValue("REQUIRED", field.IsRequired() ? "Required" : "");
+    code_.SetValue("REQUIRED", field.required ? "Required" : "");
     code_.SetValue("SIZE", GenTypeSize(field.value.type));
     code_.SetValue("OFFSET", GenFieldOffsetName(field));
     code_ += "{{PRE}}this->template VerifyField{{REQUIRED}}<{{SIZE}}>(verifier, {{OFFSET}})\\";

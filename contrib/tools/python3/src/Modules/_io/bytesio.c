@@ -1,6 +1,5 @@
 #include "Python.h"
-#include "pycore_object.h"
-#include <stddef.h>               // offsetof()
+#include "structmember.h"       /* for offsetof() */
 #include "_iomodule.h"
 
 /*[clinic input]
@@ -31,34 +30,17 @@ typedef struct {
   * exports > 0.  Py_REFCNT(buf) == 1, any modifications are forbidden.
 */
 
-static int
-check_closed(bytesio *self)
-{
-    if (self->buf == NULL) {
-        PyErr_SetString(PyExc_ValueError, "I/O operation on closed file.");
-        return 1;
-    }
-    return 0;
-}
-
-static int
-check_exports(bytesio *self)
-{
-    if (self->exports > 0) {
-        PyErr_SetString(PyExc_BufferError,
-                        "Existing exports of data: object cannot be re-sized");
-        return 1;
-    }
-    return 0;
-}
-
 #define CHECK_CLOSED(self)                                  \
-    if (check_closed(self)) {                               \
+    if ((self)->buf == NULL) {                              \
+        PyErr_SetString(PyExc_ValueError,                   \
+                        "I/O operation on closed file.");   \
         return NULL;                                        \
     }
 
 #define CHECK_EXPORTS(self) \
-    if (check_exports(self)) { \
+    if ((self)->exports > 0) { \
+        PyErr_SetString(PyExc_BufferError, \
+                        "Existing exports of data: object cannot be re-sized"); \
         return NULL; \
     }
 
@@ -173,41 +155,23 @@ resize_buffer(bytesio *self, size_t size)
 }
 
 /* Internal routine for writing a string of bytes to the buffer of a BytesIO
-   object. Returns the number of bytes written, or -1 on error.
-   Inlining is disabled because it's significantly decreases performance
-   of writelines() in PGO build. */
-_Py_NO_INLINE static Py_ssize_t
-write_bytes(bytesio *self, PyObject *b)
+   object. Returns the number of bytes written, or -1 on error. */
+static Py_ssize_t
+write_bytes(bytesio *self, const char *bytes, Py_ssize_t len)
 {
-    if (check_closed(self)) {
-        return -1;
-    }
-    if (check_exports(self)) {
-        return -1;
-    }
-
-    Py_buffer buf;
-    if (PyObject_GetBuffer(b, &buf, PyBUF_CONTIG_RO) < 0) {
-        return -1;
-    }
-    Py_ssize_t len = buf.len;
-    if (len == 0) {
-        goto done;
-    }
-
+    size_t endpos;
+    assert(self->buf != NULL);
     assert(self->pos >= 0);
-    size_t endpos = (size_t)self->pos + len;
+    assert(len >= 0);
+
+    endpos = (size_t)self->pos + len;
     if (endpos > (size_t)PyBytes_GET_SIZE(self->buf)) {
-        if (resize_buffer(self, endpos) < 0) {
-            len = -1;
-            goto done;
-        }
+        if (resize_buffer(self, endpos) < 0)
+            return -1;
     }
     else if (SHARED_BUF(self)) {
-        if (unshare_buffer(self, Py_MAX(endpos, (size_t)self->string_size)) < 0) {
-            len = -1;
-            goto done;
-        }
+        if (unshare_buffer(self, Py_MAX(endpos, (size_t)self->string_size)) < 0)
+            return -1;
     }
 
     if (self->pos > self->string_size) {
@@ -225,7 +189,7 @@ write_bytes(bytesio *self, PyObject *b)
 
     /* Copy the data to the internal buffer, overwriting some of the existing
        data if self->pos < self->string_size. */
-    memcpy(PyBytes_AS_STRING(self->buf) + self->pos, buf.buf, len);
+    memcpy(PyBytes_AS_STRING(self->buf) + self->pos, bytes, len);
     self->pos = endpos;
 
     /* Set the new length of the internal string if it has changed. */
@@ -233,8 +197,6 @@ write_bytes(bytesio *self, PyObject *b)
         self->string_size = endpos;
     }
 
-  done:
-    PyBuffer_Release(&buf);
     return len;
 }
 
@@ -393,7 +355,7 @@ _io_BytesIO_tell_impl(bytesio *self)
 static PyObject *
 read_bytes(bytesio *self, Py_ssize_t size)
 {
-    const char *output;
+    char *output;
 
     assert(self->buf != NULL);
     assert(size <= self->string_size);
@@ -502,7 +464,7 @@ _io_BytesIO_readlines_impl(bytesio *self, PyObject *arg)
 {
     Py_ssize_t maxsize, size, n;
     PyObject *result, *line;
-    const char *output;
+    char *output;
 
     CHECK_CLOSED(self);
 
@@ -706,7 +668,19 @@ static PyObject *
 _io_BytesIO_write(bytesio *self, PyObject *b)
 /*[clinic end generated code: output=53316d99800a0b95 input=f5ec7c8c64ed720a]*/
 {
-    Py_ssize_t n = write_bytes(self, b);
+    Py_ssize_t n = 0;
+    Py_buffer buf;
+
+    CHECK_CLOSED(self);
+    CHECK_EXPORTS(self);
+
+    if (PyObject_GetBuffer(b, &buf, PyBUF_CONTIG_RO) < 0)
+        return NULL;
+
+    if (buf.len != 0)
+        n = write_bytes(self, buf.buf, buf.len);
+
+    PyBuffer_Release(&buf);
     return n >= 0 ? PyLong_FromSsize_t(n) : NULL;
 }
 
@@ -727,6 +701,7 @@ _io_BytesIO_writelines(bytesio *self, PyObject *lines)
 /*[clinic end generated code: output=7f33aa3271c91752 input=e972539176fc8fc1]*/
 {
     PyObject *it, *item;
+    PyObject *ret;
 
     CHECK_CLOSED(self);
 
@@ -735,12 +710,13 @@ _io_BytesIO_writelines(bytesio *self, PyObject *lines)
         return NULL;
 
     while ((item = PyIter_Next(it)) != NULL) {
-        Py_ssize_t ret = write_bytes(self, item);
+        ret = _io_BytesIO_write(self, item);
         Py_DECREF(item);
-        if (ret < 0) {
+        if (ret == NULL) {
             Py_DECREF(it);
             return NULL;
         }
+        Py_DECREF(ret);
     }
     Py_DECREF(it);
 
@@ -782,7 +758,7 @@ _io_BytesIO_close_impl(bytesio *self)
  */
 
 static PyObject *
-bytesio_getstate(bytesio *self, PyObject *Py_UNUSED(ignored))
+bytesio_getstate(bytesio *self)
 {
     PyObject *initvalue = _io_BytesIO_getvalue_impl(self);
     PyObject *dict;
@@ -841,7 +817,7 @@ bytesio_setstate(bytesio *self, PyObject *state)
 
     /* Set carefully the position value. Alternatively, we could use the seek
        method instead of modifying self->pos directly to better protect the
-       object internal state against erroneous (or malicious) inputs. */
+       object internal state against errneous (or malicious) inputs. */
     position_obj = PyTuple_GET_ITEM(state, 1);
     if (!PyLong_Check(position_obj)) {
         PyErr_Format(PyExc_TypeError,
@@ -1030,10 +1006,10 @@ PyTypeObject PyBytesIO_Type = {
     sizeof(bytesio),                     /*tp_basicsize*/
     0,                                         /*tp_itemsize*/
     (destructor)bytesio_dealloc,               /*tp_dealloc*/
-    0,                                         /*tp_vectorcall_offset*/
+    0,                                         /*tp_print*/
     0,                                         /*tp_getattr*/
     0,                                         /*tp_setattr*/
-    0,                                         /*tp_as_async*/
+    0,                                         /*tp_reserved*/
     0,                                         /*tp_repr*/
     0,                                         /*tp_as_number*/
     0,                                         /*tp_as_sequence*/
@@ -1124,16 +1100,16 @@ static PyBufferProcs bytesiobuf_as_buffer = {
     (releasebufferproc) bytesiobuf_releasebuffer,
 };
 
-Py_EXPORTED_SYMBOL PyTypeObject _PyBytesIOBuffer_Type = {
+PyTypeObject _PyBytesIOBuffer_Type = {
     PyVarObject_HEAD_INIT(NULL, 0)
     "_io._BytesIOBuffer",                      /*tp_name*/
     sizeof(bytesiobuf),                        /*tp_basicsize*/
     0,                                         /*tp_itemsize*/
     (destructor)bytesiobuf_dealloc,            /*tp_dealloc*/
-    0,                                         /*tp_vectorcall_offset*/
+    0,                                         /*tp_print*/
     0,                                         /*tp_getattr*/
     0,                                         /*tp_setattr*/
-    0,                                         /*tp_as_async*/
+    0,                                         /*tp_reserved*/
     0,                                         /*tp_repr*/
     0,                                         /*tp_as_number*/
     0,                                         /*tp_as_sequence*/

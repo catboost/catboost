@@ -31,7 +31,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -52,16 +52,15 @@ public:
     // objectsData must be from the corresponding source data for this split
     TSplit GetSplit(
         int binId,
-        const NCB::TQuantizedObjectsDataProvider& objectsData,
+        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
         ui32 oneHotMaxSize
     ) const;
 };
 
 struct TCandidatesInfoList {
     TCandidatesInfoList() = default;
-    explicit TCandidatesInfoList(TCandidateInfo&& oneCandidate)
-    : Candidates{std::move(oneCandidate)}
-    {
+    explicit TCandidatesInfoList(const TCandidateInfo& oneCandidate) {
+        Candidates.emplace_back(oneCandidate);
     }
 
     SAVELOAD(Candidates, ShouldDropCtrAfterCalc);
@@ -77,7 +76,7 @@ public:
 using TCandidateList = TVector<TCandidatesInfoList>;
 
 struct TCandidatesContext {
-    NCB::TQuantizedObjectsDataProviderPtr LearnData;
+    NCB::TQuantizedForCPUObjectsDataProviderPtr LearnData;
 
     ui32 OneHotMaxSize; // needed to select for which categorical features in bundles to calc stats
     TConstArrayRef<NCB::TExclusiveFeaturesBundle> BundlesMetaData;
@@ -93,11 +92,11 @@ struct TCandidatesContext {
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     bool hasOfflineEstimatedFeatures,
-    TConstArrayRef<TIndexType> indices,
+    const TVector<TIndexType>& indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     bool shouldSortByLeaf = false,
     ui32 leavesCount = 0
@@ -114,7 +113,7 @@ void CalcWeightedDerivatives(
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
     TFold* takenFold,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 
 void SetBestScore(

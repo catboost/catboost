@@ -3,7 +3,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/folder/tempdir.h>
 
@@ -88,7 +88,6 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
                 nullptr,
                 {},
                 {},
-                Nothing(),
                 std::move(dataProviders),
                 /*initModel*/ Nothing(),
                 /*initLearnProgress*/ nullptr,

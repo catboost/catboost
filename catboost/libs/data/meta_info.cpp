@@ -1,6 +1,5 @@
 #include "meta_info.h"
 
-#include <catboost/libs/column_description/feature_tag.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/serialization.h>
 
@@ -41,10 +40,8 @@ TDataMetaInfo::TDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamp,
     bool hasPairs,
-    bool forceUnitAutoPairWeights,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
-    TMaybe<const THashMap<TString, TTagDescription>*> featureTags,
     const TVector<NJson::TJsonValue>& classLabels
 )
     : TargetType(targetType)
@@ -65,9 +62,36 @@ TDataMetaInfo::TDataMetaInfo(
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
-    ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
 
-    FeaturesLayout = TFeaturesLayout::CreateFeaturesLayout(ColumnsInfo->Columns, featureNames, featureTags);
+    // if featureNames is defined - take from it, otherwise take from Id in columns
+    TVector<TString> finalFeatureNames;
+    if (featureNames) {
+        finalFeatureNames = **featureNames;
+    }
+
+    TVector<ui32> catFeatureIndices;
+    TVector<ui32> textFeatureIndices;
+
+    ui32 featureIdx = 0;
+    for (const auto& column : ColumnsInfo->Columns) {
+        if (IsFactorColumn(column.Type)) {
+            if (!featureNames) {
+                finalFeatureNames.push_back(column.Id);
+            }
+            if (column.Type == EColumn::Categ) {
+                catFeatureIndices.push_back(featureIdx);
+            } else if (column.Type == EColumn::Text) {
+                textFeatureIndices.push_back(featureIdx);
+            }
+            ++featureIdx;
+        }
+    }
+
+    FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
+        featureIdx,
+        std::move(catFeatureIndices),
+        std::move(textFeatureIndices),
+        finalFeatureNames);
 
     ColumnsInfo->Validate();
     Validate();
@@ -93,11 +117,9 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         HasGroupId,
         HasGroupWeight,
         HasSubgroupIds,
-        HasSampleId,
         HasWeights,
         HasTimestamp,
         HasPairs,
-        StoreStringColumns,
         ClassLabels,
         ColumnsInfo
     ) == std::tie(
@@ -107,11 +129,9 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         rhs.HasGroupId,
         rhs.HasGroupWeight,
         rhs.HasSubgroupIds,
-        rhs.HasSampleId,
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
-        rhs.StoreStringColumns,
         ClassLabels,
         rhs.ColumnsInfo
     );
@@ -166,11 +186,9 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasGroupId,
         data->HasGroupWeight,
         data->HasSubgroupIds,
-        data->HasSampleId,
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
-        data->StoreStringColumns,
         data->ClassLabels,
         data->ColumnsInfo
     );

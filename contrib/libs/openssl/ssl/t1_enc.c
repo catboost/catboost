@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright 2005 Nokia. All rights reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -9,7 +9,7 @@
  */
 
 #include <stdio.h>
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include <openssl/comp.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
@@ -466,7 +466,7 @@ int tls1_generate_master_secret(SSL *s, unsigned char *out, unsigned char *p,
         unsigned char hash[EVP_MAX_MD_SIZE * 2];
         size_t hashlen;
         /*
-         * Digest cached records keeping record buffer (if present): this won't
+         * Digest cached records keeping record buffer (if present): this wont
          * affect client auth because we're freezing the buffer at the same
          * point (after client key exchange and before certificate verify)
          */
@@ -671,8 +671,6 @@ int tls1_alert_code(int code)
     case SSL_AD_NO_APPLICATION_PROTOCOL:
         return TLS1_AD_NO_APPLICATION_PROTOCOL;
     case SSL_AD_CERTIFICATE_REQUIRED:
-        return SSL_AD_HANDSHAKE_FAILURE;
-    case SSL_AD_MISSING_EXTENSION:
         return SSL_AD_HANDSHAKE_FAILURE;
     default:
         return -1;

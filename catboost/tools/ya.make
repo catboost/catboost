@@ -3,7 +3,6 @@ RECURSE(
     limited_precision_dsv_diff/pytest
     limited_precision_json_diff
     limited_precision_json_diff/pytest
-    limited_precision_numpy_diff
     model_comparator
     model_perftest
 )

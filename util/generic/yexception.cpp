@@ -1,25 +1,20 @@
 #include "bt_exception.h"
+#include "type_name.h"
 #include "yexception.h"
 
+#include <util/folder/dirut.h>
 #include <util/system/backtrace.h>
-#include <util/system/type_name.h>
 
-#if defined(_linux_) || defined(_android_) || defined(_darwin_)
-    #include <cxxabi.h>
-#endif
+#include <string>
 
 #include <stdexcept>
 
 #include <cstdio>
+#include <cstdarg>
 
-static void FormatExceptionTo(IOutputStream& out, const std::exception& exception) {
-    out << "(" << TypeName(exception) << ") " << exception.what();
-}
-
-TString FormatExc(const std::exception& exception) {
-    TStringStream out;
-    FormatExceptionTo(out, exception);
-    return out.Str();
+template <class E>
+static inline TString FormatExc(const E& e) {
+    return TString::Join(AsStringBuf("("), TypeName(&e), AsStringBuf(") "), e.what());
 }
 
 TString CurrentExceptionMessage() {
@@ -31,7 +26,7 @@ TString CurrentExceptionMessage() {
             const TBackTrace* bt = e.BackTrace();
 
             if (bt) {
-                return TString::Join(bt->PrintToString(), TStringBuf("\n"), FormatExc(e));
+                return TString::Join(bt->PrintToString(), AsStringBuf("\n"), FormatExc(e));
             }
 
             return FormatExc(e);
@@ -46,82 +41,16 @@ TString CurrentExceptionMessage() {
     return "(NO EXCEPTION)";
 }
 
-Y_DECLARE_UNUSED static void FormatBackTraceTo(IOutputStream& out, const TBackTrace& backtrace) {
-    if (backtrace.size() == 0) {
-        out << "backtrace is empty";
-        return;
-    }
-    try {
-        backtrace.PrintTo(out);
-    } catch (const std::exception& e) {
-        out << "Failed to print backtrace: ";
-        FormatExceptionTo(out, e);
-    }
-}
-
-void FormatCurrentExceptionTo(IOutputStream& out) {
-    auto exceptionPtr = std::current_exception();
-
-    if (Y_UNLIKELY(!exceptionPtr)) {
-        out << "(NO EXCEPTION)\n";
-        return;
-    }
-
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-    TBackTrace backtrace = TBackTrace::FromCurrentException();
-#endif
-    try {
-        std::rethrow_exception(exceptionPtr);
-    } catch (const std::exception& e) {
-        out << "Caught:\n";
-        FormatExceptionTo(out, e);
-        out << "\n";
-#ifdef _YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE
-        FormatBackTraceTo(out, backtrace);
-#endif
-        return;
-    } catch (...) {
-        out << "unknown error\n";
-        return;
-    }
-}
-
-TString FormatCurrentException() {
-    TStringStream out;
-    FormatCurrentExceptionTo(out);
-    return out.Str();
-}
-
 bool UncaughtException() noexcept {
-    return std::uncaught_exceptions() > 0;
-}
-
-std::string CurrentExceptionTypeName() {
-#if defined(_linux_) || defined(_android_) || defined(_darwin_)
-    std::type_info* currentExceptionTypePtr = abi::__cxa_current_exception_type();
-    if (currentExceptionTypePtr) {
-        return TypeName(*currentExceptionTypePtr);
-    }
-#endif
-    //There is no abi::__cxa_current_exception_type() on Windows.
-    //Emulated it with rethrow - catch construction.
-    std::exception_ptr currentException = std::current_exception();
-    Y_ASSERT(currentException != nullptr);
-    try {
-        std::rethrow_exception(currentException);
-    } catch (const std::exception& e) {
-        return TypeName(typeid(e));
-    } catch (...) {
-        return "unknown type";
-    }
+    return std::uncaught_exception();
 }
 
 void TSystemError::Init() {
     yexception& exc = *this;
 
-    exc << TStringBuf("(");
+    exc << AsStringBuf("(");
     exc << TStringBuf(LastSystemErrorText(Status_));
-    exc << TStringBuf(") ");
+    exc << AsStringBuf(") ");
 }
 
 NPrivateException::yexception::yexception() {

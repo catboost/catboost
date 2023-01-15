@@ -1,7 +1,7 @@
 #include "lz.h"
 
-#include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/resource/resource.h>
+#include <library/unittest/registar.h>
+#include <library/resource/resource.h>
 
 #include <util/stream/file.h>
 #include <util/generic/vector.h>
@@ -274,14 +274,5 @@ Y_UNIT_TEST_SUITE(TLzTest) {
         TAutoPtr<IInputStream> is(OpenOwnedLzDecompressor(new TStringInput(ss.Str())));
 
         UNIT_ASSERT_EQUAL(is->ReadAll(), "123456789");
-    }
-
-    Y_UNIT_TEST(TestYQ609) {
-        auto data = NResource::Find("/yq_609.data");
-
-        TMemoryInput input(data.Data(), data.Size());
-
-        TLz4Decompress d(&input);
-        UNIT_ASSERT_EXCEPTION(d.ReadAll(), TDecompressorError);
     }
 }

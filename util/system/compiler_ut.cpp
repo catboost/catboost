@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TCompilerTest) {
     Y_UNIT_TEST(TestPragmaNoWshadow) {
@@ -24,14 +24,14 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
     // define function with unused named parameter
     // and there will be no warning for this
-    int Foo(int a) {
+    int foo(int a) {
         return 0;
     }
 
     Y_PRAGMA_DIAGNOSTIC_POP
 
     Y_UNIT_TEST(TestPragmaNoUnusedParameter) {
-        UNIT_ASSERT_EQUAL(Foo(1), 0);
+        UNIT_ASSERT_EQUAL(foo(1), 0);
     }
 
     Y_UNIT_TEST(TestHaveInt128) {
@@ -56,7 +56,7 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
     }
 
     // define deprecated function
-    [[deprecated]] void Bar() {
+    [[deprecated]] void bar() {
         return;
     }
 
@@ -65,7 +65,7 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
         Y_PRAGMA_NO_DEPRECATED
 
         // will be compiled without errors
-        Bar();
+        bar();
 
         Y_PRAGMA_DIAGNOSTIC_POP
     }

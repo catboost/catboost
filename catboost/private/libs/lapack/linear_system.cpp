@@ -46,5 +46,5 @@ void SolveLinearSystemCholesky(TVector<double>* matrix,
     dposv_(matrixStorageType, &systemSize, &numberOfRightHandSides, matrix->data(), &systemSize,
            target->data(), &systemSize, &info);
 
-    CB_ENSURE(info >= 0, "LAPACK dposv_ failed with status " << info);
+    Y_VERIFY(info >= 0);
 }

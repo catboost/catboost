@@ -20,8 +20,8 @@
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
-# include "blake2_local.h"
-# include "crypto/evp.h"
+# include "blake2_locl.h"
+# include "internal/evp_int.h"
 
 static int init(EVP_MD_CTX *ctx)
 {

@@ -1,7 +1,7 @@
 #include "dirut.h"
 #include "iterator.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/system/fs.h>
 #include <util/system/file.h>
@@ -211,7 +211,16 @@ private:
     }
 
     inline void TestError() {
-        UNIT_ASSERT_EXCEPTION(TDirIterator("./notexistingfilename"), TDirIterator::TError);
+        try {
+            TDirIterator d("./notexistingfilename");
+
+            UNIT_ASSERT(false);
+        } catch (const TDirIterator::TError&) {
+        } catch (...) {
+            UNIT_ASSERT(false);
+        }
+
+        UNIT_ASSERT(true);
     }
 };
 

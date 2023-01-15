@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -8,7 +8,7 @@
  */
 
 #include <stdio.h>
-#include "crypto/ctype.h"
+#include "internal/ctype.h"
 #include <string.h>
 #include "internal/cryptlib.h"
 #include <openssl/buffer.h>
@@ -18,7 +18,7 @@
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 #include <openssl/pkcs12.h>
-#include "crypto/asn1.h"
+#include "internal/asn1_int.h"
 #include <openssl/des.h>
 #include <openssl/engine.h>
 
@@ -332,7 +332,7 @@ int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp,
         }
     }
 
-    if ((dsize = i2d(x, NULL)) <= 0) {
+    if ((dsize = i2d(x, NULL)) < 0) {
         PEMerr(PEM_F_PEM_ASN1_WRITE_BIO, ERR_R_ASN1_LIB);
         dsize = 0;
         goto err;
@@ -621,7 +621,7 @@ int PEM_write_bio(BIO *bp, const char *name, const char *header,
         (BIO_write(bp, "-----\n", 6) != 6))
         goto err;
 
-    i = header != NULL ? strlen(header) : 0;
+    i = strlen(header);
     if (i > 0) {
         if ((BIO_write(bp, header, i) != i) || (BIO_write(bp, "\n", 1) != 1))
             goto err;
@@ -791,7 +791,7 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
 {
     BIO *tmp = *header;
     char *linebuf, *p;
-    int len, line, ret = 0, end = 0, prev_partial_line_read = 0, partial_line_read = 0;
+    int len, line, ret = 0, end = 0;
     /* 0 if not seen (yet), 1 if reading header, 2 if finished header */
     enum header_status got_header = MAYBE_HEADER;
     unsigned int flags_mask;
@@ -809,17 +809,9 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
         flags_mask = ~0u;
         len = BIO_gets(bp, linebuf, LINESIZE);
         if (len <= 0) {
-            PEMerr(PEM_F_GET_HEADER_AND_DATA, PEM_R_BAD_END_LINE);
+            PEMerr(PEM_F_GET_HEADER_AND_DATA, PEM_R_SHORT_HEADER);
             goto err;
         }
-
-        /*
-         * Check if line has been read completely or if only part of the line
-         * has been read. Keep the previous value to ignore newlines that
-         * appear due to reading a line up until the char before the newline.
-         */
-        prev_partial_line_read = partial_line_read;
-        partial_line_read = len == LINESIZE-1 && linebuf[LINESIZE-2] != '\n';
 
         if (got_header == MAYBE_HEADER) {
             if (memchr(linebuf, ':', len) != NULL)
@@ -831,19 +823,13 @@ static int get_header_and_data(BIO *bp, BIO **header, BIO **data, char *name,
 
         /* Check for end of header. */
         if (linebuf[0] == '\n') {
-            /*
-             * If previous line has been read only partially this newline is a
-             * regular newline at the end of a line and not an empty line.
-             */
-            if (!prev_partial_line_read) {
-                if (got_header == POST_HEADER) {
-                    /* Another blank line is an error. */
-                    PEMerr(PEM_F_GET_HEADER_AND_DATA, PEM_R_BAD_END_LINE);
-                    goto err;
-                }
-                got_header = POST_HEADER;
-                tmp = *data;
+            if (got_header == POST_HEADER) {
+                /* Another blank line is an error. */
+                PEMerr(PEM_F_GET_HEADER_AND_DATA, PEM_R_BAD_END_LINE);
+                goto err;
             }
+            got_header = POST_HEADER;
+            tmp = *data;
             continue;
         }
 
@@ -899,12 +885,17 @@ err:
 int PEM_read_bio_ex(BIO *bp, char **name_out, char **header,
                     unsigned char **data, long *len_out, unsigned int flags)
 {
-    EVP_ENCODE_CTX *ctx = NULL;
+    EVP_ENCODE_CTX *ctx = EVP_ENCODE_CTX_new();
     const BIO_METHOD *bmeth;
     BIO *headerB = NULL, *dataB = NULL;
     char *name = NULL;
     int len, taillen, headerlen, ret = 0;
     BUF_MEM * buf_mem;
+
+    if (ctx == NULL) {
+        PEMerr(PEM_F_PEM_READ_BIO_EX, ERR_R_MALLOC_FAILURE);
+        return 0;
+    }
 
     *len_out = 0;
     *name_out = *header = NULL;
@@ -928,20 +919,9 @@ int PEM_read_bio_ex(BIO *bp, char **name_out, char **header,
     if (!get_header_and_data(bp, &headerB, &dataB, name, flags))
         goto end;
 
+    EVP_DecodeInit(ctx);
     BIO_get_mem_ptr(dataB, &buf_mem);
     len = buf_mem->length;
-
-    /* There was no data in the PEM file */
-    if (len == 0)
-        goto end;
-
-    ctx = EVP_ENCODE_CTX_new();
-    if (ctx == NULL) {
-        PEMerr(PEM_F_PEM_READ_BIO_EX, ERR_R_MALLOC_FAILURE);
-        goto end;
-    }
-
-    EVP_DecodeInit(ctx);
     if (EVP_DecodeUpdate(ctx, (unsigned char*)buf_mem->data, &len,
                          (unsigned char*)buf_mem->data, len) < 0
             || EVP_DecodeFinal(ctx, (unsigned char*)&(buf_mem->data[len]),
@@ -952,6 +932,9 @@ int PEM_read_bio_ex(BIO *bp, char **name_out, char **header,
     len += taillen;
     buf_mem->length = len;
 
+    /* There was no data in the PEM file; avoid malloc(0). */
+    if (len == 0)
+        goto end;
     headerlen = BIO_get_mem_data(headerB, NULL);
     *header = pem_malloc(headerlen + 1, flags);
     *data = pem_malloc(len, flags);

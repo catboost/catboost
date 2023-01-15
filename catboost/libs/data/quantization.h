@@ -13,7 +13,7 @@
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -24,7 +24,7 @@
 
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -33,6 +33,7 @@ namespace NCB {
     using TInitialBorders = TMaybe<TVector<TConstArrayRef<float>>>;
 
     struct TQuantizationOptions {
+        bool CpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
         bool BundleExclusiveFeatures = true;
@@ -76,7 +77,7 @@ namespace NCB {
         TIncrementalDenseIndexing(
             const TFeaturesArraySubsetIndexing& srcSubsetIndexing,
             bool hasDenseData,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         );
     };
 
@@ -111,7 +112,7 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     );
 
 
@@ -120,7 +121,7 @@ namespace NCB {
         TRawObjectsDataProviderPtr rawObjectsDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         const TInitialBorders& initialBorders = Nothing()
     );
 
@@ -130,8 +131,18 @@ namespace NCB {
         TRawDataProviderPtr rawDataProvider,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TRestorableFastRng64* rand,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         const TInitialBorders& initialBorders = Nothing()
+    );
+
+    TQuantizedDataProviders Quantize(
+        const TQuantizationOptions& options,
+        const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
+        bool floatFeaturesAllowNansInTestOnly,
+        TConstArrayRef<ui32> ignoredFeatures,
+        TRawDataProviders rawDataProviders,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor
     );
 
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
@@ -139,7 +150,7 @@ namespace NCB {
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         const TInitialBorders& initialBorders = Nothing()
     );

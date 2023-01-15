@@ -14,7 +14,7 @@ PyDoc_STRVAR(pwd_getpwuid__doc__,
     {"getpwuid", (PyCFunction)pwd_getpwuid, METH_O, pwd_getpwuid__doc__},
 
 PyDoc_STRVAR(pwd_getpwnam__doc__,
-"getpwnam($module, name, /)\n"
+"getpwnam($module, arg, /)\n"
 "--\n"
 "\n"
 "Return the password database entry for the given user name.\n"
@@ -25,23 +25,18 @@ PyDoc_STRVAR(pwd_getpwnam__doc__,
     {"getpwnam", (PyCFunction)pwd_getpwnam, METH_O, pwd_getpwnam__doc__},
 
 static PyObject *
-pwd_getpwnam_impl(PyObject *module, PyObject *name);
+pwd_getpwnam_impl(PyObject *module, PyObject *arg);
 
 static PyObject *
-pwd_getpwnam(PyObject *module, PyObject *arg)
+pwd_getpwnam(PyObject *module, PyObject *arg_)
 {
     PyObject *return_value = NULL;
-    PyObject *name;
+    PyObject *arg;
 
-    if (!PyUnicode_Check(arg)) {
-        _PyArg_BadArgument("getpwnam", "argument", "str", arg);
+    if (!PyArg_Parse(arg_, "U:getpwnam", &arg)) {
         goto exit;
     }
-    if (PyUnicode_READY(arg) == -1) {
-        goto exit;
-    }
-    name = arg;
-    return_value = pwd_getpwnam_impl(module, name);
+    return_value = pwd_getpwnam_impl(module, arg);
 
 exit:
     return return_value;
@@ -74,4 +69,4 @@ pwd_getpwall(PyObject *module, PyObject *Py_UNUSED(ignored))
 #ifndef PWD_GETPWALL_METHODDEF
     #define PWD_GETPWALL_METHODDEF
 #endif /* !defined(PWD_GETPWALL_METHODDEF) */
-/*[clinic end generated code: output=7fceab7f1a85da36 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=fc41d8d88ec206d8 input=a9049054013a1b77]*/

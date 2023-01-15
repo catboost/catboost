@@ -1,7 +1,7 @@
 #include "ascii.h"
 #include <ctype.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TAsciiTest) {
     Y_UNIT_TEST(TestAscii) {
@@ -64,7 +64,7 @@ Y_UNIT_TEST_SUITE(TAsciiTest) {
 
     Y_UNIT_TEST(CompareTest) {
         UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", "qQq"));
-        UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", TStringBuf("qQq")));
+        UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", AsStringBuf("qQq")));
         TString qq = "qq";
         TString qQ = "qQ";
         UNIT_ASSERT(AsciiEqualsIgnoreCase(qq, qQ));

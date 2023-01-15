@@ -2,7 +2,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/segmented_sort.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <iostream>
 #include <util/generic/algorithm.h>
 #include <catboost/cuda/cuda_util/fill.h>
@@ -106,7 +106,7 @@ Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
                         ui32 lastIdx = segmentEnds[i];
 
                         ui32 size = (lastIdx - firstIdx);
-                        CB_ENSURE(size > 2);
+                        Y_VERIFY(size > 2);
                         for (ui32 j = 0; j < size / 2; ++j) {
                             std::swap(segmentKeys[firstIdx + j], segmentKeys[firstIdx + size - j - 1]);
                             std::swap(segmentValues[firstIdx + j], segmentValues[firstIdx + size - j - 1]);

@@ -5,12 +5,11 @@ import re
 import time
 import signal
 import shutil
-import inspect
 import logging
 import tempfile
 import subprocess
 import errno
-import packaging.version
+import distutils.version
 
 import six
 
@@ -38,7 +37,7 @@ def truncate(s, size):
     elif len(s) <= size:
         return s
     else:
-        return (b'...' if isinstance(s, bytes) else '...') + s[-(size - 3) :]
+        return (b'...' if isinstance(s, bytes) else '...') + s[-(size - 3):]
 
 
 def get_command_name(command):
@@ -46,19 +45,19 @@ def get_command_name(command):
 
 
 class ExecutionError(Exception):
+
     def __init__(self, execution_result):
         if not isinstance(execution_result.command, six.string_types):
             command = " ".join(str(arg) for arg in execution_result.command)
         else:
             command = execution_result.command
         message = "Command '{command}' has failed with code {code}.\nErrors:\n{err}\n".format(
-            command=command, code=execution_result.exit_code, err=_format_error(execution_result.std_err)
-        )
+            command=command,
+            code=execution_result.exit_code,
+            err=_format_error(execution_result.std_err))
         if cores:
             if execution_result.backtrace:
-                message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(
-                    cores.colorize_backtrace(execution_result._backtrace)
-                )
+                message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(cores.colorize_backtrace(execution_result._backtrace))
         else:
             message += "Backtrace is not available: module cores isn't available"
 
@@ -81,32 +80,12 @@ class InvalidExecutionStateError(Exception):
 
 
 class SignalInterruptionError(Exception):
-    def __init__(self, message=None):
-        super(SignalInterruptionError, self).__init__(message)
-        self.res = None
-
-
-class InvalidCommandError(Exception):
     pass
 
 
 class _Execution(object):
-    def __init__(
-        self,
-        command,
-        process,
-        out_file,
-        err_file,
-        process_progress_listener=None,
-        cwd=None,
-        collect_cores=True,
-        check_sanitizer=True,
-        started=0,
-        user_stdout=False,
-        user_stderr=False,
-        core_pattern=None,
-    ):
 
+    def __init__(self, command, process, out_file, err_file, process_progress_listener=None, cwd=None, collect_cores=True, check_sanitizer=True, started=0, user_stdout=False, user_stderr=False):
         self._command = command
         self._process = process
         self._out_file = out_file
@@ -125,8 +104,6 @@ class _Execution(object):
         self._user_stdout = bool(user_stdout)
         self._user_stderr = bool(user_stderr)
         self._exit_code = None
-        self._core_pattern = core_pattern
-
         if process_progress_listener:
             process_progress_listener.open(command, process, out_file, err_file)
 
@@ -142,12 +119,7 @@ class _Execution(object):
             # DEVTOOLS-2347
             yatest_logger.debug("Process status before wait_for: %s", self.running)
             try:
-                wait_for(
-                    lambda: not self.running,
-                    timeout=5,
-                    fail_message="Could not kill process {}".format(self._process.pid),
-                    sleep_time=0.1,
-                )
+                wait_for(lambda: not self.running, timeout=5, fail_message="Could not kill process {}".format(self._process.pid), sleep_time=.1)
             except TimeoutError:
                 yatest_logger.debug("Process status after wait_for: %s", self.running)
                 yatest_logger.debug("Process %d info: %s", self._process.pid, _get_proc_tree_info([self._process.pid]))
@@ -166,10 +138,6 @@ class _Execution(object):
     @property
     def command(self):
         return self._command
-
-    @property
-    def core_pattern(self):
-        return self._core_pattern
 
     @property
     def returncode(self):
@@ -196,7 +164,7 @@ class _Execution(object):
         if self._std_out is not None:
             return self._std_out
         if self._process.stdout and not self._user_stdout:
-            self._std_out = six.ensure_str(self._process.stdout.read())
+            self._std_out = self._process.stdout.read()
             return self._std_out
 
     @property
@@ -211,7 +179,7 @@ class _Execution(object):
         if self._std_err is not None:
             return self._std_err
         if self._process.stderr and not self._user_stderr:
-            self._std_err = six.ensure_str(self._process.stderr.read())
+            self._std_err = self._process.stderr.read()
             return self._std_err
 
     @property
@@ -256,19 +224,8 @@ class _Execution(object):
         if self._metrics:
             for key, value in six.iteritems(self._metrics):
                 yatest_logger.debug("Command (pid %s) %s: %s", self._process.pid, key, value)
-
-        # Since this code is Python2/3 compatible, we don't know is _std_out/_std_err is real bytes or bytes-str.
-        printable_std_out, err = _try_convert_bytes_to_string(self._std_out)
-        if err:
-            yatest_logger.debug("Got error during parse process stdout: %s", err)
-            yatest_logger.debug("stdout will be displayed as raw bytes.")
-        printable_std_err, err = _try_convert_bytes_to_string(self._std_err)
-        if err:
-            yatest_logger.debug("Got error during parse process stderr: %s", err)
-            yatest_logger.debug("stderr will be displayed as raw bytes.")
-
-        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(printable_std_out, MAX_OUT_LEN))
-        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(printable_std_err, MAX_OUT_LEN))
+        yatest_logger.debug("Command (pid %s) output:\n%s", self._process.pid, truncate(self._std_out, MAX_OUT_LEN))
+        yatest_logger.debug("Command (pid %s) errors:\n%s", self._process.pid, truncate(self._std_err, MAX_OUT_LEN))
 
     def _clean_files(self):
         if self._err_file and not self._user_stderr and self._err_file != subprocess.PIPE:
@@ -279,14 +236,12 @@ class _Execution(object):
             self._out_file = None
 
     def _recover_core(self):
-        core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid, self.core_pattern)
+        core_path = cores.recover_core_dump_file(self.command[0], self._cwd, self.process.pid)
         if core_path:
             # Core dump file recovering may be disabled (for distbuild for example) - produce only bt
             store_cores = runtime._get_ya_config().collect_cores
             if store_cores:
-                new_core_path = path.get_unique_file_path(
-                    runtime.output_path(), "{}.{}.core".format(os.path.basename(self.command[0]), self._process.pid)
-                )
+                new_core_path = path.get_unique_file_path(runtime.output_path(), "{}.{}.core".format(os.path.basename(self.command[0]), self._process.pid))
                 # Copy core dump file, because it may be overwritten
                 yatest_logger.debug("Coping core dump file from '%s' to the '%s'", core_path, new_core_path)
                 shutil.copyfile(core_path, new_core_path)
@@ -296,23 +251,16 @@ class _Execution(object):
             pbt_filename = None
 
             if os.path.exists(runtime.gdb_path()):
-                yatest_logger.debug("Getting full backtrace from core file")
                 self._backtrace = cores.get_gdb_full_backtrace(self.command[0], core_path, runtime.gdb_path())
-                bt_filename = path.get_unique_file_path(
-                    runtime.output_path(),
-                    "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid),
-                )
+                bt_filename = path.get_unique_file_path(runtime.output_path(), "{}.{}.backtrace".format(os.path.basename(self.command[0]), self._process.pid))
                 with open(bt_filename, "wb") as afile:
-                    afile.write(six.ensure_binary(self._backtrace))
+                    afile.write(self._backtrace)
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
                 backtrace_to_html(bt_filename, pbt_filename)
 
-            yatest_logger.debug("Register coredump")
             if store_cores:
-                runtime._register_core(
-                    os.path.basename(self.command[0]), self.command[0], core_path, bt_filename, pbt_filename
-                )
+                runtime._register_core(os.path.basename(self.command[0]), self.command[0], core_path, bt_filename, pbt_filename)
             else:
                 runtime._register_core(os.path.basename(self.command[0]), None, None, bt_filename, pbt_filename)
 
@@ -353,9 +301,7 @@ class _Execution(object):
                     except OSError as exc:
 
                         if exc.errno == errno.ECHILD:
-                            yatest_logger.debug(
-                                "Process resource usage is not available as process finished before wait4 was called"
-                            )
+                            yatest_logger.debug("Process resource usage is not available as process finished before wait4 was called")
                         else:
                             raise
             except SignalInterruptionError:
@@ -374,13 +320,7 @@ class _Execution(object):
                 process_is_finished = lambda: not self.running
                 fail_message = "Command '%s' stopped by %d seconds timeout" % (self._command, timeout)
                 try:
-                    wait_for(
-                        process_is_finished,
-                        timeout,
-                        fail_message,
-                        sleep_time=0.1,
-                        on_check_condition=self._process_progress_listener,
-                    )
+                    wait_for(process_is_finished, timeout, fail_message, sleep_time=0.1, on_check_condition=self._process_progress_listener)
                 except TimeoutError as e:
                     if on_timeout:
                         yatest_logger.debug("Calling user specified on_timeout function")
@@ -406,12 +346,8 @@ class _Execution(object):
     def _finalise(self, check_exit_code):
         # Set the signal (negative number) which caused the process to exit
         if check_exit_code and self.exit_code != 0:
-            yatest_logger.error(
-                "Execution failed with exit code: %s\n\t,std_out:%s\n\tstd_err:%s\n",
-                self.exit_code,
-                truncate(self.std_out, MAX_OUT_LEN),
-                truncate(self.std_err, MAX_OUT_LEN),
-            )
+            yatest_logger.error("Execution failed with exit code: %s\n\t,std_out:%s\n\tstd_err:%s\n",
+                                self.exit_code, truncate(self.std_out, MAX_OUT_LEN), truncate(self.std_err, MAX_OUT_LEN))
             raise ExecutionError(self)
 
         # Don't search for sanitize errors if stderr was redirected
@@ -439,54 +375,24 @@ class _Execution(object):
             if self.command[0].startswith(build_path):
                 match = re.search(SANITIZER_ERROR_PATTERN, self._std_err)
                 if match:
-                    yatest_logger.error(
-                        "%s sanitizer found errors:\n\tstd_err:%s\n",
-                        match.group(1),
-                        truncate(self.std_err, MAX_OUT_LEN),
-                    )
+                    yatest_logger.error("%s sanitizer found errors:\n\tstd_err:%s\n", match.group(1), truncate(self.std_err, MAX_OUT_LEN))
                     raise ExecutionError(self)
                 else:
                     yatest_logger.debug("No sanitizer errors found")
             else:
-                yatest_logger.debug(
-                    "'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path
-                )
+                yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)
 
 
-def on_timeout_gen_coredump(exec_obj, _):
-    """
-    Function can be passed to the execute(..., timeout=X, on_timeout=on_timeout_gen_coredump)
-    to generate core dump file, backtrace ahd html-version of the backtrace in case of timeout.
-    All files will be available in the testing_out_stuff and via links.
-    """
-    try:
-        os.kill(exec_obj.process.pid, signal.SIGQUIT)
-    except OSError:
-        # process might be already terminated
-        pass
-
-
+# Don't forget to sync changes in the interface and defaults with yatest.yt.process.execute
 def execute(
-    command,
-    check_exit_code=True,
-    shell=False,
-    timeout=None,
-    cwd=None,
-    env=None,
-    stdin=None,
-    stdout=None,
-    stderr=None,
-    creationflags=0,
-    wait=True,
-    process_progress_listener=None,
-    close_fds=False,
-    collect_cores=True,
-    check_sanitizer=True,
-    preexec_fn=None,
-    on_timeout=None,
+    command, check_exit_code=True,
+    shell=False, timeout=None,
+    cwd=None, env=None,
+    stdin=None, stdout=None, stderr=None,
+    creationflags=0, wait=True,
+    process_progress_listener=None, close_fds=False,
+    collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     executor=_Execution,
-    core_pattern=None,
-    popen_kwargs=None,
 ):
     """
     Executes a command
@@ -507,31 +413,19 @@ def execute(
     :param check_sanitizer: raise ExecutionError if stderr contains sanitize errors
     :param preexec_fn: subrpocess.Popen preexec_fn arg
     :param on_timeout: on_timeout(<execution object>, <timeout value>) callback
-    :param popen_kwargs: subrpocess.Popen args dictionary. Useful for python3-only arguments
 
-    :return _Execution: Execution object
+    :return: Execution object
     """
     if env is None:
         env = os.environ.copy()
     else:
-        # Certain environment variables must be present for programs to work properly.
-        # For more info see DEVTOOLSSUPPORT-4907
-        mandatory_env_name = 'YA_MANDATORY_ENV_VARS'
-        mandatory_vars = env.get(mandatory_env_name, os.environ.get(mandatory_env_name)) or ''
-        if mandatory_vars:
-            env[mandatory_env_name] = mandatory_vars
-            mandatory_system_vars = filter(None, mandatory_vars.split(':'))
-        else:
-            mandatory_system_vars = ['TMPDIR']
-
+        mandatory_system_vars = ["TMPDIR"]
         for var in mandatory_system_vars:
             if var not in env and var in os.environ:
                 env[var] = os.environ[var]
 
     if not wait and timeout is not None:
         raise ValueError("Incompatible arguments 'timeout' and wait=False")
-    if popen_kwargs is None:
-        popen_kwargs = {}
 
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
@@ -561,25 +455,6 @@ def execute(
     if shell:
         collect_cores = False
         check_sanitizer = False
-    else:
-        if isinstance(command, (list, tuple)):
-            executable = command[0]
-        else:
-            executable = command
-        if not executable:
-            raise InvalidCommandError("Target program is invalid: {}".format(command))
-        elif os.path.isabs(executable):
-            if not os.path.isfile(executable) and not os.path.isfile(executable + ".exe"):
-                exists = os.path.exists(executable)
-                if exists:
-                    stat = os.stat(executable)
-                else:
-                    stat = None
-                raise InvalidCommandError(
-                    "Target program is not a file: {} (exists: {} stat: {})".format(executable, exists, stat)
-                )
-            if not os.access(executable, os.X_OK) and not os.access(executable + ".exe", os.X_OK):
-                raise InvalidCommandError("Target program is not executable: {}".format(executable))
 
     if check_sanitizer:
         env["LSAN_OPTIONS"] = environment.extend_env_var(os.environ, "LSAN_OPTIONS", "exitcode=100")
@@ -593,97 +468,49 @@ def execute(
 
     started = time.time()
     process = subprocess.Popen(
-        command,
-        shell=shell,
-        universal_newlines=True,
-        stdout=out_file,
-        stderr=err_file,
-        stdin=in_file,
-        cwd=cwd,
-        env=env,
-        creationflags=creationflags,
-        close_fds=close_fds,
-        preexec_fn=preexec_fn,
-        **popen_kwargs
+        command, shell=shell, universal_newlines=True,
+        stdout=out_file, stderr=err_file, stdin=in_file,
+        cwd=cwd, env=env, creationflags=creationflags, close_fds=close_fds, preexec_fn=preexec_fn,
     )
     yatest_logger.debug("Command pid: %s", process.pid)
 
-    kwargs = {
-        'user_stdout': user_stdout,
-        'user_stderr': user_stderr,
-    }
-
-    if six.PY2:
-        executor_args = inspect.getargspec(executor.__init__).args
-    else:
-        executor_args = inspect.getfullargspec(executor.__init__).args
-
-    if 'core_pattern' in executor_args:
-        kwargs.update([('core_pattern', core_pattern)])
-
-    res = executor(
-        command,
-        process,
-        out_file,
-        err_file,
-        process_progress_listener,
-        cwd,
-        collect_cores,
-        check_sanitizer,
-        started,
-        **kwargs
-    )
+    res = executor(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res
 
 
 def _get_command_output_file(cmd, ext):
-    parts = [get_command_name(cmd)]
-    if 'YA_RETRY_INDEX' in os.environ:
-        parts.append('retry{}'.format(os.environ.get('YA_RETRY_INDEX')))
-    if int(os.environ.get('YA_SPLIT_COUNT', '0')) > 1:
-        parts.append('chunk{}'.format(os.environ.get('YA_SPLIT_INDEX', '0')))
-
-    filename = '.'.join(parts + [ext])
+    command_name = get_command_name(cmd)
+    file_name = command_name + "." + ext
     try:
         # if execution is performed from test, save out / err to the test logs dir
         import yatest.common
-        import library.python.pytest.plugins.ya
-
-        if getattr(library.python.pytest.plugins.ya, 'pytest_config', None) is None:
+        import pytest
+        if not hasattr(pytest, 'config'):
             raise ImportError("not in test")
-        filename = path.get_unique_file_path(yatest.common.output_path(), filename)
-        yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(filename))
-        return open(filename, "wb+")
+        file_name = path.get_unique_file_path(yatest.common.output_path(), file_name)
+        yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(file_name))
+        return open(file_name, "wb+")
     except ImportError:
-        return tempfile.NamedTemporaryFile(delete=False, suffix=filename)
+        return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
 
 
 def _get_proc_tree_info(pids):
     if os.name == 'nt':
         return 'Not supported'
     else:
-        stdout, _ = subprocess.Popen(
-            ["/bin/ps", "-wufp"] + [str(p) for p in pids], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        ).communicate()
+        stdout, _ = subprocess.Popen(["/bin/ps", "-wufp"] + [str(p) for p in pids], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         return stdout
 
 
 def py_execute(
-    command,
-    check_exit_code=True,
-    shell=False,
-    timeout=None,
-    cwd=None,
-    env=None,
-    stdin=None,
-    stdout=None,
-    stderr=None,
-    creationflags=0,
-    wait=True,
-    process_progress_listener=None,
-    close_fds=False,
+    command, check_exit_code=True,
+    shell=False, timeout=None,
+    cwd=None, env=None,
+    stdin=None, stdout=None, stderr=None,
+    creationflags=0, wait=True,
+    process_progress_listener=None, close_fds=False
 ):
     """
     Executes a command with the arcadia python
@@ -699,7 +526,7 @@ def py_execute(
     :param creationflags: command creation flags
     :param wait: should wait until the command finishes
     :param process_progress_listener=object that is polled while execution is in progress
-    :return _Execution: Execution object
+    :return: Execution object
     """
     if isinstance(command, six.string_types):
         command = [command]
@@ -779,9 +606,7 @@ def _nix_kill_process_tree(pid, target_pid_signal=None):
             os.kill(pid, sig)
             yatest_logger.debug("Sent signal %d to the pid %d", sig, pid)
         except Exception as exc:
-            yatest_logger.debug(
-                "Error while sending signal {sig} to pid {pid}: {error}".format(sig=sig, pid=pid, error=str(exc))
-            )
+            yatest_logger.debug("Error while sending signal {sig} to pid {pid}: {error}".format(sig=sig, pid=pid, error=str(exc)))
 
     try_to_send_signal(pid, signal.SIGSTOP)  # Stop the process to prevent it from starting any child processes.
 
@@ -809,47 +634,30 @@ def _win_kill_process_tree(pid):
 
 
 def _run_readelf(binary_path):
-    return str(
-        subprocess.check_output(
-            [runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)]
-        )
-    )
+    return str(subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)]))
 
 
 def check_glibc_version(binary_path):
-    lucid_glibc_version = packaging.version.parse("2.11")
+    lucid_glibc_version = distutils.version.LooseVersion("2.11")
 
     for l in _run_readelf(binary_path).split('\n'):
         match = GLIBC_PATTERN.search(l)
         if not match:
             continue
-        assert packaging.version.parse(match.group(1)) <= lucid_glibc_version, match.group(0)
+        assert distutils.version.LooseVersion(match.group(1)) <= lucid_glibc_version, match.group(0)
 
 
 def backtrace_to_html(bt_filename, output):
     try:
-        from library.python import coredump_filter
-
-        with open(output, "w") as afile:
-            coredump_filter.filter_stackdump(bt_filename, stream=afile)
+        from library.python.coredump_filter import core_proc
+        with open(output, "wb") as afile:
+            core_proc.filter_stackdump(bt_filename, stream=afile)
     except ImportError as e:
         yatest_logger.debug("Failed to import coredump_filter: %s", e)
-        with open(output, "w") as afile:
-            afile.write("<html>Failed to import coredump_filter in USE_ARCADIA_PYTHON=no mode</html>")
 
-
-def _try_convert_bytes_to_string(source):
-    """Function is necessary while this code Python2/3 compatible, because bytes in Python3 is a real bytes and in Python2 is not"""
-    # Bit ugly typecheck, because in Python2 isinstance(str(), bytes) and "type(str()) is bytes" working as True as well
-    if 'bytes' not in str(type(source)):
-        # We already got not bytes. Nothing to do here.
-        return source, False
-
-    result = source
-    error = False
-    try:
-        result = source.decode(encoding='utf-8')
-    except ValueError as e:
-        error = e
-
-    return result, error
+        with open(output, "wb") as afile:
+            res = execute([runtime.python_path(), runtime.source_path("library/python/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
+        if res.exit_code != 0:
+            with open(output, "ab") as afile:
+                afile.write("\n")
+                afile.write(res.std_err)

@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "des_local.h"
+#include "des_locl.h"
 
 /*
  * The input and output are loaded in multiples of 8 bits. What this means is

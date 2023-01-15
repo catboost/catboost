@@ -6,9 +6,9 @@
 #include <util/string/cast.h>
 
 
-void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
-                                  const TConstArrayRef<ui8> binarizedFeatures,
-                                  const TConstArrayRef<ui32> hashedCatFeatures,
+void TStaticCtrProvider::CalcCtrs(const TVector<TModelCtr>& neededCtrs,
+                                  const TConstArrayRef<ui8>& binarizedFeatures,
+                                  const TConstArrayRef<ui32>& hashedCatFeatures,
                                   size_t docCount,
                                   TArrayRef<float> result) {
     if (neededCtrs.empty()) {
@@ -121,7 +121,7 @@ void TStaticCtrProvider::CalcCtrs(const TConstArrayRef<TModelCtr> neededCtrs,
     }
 }
 
-bool TStaticCtrProvider::HasNeededCtrs(TConstArrayRef<TModelCtr> neededCtrs) const {
+bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const {
     for (const auto& ctr : neededCtrs) {
         if (!CtrData.LearnCtrs.contains(ctr.Base)) {
             return false;
@@ -278,9 +278,8 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
         break;
 
     case ECtrType::CtrTypesCount:
-        CB_ENSURE(false, "Unsupported CTR type");
     default:
-        CB_ENSURE(false, "Unexpected CTR type");
+        Y_UNREACHABLE();
     }
 }
 
@@ -329,7 +328,7 @@ TIntrusivePtr<TStaticCtrProvider> MergeStaticCtrProvidersData(const TVector<cons
             MergeBuckets(ctrValueTables, &target);
             break;
         default:
-            CB_ENSURE(false, "Unexpected CTR table merge policy");
+            Y_UNREACHABLE();
         }
     }
     return result;

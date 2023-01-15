@@ -46,8 +46,7 @@ static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     {
         #if PY_MAJOR_VERSION >= 3
         if (level == -1) {
-            // Avoid C compiler warning if strchr() evaluates to false at compile time.
-            if ((1) && (strchr(__Pyx_MODULE_NAME, '.'))) {
+            if (strchr(__Pyx_MODULE_NAME, '.')) {
                 /* try package relative import first */
                 module = PyImport_ImportModuleLevelObject(
                     name, global_dict, empty_dict, list, 1);
@@ -152,12 +151,11 @@ __Pyx_import_all_from(PyObject *locals, PyObject *v)
         }
         if (skip_leading_underscores &&
 #if PY_MAJOR_VERSION < 3
-            likely(PyString_Check(name)) &&
+            PyString_Check(name) &&
             PyString_AS_STRING(name)[0] == '_')
 #else
-            likely(PyUnicode_Check(name)) &&
-            likely(__Pyx_PyUnicode_GET_LENGTH(name)) &&
-            __Pyx_PyUnicode_READ_CHAR(name, 0) == '_')
+            PyUnicode_Check(name) &&
+            PyUnicode_AS_UNICODE(name)[0] == '_')
 #endif
         {
             Py_DECREF(name);
@@ -228,9 +226,9 @@ bad:
 
 // PY_VERSION_HEX >= 0x03030000
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_PEP489_MULTI_PHASE_INIT
-static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name);
+static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, PyObject *module_name);
 #else
-#define __Pyx_SetPackagePathFromImportLib(a) 0
+#define __Pyx_SetPackagePathFromImportLib(a, b) 0
 #endif
 
 /////////////// SetPackagePathFromImportLib ///////////////
@@ -239,21 +237,32 @@ static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name);
 
 // PY_VERSION_HEX >= 0x03030000
 #if PY_MAJOR_VERSION >= 3 && !CYTHON_PEP489_MULTI_PHASE_INIT
-static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name) {
-    PyObject *importlib, *osmod, *ossep, *parts, *package_path;
-    PyObject *file_path = NULL;
+static int __Pyx_SetPackagePathFromImportLib(const char* parent_package_name, PyObject *module_name) {
+    PyObject *importlib, *loader, *osmod, *ossep, *parts, *package_path;
+    PyObject *path = NULL, *file_path = NULL;
     int result;
-    PyObject *spec;
-    // package_path = [importlib.util.find_spec(module_name).origin.rsplit(os.sep, 1)[0]]
-    importlib = PyImport_ImportModule("importlib.util");
+    if (parent_package_name) {
+        PyObject *package = PyImport_ImportModule(parent_package_name);
+        if (unlikely(!package))
+            goto bad;
+        path = PyObject_GetAttrString(package, "__path__");
+        Py_DECREF(package);
+        if (unlikely(!path) || unlikely(path == Py_None))
+            goto bad;
+    } else {
+        path = Py_None; Py_INCREF(Py_None);
+    }
+    // package_path = [importlib.find_loader(module_name, path).path.rsplit(os.sep, 1)[0]]
+    importlib = PyImport_ImportModule("importlib");
     if (unlikely(!importlib))
         goto bad;
-    spec = PyObject_CallMethod(importlib, "find_spec", "(O)", module_name);
+    loader = PyObject_CallMethod(importlib, "find_loader", "(OO)", module_name, path);
     Py_DECREF(importlib);
-    if (unlikely(!spec))
+    Py_DECREF(path); path = NULL;
+    if (unlikely(!loader))
         goto bad;
-    file_path = PyObject_GetAttrString(spec, "origin");
-    Py_DECREF(spec);
+    file_path = PyObject_GetAttrString(loader, "path");
+    Py_DECREF(loader);
     if (unlikely(!file_path))
         goto bad;
 
@@ -280,6 +289,7 @@ static int __Pyx_SetPackagePathFromImportLib(PyObject *module_name) {
 
 bad:
     PyErr_WriteUnraisable(module_name);
+    Py_XDECREF(path);
     Py_XDECREF(file_path);
 
     // set an empty path list on failure
@@ -646,7 +656,7 @@ static int __Pyx_MergeVtables(PyTypeObject *type) {
             base = base->tp_base;
         }
     }
-    base_vtables = (void**) malloc(sizeof(void*) * (size_t)(base_depth + 1));
+    base_vtables = (void**) malloc(sizeof(void*) * (base_depth + 1));
     base_vtables[0] = unknown;
     // Could do MRO resolution of individual methods in the future, assuming
     // compatible vtables, but for now simply require a common vtable base.

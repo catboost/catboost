@@ -7,7 +7,7 @@
 
 #include <util/generic/xrange.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -52,7 +52,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<bool> bundleExclusiveFeaturesVariants = {false};
 
-            TVector<bool> packBinaryFeaturesVariants = {false, true};
+            TVector<bool> packBinaryFeaturesVariants = {false};
+            if (quantizationOptions.CpuCompatibleFormat) {
+                packBinaryFeaturesVariants.push_back(true);
+            }
 
             for (auto packBinaryFeatures : packBinaryFeaturesVariants) {
                 quantizationOptions.PackBinaryFeaturesForCpu = packBinaryFeatures;
@@ -72,7 +75,6 @@ Y_UNIT_TEST_SUITE(Quantization) {
                             Nothing(),
                             std::move(testCase.SrcData),
                             false,
-                            /*forceUnitAutoPairWeights*/ false,
                             &localExecutor
                         );
 
@@ -83,7 +85,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                             &rand,
                             &localExecutor)->CastMoveTo<TObjectsDataProvider>();
 
-                        Compare<TQuantizedObjectsDataProvider>(
+                        Compare<TQuantizedForCPUObjectsDataProvider>(
                                 std::move(quantizedDataProvider),
                                 testCase.ExpectedData
                         );
@@ -136,7 +138,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("f" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -321,7 +323,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -438,7 +440,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -572,7 +574,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("c" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -835,7 +837,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 "f13", // 21
             };
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
@@ -1137,7 +1139,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "c0", "f1", "c1", "c2"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 

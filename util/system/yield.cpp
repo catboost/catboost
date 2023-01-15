@@ -1,10 +1,11 @@
 #include "platform.h"
 
 #ifdef _win_
-    #include "winint.h"
-    #include <process.h>
+#include "winint.h"
+#include <process.h>
 #else
-    #include <sched.h>
+#include <pthread.h>
+#include <sched.h>
 #endif
 
 void SchedYield() noexcept {

@@ -103,12 +103,7 @@ L192:
 Loop192:
 	tbl	v6.16b,{v4.16b},v2.16b
 	ext	v5.16b,v0.16b,v3.16b,#12
-#ifdef __ARMEB__
-	st1	{v4.4s},[x2],#16
-	sub	x2,x2,#8
-#else
 	st1	{v4.8b},[x2],#8
-#endif
 	aese	v6.16b,v0.16b
 	subs	w1,w1,#1
 
@@ -579,11 +574,8 @@ _aes_v8_ctr32_encrypt_blocks:
 	ldr	w5,[x3,#240]
 
 	ldr	w8, [x4, #12]
-#ifdef __ARMEB__
-	ld1	{v0.16b},[x4]
-#else
 	ld1	{v0.4s},[x4]
-#endif
+
 	ld1	{v16.4s,v17.4s},[x3]		// load key schedule...
 	sub	w5,w5,#4
 	mov	x12,#16

@@ -10,7 +10,7 @@ namespace NKernel {
         TDevicePointer<int> QidCursor;
     };
 
-    void QueryCrossEntropy(int* qidCursor, const ui32 qCount,
+    void QueryCrossEntropy(int* qidCursor, const int qCount,
                            const float alpha,
                            const float* targets,
                            const float* weights,
@@ -18,11 +18,7 @@ namespace NKernel {
                            const ui32* qids,
                            const bool* isSingleClassQueries,
                            const ui32* qOffsets,
-                           const float* approxScale,
-                           const float defaultScale,
-                           const ui32 approxScaleSize,
-                           const ui32* trueClassCount,
-                           const ui32 docCount,
+                           const int docCount,
                            float* functionValue,
                            float* ders,
                            float* ders2llp,
@@ -37,7 +33,7 @@ namespace NKernel {
                                       TCudaStream stream);
 
     void MakeQueryLogitPairs(const ui32* qOffsets,
-                             const ui64* matrixOffset,
+                             const ui32* matrixOffset,
                              const bool* isSingleQueryFlags,
                              double meanQuerySize,
                              ui32 qCount,
@@ -50,7 +46,6 @@ namespace NKernel {
                                 ui32 queryCount,
                                 double meanQuerySize,
                                 bool* isSingleClassQuery,
-                                ui32* trueClassCount,
                                 TCudaStream stream);
 
 
@@ -59,7 +54,7 @@ namespace NKernel {
                                            const float* groupDers2,
                                            const ui32* docIds,
                                            const ui32* qids,
-                                           ui64 pairCount,
+                                           ui32 pairCount,
                                            float* pairDer2,
                                            uint2* pairs,
                                            TCudaStream stream

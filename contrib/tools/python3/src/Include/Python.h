@@ -32,8 +32,21 @@
 #include <errno.h>
 #endif
 #include <stdlib.h>
-#ifndef MS_WINDOWS
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_CRYPT_H
+#if defined(HAVE_CRYPT_R) && !defined(_GNU_SOURCE)
+/* Required for glibc to expose the crypt_r() function prototype. */
+#  define _GNU_SOURCE
+#  define _Py_GNU_SOURCE_FOR_CRYPT
+#endif
+#include <crypt.h>
+#ifdef _Py_GNU_SOURCE_FOR_CRYPT
+/* Don't leak the _GNU_SOURCE define to other headers. */
+#  undef _GNU_SOURCE
+#  undef _Py_GNU_SOURCE_FOR_CRYPT
+#endif
 #endif
 
 /* For size_t? */
@@ -50,25 +63,28 @@
 #include "pyport.h"
 #include "pymacro.h"
 
-/* A convenient way for code to know if sanitizers are enabled. */
+/* A convenient way for code to know if clang's memory sanitizer is enabled. */
 #if defined(__has_feature)
 #  if __has_feature(memory_sanitizer)
 #    if !defined(_Py_MEMORY_SANITIZER)
 #      define _Py_MEMORY_SANITIZER
 #    endif
 #  endif
-#  if __has_feature(address_sanitizer)
-#    if !defined(_Py_ADDRESS_SANITIZER)
-#      define _Py_ADDRESS_SANITIZER
-#    endif
-#  endif
-#elif defined(__GNUC__)
-#  if defined(__SANITIZE_ADDRESS__)
-#    define _Py_ADDRESS_SANITIZER
-#  endif
 #endif
 
+#include "pyatomic.h"
+
+/* Debug-mode build with pymalloc implies PYMALLOC_DEBUG.
+ *  PYMALLOC_DEBUG is in error if pymalloc is not in use.
+ */
+#if defined(Py_DEBUG) && defined(WITH_PYMALLOC) && !defined(PYMALLOC_DEBUG)
+#define PYMALLOC_DEBUG
+#endif
+#if defined(PYMALLOC_DEBUG) && !defined(WITH_PYMALLOC)
+#error "PYMALLOC_DEBUG requires WITH_PYMALLOC"
+#endif
 #include "pymath.h"
+#include "pytime.h"
 #include "pymem.h"
 
 #include "object.h"
@@ -76,7 +92,7 @@
 #include "typeslots.h"
 #include "pyhash.h"
 
-#include "cpython/pydebug.h"
+#include "pydebug.h"
 
 #include "bytearrayobject.h"
 #include "bytesobject.h"
@@ -91,7 +107,7 @@
 #include "tupleobject.h"
 #include "listobject.h"
 #include "dictobject.h"
-#include "cpython/odictobject.h"
+#include "odictobject.h"
 #include "enumobject.h"
 #include "setobject.h"
 #include "methodobject.h"
@@ -100,29 +116,24 @@
 #include "classobject.h"
 #include "fileobject.h"
 #include "pycapsule.h"
-#include "code.h"
-#include "pyframe.h"
 #include "traceback.h"
 #include "sliceobject.h"
 #include "cellobject.h"
 #include "iterobject.h"
-#include "cpython/initconfig.h"
 #include "genobject.h"
 #include "descrobject.h"
-#include "genericaliasobject.h"
 #include "warnings.h"
 #include "weakrefobject.h"
 #include "structseq.h"
 #include "namespaceobject.h"
-#include "cpython/picklebufobject.h"
-#include "cpython/pytime.h"
 
 #include "codecs.h"
 #include "pyerrors.h"
-#include "pythread.h"
+
 #include "pystate.h"
 #include "context.h"
 
+#include "pyarena.h"
 #include "modsupport.h"
 #include "compile.h"
 #include "pythonrun.h"
@@ -138,11 +149,11 @@
 
 #include "eval.h"
 
-#include "cpython/pyctype.h"
+#include "pyctype.h"
 #include "pystrtod.h"
 #include "pystrcmp.h"
+#include "dtoa.h"
 #include "fileutils.h"
-#include "cpython/pyfpe.h"
-#include "tracemalloc.h"
+#include "pyfpe.h"
 
 #endif /* !Py_PYTHON_H */

@@ -1,20 +1,17 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
+// Copyright (c) Facebook Inc. and Microsoft Corporation.
+// Licensed under the MIT license.
 
 #pragma once
 
-#include <util/generic/string.h>
+#include <string>
 
 namespace ONNX_NAMESPACE {
 // For ONNX op/function registration.
 
 // ONNX domains.
 constexpr const char* AI_ONNX_ML_DOMAIN = "ai.onnx.ml";
-constexpr const char* AI_ONNX_TRAINING_DOMAIN = "ai.onnx.training";
-constexpr const char* AI_ONNX_PREVIEW_TRAINING_DOMAIN = "ai.onnx.preview.training";
 constexpr const char* ONNX_DOMAIN = "";
-constexpr bool OPTIONAL_VALUE = false;
+constexpr bool OPTIONAL = false;
 
 // For dimension denotation.
 constexpr const char* DATA_BATCH = "DATA_BATCH";

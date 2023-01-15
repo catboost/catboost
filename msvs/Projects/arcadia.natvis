@@ -83,7 +83,7 @@
   <DisplayString>{{ size={num_elements} }}</DisplayString>
   <Expand>
     <LinkedListItems>
-      <HeadPointer>buckets.Size.Divisor == 1 ? (__yhashtable_node&lt;$T1&gt;*)0 : (__yhashtable_node&lt;$T1&gt;*)((char*)buckets.Data + 1)</HeadPointer>
+      <HeadPointer>buckets.Size == 1 ? (__yhashtable_node&lt;$T1&gt;*)0 : (__yhashtable_node&lt;$T1&gt;*)((char*)buckets.Data + 1)</HeadPointer>
       <NextPointer>
       ((uintptr_t)this &amp; 1) ?
       (__yhashtable_node&lt;$T1&gt;*)(
@@ -176,8 +176,7 @@
     strings
 -->
 
-<!-- aka TString -->
-<Type Name="TBasicString&lt;char,*&gt;">
+<Type Name="TString">
   <DisplayString>{Data_,[((NDetail::TStringData*)Data_-1)->Length]s8}</DisplayString>
   <Expand>
     <Item Name="[size]" ExcludeView="simple">((NDetail::TStringData*)Data_ - 1)->Length</Item>
@@ -190,8 +189,7 @@
   </Expand>
 </Type>
 
-<!-- aka TUtf16String -->
-<Type Name="TBasicString&lt;unsigned short,*&gt;">
+<Type Name="TUtf16String">
   <DisplayString>{Data_,[((NDetail::TStringData*)Data_-1)->Length]su}</DisplayString>
   <Expand>
     <Item Name="[size]" ExcludeView="simple">((NDetail::TStringData*)Data_ - 1)->Length</Item>
@@ -205,25 +203,25 @@
 </Type>
 
 <!-- aka TStringBuf -->
-<Type Name="TBasicStringBuf&lt;char,*&gt;">
-  <DisplayString>{__data,[__size]s8}</DisplayString>
+<Type Name="TFixedString&lt;char,*&gt;">
+  <DisplayString>{Start,[Length]s8}</DisplayString>
   <Expand>
-    <Item Name="[size]" ExcludeView="simple">__size</Item>
+    <Item Name="[size]" ExcludeView="simple">Length</Item>
     <ArrayItems>
-      <Size>__size</Size>
-      <ValuePointer>__data</ValuePointer>
+      <Size>Length</Size>
+      <ValuePointer>Start</ValuePointer>
     </ArrayItems>
   </Expand>
 </Type>
 
 <!-- aka TWtringBuf -->
-<Type Name="TBasicStringBuf&lt;unsigned short,*&gt;">
-  <DisplayString>{__data,[__size]su}</DisplayString>
+<Type Name="TFixedString&lt;unsigned short,*&gt;">
+  <DisplayString>{Start,[Length]su}</DisplayString>
   <Expand>
-    <Item Name="[size]" ExcludeView="simple">__size</Item>
+    <Item Name="[size]" ExcludeView="simple">Length</Item>
     <ArrayItems>
-      <Size>__size</Size>
-      <ValuePointer>(wchar_t*)__data</ValuePointer>
+      <Size>Length</Size>
+      <ValuePointer>(wchar_t*)Start</ValuePointer>
     </ArrayItems>
   </Expand>
 </Type>

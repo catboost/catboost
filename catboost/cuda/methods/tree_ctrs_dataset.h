@@ -44,21 +44,6 @@ namespace NCatboostCuda {
             return Ctrs[featureId];
         }
 
-        TSingleBuffer<float> GetCtrWeights(ui32 maxUniqueValues, float modelSizeReg) const {
-            TVector<float> featureWeights;
-            for (const auto& ctr: Ctrs) {
-                featureWeights.push_back(pow(
-                    1 + float(FeaturesManager.GetMaxCtrUniqueValues(ctr)) / maxUniqueValues,
-                    -modelSizeReg
-                ));
-            }
-
-            auto mapping = NCudaLib::TSingleMapping(GetDeviceId(), GetFeatureCount());
-            auto featureWeightsBuffer = TSingleBuffer<float>::Create(mapping);
-            featureWeightsBuffer.Write(featureWeights);
-            return featureWeightsBuffer;
-        }
-
         TScopedCacheHolder& GetCacheHolder() const {
             CB_ENSURE(CacheHolder);
             return *CacheHolder;
@@ -169,7 +154,7 @@ namespace NCatboostCuda {
         void BuildFeatureIndex();
 
         TFeaturesMapping CreateFeaturesMapping() {
-            return NCudaLib::TSingleMapping(GetDeviceId(),
+            return NCudaLib::TSingleMapping(BaseTensorIndices.GetMapping().GetDeviceId(),
                                             static_cast<ui32>(Ctrs.size()));
         }
 

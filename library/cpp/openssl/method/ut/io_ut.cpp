@@ -1,6 +1,6 @@
 #include <library/cpp/openssl/method/io.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 class TTestIO : public NOpenSSL::TAbstractIO {
 public:

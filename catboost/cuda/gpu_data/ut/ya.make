@@ -5,17 +5,16 @@ IF (AUTOCHECK)
 ELSE()
     UNITTEST()
     SIZE(MEDIUM)
-    IF (OS_LINUX AND NOT ARCH_AARCH64)
-        ALLOCATOR(TCMALLOC_256K)
-    ELSE()
+    IF (ARCH_AARCH64 OR OS_WINDOWS)
         ALLOCATOR(J)
+    ELSE()
+        ALLOCATOR(LF)
     ENDIF()
 ENDIF()
 
 SRCS(
     test_bin_builder.cpp
     test_binarization.cpp
-    test_uniform_binarization.cpp
 )
 
 PEERDIR(

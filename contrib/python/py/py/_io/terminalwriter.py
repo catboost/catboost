@@ -133,8 +133,6 @@ def should_do_markup(file):
         return True
     if os.environ.get('PY_COLORS') == '0':
         return False
-    if 'NO_COLOR' in os.environ:
-        return False
     return hasattr(file, 'isatty') and file.isatty() \
            and os.environ.get('TERM') != 'dumb' \
            and not (sys.platform.startswith('java') and os._name == 'nt')

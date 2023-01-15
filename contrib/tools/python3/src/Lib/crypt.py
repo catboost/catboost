@@ -1,16 +1,6 @@
 """Wrapper to the POSIX crypt library call and associated functionality."""
 
-import sys as _sys
-
-try:
-    import _crypt
-except ModuleNotFoundError:
-    if _sys.platform == 'win32':
-        raise ImportError("The crypt module is not supported on Windows")
-    else:
-        raise ImportError("The required _crypt module was not built as part of CPython")
-
-import errno
+import _crypt
 import string as _string
 from random import SystemRandom as _SystemRandom
 from collections import namedtuple as _namedtuple
@@ -89,14 +79,7 @@ def _add_method(name, *args, rounds=None):
     method = _Method(name, *args)
     globals()['METHOD_' + name] = method
     salt = mksalt(method, rounds=rounds)
-    result = None
-    try:
-        result = crypt('', salt)
-    except OSError as e:
-        # Not all libc libraries support all encryption methods.
-        if e.errno in {errno.EINVAL, errno.EPERM, errno.ENOSYS}:
-            return False
-        raise
+    result = crypt('', salt)
     if result and len(result) == method.total_size:
         methods.append(method)
         return True

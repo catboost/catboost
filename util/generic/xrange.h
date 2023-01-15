@@ -60,11 +60,6 @@ namespace NPrivate {
                 return *this;
             }
 
-            TIterator& operator--() noexcept {
-                --Value;
-                return *this;
-            }
-
             constexpr TDiff operator-(const TIterator& b) const noexcept {
                 return Value - b.Value;
             }
@@ -83,12 +78,6 @@ namespace NPrivate {
             template <typename IntType>
             constexpr TIterator operator-(const IntType& b) const noexcept {
                 return TIterator(Value - b);
-            }
-
-            template <typename IntType>
-            TIterator& operator-=(const IntType& b) noexcept {
-                Value -= b;
-                return *this;
             }
 
             constexpr bool operator<(const TIterator& b) const noexcept {
@@ -169,35 +158,24 @@ namespace NPrivate {
                 return *this;
             }
 
-            TIterator& operator--() noexcept {
-                Value_ -= Parent_->Step_;
-                return *this;
-            }
-
             constexpr TDiff operator-(const TIterator& b) const noexcept {
-                return (Value_ - b.Value_) / Parent_->Step_;
+                return Value_ - b.Value_;
             }
 
             template <typename IntType>
             constexpr TIterator operator+(const IntType& b) const noexcept {
-                return TIterator(*this) += b;
+                return TIterator(Value_ + b * Parent_->Step_, *Parent_);
             }
 
             template <typename IntType>
             TIterator& operator+=(const IntType& b) noexcept {
-                Value_ += b * Parent_->Step_;
+                Value_ += b;
                 return *this;
             }
 
             template <typename IntType>
             constexpr TIterator operator-(const IntType& b) const noexcept {
-                return TIterator(*this) -= b;
-            }
-
-            template <typename IntType>
-            TIterator& operator-=(const IntType& b) noexcept {
-                Value_ -= b * Parent_->Step_;
-                return *this;
+                return TIterator(Value_ - b * Parent_->Step_, Parent_);
             }
 
         private:

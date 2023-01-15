@@ -1,9 +1,7 @@
-#include <library/cpp/testing/unittest/registar.h>
-#include <util/system/error.h>
+#include <library/unittest/registar.h>
 
 #include "pair.h"
 #include "poller.h"
-#include "pollerimpl.h"
 
 Y_UNIT_TEST_SUITE(TSocketPollerTest) {
     Y_UNIT_TEST(TestSimple) {
@@ -136,15 +134,7 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             // restart without reading
             poller.RestartReadWriteEdgeTriggered(sockets[1], (void*)17, false);
 
-            // after restart read and write might generate separate events
-            {
-                void* events[3];
-                size_t count = poller.WaitT(events, 3, TDuration::Zero());
-                UNIT_ASSERT_GE(count, 1);
-                UNIT_ASSERT_LE(count, 2);
-                UNIT_ASSERT_VALUES_EQUAL(events[0], (void*)17);
-            }
-
+            UNIT_ASSERT_VALUES_EQUAL((void*)17, poller.WaitT(TDuration::Zero()));
             UNIT_ASSERT_VALUES_EQUAL(nullptr, poller.WaitT(TDuration::Zero()));
 
             // second two more bytes
@@ -171,9 +161,8 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             UNIT_ASSERT_VALUES_EQUAL(nullptr, poller.WaitT(TDuration::Zero()));
 
             // hit end
-            ClearLastSystemError();
             UNIT_ASSERT_VALUES_EQUAL(-1, recv(sockets[1], buf, 1, 0));
-            UNIT_ASSERT_VALUES_EQUAL(EAGAIN, LastSystemError());
+            UNIT_ASSERT_VALUES_EQUAL(EAGAIN, errno);
 
             // restart after end (noop for epoll)
             poller.RestartReadWriteEdgeTriggered(sockets[1], (void*)17, true);
@@ -209,35 +198,4 @@ Y_UNIT_TEST_SUITE(TSocketPollerTest) {
             poller.Unwait(sockets[1]);
         }
     }
-
-#if defined(HAVE_EPOLL_POLLER)
-    Y_UNIT_TEST(TestRdhup) {
-        SOCKET sockets[2];
-        UNIT_ASSERT(SocketPair(sockets) == 0);
-
-        TSocketHolder s1(sockets[0]);
-        TSocketHolder s2(sockets[1]);
-
-        char buf[1] = {0};
-        UNIT_ASSERT_VALUES_EQUAL(1, send(s1, buf, 1, 0));
-        shutdown(s1, SHUT_WR);
-
-        using TPoller = TGenericPoller<TEpollPoller<TWithoutLocking>>;
-        TPoller poller;
-        poller.Set((void*)17, s2, CONT_POLL_RDHUP);
-
-        TPoller::TEvent e;
-        UNIT_ASSERT_VALUES_EQUAL(poller.WaitD(&e, 1, TDuration::Zero().ToDeadLine()), 1);
-        UNIT_ASSERT_EQUAL(TPoller::ExtractStatus(&e), 0);
-        UNIT_ASSERT_EQUAL(TPoller::ExtractFilter(&e), CONT_POLL_RDHUP);
-        UNIT_ASSERT_EQUAL(TPoller::ExtractEvent(&e), (void*)17);
-    }
-
-    Y_UNIT_TEST(TestSetSocketErrors) {
-        TGenericPoller<TEpollPoller<TWithoutLocking>> poller;
-
-        UNIT_ASSERT_EXCEPTION_CONTAINS(poller.Set(nullptr, Max<int>(), CONT_POLL_READ), TSystemError, "epoll add failed");
-        UNIT_ASSERT_EXCEPTION_CONTAINS(poller.Set(nullptr, Max<int>(), CONT_POLL_READ | CONT_POLL_MODIFY), TSystemError, "epoll modify failed");
-    }
-#endif
 }

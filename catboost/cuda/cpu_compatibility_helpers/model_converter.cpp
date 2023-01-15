@@ -13,7 +13,7 @@
 using namespace NCB;
 
 TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager) {
-    TTargetClassifier targetClassifier(featuresManager.GetTargetBorders(), 0);
+    TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
     TVector<TTargetClassifier> classifiers;
     classifiers.resize(1, targetClassifier);
     return classifiers;
@@ -91,13 +91,11 @@ TFullModel TModelConverter::Convert(
         *QuantizedFeaturesInfo);
     TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
     TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
-    TVector<TEmbeddingFeature> embeddingFeatures = CreateEmbeddingFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
     TObliviousTreeBuilder obliviousTreeBuilder(
         floatFeatures,
         catFeatures,
         textFeatures,
-        embeddingFeatures,
         cpuApproxDim);
 
     for (ui32 i = 0; i < src.Size(); ++i) {
@@ -130,11 +128,7 @@ TFullModel TModelConverter::Convert(
     }
 
     obliviousTreeBuilder.Build(coreModel.ModelTrees.GetMutable());
-    TVector<double> bias;
-    if (cpuApproxDim == 1) {
-        bias = {src.Bias};
-    }
-    coreModel.SetScaleAndBias({1.0, bias});
+    coreModel.SetScaleAndBias({1.0, src.Bias});
     coreModel.UpdateDynamicData();
     return coreModel;
 }
@@ -156,14 +150,11 @@ TFullModel TModelConverter::Convert(
             *QuantizedFeaturesInfo);
         TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
         TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
-        TVector<TEmbeddingFeature> embeddingFeatures = CreateEmbeddingFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
-
 
         TNonSymmetricTreeModelBuilder treeBuilder(
             floatFeatures,
             catFeatures,
             textFeatures,
-            embeddingFeatures,
             cpuApproxDim);
 
         for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
@@ -210,11 +201,7 @@ TFullModel TModelConverter::Convert(
         }
 
         treeBuilder.Build(coreModel.ModelTrees.GetMutable());
-        TVector<double> bias;
-        if (cpuApproxDim == 1) {
-            bias = {src.Bias};
-        }
-        coreModel.SetScaleAndBias({1.0, bias});
+        coreModel.SetScaleAndBias({1.0, src.Bias});
         coreModel.UpdateDynamicData();
         return coreModel;
     }
@@ -251,13 +238,12 @@ TFullModel TModelConverter::Convert(
         TFeatureEstimatorsPtr featureEstimators = FeaturesManager.GetFeatureEstimators();
         const TGuid& estimatorGuid = featureEstimators->GetEstimatorGuid(estimatedFeature.EstimatorId);
 
-        modelSplit.EstimatedFeature = TEstimatedFeatureSplit(TModelEstimatedFeature{
+        modelSplit.EstimatedFeature = TEstimatedFeatureSplit{
             SafeIntegerCast<int>(featureEstimators->GetEstimatorSourceFeatureIdx(estimatorGuid).TextFeatureId),
             estimatorGuid,
             SafeIntegerCast<int>(estimatedFeature.LocalFeatureId),
-            FeatureTypeToEstimatedSourceFeatureType(featureEstimators->GetEstimatorSourceType(estimatorGuid))},
             border
-        );
+        };
         return modelSplit;
     }
 
@@ -350,7 +336,7 @@ TFullModel TModelConverter::Convert(
         featureCombinationToProjection->insert({modelCtr.Base.Projection, std::move(projection)});
 
         modelCtr.Base.CtrType = ctr.Configuration.Type;
-        modelCtr.Base.TargetBorderClassifierIdx = 0;
+        modelCtr.Base.TargetBorderClassifierIdx = ctr.Configuration.CtrBinarizationConfigId;
 
         const auto& config = ctr.Configuration;
         modelCtr.TargetBorderIdx = config.ParamId;

@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import glob
 import subprocess
 import shutil
 import os
@@ -11,21 +10,13 @@ import tempfile
 import hashlib
 
 from base64 import urlsafe_b64encode
-from argparse import ArgumentParser
+
 
 sys.dont_write_bytecode = True
 
-PL_LINUX = ['manylinux1_x86_64']
-PL_MACOS_X86_64 = [
-    'macosx_10_6_intel',
-    'macosx_10_9_intel',
-    'macosx_10_9_x86_64',
-    'macosx_10_10_intel',
-    'macosx_10_10_x86_64'
-]
-PL_MACOS_ARM64 = ['macosx_11_0_arm64', 'macosx_12_0_arm64']
-PL_MACOS_UNIVERSAL = ['macosx_10_6_universal2']
-PL_WIN = ['win_amd64']
+PL_LINUX = 'manylinux1_x86_64'
+PL_MACOS = 'macosx_10_6_intel.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64'
+PL_WIN = 'win_amd64'
 
 
 class PythonVersion(object):
@@ -41,12 +32,12 @@ class PythonTrait(object):
         self.out_root = out_root
         self.tail_args = tail_args
         self.python_version = mine_system_python_ver(self.tail_args)
-        self.platform_tag_string = mine_platform_tag_string(self.tail_args)
+        self.platform = mine_platform(self.tail_args)
         self.py_config, self.lang = self.get_python_info()
 
-    def gen_cmd(self, arc_path):
+    def gen_cmd(self):
         cmd = [
-            sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, arc_path),
+            sys.executable, arc_root + '/ya', 'make', os.path.join(arc_root, 'catboost', 'python-package', 'catboost'),
             '--no-src-links', '-r', '--output', out_root, '-DPYTHON_CONFIG=' + self.py_config, '-DNO_DEBUGINFO', '-DOS_SDK=local',
         ]
 
@@ -66,11 +57,11 @@ class PythonTrait(object):
             lang = 'cp3' + str(self.python_version.minor)
         return py_config, lang
 
-    def so_name(self, module_name):
+    def so_name(self):
         if self._on_win():
-            return module_name + '.pyd'
+            return '_catboost.pyd'
 
-        return module_name + '.so'
+        return '_catboost.so'
 
     def dll_ext(self):
         if self._on_win():
@@ -78,63 +69,50 @@ class PythonTrait(object):
         return '.so'
 
     def _on_win(self):
-        if self.platform_tag_string == PL_WIN[0]:
+        if self.platform == PL_WIN:
             return True
         return platform.system() == 'Windows'
 
 
-def mine_platform_tag_string(tail_args):
-    target_platforms = find_target_platforms(tail_args)
-    platform_tags = transform_target_platforms(target_platforms) if target_platforms else gen_platform_tags()
-    if all([tag.startswith('macos') for tag in platform_tags]) and ('--lipo' in tail_args):
-        platform_tags = PL_MACOS_UNIVERSAL
-    return '.'.join(sorted(platform_tags))
+def mine_platform(tail_args):
+    platform = find_target_platform(tail_args)
+    if platform:
+        return transform_platform(platform)
+    return gen_platform()
 
 
-def gen_platform_tags():
+def gen_platform():
     import distutils.util
 
     value = distutils.util.get_platform().replace("linux", "manylinux1")
     value = value.replace('-', '_').replace('.', '_')
     if 'macosx' in value:
-        return PL_MACOS_X86_64
-    return [value]
+        value = PL_MACOS
+    return value
 
 
-def find_target_platforms(tail_args):
-    target_platforms = []
-
-    arg_idx = 0
-    while arg_idx < len(tail_args):
-        arg = tail_args[arg_idx]
-        if arg.startswith('--target-platform'):
-            if len(arg) == len('--target-platform'):
-                target_platforms.append(tail_args[arg_idx + 1])
-                arg_idx += 2
-            elif arg[len('--target-platform')] == '=':
-                target_platforms.append(arg[(len('--target-platform') + 1):])
-                arg_idx += 1
-        else:
-            arg_idx += 1
-
-    return [platform.lower() for platform in target_platforms]
+def find_target_platform(tail_args):
+    try:
+        target_platform_index = tail_args.index('--target-platform')
+        return tail_args[target_platform_index + 1].lower()
+    except ValueError:
+        target_platform = [arg for arg in tail_args if '--target-platform' in arg]
+        if target_platform:
+            _, platform = target_platform[0].split('=')
+            return platform.lower()
+    return None
 
 
-def transform_target_platforms(target_platforms):
-    platform_tags = set()
-    for platform in target_platforms:
-        if 'linux' in platform:
-            platform_tags = platform_tags.union(PL_LINUX)
-        elif 'darwin' in platform:
-            if 'arm64' in platform:
-               platform_tags = platform_tags.union(PL_MACOS_ARM64)
-            else:
-               platform_tags = platform_tags.union(PL_MACOS_X86_64)
-        elif 'win' in platform:
-            platform_tags = platform_tags.union(PL_WIN)
-        else:
-            raise Exception('Unsupported platform {}'.format(platform))
-    return list(platform_tags)
+def transform_platform(platform):
+    if 'linux' in platform:
+        return PL_LINUX
+    elif 'darwin' in platform:
+        return PL_MACOS
+    elif 'win' in platform:
+        return PL_WIN
+    else:
+        raise Exception('Unsupported platform {}'.format(platform))
+
 
 def get_version(version_py):
     exec(compile(open(version_py, "rb").read(), version_py, 'exec'))
@@ -207,108 +185,55 @@ def make_record(dir_path, dist_info_dir):
                 record.write(item[tmp_dir_length:] + ',,\n')
 
 
-def make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget):
-    with tempfile.TemporaryDirectory() as dir_path:
-        # Create py files
-        os.makedirs(os.path.join(dir_path, pkg_name))
+def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path):
+    dir_path = tempfile.mkdtemp()
 
-        catboost_package_dir = os.path.join(arc_root, 'catboost/python-package')
-        for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget/__init__.py',
-                          'widget/ipythonwidget.py','widget/metrics_plotter.py', 'widget/callbacks.py',
-                          'metrics.py', 'monoforest.py', 'plot_helpers.py', 'text_processing.py']:
-            src = os.path.join(catboost_package_dir, 'catboost', file_name)
-            dst = os.path.join(dir_path, pkg_name, file_name)
-            if not os.path.exists(os.path.dirname(dst)):
-                os.makedirs(os.path.dirname(dst))
-
-            if os.path.isdir(src):
-                shutil.copytree(src, dst)
-            else:
-                shutil.copy(src, dst)
-
-        hnsw_package_dir = os.path.join(arc_root, 'library/python/hnsw/hnsw')
-        hnsw_dst_dir = os.path.join(dir_path, pkg_name, 'hnsw')
-        os.makedirs(hnsw_dst_dir)
-        for file_name in ['__init__.py', 'hnsw.py']:
-            src = os.path.join(hnsw_package_dir, file_name)
-            dst = os.path.join(hnsw_dst_dir, file_name)
+    # Create py files
+    python_package_dir = os.path.join(arc_root, 'catboost/python-package')
+    os.makedirs(os.path.join(dir_path, pkg_name))
+    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget', 'monoforest.py', 'text_processing.py']:
+        src = os.path.join(python_package_dir, 'catboost', file_name)
+        dst = os.path.join(dir_path, pkg_name, file_name)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
             shutil.copy(src, dst)
 
-        # Create so files
-        py_trait = PythonTrait('', '', [])
-        for module_name, (so_path, dst_subdir) in dst_so_modules.items():
-            so_name = py_trait.so_name(module_name)
-            shutil.copy(so_path, os.path.join(dir_path, pkg_name, dst_subdir, so_name))
+    # Create so files
+    so_name = PythonTrait('', '', []).so_name()
+    shutil.copy(so_path, os.path.join(dir_path, pkg_name, so_name))
 
-        # Create metadata
-        dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
-        shutil.copytree(os.path.join(catboost_package_dir, 'catboost.dist-info'), dist_info_dir)
+    # Create metadata
+    dist_info_dir = os.path.join(dir_path, '{}-{}.dist-info'.format(pkg_name, ver))
+    shutil.copytree(os.path.join(python_package_dir, 'catboost.dist-info'), dist_info_dir)
 
-        def substitute_vars(file_path):
-            allow_to_write(file_path)
-            with open(file_path, 'r') as fm:
-                metadata = fm.read()
-            metadata = metadata.format(
-                pkg_name=pkg_name,
-                version=ver,
-            )
-            with open(file_path, 'w') as fm:
-                fm.write(metadata)
+    def substitute_vars(file_path):
+        allow_to_write(file_path)
+        with open(file_path, 'r') as fm:
+            metadata = fm.read()
+        metadata = metadata.format(
+            pkg_name=pkg_name,
+            version=ver,
+        )
+        with open(file_path, 'w') as fm:
+            fm.write(metadata)
+    substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
+    substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
 
-        substitute_vars(os.path.join(dist_info_dir, 'METADATA'))
-        substitute_vars(os.path.join(dist_info_dir, 'top_level.txt'))
+    # Create record
+    make_record(dir_path, dist_info_dir)
 
-        if should_build_widget:
-            data_dir = os.path.join(dir_path, '{}-{}.data'.format(pkg_name, ver), 'data')
-            widget_dir = os.path.join(catboost_package_dir, 'catboost', 'widget')
-            for file in ['extension.js', 'index.js']:
-                src = os.path.join(widget_dir, 'nbextension', file)
-                dst = os.path.join(data_dir, 'share', 'jupyter', 'nbextensions', 'catboost-widget', file)
-                if not os.path.exists(os.path.dirname(dst)):
-                    os.makedirs(os.path.dirname(dst))
-                shutil.copy(src, dst)
-
-            labextension_dir = os.path.join(catboost_package_dir, 'catboost', 'widget', 'labextension')
-            for file in os.listdir(labextension_dir):
-                src = os.path.join(labextension_dir, file)
-                dst = os.path.join(data_dir, 'share', 'jupyter', 'labextensions', 'catboost-widget', file)
-                if not os.path.exists(os.path.dirname(dst)):
-                    os.makedirs(os.path.dirname(dst))
-                if os.path.isdir(src):
-                    shutil.copytree(src, dst)
-                else:
-                    shutil.copy(src, dst)
-
-            src = os.path.join(widget_dir, 'catboost-widget.json')
-            dst = os.path.join(data_dir, 'etc', 'jupyter', 'nbconfig', 'notebook.d', 'catboost-widget.json')
-            if not os.path.exists(os.path.dirname(dst)):
-                os.makedirs(os.path.dirname(dst))
-            shutil.copy(src, dst)
-
-        # Create record
-        make_record(dir_path, dist_info_dir)
-
-        # Create wheel
-        shutil.make_archive(wheel_name, 'zip', dir_path)
-        shutil.move(wheel_name + '.zip', wheel_name)
+    # Create wheel
+    shutil.make_archive(wheel_name, 'zip', dir_path)
+    shutil.move(wheel_name + '.zip', wheel_name)
+    shutil.rmtree(dir_path)
 
 
-def build_widget(arc_root):
-    js_dir = os.path.join(arc_root, 'catboost', 'python-package', 'catboost', 'widget', 'js')
-    subprocess.check_call('"{}" -m pip install -U jupyterlab'.format(sys.executable), shell=True, cwd=js_dir)
-    subprocess.check_call('yarn clean', shell=True, cwd=js_dir)
-    subprocess.check_call('yarn install', shell=True, cwd=js_dir)
-    subprocess.check_call('yarn build', shell=True, cwd=js_dir)
-    # workaround for https://github.com/yarnpkg/yarn/issues/6685
-    for directory in glob.glob(os.path.join(tempfile.gettempdir(), 'yarn--*')):
-        shutil.rmtree(directory, ignore_errors=True)
-
-
-def build(arc_root, out_root, tail_args, should_build_widget):
+def build(arc_root, out_root, tail_args):
     os.chdir(os.path.join(arc_root, 'catboost', 'python-package', 'catboost'))
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
-    ver = get_version(os.path.join(os.getcwd(), 'version.py'))
+    ver = get_version(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.py'))
     pkg_name = os.environ.get('CATBOOST_PACKAGE_NAME', 'catboost')
 
     try_to_build_gpu_version = True
@@ -318,29 +243,16 @@ def build(arc_root, out_root, tail_args, should_build_widget):
     for task_type in (['GPU', 'CPU'] if try_to_build_gpu_version else ['CPU']):
         try:
             print('Trying to build {} version'.format(task_type), file=sys.stderr)
-
-            dst_so_modules = {}
-            for module_name, arc_path, dst_subdir in (
-                ('_catboost', os.path.join('catboost', 'python-package', 'catboost'), ''),
-                ('_hnsw', os.path.join('library', 'python', 'hnsw', 'hnsw'), 'hnsw')
-            ):
-                print('Trying to build {} native library'.format(module_name), file=sys.stderr)
-
-                cmd = py_trait.gen_cmd(arc_path) + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
-                print(' '.join(cmd), file=sys.stderr)
-                subprocess.check_call(cmd)
-                print('Build {} native library: OK'.format(module_name), file=sys.stderr)
-                src = os.path.join(py_trait.out_root, arc_path, py_trait.so_name(module_name))
-                dst = '.'.join([src, task_type])
-                shutil.move(src, dst)
-                dst_so_modules[module_name] = (dst, dst_subdir)
-
+            cmd = py_trait.gen_cmd() + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
+            print(' '.join(cmd), file=sys.stderr)
+            subprocess.check_call(cmd)
             print('Build {} version: OK'.format(task_type), file=sys.stderr)
-            if should_build_widget:
-                build_widget(arc_root)
-            wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package',
-                                      '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform_tag_string))
-            make_wheel(wheel_name, pkg_name, ver, arc_root, dst_so_modules, should_build_widget)
+            src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
+            dst = '.'.join([src, task_type])
+            shutil.move(src, dst)
+            wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', '{}-{}-{}-none-{}.whl'.format(pkg_name, ver, py_trait.lang, py_trait.platform))
+            make_wheel(wheel_name, pkg_name, ver, arc_root, dst)
+            os.remove(dst)
             return wheel_name
         except Exception as e:
             print('{} version build failed: {}'.format(task_type, e), file=sys.stderr)
@@ -349,11 +261,6 @@ def build(arc_root, out_root, tail_args, should_build_widget):
 
 if __name__ == '__main__':
     arc_root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-    with tempfile.TemporaryDirectory() as out_root:
-        widget_args_parser = ArgumentParser()
-        widget_args_parser.add_argument('--build-widget', choices=['yes', 'no'], default='yes')
-        widget_args, catboost_args = widget_args_parser.parse_known_args()
-        should_build_widget = widget_args.build_widget == 'yes'
-
-        wheel_name = build(arc_root, out_root, catboost_args, should_build_widget)
-        print(wheel_name)
+    out_root = tempfile.mkdtemp()
+    wheel_name = build(arc_root, out_root, sys.argv[1:])
+    print(wheel_name)

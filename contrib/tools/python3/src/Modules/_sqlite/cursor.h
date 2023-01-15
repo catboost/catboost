@@ -23,7 +23,6 @@
 
 #ifndef PYSQLITE_CURSOR_H
 #define PYSQLITE_CURSOR_H
-#define PY_SSIZE_T_CLEAN
 #include "Python.h"
 
 #include "statement.h"
@@ -52,9 +51,19 @@ typedef struct
     PyObject* in_weakreflist; /* List of weak references */
 } pysqlite_Cursor;
 
-extern PyTypeObject *pysqlite_CursorType;
+extern PyTypeObject pysqlite_CursorType;
 
-int pysqlite_cursor_setup_types(PyObject *module);
+PyObject* pysqlite_cursor_execute(pysqlite_Cursor* self, PyObject* args);
+PyObject* pysqlite_cursor_executemany(pysqlite_Cursor* self, PyObject* args);
+PyObject* pysqlite_cursor_getiter(pysqlite_Cursor *self);
+PyObject* pysqlite_cursor_iternext(pysqlite_Cursor *self);
+PyObject* pysqlite_cursor_fetchone(pysqlite_Cursor* self, PyObject* args);
+PyObject* pysqlite_cursor_fetchmany(pysqlite_Cursor* self, PyObject* args, PyObject* kwargs);
+PyObject* pysqlite_cursor_fetchall(pysqlite_Cursor* self, PyObject* args);
+PyObject* pysqlite_noop(pysqlite_Connection* self, PyObject* args);
+PyObject* pysqlite_cursor_close(pysqlite_Cursor* self, PyObject* args);
+
+int pysqlite_cursor_setup_types(void);
 
 #define UNKNOWN (-1)
 #endif

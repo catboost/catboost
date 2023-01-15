@@ -1,17 +1,21 @@
+#include "platform.h"
+
 #if defined(__APPLE__) && defined(__MACH__)
 
-    #include <mach/mach.h>
+#include <mach/mach.h>
 
 #endif
 
+
 #ifdef _win_
 
-    #include "winint.h"
-    #include <psapi.h>
+#include "winint.h"
+#include <psapi.h>
 
 #else
 
-    #include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 
 #endif
 
@@ -56,9 +60,8 @@ size_t TRusage::GetCurrentRSS() {
     /* Linux ---------------------------------------------------- */
     long rss = 0L;
     FILE* fp = nullptr;
-    if ((fp = fopen("/proc/self/statm", "r")) == nullptr) {
+    if ((fp = fopen("/proc/self/statm", "r")) == nullptr)
         return (size_t)0L; /* Can't open? */
-    }
     if (fscanf(fp, "%*s%ld", &rss) != 1) {
         fclose(fp);
         return (size_t)0L; /* Can't read? */
@@ -105,12 +108,12 @@ void TRusage::Fill() {
         ythrow TSystemError() << "rusage failed";
     }
 
-    #if defined(_darwin_)
+#if defined(_darwin_)
     // see https://lists.apple.com/archives/darwin-kernel/2009/Mar/msg00005.html
     MaxRss = ru.ru_maxrss;
-    #else
+#else
     MaxRss = ru.ru_maxrss * 1024LL;
-    #endif
+#endif
     MajorPageFaults = ru.ru_majflt;
     Utime = ru.ru_utime;
     Stime = ru.ru_stime;

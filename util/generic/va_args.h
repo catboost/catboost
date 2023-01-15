@@ -10,6 +10,7 @@
 
 #include <util/system/defaults.h>
 
+
 /**
  * Triggers another level of macro expansion, use whenever passing __VA_ARGS__ to another macro.
  *
@@ -88,153 +89,55 @@
 #define Y_MAP_ARGS(ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_MAP_ARGS_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, __VA_ARGS__))
 #define __Y_MAP_ARGS_0(...)
 #define __Y_MAP_ARGS_1(ACTION, x, ...) ACTION(x)
-#define __Y_MAP_ARGS_2(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_1(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_3(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_2(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_4(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_3(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_5(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_4(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_6(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_5(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_7(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_6(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_8(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_7(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_9(ACTION, x, ...) \
-    ACTION(x)                          \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_8(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_10(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_9(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_11(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_10(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_12(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_11(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_13(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_12(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_14(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_13(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_15(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_14(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_16(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_15(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_17(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_16(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_18(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_17(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_19(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_18(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_20(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_19(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_21(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_20(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_22(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_21(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_23(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_22(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_24(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_23(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_25(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_24(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_26(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_25(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_27(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_26(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_28(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_27(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_29(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_28(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_30(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_29(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_31(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_30(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_32(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_31(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_33(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_32(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_34(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_33(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_35(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_34(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_36(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_35(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_37(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_36(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_38(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_37(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_39(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_38(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_40(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_39(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_41(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_40(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_42(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_41(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_43(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_42(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_44(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_43(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_45(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_44(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_46(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_45(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_47(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_46(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_48(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_47(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_49(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_48(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_50(ACTION, x, ...) \
-    ACTION(x)                           \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_49(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_2(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_1(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_3(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_2(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_4(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_3(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_5(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_4(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_6(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_5(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_7(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_6(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_8(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_7(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_9(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_8(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_10(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_9(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_11(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_10(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_12(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_11(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_13(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_12(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_14(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_13(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_15(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_14(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_16(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_15(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_17(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_16(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_18(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_17(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_19(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_18(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_20(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_19(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_21(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_20(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_22(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_21(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_23(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_22(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_24(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_23(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_25(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_24(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_26(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_25(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_27(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_26(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_28(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_27(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_29(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_28(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_30(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_29(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_31(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_30(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_32(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_31(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_33(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_32(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_34(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_33(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_35(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_34(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_36(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_35(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_37(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_36(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_38(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_37(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_39(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_38(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_40(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_39(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_41(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_40(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_42(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_41(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_43(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_42(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_44(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_43(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_45(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_44(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_46(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_45(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_47(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_46(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_48(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_47(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_49(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_48(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_50(ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_49(ACTION, __VA_ARGS__))
 
 /**
  * Expands a macro for each of the variable arguments with it's sequence number and value.
@@ -244,153 +147,55 @@
 #define Y_MAP_ARGS_N(ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_MAP_ARGS_N_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, __VA_ARGS__))
 #define __Y_MAP_ARGS_N_0(...)
 #define __Y_MAP_ARGS_N_1(ACTION, x, ...) ACTION(1, x)
-#define __Y_MAP_ARGS_N_2(ACTION, x, ...) \
-    ACTION(2, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_1(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_3(ACTION, x, ...) \
-    ACTION(3, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_2(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_4(ACTION, x, ...) \
-    ACTION(4, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_3(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_5(ACTION, x, ...) \
-    ACTION(5, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_4(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_6(ACTION, x, ...) \
-    ACTION(6, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_5(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_7(ACTION, x, ...) \
-    ACTION(7, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_6(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_8(ACTION, x, ...) \
-    ACTION(8, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_7(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_9(ACTION, x, ...) \
-    ACTION(9, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_8(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_10(ACTION, x, ...) \
-    ACTION(10, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_9(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_11(ACTION, x, ...) \
-    ACTION(11, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_10(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_12(ACTION, x, ...) \
-    ACTION(12, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_11(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_13(ACTION, x, ...) \
-    ACTION(13, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_12(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_14(ACTION, x, ...) \
-    ACTION(14, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_13(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_15(ACTION, x, ...) \
-    ACTION(15, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_14(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_16(ACTION, x, ...) \
-    ACTION(16, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_15(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_17(ACTION, x, ...) \
-    ACTION(17, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_16(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_18(ACTION, x, ...) \
-    ACTION(18, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_17(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_19(ACTION, x, ...) \
-    ACTION(19, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_18(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_20(ACTION, x, ...) \
-    ACTION(20, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_19(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_21(ACTION, x, ...) \
-    ACTION(21, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_20(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_22(ACTION, x, ...) \
-    ACTION(22, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_21(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_23(ACTION, x, ...) \
-    ACTION(23, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_22(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_24(ACTION, x, ...) \
-    ACTION(24, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_23(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_25(ACTION, x, ...) \
-    ACTION(25, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_24(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_26(ACTION, x, ...) \
-    ACTION(26, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_25(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_27(ACTION, x, ...) \
-    ACTION(27, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_26(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_28(ACTION, x, ...) \
-    ACTION(28, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_27(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_29(ACTION, x, ...) \
-    ACTION(29, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_28(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_30(ACTION, x, ...) \
-    ACTION(30, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_29(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_31(ACTION, x, ...) \
-    ACTION(31, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_30(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_32(ACTION, x, ...) \
-    ACTION(32, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_31(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_33(ACTION, x, ...) \
-    ACTION(33, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_32(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_34(ACTION, x, ...) \
-    ACTION(34, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_33(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_35(ACTION, x, ...) \
-    ACTION(35, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_34(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_36(ACTION, x, ...) \
-    ACTION(36, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_35(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_37(ACTION, x, ...) \
-    ACTION(37, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_36(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_38(ACTION, x, ...) \
-    ACTION(38, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_37(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_39(ACTION, x, ...) \
-    ACTION(39, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_38(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_40(ACTION, x, ...) \
-    ACTION(40, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_39(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_41(ACTION, x, ...) \
-    ACTION(41, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_40(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_42(ACTION, x, ...) \
-    ACTION(42, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_41(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_43(ACTION, x, ...) \
-    ACTION(43, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_42(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_44(ACTION, x, ...) \
-    ACTION(44, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_43(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_45(ACTION, x, ...) \
-    ACTION(45, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_44(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_46(ACTION, x, ...) \
-    ACTION(46, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_45(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_47(ACTION, x, ...) \
-    ACTION(47, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_46(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_48(ACTION, x, ...) \
-    ACTION(48, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_47(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_49(ACTION, x, ...) \
-    ACTION(49, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_48(ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_N_50(ACTION, x, ...) \
-    ACTION(50, x)                         \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_49(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_2(ACTION, x, ...) ACTION(2, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_1(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_3(ACTION, x, ...) ACTION(3, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_2(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_4(ACTION, x, ...) ACTION(4, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_3(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_5(ACTION, x, ...) ACTION(5, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_4(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_6(ACTION, x, ...) ACTION(6, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_5(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_7(ACTION, x, ...) ACTION(7, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_6(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_8(ACTION, x, ...) ACTION(8, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_7(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_9(ACTION, x, ...) ACTION(9, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_8(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_10(ACTION, x, ...) ACTION(10, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_9(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_11(ACTION, x, ...) ACTION(11, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_10(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_12(ACTION, x, ...) ACTION(12, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_11(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_13(ACTION, x, ...) ACTION(13, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_12(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_14(ACTION, x, ...) ACTION(14, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_13(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_15(ACTION, x, ...) ACTION(15, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_14(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_16(ACTION, x, ...) ACTION(16, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_15(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_17(ACTION, x, ...) ACTION(17, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_16(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_18(ACTION, x, ...) ACTION(18, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_17(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_19(ACTION, x, ...) ACTION(19, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_18(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_20(ACTION, x, ...) ACTION(20, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_19(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_21(ACTION, x, ...) ACTION(21, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_20(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_22(ACTION, x, ...) ACTION(22, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_21(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_23(ACTION, x, ...) ACTION(23, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_22(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_24(ACTION, x, ...) ACTION(24, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_23(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_25(ACTION, x, ...) ACTION(25, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_24(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_26(ACTION, x, ...) ACTION(26, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_25(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_27(ACTION, x, ...) ACTION(27, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_26(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_28(ACTION, x, ...) ACTION(28, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_27(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_29(ACTION, x, ...) ACTION(29, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_28(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_30(ACTION, x, ...) ACTION(30, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_29(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_31(ACTION, x, ...) ACTION(31, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_30(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_32(ACTION, x, ...) ACTION(32, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_31(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_33(ACTION, x, ...) ACTION(33, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_32(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_34(ACTION, x, ...) ACTION(34, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_33(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_35(ACTION, x, ...) ACTION(35, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_34(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_36(ACTION, x, ...) ACTION(36, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_35(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_37(ACTION, x, ...) ACTION(37, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_36(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_38(ACTION, x, ...) ACTION(38, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_37(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_39(ACTION, x, ...) ACTION(39, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_38(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_40(ACTION, x, ...) ACTION(40, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_39(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_41(ACTION, x, ...) ACTION(41, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_40(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_42(ACTION, x, ...) ACTION(42, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_41(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_43(ACTION, x, ...) ACTION(43, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_42(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_44(ACTION, x, ...) ACTION(44, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_43(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_45(ACTION, x, ...) ACTION(45, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_44(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_46(ACTION, x, ...) ACTION(46, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_45(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_47(ACTION, x, ...) ACTION(47, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_46(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_48(ACTION, x, ...) ACTION(48, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_47(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_49(ACTION, x, ...) ACTION(49, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_48(ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_N_50(ACTION, x, ...) ACTION(50, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_49(ACTION, __VA_ARGS__))
 
 /**
  * Expands a macro for each of the variable arguments.
@@ -399,153 +204,55 @@
 #define Y_MAP_ARGS_WITH_LAST(ACTION, LAST_ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_MAP_ARGS_WITH_LAST_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, LAST_ACTION, __VA_ARGS__))
 #define __Y_MAP_ARGS_WITH_LAST_0(...)
 #define __Y_MAP_ARGS_WITH_LAST_1(ACTION, LAST_ACTION, x, ...) LAST_ACTION(x)
-#define __Y_MAP_ARGS_WITH_LAST_2(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_1(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_3(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_2(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_4(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_3(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_5(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_4(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_6(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_5(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_7(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_6(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_8(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_7(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_9(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                 \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_8(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_10(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_9(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_11(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_10(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_12(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_11(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_13(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_12(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_14(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_13(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_15(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_14(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_16(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_15(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_17(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_16(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_18(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_17(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_19(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_18(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_20(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_19(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_21(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_20(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_22(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_21(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_23(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_22(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_24(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_23(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_25(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_24(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_26(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_25(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_27(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_26(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_28(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_27(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_29(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_28(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_30(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_29(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_31(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_30(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_32(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_31(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_33(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_32(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_34(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_33(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_35(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_34(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_36(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_35(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_37(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_36(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_38(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_37(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_39(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_38(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_40(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_39(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_41(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_40(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_42(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_41(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_43(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_42(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_44(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_43(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_45(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_44(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_46(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_45(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_47(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_46(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_48(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_47(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_49(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_48(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_50(ACTION, LAST_ACTION, x, ...) \
-    ACTION(x)                                                  \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_49(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_2(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_1(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_3(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_2(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_4(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_3(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_5(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_4(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_6(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_5(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_7(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_6(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_8(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_7(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_9(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_8(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_10(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_9(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_11(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_10(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_12(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_11(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_13(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_12(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_14(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_13(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_15(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_14(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_16(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_15(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_17(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_16(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_18(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_17(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_19(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_18(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_20(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_19(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_21(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_20(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_22(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_21(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_23(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_22(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_24(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_23(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_25(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_24(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_26(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_25(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_27(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_26(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_28(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_27(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_29(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_28(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_30(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_29(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_31(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_30(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_32(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_31(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_33(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_32(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_34(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_33(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_35(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_34(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_36(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_35(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_37(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_36(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_38(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_37(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_39(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_38(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_40(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_39(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_41(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_40(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_42(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_41(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_43(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_42(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_44(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_43(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_45(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_44(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_46(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_45(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_47(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_46(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_48(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_47(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_49(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_48(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_50(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_49(ACTION, LAST_ACTION, __VA_ARGS__))
 
 /**
  * Expands a macro for each of the variable arguments with it's sequence number and value.
@@ -555,153 +262,55 @@
 #define Y_MAP_ARGS_WITH_LAST_N(ACTION, LAST_ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT(__Y_MAP_ARGS_WITH_LAST_N_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, LAST_ACTION, __VA_ARGS__))
 #define __Y_MAP_ARGS_WITH_LAST_N_0(...)
 #define __Y_MAP_ARGS_WITH_LAST_N_1(ACTION, LAST_ACTION, x, ...) LAST_ACTION(1, x)
-#define __Y_MAP_ARGS_WITH_LAST_N_2(ACTION, LAST_ACTION, x, ...) \
-    ACTION(2, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_1(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_3(ACTION, LAST_ACTION, x, ...) \
-    ACTION(3, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_2(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_4(ACTION, LAST_ACTION, x, ...) \
-    ACTION(4, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_3(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_5(ACTION, LAST_ACTION, x, ...) \
-    ACTION(5, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_4(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_6(ACTION, LAST_ACTION, x, ...) \
-    ACTION(6, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_5(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_7(ACTION, LAST_ACTION, x, ...) \
-    ACTION(7, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_6(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_8(ACTION, LAST_ACTION, x, ...) \
-    ACTION(8, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_7(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_9(ACTION, LAST_ACTION, x, ...) \
-    ACTION(9, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_8(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_10(ACTION, LAST_ACTION, x, ...) \
-    ACTION(10, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_9(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_11(ACTION, LAST_ACTION, x, ...) \
-    ACTION(11, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_10(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_12(ACTION, LAST_ACTION, x, ...) \
-    ACTION(12, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_11(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_13(ACTION, LAST_ACTION, x, ...) \
-    ACTION(13, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_12(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_14(ACTION, LAST_ACTION, x, ...) \
-    ACTION(14, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_13(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_15(ACTION, LAST_ACTION, x, ...) \
-    ACTION(15, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_14(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_16(ACTION, LAST_ACTION, x, ...) \
-    ACTION(16, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_15(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_17(ACTION, LAST_ACTION, x, ...) \
-    ACTION(17, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_16(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_18(ACTION, LAST_ACTION, x, ...) \
-    ACTION(18, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_17(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_19(ACTION, LAST_ACTION, x, ...) \
-    ACTION(19, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_18(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_20(ACTION, LAST_ACTION, x, ...) \
-    ACTION(20, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_19(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_21(ACTION, LAST_ACTION, x, ...) \
-    ACTION(21, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_20(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_22(ACTION, LAST_ACTION, x, ...) \
-    ACTION(22, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_21(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_23(ACTION, LAST_ACTION, x, ...) \
-    ACTION(23, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_22(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_24(ACTION, LAST_ACTION, x, ...) \
-    ACTION(24, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_23(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_25(ACTION, LAST_ACTION, x, ...) \
-    ACTION(25, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_24(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_26(ACTION, LAST_ACTION, x, ...) \
-    ACTION(26, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_25(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_27(ACTION, LAST_ACTION, x, ...) \
-    ACTION(27, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_26(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_28(ACTION, LAST_ACTION, x, ...) \
-    ACTION(28, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_27(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_29(ACTION, LAST_ACTION, x, ...) \
-    ACTION(29, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_28(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_30(ACTION, LAST_ACTION, x, ...) \
-    ACTION(30, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_29(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_31(ACTION, LAST_ACTION, x, ...) \
-    ACTION(31, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_30(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_32(ACTION, LAST_ACTION, x, ...) \
-    ACTION(32, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_31(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_33(ACTION, LAST_ACTION, x, ...) \
-    ACTION(33, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_32(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_34(ACTION, LAST_ACTION, x, ...) \
-    ACTION(34, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_33(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_35(ACTION, LAST_ACTION, x, ...) \
-    ACTION(35, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_34(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_36(ACTION, LAST_ACTION, x, ...) \
-    ACTION(36, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_35(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_37(ACTION, LAST_ACTION, x, ...) \
-    ACTION(37, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_36(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_38(ACTION, LAST_ACTION, x, ...) \
-    ACTION(38, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_37(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_39(ACTION, LAST_ACTION, x, ...) \
-    ACTION(39, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_38(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_40(ACTION, LAST_ACTION, x, ...) \
-    ACTION(40, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_39(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_41(ACTION, LAST_ACTION, x, ...) \
-    ACTION(41, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_40(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_42(ACTION, LAST_ACTION, x, ...) \
-    ACTION(42, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_41(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_43(ACTION, LAST_ACTION, x, ...) \
-    ACTION(43, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_42(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_44(ACTION, LAST_ACTION, x, ...) \
-    ACTION(44, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_43(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_45(ACTION, LAST_ACTION, x, ...) \
-    ACTION(45, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_44(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_46(ACTION, LAST_ACTION, x, ...) \
-    ACTION(46, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_45(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_47(ACTION, LAST_ACTION, x, ...) \
-    ACTION(47, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_46(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_48(ACTION, LAST_ACTION, x, ...) \
-    ACTION(48, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_47(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_49(ACTION, LAST_ACTION, x, ...) \
-    ACTION(49, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_48(ACTION, LAST_ACTION, __VA_ARGS__))
-#define __Y_MAP_ARGS_WITH_LAST_N_50(ACTION, LAST_ACTION, x, ...) \
-    ACTION(50, x)                                                \
-    Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_49(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_2(ACTION, LAST_ACTION, x, ...) ACTION(2, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_1(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_3(ACTION, LAST_ACTION, x, ...) ACTION(3, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_2(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_4(ACTION, LAST_ACTION, x, ...) ACTION(4, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_3(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_5(ACTION, LAST_ACTION, x, ...) ACTION(5, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_4(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_6(ACTION, LAST_ACTION, x, ...) ACTION(6, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_5(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_7(ACTION, LAST_ACTION, x, ...) ACTION(7, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_6(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_8(ACTION, LAST_ACTION, x, ...) ACTION(8, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_7(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_9(ACTION, LAST_ACTION, x, ...) ACTION(9, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_8(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_10(ACTION, LAST_ACTION, x, ...) ACTION(10, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_9(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_11(ACTION, LAST_ACTION, x, ...) ACTION(11, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_10(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_12(ACTION, LAST_ACTION, x, ...) ACTION(12, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_11(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_13(ACTION, LAST_ACTION, x, ...) ACTION(13, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_12(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_14(ACTION, LAST_ACTION, x, ...) ACTION(14, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_13(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_15(ACTION, LAST_ACTION, x, ...) ACTION(15, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_14(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_16(ACTION, LAST_ACTION, x, ...) ACTION(16, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_15(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_17(ACTION, LAST_ACTION, x, ...) ACTION(17, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_16(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_18(ACTION, LAST_ACTION, x, ...) ACTION(18, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_17(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_19(ACTION, LAST_ACTION, x, ...) ACTION(19, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_18(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_20(ACTION, LAST_ACTION, x, ...) ACTION(20, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_19(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_21(ACTION, LAST_ACTION, x, ...) ACTION(21, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_20(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_22(ACTION, LAST_ACTION, x, ...) ACTION(22, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_21(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_23(ACTION, LAST_ACTION, x, ...) ACTION(23, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_22(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_24(ACTION, LAST_ACTION, x, ...) ACTION(24, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_23(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_25(ACTION, LAST_ACTION, x, ...) ACTION(25, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_24(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_26(ACTION, LAST_ACTION, x, ...) ACTION(26, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_25(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_27(ACTION, LAST_ACTION, x, ...) ACTION(27, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_26(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_28(ACTION, LAST_ACTION, x, ...) ACTION(28, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_27(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_29(ACTION, LAST_ACTION, x, ...) ACTION(29, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_28(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_30(ACTION, LAST_ACTION, x, ...) ACTION(30, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_29(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_31(ACTION, LAST_ACTION, x, ...) ACTION(31, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_30(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_32(ACTION, LAST_ACTION, x, ...) ACTION(32, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_31(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_33(ACTION, LAST_ACTION, x, ...) ACTION(33, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_32(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_34(ACTION, LAST_ACTION, x, ...) ACTION(34, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_33(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_35(ACTION, LAST_ACTION, x, ...) ACTION(35, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_34(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_36(ACTION, LAST_ACTION, x, ...) ACTION(36, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_35(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_37(ACTION, LAST_ACTION, x, ...) ACTION(37, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_36(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_38(ACTION, LAST_ACTION, x, ...) ACTION(38, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_37(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_39(ACTION, LAST_ACTION, x, ...) ACTION(39, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_38(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_40(ACTION, LAST_ACTION, x, ...) ACTION(40, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_39(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_41(ACTION, LAST_ACTION, x, ...) ACTION(41, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_40(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_42(ACTION, LAST_ACTION, x, ...) ACTION(42, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_41(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_43(ACTION, LAST_ACTION, x, ...) ACTION(43, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_42(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_44(ACTION, LAST_ACTION, x, ...) ACTION(44, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_43(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_45(ACTION, LAST_ACTION, x, ...) ACTION(45, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_44(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_46(ACTION, LAST_ACTION, x, ...) ACTION(46, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_45(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_47(ACTION, LAST_ACTION, x, ...) ACTION(47, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_46(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_48(ACTION, LAST_ACTION, x, ...) ACTION(48, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_47(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_49(ACTION, LAST_ACTION, x, ...) ACTION(49, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_48(ACTION, LAST_ACTION, __VA_ARGS__))
+#define __Y_MAP_ARGS_WITH_LAST_N_50(ACTION, LAST_ACTION, x, ...) ACTION(50, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_WITH_LAST_N_49(ACTION, LAST_ACTION, __VA_ARGS__))
 
 /**
  * Get all elements but the last one from `__VA_ARGS__`.
@@ -764,7 +373,7 @@
  * Get the last element from `__VA_ARGS__`.
  * Doesn't work with empty arguments list.
  */
-#define Y_LAST(...) Y_PASS_VA_ARGS(Y_GET_ARG(Y_COUNT_ARGS(__VA_ARGS__), , __VA_ARGS__, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ))
+#define Y_LAST(...) Y_PASS_VA_ARGS(Y_GET_ARG(Y_COUNT_ARGS(__VA_ARGS__), , __VA_ARGS__, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,))
 
 /**
  * Macros for implementing overload by number of arguments.

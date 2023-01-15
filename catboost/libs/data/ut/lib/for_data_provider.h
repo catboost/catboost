@@ -9,7 +9,7 @@
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -23,16 +23,9 @@ namespace NCB {
     namespace NDataNewUT {
 
     template <class TValue>
-    using TExpectedFeatureColumn = std::variant<TVector<TValue>, TConstPolymorphicValuesSparseArray<TValue, ui32>>;
+    using TExpectedFeatureColumn = TVariant<TVector<TValue>, TConstPolymorphicValuesSparseArray<TValue, ui32>>;
 
-    template <
-        class TGroupIdData,
-        class TSubgroupIdData,
-        class TFloatFeature,
-        class TCatFeature,
-        class TTextFeature,
-        class TEmbeddingFeature
-    >
+    template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature, class TTextFeature>
     struct TExpectedCommonObjectsData {
         EObjectsOrder Order = EObjectsOrder::Undefined;
 
@@ -44,7 +37,6 @@ namespace NCB {
         TVector<TMaybe<TExpectedFeatureColumn<TFloatFeature>>> FloatFeatures;
         TVector<TMaybe<TExpectedFeatureColumn<TCatFeature>>> CatFeatures;
         TVector<TMaybe<TExpectedFeatureColumn<TTextFeature>>> TextFeatures;
-        TVector<TMaybe<TExpectedFeatureColumn<TEmbeddingFeature>>> EmbeddingFeatures;
     };
 
     /*
@@ -53,21 +45,14 @@ namespace NCB {
      *  CatFeatures will be processed with CalcCatFeatureHash
      */
     struct TExpectedRawObjectsData
-        : public TExpectedCommonObjectsData<
-              TStringBuf,
-              TStringBuf,
-              float,
-              TStringBuf,
-              TStringBuf,
-              TVector<float>
-          >
+        : public TExpectedCommonObjectsData<TStringBuf, TStringBuf, float, TStringBuf, TStringBuf>
     {
         bool TreatGroupIdsAsIntegers = false;
     };
 
     // TODO(akhropov): quantized pools might have more complicated features data types in the future
     struct TExpectedQuantizedObjectsData
-        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32, TNothing, TNothing>
+        : public TExpectedCommonObjectsData<TGroupId, TSubgroupId, ui8, ui32, TNothing>
     {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
         ui32 MaxCategoricalFeaturesUniqValuesOnLearn = 0;
@@ -103,6 +88,12 @@ namespace NCB {
 
     void CompareObjectsData(
         const TQuantizedObjectsDataProvider& objectsData,
+        const TExpectedQuantizedData& expectedData,
+        bool catFeaturesHashCanContainExtraData = false
+    );
+
+    void CompareObjectsData(
+        const TQuantizedForCPUObjectsDataProvider& objectsData,
         const TExpectedQuantizedData& expectedData,
         bool catFeaturesHashCanContainExtraData = false
     );

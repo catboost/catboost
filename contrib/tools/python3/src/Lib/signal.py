@@ -1,22 +1,23 @@
 import _signal
 from _signal import *
+from functools import wraps as _wraps
 from enum import IntEnum as _IntEnum
 
 _globals = globals()
 
-_IntEnum._convert_(
+_IntEnum._convert(
         'Signals', __name__,
         lambda name:
             name.isupper()
             and (name.startswith('SIG') and not name.startswith('SIG_'))
             or name.startswith('CTRL_'))
 
-_IntEnum._convert_(
+_IntEnum._convert(
         'Handlers', __name__,
         lambda name: name in ('SIG_DFL', 'SIG_IGN'))
 
 if 'pthread_sigmask' in _globals:
-    _IntEnum._convert_(
+    _IntEnum._convert(
             'Sigmasks', __name__,
             lambda name: name in ('SIG_BLOCK', 'SIG_UNBLOCK', 'SIG_SETMASK'))
 
@@ -41,16 +42,6 @@ def _enum_to_int(value):
         return value
 
 
-# Similar to functools.wraps(), but only assign __doc__.
-# __module__ should be preserved,
-# __name__ and __qualname__ are already fine,
-# __annotations__ is not set.
-def _wraps(wrapped):
-    def decorator(wrapper):
-        wrapper.__doc__ = wrapped.__doc__
-        return wrapper
-    return decorator
-
 @_wraps(_signal.signal)
 def signal(signalnum, handler):
     handler = _signal.signal(_enum_to_int(signalnum), _enum_to_int(handler))
@@ -68,12 +59,14 @@ if 'pthread_sigmask' in _globals:
     def pthread_sigmask(how, mask):
         sigs_set = _signal.pthread_sigmask(how, mask)
         return set(_int_to_enum(x, Signals) for x in sigs_set)
+    pthread_sigmask.__doc__ = _signal.pthread_sigmask.__doc__
 
 
 if 'sigpending' in _globals:
     @_wraps(_signal.sigpending)
     def sigpending():
-        return {_int_to_enum(x, Signals) for x in _signal.sigpending()}
+        sigs = _signal.sigpending()
+        return set(_int_to_enum(x, Signals) for x in sigs)
 
 
 if 'sigwait' in _globals:
@@ -81,12 +74,6 @@ if 'sigwait' in _globals:
     def sigwait(sigset):
         retsig = _signal.sigwait(sigset)
         return _int_to_enum(retsig, Signals)
-
-
-if 'valid_signals' in _globals:
-    @_wraps(_signal.valid_signals)
-    def valid_signals():
-        return {_int_to_enum(x, Signals) for x in _signal.valid_signals()}
-
+    sigwait.__doc__ = _signal.sigwait
 
 del _globals, _wraps

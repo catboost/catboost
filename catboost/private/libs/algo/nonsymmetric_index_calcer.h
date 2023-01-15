@@ -10,30 +10,19 @@
 class TFold;
 struct TSplitNode;
 struct TNonSymmetricTreeStructure;
-class TOnlineCtrBase;
+struct TOnlineCTR;
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
-
-void UpdateIndicesWithSplit(
-    const TSplitNode& node,
-    const NCB::TTrainingDataProviders& trainingData,
-    const NCB::TIndexedSubset<ui32>& docsSubset,
-    const TFold& fold,
-    NPar::ILocalExecutor* localExecutor,
-    TArrayRef<TIndexType> indices,
-    NCB::TIndexedSubset<ui32>* leftIndices,
-    NCB::TIndexedSubset<ui32>* rightIndices
-);
 
 void UpdateIndices(
     const TSplitNode& node,
     const NCB::TTrainingDataProviders& trainingData,
     const NCB::TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices
 );
 
@@ -42,7 +31,8 @@ void BuildIndicesForDataset(
     const NCB::TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
-    const TVector<const TOnlineCtrBase*>& onlineCtrs,
+    const TVector<const TOnlineCTR*>& onlineCtrs,
+    ui32 docOffset,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TIndexType* indices);

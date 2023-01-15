@@ -12,7 +12,7 @@ def find_gcno(dirname, tail):
 
 def main(args):
     output = args[0]
-    tail = args[1] if len(args) > 1 else ''
+    tail = args[1]
     with tarfile.open(output, 'w:') as tf:
         for f in find_gcno(os.getcwd(), tail):
             tf.add(f)

@@ -5,7 +5,7 @@
 #include <util/string/builder.h>
 
 
-TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams& params) {
+TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TString, TString>& params) {
     TStringBuilder buffer;
 
     // This is kept for backwards compatibility.
@@ -15,18 +15,19 @@ TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams
         buffer << ToString(lossFunction);
     }
 
-    if (params.GetParamsMap().empty()) {
+    if (params.empty()) {
         return buffer;
     }
     buffer << ":";
+    size_t currentParamIdx = 0;
+    for (const auto& keyValue: params) {
+        buffer << keyValue.first << "=" << keyValue.second;
 
-    TVector<std::pair<TString, TString>> keyAndValues;
-    for (const auto& key: params.GetUserSpecifiedKeyOrder()) {
-        keyAndValues.emplace_back(key, params.GetParamsMap().at(key));
-    }
-    for (size_t i = 0; i < keyAndValues.size(); ++i) {
-        buffer << keyAndValues[i].first << "=" << keyAndValues[i].second
-               << (/*If not the last to render, then put a separator.*/i + 1 != keyAndValues.size() ? ";" : "");
+        currentParamIdx++;
+        // Put key=value pair separator, if the parameter is not last
+        if (currentParamIdx != params.size()) {
+            buffer << ";";
+        }
     }
     return buffer;
 }

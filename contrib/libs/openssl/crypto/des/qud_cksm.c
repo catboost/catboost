@@ -13,7 +13,7 @@
  * only based on the code in this paper and is almost definitely not the same
  * as the MIT implementation.
  */
-#include "des_local.h"
+#include "des_locl.h"
 
 #define Q_B0(a) (((DES_LONG)(a)))
 #define Q_B1(a) (((DES_LONG)(a))<<8)

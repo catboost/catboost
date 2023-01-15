@@ -3,14 +3,13 @@
 #' @importFrom utils tail
 #' @importFrom utils write.table
 #' @importFrom utils download.file
-#' @useDynLib libcatboostr, .registration = TRUE
+#' @useDynLib libcatboostr
 NULL
 
 
-#' @name catboost.load_pool
-#' @title Create a dataset
+#' Create a dataset
 #'
-#' @description Create a dataset from the given file, matrix or data.frame.
+#' Create a dataset from the given file, matrix or data.frame.
 #'
 #' @param data A file path, matrix or data.frame with features.
 #' The following column types are supported:
@@ -45,28 +44,28 @@ NULL
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
 #' If -1, then the number of threads is set to the number of CPU cores.
 #'
+#' @return catboost.Pool
+#'
 #' @examples
-#' \dontrun{
 #' # From file
 #' pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
 #' pool <- catboost.load_pool(pool_path, column_description = cd_path)
-#' print(pool)
+#' head(pool)
 #'
 #' # From matrix
 #' target <- 1
 #' data_matrix <-matrix(runif(18), 6, 3)
 #' pool <- catboost.load_pool(data_matrix[, -target], label = data_matrix[, target])
-#' print(pool)
+#' head(pool)
 #'
 #' # From data.frame
-#' nonsense <- factor(c('A', 'B', 'C'))
+#' nonsense <- c('A', 'B', 'C')
 #' data_frame <- data.frame(value = runif(10), category = nonsense[(1:10) %% 3 + 1])
 #' label = (1:10) %% 2
-#' pool <- catboost.load_pool(data_frame, label = label)
-#' print(pool)
-#' }
-#' @return catboost.Pool
+#' pool <- catboost.load_pool(data_frame, label = label, cat_features = c(2))
+#' head(pool)
+#'
 #' @export
 catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_description = NULL,
                                pairs = NULL, delimiter = "\t", has_header = FALSE, weight = NULL,
@@ -86,18 +85,9 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names)
     } else if (is.matrix(data)) {
-        pool <- catboost.from_matrix(data, label, cat_features, NULL, NULL, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
+        pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                      baseline, feature_names)
     } else if (is.data.frame(data)) {
-        for (arg in list("column_description")) {
-            if (!is.null(get(arg))) {
-                stop("Parameter '", arg, "' should be NULL when the pool is constructed from data.frame")
-            }
-        }
-        if (!is.null(get("cat_features"))) {
-            cat("Parameter 'cat_features' is meaningless because column types are taken from data.frame.",
-                "Please, convert categorical columns to factors manually.", sep = "\n")
-        }
         pool <- catboost.from_data_frame(data, label, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                          baseline, feature_names)
     } else {
@@ -108,8 +98,7 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 
 
 catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE,
-                               thread_count = -1, verbose = FALSE, feature_names_path = "",
-                               num_vector_delimiter = ';') {
+                               thread_count = -1, verbose = FALSE, feature_names_path = "") {
     if (missing(pool_path))
         stop("Need to specify pool path.")
     if (is.null(pairs_path))
@@ -119,43 +108,29 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
     if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path) || !is.character(feature_names_path))
         stop("Path must be a string.")
 
-    pool_path <- path.expand(pool_path)
-    cd_path <- path.expand(cd_path)
-
-    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, feature_names_path, delimiter, num_vector_delimiter, has_header, thread_count, verbose)
+    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, feature_names_path, delimiter, has_header, thread_count, verbose)
     attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
     return(pool)
 }
 
 
-catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_features_indices = NULL, text_features_data = NULL,
-                                 text_features_indices = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
-                                 subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
-  if (!is.matrix(float_and_cat_features_data))
-      stop("Unsupported data type, expecting matrix, got: ", class(float_and_cat_features_data))
+catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
+                                 group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
+                                 baseline = NULL, feature_names = NULL) {
+  if (!is.matrix(data))
+      stop("Unsupported data type, expecting matrix, got: ", class(data))
 
-  float_and_cat_columns <- if (is.null(float_and_cat_features_data)) 0 else ncol(float_and_cat_features_data)
-  text_columns <- if (is.null(text_features_data)) 0 else ncol(text_features_data)
-  data_columns <- float_and_cat_columns + text_columns
-  if (text_columns == 0 && float_and_cat_columns == 0)
-      stop("Data has no columns")
-
-  if (!is.null(label) && !is.matrix(label))
-      label <- as.matrix(label)
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
+  if (!is.null(label) && !is.matrix(label))
+      label <- as.matrix(label)
   if (!is.null(label) && !is.double(label))
-      label <- matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
-  if (!is.null(label) && nrow(label) != nrow(float_and_cat_features_data))
-      stop("Data has ", nrow(float_and_cat_features_data), " rows, label has ", nrow(label), " rows.")
+      label <- as.matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+  if (!is.null(label) && nrow(label) != nrow(data))
+      stop("Data has ", nrow(data), " rows, label has ", nrow(label), " rows.")
 
-  if (!all(cat_features_indices == as.integer(cat_features_indices)) && !is.null(cat_features_indices))
-      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features_indices))
-
-  if (!is.null(text_features_data) && !is.matrix(text_features_data))
-     stop("Unsupported text data type, expecting matrix, got: ", class(text_features_data))
-  if (!all(text_features_indices == as.integer(text_features_indices)) && !is.null(text_features_indices))
-     stop("Unsupported text_features_indices type, expecting integer, got: ", typeof(text_features_indices))
+  if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
+      stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
 
   if (!is.matrix(pairs) && !is.null(pairs))
       stop("Unsupported pairs class, expecting matrix, got: ", class(pairs))
@@ -166,23 +141,23 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
 
   if (!is.double(weight) && !is.null(weight))
       stop("Unsupported weight type, expecting double, got: ", typeof(weight))
-  if (length(weight) != nrow(float_and_cat_features_data) && !is.null(weight))
-      stop("Data has ", nrow(float_and_cat_features_data), " rows, weight vector has ", length(weight), " rows.")
+  if (length(weight) != nrow(data) && !is.null(weight))
+      stop("Data has ", nrow(data), " rows, weight vector has ", length(weight), " rows.")
 
   if (!is.integer(group_id) && !is.null(group_id))
       stop("Unsupported group_id type, expecting int, got: ", typeof(group_id))
-  if (length(group_id) != nrow(float_and_cat_features_data) && !is.null(group_id))
-      stop("Data has ", nrow(float_and_cat_features_data), " rows, group_id vector has ", length(group_id), " rows.")
+  if (length(group_id) != nrow(data) && !is.null(group_id))
+      stop("Data has ", nrow(data), " rows, group_id vector has ", length(group_id), " rows.")
 
   if (!is.double(group_weight) && !is.null(group_weight))
       stop("Unsupported group_weight type, expecting double, got: ", typeof(group_weight))
-  if (length(group_weight) != nrow(float_and_cat_features_data) && !is.null(group_weight))
-      stop("Data has ", nrow(float_and_cat_features_data), " rows, group_weight vector has ", length(group_weight), " rows.")
+  if (length(group_weight) != nrow(data) && !is.null(group_weight))
+      stop("Data has ", nrow(data), " rows, group_weight vector has ", length(group_weight), " rows.")
 
   if (!is.integer(subgroup_id) && !is.null(subgroup_id))
       stop("Unsupported subgroup_id type, expecting int, got: ", typeof(subgroup_id))
-  if (length(subgroup_id) != nrow(float_and_cat_features_data) && !is.null(subgroup_id))
-      stop("Data has ", nrow(float_and_cat_features_data), " rows, subgroup_id vector has ", length(subgroup_id), " rows.")
+  if (length(subgroup_id) != nrow(data) && !is.null(subgroup_id))
+      stop("Data has ", nrow(data), " rows, subgroup_id vector has ", length(subgroup_id), " rows.")
 
   if (!is.double(pairs_weight) && !is.null(pairs_weight))
       stop("Unsupported pairs_weight type, expecting double, got: ", typeof(pairs_weight))
@@ -193,21 +168,17 @@ catboost.from_matrix <- function(float_and_cat_features_data, label = NULL, cat_
       stop("Baseline should be matrix, got: ", class(baseline))
   if (!is.double(baseline) && !is.null(baseline))
       stop("Unsupported baseline type, expecting double, got: ", typeof(baseline))
-  if (nrow(baseline) != nrow(float_and_cat_features_data) && !is.null(baseline))
-      stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(float_and_cat_features_data), " objects, baseline has ", nrow(baseline), " rows.")
+  if (nrow(baseline) != nrow(data) && !is.null(baseline))
+      stop("Baseline must be matrix of size n_objects*n_classes. Data has ", nrow(data), " objects, baseline has ", nrow(baseline), " rows.")
 
   if (!is.list(feature_names) && !is.null(feature_names))
       stop("Unsupported feature_names type, expecting list, got: ", typeof(feature_names))
-  if (!is.null(feature_names) && (length(feature_names) != data_columns))
-      stop("Data has ", data_columns, " columns, feature_names has ", length(feature_names), " columns.")
+  if (length(feature_names) != ncol(data) && !is.null(feature_names))
+      stop("Data has ", ncol(data), " columns, feature_names has ", length(feature_names), " columns.")
 
-  if (float_and_cat_columns == 0)
-      float_and_cat_features_data <- NULL
-  if (text_columns == 0)
-      text_features_data <- NULL
   pool <- .Call("CatBoostCreateFromMatrix_R",
-                float_and_cat_features_data, label, cat_features_indices, text_features_data, text_features_indices, pairs, weight,
-                group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id,
+                pairs_weight, baseline, feature_names)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
@@ -221,54 +192,44 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
     if (is.null(feature_names)) {
         feature_names <- as.list(colnames(data))
     }
+
     factor_columns <- vapply(data, is.factor, logical(1))
     num_columns <-
       vapply(data, is.double, logical(1)) |
       vapply(data, is.integer, logical(1)) |
       vapply(data, is.logical, logical(1))
-    text_columns <- vapply(data, is.character, logical(1))
-    bad_columns <- !(factor_columns | num_columns | text_columns)
+    bad_columns <- !(factor_columns | num_columns)
 
     if (sum(bad_columns) > 0) {
         stop("Unsupported column type: ", paste(c(unique(vapply(data[, bad_columns], class, character(1)))), collapse = ", "))
     }
 
-    text_features_data <- data[text_columns]
-    text_features_indices <- c()
-    for (column_index in which(text_columns)){
-        text_features_indices <- c(text_features_indices, column_index - 1)
-    }
-
-    float_and_cat_features_data <- data
-    cat_features_indices <- c()
+    preprocessed <- data
+    cat_features <- c()
     for (column_index in which(factor_columns)) {
-        float_and_cat_features_data[, column_index] <- .Call("CatBoostHashStrings_R", as.character(float_and_cat_features_data[[column_index]]))
-        cat_features_indices <- c(cat_features_indices, column_index - 1)
+        preprocessed[, column_index] <- .Call("CatBoostHashStrings_R", as.character(preprocessed[[column_index]]))
+        cat_features <- c(cat_features, column_index - 1)
     }
-    float_and_cat_features_data <- float_and_cat_features_data[!text_columns]
-
     if (!is.null(pairs)) {
         pairs <- as.matrix(pairs)
     }
-    pool <- catboost.from_matrix(as.matrix(float_and_cat_features_data), label, cat_features_indices, as.matrix(text_features_data),
-                                 text_features_indices, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+    pool <- catboost.from_matrix(as.matrix(preprocessed), label, cat_features, pairs, weight, group_id, group_weight, subgroup_id,
+                                 pairs_weight, baseline, feature_names)
     return(pool)
 }
 
 
-#' @name catboost.save_pool
-#' @title Save the dataset
+#' Save the dataset
 #'
-#' @description Save the dataset to the CatBoost format.
-#'              Files with the following data are created:
-#'              \itemize{
-#'                  \item Dataset description
-#'                  \item Column descriptions
-#'              }
-#'              Use the catboost.load_pool function to read the resulting files.
-#'              These files can also be used in the
-#'              \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
-#'              and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
+#' Save the dataset to the CatBoost format.
+#' Files with the following data are created:
+#' \itemize{
+#'     \item Dataset description
+#'     \item Column descriptions
+#' }
+#' Use the catboost.load_pool function to read the resulting files.
+#' These files can also be used in the \href{https://catboost.ai/docs/concepts/cli-installation.html}{Command-line version}
+#' and the \href{https://catboost.ai/docs/concepts/python-installation.html}{Python library}.
 #'
 #' @param data A data.frame with features.
 #' The following column types are supported:
@@ -288,9 +249,9 @@ catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = 
 #' @param weight The weights of the label vector.
 #' @param baseline Vector of initial (raw) values of the label function for the object.
 #' Used in the calculation of final values of trees.
-#' @param pool_path The path to the output file that contains the dataset description.
+#' @param pool_path The path to the otuptut file that contains the dataset description.
 #' @param cd_path The path to the output file that contains the column descriptions.
-#' @return Nothing. This method writes a dataset to disk.
+#'
 #' @export
 catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NULL,
                                pool_path = "data.pool", cd_path = "cd.pool") {
@@ -320,52 +281,45 @@ catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NUL
         column_description <- rbind(column_description, data.frame(index = nrow(column_description) + factors - 1,
                                                                    type = rep("Categ", length(factors))))
     }
-    pool_path <- path.expand(pool_path)
-    cd_path <- path.expand(cd_path)
     write.table(pool, file = pool_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
     write.table(column_description, file = cd_path, sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 }
 
 
-#' @name dim.catboost.Pool
-#' @title Dimensions of catboost.Pool
-#' @description Get dimensions of a Pool.
+#' Dimensions of catboost.Pool
 #'
+#' Returns a vector of row numbers and column numbers in an catboost.Pool.
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
-#' @return Returns a vector of row numbers and column numbers in an catboost.Pool.
 #' @export
 dim.catboost.Pool <- function(x) {
     return(c(.Call("CatBoostPoolNumRow_R", x), .Call("CatBoostPoolNumCol_R", x)))
 }
 
 
-#' @name dimnames.catboost.Pool
-#' @title Dimension names of catboost.Pool
+#' Dimension names of catboost.Pool
 #'
-#' @description Get dimension names of a Pool.
+#' Return a list with the two elements. The second element contains the column names.
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
-#' @return A list with the two elements. The second element contains the column names.
 #' @export
 dimnames.catboost.Pool <- function(x) {
     return(attr(x, ".Dimnames"))
 }
 
 
-#' @name head.catboost.Pool
-#' @title Head of catboost.Pool
+#' Head of catboost.Pool
 #'
-#' @description Return a list with the first n objects of the dataset.
+#' Return a list with the first n objects of the dataset.
 #'
-#'              Each line of this list contains the following information for each object:
-#'              \itemize{
-#'                  \item The label value.
-#'                  \item The weight value.
-#'                  \item The feature values.
-#'              }
+#' Each line of this list contains the following information for each object:
+#' \itemize{
+#'     \item The label value.
+#'     \item The weight value.
+#'     \item The feature values.
+#' }
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
@@ -373,11 +327,8 @@ dimnames.catboost.Pool <- function(x) {
 #'
 #' Default value: 10
 #' @param ... not currently used
-#' @return A matrix containing the first \code{n} objects of the dataset.
 #' @export
 head.catboost.Pool <- function(x, n = 10, ...) {
-    if (is.null.handle(x))
-        stop("Pool object is invalid.")
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
     } else {
@@ -388,17 +339,17 @@ head.catboost.Pool <- function(x, n = 10, ...) {
     return(result)
 }
 
-#' @name tail.catboost.Pool
-#' @title Tail of catboost.Pool
+
+#' Tail of catboost.Pool
 #'
-#' @description Return a list with the last n objects of the dataset.
+#' Return a list with the last n objects of the dataset.
 #'
-#'              Each line of this list contains the following information for each object:
-#'              \itemize{
-#'                  \item The target value.
-#'                  \item The weight value.
-#'                  \item The feature values.
-#'              }
+#' Each line of this list contains the following information for each object:
+#' \itemize{
+#'     \item The target value.
+#'     \item The weight value.
+#'     \item The feature values.
+#' }
 #' @param x The input dataset.
 #'
 #' Default value: Required argument
@@ -406,11 +357,8 @@ head.catboost.Pool <- function(x, n = 10, ...) {
 #'
 #' Default value: 10
 #' @param ... not currently used
-#' @return A matrix containing the last \code{n} objects of the dataset.
 #' @export
 tail.catboost.Pool <- function(x, n = 10, ...) {
-    if (is.null.handle(x))
-        stop("Pool object is invalid.")
     if (n < 0) {
         n <- max(0, dim(x)[1] + n)
     } else {
@@ -421,56 +369,25 @@ tail.catboost.Pool <- function(x, n = 10, ...) {
     return(result)
 }
 
-#' @name print.catboost.Pool
-#' @title Print catboost.Pool
+
+#' Print catboost.Pool
 #'
-#' @description Print dimensions of catboost.Pool.
+#' Print dimensions of catboost.Pool.
 #'
 #' @param x a catboost.Pool object
 #'
 #' Default value: Required argument
 #' @param ... not currently used
-#' @return Nothing. This method prints pool dimensions.
 #' @export
 print.catboost.Pool <- function(x, ...) {
-    if (is.null.handle(x))
-        cat("Warning: pool object is invalid.")
     cat("catboost.Pool\n", nrow(x), " rows, ", ncol(x), " columns", sep = "")
 }
 
 
-#' @title Print basic information about model
-#' @description Displays the most general characteristics of a CatBoost model.
-#' @param x The model obtained as the result of training.
-#' @param ... Not used
-#' @return The same model that was passed as input.
-#' @export
-print.catboost.Model <- function(x, ...) {
-    cat(sprintf("CatBoost model (%d trees)\n", x$tree_count))
-    cat(sprintf("Loss function: %s\n", catboost.get_plain_params(x)$loss_function))
-    cat(sprintf("Fit to %d feature(s)\n", x$feature_count))
-    if (is.null.handle(x$cpp_obj$handle))
-        cat("(Handle is incomplete)\n")
-    return(invisible(x))
-}
 
-
-#' @title Print basic information about model
-#' @description Displays the most general characteristics of a CatBoost model
-#' (same as 'print').
-#' @param object The model obtained as the result of training.
-#' @param ... Not used
-#' @return The same model that was passed as input.
-#' @export
-summary.catboost.Model <- function(object, ...) {
-    print.catboost.Model(object)
-}
-
-
-#' @name catboost.train
-#' @title Train the model
+#' Train the model
 #'
-#' @description Train the model using a CatBoost dataset.
+#' Train the model using a CatBoost dataset.
 #'
 #' The list of parameters
 #'
@@ -584,7 +501,6 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
-#'         \item 'F'
 #'         \item 'BalancedAccuracy'
 #'         \item 'BalancedErrorRate'
 #'         \item 'MCC'
@@ -625,8 +541,6 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'PrecisionAt'
 #'         \item 'RecallAt'
 #'         \item 'MAP'
-#'         \item 'MRR'
-#'         \item 'ERR'
 #'       }
 #'
 #'       Supported parameters:
@@ -656,7 +570,6 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'Precision'
 #'         \item 'Recall'
 #'         \item 'F1'
-#'         \item 'F'
 #'         \item 'BalancedAccuracy'
 #'         \item 'BalancedErrorRate'
 #'         \item 'MCC'
@@ -697,8 +610,6 @@ summary.catboost.Model <- function(object, ...) {
 #'         \item 'PrecisionAt'
 #'         \item 'RecallAt'
 #'         \item 'MAP'
-#'         \item 'MRR'
-#'         \item 'ERR'
 #'       }
 #'
 #'       Format:
@@ -1422,7 +1333,7 @@ summary.catboost.Model <- function(object, ...) {
 #'
 #'   \item approx_on_full_history
 #'
-#'       If this flag is set to TRUE, each approximated value is calculated using all the preceding rows in the fold (slower, more accurate).
+#'       If this flag is set to TRUE, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
 #'       If this flag is set to FALSE, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
 #'
 #'       Default value:
@@ -1497,7 +1408,6 @@ summary.catboost.Model <- function(object, ...) {
 #'
 #' Default value: Required argument
 #' @examples
-#' \dontrun{
 #' train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 #' test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
 #' cd_path <- system.file("extdata", "adult.cd", package = "catboost")
@@ -1513,86 +1423,34 @@ summary.catboost.Model <- function(object, ...) {
 #'     l2_leaf_reg = 3.5,
 #'     train_dir = 'train_dir')
 #' model <- catboost.train(train_pool, test_pool, fit_params)
-#' }
-#' @return Model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}
 catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
-    if (!inherits(learn_pool, "catboost.Pool"))
+    if (class(learn_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(learn_pool))
-    if (is.null.handle(learn_pool))
-        stop("'learn_pool' object is invalid.")
-    if (!is.null(test_pool) && !inherits(test_pool, "catboost.Pool"))
+    if (class(test_pool) != "catboost.Pool" && !is.null(test_pool))
         stop("Expected catboost.Pool, got: ", class(test_pool))
-    if (!is.null(test_pool) && is.null.handle(test_pool))
-        stop("'test_pool' object is invalid.")
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
-    params <- process_synonyms(params)
     json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- create.model.base(handle, raw)
+    model <- list(handle = handle, raw = raw)
+    class(model) <- "catboost.Model"
 
     if (catboost._is_oblivious(model)) {
-        if (catboost._is_groupwise_metric(model)) {
-            # too expensive
-        } else {
-            model$feature_importances <- catboost.get_feature_importance(model)
-            rownames(model$feature_importances) <- colnames(learn_pool)
-        }
+        model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
     }
 
-    plain_params <- catboost.get_plain_params(model)
     model$tree_count <- catboost.ntrees(model)
-    model$learning_rate <- plain_params$learning_rate
-    model$feature_count <- ncol(learn_pool) - length(plain_params$ignored_features)
     return(model)
-}
-
-process_synonyms <- function(params) {
-    params <- process_synonyms_in_one_group(c('loss_function', 'objective'), params)
-    params <- process_synonyms_in_one_group(c('iterations', 'n_estimators', 'num_boost_round', 'num_trees'), params)
-    params <- process_synonyms_in_one_group(c('learning_rate', 'eta'), params)
-    params <- process_synonyms_in_one_group(c('random_seed', 'random_state'), params)
-    params <- process_synonyms_in_one_group(c('l2_leaf_reg', 'reg_lambda'), params)
-    params <- process_synonyms_in_one_group(c('depth', 'max_depth'), params)
-    params <- process_synonyms_in_one_group(c('min_data_in_leaf', 'min_child_samples'), params)
-    params <- process_synonyms_in_one_group(c('max_leaves', 'num_leaves'), params)
-    params <- process_synonyms_in_one_group(c('rsm', 'colsample_bylevel'), params)
-    params <- process_synonyms_in_one_group(c('border_count', 'max_bin'), params)
-    params <- process_synonyms_in_one_group(c('verbose', 'verbose_eval'), params)
-
-    return(params)
-}
-
-process_synonyms_in_one_group <- function(synonyms, params) {
-    value <- NULL
-    for (synonym in synonyms) {
-        if (synonym %in% names(params)) {
-            if (!is.null(value)) {
-                message <- paste("Only one of the parameters [",
-                                paste(synonyms, collapse=', '),
-                                "] should be initialized.", sep="")
-                stop(message)
-            }
-            value = params[[synonym]]
-            params[[synonym]] <- NULL
-        }
-   }
-
-  if (!is.null(value)) {
-      params[[synonyms[[1]]]] <- value
-  }
-
-  return(params)
 }
 
 prepare_train_export_parameters <- function(params) {
 
     if (length(params) == 0) {
-        return ("{}")
+        return ("{}")   
     }
 
     if (!is.null(params$early_stopping_rounds)) {
@@ -1607,16 +1465,14 @@ prepare_train_export_parameters <- function(params) {
     }
 
     if (!is.null(params$ignored_features)) {
-        # treat parameter AsIs to avoid conversion from 1-element array to atomic value
-        params$ignored_features <- I(as.character(params$ignored_features))
+        params$ignored_features <- as.character(params$ignored_features)
     }
-
-    return(jsonlite::toJSON(params, auto_unbox = TRUE, digits = 10))
+   
+    return(jsonlite::toJSON(params, auto_unbox = TRUE))
 }
 
-#' @name catboost.cv
-#' @title Cross-validate model.
-#' @description Estimate model performance using cross-validation.
+#' Cross-validate model.
+#'
 #' @param pool Data to cross-validate on
 #' @param params Parameters for catboost.train
 #' @param fold_count Folds count.
@@ -1625,10 +1481,8 @@ prepare_train_export_parameters <- function(params) {
 #' @param shuffle Shuffle the dataset objects before splitting into folds.
 #' @param stratified Perform stratified sampling.
 #' @param early_stopping_rounds Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
-#' @return A data.frame of evaluation results from cross-validation.
 #' @export
-catboost.cv <- function(pool,
-                        params = list(),
+catboost.cv <- function(pool, params = list(),
                         fold_count = 3,
                         type = "Classical",
                         partition_random_seed = 0,
@@ -1636,10 +1490,8 @@ catboost.cv <- function(pool,
                         stratified = FALSE,
                         early_stopping_rounds = NULL) {
 
-    if (!inherits(pool, "catboost.Pool"))
+    if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
-        stop("Pool object is invalid.")
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
@@ -1655,11 +1507,7 @@ catboost.cv <- function(pool,
     return(data.frame(result))
 }
 
-#' @name catboost.sum_models
-#' @title Sum models.
-#' @description Blend trees and counters of two or more trained CatBoost models into a new model.
-#'              Leaf values can be individually weighted for each input model. For example, it may
-#'              be useful to blend models trained on different validation datasets.
+#' Sum models.
 #'
 #' @param models Models for the summation.
 #'
@@ -1679,7 +1527,7 @@ catboost.cv <- function(pool,
 #' }
 #'
 #' Default value: 'IntersectingCountersAverage'
-#' @return Model object.
+#'
 #' @export
 catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'IntersectingCountersAverage') {
     if (is.null(weights)) {
@@ -1688,57 +1536,56 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
         stop("The length of this list must be equal to the number of blended models.");
     }
 
-    i <- 1L
+    i <- 1
     modelsVector <- list()
     for (model in models) {
-        catboost.restore_handle(model)
-        modelsVector[[i]] <- model$cpp_obj$handle
-        i <- i + 1L
+        if (class(model) != "catboost.Model")
+            stop("Expected catboost.Model, got: ", class(model))
+        if (is.null.handle(model$handle))
+            model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+
+        modelsVector[[i]] <- model$handle
+        i <- i + 1
     }
     handle <- .Call("CatBoostSumModels_R", modelsVector, weights, ctr_merge_policy)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- create.model.base(handle, raw)
+    model <- list(handle = handle, raw = raw)
 
     model$random_seed <- 0
     model$learning_rate <- 0
 
+    class(model) <- "catboost.Model"
     return(model)
 }
 
-#' @name catboost.load_model
-#' @title Load the model
+#' Load the model
 #'
-#' @description Load the model from a file.
+#' Load the model from a file.
 #'
-#'              Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
-#'              is not saved when using this function.
+#' Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 #' @param model_path The path to the model.
 #'
 #' Default value: Required argument
 #' @param file_format Format of the model file.
 #'
 #' Default value: 'cbm'
-#' @return A model object.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-load_model.html}
 catboost.load_model <- function(model_path, file_format = "cbm") {
-    model_path <- path.expand(model_path)
     handle <- .Call("CatBoostReadModel_R", model_path, file_format)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- create.model.base(handle, raw)
+    model <- list(handle = handle, raw = raw)
+    class(model) <- "catboost.Model"
     model$tree_count <- catboost.ntrees(model)
-    model$learning_rate <- catboost.get_plain_params(model)[['learning_rate']]
     return(model)
 }
 
 
-#' @name catboost.save_model
-#' @title Save the model
+#' Save the model
 #'
-#' @description Save the model to a file.
+#' Save the model to a file.
 #'
-#'              Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
-#'              is not saved when using this function.
+#' Note: Feature importance (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr}) is not saved when using this function.
 #' @param model The model to be saved.
 #'
 #' Default value: Required argument
@@ -1766,35 +1613,31 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
 #' Default value: 'cbm'
 #' @param export_parameters are a parameters for CoreML or PMML export.
 #' @param pool is training pool.
-#' @return Status, the result of model shrinking. TRUE if shrinking succeeded, FALSE otherwise.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/features/export-model-to-core-ml.html}
 catboost.save_model <- function(model, model_path,
                                 file_format = "cbm",
                                 export_parameters = NULL,
                                 pool = NULL) {
-    if (!is.null(pool) && !inherits(pool, "catboost.Pool"))
+    if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (!is.null(pool) && is.null.handle(pool))
-        stop("Pool object is invalid.")
     params_string <- ""
     if (!is.null(export_parameters))
         params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE)
 
-    catboost.restore_handle(model)
-    model_path <- path.expand(model_path)
-    status <- .Call("CatBoostOutputModel_R", model$cpp_obj$handle, model_path, file_format, params_string, pool)
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    status <- .Call("CatBoostOutputModel_R", model$handle, model_path, file_format, params_string, pool)
     return(status)
 }
 
 
-#' @name catboost.predict
-#' @title Apply the model
+#' Apply the model
 #'
-#' @description Apply the model to the given dataset.
+#' Apply the model to the given dataset.
 #'
-#'              Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-#'              Each line of this matrix contains the predictions for one object of the input dataset.
+#' Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+#' Each line of this matrix contains the predictions for one object of the input dataset.
 #' @param model The model obtained as the result of training.
 #'
 #' Default value: Required argument
@@ -1810,11 +1653,8 @@ catboost.save_model <- function(model, model_path,
 #' Possible values:
 #' \itemize{
 #'   \item 'Probability'
-#'   \item 'LogProbability'
 #'   \item 'Class'
 #'   \item 'RawFormulaVal'
-#'   \item 'Exponent'
-#'   \item 'RMSEWithUncertainty'
 #' }
 #'
 #' Default value: 'RawFormulaVal'
@@ -1829,35 +1669,34 @@ catboost.save_model <- function(model, model_path,
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: 1
-#' @return Vector of predictions (matrix for multi-class classification).
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-predict.html}
 catboost.predict <- function(model, pool,
                              verbose = FALSE, prediction_type = "RawFormulaVal",
                              ntree_start = 0, ntree_end = 0, thread_count = -1) {
-    if (!inherits(pool, "catboost.Pool"))
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
-        stop("Pool object is invalid.")
 
-    catboost.restore_handle(model)
-    prediction <- .Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
-    if (length(prediction) != nrow(pool)) {
-        prediction <- matrix(prediction, nrow = nrow(pool), byrow = TRUE)
+    prediction_columns <- length(prediction) / nrow(pool)
+    if (prediction_columns != 1) {
+        prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
     }
     return(prediction)
 }
 
 
-#' @name catboost.staged_predict
-#' @title Apply the model for each tree
+#' Apply the model for each tree
 #'
-#' @description Apply the model to the given dataset and calculate the results for each i-th tree of the model
-#'              taking into consideration only the trees in the range [1;i].
+#' Apply the model to the given dataset and calculate the results for each i-th tree of the model taking into consideration only the trees in the range [1;i].
 #'
-#'              Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
-#'              Each line of this matrix contains the predictions for one object of the input dataset.
+#' Peculiarities: In case of multiclassification the prediction is returned in the form of a matrix.
+#' Each line of this matrix contains the predictions for one object of the input dataset.
 #' @param model The model obtained as the result of training.
 #'
 #' Default value: Required argument
@@ -1892,18 +1731,15 @@ catboost.predict <- function(model, pool,
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
 #' Default value: 1
-#' @return List object with predictions from one iteration.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-staged_predict.html}
 catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_type = "RawFormulaVal",
-                                    ntree_start = 0L, ntree_end = 0L, eval_period = 1, thread_count = -1) {
-    if (!inherits(model, "catboost.Model"))
+                                    ntree_start = 0, ntree_end = 0, eval_period = 1, thread_count = -1) {
+    if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
-    if (!inherits(pool, "catboost.Pool"))
+    if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
-        stop("Pool object is invalid.")
-    if (ntree_end == 0L)
+    if (ntree_end == 0)
         ntree_end <- model$tree_count
 
     current_tree_count <- ntree_start
@@ -1912,8 +1748,9 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
         current_tree_count <<- current_tree_count + eval_period
         if (current_tree_count - eval_period >= ntree_end)
             stop("StopIteration")
-        catboost.restore_handle(model)
-        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$cpp_obj$handle, pool,
+        if (is.null.handle(model$handle))
+            model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+        current_approx <- as.array(.Call("CatBoostPredictMulti_R", model$handle, pool,
                                          verbose, "RawFormulaVal",
                                          current_tree_count - eval_period,
                                          min(current_tree_count, ntree_end), thread_count))
@@ -1932,76 +1769,11 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
     return(obj)
 }
 
-#' @name catboost.virtual_ensembles_predict
-#' @title Apply the model with several virtual ensembles
-#'
-#' @description Apply the model to the given dataset using several independent truncated models - virtual ensembles. Each tree in
-#'              ensemble predicts its own value for each document from pool.
-#'
-#'              Peculiarities: Return value varies on prediction_type: array for 'VirtEnsembles' and matrix for 'TotalUncertainty'
-#' @param model The model obtained as the result of training.
-#'
-#' Default value: Required argument
-#' @param pool The input dataset.
-#'
-#' Default value: Required argument
-#' @param verbose Verbose output to stdout.
-#'
-#' Default value: FALSE (not used)
-#' @param prediction_type The format for displaying approximated values in output data
-#' (see \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html#python-reference_catboostclassifier_predict__output-format}).
-#'
-#' Possible values:
-#' \itemize{
-#'   \item 'VirtEnsembles'
-#'   \item 'TotalUncertainty'
-#' }
-#'
-#' Default value: 'VirtEnsembles'
-#' @param ntree_end Index of the first tree not to be used when applying the model or calculating the metrics (zero-based indexing).
-#'
-#' Default value: 0 (the index of the last tree to use equals to the number of trees in the model minus one)
-#' @param virtual_ensembles_count Number of tree ensembles to use. Each virtual ensemble can be considered as truncated model.
-#'
-#' Default value: 10
-#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of CPU cores.
-#'
-#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
-#'
-#' Default value: -1
-#' @return Matrix or Array of predictions (for 'TotalUncertainty' and 'VirtEnsembles' prediction_type correspondingly)
-#' @export
-#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_virtual_ensembles_predict.html?lang=en}
-catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, prediction_type = "VirtEnsembles",
-                                    ntree_end = 0L, virtual_ensembles_count = 10, thread_count = -1) {
-    catboost.restore_handle(model)
-    if (!inherits(pool, "catboost.Pool"))
-        stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null.handle(pool))
-        stop("Pool object is invalid.")
 
-    prediction <- .Call("CatBoostPredictVirtualEnsembles_R", model$cpp_obj$handle, pool,
-                        verbose, prediction_type, ntree_end, virtual_ensembles_count, thread_count)
-    objects_count <- nrow(pool)
-    if (prediction_type == "VirtEnsembles") {
-        document_predict_size <- length(prediction) / virtual_ensembles_count / objects_count
-        prediction <- aperm(
-                            array(prediction,
-                                    dim = c(document_predict_size, virtual_ensembles_count, objects_count)),
-                            perm = c(2, 1, 3))
-    } else {
-        # prediction_type == "TotalUncertainty"
-        prediction <- matrix(prediction, nrow = objects_count, byrow = TRUE)
-    }
-    return(prediction)
-}
-
-
-#' @name catboost.get_feature_importance
-#' @title Calculate the feature importances
+#' Calculate the feature importances
 #'
-#' @description Calculate the feature importances (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
-#'              (Regular feature importance, ShapValues, and Feature interaction strength).
+#' Calculate the feature importances (see \url{https://catboost.ai/docs/concepts/fstr.html#fstr})
+#' (Regular feature importance, ShapValues, and Feature interaction strength).
 #'
 #' @param model The model obtained as the result of training.
 #'
@@ -2009,7 +1781,6 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #' @param pool The input dataset.
 #'
 #' The feature importance for the training dataset is calculated if this argument is not specified.
-#' Models with ranking metrics require pool argument to calculate feature importance.
 #'
 #' Default value: NULL
 #' @param type The feature importance type.
@@ -2045,26 +1816,24 @@ catboost.virtual_ensembles_predict <- function(model, pool, verbose = FALSE, pre
 #'
 #' Default value: -1
 #' @param fstr_type Deprecated parameter, use 'type' instead.
-#' @return Feature importances
 #' @export
 #' @seealso \url{https://catboost.ai/docs/features/feature-importances-calculation.html}
 catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureImportance", thread_count = -1, fstr_type = NULL) {
     if (!is.null(fstr_type)) {
         type <- fstr_type
     }
-    if (!inherits(model, "catboost.Model"))
+    if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (!is.null(pool) && is.null.handle(pool))
-        stop("Pool object is invalid.")
     if ( (type == "ShapValues" || type == "LossFunctionChange") && length(pool) == 0)
         stop("For `", type, "` type of feature importance, the pool is required")
     if ( (type == "PredictionValuesChange" || type == "FeatureImportance") && is.null(pool) && !is.null(model$feature_importances))
         return(model$feature_importances)
 
-    catboost.restore_handle(model)
-    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$cpp_obj$handle, pool, type, thread_count)
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, type, thread_count)
 
     if (type == "Interaction") {
         colnames(importances) <- c("feature1_index", "feature2_index", "score")
@@ -2073,7 +1842,6 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
             dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
         }
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
-        # TODO: incorrect pool and ignored_features lead to incorrect column names; testing length is not enough
         if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
@@ -2084,12 +1852,10 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 }
 
 
-#' @name catboost.get_object_importance
-#' @title Calculate the object importances
+#' Calculate the object importances
 #'
-#' @description Calculate the object importances (see \url{https://catboost.ai/docs/concepts/ostr.html}).
-#'              This is the implementation of the LeafInfluence algorithm from the following paper:
-#'               https://arxiv.org/pdf/1802.06640.pdf
+#' Calculate the object importances (see \url{https://catboost.ai/docs/concepts/ostr.html}).
+#' This is the implementation of the LeafInfluence algorithm from the following paper: https://arxiv.org/pdf/1802.06640.pdf
 #'
 #' @param model The model obtained as the result of training.
 #'
@@ -2103,7 +1869,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
 #'
 #' Default value: -1
-#' @param type
+#' @param type.
 #'
 #' Possible values:
 #' \itemize{
@@ -2134,7 +1900,6 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
 #'
 #' Default value: -1
 #' @param ostr_type Deprecated parameter, use 'type' instead.
-#' @return List with elements \code{"indices"} and \code{"scores"}.
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_object_importance.html}
 catboost.get_object_importance <- function(
@@ -2147,23 +1912,21 @@ catboost.get_object_importance <- function(
     thread_count = -1,
     ostr_type = NULL
 ) {
-    if (!inherits(pool, "catboost.Pool"))
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (!inherits(train_pool, "catboost.Pool"))
+    if (class(train_pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(train_pool))
-    if (is.null.handle(pool))
-        stop("'pool' object is invalid.")
-    if (is.null.handle(train_pool))
-        stop("'train_pool' object is invalid.")
     if (top_size < 0 && top_size != -1)
         stop("top_size should be positive integer or -1.")
-    catboost.restore_handle(model)
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
     if (!is.null(ostr_type)) {
         type <- ostr_type
         warning("ostr_type option is deprecated, use type instead")
     }
-    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$cpp_obj$handle,
-                         pool, train_pool, top_size, type, update_method, thread_count)
+    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, type, update_method, thread_count)
     indices <- head(importances, length(importances) / 2)
     scores <- tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)
@@ -2177,212 +1940,92 @@ catboost.get_object_importance <- function(
 }
 
 
-#' @name catboost.shrink
-#' @title Shrink the model
+#' Shrink the model
 #'
 #' @param model The model obtained as the result of training.
 #' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
-#' @return Status, the result of model shrinking. TRUE if shrinking succeeded, FALSE otherwise.
+#' Default value: 0
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-shrink.html}
 catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
     if (ntree_start > ntree_end)
         stop("ntree_start should be less than ntree_end.")
 
-    catboost.restore_handle(model)
-    status <- .Call("CatBoostShrinkModel_R", model$cpp_obj$handle, ntree_start, ntree_end)
-    model$cpp_obj$raw <- .Call("CatBoostSerializeModel_R", model$cpp_obj$handle)
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    status <- .Call("CatBoostShrinkModel_R", model$handle, ntree_start, ntree_end)
+    model$raw <- .Call("CatBoostSerializeModel_R", model$handle)
     return(status)
 }
 
 
-#' @name catboost.drop_unused_features
-#' @title Drop unused features information from model
+#' Drop unused features information from model
 #'
 #' @param model The model obtained as the result of training.
 #' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
-#' @return Status, the result of dropping feature. TRUE if this succeeded, FALSE otherwise.
+#' Default value: 0
+#'
 #' @export
 catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
-    catboost.restore_handle(model)
-    status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$cpp_obj$handle)
-    model$cpp_obj$raw <- .Call("CatBoostSerializeModel_R", model$cpp_obj$handle)
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$handle)
+    model$raw <- .Call("CatBoostSerializeModel_R", model$handle)
     return(status)
 }
 
 
 catboost.ntrees <- function(model) {
-    catboost.restore_handle(model)
-    num_trees <- .Call("CatBoostGetNumTrees_R", model$cpp_obj$handle)
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    num_trees <- .Call("CatBoostGetNumTrees_R", model$handle)
     return(num_trees)
-}
-
-catboost._is_groupwise_metric <- function(model) {
-    catboost.restore_handle(model)
-    is_groupwise_metric <- .Call("CatBoostIsGroupwiseMetric_R", model$cpp_obj$handle)
-    return(is_groupwise_metric)
 }
 
 
 catboost._is_oblivious <- function(model) {
-    catboost.restore_handle(model)
-    is_oblivious <- .Call("CatBoostIsOblivious_R", model$cpp_obj$handle)
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    is_oblivious <- .Call("CatBoostIsOblivious_R", model$handle)
     return(is_oblivious)
 }
 
 
-#' @name catboost.get_model_params
-#' @title Model parameters
+#' Model parameters
 #'
-#' @description Return the model parameters.
+#' Return the model parameters.
 #'
-#' @param model The model obtained as the result of training.
+#' @param model
+#' The model obtained as the result of training.
 #'
-#' @return A list object with model parameters.
+#' Default value: Required argument
 #' @export
 #' @seealso \url{https://catboost.ai/docs/concepts/r-reference_catboost-get_model_params.html}
 catboost.get_model_params <- function(model) {
-    catboost.restore_handle(model)
-    params <- .Call("CatBoostGetModelParams_R", model$cpp_obj$handle)
-    params <- jsonlite::fromJSON(params)
-    return(params)
-}
-
-#' @name catboost.get_plain_params
-#' @title Plain Model parameters
-#'
-#' @description Return the plain model parameters.
-#'
-#' @param model he model obtained as the result of training.
-#' @return A list object with model parameters.
-#' @export
-catboost.get_plain_params <- function(model) {
-    catboost.restore_handle(model)
-    params <- .Call("CatBoostGetPlainParams_R", model$cpp_obj$handle)
-    params <- jsonlite::fromJSON(params)
-    return(params)
-}
-
-
-#' @name catboost.eval_metrics
-#' @title Calculate metrics.
-#'
-#' @description Calculate the specified metrics for the specified dataset.
-#'
-#' @param model The model obtained as the result of training.
-#'
-#' Default value: Required argument
-#' @param pool The pool for which you want to evaluate the metrics.
-#'
-#' Default value: Required argument
-#' @param metrics The list of metrics to be calculated.
-#' (Supported metrics https://catboost.ai/docs/references/custom-metric__supported-metrics.html)
-#'
-#' Default value: Required argument
-#' @param ntree_start Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
-#'
-#' Default value: 0
-#' @param ntree_end Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
-#'
-#' Default value: 0 (if value equals to 0 this parameter is ignored and ntree_end equal to tree_count)
-#' @param eval_period Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
-#'
-#' Default value: 1
-#' @param thread_count The number of threads to use when applying the model.
-#' If -1, then the number of threads is set to the number of CPU cores.
-#'
-#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
-#'
-#' Default value: -1
-#' @param tmp_dir  The name of the temporary directory for intermediate results.
-#' If NULL, then the name will be generated.
-#'
-#' Default value: NULL
-#' @return dict: metric -> array of shape [(ntree_end - ntree_start) / eval_period].
-#' @export
-#' @seealso \url{https://catboost.ai/docs/concepts/python-reference_catboost_eval-metrics.html}
-catboost.eval_metrics <- function(model, pool, metrics, ntree_start = 0L, ntree_end = 0L,
-                                  eval_period = 1, thread_count = -1, tmp_dir = NULL) {
-  catboost.restore_handle(model)
-  if (!inherits(pool, "catboost.Pool"))
-    stop("Expected catboost.Pool, got: ", class(pool))
-  if (is.null.handle(pool))
-    stop("Pool object is invalid.")
-  if (ntree_start < 0)
-    stop("ntree_start should be greater or equal zero.")
-  if (ntree_end == 0L) {
-    ntree_end <- model$tree_count
-  } else {
-    ntree_end <- min(c(ntree_end, model$tree_count))
-  }
-  if (ntree_start >= ntree_end)
-    stop("ntree_start should be less than ntree_end.")
-  if (eval_period <= 0)
-    stop("eval_period should be greater than zero.")
-  if (eval_period > (ntree_end - ntree_start))
-    eval_period <- ntree_end - ntree_start
-  if (!is.list(metrics) && !(is.character(metrics) && length(metrics) == 1))
-    stop("Unsupported metrics type, expecting list or string, got: ", typeof(metrics))
-  if (is.character(metrics) && length(metrics) == 1)
-    metrics <- list(metrics)
-  if (length(metrics) == 0)
-    stop("No metrics found.")
-  if (is.null(tmp_dir))
-    tmp_dir <- tempdir()
-  tmp_dir <- path.expand(tmp_dir)
-
-  params <- catboost.get_plain_params(model)
-  train_dir <- params[['train_dir']]
-  if (is.null(params[['train_dir']]))
-    train_dir <- 'catboost_info'
-  result <- .Call("CatBoostEvalMetrics_R", model$cpp_obj$handle, pool, metrics,
-                  ntree_start, ntree_end, eval_period,
-                  thread_count, tmp_dir, train_dir)
-
-  return(result)
-}
-
-
-#' @name catboost.restore_handle
-#' @title Restore or complete model handle after de-serializing
-#'
-#' @description After de-serializing a model object through R base's functions (`readRDS`, `load`),
-#'              its underlying object will not exist in the computer's memory anymore, and needs
-#'              to be restored from the raw bytes that the model stores.
-#'
-#'              This is automatically done internally when calling functions such as \link{catboost.predict},
-#'              but the process is repeated at each call, which makes them slower than if using a
-#'              fresh model object and increases memory usage inbetween calls to the garbage collector.
-#'              This function allows restoring the internal object beforehand so as to avoid
-#'              restoring the object multiple times.
-#'
-#'              Note that the model object needs to be re-assigned as the output of this function,
-#'              as the modifications are not done in-place.
-#'
-#' @param model The model obtained as the result of training which has been serialized and is
-#'              now de-serialized.
-#'
-#' @return The model object with its handle pointing to a valid object in memory.
-#' @export
-catboost.restore_handle <- function(model) {
-    if (!inherits(model, "catboost.Model"))
+    if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
-    if (is.null.handle(model$cpp_obj$handle))
-        model$cpp_obj$handle <- .Call("CatBoostDeserializeModel_R", model$cpp_obj$raw)
-    return(model)
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
+    params <- .Call("CatBoostGetModelParams_R", model$handle)
+    params <- jsonlite::fromJSON(params)
+    return(params)
 }
+
 
 is.null.handle <- function(handle) {
   stopifnot(typeof(handle) == "externalptr")
   .Call("CatBoostIsNullHandle_R", handle)
-}
-
-create.model.base <- function(handle, raw) {
-    model <- list(cpp_obj = as.environment(list(handle = handle, raw = raw)))
-    class(model) <- "catboost.Model"
-    return(model)
 }

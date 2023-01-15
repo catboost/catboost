@@ -110,7 +110,6 @@ struct drm_nouveau_gem_pushbuf {
 	__u64 push;
 	__u32 suffix0;
 	__u32 suffix1;
-#define NOUVEAU_GEM_PUSHBUF_SYNC                                    (1ULL << 0)
 	__u64 vram_available;
 	__u64 gart_available;
 };

@@ -1,0 +1,10 @@
+Yandex-specific: with SQLITE_MUTEX_YANDEX and SQLITE_ENABLE_UPDATE_DELETE_LIMIT enabled
+
+  * sqlite3.c generated as [amalgamation](https://www.sqlite.org/howtocompile.html#amal)
+  * * Downloaded `autoconf` varian of sqlite3
+  * * Configured through `./configure CFLAGS="-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1"`
+  * * Made sqlite3.c using `make sqlite3.c`
+  * Added usage of SQLITE_UINT64_TYPE to sqlite3.c instead of 'unsigned SQLITE_INT64_TYPE'.
+  * Do not add shell.c (it's a console client for sqlite3, if needed - should be a separate lib/application).
+  * Added src/test_multiplex.{c,h} from sqlite3 sources which are needed for mobile MapKit
+    (VFS layer to support large databases on FSs that limit the maximum file size to 2GiB)

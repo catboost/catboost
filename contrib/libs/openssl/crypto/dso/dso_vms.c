@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "dso_local.h"
+#include "dso_locl.h"
 
 #ifdef OPENSSL_SYS_VMS
 

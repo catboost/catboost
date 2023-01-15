@@ -3,11 +3,8 @@
 #include "random_score_helper.h"
 #include "tree_ctrs.h"
 #include "tree_ctr_datasets_visitor.h"
-#include "update_feature_weights.h"
-
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
-#include <catboost/cuda/methods/langevin_utils.h>
 
 #include <catboost/libs/helpers/math_utils.h>
 
@@ -58,7 +55,7 @@ namespace NCatboostCuda {
         //TODO: two bootstrap type: docs and gathered target
         {
             auto slices = MakeTaskSlices();
-            auto weights = Bootstrap.BootstrappedWeights(GetRandom(), &target.Weights);
+            auto weights = Bootstrap.BootstrappedWeights(GetRandom(), target.Weights.GetMapping());
             //TODO(noxoomo): remove tiny overhead from bootstrap learn also
             if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly) {
                 //make learn weights equal to 1
@@ -88,13 +85,13 @@ namespace NCatboostCuda {
         TScoreCaclerPtr simpleCtrScoreCalcer;
 
         if (DataSet.HasFeatures()) {
-            featuresScoreCalcer = MakeHolder<TScoresCalcerOnCompressedDataSet<>>(DataSet.GetFeatures(),
+            featuresScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(DataSet.GetFeatures(),
                                                                          TreeConfig,
                                                                          foldCount,
                                                                          true);
         }
         if (DataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = MakeHolder<TScoresCalcerOnCompressedDataSet<>>(DataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = new TScoresCalcerOnCompressedDataSet<>(DataSet.GetPermutationFeatures(),
                                                                           TreeConfig,
                                                                           foldCount,
                                                                           true);
@@ -104,14 +101,6 @@ namespace NCatboostCuda {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         THolder<TTreeCtrDataSetsHelper> ctrDataSetsHelperPtr;
-
-        TMirrorBuffer<float> catFeatureWeights;
-
-        const auto featureCount = FeaturesManager.GetFeatureCount();
-        const auto& featureWeightsCpu = ExpandFeatureWeights(TreeConfig.FeaturePenalties.Get(), featureCount);
-        TMirrorBuffer<float> featureWeights = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(featureCount));
-        featureWeights.Write(featureWeightsCpu);
-        double scoreBeforeSplit = 0.0;
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
@@ -133,21 +122,6 @@ namespace NCatboostCuda {
             }
             TBinarySplit bestSplit;
 
-            ui32 maxUniqueValues = 1;
-            if (FeaturesManager.IsTreeCtrsEnabled()) {
-                if (ctrDataSetsHelperPtr == nullptr) {
-                    using TCtrHelperType = TTreeCtrDataSetsHelper;
-                    ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
-                                                                      FeaturesManager,
-                                                                      TreeConfig.MaxDepth,
-                                                                      foldCount,
-                                                                      *treeUpdater.CreateEmptyTensorTracker());
-                }
-                maxUniqueValues = ctrDataSetsHelperPtr->GetMaxUniqueValues();
-            }
-
-            UpdateFeatureWeightsForBestSplits(FeaturesManager, TreeConfig.ModelSizeReg, catFeatureWeights, maxUniqueValues);
-
             auto& manager = NCudaLib::GetCudaManager();
 
             manager.WaitComplete();
@@ -166,18 +140,12 @@ namespace NCatboostCuda {
                 }
                 {
                     if (featuresScoreCalcer) {
-                        featuresScoreCalcer->ComputeOptimalSplit(partitionsStats.AsConstBuf(),
-                                                                 catFeatureWeights.AsConstBuf(),
-                                                                 featureWeights.AsConstBuf(),
-                                                                 scoreBeforeSplit,
+                        featuresScoreCalcer->ComputeOptimalSplit(partitionsStats,
                                                                  ScoreStdDev,
                                                                  GetRandom().NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
-                        simpleCtrScoreCalcer->ComputeOptimalSplit(partitionsStats.AsConstBuf(),
-                                                                  catFeatureWeights.AsConstBuf(),
-                                                                  featureWeights.AsConstBuf(),
-                                                                  scoreBeforeSplit,
+                        simpleCtrScoreCalcer->ComputeOptimalSplit(partitionsStats,
                                                                   ScoreStdDev,
                                                                   GetRandom().NextUniformL());
                     }
@@ -187,7 +155,6 @@ namespace NCatboostCuda {
 
             TBestSplitProperties bestSplitProp = {static_cast<ui32>(-1),
                                                   0,
-                                                  std::numeric_limits<float>::infinity(),
                                                   std::numeric_limits<float>::infinity()};
 
             if (featuresScoreCalcer) {
@@ -202,6 +169,14 @@ namespace NCatboostCuda {
             bool isTreeCtrSplit = false;
 
             if (FeaturesManager.IsTreeCtrsEnabled()) {
+                if (ctrDataSetsHelperPtr == nullptr) {
+                    using TCtrHelperType = TTreeCtrDataSetsHelper;
+                    ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
+                                                                      FeaturesManager,
+                                                                      TreeConfig.MaxDepth,
+                                                                      foldCount,
+                                                                      *treeUpdater.CreateEmptyTensorTracker());
+                }
 
                 auto& ctrDataSetsHelper = *ctrDataSetsHelperPtr;
 
@@ -211,7 +186,7 @@ namespace NCatboostCuda {
                                                              TreeConfig,
                                                              subsets);
 
-                    ctrDataSetVisitor.SetBestGain(bestSplitProp.Gain)
+                    ctrDataSetVisitor.SetBestScore(bestSplitProp.Score)
                         .SetScoreStdDevAndSeed(ScoreStdDev,
                                                GetRandom().NextUniformL());
                     TMirrorBuffer<ui32> inverseIndices;
@@ -230,16 +205,11 @@ namespace NCatboostCuda {
                         }
 
                         std::function<void(const TTreeCtrDataSet&)> treeCtrDataSetScoreCalcer = [&](
-                            const TTreeCtrDataSet& ctrDataSet
-                        ) {
+                                                                                                    const TTreeCtrDataSet& ctrDataSet) {
                             ctrDataSetVisitor.Accept(ctrDataSet,
-                                                     partitionsStats.AsConstBuf(),
+                                                     partitionsStats,
                                                      inverseIndices,
-                                                     directObservationIndices,
-                                                     featureWeights.AsConstBuf(),
-                                                     scoreBeforeSplit,
-                                                     maxUniqueValues,
-                                                     TreeConfig.ModelSizeReg);
+                                                     directObservationIndices);
                         };
 
                         ctrDataSetsHelper.VisitPermutationDataSets(permutation,
@@ -253,8 +223,6 @@ namespace NCatboostCuda {
                     }
                 }
             }
-
-            scoreBeforeSplit = bestSplitProp.Score;
 
             CB_ENSURE(bestSplitProp.FeatureId != static_cast<ui32>(-1),
                       TStringBuilder() << "Error: something went wrong, best split is NaN with score"
@@ -292,9 +260,6 @@ namespace NCatboostCuda {
             }
 
             result.Splits.push_back(bestSplit);
-            if (isTreeCtrSplit) {
-                FeaturesManager.AddUsedCtr(bestSplitProp.FeatureId);
-            }
         }
 
         CacheBinsForModel(ScopedCache,
@@ -420,20 +385,6 @@ namespace NCatboostCuda {
                                                    streams[(2 * i) % streamCount].GetId());
                     task.TestTarget->NewtonAtZero(testTarget, testWeights,
                                                   streams[(2 * i + 1) % streamCount].GetId());
-                }
-
-                if (BoostingOptions.Langevin) {
-                    auto &trainSeeds = Random.GetGpuSeeds<NCudaLib::TMirrorMapping>();
-                    AddLangevinNoise(trainSeeds,
-                                     &learnTarget,
-                                     BoostingOptions.DiffusionTemperature,
-                                     BoostingOptions.LearningRate);
-
-                    auto &testSeeds = Random.GetGpuSeeds<NCudaLib::TMirrorMapping>();
-                    AddLangevinNoise(testSeeds,
-                                     &testTarget,
-                                     BoostingOptions.DiffusionTemperature,
-                                     BoostingOptions.LearningRate);
                 }
             }
 

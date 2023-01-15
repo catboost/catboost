@@ -17,7 +17,7 @@ struct TCustomObjectiveDescriptor {
         const float* weights,
         TDers* ders,
         void* customData);
-
+    
     using TCalcDersMultiClassPtr = void (*)(
         const TVector<double>& approx,
         float target,
@@ -26,7 +26,7 @@ struct TCustomObjectiveDescriptor {
         THessianInfo* der2,
         void* customData);
 
-    using TCalcDersMultiTargetPtr = void (*)(
+    using TCalcDersMultiRegressionPtr = void (*)(
         TConstArrayRef<double> approx,
         TConstArrayRef<float> target,
         float weight,
@@ -38,5 +38,5 @@ public:
     void* CustomData = nullptr;
     TCalcDersRangePtr CalcDersRange = nullptr;
     TCalcDersMultiClassPtr CalcDersMultiClass = nullptr;
-    TCalcDersMultiTargetPtr CalcDersMultiTarget = nullptr;
+    TCalcDersMultiRegressionPtr CalcDersMultiRegression = nullptr;
 };

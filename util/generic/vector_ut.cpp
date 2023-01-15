@@ -1,6 +1,6 @@
 #include "vector.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <utility>
 #include "yexception.h"
@@ -81,9 +81,8 @@ private:
         UNIT_ASSERT_EQUAL(10, (v.data())[0]);
         UNIT_ASSERT_EQUAL(20, (v.data())[1]);
 
-        for (int i = 0; i < 10000; ++i) {
+        for (int i = 0; i < 10000; ++i)
             v.push_back(99);
-        }
 
         UNIT_ASSERT_EQUAL(10, (v.data())[0]);
         UNIT_ASSERT_EQUAL(20, (v.data())[1]);
@@ -334,7 +333,16 @@ private:
         v.at(0) = 20;
         UNIT_ASSERT(cv.at(0) == 20);
 
-        UNIT_ASSERT_EXCEPTION(v.at(1) = 20, std::out_of_range);
+        for (;;) {
+            try {
+                v.at(1) = 20;
+                UNIT_ASSERT(false);
+            } catch (std::out_of_range const&) {
+                return;
+            } catch (...) {
+                UNIT_ASSERT(false);
+            }
+        }
     }
 
     void TestPointer() {
@@ -464,20 +472,12 @@ private:
 
     struct TPod {
         int x;
-
-        operator int() {
-            return x;
-        }
     };
 
     struct TNonPod {
         int x;
         TNonPod() {
             x = 0;
-        }
-
-        operator int() {
-            return x;
         }
     };
 
@@ -486,8 +486,8 @@ private:
     public:
         using TBase = std::allocator<T>;
 
-        T* allocate(typename TBase::size_type n) {
-            auto p = TBase::allocate(n);
+        typename TBase::pointer allocate(typename TBase::size_type n, std::allocator<void>::const_pointer hint = nullptr) {
+            typename TBase::pointer p = TBase::allocate(n, hint);
             for (size_t i = 0; i < n; ++i) {
                 memset(p + i, 0xab, sizeof(T));
             }
@@ -501,37 +501,28 @@ private:
     };
 
     template <typename T>
-    void TestYResize() {
-#ifdef _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
-        constexpr bool ALLOW_UNINITIALIZED = std::is_pod_v<T>;
-#else
-        constexpr bool ALLOW_UNINITIALIZED = false;
-#endif
-
+    void TestYResize(bool mustInit) {
         TVector<T, TDebugAlloc<T>> v;
 
         v.reserve(5);
-        auto firstBegin = v.begin();
+        T* firstBegin = v.begin();
 
-        v.yresize(5); // No realloc, no initialization if allowed
+        v.yresize(5); // No realloc
         UNIT_ASSERT(firstBegin == v.begin());
         for (int i = 0; i < 5; ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(bool(v[i]), ALLOW_UNINITIALIZED);
+            UNIT_ASSERT(bool(*(int*)(v.begin() + i)) != mustInit);
         }
 
-        v.yresize(20); // Realloc, still no initialization
+        v.yresize(20); // Realloc
         UNIT_ASSERT(firstBegin != v.begin());
         for (int i = 0; i < 20; ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(bool(v[i]), ALLOW_UNINITIALIZED);
+            UNIT_ASSERT(bool(*(int*)(v.begin() + i)) != mustInit);
         }
     }
 
     struct TNoDefaultConstructor {
         TNoDefaultConstructor() = delete;
-        explicit TNoDefaultConstructor(int val)
-            : Val(val)
-        {
-        }
+        explicit TNoDefaultConstructor(int val): Val(val) {}
 
         int Val;
     };
@@ -550,9 +541,9 @@ private:
     }
 
     void TestYResize() {
-        TestYResize<int>();
-        TestYResize<TPod>();
-        TestYResize<TNonPod>();
+        TestYResize<int>(false);
+        TestYResize<TPod>(false);
+        TestYResize<TNonPod>(true);
     }
 
     void CheckInitializeList(const TVector<int>& v) {

@@ -219,7 +219,7 @@ namespace NLastGetopt::NComp {
 
     namespace {
         TCustomCompleter* Head = nullptr;
-        TStringBuf SpecialFlag = "---CUSTOM-COMPLETION---";
+        TStringBuf SpecialFlag = AsStringBuf("---CUSTOM-COMPLETION---");
     }
 
     void TCustomCompleter::FireCustomCompleter(int argc, const char** argv) {
@@ -293,7 +293,7 @@ namespace NLastGetopt::NComp {
 
         void GenerateBash(TFormattedOutput& out) const override {
             L << "IFS=$'\\n'";
-            L << "COMPREPLY+=( $(compgen -W \"$(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\" 2> /dev/null)\" -- ${cur}) )";
+            L << "COMPREPLY+=( $(compgen -W \"$(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\")\" -- ${cur}) )";
             L << "IFS=$' \\t\\n'";
         }
 
@@ -302,7 +302,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput& out, TCompleterManager&) const override {
-            L << "compadd ${@} ${expl[@]} -- \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\" 2> /dev/null)}\"";
+            L << "compadd ${@} ${expl[@]} -- \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\")}\"";
         }
 
     private:
@@ -322,7 +322,7 @@ namespace NLastGetopt::NComp {
 
         void GenerateBash(TFormattedOutput& out) const override {
             L << "IFS=$'\\n'";
-            L << "items=( $(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\" 2> /dev/null) )";
+            L << "items=( $(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\") )";
             L << "candidates=$(compgen -W \"${items[*]:1}\" -- \"$cur\")";
             L << "COMPREPLY+=( $candidates )";
             L << "[[ $candidates == *\"${items[1]}\" ]] && need_space=\"\"";
@@ -334,7 +334,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput& out, TCompleterManager&) const override {
-            L << "local items=( \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\" 2> /dev/null)}\" )";
+            L << "local items=( \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\")}\" )";
             L;
             L << "local rempat=${items[1]}";
             L << "shift items";

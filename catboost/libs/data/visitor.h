@@ -3,7 +3,6 @@
 #include "feature_index.h"
 #include "meta_info.h"
 #include "objects.h"
-#include "pairs.h"
 #include "unaligned_mem.h"
 #include "util.h"
 
@@ -45,7 +44,7 @@ namespace NCB {
         // separate method because they can be loaded from a separate data source
         virtual void SetBaseline(TVector<TVector<float>>&& baseline) = 0;
 
-        virtual void SetPairs(TRawPairsData&& pairs) = 0;
+        virtual void SetPairs(TVector<TPair>&& pairs) = 0;
 
         virtual void SetTimestamps(TVector<ui64>&& timestamps) = 0;
 
@@ -53,7 +52,7 @@ namespace NCB {
         void SetPairs(TConstArrayRef<TPair> pairs) {
             TVector<TPair> pairsCopy;
             Assign(pairs, &pairsCopy);
-            SetPairs(TRawPairsData(std::move(pairsCopy)));
+            SetPairs(std::move(pairsCopy));
         }
 
         /* needed for checking groupWeights consistency while loading from separate file
@@ -92,9 +91,6 @@ namespace NCB {
         virtual void AddGroupId(ui32 localObjectIdx, TGroupId value) = 0;
         virtual void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) = 0;
         virtual void AddTimestamp(ui32 localObjectIdx, ui64 value) = 0;
-        virtual void AddGroupId(ui32 localObjectIdx, const TString& value) = 0;
-        virtual void AddSubgroupId(ui32 localObjectIdx, const TString& value) = 0;
-        virtual void AddSampleId(ui32 localObjectIdx, const TString& value) = 0;
 
         // TRawObjectsData
         virtual void AddFloatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, float feature) = 0;
@@ -127,12 +123,6 @@ namespace NCB {
         virtual void AddAllTextFeatures(
             ui32 localObjectIdx,
             TConstPolymorphicValuesSparseArray<TString, ui32> features
-        ) = 0;
-
-        virtual void AddEmbeddingFeature(
-            ui32 localObjectIdx,
-            ui32 flatFeatureIdx,
-            TMaybeOwningConstArrayHolder<float> feature
         ) = 0;
 
         // TRawTargetData
@@ -172,9 +162,6 @@ namespace NCB {
         virtual void AddGroupId(ui32 objectIdx, TGroupId value) = 0;
         virtual void AddSubgroupId(ui32 objectIdx, TSubgroupId value) = 0;
         virtual void AddTimestamp(ui32 objectIdx, ui64 value) = 0;
-        virtual void AddGroupId(ui32 objectIdx, const TString& value) = 0;
-        virtual void AddSubgroupId(ui32 objectIdx, const TString& value) = 0;
-        virtual void AddSampleId(ui32 objectIdx, const TString& value) = 0;
 
         // TRawObjectsData
 
@@ -203,12 +190,6 @@ namespace NCB {
             ui32 flatFeatureIdx,
             TConstPolymorphicValuesSparseArray<TString, ui32> features
         ) = 0;
-
-        virtual void AddEmbeddingFeature(
-            ui32 flatFeatureIdx,
-            ITypedSequencePtr<TMaybeOwningConstArrayHolder<float>> features
-        ) = 0;
-
 
         // TRawTargetData
 
@@ -244,8 +225,7 @@ namespace NCB {
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
 
-            const NCB::TPoolQuantizationSchema& poolQuantizationSchema,
-            bool wholeColumns // data passed to Add* functions will contain whole columns, not part
+            const NCB::TPoolQuantizationSchema& poolQuantizationSchema
         ) = 0;
 
         // TCommonObjectsData

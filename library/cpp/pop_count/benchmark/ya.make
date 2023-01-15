@@ -1,6 +1,6 @@
 
 
-Y_BENCHMARK()
+BENCHMARK()
 
 PEERDIR(
     util/draft

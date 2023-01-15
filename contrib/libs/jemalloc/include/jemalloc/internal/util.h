@@ -1,50 +1,143 @@
-#ifndef JEMALLOC_INTERNAL_UTIL_H
-#define JEMALLOC_INTERNAL_UTIL_H
+/******************************************************************************/
+#ifdef JEMALLOC_H_TYPES
 
-#define UTIL_INLINE static inline
+/* Size of stack-allocated buffer passed to buferror(). */
+#define	BUFERROR_BUF		64
 
-/* Junk fill patterns. */
-#ifndef JEMALLOC_ALLOC_JUNK
-#  define JEMALLOC_ALLOC_JUNK	((uint8_t)0xa5)
-#endif
-#ifndef JEMALLOC_FREE_JUNK
-#  define JEMALLOC_FREE_JUNK	((uint8_t)0x5a)
-#endif
+/*
+ * Size of stack-allocated buffer used by malloc_{,v,vc}printf().  This must be
+ * large enough for all possible uses within jemalloc.
+ */
+#define	MALLOC_PRINTF_BUFSIZE	4096
 
 /*
  * Wrap a cpp argument that contains commas such that it isn't broken up into
  * multiple arguments.
  */
-#define JEMALLOC_ARG_CONCAT(...) __VA_ARGS__
-
-/* cpp macro definition stringification. */
-#define STRINGIFY_HELPER(x) #x
-#define STRINGIFY(x) STRINGIFY_HELPER(x)
+#define	JEMALLOC_ARG_CONCAT(...) __VA_ARGS__
 
 /*
  * Silence compiler warnings due to uninitialized values.  This is used
  * wherever the compiler fails to recognize that the variable is never used
  * uninitialized.
  */
-#define JEMALLOC_CC_SILENCE_INIT(v) = v
-
-#ifdef __GNUC__
-#  define likely(x)   __builtin_expect(!!(x), 1)
-#  define unlikely(x) __builtin_expect(!!(x), 0)
+#ifdef JEMALLOC_CC_SILENCE
+#  define JEMALLOC_CC_SILENCE_INIT(v) = v
 #else
-#  define likely(x)   !!(x)
-#  define unlikely(x) !!(x)
+#  define JEMALLOC_CC_SILENCE_INIT(v)
 #endif
 
-#if !defined(JEMALLOC_INTERNAL_UNREACHABLE)
-#  error JEMALLOC_INTERNAL_UNREACHABLE should have been defined by configure
+/*
+ * Define a custom assert() in order to reduce the chances of deadlock during
+ * assertion failure.
+ */
+#ifndef assert
+#define	assert(e) do {							\
+	if (config_debug && !(e)) {					\
+		malloc_printf(						\
+		    "<jemalloc>: %s:%d: Failed assertion: \"%s\"\n",	\
+		    __FILE__, __LINE__, #e);				\
+		abort();						\
+	}								\
+} while (0)
 #endif
 
-#define unreachable() JEMALLOC_INTERNAL_UNREACHABLE()
+#ifndef not_reached
+#define	not_reached() do {						\
+	if (config_debug) {						\
+		malloc_printf(						\
+		    "<jemalloc>: %s:%d: Unreachable code reached\n",	\
+		    __FILE__, __LINE__);				\
+		abort();						\
+	}								\
+} while (0)
+#endif
 
-/* Set error code. */
-UTIL_INLINE void
-set_errno(int errnum) {
+#ifndef not_implemented
+#define	not_implemented() do {						\
+	if (config_debug) {						\
+		malloc_printf("<jemalloc>: %s:%d: Not implemented\n",	\
+		    __FILE__, __LINE__);				\
+		abort();						\
+	}								\
+} while (0)
+#endif
+
+#ifndef assert_not_implemented
+#define	assert_not_implemented(e) do {					\
+	if (config_debug && !(e))					\
+		not_implemented();					\
+} while (0)
+#endif
+
+/* Use to assert a particular configuration, e.g., cassert(config_debug). */
+#define	cassert(c) do {							\
+	if ((c) == false)						\
+		not_reached();						\
+} while (0)
+
+#endif /* JEMALLOC_H_TYPES */
+/******************************************************************************/
+#ifdef JEMALLOC_H_STRUCTS
+
+#endif /* JEMALLOC_H_STRUCTS */
+/******************************************************************************/
+#ifdef JEMALLOC_H_EXTERNS
+
+int	buferror(int err, char *buf, size_t buflen);
+uintmax_t	malloc_strtoumax(const char * __restrict__ nptr,
+    char ** __restrict__ endptr, int base);
+void	malloc_write(const char *s);
+
+/*
+ * malloc_vsnprintf() supports a subset of snprintf(3) that avoids floating
+ * point math.
+ */
+int	malloc_vsnprintf(char *str, size_t size, const char *format,
+    va_list ap);
+int	malloc_snprintf(char *str, size_t size, const char *format, ...)
+    JEMALLOC_ATTR(format(printf, 3, 4));
+void	malloc_vcprintf(void (*write_cb)(void *, const char *), void *cbopaque,
+    const char *format, va_list ap);
+void malloc_cprintf(void (*write)(void *, const char *), void *cbopaque,
+    const char *format, ...) JEMALLOC_ATTR(format(printf, 3, 4));
+void	malloc_printf(const char *format, ...)
+    JEMALLOC_ATTR(format(printf, 1, 2));
+
+#endif /* JEMALLOC_H_EXTERNS */
+/******************************************************************************/
+#ifdef JEMALLOC_H_INLINES
+
+#ifndef JEMALLOC_ENABLE_INLINE
+size_t	pow2_ceil(size_t x);
+void	set_errno(int errnum);
+int	get_errno(void);
+#endif
+
+#if (defined(JEMALLOC_ENABLE_INLINE) || defined(JEMALLOC_UTIL_C_))
+/* Compute the smallest power of 2 that is >= x. */
+JEMALLOC_INLINE size_t
+pow2_ceil(size_t x)
+{
+
+	x--;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+#if (LG_SIZEOF_PTR == 3)
+	x |= x >> 32;
+#endif
+	x++;
+	return (x);
+}
+
+/* Sets error code */
+JEMALLOC_INLINE void
+set_errno(int errnum)
+{
+
 #ifdef _WIN32
 	SetLastError(errnum);
 #else
@@ -52,72 +145,18 @@ set_errno(int errnum) {
 #endif
 }
 
-/* Get last error code. */
-UTIL_INLINE int
-get_errno(void) {
+/* Get last error code */
+JEMALLOC_INLINE int
+get_errno(void)
+{
+
 #ifdef _WIN32
-	return GetLastError();
+	return (GetLastError());
 #else
-	return errno;
+	return (errno);
 #endif
 }
-
-JEMALLOC_ALWAYS_INLINE void
-util_assume(bool b) {
-	if (!b) {
-		unreachable();
-	}
-}
-
-/* ptr should be valid. */
-JEMALLOC_ALWAYS_INLINE void
-util_prefetch_read(void *ptr) {
-	/*
-	 * This should arguably be a config check; but any version of GCC so old
-	 * that it doesn't support __builtin_prefetch is also too old to build
-	 * jemalloc.
-	 */
-#ifdef __GNUC__
-	if (config_debug) {
-		/* Enforce the "valid ptr" requirement. */
-		*(volatile char *)ptr;
-	}
-	__builtin_prefetch(ptr, /* read or write */ 0, /* locality hint */ 3);
-#else
-	*(volatile char *)ptr;
 #endif
-}
 
-JEMALLOC_ALWAYS_INLINE void
-util_prefetch_write(void *ptr) {
-#ifdef __GNUC__
-	if (config_debug) {
-		*(volatile char *)ptr;
-	}
-	/*
-	 * The only difference from the read variant is that this has a 1 as the
-	 * second argument (the write hint).
-	 */
-	__builtin_prefetch(ptr, 1, 3);
-#else
-	*(volatile char *)ptr;
-#endif
-}
-
-JEMALLOC_ALWAYS_INLINE void
-util_prefetch_read_range(void *ptr, size_t sz) {
-	for (size_t i = 0; i < sz; i += CACHELINE) {
-		util_prefetch_read((void *)((uintptr_t)ptr + i));
-	}
-}
-
-JEMALLOC_ALWAYS_INLINE void
-util_prefetch_write_range(void *ptr, size_t sz) {
-	for (size_t i = 0; i < sz; i += CACHELINE) {
-		util_prefetch_write((void *)((uintptr_t)ptr + i));
-	}
-}
-
-#undef UTIL_INLINE
-
-#endif /* JEMALLOC_INTERNAL_UTIL_H */
+#endif /* JEMALLOC_H_INLINES */
+/******************************************************************************/

@@ -4,9 +4,7 @@
 \name{catboost.caret}
 \alias{catboost.caret}
 \title{Support caret interface}
-\format{
-An object of class \code{list} of length 10.
-}
+\format{An object of class \code{list} of length 10.}
 \usage{
 catboost.caret
 }

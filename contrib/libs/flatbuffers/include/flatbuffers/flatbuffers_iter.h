@@ -46,7 +46,7 @@ inline bool hasContiguous(const Iter& spot, uoffset_t length)
     return spot.hasContiguous(length);
 }
 
-inline bool hasContiguous(const uint8_t* /* spot */, uoffset_t /* length */)
+inline bool hasContiguous(const uint8_t* spot, uoffset_t)
 {
     return true;
 }

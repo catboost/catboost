@@ -1,7 +1,12 @@
 #include "init.h"
 
+#include <util/system/compat.h>
+#include <util/system/yassert.h>
 #include <util/system/defaults.h>
 #include <util/generic/singleton.h>
+
+#include <cstdio>
+#include <cstdlib>
 
 namespace {
     class TNetworkInit {
@@ -12,7 +17,7 @@ namespace {
 #endif
 
 #if defined(_win_)
-    #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
             WSADATA wsaData;
             int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
             Y_ASSERT(!result);

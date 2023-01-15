@@ -31,8 +31,6 @@ class Track:
         self.duration = duration
         self.parameters_str = parameters_str
 
-        assert len(time_series), "Empty time series may indicate that this benchmark failed to parse logs for " + str(algorithm_name)
-
         for i in range(1, time_series.shape[0]):
             if time_series[i] - time_series[i - 1] < 0.:
                 time_series[i:] = time_series[i:] + 60.

@@ -23,16 +23,16 @@ SRCS(
 )
 
 PEERDIR(
-    library/cpp/enumbitset
-    library/cpp/langmask
-    library/cpp/token/lite
+    library/enumbitset
+    library/langmask
+    library/token
 )
 
 IF(CATBOOST_OPENSOURCE)
     CFLAGS(-DCATBOOST_OPENSOURCE=yes)
 ELSE()
     PEERDIR(
-        library/cpp/charset
+        library/charset
     )
 ENDIF()
 

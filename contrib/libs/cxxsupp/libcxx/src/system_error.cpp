@@ -1,4 +1,4 @@
-//===----------------------------------------------------------------------===//
+//===---------------------- system_error.cpp ------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,17 +6,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <__assert>
-#include <__config>
-#include <cerrno>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <string.h>
-#include <system_error>
+#include "__config"
+
+#include "system_error"
 
 #include "include/config_elast.h"
+#include "cerrno"
+#include "cstring"
+#include "cstdio"
+#include "cstdlib"
+#include "string"
+#include "string.h"
+#include "__debug"
 
 #if defined(__ANDROID__)
 #include <android/api-level.h>
@@ -27,29 +28,29 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 // class error_category
 
 #if defined(_LIBCPP_DEPRECATED_ABI_LEGACY_LIBRARY_DEFINITIONS_FOR_INLINE_FUNCTIONS)
-error_category::error_category() noexcept
+error_category::error_category() _NOEXCEPT
 {
 }
 #endif
 
-error_category::~error_category() noexcept
+error_category::~error_category() _NOEXCEPT
 {
 }
 
 error_condition
-error_category::default_error_condition(int ev) const noexcept
+error_category::default_error_condition(int ev) const _NOEXCEPT
 {
     return error_condition(ev, *this);
 }
 
 bool
-error_category::equivalent(int code, const error_condition& condition) const noexcept
+error_category::equivalent(int code, const error_condition& condition) const _NOEXCEPT
 {
     return default_error_condition(code) == condition;
 }
 
 bool
-error_category::equivalent(const error_code& code, int condition) const noexcept
+error_category::equivalent(const error_code& code, int condition) const _NOEXCEPT
 {
     return *this == code.category() && code.value() == condition;
 }
@@ -140,12 +141,12 @@ class _LIBCPP_HIDDEN __generic_error_category
     : public __do_message
 {
 public:
-    virtual const char* name() const noexcept;
+    virtual const char* name() const _NOEXCEPT;
     virtual string message(int ev) const;
 };
 
 const char*
-__generic_error_category::name() const noexcept
+__generic_error_category::name() const _NOEXCEPT
 {
     return "generic";
 }
@@ -156,12 +157,12 @@ __generic_error_category::message(int ev) const
 #ifdef _LIBCPP_ELAST
     if (ev > _LIBCPP_ELAST)
       return string("unspecified generic_category error");
-#endif // _LIBCPP_ELAST
+#endif  // _LIBCPP_ELAST
     return __do_message::message(ev);
 }
 
 const error_category&
-generic_category() noexcept
+generic_category() _NOEXCEPT
 {
     static __generic_error_category s;
     return s;
@@ -171,13 +172,13 @@ class _LIBCPP_HIDDEN __system_error_category
     : public __do_message
 {
 public:
-    virtual const char* name() const noexcept;
+    virtual const char* name() const _NOEXCEPT;
     virtual string message(int ev) const;
-    virtual error_condition default_error_condition(int ev) const noexcept;
+    virtual error_condition default_error_condition(int ev) const _NOEXCEPT;
 };
 
 const char*
-__system_error_category::name() const noexcept
+__system_error_category::name() const _NOEXCEPT
 {
     return "system";
 }
@@ -188,22 +189,22 @@ __system_error_category::message(int ev) const
 #ifdef _LIBCPP_ELAST
     if (ev > _LIBCPP_ELAST)
       return string("unspecified system_category error");
-#endif // _LIBCPP_ELAST
+#endif  // _LIBCPP_ELAST
     return __do_message::message(ev);
 }
 
 error_condition
-__system_error_category::default_error_condition(int ev) const noexcept
+__system_error_category::default_error_condition(int ev) const _NOEXCEPT
 {
 #ifdef _LIBCPP_ELAST
     if (ev > _LIBCPP_ELAST)
       return error_condition(ev, system_category());
-#endif // _LIBCPP_ELAST
+#endif  // _LIBCPP_ELAST
     return error_condition(ev, generic_category());
 }
 
 const error_category&
-system_category() noexcept
+system_category() _NOEXCEPT
 {
     static __system_error_category s;
     return s;
@@ -275,7 +276,7 @@ system_error::system_error(int ev, const error_category& ecat)
 {
 }
 
-system_error::~system_error() noexcept
+system_error::~system_error() _NOEXCEPT
 {
 }
 

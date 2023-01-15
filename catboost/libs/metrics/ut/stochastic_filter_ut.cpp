@@ -1,6 +1,6 @@
 #include <catboost/libs/metrics/metric.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
@@ -8,13 +8,13 @@
 
 Y_UNIT_TEST_SUITE(StochasticFilterMetricTests) {
     static void StochasticFilterCheck(const TVector<double>& approx, const TVector<float>& target, const TVector<TQueryInfo>& queries,
-                                      THolder<TSingleTargetMetric>& stochasticFilter, double expectedMetricValue, double epsilon, NPar::ILocalExecutor& executor) {
+                                      THolder<IMetric>& stochasticFilter, double expectedMetricValue, double epsilon, NPar::TLocalExecutor& executor) {
         TMetricHolder metricHolder = stochasticFilter->Eval({approx}, {}, false, target, {}, queries, 0, queries.ysize(), executor);
         UNIT_ASSERT_DOUBLES_EQUAL(stochasticFilter->GetFinalError(metricHolder), expectedMetricValue, epsilon);
     }
 
     Y_UNIT_TEST(StochasticFilterTest) {
-        THolder<TSingleTargetMetric> stochasticFilter = std::move(CreateSingleTargetMetric(ELossFunction::FilteredDCG, TLossParams(), /*approxDimension=*/1)[0]);
+        THolder<IMetric> stochasticFilter = std::move(CreateMetric(ELossFunction::FilteredDCG, /*params=*/{}, /*approxDimension=*/1)[0]);
         double epsilon = 1e-6;
         NPar::TLocalExecutor executor;
 

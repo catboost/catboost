@@ -8,7 +8,7 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -24,7 +24,7 @@ static constexpr int BinaryClassesCount = 2;
 TVector<double> MakeConfusionMatrix(
     TConstArrayRef<TVector<double>> approxes,
     TConstArrayRef<float> labels,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     const bool isMultiClass = approxes.size() > 1;
     const int classesCount = isMultiClass ? approxes.size() : BinaryClassesCount;
@@ -75,8 +75,7 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
         EPredictionType::RawFormulaVal,
         0,
         SafeIntegerCast<int>(model.GetTreeCount()),
-        &localExecutor,
-        processedData.TargetData->GetBaseline()
+        &localExecutor
     );
 
     return MakeConfusionMatrix(approxes, *processedData.TargetData->GetOneDimensionalTarget(), &localExecutor);

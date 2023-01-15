@@ -1,10 +1,10 @@
 #include "pointwise_hist2_one_byte_templ.cuh"
 #include "split_properties_helpers.cuh"
 #include <cooperative_groups.h>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 
 using namespace cooperative_groups;
 

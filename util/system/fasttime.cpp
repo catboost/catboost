@@ -13,16 +13,16 @@ ui64 InterpolatedMicroSeconds() {
 }
 #else
 
-    #include <dlfcn.h>
-    #include <sys/time.h>
+#include <dlfcn.h>
+#include <sys/time.h>
 
-    #if defined(_musl_)
-        #include <util/generic/hash.h>
-        #include <util/generic/vector.h>
-        #include <util/generic/string.h>
+#if defined(_musl_)
+#include <util/generic/hash.h>
+#include <util/generic/vector.h>
+#include <util/generic/string.h>
 
-        #include <contrib/libs/linuxvdso/interface.h>
-    #endif
+#include <contrib/libs/linuxvdso/interface.h>
+#endif
 
 namespace {
     using TTime = ui64;
@@ -33,14 +33,14 @@ namespace {
         inline TSymbols()
             : Func(nullptr)
         {
-            // not DEFAULT, cause library/cpp/gettimeofday
+            // not DEFAULT, cause library/gettimeofday
             Func = reinterpret_cast<TFunc>(dlsym(RTLD_NEXT, "gettimeofday"));
 
-    #if defined(_musl_)
+#if defined(_musl_)
             if (!Func) {
                 Func = reinterpret_cast<TFunc>(NVdso::Function("__vdso_gettimeofday", "LINUX_2.6"));
             }
-    #endif
+#endif
 
             if (!Func) {
                 Func = reinterpret_cast<TFunc>(Libc()->Sym("gettimeofday"));
@@ -164,6 +164,7 @@ namespace {
             double sx = 0;
             double sy = 0;
             double sxx = 0;
+            double syy = 0;
             double sxy = 0;
 
             for (size_t i = 0; i < n; ++i) {
@@ -173,6 +174,7 @@ namespace {
                 sx += x;
                 sy += y;
                 sxx += x * x;
+                syy += y * y;
                 sxy += x * y;
             }
 

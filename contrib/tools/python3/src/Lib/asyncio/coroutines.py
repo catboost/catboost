@@ -7,7 +7,6 @@ import os
 import sys
 import traceback
 import types
-import warnings
 
 from . import base_futures
 from . import constants
@@ -108,9 +107,6 @@ def coroutine(func):
     If the coroutine is not yielded from before it is destroyed,
     an error message is logged.
     """
-    warnings.warn('"@coroutine" decorator is deprecated since Python 3.8, use "async def" instead',
-                  DeprecationWarning,
-                  stacklevel=2)
     if inspect.iscoroutinefunction(func):
         # In Python 3.5 that's all we need to do for coroutines
         # defined with "async def".

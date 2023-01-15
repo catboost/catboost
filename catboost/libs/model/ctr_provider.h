@@ -5,9 +5,7 @@
 #include "features.h"
 #include "ctr_value_table.h"
 
-#include <catboost/libs/helpers/exception.h>
-
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
@@ -24,12 +22,12 @@ public:
     virtual ~ICtrProvider() {
     }
 
-    virtual bool HasNeededCtrs(TConstArrayRef<TModelCtr> neededCtrs) const = 0;
+    virtual bool HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) const = 0;
 
     virtual void CalcCtrs(
-        const TConstArrayRef<TModelCtr> neededCtrs,
-        const TConstArrayRef<ui8> binarizedFeatures, // vector of binarized float & one hot features
-        const TConstArrayRef<ui32> hashedCatFeatures,
+        const TVector<TModelCtr>& neededCtrs,
+        const TConstArrayRef<ui8>& binarizedFeatures, // vector of binarized float & one hot features
+        const TConstArrayRef<ui32>& hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) = 0;
 
@@ -46,18 +44,18 @@ public:
     virtual void DropUnusedTables(TConstArrayRef<TModelCtrBase> usedModelCtrBase) = 0;
 
     virtual void Save(IOutputStream* ) const {
-        CB_ENSURE(false, "Serialization not allowed");
+        Y_FAIL("Serialization not allowed");
     };
 
     virtual void Load(IInputStream* ) {
-        CB_ENSURE(false, "Deserialization not allowed");
+        Y_FAIL("Deserialization not allowed");
     };
 
     // can use this later for complex model deserialization logic
     virtual TString ModelPartIdentifier() const = 0;
 
     virtual TIntrusivePtr<ICtrProvider> Clone() const {
-        CB_ENSURE(false, "Cloning not supported");
+        Y_FAIL("Cloning not supported");
     }
 };
 

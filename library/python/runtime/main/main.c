@@ -12,8 +12,8 @@ extern char** environ;
 
 void unsetenv(const char* name) {
     const int n = strlen(name);
-    char** dst = environ;
-    for (char** src = environ; *src; src++)
+    const char** dst = environ;
+    for (const char** src = environ; *src; src++)
         if (strncmp(*src, name, n) || (*src)[n] != '=')
             *dst++ = *src;
     *dst = NULL;

@@ -96,28 +96,17 @@ def spawn_main(pipe_handle, parent_pid=None, tracker_fd=None):
     assert is_forking(sys.argv), "Not forking"
     if sys.platform == 'win32':
         import msvcrt
-        import _winapi
-
-        if parent_pid is not None:
-            source_process = _winapi.OpenProcess(
-                _winapi.SYNCHRONIZE | _winapi.PROCESS_DUP_HANDLE,
-                False, parent_pid)
-        else:
-            source_process = None
-        new_handle = reduction.duplicate(pipe_handle,
-                                         source_process=source_process)
+        new_handle = reduction.steal_handle(parent_pid, pipe_handle)
         fd = msvcrt.open_osfhandle(new_handle, os.O_RDONLY)
-        parent_sentinel = source_process
     else:
-        from . import resource_tracker
-        resource_tracker._resource_tracker._fd = tracker_fd
+        from . import semaphore_tracker
+        semaphore_tracker._semaphore_tracker._fd = tracker_fd
         fd = pipe_handle
-        parent_sentinel = os.dup(pipe_handle)
-    exitcode = _main(fd, parent_sentinel)
+    exitcode = _main(fd)
     sys.exit(exitcode)
 
 
-def _main(fd, parent_sentinel):
+def _main(fd):
     with os.fdopen(fd, 'rb', closefd=True) as from_parent:
         process.current_process()._inheriting = True
         try:
@@ -126,7 +115,7 @@ def _main(fd, parent_sentinel):
             self = reduction.pickle.load(from_parent)
         finally:
             del process.current_process()._inheriting
-    return self._bootstrap(parent_sentinel)
+    return self._bootstrap()
 
 
 def _check_not_importing_main():

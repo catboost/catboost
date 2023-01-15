@@ -1,7 +1,8 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/file.h>
 #include <util/system/filemap.h>
+#include <util/system/mktemp.h>
 #include <util/system/tempfile.h>
 
 #include "chunked_helpers.h"
@@ -231,7 +232,7 @@ public:
 
     void TestNamedChunkedData() {
         const TString filename = MakeTempName(nullptr, "named_chunked_data_test");
-        TTempFile file(filename);
+        TTempFileHandle file(filename);
 
         {
             TFixedBufferFileOutput fOut(filename);

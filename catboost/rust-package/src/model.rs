@@ -26,19 +26,6 @@ impl Model {
         Ok(model)
     }
 
-    /// Load a model from a buffer
-    pub fn load_buffer<P: AsRef<Vec<u8>>>(buffer: P) -> CatBoostResult<Self> {
-        let model = Model::new();
-        CatBoostError::check_return_value(unsafe {
-            catboost_sys::LoadFullModelFromBuffer(
-                model.handle,
-                buffer.as_ref().as_ptr() as *const std::os::raw::c_void,
-                buffer.as_ref().len(),
-            )
-        })?;
-        Ok(model)
-    }
-
     /// Calculate raw model predictions on float features and string categorical feature values
     pub fn calc_model_prediction(
         &self,
@@ -124,13 +111,6 @@ mod tests {
     }
 
     #[test]
-    fn load_model_buffer() {
-        let buffer: Vec<u8> = read_fast("tmp/model.bin").unwrap();
-        let model = Model::load_buffer(buffer);
-        assert!(model.is_ok());
-    }
-
-    #[test]
     fn calc_prediction() {
         let model = Model::load("tmp/model.bin").unwrap();
         let prediction = model
@@ -161,16 +141,5 @@ mod tests {
         assert_eq!(model.get_float_features_count(), 3);
         assert_eq!(model.get_tree_count(), 1000);
         assert_eq!(model.get_dimensions_count(), 1);
-    }
-
-    use std::io::Read;
-    fn read_fast<P: AsRef<std::path::Path>>(path: P) -> std::io::Result<Vec<u8>> {
-        let mut file = std::fs::File::open(path)?;
-        let meta = file.metadata()?;
-        let size = meta.len() as usize;
-        let mut data = Vec::with_capacity(size);
-        data.resize(size, 0);
-        file.read_exact(&mut data)?;
-        Ok(data)
     }
 }

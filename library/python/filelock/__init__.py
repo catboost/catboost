@@ -58,10 +58,6 @@ class _NixFileLock(AbstractFileLock):
     def release(self):
         self._unlocker(self._lock)
 
-    def __del__(self):
-        if hasattr(self, "_lock"):
-            self._lock.close()
-
 
 class _WinFileLock(AbstractFileLock):
     """
@@ -75,7 +71,7 @@ class _WinFileLock(AbstractFileLock):
         super(_WinFileLock, self).__init__(path)
         self._lock = None
         try:
-            with open(path, 'w') as lock_file:
+            with file(path, 'w') as lock_file:
                 lock_file.write(" " * self._LOCKED_BYTES_NUM)
         except IOError as e:
             if e.errno != errno.EACCES or not os.path.isfile(path):

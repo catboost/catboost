@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2017-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright 2015-2016 Cryptography Research, Inc.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -15,7 +15,7 @@
 
 #include "point_448.h"
 #include "ed448.h"
-#include "curve448_local.h"
+#include "curve448_lcl.h"
 
 #define COFACTOR 4
 
@@ -577,7 +577,6 @@ static int recode_wnaf(struct smvt_control *control,
             int32_t delta = odd & mask;
 
             assert(position >= 0);
-            assert(pos < 32);       /* can't fail since current & 0xFFFF != 0 */
             if (odd & (1 << (table_bits + 1)))
                 delta -= (1 << (table_bits + 1));
             current -= delta * (1 << pos);

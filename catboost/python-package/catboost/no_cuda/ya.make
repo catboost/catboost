@@ -1,5 +1,4 @@
 PY_ANY_MODULE(_catboost PREFIX "")
-CMAKE_EXPORTED_TARGET_NAME(_catboost_no_cuda)
 
 
 

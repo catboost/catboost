@@ -8,18 +8,13 @@ PY_SRCS(
     external.py
     test_splitter.py
     tools.py
-    ya.py
 )
 
 PEERDIR(
     contrib/python/six
 )
 
-IF(PYTHON2)
-    PEERDIR(
-        contrib/deprecated/python/enum34
-    )
-ENDIF()
+NO_LINT()
 
 END()
 

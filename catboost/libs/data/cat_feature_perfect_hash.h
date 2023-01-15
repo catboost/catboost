@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/dbg_output/dump.h>
+#include <library/dbg_output/dump.h>
 
 #include <util/folder/path.h>
 #include <util/generic/guid.h>
@@ -18,6 +18,7 @@
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
+#include <util/system/mktemp.h>
 #include <util/system/spinlock.h>
 #include <util/system/tempfile.h>
 #include <util/system/types.h>
@@ -110,14 +111,6 @@ namespace NCB {
             const auto it = Map.find(key);
             return (it != Map.end()) ? MakeMaybe(it->second) : Nothing();
         }
-
-        TMap<ui32, TValueWithCount> ToMap() const {
-            TMap<ui32, TValueWithCount> result = Map;
-            if (DefaultMap.Defined()) {
-                result.emplace(DefaultMap->SrcValue, DefaultMap->DstValueWithCount);
-            }
-            return result;
-        }
     };
 
     inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeaturePerfectHash& data) {
@@ -138,7 +131,7 @@ struct TDumper<NCB::TValueWithCount> {
         S& s,
         NCB::TValueWithCount valueWithCount
     ) {
-        s << "{Value=" << valueWithCount.Value << ",Count=" << valueWithCount.Count << "}";
+        s << "{Value=" << valueWithCount.Value << ",Count=" << valueWithCount.Count << '}';
     }
 };
 
@@ -165,7 +158,7 @@ struct TDumper<NCB::TCatFeaturePerfectHash> {
         } else {
             s << "None";
         }
-        s << ", Map=" << DbgDump(catFeaturePerfectHash.Map) << "}\n";
+        s << "Map=" << DbgDump(catFeaturePerfectHash.Map) << "}\n";
     }
 };
 
@@ -182,11 +175,7 @@ namespace NCB {
             , FeaturesPerfectHash(catFeatureCount)
         {}
 
-        TCatFeaturesPerfectHash(TCatFeaturesPerfectHash&& rhs) = default;
-
         ~TCatFeaturesPerfectHash() = default;
-
-        TCatFeaturesPerfectHash& operator=(TCatFeaturesPerfectHash&& rhs) = default;
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
@@ -225,7 +214,7 @@ namespace NCB {
 
         void Load() const {
             if (!HasHashInRam) {
-                CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
+                Y_VERIFY(StorageTempFile);
                 TIFStream inputStream(StorageTempFile->Name());
                 FeaturesPerfectHash.clear();
                 ::Load(&inputStream, FeaturesPerfectHash);
@@ -241,7 +230,7 @@ namespace NCB {
 
     private:
         void Save() const {
-            CB_ENSURE(StorageTempFile, "Need a file to load cat features hash");
+            Y_VERIFY(StorageTempFile);
             TOFStream out(StorageTempFile->Name());
             ::Save(&out, FeaturesPerfectHash);
         }
@@ -253,7 +242,7 @@ namespace NCB {
         void CheckHasFeature(const TCatFeatureIdx catFeatureIdx) const {
             CB_ENSURE_INTERNAL(
                 HasFeature(catFeatureIdx),
-                "Error: unknown " << catFeatureIdx
+                "Error: unknown categorical feature #" << catFeatureIdx
             );
         }
 

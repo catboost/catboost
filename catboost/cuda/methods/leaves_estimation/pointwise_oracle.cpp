@@ -1,9 +1,7 @@
-#include "leaves_estimation_helper.h"
 #include "pointwise_oracle.h"
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
-#include <catboost/libs/metrics/optimal_const_for_loss.h>
 
 namespace NCatboostCuda {
     void TBinOptimizedOracle::WriteWeights(TVector<double>* dst) {
@@ -119,8 +117,7 @@ namespace NCatboostCuda {
             CB_ENSURE(DerAtPoint.Defined(), "Error: write der first");
         }
 
-        CB_ENSURE(LeavesEstimationConfig.LeavesEstimationMethod != ELeavesEstimation::Exact);
-        if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+        if (LeavesEstimationConfig.UseNewton) {
             if (Der2AtPoint) {
                 (*secondDer) = *Der2AtPoint;
             } else {
@@ -150,9 +147,7 @@ namespace NCatboostCuda {
                     ComputePartitionStats(der2Row, Offsets, &writeSlice);
                     offset += columnCount * blockCount;
                 }
-                CB_ENSURE(
-                    offset == lowTriangleMatrixSize * blockCount,
-                    "Unexpected offset " << offset << ", should be " << lowTriangleMatrixSize * blockCount);
+                Y_VERIFY(offset == lowTriangleMatrixSize * blockCount);
                 auto hessianCpu = ReadReduce(reducedHessianGpu);
 
                 secondDer->clear();
@@ -194,46 +189,22 @@ namespace NCatboostCuda {
         }
     }
 
-    void TBinOptimizedOracle::AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
-                                                            NPar::ILocalExecutor* localExecutor) {
-        if (LeavesEstimationConfig.Langevin) {
-            AddLangevinNoise(LeavesEstimationConfig, derivatives, localExecutor, Random.NextUniformL());
-        }
-    }
-
-    TVector<float> TBinOptimizedOracle::EstimateExact() {
-        auto values = TStripeBuffer<float>::CopyMapping(Bins);
-        auto weights = TStripeBuffer<float>::CopyMapping(Bins);
-        DerCalcer->ComputeExactValue(Cursor.AsConstBuf(), &values, &weights);
-
-        TVector<float> point(BinCount * SingleBinDim());
-        ComputeExactApprox(Bins, values, weights, BinCount, point, LeavesEstimationConfig.LossDescription);
-
-        MoveTo(point);
-        return MakeEstimationResult(point);
-    }
-
     TBinOptimizedOracle::TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,
                                              THolder<IPermutationDerCalcer>&& derCalcer,
                                              TStripeBuffer<ui32>&& bins,
                                              TStripeBuffer<ui32>&& partOffsets,
                                              TStripeBuffer<float>&& cursor,
-                                             ui32 binCount,
-                                             TGpuAwareRandom& random)
+                                             ui32 binCount)
         : LeavesEstimationConfig(leavesEstimationConfig)
         , DerCalcer(std::move(derCalcer))
         , Bins(std::move(bins))
         , Offsets(std::move(partOffsets))
         , Cursor(std::move(cursor))
         , BinCount(binCount)
-        , Random(random)
     {
         ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         for (ui32 dev = 0; dev < devCount; ++dev) {
-            CB_ENSURE(
-                Offsets.GetMapping().DeviceSlice(dev).Size() == binCount + 1,
-                "Unexpected size of slice " << Offsets.GetMapping().DeviceSlice(dev).Size()
-                << " at device " << dev << ", should be " << binCount + 1);
+            Y_VERIFY(Offsets.GetMapping().DeviceSlice(dev).Size() == binCount + 1);
         }
 
         CurrentPoint.resize(BinCount * Cursor.GetColumnCount());

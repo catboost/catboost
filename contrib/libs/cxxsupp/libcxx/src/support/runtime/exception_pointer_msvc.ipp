@@ -137,8 +137,6 @@ struct ExceptionPtr {
     free(exception_object);
   }
 
-  // _bad_alloc_storage must be initialized before bad_alloc, so we declare and define it first.
-  static std::bad_alloc _bad_alloc_storage;
   static ExceptionPtr bad_alloc;
   //static ExceptionPtr bad_exception;
 };
@@ -148,11 +146,9 @@ struct ExceptionPtr {
 #pragma clang diagnostic ignored "-Waddress-of-temporary"
 #endif
 
-std::bad_alloc ExceptionPtr::_bad_alloc_storage;
-
 ExceptionPtr ExceptionPtr::bad_alloc(
-    &ExceptionPtr::_bad_alloc_storage,
-    reinterpret_cast<const EHThrowInfo*>(__GetExceptionInfo(ExceptionPtr::_bad_alloc_storage)));
+    &std::bad_alloc(),
+    reinterpret_cast<const EHThrowInfo*>(__GetExceptionInfo(std::bad_alloc())));
 
 /* ExceptionPtr
 ExceptionPtr::bad_exception(&std::bad_exception(),
@@ -167,7 +163,7 @@ ExceptionPtr::bad_exception(&std::bad_exception(),
 
 namespace std {
 
-exception_ptr::exception_ptr(const exception_ptr& __other) noexcept
+exception_ptr::exception_ptr(const exception_ptr& __other) _NOEXCEPT
     : __ptr_(__other.__ptr_) {
   if (__ptr_) {
     reinterpret_cast<ExceptionPtr*>(__ptr_)->counter.fetch_add(1);
@@ -175,7 +171,7 @@ exception_ptr::exception_ptr(const exception_ptr& __other) noexcept
 }
 
 exception_ptr& exception_ptr::
-operator=(const exception_ptr& __other) noexcept {
+operator=(const exception_ptr& __other) _NOEXCEPT {
   auto before = __ptr_;
   __ptr_ = __other.__ptr_;
   if (__ptr_) {
@@ -189,7 +185,7 @@ operator=(const exception_ptr& __other) noexcept {
   return *this;
 }
 
-exception_ptr::~exception_ptr() noexcept {
+exception_ptr::~exception_ptr() _NOEXCEPT {
   if (__ptr_) {
     if (reinterpret_cast<ExceptionPtr*>(__ptr_)->counter.fetch_sub(1) == 1) {
       delete reinterpret_cast<ExceptionPtr*>(__ptr_);
@@ -216,7 +212,7 @@ exception_ptr __copy_exception_ptr(void* exception_object,
   return res;
 }
 
-exception_ptr current_exception() noexcept {
+exception_ptr current_exception() _NOEXCEPT {
   EHExceptionRecord** record = __current_exception();
   if (*record && !std::uncaught_exception()) {
     return __copy_exception_ptr((*record)->parameters.exception_object,
@@ -244,9 +240,9 @@ void rethrow_exception(exception_ptr p) {
   _CxxThrowException(dst, throw_info);
 }
 
-nested_exception::nested_exception() noexcept : __ptr_(current_exception()) {}
+nested_exception::nested_exception() _NOEXCEPT : __ptr_(current_exception()) {}
 
-nested_exception::~nested_exception() noexcept {}
+nested_exception::~nested_exception() _NOEXCEPT {}
 
 _LIBCPP_NORETURN
 void nested_exception::rethrow_nested() const {

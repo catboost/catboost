@@ -1,1 +1,0 @@
-{% include [python-reference_catboost_get_borders](python-reference_catboost_get_borders.md) %}

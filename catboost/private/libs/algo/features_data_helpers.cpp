@@ -23,7 +23,7 @@ namespace NCB {
                 columnReorderMap,
                 start);
         } else if (const auto* quantizedForCpuObjectsData
-                       = dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData))
+                       = dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData))
         {
             /* TODO(akhropov): Implement block iterators for external columns and enable
              * base TQuantizedObjectsDataProvider support here.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2020 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,20 +26,17 @@
  */
 
 
-#ifndef LIBMPDEC_IO_H_
-#define LIBMPDEC_IO_H_
+#ifndef IO_H
+#define IO_H
 
 
+#include <errno.h>
 #include "mpdecimal.h"
-
-#include <stdint.h>
 
 
 #if SIZE_MAX == MPD_SIZE_MAX
   #define mpd_strtossize _mpd_strtossize
 #else
-#include <errno.h>
-
 static inline mpd_ssize_t
 mpd_strtossize(const char *s, char **end, int base)
 {
@@ -59,4 +56,4 @@ mpd_strtossize(const char *s, char **end, int base)
 #endif
 
 
-#endif /* LIBMPDEC_IO_H_ */
+#endif

@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/folder/tempdir.h>
 #include <util/generic/array_ref.h>
@@ -38,8 +38,6 @@ struct TCVResult {
     TVector<double> AverageTest;
     TVector<double> StdDevTest;
 
-    TVector<TFullModel> CVFullModels;
-
     //for painting
     TVector<double> LastTrainEvalMetric;//[foldIdx]
     TVector<double> LastTestEvalMetric;//[foldIdx]
@@ -63,11 +61,6 @@ TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsets(
     const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
     ui32 groupCount);
 
-TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsetsRange(
-    const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
-    ui32 groupCount,
-    const NCB::TIndexRange<ui32>& trainSubsetsRange);
-
 TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(const TVector<TVector<ui32>>& vectorData);
 
 TVector<NCB::TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
@@ -86,7 +79,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
     TMaybe<ui32> foldIdx, // if Nothing() - return data for all folds, if defined - return only one fold
     bool oldCvStyleSplit,
     ui64 cpuUsedRamLimit,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::TLocalExecutor* localExecutor) {
 
     // group subsets, groups maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets;
@@ -161,24 +154,23 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
-    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    NCB::TDataProviderPtr data,
+    const TLabelConverter& labelConverter,
+    NCB::TTrainingDataProviderPtr trainingData,
     const TCrossValidationParams& cvParams,
-    TVector<TCVResult>* results);
+    NPar::TLocalExecutor* localExecutor,
+    TVector<TCVResult>* results,
+    bool isAlreadyShuffled = false);
 
 void CrossValidate(
     NJson::TJsonValue plainJsonParams,
     NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TLabelConverter& labelConverter,
     NCB::TDataProviderPtr data,
     const TCrossValidationParams& cvParams,
-    NPar::ILocalExecutor* localExecutor,
-    TVector<TCVResult>* results,
-    bool isAlreadyShuffled = false);
+    TVector<TCVResult>* results);
 
 struct TFoldContext {
     ui32 FoldIdx;
@@ -210,6 +202,23 @@ public:
 
 };
 
+void TrainBatch(
+    const NCatboostOptions::TCatBoostOptions& catboostOption,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    const TLabelConverter& labelConverter,
+    TConstArrayRef<THolder<IMetric>> metrics,
+    TConstArrayRef<bool> skipMetricOnTrain,
+    double maxTimeSpentOnFixedCostRatio,
+    ui32 maxIterationsBatchSize,
+    size_t globalMaxIteration,
+    bool isErrorTrackerActive,
+    ELoggingLevel loggingLevel,
+    TFoldContext* foldContext,
+    IModelTrainer* modelTrainer,
+    NPar::TLocalExecutor* localExecutor,
+    TMaybe<ui32>* upToIteration);
+
 void Train(
     const NCatboostOptions::TCatBoostOptions& catboostOption,
     const TString& trainDir,
@@ -221,7 +230,7 @@ void Train(
     ITrainingCallbacks* trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
-    NPar::ILocalExecutor* localExecutor);
+    NPar::TLocalExecutor* localExecutor);
 
 void UpdateMetricsAfterIteration(
     size_t iteration,

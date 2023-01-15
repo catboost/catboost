@@ -111,6 +111,7 @@
   - asm/ist.h
   - asm/ist_x86.h
   - asm/kvm.h
+  - asm/kvm_arm.h
   - asm/kvm_arm64.h
   - asm/kvm_para.h
   - asm/kvm_para_arm.h
@@ -355,6 +356,7 @@
   - linux/auto_fs4.h
   - linux/auxvec.h
   - linux/ax25.h
+  - linux/b1lli.h
   - linux/batadv_packet.h
   - linux/batman_adv.h
   - linux/baycom.h
@@ -420,7 +422,6 @@
   - linux/dm-ioctl.h
   - linux/dm-log-userspace.h
   - linux/dma-buf.h
-  - linux/dma-heap.h
   - linux/dn.h
   - linux/dns_resolver.h
   - linux/dqblk_xfs.h
@@ -442,7 +443,6 @@
   - linux/errqueue.h
   - linux/erspan.h
   - linux/ethtool.h
-  - linux/ethtool_netlink.h
   - linux/eventpoll.h
   - linux/fadvise.h
   - linux/falloc.h
@@ -471,6 +471,7 @@
   - linux/genetlink.h
   - linux/genwqe/genwqe_card.h
   - linux/gfs2_ondisk.h
+  - linux/gigaset_dev.h
   - linux/gpio.h
   - linux/gsmmux.h
   - linux/gtp.h
@@ -488,13 +489,13 @@
   - linux/hsr_netlink.h
   - linux/hw_breakpoint.h
   - linux/hyperv.h
+  - linux/hysdn_if.h
   - linux/i2c-dev.h
   - linux/i2c.h
   - linux/i2o-dev.h
   - linux/i8k.h
   - linux/icmp.h
   - linux/icmpv6.h
-  - linux/idxd.h
   - linux/if.h
   - linux/if_addr.h
   - linux/if_addrlabel.h
@@ -574,10 +575,7 @@
   - linux/keyctl.h
   - linux/kfd_ioctl.h
   - linux/kvm.h
-  - linux/kvm_arm64.h
   - linux/kvm_para.h
-  - linux/kvm_powerpc.h
-  - linux/kvm_x86.h
   - linux/l2tp.h
   - linux/libc-compat.h
   - linux/lightnvm.h
@@ -611,7 +609,6 @@
   - linux/mount.h
   - linux/mpls.h
   - linux/mpls_iptunnel.h
-  - linux/mptcp.h
   - linux/mqueue.h
   - linux/mroute.h
   - linux/mroute6.h
@@ -799,7 +796,6 @@
   - linux/omap3isp.h
   - linux/omapfb.h
   - linux/oom.h
-  - linux/openat2.h
   - linux/openvswitch.h
   - linux/packet_diag.h
   - linux/param.h
@@ -855,8 +851,6 @@
   - linux/romfs_fs.h
   - linux/rose.h
   - linux/route.h
-  - linux/rpl.h
-  - linux/rpl_iptunnel.h
   - linux/rpmsg.h
   - linux/rseq.h
   - linux/rtc.h
@@ -963,7 +957,6 @@
   - linux/uio.h
   - linux/uleds.h
   - linux/ultrasound.h
-  - linux/um_timetravel.h
   - linux/un.h
   - linux/unistd.h
   - linux/unix_diag.h
@@ -978,7 +971,6 @@
   - linux/usb/g_uvc.h
   - linux/usb/gadgetfs.h
   - linux/usb/midi.h
-  - linux/usb/raw_gadget.h
   - linux/usb/tmc.h
   - linux/usb/video.h
   - linux/usbdevice_fs.h
@@ -1034,7 +1026,6 @@
   - linux/watchdog.h
   - linux/wimax.h
   - linux/wimax/i2400m.h
-  - linux/wireguard.h
   - linux/wireless.h
   - linux/wmi.h
   - linux/x25.h
@@ -1048,9 +1039,6 @@
   - misc/fastrpc.h
   - misc/habanalabs.h
   - misc/ocxl.h
-  - misc/pvpanic.h
-  - misc/uacce/hisi_qm.h
-  - misc/uacce/uacce.h
   - misc/xilinx_sdfec.h
   - mtd/inftl-user.h
   - mtd/mtd-abi.h

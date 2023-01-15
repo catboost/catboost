@@ -7,19 +7,19 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 void UpdateApproxDeltasMulti(
-    TConstArrayRef<TIndexType> indices, // not used if leaf count == 1
+    const TVector<TIndexType>& indices,
     int docCount,
-    TConstArrayRef<TVector<double>> leafDeltas, // [dimension][leafId]
+    TConstArrayRef<TVector<double>> leafDeltas, //leafDeltas[dimension][leafId]
     TVector<TVector<double>>* approxDeltas,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 
-void SetApproxDeltasMulti(
-    TConstArrayRef<TIndexType> indices, // not used if leaf count == 1
+void UpdateApproxDeltasMulti(
+    const TVector<TIndexType>& indices,
     int docCount,
-    TConstArrayRef<TVector<double>> leafDeltas, // [dimension][leafId]
+    TConstArrayRef<double> leafDeltas, //leafDeltas[dimension]
     TVector<TVector<double>>* approxDeltas,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 
 inline void AddDersRangeMulti(
@@ -45,7 +45,7 @@ void CalcLeafDersMulti(
     int sampleCount,
     bool isUpdateWeight,
     ELeavesEstimation estimationMethod,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TSumMulti>* leafDers
 );
 
@@ -55,5 +55,14 @@ void CalcLeafDeltasMulti(
     float l2Regularizer,
     double sumAllWeights,
     int docCount,
-    TVector<TVector<double>>* curLeafValues // [approxDim][leafIdx]
+    TVector<TVector<double>>* curLeafValues
+);
+
+void CalcLeafDeltasMulti(
+    const TVector<TSumMulti>& leafDer,
+    ELeavesEstimation estimationMethod,
+    float l2Regularizer,
+    double sumAllWeights,
+    int docCount,
+    TVector<double>* curLeafValues
 );

@@ -14,6 +14,7 @@ __all__ = ['choice', 'randbelow', 'randbits', 'SystemRandom',
 
 import base64
 import binascii
+import os
 
 from hmac import compare_digest
 from random import SystemRandom
@@ -43,7 +44,7 @@ def token_bytes(nbytes=None):
     """
     if nbytes is None:
         nbytes = DEFAULT_ENTROPY
-    return _sysrand.randbytes(nbytes)
+    return os.urandom(nbytes)
 
 def token_hex(nbytes=None):
     """Return a random text string, in hexadecimal.

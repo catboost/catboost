@@ -15,7 +15,7 @@ inline void AddDersRangeMulti(
     TArrayRef<TSumMulti> leafDers // [dimensionIdx]
 ) {
     const auto* multiError = dynamic_cast<const TMultiDerCalcer*>(&error);
-    const bool isMultiTarget = multiError != nullptr;
+    const bool isMultiRegression = multiError != nullptr;
 
     const int approxDimension = approx.size();
     const bool useHessian = !leafDers[0].SumDer2.Data.empty();
@@ -24,21 +24,21 @@ inline void AddDersRangeMulti(
     constexpr int UnrollMaxCount = 16;
     TVector<TVector<double>> curApprox(UnrollMaxCount, TVector<double>(approxDimension));
     TVector<TVector<float>> curTarget;
-    if (isMultiTarget) {
+    if (isMultiRegression) {
         curTarget = TVector<TVector<float>>(UnrollMaxCount, TVector<float>(target.size()));
     }
 
-    const auto addDersRangeMultiImpl = [&](auto useWeights, auto useLeafIndices, auto useHessian, auto isMultiTarget) {
+    const auto addDersRangeMultiImpl = [&](auto useWeights, auto useLeafIndices, auto useHessian, auto isMultiRegression) {
         for (int columnIdx = rowBegin; columnIdx < rowEnd; columnIdx += UnrollMaxCount) {
             const int unrollCount = Min(UnrollMaxCount, rowEnd - columnIdx);
             SumTransposedBlocks(columnIdx, columnIdx + unrollCount, approx, approxDeltas, MakeArrayRef(curApprox));
-            if (isMultiTarget) {
+            if (isMultiRegression) {
                 SumTransposedBlocks(columnIdx, columnIdx + unrollCount, target, /*targetDeltas*/{}, MakeArrayRef(curTarget));
             }
             for (int unrollIdx : xrange(unrollCount)) {
                 const double w = useWeights ? weight[columnIdx + unrollIdx] : 1;
 
-                if (isMultiTarget) {
+                if (isMultiRegression) {
                     multiError->CalcDers(curApprox[unrollIdx], curTarget[unrollIdx], w, &curDer, useHessian ? &curDer2 : nullptr);
                 } else {
                     error.CalcDersMulti(curApprox[unrollIdx], target[0][columnIdx + unrollIdx], w, &curDer, useHessian ? &curDer2 : nullptr);
@@ -54,7 +54,7 @@ inline void AddDersRangeMulti(
         }
     };
 
-    DispatchGenericLambda(addDersRangeMultiImpl, !weight.empty(), !leafIndices.empty(), useHessian, isMultiTarget);
+    DispatchGenericLambda(addDersRangeMultiImpl, !weight.empty(), !leafIndices.empty(), useHessian, isMultiRegression);
 }
 
 void CalcLeafDersMulti(
@@ -67,7 +67,7 @@ void CalcLeafDersMulti(
     int sampleCount,
     bool isUpdateWeight,
     ELeavesEstimation estimationMethod,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TSumMulti>* leafDers
 ) {
     const int approxDimension = approx.ysize();
@@ -122,7 +122,7 @@ void CalcLeafDeltasMulti(
     float l2Regularizer,
     double sumAllWeights,
     int docCount,
-    TVector<TVector<double>>* curLeafValues // [approxDim][leafIdx]
+    TVector<TVector<double>>* curLeafValues
 ) {
     const int leafCount = leafDers.ysize();
     TVector<double> curDelta;
@@ -144,66 +144,70 @@ void CalcLeafDeltasMulti(
     }
 }
 
-
-template <bool isReset>
-static void UpdateApproxDeltasMultiImpl(
-    TConstArrayRef<TIndexType> indices, // not used if leaf count == 1
+void CalcLeafDeltasMulti(
+    const TVector<TSumMulti>& leafDer,
+    ELeavesEstimation estimationMethod,
+    float l2Regularizer,
+    double sumAllWeights,
     int docCount,
-    TConstArrayRef<TVector<double>> leafDeltas, // [dimension][leafId]
-    TVector<TVector<double>>* approxDeltas,
-    NPar::ILocalExecutor* localExecutor
+    TVector<double>* curLeafValues
 ) {
-    NPar::ILocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
-
-    const auto indicesRef = MakeArrayRef(indices);
-    const auto leafCount = leafDeltas[0].size();
-    for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {
-        auto approxDeltaRef = MakeArrayRef((*approxDeltas)[dim]);
-        if (leafCount == 1) {
-            const auto delta = leafDeltas[dim][0];
-            localExecutor->ExecRange(
-                [=] (int z) {
-                    if (isReset) {
-                        approxDeltaRef[z] = delta;
-                    } else {
-                        approxDeltaRef[z] += delta;
-                    }
-                },
-                blockParams,
-                NPar::TLocalExecutor::WAIT_COMPLETE);
-        } else {
-            auto leafDeltaRef = MakeConstArrayRef(leafDeltas[dim]);
-            localExecutor->ExecRange(
-                [=] (int z) {
-                    if (isReset) {
-                        approxDeltaRef[z] = leafDeltaRef[indicesRef[z]];
-                    } else {
-                        approxDeltaRef[z] += leafDeltaRef[indicesRef[z]];
-                    }
-                },
-                blockParams,
-                NPar::TLocalExecutor::WAIT_COMPLETE);
-        }
+    Y_ASSERT(leafDer.ysize() == 1);
+    TVector<double> curDelta;
+    if (estimationMethod == ELeavesEstimation::Newton) {
+            CalcDeltaNewtonMulti(leafDer[0], l2Regularizer, sumAllWeights, docCount, &curDelta);
+            for (int dim = 0; dim < curDelta.ysize(); ++dim) {
+                (*curLeafValues)[dim] = curDelta[dim];
+            }
+    } else {
+        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+            CalcDeltaGradientMulti(leafDer[0], l2Regularizer, sumAllWeights, docCount, &curDelta);
+            for (int dim = 0; dim < curDelta.ysize(); ++dim) {
+                (*curLeafValues)[dim]= curDelta[dim];
+            }
     }
 }
 
 void UpdateApproxDeltasMulti(
-    TConstArrayRef<TIndexType> indices,
+    const TVector<TIndexType>& indices,
     int docCount,
-    TConstArrayRef<TVector<double>> leafDeltas,
+    TConstArrayRef<TVector<double>> leafDeltas, //leafDeltas[dimension][leafId]
     TVector<TVector<double>>* approxDeltas,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
-    UpdateApproxDeltasMultiImpl<false>(indices, docCount, leafDeltas, approxDeltas, localExecutor);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+
+    const auto indicesRef = MakeArrayRef(indices);
+    for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {
+        auto approxDeltaRef = MakeArrayRef((*approxDeltas)[dim]);
+        auto leafDeltaRef = MakeConstArrayRef((leafDeltas)[dim]);
+        localExecutor->ExecRange(
+            [=] (int z) {
+                approxDeltaRef[z] += leafDeltaRef[indicesRef[z]];
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 }
 
-void SetApproxDeltasMulti(
-    TConstArrayRef<TIndexType> indices,
+void UpdateApproxDeltasMulti(
+    const TVector<TIndexType>& /*indices*/,
     int docCount,
-    TConstArrayRef<TVector<double>> leafDeltas,
+    TConstArrayRef<double> leafDeltas, //leafDeltas[dimension]
     TVector<TVector<double>>* approxDeltas,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
-    UpdateApproxDeltasMultiImpl<true>(indices, docCount, leafDeltas, approxDeltas, localExecutor);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+
+    for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {
+        auto approxDeltaRef = MakeArrayRef((*approxDeltas)[dim]);
+        localExecutor->ExecRange(
+            [=](int z) {
+                approxDeltaRef[z] += leafDeltas[dim];
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 }

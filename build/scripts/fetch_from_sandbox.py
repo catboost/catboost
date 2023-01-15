@@ -91,14 +91,14 @@ def _urlopen(url, data=None, headers=None):
             return urllib2.urlopen(request, timeout=tout).read()
 
         except urllib2.HTTPError as e:
-            logging.warning('failed to fetch URL %s with HTTP code %d: %s', url, e.code, e)
+            logging.error(e)
             retry_after = int(e.headers.get('Retry-After', str(retry_after)))
 
             if e.code not in TEMPORARY_ERROR_CODES:
                 raise
 
         except Exception as e:
-            logging.warning('failed to fetch URL %s: %s', url, e)
+            logging.error(e)
 
         if i + 1 == n:
             raise e
@@ -136,10 +136,7 @@ def fetch(resource_id, custom_fetcher):
     try:
         resource_info = get_resource_info(resource_id, touch=True, no_links=True)
     except Exception as e:
-        sys.stderr.write(
-            "Failed to fetch resource {}: {}\n".format(resource_id, str(e))
-        )
-        raise
+        raise ResourceInfoError(str(e))
 
     if resource_info.get('state', 'DELETED') != 'READY':
         raise ResourceInfoError("Resource {} is not READY".format(resource_id))
@@ -194,10 +191,10 @@ def fetch(resource_id, custom_fetcher):
         except UnsupportedProtocolException:
             pass
         except subprocess.CalledProcessError as e:
-            logging.warning('failed to fetch resource %s with subprocess: %s', resource_id, e)
+            logging.error(e)
             time.sleep(i)
         except urllib2.HTTPError as e:
-            logging.warning('failed to fetch resource %s with HTTP code %d: %s', resource_id, e.code, e)
+            logging.error(e)
             if e.code not in TEMPORARY_ERROR_CODES:
                 exc_info = exc_info or sys.exc_info()
             time.sleep(i)
@@ -264,6 +261,4 @@ if __name__ == '__main__':
         logging.exception(e)
         print >>sys.stderr, open(args.abs_log_path).read()
         sys.stderr.flush()
-
-        import error
-        sys.exit(error.ExitCodes.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)
+        sys.exit(fetch_from.INFRASTRUCTURE_ERROR if fetch_from.is_temporary(e) else 1)

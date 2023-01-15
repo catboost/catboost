@@ -37,7 +37,7 @@ class Prefilter {
   ~Prefilter();
 
   Op op() { return op_; }
-  const std::string& atom() const { return atom_; }
+  const string& atom() const { return atom_; }
   void set_unique_id(int id) { unique_id_ = id; }
   int unique_id() const { return unique_id_; }
 
@@ -57,23 +57,10 @@ class Prefilter {
   static Prefilter* FromRE2(const RE2* re2);
 
   // Returns a readable debug string of the prefilter.
-  std::string DebugString() const;
+  string DebugString() const;
 
  private:
-  // A comparator used to store exact strings. We compare by length,
-  // then lexicographically. This ordering makes it easier to reduce the
-  // set of strings in SimplifyStringSet.
-  struct LengthThenLex {
-    bool operator()(const std::string& a, const std::string& b) const {
-       return (a.size() < b.size()) || (a.size() == b.size() && a < b);
-    }
-  };
-
   class Info;
-
-  using SSet = std::set<std::string, LengthThenLex>;
-  using SSIter = SSet::iterator;
-  using ConstSSIter = SSet::const_iterator;
 
   // Combines two prefilters together to create an AND. The passed
   // Prefilters will be part of the returned Prefilter or deleted.
@@ -88,22 +75,13 @@ class Prefilter {
 
   static Prefilter* FromRegexp(Regexp* a);
 
-  static Prefilter* FromString(const std::string& str);
+  static Prefilter* FromString(const string& str);
 
-  static Prefilter* OrStrings(SSet* ss);
+  static Prefilter* OrStrings(std::set<string>* ss);
 
   static Info* BuildInfo(Regexp* re);
 
   Prefilter* Simplify();
-
-  // Removes redundant strings from the set. A string is redundant if
-  // any of the other strings appear as a substring. The empty string
-  // is a special case, which is ignored.
-  static void SimplifyStringSet(SSet* ss);
-
-  // Adds the cross-product of a and b to dst.
-  // (For each string i in a and j in b, add i+j.)
-  static void CrossProduct(const SSet& a, const SSet& b, SSet* dst);
 
   // Kind of Prefilter.
   Op op_;
@@ -112,7 +90,7 @@ class Prefilter {
   std::vector<Prefilter*>* subs_;
 
   // Actual string to match in leaf node.
-  std::string atom_;
+  string atom_;
 
   // If different prefilters have the same string atom, or if they are
   // structurally the same (e.g., OR of same atom strings) they are

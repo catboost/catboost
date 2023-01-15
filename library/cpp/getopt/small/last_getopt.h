@@ -9,7 +9,7 @@
 
 /// see some documentation in
 /// https://wiki.yandex-team.ru/development/poisk/arcadia/util/lastgetopt/
-/// https://wiki.yandex-team.ru/development/poisk/arcadia/library/getopt/
+/// https://wiki.yandex-team.ru/development/poisk/arcadia/library/cpp/getopt/
 /// see examples in library/cpp/getopt/last_getopt_demo
 
 //TODO: in most cases this include is unnecessary, but needed THandlerFunctor1<TpFunc, TpArg>::HandleOpt

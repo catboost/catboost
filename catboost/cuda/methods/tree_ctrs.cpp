@@ -46,7 +46,7 @@ NCatboostCuda::TTreeCtrDataSetBuilder::TConstVec NCatboostCuda::TTreeCtrDataSetB
                           bordersVecSlice);
         TreeCtrDataSet.AreCtrBordersComputed[featureId] = true;
     }
-    return TreeCtrDataSet.CtrBorders.SliceView(bordersSlice).AsConstBuf();
+    return TreeCtrDataSet.CtrBorders.SliceView(bordersSlice);
 }
 
 void NCatboostCuda::TTreeCtrDataSetBuilder::ComputeCtrBorders(const NCatboostCuda::TTreeCtrDataSetBuilder::TVec& ctr,
@@ -121,7 +121,7 @@ NCatboostCuda::TTreeCtrDataSetsHelper::TTreeCtrDataSetsHelper(const NCatboostCud
     NCudaLib::GetCudaManager().WaitComplete();
     for (ui32 dev = 0; dev < devCount; ++dev) {
         auto freeMemory = manager.FreeMemoryMb(dev, false);
-        PackSizeEstimators[dev] = (MakeHolder<TTreeCtrDataSetMemoryUsageEstimator>(featuresManager,
+        PackSizeEstimators[dev] = (new TTreeCtrDataSetMemoryUsageEstimator(featuresManager,
                                                                            freeMemory,
                                                                            dataSet.GetCatFeatures().GetFeatureCount(dev),
                                                                            FoldCount,
@@ -191,7 +191,7 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::AddNewDataSets(const NCatboostCuda::
 
     for (ui32 dev = 0; dev < devCount; ++dev) {
         AddDataSetPacks(tensor,
-                        TensorTrackers[tensor].GetIndices().DeviceView(dev).AsConstBuf(),
+                        TensorTrackers[tensor].GetIndices().DeviceView(dev),
                         dev,
                         DataSets[dev]);
     }
@@ -207,7 +207,7 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::UpdatePureTreeCtrTensor(const NCatbo
 
     for (ui32 dev = 0; dev < devCount; ++dev) {
         AddDataSetPacks(PureTreeCtrTensorTracker.GetCurrentTensor(),
-                        PureTreeCtrTensorTracker.GetIndices().DeviceView(dev).AsConstBuf(),
+                        PureTreeCtrTensorTracker.GetIndices().DeviceView(dev),
                         dev,
                         PureTreeCtrDataSets[dev]);
     }
@@ -401,29 +401,6 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::VisitPermutationDataSets(ui32 permut
             ProceedDataSets(permutationId, withoutCachedIndexDataSets, visitor);
         }
     });
-}
-
-ui32 NCatboostCuda::TTreeCtrDataSetsHelper::GetMaxUniqueValues() const {
-    ui32 maxUniqueValues = 1;
-    NCudaLib::RunPerDeviceSubtasks([&](ui32 device) {
-        for (const auto& dataSetPtr : DataSets[device]) {
-            const auto& ctrs = dataSetPtr->GetCtrs();
-            for (const TCtr& ctr : ctrs) {
-                if (!FeaturesManager.IsKnown(ctr) || !FeaturesManager.IsUsedCtr(FeaturesManager.GetId(ctr))) {
-                    maxUniqueValues = Max(maxUniqueValues, FeaturesManager.GetMaxCtrUniqueValues(ctr));
-                }
-            }
-        }
-        for (const auto& dataSetPtr : PureTreeCtrDataSets[device]) {
-            const auto& ctrs = dataSetPtr->GetCtrs();
-            for (const TCtr& ctr : ctrs) {
-                if (!FeaturesManager.IsKnown(ctr) || !FeaturesManager.IsUsedCtr(FeaturesManager.GetId(ctr))) {
-                    maxUniqueValues = Max(maxUniqueValues, FeaturesManager.GetMaxCtrUniqueValues(ctr));
-                }
-            }
-        }
-    });
-    return maxUniqueValues;
 }
 
 void NCatboostCuda::TTreeCtrDataSetsHelper::ProceedDataSets(const ui32 dataSetPermutationId,

@@ -1,13 +1,23 @@
 
 
-IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/flatc/ya.make.prebuilt)
-ENDIF()
+PROGRAM()
 
-IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/contrib/tools/flatc/bin/ya.make)
-ENDIF()
+NO_UTIL()
 
-RECURSE(
-    bin
+ADDINCL(
+    contrib/libs/flatbuffers/include
 )
+
+PEERDIR(
+    contrib/libs/flatbuffers/flatc
+)
+
+SRCDIR(
+    contrib/libs/flatbuffers/src
+)
+
+SRCS(
+    flatc_main.cpp
+)
+
+END()

@@ -2,9 +2,10 @@
 
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include "pycore_abstract.h"      // _PyIndex_Check()
-#include "pycore_bytes_methods.h"
-#include "pycore_object.h"
+#include "internal/mem.h"
+#include "internal/pystate.h"
+#include "structmember.h"
+#include "bytes_methods.h"
 #include "bytesobject.h"
 #include "pystrhex.h"
 
@@ -13,23 +14,42 @@ class bytearray "PyByteArrayObject *" "&PyByteArray_Type"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=5535b77c37a119e0]*/
 
-/* For PyByteArray_AS_STRING(). */
 char _PyByteArray_empty_string[] = "";
+
+void
+PyByteArray_Fini(void)
+{
+}
+
+int
+PyByteArray_Init(void)
+{
+    return 1;
+}
+
+/* end nullbytes support */
 
 /* Helpers */
 
 static int
 _getbytevalue(PyObject* arg, int *value)
 {
-    int overflow;
-    long face_value = PyLong_AsLongAndOverflow(arg, &overflow);
+    long face_value;
 
-    if (face_value == -1 && PyErr_Occurred()) {
-        *value = -1;
-        return 0;
+    if (PyLong_Check(arg)) {
+        face_value = PyLong_AsLong(arg);
+    } else {
+        PyObject *index = PyNumber_Index(arg);
+        if (index == NULL) {
+            *value = -1;
+            return 0;
+        }
+        face_value = PyLong_AsLong(index);
+        Py_DECREF(index);
     }
+
     if (face_value < 0 || face_value >= 256) {
-        /* this includes an overflow in converting to C long */
+        /* this includes the OverflowError in case the long is too large */
         PyErr_SetString(PyExc_ValueError, "byte must be in range(0, 256)");
         *value = -1;
         return 0;
@@ -79,7 +99,8 @@ _canresize(PyByteArrayObject *self)
 PyObject *
 PyByteArray_FromObject(PyObject *input)
 {
-    return PyObject_CallOneArg((PyObject *)&PyByteArray_Type, input);
+    return PyObject_CallFunctionObjArgs((PyObject *)&PyByteArray_Type,
+                                        input, NULL);
 }
 
 static PyObject *
@@ -138,7 +159,7 @@ PyByteArray_FromStringAndSize(const char *bytes, Py_ssize_t size)
             memcpy(new->ob_bytes, bytes, size);
         new->ob_bytes[size] = '\0';  /* Trailing null byte */
     }
-    Py_SET_SIZE(new, size);
+    Py_SIZE(new) = size;
     new->ob_alloc = alloc;
     new->ob_start = new->ob_bytes;
     new->ob_exports = 0;
@@ -196,7 +217,7 @@ PyByteArray_Resize(PyObject *self, Py_ssize_t requested_size)
         }
         else {
             /* Minor downsize; quick exit */
-            Py_SET_SIZE(self, size);
+            Py_SIZE(self) = size;
             PyByteArray_AS_STRING(self)[size] = '\0'; /* Trailing null */
             return 0;
         }
@@ -236,7 +257,7 @@ PyByteArray_Resize(PyObject *self, Py_ssize_t requested_size)
     }
 
     obj->ob_bytes = obj->ob_start = sval;
-    Py_SET_SIZE(self, size);
+    Py_SIZE(self) = size;
     obj->ob_alloc = alloc;
     obj->ob_bytes[size] = '\0'; /* Trailing null byte */
 
@@ -265,9 +286,7 @@ PyByteArray_Concat(PyObject *a, PyObject *b)
 
     result = (PyByteArrayObject *) \
         PyByteArray_FromStringAndSize(NULL, va.len + vb.len);
-    // result->ob_bytes is NULL if result is an empty bytearray:
-    // if va.len + vb.len equals zero.
-    if (result != NULL && result->ob_bytes != NULL) {
+    if (result != NULL) {
         memcpy(result->ob_bytes, va.buf, va.len);
         memcpy(result->ob_bytes + va.len, vb.buf, vb.len);
     }
@@ -321,7 +340,6 @@ bytearray_repeat(PyByteArrayObject *self, Py_ssize_t count)
     PyByteArrayObject *result;
     Py_ssize_t mysize;
     Py_ssize_t size;
-    const char *buf;
 
     if (count < 0)
         count = 0;
@@ -330,14 +348,13 @@ bytearray_repeat(PyByteArrayObject *self, Py_ssize_t count)
         return PyErr_NoMemory();
     size = mysize * count;
     result = (PyByteArrayObject *)PyByteArray_FromStringAndSize(NULL, size);
-    buf = PyByteArray_AS_STRING(self);
     if (result != NULL && size != 0) {
         if (mysize == 1)
-            memset(result->ob_bytes, buf[0], size);
+            memset(result->ob_bytes, self->ob_bytes[0], size);
         else {
             Py_ssize_t i;
             for (i = 0; i < count; i++)
-                memcpy(result->ob_bytes + i*mysize, buf, mysize);
+                memcpy(result->ob_bytes + i*mysize, self->ob_bytes, mysize);
         }
     }
     return (PyObject *)result;
@@ -375,6 +392,8 @@ bytearray_irepeat(PyByteArrayObject *self, Py_ssize_t count)
 static PyObject *
 bytearray_getitem(PyByteArrayObject *self, Py_ssize_t i)
 {
+    if (i < 0)
+        i += Py_SIZE(self);
     if (i < 0 || i >= Py_SIZE(self)) {
         PyErr_SetString(PyExc_IndexError, "bytearray index out of range");
         return NULL;
@@ -385,7 +404,7 @@ bytearray_getitem(PyByteArrayObject *self, Py_ssize_t i)
 static PyObject *
 bytearray_subscript(PyByteArrayObject *self, PyObject *index)
 {
-    if (_PyIndex_Check(index)) {
+    if (PyIndex_Check(index)) {
         Py_ssize_t i = PyNumber_AsSsize_t(index, PyExc_IndexError);
 
         if (i == -1 && PyErr_Occurred())
@@ -492,7 +511,7 @@ bytearray_setslice_linear(PyByteArrayObject *self,
             }
             /* memmove() removed bytes, the bytearray object cannot be
                restored in its previous state. */
-            Py_SET_SIZE(self, Py_SIZE(self) + growth);
+            Py_SIZE(self) += growth;
             res = -1;
         }
         buf = PyByteArray_AS_STRING(self);
@@ -577,28 +596,22 @@ bytearray_setslice(PyByteArrayObject *self, Py_ssize_t lo, Py_ssize_t hi,
 static int
 bytearray_setitem(PyByteArrayObject *self, Py_ssize_t i, PyObject *value)
 {
-    int ival = -1;
+    int ival;
 
-    // GH-91153: We need to do this *before* the size check, in case value has a
-    // nasty __index__ method that changes the size of the bytearray:
-    if (value && !_getbytevalue(value, &ival)) {
-        return -1;
-    }
-
-    if (i < 0) {
+    if (i < 0)
         i += Py_SIZE(self);
-    }
 
     if (i < 0 || i >= Py_SIZE(self)) {
         PyErr_SetString(PyExc_IndexError, "bytearray index out of range");
         return -1;
     }
 
-    if (value == NULL) {
+    if (value == NULL)
         return bytearray_setslice(self, i, i+1, NULL);
-    }
 
-    assert(0 <= ival && ival < 256);
+    if (!_getbytevalue(value, &ival))
+        return -1;
+
     PyByteArray_AS_STRING(self)[i] = ival;
     return 0;
 }
@@ -610,24 +623,14 @@ bytearray_ass_subscript(PyByteArrayObject *self, PyObject *index, PyObject *valu
     char *buf, *bytes;
     buf = PyByteArray_AS_STRING(self);
 
-    if (_PyIndex_Check(index)) {
+    if (PyIndex_Check(index)) {
         Py_ssize_t i = PyNumber_AsSsize_t(index, PyExc_IndexError);
 
-        if (i == -1 && PyErr_Occurred()) {
+        if (i == -1 && PyErr_Occurred())
             return -1;
-        }
 
-        int ival = -1;
-
-        // GH-91153: We need to do this *before* the size check, in case values
-        // has a nasty __index__ method that changes the size of the bytearray:
-        if (values && !_getbytevalue(values, &ival)) {
-            return -1;
-        }
-
-        if (i < 0) {
+        if (i < 0)
             i += PyByteArray_GET_SIZE(self);
-        }
 
         if (i < 0 || i >= Py_SIZE(self)) {
             PyErr_SetString(PyExc_IndexError, "bytearray index out of range");
@@ -642,7 +645,9 @@ bytearray_ass_subscript(PyByteArrayObject *self, PyObject *index, PyObject *valu
             slicelen = 1;
         }
         else {
-            assert(0 <= ival && ival < 256);
+            int ival;
+            if (!_getbytevalue(values, &ival))
+                return -1;
             buf[i] = (char)ival;
             return 0;
         }
@@ -753,20 +758,13 @@ bytearray_ass_subscript(PyByteArrayObject *self, PyObject *index, PyObject *valu
     }
 }
 
-/*[clinic input]
-bytearray.__init__
-
-    source as arg: object = NULL
-    encoding: str = NULL
-    errors: str = NULL
-
-[clinic start generated code]*/
-
 static int
-bytearray___init___impl(PyByteArrayObject *self, PyObject *arg,
-                        const char *encoding, const char *errors)
-/*[clinic end generated code: output=4ce1304649c2f8b3 input=1141a7122eefd7b9]*/
+bytearray_init(PyByteArrayObject *self, PyObject *args, PyObject *kwds)
 {
+    static char *kwlist[] = {"source", "encoding", "errors", 0};
+    PyObject *arg = NULL;
+    const char *encoding = NULL;
+    const char *errors = NULL;
     Py_ssize_t count;
     PyObject *it;
     PyObject *(*iternext)(PyObject *);
@@ -777,13 +775,16 @@ bytearray___init___impl(PyByteArrayObject *self, PyObject *arg,
             return -1;
     }
 
+    /* Parse arguments */
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|Oss:bytearray", kwlist,
+                                     &arg, &encoding, &errors))
+        return -1;
+
     /* Make a quick exit if no first argument */
     if (arg == NULL) {
         if (encoding != NULL || errors != NULL) {
             PyErr_SetString(PyExc_TypeError,
-                            encoding != NULL ?
-                            "encoding without a string argument" :
-                            "errors without a string argument");
+                            "encoding or errors without sequence argument");
             return -1;
         }
         return 0;
@@ -812,14 +813,12 @@ bytearray___init___impl(PyByteArrayObject *self, PyObject *arg,
     /* If it's not unicode, there can't be encoding or errors */
     if (encoding != NULL || errors != NULL) {
         PyErr_SetString(PyExc_TypeError,
-                        encoding != NULL ?
-                        "encoding without a string argument" :
-                        "errors without a string argument");
+                        "encoding or errors without a string argument");
         return -1;
     }
 
     /* Is it an int? */
-    if (_PyIndex_Check(arg)) {
+    if (PyIndex_Check(arg)) {
         count = PyNumber_AsSsize_t(arg, PyExc_OverflowError);
         if (count == -1 && PyErr_Occurred()) {
             if (!PyErr_ExceptionMatches(PyExc_TypeError))
@@ -862,14 +861,8 @@ bytearray___init___impl(PyByteArrayObject *self, PyObject *arg,
 
     /* Get the iterator */
     it = PyObject_GetIter(arg);
-    if (it == NULL) {
-        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-            PyErr_Format(PyExc_TypeError,
-                         "cannot convert '%.200s' object to bytearray",
-                         Py_TYPE(arg)->tp_name);
-        }
+    if (it == NULL)
         return -1;
-    }
     iternext = *Py_TYPE(it)->tp_iternext;
 
     /* Run the iterator to exhaustion */
@@ -896,7 +889,7 @@ bytearray___init___impl(PyByteArrayObject *self, PyObject *arg,
 
         /* Append the byte */
         if (Py_SIZE(self) + 1 < self->ob_alloc) {
-            Py_SET_SIZE(self, Py_SIZE(self) + 1);
+            Py_SIZE(self)++;
             PyByteArray_AS_STRING(self)[Py_SIZE(self)] = '\0';
         }
         else if (PyByteArray_Resize((PyObject *)self, Py_SIZE(self)+1) < 0)
@@ -1006,13 +999,12 @@ bytearray_repr(PyByteArrayObject *self)
 static PyObject *
 bytearray_str(PyObject *op)
 {
-    if (_Py_GetConfig()->bytes_warning) {
-        if (PyErr_WarnEx(PyExc_BytesWarning,
-                         "str() on a bytearray instance", 1)) {
-                return NULL;
+        if (Py_BytesWarningFlag) {
+                if (PyErr_WarnEx(PyExc_BytesWarning,
+                                 "str() on a bytearray instance", 1))
+                        return NULL;
         }
-    }
-    return bytearray_repr((PyByteArrayObject*)op);
+        return bytearray_repr((PyByteArrayObject*)op);
 }
 
 static PyObject *
@@ -1020,20 +1012,26 @@ bytearray_richcompare(PyObject *self, PyObject *other, int op)
 {
     Py_ssize_t self_size, other_size;
     Py_buffer self_bytes, other_bytes;
-    int cmp;
+    int cmp, rc;
 
-    if (!PyObject_CheckBuffer(self) || !PyObject_CheckBuffer(other)) {
-        if (PyUnicode_Check(self) || PyUnicode_Check(other)) {
-            if (_Py_GetConfig()->bytes_warning && (op == Py_EQ || op == Py_NE)) {
-                if (PyErr_WarnEx(PyExc_BytesWarning,
-                                "Comparison between bytearray and string", 1))
-                    return NULL;
-            }
+    /* Bytes can be compared to anything that supports the (binary)
+       buffer API.  Except that a comparison with Unicode is always an
+       error, even if the comparison is for equality. */
+    rc = PyObject_IsInstance(self, (PyObject*)&PyUnicode_Type);
+    if (!rc)
+        rc = PyObject_IsInstance(other, (PyObject*)&PyUnicode_Type);
+    if (rc < 0)
+        return NULL;
+    if (rc) {
+        if (Py_BytesWarningFlag && (op == Py_EQ || op == Py_NE)) {
+            if (PyErr_WarnEx(PyExc_BytesWarning,
+                            "Comparison between bytearray and string", 1))
+                return NULL;
         }
+
         Py_RETURN_NOTIMPLEMENTED;
     }
 
-    /* Bytearrays can be compared to anything that supports the buffer API. */
     if (PyObject_GetBuffer(self, &self_bytes, PyBUF_SIMPLE) != 0) {
         PyErr_Clear();
         Py_RETURN_NOTIMPLEMENTED;
@@ -1187,71 +1185,6 @@ bytearray_endswith(PyByteArrayObject *self, PyObject *args)
     return _Py_bytes_endswith(PyByteArray_AS_STRING(self), PyByteArray_GET_SIZE(self), args);
 }
 
-/*[clinic input]
-bytearray.removeprefix as bytearray_removeprefix
-
-    prefix: Py_buffer
-    /
-
-Return a bytearray with the given prefix string removed if present.
-
-If the bytearray starts with the prefix string, return
-bytearray[len(prefix):].  Otherwise, return a copy of the original
-bytearray.
-[clinic start generated code]*/
-
-static PyObject *
-bytearray_removeprefix_impl(PyByteArrayObject *self, Py_buffer *prefix)
-/*[clinic end generated code: output=6cabc585e7f502e0 input=968aada38aedd262]*/
-{
-    const char *self_start = PyByteArray_AS_STRING(self);
-    Py_ssize_t self_len = PyByteArray_GET_SIZE(self);
-    const char *prefix_start = prefix->buf;
-    Py_ssize_t prefix_len = prefix->len;
-
-    if (self_len >= prefix_len
-        && memcmp(self_start, prefix_start, prefix_len) == 0)
-    {
-        return PyByteArray_FromStringAndSize(self_start + prefix_len,
-                                             self_len - prefix_len);
-    }
-
-    return PyByteArray_FromStringAndSize(self_start, self_len);
-}
-
-/*[clinic input]
-bytearray.removesuffix as bytearray_removesuffix
-
-    suffix: Py_buffer
-    /
-
-Return a bytearray with the given suffix string removed if present.
-
-If the bytearray ends with the suffix string and that suffix is not
-empty, return bytearray[:-len(suffix)].  Otherwise, return a copy of
-the original bytearray.
-[clinic start generated code]*/
-
-static PyObject *
-bytearray_removesuffix_impl(PyByteArrayObject *self, Py_buffer *suffix)
-/*[clinic end generated code: output=2bc8cfb79de793d3 input=c1827e810b2f6b99]*/
-{
-    const char *self_start = PyByteArray_AS_STRING(self);
-    Py_ssize_t self_len = PyByteArray_GET_SIZE(self);
-    const char *suffix_start = suffix->buf;
-    Py_ssize_t suffix_len = suffix->len;
-
-    if (self_len >= suffix_len
-        && memcmp(self_start + self_len - suffix_len,
-                  suffix_start, suffix_len) == 0)
-    {
-        return PyByteArray_FromStringAndSize(self_start,
-                                             self_len - suffix_len);
-    }
-
-    return PyByteArray_FromStringAndSize(self_start, self_len);
-}
-
 
 /*[clinic input]
 bytearray.translate
@@ -1341,7 +1274,7 @@ bytearray_translate_impl(PyByteArrayObject *self, PyObject *table,
         if (trans_table[c] != -1)
             *output++ = (char)trans_table[c];
     }
-    /* Fix the size of the resulting bytearray */
+    /* Fix the size of the resulting string */
     if (inlen > 0)
         if (PyByteArray_Resize(result, output - output_start) < 0) {
             Py_CLEAR(result);
@@ -1693,14 +1626,8 @@ bytearray_extend(PyByteArrayObject *self, PyObject *iterable_of_ints)
     }
 
     it = PyObject_GetIter(iterable_of_ints);
-    if (it == NULL) {
-        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-            PyErr_Format(PyExc_TypeError,
-                         "can't extend bytearray with %.100s",
-                         Py_TYPE(iterable_of_ints)->tp_name);
-        }
+    if (it == NULL)
         return NULL;
-    }
 
     /* Try to determine the length of the argument. 32 is arbitrary. */
     buf_size = PyObject_LengthHint(iterable_of_ints, 32);
@@ -1750,11 +1677,6 @@ bytearray_extend(PyByteArrayObject *self, PyObject *iterable_of_ints)
     }
     Py_DECREF(it);
 
-    if (PyErr_Occurred()) {
-        Py_DECREF(bytearray_obj);
-        return NULL;
-    }
-
     /* Resize down to exact size. */
     if (PyByteArray_Resize((PyObject *)bytearray_obj, len) < 0) {
         Py_DECREF(bytearray_obj);
@@ -1767,7 +1689,10 @@ bytearray_extend(PyByteArrayObject *self, PyObject *iterable_of_ints)
     }
     Py_DECREF(bytearray_obj);
 
-    assert(!PyErr_Occurred());
+    if (PyErr_Occurred()) {
+        return NULL;
+    }
+
     Py_RETURN_NONE;
 }
 
@@ -2019,7 +1944,7 @@ PyDoc_STRVAR(alloc_doc,
 Return the number of bytes actually allocated.");
 
 static PyObject *
-bytearray_alloc(PyByteArrayObject *self, PyObject *Py_UNUSED(ignored))
+bytearray_alloc(PyByteArrayObject *self)
 {
     return PyLong_FromSsize_t(self->ob_alloc);
 }
@@ -2084,41 +2009,24 @@ bytearray_fromhex_impl(PyTypeObject *type, PyObject *string)
 {
     PyObject *result = _PyBytes_FromHex(string, type == &PyByteArray_Type);
     if (type != &PyByteArray_Type && result != NULL) {
-        Py_SETREF(result, PyObject_CallOneArg((PyObject *)type, result));
+        Py_SETREF(result, PyObject_CallFunctionObjArgs((PyObject *)type,
+                                                       result, NULL));
     }
     return result;
 }
 
-/*[clinic input]
-bytearray.hex
-
-    sep: object = NULL
-        An optional single character or byte to separate hex bytes.
-    bytes_per_sep: int = 1
-        How many bytes between separators.  Positive values count from the
-        right, negative values count from the left.
-
-Create a string of hexadecimal numbers from a bytearray object.
-
-Example:
->>> value = bytearray([0xb9, 0x01, 0xef])
->>> value.hex()
-'b901ef'
->>> value.hex(':')
-'b9:01:ef'
->>> value.hex(':', 2)
-'b9:01ef'
->>> value.hex(':', -2)
-'b901:ef'
-[clinic start generated code]*/
+PyDoc_STRVAR(hex__doc__,
+"B.hex() -> string\n\
+\n\
+Create a string of hexadecimal numbers from a bytearray object.\n\
+Example: bytearray([0xb9, 0x01, 0xef]).hex() -> 'b901ef'.");
 
 static PyObject *
-bytearray_hex_impl(PyByteArrayObject *self, PyObject *sep, int bytes_per_sep)
-/*[clinic end generated code: output=29c4e5ef72c565a0 input=808667e49bcccb54]*/
+bytearray_hex(PyBytesObject *self)
 {
     char* argbuf = PyByteArray_AS_STRING(self);
     Py_ssize_t arglen = PyByteArray_GET_SIZE(self);
-    return _Py_strhex_with_sep(argbuf, arglen, sep, bytes_per_sep);
+    return _Py_strhex(argbuf, arglen);
 }
 
 static PyObject *
@@ -2128,10 +2036,9 @@ _common_reduce(PyByteArrayObject *self, int proto)
     _Py_IDENTIFIER(__dict__);
     char *buf;
 
-    if (_PyObject_LookupAttrId((PyObject *)self, &PyId___dict__, &dict) < 0) {
-        return NULL;
-    }
+    dict = _PyObject_GetAttrId((PyObject *)self, &PyId___dict__);
     if (dict == NULL) {
+        PyErr_Clear();
         dict = Py_None;
         Py_INCREF(dict);
     }
@@ -2233,9 +2140,9 @@ bytearray_methods[] = {
     BYTEARRAY_REDUCE_EX_METHODDEF
     BYTEARRAY_SIZEOF_METHODDEF
     BYTEARRAY_APPEND_METHODDEF
-    {"capitalize", stringlib_capitalize, METH_NOARGS,
+    {"capitalize", (PyCFunction)stringlib_capitalize, METH_NOARGS,
      _Py_capitalize__doc__},
-    STRINGLIB_CENTER_METHODDEF
+    {"center", (PyCFunction)stringlib_center, METH_VARARGS, _Py_center__doc__},
     BYTEARRAY_CLEAR_METHODDEF
     BYTEARRAY_COPY_METHODDEF
     {"count", (PyCFunction)bytearray_count, METH_VARARGS,
@@ -2243,45 +2150,44 @@ bytearray_methods[] = {
     BYTEARRAY_DECODE_METHODDEF
     {"endswith", (PyCFunction)bytearray_endswith, METH_VARARGS,
      _Py_endswith__doc__},
-    STRINGLIB_EXPANDTABS_METHODDEF
+    {"expandtabs", (PyCFunction)stringlib_expandtabs, METH_VARARGS | METH_KEYWORDS,
+     _Py_expandtabs__doc__},
     BYTEARRAY_EXTEND_METHODDEF
     {"find", (PyCFunction)bytearray_find, METH_VARARGS,
      _Py_find__doc__},
     BYTEARRAY_FROMHEX_METHODDEF
-    BYTEARRAY_HEX_METHODDEF
+    {"hex", (PyCFunction)bytearray_hex, METH_NOARGS, hex__doc__},
     {"index", (PyCFunction)bytearray_index, METH_VARARGS, _Py_index__doc__},
     BYTEARRAY_INSERT_METHODDEF
-    {"isalnum", stringlib_isalnum, METH_NOARGS,
+    {"isalnum", (PyCFunction)stringlib_isalnum, METH_NOARGS,
      _Py_isalnum__doc__},
-    {"isalpha", stringlib_isalpha, METH_NOARGS,
+    {"isalpha", (PyCFunction)stringlib_isalpha, METH_NOARGS,
      _Py_isalpha__doc__},
-    {"isascii", stringlib_isascii, METH_NOARGS,
+    {"isascii", (PyCFunction)stringlib_isascii, METH_NOARGS,
      _Py_isascii__doc__},
-    {"isdigit", stringlib_isdigit, METH_NOARGS,
+    {"isdigit", (PyCFunction)stringlib_isdigit, METH_NOARGS,
      _Py_isdigit__doc__},
-    {"islower", stringlib_islower, METH_NOARGS,
+    {"islower", (PyCFunction)stringlib_islower, METH_NOARGS,
      _Py_islower__doc__},
-    {"isspace", stringlib_isspace, METH_NOARGS,
+    {"isspace", (PyCFunction)stringlib_isspace, METH_NOARGS,
      _Py_isspace__doc__},
-    {"istitle", stringlib_istitle, METH_NOARGS,
+    {"istitle", (PyCFunction)stringlib_istitle, METH_NOARGS,
      _Py_istitle__doc__},
-    {"isupper", stringlib_isupper, METH_NOARGS,
+    {"isupper", (PyCFunction)stringlib_isupper, METH_NOARGS,
      _Py_isupper__doc__},
     BYTEARRAY_JOIN_METHODDEF
-    STRINGLIB_LJUST_METHODDEF
-    {"lower", stringlib_lower, METH_NOARGS, _Py_lower__doc__},
+    {"ljust", (PyCFunction)stringlib_ljust, METH_VARARGS, _Py_ljust__doc__},
+    {"lower", (PyCFunction)stringlib_lower, METH_NOARGS, _Py_lower__doc__},
     BYTEARRAY_LSTRIP_METHODDEF
     BYTEARRAY_MAKETRANS_METHODDEF
     BYTEARRAY_PARTITION_METHODDEF
     BYTEARRAY_POP_METHODDEF
     BYTEARRAY_REMOVE_METHODDEF
     BYTEARRAY_REPLACE_METHODDEF
-    BYTEARRAY_REMOVEPREFIX_METHODDEF
-    BYTEARRAY_REMOVESUFFIX_METHODDEF
     BYTEARRAY_REVERSE_METHODDEF
     {"rfind", (PyCFunction)bytearray_rfind, METH_VARARGS, _Py_rfind__doc__},
     {"rindex", (PyCFunction)bytearray_rindex, METH_VARARGS, _Py_rindex__doc__},
-    STRINGLIB_RJUST_METHODDEF
+    {"rjust", (PyCFunction)stringlib_rjust, METH_VARARGS, _Py_rjust__doc__},
     BYTEARRAY_RPARTITION_METHODDEF
     BYTEARRAY_RSPLIT_METHODDEF
     BYTEARRAY_RSTRIP_METHODDEF
@@ -2290,12 +2196,12 @@ bytearray_methods[] = {
     {"startswith", (PyCFunction)bytearray_startswith, METH_VARARGS ,
      _Py_startswith__doc__},
     BYTEARRAY_STRIP_METHODDEF
-    {"swapcase", stringlib_swapcase, METH_NOARGS,
+    {"swapcase", (PyCFunction)stringlib_swapcase, METH_NOARGS,
      _Py_swapcase__doc__},
-    {"title", stringlib_title, METH_NOARGS, _Py_title__doc__},
+    {"title", (PyCFunction)stringlib_title, METH_NOARGS, _Py_title__doc__},
     BYTEARRAY_TRANSLATE_METHODDEF
-    {"upper", stringlib_upper, METH_NOARGS, _Py_upper__doc__},
-    STRINGLIB_ZFILL_METHODDEF
+    {"upper", (PyCFunction)stringlib_upper, METH_NOARGS, _Py_upper__doc__},
+    {"zfill", (PyCFunction)stringlib_zfill, METH_VARARGS, _Py_zfill__doc__},
     {NULL}
 };
 
@@ -2337,10 +2243,10 @@ PyTypeObject PyByteArray_Type = {
     sizeof(PyByteArrayObject),
     0,
     (destructor)bytearray_dealloc,       /* tp_dealloc */
-    0,                                  /* tp_vectorcall_offset */
+    0,                                  /* tp_print */
     0,                                  /* tp_getattr */
     0,                                  /* tp_setattr */
-    0,                                  /* tp_as_async */
+    0,                                  /* tp_reserved */
     (reprfunc)bytearray_repr,           /* tp_repr */
     &bytearray_as_number,               /* tp_as_number */
     &bytearray_as_sequence,             /* tp_as_sequence */
@@ -2351,8 +2257,7 @@ PyTypeObject PyByteArray_Type = {
     PyObject_GenericGetAttr,            /* tp_getattro */
     0,                                  /* tp_setattro */
     &bytearray_as_buffer,               /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-        _Py_TPFLAGS_MATCH_SELF,       /* tp_flags */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
     bytearray_doc,                      /* tp_doc */
     0,                                  /* tp_traverse */
     0,                                  /* tp_clear */
@@ -2368,13 +2273,13 @@ PyTypeObject PyByteArray_Type = {
     0,                                  /* tp_descr_get */
     0,                                  /* tp_descr_set */
     0,                                  /* tp_dictoffset */
-    (initproc)bytearray___init__,       /* tp_init */
+    (initproc)bytearray_init,           /* tp_init */
     PyType_GenericAlloc,                /* tp_alloc */
     PyType_GenericNew,                  /* tp_new */
     PyObject_Del,                       /* tp_free */
 };
 
-/*********************** Bytearray Iterator ****************************/
+/*********************** Bytes Iterator ****************************/
 
 typedef struct {
     PyObject_HEAD
@@ -2423,7 +2328,7 @@ bytearrayiter_next(bytesiterobject *it)
 }
 
 static PyObject *
-bytearrayiter_length_hint(bytesiterobject *it, PyObject *Py_UNUSED(ignored))
+bytearrayiter_length_hint(bytesiterobject *it)
 {
     Py_ssize_t len = 0;
     if (it->it_seq) {
@@ -2439,14 +2344,13 @@ PyDoc_STRVAR(length_hint_doc,
     "Private method returning an estimate of len(list(it)).");
 
 static PyObject *
-bytearrayiter_reduce(bytesiterobject *it, PyObject *Py_UNUSED(ignored))
+bytearrayiter_reduce(bytesiterobject *it)
 {
-    _Py_IDENTIFIER(iter);
     if (it->it_seq != NULL) {
-        return Py_BuildValue("N(O)n", _PyEval_GetBuiltinId(&PyId_iter),
+        return Py_BuildValue("N(O)n", _PyObject_GetBuiltin("iter"),
                              it->it_seq, it->it_index);
     } else {
-        return Py_BuildValue("N(())", _PyEval_GetBuiltinId(&PyId_iter));
+        return Py_BuildValue("N(())", _PyObject_GetBuiltin("iter"));
     }
 }
 
@@ -2485,10 +2389,10 @@ PyTypeObject PyByteArrayIter_Type = {
     0,                                 /* tp_itemsize */
     /* methods */
     (destructor)bytearrayiter_dealloc, /* tp_dealloc */
-    0,                                 /* tp_vectorcall_offset */
+    0,                                 /* tp_print */
     0,                                 /* tp_getattr */
     0,                                 /* tp_setattr */
-    0,                                 /* tp_as_async */
+    0,                                 /* tp_reserved */
     0,                                 /* tp_repr */
     0,                                 /* tp_as_number */
     0,                                 /* tp_as_sequence */

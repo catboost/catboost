@@ -136,7 +136,7 @@ namespace NFs {
     ///
     /// @param[in] path          Path for new cwd
     /// Note: is not threadsafe
-    void SetCurrentWorkingDirectory(const TString& path);
+    void SetCurrentWorkingDirectory(TString path);
 
     /// Checks if file exists
     ///

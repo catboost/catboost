@@ -2,9 +2,9 @@
 
 #include <catboost/libs/model/model.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
-#include <contrib/libs/onnx/onnx/onnx_pb.h>
+#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>

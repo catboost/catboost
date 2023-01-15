@@ -9,10 +9,10 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/class_label_options.h>
 
-#include <library/cpp/svnversion/svnversion.h>
+#include <library/svnversion/svnversion.h>
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
-#include <google/protobuf/repeated_field.h>
+#include <contrib/libs/protobuf/repeated_field.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/mapfindptr.h>
@@ -43,8 +43,7 @@ void NCB::NOnnx::InitMetadata(
     const NJson::TJsonValue& userParameters,
     onnx::ModelProto* onnxModel) {
 
-    // Versions 4 and above essentially just introduce new types we don't need.
-    onnxModel->set_ir_version(3);
+    onnxModel->set_ir_version(onnx::IR_VERSION);
 
     onnx::OperatorSetIdProto* opset = onnxModel->add_opset_import();
     opset->set_domain(onnx::AI_ONNX_ML_DOMAIN);
@@ -121,7 +120,7 @@ static void GetClassLabelsImpl(
     TVector<i64>* classLabelsInt64,
     TVector<TString>* classLabelsString) {
 
-    CB_ENSURE(!classLabels.empty(), "Class labels are missing");
+    Y_VERIFY(!classLabels.empty());
 
     classLabelsInt64->clear();
     classLabelsString->clear();
@@ -142,7 +141,7 @@ static void GetClassLabelsImpl(
             }
             break;
         default:
-            CB_ENSURE(false, "Unexpected label type");
+            Y_FAIL("Unexpected label type");
     }
 }
 
@@ -384,9 +383,9 @@ static void AddTree(
     i64 nodeIdx = 0;
 
     // Process splits
-    for (auto depth : xrange(trees.GetModelTreeData()->GetTreeSizes()[treeIdx])) {
+    for (auto depth : xrange(trees.GetTreeSizes()[treeIdx])) {
         const auto& split = trees.GetBinFeatures()[
-            trees.GetModelTreeData()->GetTreeSplits()[trees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx] + (trees.GetModelTreeData()->GetTreeSizes()[treeIdx] - 1 - depth)]];
+            trees.GetTreeSplits()[trees.GetTreeStartOffsets()[treeIdx] + (trees.GetTreeSizes()[treeIdx] - 1 - depth)]];
 
         int splitFlatFeatureIdx = 0;
         TString nodeMode;
@@ -396,7 +395,7 @@ static void AddTree(
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
             splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
-            nodeMode = TModeNode::BRANCH_GT;
+            nodeMode = TModeNode::BRANCH_GTE;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
@@ -425,8 +424,7 @@ static void AddTree(
     }
 
     // Process leafs
-    auto applyData = trees.GetApplyData();
-    const double* leafValue = trees.GetModelTreeData()->GetLeafValues().begin() + applyData->TreeFirstLeafOffsets[treeIdx];
+    const double* leafValue = trees.GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
 
     for (i64 endNodeIdx = 2*nodeIdx + 1; nodeIdx < endNodeIdx; ++nodeIdx) {
         treesAttributes->nodes_treeids->add_ints(treeIdx);
@@ -456,14 +454,9 @@ static void AddTree(
             } else {
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
-                treesAttributes->class_ids->add_ints(0);
-                treesAttributes->class_weights->add_floats(-(float)*leafValue);
 
-                treesAttributes->class_treeids->add_ints(treeIdx);
-                treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
                 treesAttributes->class_weights->add_floats((float)*leafValue);
-
                 ++leafValue;
             }
         } else {
@@ -509,11 +502,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         GetClassLabels(model, &classLabelsInt64, &classLabelsString);
 
         AddClassLabelsAttribute(classLabelsInt64, classLabelsString, treesNode);
-        AddAttribute(
-            "post_transform",
-            trees.GetDimensionsCount() == 1 ? "LOGISTIC" : "SOFTMAX",
-            treesNode
-        );
+        AddAttribute("post_transform", "SOFTMAX", treesNode);
 
         InitValueInfo(
             "label",
@@ -560,23 +549,15 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         );
         treesNode->add_output("predictions");
     }
-    auto scaleAndBias = model.GetScaleAndBias();
-    TTreesAttributes treesAttributes(isClassifierModel, !scaleAndBias.IsZeroBias(), treesNode->mutable_attribute());
 
-    if (!scaleAndBias.IsZeroBias()) {
-        if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
-            const float bias = float(scaleAndBias.GetOneDimensionalBias());
-            treesAttributes.base_values->add_floats(-bias);
+    const float bias = float(model.GetScaleAndBias().Bias);
+
+    TTreesAttributes treesAttributes(isClassifierModel, bias != 0, treesNode->mutable_attribute());
+
+    if (bias != 0) {
+        for (auto i : xrange(trees.GetDimensionsCount())) {
+            Y_UNUSED(i);
             treesAttributes.base_values->add_floats(bias);
-        } else {
-            auto bias = scaleAndBias.GetBiasRef();
-            size_t biasSize = bias.size();
-            CB_ENSURE_INTERNAL(
-                biasSize == trees.GetDimensionsCount(),
-            "Inappropraite dimension of bias, should be " << trees.GetDimensionsCount() << " or 0, found " << biasSize);
-            for (auto b : bias) {
-                treesAttributes.base_values->add_floats(b);
-            }
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
@@ -711,16 +692,15 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
             head->Right = BuildNonSymmetricTree(tree, node.TrueNodeId);
             return head;
         }
-        default:
-            CB_ENSURE(false, "Unexpected ONNX node type");
     }
+    Y_UNREACHABLE();
 }
 
 
 static int GetFloatFeatureCount(const onnx::GraphProto& onnxGraph) {
     const auto valueInfo = onnxGraph.input()[0];
     CB_ENSURE(valueInfo.type().tensor_type().shape().dimSize() == 2,
-        "Dimension must have format 'FloatTensorType'[0, featuresCount]");
+        "Dimemsion must have format 'FloatTensorType'[0, featuresCount]");
     const int featuresCount = valueInfo.type().tensor_type().shape().dim(1).dim_value();
     CB_ENSURE(featuresCount >= 1, "Count of features must be greater than one");
     return featuresCount;
@@ -748,19 +728,17 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     int approxDimension = 1;
     PrepareTrees(treesAttributes, isClassifierModel, &trees, &approxDimension, &floatFeatures);
 
-    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), {}, {}, approxDimension);
+    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), {}, approxDimension);
 
     for (const auto& tree : trees) {
         treeBuilder.AddTree(BuildNonSymmetricTree(tree, 0));
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
-    if (treesAttributes.base_values != nullptr) {
-        TVector<double> bias;
-        for (size_t idx: xrange(treesAttributes.base_values->floats_size())) {
-            bias.push_back(treesAttributes.base_values->floats(idx));
-        }
-        fullModel->SetScaleAndBias({1., bias});
+    if (approxDimension == 1 && treesAttributes.base_values != nullptr && treesAttributes.base_values->floats_size() == 1) {
+        TScaleAndBias scaleAndBias;
+        scaleAndBias.Bias = treesAttributes.base_values->floats(0);
+        fullModel->SetScaleAndBias(scaleAndBias);
     }
 
     fullModel->UpdateDynamicData();

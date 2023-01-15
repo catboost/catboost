@@ -51,7 +51,7 @@ namespace NCB {
     void TTextFeatureCalcer::Load(IInputStream* stream) {
         ui64 bufferSize;
         ::Load(stream, bufferSize);
-        TArrayHolder<ui8> buffer = TArrayHolder<ui8>(new ui8[bufferSize]);
+        TArrayHolder<ui8> buffer = new ui8[bufferSize];
         const ui64 loadedBytes = stream->Load(buffer.Get(), bufferSize);
         CB_ENSURE(loadedBytes == bufferSize, "Failed to deserialize: Couldn't read calcer flatbuffer");
 
@@ -77,19 +77,19 @@ namespace NCB {
     }
 
     TTextFeatureCalcer::TFeatureCalcerFbs TTextFeatureCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const {
-        CB_ENSURE(false, "Serialization to flatbuffer is not implemented");
+        Y_FAIL("Serialization to flatbuffer is not implemented");
     }
 
     void TTextFeatureCalcer::SaveLargeParameters(IOutputStream*) const {
-        CB_ENSURE(false, "Serialization is not implemented");
+        Y_FAIL("Serialization is not implemented");
     }
 
     void TTextFeatureCalcer::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*) {
-        CB_ENSURE(false, "Deserialization from flatbuffer is not implemented");
+        Y_FAIL("Deserialization from flatbuffer is not implemented");
     }
 
     void TTextFeatureCalcer::LoadLargeParameters(IInputStream*) {
-        CB_ENSURE(false, "Deserialization is not implemented");
+        Y_FAIL("Deserialization is not implemented");
     }
 
     flatbuffers::Offset<flatbuffers::Vector<uint32_t>> TTextFeatureCalcer::ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const {

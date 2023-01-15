@@ -6,16 +6,14 @@
 
 template <class TKey,
           class TPriority,
-          class TCompare = TLess<TPriority>,
-          class THashFcn = THash<TKey>,
-          class TEqualKey = TEqualTo<TKey>>
+          class TCompare = TLess<TPriority>>
 class THeapDict {
     using THeapItem = std::pair<TKey, TPriority>;
 
     template <class TValue>
     class TIteratorBase {
     public:
-        TIteratorBase(THeapDict<TKey, TPriority, TCompare, THashFcn, TEqualKey>& heapDict, size_t position)
+        TIteratorBase(THeapDict<TKey, TPriority, TCompare>& heapDict, size_t position)
             : HeapDict(&heapDict)
             , Position(position)
         {
@@ -39,7 +37,7 @@ class THeapDict {
         }
 
     protected:
-        THeapDict<TKey, TPriority, TCompare, THashFcn, TEqualKey>* HeapDict;
+        THeapDict<TKey, TPriority, TCompare>* HeapDict;
         size_t Position;
     };
 
@@ -50,7 +48,7 @@ class THeapDict {
         using TBase::Position;
 
     public:
-        TIterator(THeapDict<TKey, TPriority, TCompare, THashFcn, TEqualKey>& heapDict, size_t position)
+        TIterator(THeapDict<TKey, TPriority, TCompare>& heapDict, size_t position)
             : TBase(heapDict, position)
         {
         }
@@ -72,7 +70,7 @@ class THeapDict {
         using TBase::Position;
 
     public:
-        TConstIterator(THeapDict<TKey, TPriority, TCompare, THashFcn, TEqualKey>& heapDict, size_t position)
+        TConstIterator(THeapDict<TKey, TPriority, TCompare>& heapDict, size_t position)
             : TBase(heapDict, position)
         {
         }
@@ -107,13 +105,6 @@ public:
 
 public:
     THeapDict() = default;
-
-    THeapDict(TCompare compare, THashFcn hashFcn, TEqualKey equalKey)
-        : Compare(compare)
-        , PositionsInHeap(0, hashFcn, equalKey)
-    {
-
-    }
 
     THeapItem& top() {
         return *GetFromPosition(0);
@@ -285,7 +276,7 @@ private:
 
 private:
     TCompare Compare;
-    THashMap<TKey, size_t, THashFcn, TEqualKey> PositionsInHeap;
+    THashMap<TKey, size_t> PositionsInHeap;
     TVector<THeapItem> Heap;
     TMaybe<size_t> ModifiedPosition;
 };

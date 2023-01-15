@@ -11,7 +11,6 @@ SRCS(
     compression_ut.cpp
     headers_ut.cpp
     stream_ut.cpp
-    stream_ut_medium.cpp
 )
 
 END()

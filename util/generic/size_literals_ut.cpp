@@ -1,6 +1,6 @@
 #include "size_literals.h"
 
-void CompileTestUnsigned() {
+void compile_test_unsigned() {
     static_assert(1_KB == 1024, "Wrong 1KB value");
     static_assert(3_KB == 3 * 1024, "Wrong 3KB value");
     static_assert(41_KB == 41 * 1024, "Wrong 41KB value");
@@ -32,7 +32,7 @@ void CompileTestUnsigned() {
     static_assert(9000000_TB == 9000000_GB * 1024, "Wrong 9000000TB value");
 }
 
-void CompileTestSigned() {
+void compile_test_signed() {
     static_assert(1_KBs == 1024, "Wrong 1KBs value");
     static_assert(3_KBs == 3 * 1024, "Wrong 3KBs value");
     static_assert(41_KBs == 41 * 1024, "Wrong 41KBs value");

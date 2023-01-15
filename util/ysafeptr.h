@@ -21,8 +21,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER) && defined(_DEBUG)
-    #include <util/system/winint.h>
-    #define CHECK_YPTR2
+#include <util/system/winint.h>
+#define CHECK_YPTR2
 #endif
 
 struct IBinSaver;
@@ -358,12 +358,10 @@ inline bool IsValid(const TPtrBase<T, TRef>& p) {
         TPtrName() {                             \
         }                                        \
         TPtrName(T* _ptr)                        \
-            : CBase(_ptr)                        \
-        {                                        \
+            : CBase(_ptr) {                      \
         }                                        \
         TPtrName(const TPtrName& a)              \
-            : CBase(a)                           \
-        {                                        \
+            : CBase(a) {                         \
         }                                        \
         TPtrName& operator=(T* _ptr) {           \
             this->Set(_ptr);                     \

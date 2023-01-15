@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "des_local.h"
+#include "des_locl.h"
 
 void DES_ecb3_encrypt(const_DES_cblock *input, DES_cblock *output,
                       DES_key_schedule *ks1, DES_key_schedule *ks2,

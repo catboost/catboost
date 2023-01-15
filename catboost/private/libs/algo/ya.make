@@ -48,31 +48,27 @@ SRCS(
     confusion_matrix.cpp
 )
 
-IF (USE_MPI)
-    CFLAGS(-DUSE_MPI)
-ENDIF()
-
 PEERDIR(
+    catboost/private/libs/algo/approx_calcer
+    catboost/private/libs/algo_helpers
     catboost/libs/cat_feature
     catboost/libs/data
+    catboost/private/libs/data_types
     catboost/libs/eval_result
+    catboost/private/libs/feature_estimator
+    catboost/private/libs/functools
     catboost/libs/helpers
+    catboost/private/libs/index_range
+    catboost/private/libs/labels
+    catboost/private/libs/lapack
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/overfitting_detector
-    catboost/private/libs/algo/approx_calcer
-    catboost/private/libs/algo_helpers
-    catboost/private/libs/data_types
-    catboost/private/libs/feature_estimator
-    catboost/private/libs/functools
-    catboost/private/libs/index_range
-    catboost/private/libs/labels
-    catboost/private/libs/lapack
     catboost/private/libs/target
     catboost/private/libs/text_features
     catboost/private/libs/options
+    catboost/libs/overfitting_detector
     library/cpp/binsaver
     library/cpp/containers/2d_array
     library/cpp/containers/dense_hash
@@ -80,23 +76,15 @@ PEERDIR(
     library/cpp/digest/crc32c
     library/cpp/digest/md5
     library/cpp/dot_product
-    library/cpp/fast_exp
+    library/fast_exp
     library/cpp/fast_log
     library/cpp/grid_creator
-    library/cpp/json
+    library/json
     library/cpp/malloc/api
-    library/cpp/object_factory
+    library/object_factory
     library/cpp/sse
-    library/cpp/svnversion
-    library/cpp/threading/local_executor
+    library/svnversion
+    library/threading/local_executor
 )
-
-IF(HAVE_CUDA)
-    CFLAGS(-DHAVE_CUDA)
-
-    PEERDIR(
-        catboost/libs/model/cuda
-    )
-ENDIF()
 
 END()

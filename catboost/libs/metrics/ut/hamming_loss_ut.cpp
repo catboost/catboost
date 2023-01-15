@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
@@ -11,10 +11,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{0.26705f, 0.666578f, 0.6702279f, 0.3976618f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
     }
@@ -24,10 +22,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{0.26705f, 0.666578f, 0.6702279f, 0.3976618f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
     }
@@ -37,10 +33,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.25, 1e-1);
     }
@@ -50,10 +44,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.192308, 1e-6);
     }
@@ -63,10 +55,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.153846, 1e-6);
     }
@@ -76,10 +66,8 @@ Y_UNIT_TEST(HammingLossTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, TLossParams(), approx.size())[0]);
-        TMetricHolder score = dynamic_cast<const ISingleTargetEval*>(metric.Get())->Eval(
-            approx, target, weight, {}, 0, target.size(), executor
-        );
+        const auto metric = std::move(CreateMetric(ELossFunction::HammingLoss, /*params=*/{}, /*approxDimension=*/1)[0]);
+        TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
     }

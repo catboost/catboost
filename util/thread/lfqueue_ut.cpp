@@ -1,9 +1,10 @@
 #include <library/cpp/threading/future/future.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/ptr.h>
+#include <util/system/atomic.h>
 #include <util/thread/pool.h>
 
 #include "lfqueue.h"
@@ -210,7 +211,8 @@ Y_UNIT_TEST_SUITE(TLockFreeQueueTests) {
             });
         }
 
-        std::atomic<size_t> elementsLeft = threadsNum * enqueuesPerThread;
+        TAtomic elementsLeft;
+        AtomicSet(elementsLeft, threadsNum * enqueuesPerThread);
 
         ui64 numOfConsumers = singleConsumer ? 1 : threadsNum;
 
@@ -222,12 +224,12 @@ Y_UNIT_TEST_SUITE(TLockFreeQueueTests) {
 
             p.SafeAddFunc([&queue, &elementsLeft, promise, consumerData{&dataBuckets[i]}]() mutable {
                 TVector<int> vec;
-                while (static_cast<i64>(elementsLeft.load()) > 0) {
+                while (static_cast<i64>(AtomicGet(elementsLeft)) > 0) {
                     for (size_t i = 0; i != 100; ++i) {
                         vec.clear();
                         queue.DequeueAll(&vec);
 
-                        elementsLeft -= vec.size();
+                        AtomicSub(elementsLeft, vec.size());
                         consumerData->insert(consumerData->end(), vec.begin(), vec.end());
                     }
                 }

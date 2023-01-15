@@ -6,7 +6,7 @@
 #include "maybe_owning_array_holder.h"
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/system/defaults.h>
 #include <util/system/types.h>
@@ -364,13 +364,13 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
     dst.resize(indexHelper.CompressedSize(size));
     const auto mask = indexHelper.Mask();
 
-    NPar::ILocalExecutor::TExecRangeParams params(0, size);
+    NPar::TLocalExecutor::TExecRangeParams params(0, size);
     //alignment by entries per int allows parallel compression
     params.SetBlockSize(indexHelper.GetEntriesPerType() * 8192);
 
     NPar::LocalExecutor().ExecRange(
         [&](int blockIdx) {
-            NPar::ILocalExecutor::BlockedLoopBody(
+            NPar::TLocalExecutor::BlockedLoopBody(
                 params,
                 [&](int i) {
                     const ui32 offset = indexHelper.Offset((ui32)i);
@@ -386,7 +386,7 @@ inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsP
         },
         0,
         params.GetBlockCount(),
-        NPar::ILocalExecutor::WAIT_COMPLETE
+        NPar::TLocalExecutor::WAIT_COMPLETE
     );
 
     return dst;

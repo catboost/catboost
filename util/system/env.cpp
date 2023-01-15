@@ -4,11 +4,11 @@
 #include <util/generic/yexception.h>
 
 #ifdef _win_
-    #include <util/generic/vector.h>
-    #include "winint.h"
+#include <util/generic/vector.h>
+#include "winint.h"
 #else
-    #include <cerrno>
-    #include <cstdlib>
+#include <cerrno>
+#include <cstdlib>
 #endif
 
 /**
@@ -18,7 +18,7 @@
  *
  * Relevant links:
  *  - http://bugs.python.org/issue16633
- *  - https://a.yandex-team.ru/review/108892/details
+ *  - https://rb.yandex-team.ru/arc/r/108892/
  */
 
 TString GetEnv(const TString& key, const TString& def) {

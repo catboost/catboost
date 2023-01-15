@@ -3,7 +3,7 @@
 // unique tag to fix pragma once gcc glueing: ./kikimr/core/nalf_alloc/defs.h
 #include <util/system/defaults.h>
 #include <util/generic/noncopyable.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
+#include <util/system/atomic.h>
 #include <util/system/align.h>
 #include <util/generic/utility.h>
 #include <util/generic/ylimits.h>
@@ -282,7 +282,7 @@ namespace NNumaAwareLockFreeAllocator {
     };
 
     // copied from <kikimr/core/util/unordered_cache.h> to eliminate dependency
-    // todo: extend TRelaxedManyManyQueue from <library/cpp/threading/queue.h> with missing features and replace with
+    // todo: extend TRelaxedManyManyQueue from <library/threading/queue.h> with missing features and replace with
 
     template <typename T, ui32 TSize = 512, ui32 TConcurrencyFactor = 1, typename TChunk = TQueueChunk<T, TSize>>
     class TUnorderedCache : TNonCopyable {

@@ -2,7 +2,7 @@
 
 #include "detail.h"
 
-namespace NYson {
+namespace NYT {
     namespace NDetail {
         ////////////////////////////////////////////////////////////////////////////////
 
@@ -22,15 +22,15 @@ namespace NYson {
 
             void DoParse(EYsonType ysonType) {
                 switch (ysonType) {
-                    case ::NYson::EYsonType::Node:
+                    case YT_NODE:
                         ParseNode<true>();
                         break;
 
-                    case ::NYson::EYsonType::ListFragment:
+                    case YT_LIST_FRAGMENT:
                         ParseListFragment<true>(EndSymbol);
                         break;
 
-                    case ::NYson::EYsonType::MapFragment:
+                    case YT_MAP_FRAGMENT:
                         ParseMapFragment<true>(EndSymbol);
                         break;
 
@@ -305,7 +305,7 @@ namespace NYson {
     template <class TConsumer, class TBlockStream>
     void ParseYsonStreamImpl(
         const TBlockStream& blockStream,
-        NYT::NYson::IYsonConsumer* consumer,
+        IYsonConsumer* consumer,
         EYsonType parsingMode,
         bool enableLinePositionInfo,
         TMaybe<ui64> memoryLimit) {
@@ -322,7 +322,7 @@ namespace NYson {
 
     class TStatelessYsonParserImplBase {
     public:
-        virtual void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) = 0;
+        virtual void Parse(const TStringBuf& data, EYsonType type = YT_NODE) = 0;
 
         virtual ~TStatelessYsonParserImplBase() {
         }
@@ -341,7 +341,7 @@ namespace NYson {
         {
         }
 
-        void Parse(const TStringBuf& data, EYsonType type = ::NYson::EYsonType::Node) override {
+        void Parse(const TStringBuf& data, EYsonType type = YT_NODE) override {
             Parser.SetBuffer(data.begin(), data.end());
             Parser.DoParse(type);
         }
@@ -378,4 +378,4 @@ namespace NYson {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

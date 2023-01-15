@@ -1,0 +1,289 @@
+Changelog
+=========
+
+
+Version 0.8.2
+-------------
+
+Add nohtml() to support labels of the form '<...>' (disabling their default
+treatment as HTML strings).
+
+Make default utf-8 encoding more visible.
+
+Set encoding = locale.getpreferredencoding() when encoding argument/property is
+set to None explicitly (follow stdlib io.open behaviour).
+
+
+Version 0.8.1
+-------------
+
+Add Source.from_file()-classmethod (simpler in-line SVG display of ready-made
+.gv files within Jupyter).
+
+Drop Python 3.3 support.
+
+
+Version 0.8
+-----------
+
+Add clear()-method for Graph and Digraph. 
+
+Add grapviz.version() function.
+
+Drop dot source extra indent for edge statements following dotguide examples.
+
+Include license file in wheel.
+
+
+Version 0.7.1
+-------------
+
+Fix TypeError in graphviz.pipe() with invalid dot code under Python 3.
+
+Add copy()-method for Graph, Digraph, and Source.
+
+Add graphviz.render(..., quiet=True).
+
+Fix graphivz.view() exception on unsupported platform.
+
+Raise a dedicated RuntimeError subclass graphviz.ExecutableNotFound when the
+Graphviz executables are not found.
+
+Port tests from nose/unittest to pytest, extend, use mocks.
+
+
+Version 0.7
+-----------
+
+Support setting top-level attrs with g.attr(key=value).
+
+Add context manager usage of subgraph() for adding a subgraph in a with-block.
+
+Add json-based output formats to known FORMATS (Graphviz 2.40+).
+
+Drop extra indent level for DOT source with nonempty graph/node/edge_attr.
+
+Add a final newline to a saved DOT source file if it does not end with one.
+
+Raise subprocess.CalledProcessError on non-zero exit status from rendering.
+
+Raise early when adding a subgraph() with strict=True (avoid DOT syntax error).
+
+Make undocumented quote(), quote_edge(), and attributes() methods private.
+
+
+Version 0.6
+-----------
+
+Drop Python 2.6 support (use graphviz<0.6 there).
+
+Improve tests for mkdirs().
+
+Better document adding custom DOT using the body attribute.
+
+Add view()-support for FreeBSD (pull request Julien Gamba).
+
+
+Version 0.5.2
+-------------
+
+Add ENGINES and FORMATS to the documented public API.
+
+
+Version 0.5.1
+-------------
+
+Fixed PY3 compatibility.
+
+
+Version 0.5
+-----------
+
+Add low-level functions render(), pipe(), and view() for directly working with
+existing files and strings.
+
+Support all render()-arguments in the view()-short-cut-method.
+
+
+Version 0.4.10
+--------------
+
+Added patchwork engine.
+
+
+Version 0.4.9
+-------------
+
+Add support for 'strict' graphs and digraphs.
+
+Hide render/pipe subrocess console window on Windows when invoked from
+non-console process (e.g. from IDLE).
+
+Improve documentation markup/wording.
+
+Make TestNoent more robust.
+
+
+Version 0.4.8
+-------------
+
+Make _repr_svg_ available on Source (pull request RafalSkolasinski).
+
+
+Version 0.4.7
+-------------
+
+Fixed view()-method on Linux under Python 3 (pull request Antony Lee).
+
+
+Version 0.4.6
+-------------
+
+Fixed view()-method on Linux and Darwin (pull request Eric L. Frederich).
+
+
+Version 0.4.5
+-------------
+
+Added example for HTML-like labels (structs.py).
+
+Added Source class for rendering verbatim DOT source code. 
+
+Added Python 2.6 support (pull request Jim Crist).
+
+
+Version 0.4.4
+-------------
+
+Added the pipe()-method directly returning the stdout of the rendering.
+
+Added _repr_svg_ for inline rendering in IPython notebooks.
+
+
+Version 0.4.3
+-------------
+
+Added examples generating some of the graphs from the Graphviz Gallery.
+
+Added sphinx-based API documentation.
+
+
+Version 0.4.2
+-------------
+
+Added support for HTML-like labels.
+
+
+Version 0.4.1
+-------------
+
+Added support for less common output formats. Removed dropped formats (dia, pcl).
+
+Added osage layout engine.
+
+Documented format and engine options in the README.
+
+The view() convenience method now returns the result file name (like render()).
+
+
+Version 0.4
+-----------
+
+Added attr() method for inline switching of node/edge attributes.
+
+Added subgraph() method (obsoletes separate Subgraph class).
+
+Add cleanup option to render().
+
+Replaced dry option on render() with separate save() method.
+
+Removed undocumented append() and extend() methods (if needed, the body
+attribute can be edited directly).
+
+
+Version 0.3.5
+-------------
+
+Skip empty comment when creating DOT source.
+
+Document graph_attr, node_attr, and edge_attr in the README.
+
+More informative exception when Graphviz excutables cannot be called.
+
+
+Version 0.3.4
+-------------
+
+Fixed missing identifier quoting for DOT keywords (thanks to Paulo Urio).
+
+
+Version 0.3.3
+-------------
+
+Made format and engine case-insensitive.
+
+
+Version 0.3.2
+-------------
+
+Indent graph_attr, node_attr, and edge_attr lines, adapt nodes and edges.
+
+
+Version 0.3.1
+-------------
+
+Fixed view() failing on paths with forward slashes on Windows.
+
+
+Version 0.3
+-----------
+
+Added Python 3.3+ support.
+
+Made attributes order stable (sorting plain dicts).
+
+Fixed edgeop in undirected graphs.
+
+
+Version 0.2.2
+-------------
+
+Support pdf opening on Linux.
+
+Fixed rendering filenames w/spaces.
+
+
+Version 0.2.1
+-------------
+
+Fixed rendering on Mac OS X.
+
+
+Version 0.2
+-----------
+
+Added format selection, use PDF as default.
+Added engines selection, use dot as default.
+Added source encoding, use UTF-8 as default.
+
+Changed constructor arguments order, removed compile and save method,
+reimplemented compilation in render method, make interface more similar to
+gv.3python (backwards incompatible change).
+
+Double-quote-sign escaping, attribute list quoting.
+
+mkdirs now correctly supports current directory filenames.
+
+
+Version 0.1.1
+-------------
+
+Removed automatic '-' to '&minus;' replacement from labels.
+
+Fixed documentation typos.
+
+
+Version 0.1
+-----------
+
+First public release.

@@ -2,7 +2,7 @@
 
 This module is an implementation of PEP 205:
 
-https://www.python.org/dev/peps/pep-0205/
+http://www.python.org/dev/peps/pep-0205/
 """
 
 # Naming convention: Variables named "wr" are weak reference objects;
@@ -32,9 +32,6 @@ __all__ = ["ref", "proxy", "getweakrefcount", "getweakrefs",
            "CallableProxyType", "ProxyTypes", "WeakValueDictionary",
            "WeakSet", "WeakMethod", "finalize"]
 
-
-_collections_abc.Set.register(WeakSet)
-_collections_abc.MutableSet.register(WeakSet)
 
 class WeakMethod(ref):
     """
@@ -78,14 +75,14 @@ class WeakMethod(ref):
             if not self._alive or not other._alive:
                 return self is other
             return ref.__eq__(self, other) and self._func_ref == other._func_ref
-        return NotImplemented
+        return False
 
     def __ne__(self, other):
         if isinstance(other, WeakMethod):
             if not self._alive or not other._alive:
                 return self is not other
             return ref.__ne__(self, other) or self._func_ref != other._func_ref
-        return NotImplemented
+        return True
 
     __hash__ = ref.__hash__
 
@@ -102,7 +99,13 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
     # objects are unwrapped on the way out, and we always wrap on the
     # way in).
 
-    def __init__(self, other=(), /, **kw):
+    def __init__(*args, **kw):
+        if not args:
+            raise TypeError("descriptor '__init__' of 'WeakValueDictionary' "
+                            "object needs an argument")
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
         def remove(wr, selfref=ref(self), _atomic_removal=_remove_dead_weakref):
             self = selfref()
             if self is not None:
@@ -117,19 +120,16 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
         self._pending_removals = []
         self._iterating = set()
         self.data = {}
-        self.update(other, **kw)
+        self.update(*args, **kw)
 
-    def _commit_removals(self, _atomic_removal=_remove_dead_weakref):
-        pop = self._pending_removals.pop
+    def _commit_removals(self):
+        l = self._pending_removals
         d = self.data
         # We shouldn't encounter any KeyError, because this method should
         # always be called *before* mutating the dict.
-        while True:
-            try:
-                key = pop()
-            except IndexError:
-                return
-            _atomic_removal(d, key)
+        while l:
+            key = l.pop()
+            _remove_dead_weakref(d, key)
 
     def __getitem__(self, key):
         if self._pending_removals:
@@ -287,17 +287,24 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
         else:
             return o
 
-    def update(self, other=None, /, **kwargs):
+    def update(*args, **kwargs):
+        if not args:
+            raise TypeError("descriptor 'update' of 'WeakValueDictionary' "
+                            "object needs an argument")
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        dict = args[0] if args else None
         if self._pending_removals:
             self._commit_removals()
         d = self.data
-        if other is not None:
-            if not hasattr(other, "items"):
-                other = dict(other)
-            for key, o in other.items():
+        if dict is not None:
+            if not hasattr(dict, "items"):
+                dict = type({})(dict)
+            for key, o in dict.items():
                 d[key] = KeyedRef(o, self._remove, key)
-        for key, o in kwargs.items():
-            d[key] = KeyedRef(o, self._remove, key)
+        if len(kwargs):
+            self.update(kwargs)
 
     def valuerefs(self):
         """Return a list of weak references to the values.
@@ -312,25 +319,6 @@ class WeakValueDictionary(_collections_abc.MutableMapping):
         if self._pending_removals:
             self._commit_removals()
         return list(self.data.values())
-
-    def __ior__(self, other):
-        self.update(other)
-        return self
-
-    def __or__(self, other):
-        if isinstance(other, _collections_abc.Mapping):
-            c = self.copy()
-            c.update(other)
-            return c
-        return NotImplemented
-
-    def __ror__(self, other):
-        if isinstance(other, _collections_abc.Mapping):
-            c = self.__class__()
-            c.update(other)
-            c.update(self)
-            return c
-        return NotImplemented
 
 
 class KeyedRef(ref):
@@ -373,10 +361,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
                 if self._iterating:
                     self._pending_removals.append(k)
                 else:
-                    try:
-                        del self.data[k]
-                    except KeyError:
-                        pass
+                    del self.data[k]
         self._remove = remove
         # A list of dead weakrefs (keys to be removed)
         self._pending_removals = []
@@ -390,16 +375,11 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
         # because a dead weakref never compares equal to a live weakref,
         # even if they happened to refer to equal objects.
         # However, it means keys may already have been removed.
-        pop = self._pending_removals.pop
+        l = self._pending_removals
         d = self.data
-        while True:
+        while l:
             try:
-                key = pop()
-            except IndexError:
-                return
-
-            try:
-                del d[key]
+                del d[l.pop()]
             except KeyError:
                 pass
 
@@ -508,7 +488,7 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
     def setdefault(self, key, default=None):
         return self.data.setdefault(ref(key, self._remove),default)
 
-    def update(self, dict=None, /, **kwargs):
+    def update(self, dict=None, **kwargs):
         d = self.data
         if dict is not None:
             if not hasattr(dict, "items"):
@@ -517,25 +497,6 @@ class WeakKeyDictionary(_collections_abc.MutableMapping):
                 d[ref(key, self._remove)] = value
         if len(kwargs):
             self.update(kwargs)
-
-    def __ior__(self, other):
-        self.update(other)
-        return self
-
-    def __or__(self, other):
-        if isinstance(other, _collections_abc.Mapping):
-            c = self.copy()
-            c.update(other)
-            return c
-        return NotImplemented
-
-    def __ror__(self, other):
-        if isinstance(other, _collections_abc.Mapping):
-            c = self.__class__()
-            c.update(other)
-            c.update(self)
-            return c
-        return NotImplemented
 
 
 class finalize:
@@ -566,7 +527,27 @@ class finalize:
     class _Info:
         __slots__ = ("weakref", "func", "args", "kwargs", "atexit", "index")
 
-    def __init__(self, obj, func, /, *args, **kwargs):
+    def __init__(*args, **kwargs):
+        if len(args) >= 3:
+            self, obj, func, *args = args
+        elif not args:
+            raise TypeError("descriptor '__init__' of 'finalize' object "
+                            "needs an argument")
+        else:
+            if 'func' not in kwargs:
+                raise TypeError('finalize expected at least 2 positional '
+                                'arguments, got %d' % (len(args)-1))
+            func = kwargs.pop('func')
+            if len(args) >= 2:
+                self, obj, *args = args
+            else:
+                if 'obj' not in kwargs:
+                    raise TypeError('finalize expected at least 2 positional '
+                                    'arguments, got %d' % (len(args)-1))
+                obj = kwargs.pop('obj')
+                self, *args = args
+        args = tuple(args)
+
         if not self._registered_with_atexit:
             # We may register the exit function more than once because
             # of a thread race, but that is harmless

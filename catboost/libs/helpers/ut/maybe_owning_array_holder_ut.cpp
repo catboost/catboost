@@ -5,7 +5,7 @@
 #include <util/stream/buffer.h>
 #include <util/generic/string.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 struct TStringHolder : public NCB::IResourceHolder {
     TString S;
@@ -47,7 +47,7 @@ Y_UNIT_TEST_SUITE(TMaybeOwningArrayHolder) {
 
         {
             TBufferOutput out(buffer);
-            SerializeToArcadiaStream(out, data);
+            SerializeToStream(out, data);
         }
 
         NCB::TMaybeOwningArrayHolder<T> loadedData;

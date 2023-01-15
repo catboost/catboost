@@ -1,6 +1,6 @@
 #include <library/cpp/string_utils/base64/base64.h>
 
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>

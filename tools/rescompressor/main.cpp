@@ -1,4 +1,4 @@
-#include <library/cpp/resource/registry.h>
+#include <library/resource/registry.h>
 #include <util/stream/file.h>
 #include <util/folder/path.h>
 
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
     }
 
     while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(argv[ind]).SubStr(TStringBuf("--replace=").Size()));
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(AsStringBuf("--replace=").Size()));
         ind++;
     }
 
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
     bool error = false;
     while (ind < argc) {
         TString compressed;
-        if ("-"sv == argv[ind]) {
+        if (AsStringBuf("-") == argv[ind]) {
             ind++;
             if (ind >= argc) {
                 error = true;

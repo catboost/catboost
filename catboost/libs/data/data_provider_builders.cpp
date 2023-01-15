@@ -1,7 +1,6 @@
 #include "data_provider_builders.h"
 
 #include "cat_feature_perfect_hash.h"
-#include "columns.h"
 #include "data_provider.h"
 #include "feature_index.h"
 #include "lazy_columns.h"
@@ -21,7 +20,7 @@
 #include <catboost/private/libs/options/restrictions.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -46,7 +45,7 @@ namespace NCB {
     public:
         TRawObjectsOrderDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         )
             : InBlock(false)
             , ObjectCount(0)
@@ -98,13 +97,6 @@ namespace NCB {
             Data.TargetData.PrepareForInitialization(Data.MetaInfo, ObjectCount, prevTailSize);
             Data.CommonObjectsData.PrepareForInitialization(Data.MetaInfo, ObjectCount, prevTailSize);
             Data.ObjectsData.PrepareForInitialization(Data.MetaInfo);
-            Data.CommonObjectsData.SetBuildersArrayRef(
-                metaInfo,
-                &NumGroupIdsRef,
-                &StringGroupIdsRef,
-                &NumSubgroupIdsRef,
-                &StringSubgroupIdsRef
-            );
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
@@ -123,7 +115,6 @@ namespace NCB {
             prepareFeaturesStorage(FloatFeaturesStorage);
             prepareFeaturesStorage(CatFeaturesStorage);
             prepareFeaturesStorage(TextFeaturesStorage);
-            prepareFeaturesStorage(EmbeddingFeaturesStorage);
 
             switch (Data.MetaInfo.TargetType) {
                 case ERawTargetType::Float:
@@ -162,27 +153,11 @@ namespace NCB {
 
         // TCommonObjectsData
         void AddGroupId(ui32 localObjectIdx, TGroupId value) override {
-            Y_ASSERT(!Data.CommonObjectsData.StoreStringColumns);
-            NumGroupIdsRef[Cursor + localObjectIdx] = value;
-        }
-
-        void AddGroupId(ui32 localObjectIdx, const TString& value) override {
-            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
-            StringGroupIdsRef[Cursor + localObjectIdx] = value;
+            (*Data.CommonObjectsData.GroupIds)[Cursor + localObjectIdx] = value;
         }
 
         void AddSubgroupId(ui32 localObjectIdx, TSubgroupId value) override {
-            Y_ASSERT(!Data.CommonObjectsData.StoreStringColumns);
-            NumSubgroupIdsRef[Cursor + localObjectIdx] = value;
-        }
-
-        void AddSubgroupId(ui32 localObjectIdx, const TString& value) override {
-            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
-            StringSubgroupIdsRef[Cursor + localObjectIdx] = value;
-        }
-
-        void AddSampleId(ui32 localObjectIdx, const TString& value) override {
-            (*Data.CommonObjectsData.SampleId)[Cursor + localObjectIdx] = value;
+            (*Data.CommonObjectsData.SubgroupIds)[Cursor + localObjectIdx] = value;
         }
 
         void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
@@ -210,22 +185,7 @@ namespace NCB {
         }
 
         void AddAllFloatFeatures(ui32 localObjectIdx, TConstPolymorphicValuesSparseArray<float, ui32> features) override {
-            ui32 sparseFeatureCount = 0;
-            features.ForEachNonDefault(
-                [&] (ui32 perTypeFeatureIdx, float /*value*/) {
-                    sparseFeatureCount += FloatFeaturesStorage.IsSparse(TFloatFeatureIdx(perTypeFeatureIdx));
-                }
-            );
             auto objectIdx = Cursor + localObjectIdx;
-            if (features.GetNonDefaultSize() == sparseFeatureCount) {
-                features.ForBlockNonDefault(
-                    [&] (auto indexBlock, auto valueBlock) {
-                        FloatFeaturesStorage.SetSparseFeatureBlock(objectIdx, indexBlock, valueBlock, &FloatFeaturesStorage);
-                    },
-                    /*blockSize*/ 1024
-                );
-                return;
-            }
             features.ForEachNonDefault(
                 [&] (ui32 perTypeFeatureIdx, float value) {
                     FloatFeaturesStorage.Set(TFloatFeatureIdx(perTypeFeatureIdx), objectIdx, value);
@@ -317,19 +277,6 @@ namespace NCB {
             );
         }
 
-        void AddEmbeddingFeature(
-            ui32 localObjectIdx,
-            ui32 flatFeatureIdx,
-            TMaybeOwningConstArrayHolder<float> feature
-        ) override {
-            auto embeddingFeatureIdx = GetInternalFeatureIdx<EFeatureType::Embedding>(flatFeatureIdx);
-            EmbeddingFeaturesStorage.Set(
-                embeddingFeatureIdx,
-                Cursor + localObjectIdx,
-                std::move(feature)
-            );
-        }
-
         // TRawTargetData
 
         void AddTarget(ui32 localObjectIdx, const TString& value) override {
@@ -370,7 +317,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TRawPairsData&& pairs) override {
+        void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
@@ -381,7 +328,7 @@ namespace NCB {
 
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
-            return Data.CommonObjectsData.GroupIds.GetMaybeNumData();
+            return Data.CommonObjectsData.GroupIds;
         }
 
         void Finish() override {
@@ -428,14 +375,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         TVector<float>(WeightsBuffer),
-                        TStringBuf("Weights"),
+                        AsStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         TVector<float>(GroupWeightsBuffer),
-                        TStringBuf("GroupWeights"),
+                        AsStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ true
                     );
                 }
@@ -455,14 +402,14 @@ namespace NCB {
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(
                         std::move(WeightsBuffer),
-                        TStringBuf("Weights"),
+                        AsStringBuf("Weights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
                     Data.TargetData.GroupWeights = TWeights<float>(
                         std::move(GroupWeightsBuffer),
-                        TStringBuf("GroupWeights"),
+                        AsStringBuf("GroupWeights"),
                         /*allWeightsCanBeZero*/ InBlock
                     );
                 }
@@ -501,7 +448,6 @@ namespace NCB {
             }
 
             getFeaturesResult(TextFeaturesStorage, &Data.ObjectsData.TextFeatures);
-            getFeaturesResult(EmbeddingFeaturesStorage, &Data.ObjectsData.EmbeddingFeatures);
 
             ResultTaken = true;
 
@@ -510,7 +456,6 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
-                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 );
 
@@ -543,7 +488,6 @@ namespace NCB {
                     /*objectsGrouping*/ Nothing(), // will init from data
                     std::move(Data),
                     Options.SkipCheck,
-                    Data.MetaInfo.ForceUnitAutoPairWeights,
                     LocalExecutor
                 )->CastMoveTo<TObjectsDataProvider>();
             }
@@ -561,7 +505,6 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
-                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             );
 
@@ -585,28 +528,19 @@ namespace NCB {
         }
 
     private:
-        template <class T>
-        inline void RollbackNextCursorToLastGroupStartImpl(const TVector<T>& groupIds) {
+        void RollbackNextCursorToLastGroupStart() {
+            const auto& groupIds = *Data.CommonObjectsData.GroupIds;
+            if (ObjectCount == 0) {
+                return;
+            }
             auto rit = groupIds.rbegin();
-            const T& lastGroupId = *rit;
+            TGroupId lastGroupId = *rit;
             for (++rit; rit != groupIds.rend(); ++rit) {
                 if (*rit != lastGroupId) {
                     break;
                 }
             }
-            // always rollback to the second last group
             NextCursor = ObjectCount - (rit - groupIds.rbegin());
-        }
-
-        void RollbackNextCursorToLastGroupStart() {
-            if (ObjectCount == 0) {
-                return;
-            }
-            if (Data.CommonObjectsData.StoreStringColumns) {
-                RollbackNextCursorToLastGroupStartImpl(*Data.CommonObjectsData.GroupIds.GetMaybeStringData());
-            } else {
-                RollbackNextCursorToLastGroupStartImpl(*Data.CommonObjectsData.GroupIds.GetMaybeNumData());
-            }
         }
 
         template <EFeatureType FeatureType>
@@ -668,7 +602,7 @@ namespace NCB {
             bool HasSparseData = false;
             bool DataCanBeReusedForNextBlock = false;
 
-            NPar::ILocalExecutor* LocalExecutor = nullptr;
+            NPar::TLocalExecutor* LocalExecutor = nullptr;
 
             TVector<TPerFeatureData> PerFeatureData; // [perTypeFeatureIdx]
 
@@ -686,7 +620,7 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = std::move(value);
+                storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = value;
             }
 
             static void SetSparseFeature(
@@ -695,8 +629,13 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                const auto featureIdx = *perTypeFeatureIdx;
-                SetSparseFeatureBlock(objectIdx, MakeArrayRef(&featureIdx, 1), MakeArrayRef(&value, 1), storage);
+                Y_POD_STATIC_THREAD(int) threadId(-1);
+                if (Y_UNLIKELY(threadId == -1)) {
+                    threadId = storage->LocalExecutor->GetWorkerThreadId();
+                }
+                auto& sparseDataPart = storage->SparseDataParts[threadId];
+                sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
+                sparseDataPart.Values.emplace_back(value);
             }
 
             static void IgnoreFeature(
@@ -732,7 +671,7 @@ namespace NCB {
                         sparseDataPart.Values.resize(dstIdx);
                     },
                     0,
-                    SafeIntegerCast<int>(SparseDataParts.size()),
+                    (int)SparseDataParts.size(),
                     NPar::TLocalExecutor::WAIT_COMPLETE
                 );
             }
@@ -741,80 +680,23 @@ namespace NCB {
             TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>> CreateSparseArrays(
                 ui32 objectCount,
                 ESparseArrayIndexingType sparseArrayIndexingType,
-                NPar::ILocalExecutor* localExecutor
+                NPar::TLocalExecutor* localExecutor
             ) {
-                TVector<size_t> sizesForBuilders(PerFeatureData.size());
-                auto builderCount = PerFeatureData.size();
+                TVector<TSparseDataForBuider> sparseDataForBuilders(PerFeatureData.size()); // [perTypeFeatureIdx]
+
                 for (auto& sparseDataPart : SparseDataParts) {
-                    for (auto index2d : sparseDataPart.Indices) {
-                        if (index2d.PerTypeFeatureIdx >= builderCount) {
+                    for (auto i : xrange(sparseDataPart.Indices.size())) {
+                        auto index2d = sparseDataPart.Indices[i];
+                        if (index2d.PerTypeFeatureIdx >= sparseDataForBuilders.size()) {
                             // add previously unknown features
-                            builderCount = index2d.PerTypeFeatureIdx + 1;
-                            sizesForBuilders.resize(builderCount);
+                            sparseDataForBuilders.resize(index2d.PerTypeFeatureIdx + 1);
                         }
-                        sizesForBuilders[index2d.PerTypeFeatureIdx] += 1;
+                        auto& dataForBuilder = sparseDataForBuilders[index2d.PerTypeFeatureIdx];
+                        dataForBuilder.ObjectIndices.push_back(index2d.ObjectIdx);
+                        dataForBuilder.Values.push_back(std::move(sparseDataPart.Values[i]));
                     }
-                }
-                if (builderCount == 0) {
-                    return TVector<TMaybe<TConstPolymorphicValuesSparseArray<T, ui32>>>{0};
-                }
-                TVector<TSparseDataForBuider> sparseDataForBuilders(builderCount); // [perTypeFeatureIdx]
-
-                for (auto idx : xrange(sparseDataForBuilders.size())) {
-                    sparseDataForBuilders[idx].ObjectIndices.yresize(sizesForBuilders[idx]);
-                    sparseDataForBuilders[idx].Values.yresize(sizesForBuilders[idx]);
-                }
-
-                const auto valueCount = Accumulate(sizesForBuilders, ui64(0));
-                const auto valueCountPerRange = CeilDiv<ui64>(valueCount, localExecutor->GetThreadCount() + 1);
-                TVector<NCB::TIndexRange<ui32>> builderRanges;
-                ui32 rangeSize = 0;
-                ui32 rangeOffset = 0;
-                for (ui32 featureIdx : xrange(sizesForBuilders.size())) {
-                    if (rangeSize >= valueCountPerRange) {
-                        builderRanges.push_back({rangeOffset, featureIdx});
-                        rangeOffset = featureIdx;
-                        rangeSize = 0;
-                    }
-                    rangeSize += sizesForBuilders[featureIdx];
-                }
-                if (rangeSize > 0) {
-                    builderRanges.push_back({rangeOffset, ui32(sizesForBuilders.size())});
-                }
-
-                TVector<size_t> idxForBuilders(sparseDataForBuilders.size());
-                const auto rangeCount = builderRanges.size();
-                NPar::ParallelFor(
-                    *localExecutor,
-                    0,
-                    rangeCount,
-                    [&] (ui32 rangeIdx) {
-                        for (auto& sparseDataPart : SparseDataParts) {
-                            if (sparseDataPart.Indices.empty()) {
-                                continue;
-                            }
-                            const auto indicesRef = MakeArrayRef(sparseDataPart.Indices);
-                            const auto valuesRef = MakeArrayRef(sparseDataPart.Values);
-                            const auto idxRef = MakeArrayRef(idxForBuilders);
-                            const auto buildersRef = MakeArrayRef(sparseDataForBuilders);
-                            const auto rangeBegin = builderRanges[rangeIdx].Begin;
-                            const auto rangeEnd = builderRanges[rangeIdx].End;
-                            for (auto i : xrange(indicesRef.size())) {
-                                const auto index2d = indicesRef[i];
-                                const auto featureIdx = index2d.PerTypeFeatureIdx;
-                                if (featureIdx >= rangeBegin && featureIdx < rangeEnd) {
-                                    auto& dataForBuilder = buildersRef[featureIdx];
-                                    dataForBuilder.ObjectIndices[idxRef[featureIdx]] = index2d.ObjectIdx;
-                                    dataForBuilder.Values[idxRef[featureIdx]] = valuesRef[i];
-                                    ++idxRef[featureIdx];
-                                }
-                            }
-                        }
-                    }
-                );
-                if (!DataCanBeReusedForNextBlock) {
-                    for (auto& sparseDataPart : SparseDataParts) {
-                            sparseDataPart = TSparsePart();
+                    if (!DataCanBeReusedForNextBlock) {
+                        sparseDataPart = TSparsePart();
                     }
                 }
 
@@ -868,7 +750,7 @@ namespace NCB {
                 ui32 objectCount,
                 ui32 prevTailSize,
                 bool dataCanBeReusedForNextBlock,
-                NPar::ILocalExecutor* localExecutor
+                NPar::TLocalExecutor* localExecutor
             ) {
                 ui32 prevObjectCount = ObjectCount;
                 ObjectCount = objectCount;
@@ -895,13 +777,11 @@ namespace NCB {
                             auto& maybeSharedStoragePtr = perFeatureData.DenseDataStorage;
 
                             if (!maybeSharedStoragePtr) {
-                                CB_ENSURE(!prevTailSize, "No dense data storage to store remainder of previous block");
+                                Y_VERIFY(!prevTailSize);
                                 maybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 maybeSharedStoragePtr->Data.yresize(objectCount);
                             } else {
-                                CB_ENSURE(
-                                    prevTailSize <= maybeSharedStoragePtr->Data.size(),
-                                    "Dense data storage is too small to to store remainder of previous block");
+                                Y_VERIFY(prevTailSize <= maybeSharedStoragePtr->Data.size());
                                 auto newMaybeSharedStoragePtr = MakeIntrusive<TVectorHolder<T>>();
                                 newMaybeSharedStoragePtr->Data.yresize(objectCount);
                                 if (prevTailSize) {
@@ -929,7 +809,7 @@ namespace NCB {
                 }
             }
 
-            inline void Set(TFeatureIdx<FeatureType> perTypeFeatureIdx, ui32 objectIdx, T value) {
+            void Set(TFeatureIdx<FeatureType> perTypeFeatureIdx, ui32 objectIdx, T value) {
                 PerFeatureCallbacks[Min(size_t(*perTypeFeatureIdx), PerFeatureCallbacks.size() - 1)](
                     perTypeFeatureIdx,
                     objectIdx,
@@ -937,33 +817,6 @@ namespace NCB {
                     this
                 );
             }
-
-            inline bool IsSparse(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {
-                const auto idx = *perTypeFeatureIdx;
-                return idx + 1 < PerFeatureCallbacks.size() && PerFeatureCallbacks[idx] == SetSparseFeature;
-            }
-
-            Y_FORCE_INLINE static void SetSparseFeatureBlock(
-                ui32 objectIdx,
-                TConstArrayRef<ui32> indices,
-                TConstArrayRef<T> values,
-                TFeaturesStorage* storage
-            ) {
-                Y_POD_STATIC_THREAD(int) threadId(-1);
-                if (Y_UNLIKELY(threadId == -1)) {
-                    threadId = storage->LocalExecutor->GetWorkerThreadId();
-                }
-                auto& sparseDataPart = storage->SparseDataParts[threadId];
-                for (auto idx : indices) {
-                    sparseDataPart.Indices.emplace_back(TSparseIndex2d{idx, objectIdx});
-                }
-                if (values.size() == 1) {
-                    sparseDataPart.Values.push_back(values[0]);
-                } else {
-                    sparseDataPart.Values.insert(sparseDataPart.Values.end(), values.begin(), values.end());
-                }
-            }
-
 
             void SetDefaultValue(TFeatureIdx<FeatureType> perTypeFeatureIdx, T value) {
                 if (*perTypeFeatureIdx >= PerFeatureData.size()) {
@@ -1059,12 +912,6 @@ namespace NCB {
         TFeaturesStorage<EFeatureType::Float, float> FloatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Categorical, ui32> CatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Text, TString> TextFeaturesStorage;
-        TFeaturesStorage<EFeatureType::Embedding, TConstEmbedding> EmbeddingFeaturesStorage;
-
-        TArrayRef<TGroupId> NumGroupIdsRef;
-        TArrayRef<TString> StringGroupIdsRef;
-        TArrayRef<TSubgroupId> NumSubgroupIdsRef;
-        TArrayRef<TString> StringSubgroupIdsRef;
 
         std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
 
@@ -1075,7 +922,7 @@ namespace NCB {
 
         TDataProviderBuilderOptions Options;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
         bool InProcess;
         bool ResultTaken;
@@ -1090,7 +937,7 @@ namespace NCB {
 
         TRawFeaturesOrderDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         )
             : ObjectCount(0)
             , Options(options)
@@ -1115,7 +962,7 @@ namespace NCB {
 
 
             ObjectCalcParams.Reset(
-                new NPar::ILocalExecutor::TExecRangeParams(0, SafeIntegerCast<int>(ObjectCount))
+                new NPar::TLocalExecutor::TExecRangeParams(0, SafeIntegerCast<int>(ObjectCount))
             );
             ObjectCalcParams->SetBlockSize(OBJECT_CALC_BLOCK_SIZE);
 
@@ -1123,13 +970,6 @@ namespace NCB {
             Data.TargetData.PrepareForInitialization(metaInfo, ObjectCount, 0);
             Data.CommonObjectsData.PrepareForInitialization(metaInfo, ObjectCount, 0);
             Data.ObjectsData.PrepareForInitialization(metaInfo);
-            Data.CommonObjectsData.SetBuildersArrayRef(
-                metaInfo,
-                &NumGroupIdsRef,
-                &StringGroupIdsRef,
-                &NumSubgroupIdsRef,
-                &StringSubgroupIdsRef
-            );
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
             Data.CommonObjectsData.Order = objectsOrder;
@@ -1141,27 +981,11 @@ namespace NCB {
 
         // TCommonObjectsData
         void AddGroupId(ui32 objectIdx, TGroupId value) override {
-            Y_ASSERT(!Data.CommonObjectsData.StoreStringColumns);
-            NumGroupIdsRef[objectIdx] = value;
+            (*Data.CommonObjectsData.GroupIds)[objectIdx] = value;
         }
 
         void AddSubgroupId(ui32 objectIdx, TSubgroupId value) override {
-            Y_ASSERT(!Data.CommonObjectsData.StoreStringColumns);
-            NumSubgroupIdsRef[objectIdx] = value;
-        }
-
-        void AddGroupId(ui32 objectIdx, const TString& value) override {
-            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
-            StringGroupIdsRef[objectIdx] = value;
-        }
-
-        void AddSubgroupId(ui32 objectIdx, const TString& value) override {
-            Y_ASSERT(Data.CommonObjectsData.StoreStringColumns);
-            StringSubgroupIdsRef[objectIdx] = value;
-        }
-
-        void AddSampleId(ui32 objectIdx, const TString& value) override {
-            (*Data.CommonObjectsData.SampleId)[objectIdx] = value;
+            (*Data.CommonObjectsData.SubgroupIds)[objectIdx] = value;
         }
 
         void AddTimestamp(ui32 objectIdx, ui64 value) override {
@@ -1255,15 +1079,6 @@ namespace NCB {
             );
         }
 
-        void AddEmbeddingFeature(ui32 flatFeatureIdx, ITypedSequencePtr<TMaybeOwningConstArrayHolder<float>> features) override {
-            auto embeddingFeatureIdx = GetInternalFeatureIdx<EFeatureType::Embedding>(flatFeatureIdx);
-            Data.ObjectsData.EmbeddingFeatures[*embeddingFeatureIdx]
-               = MakeHolder<TEmbeddingArrayValuesHolder>(
-                    flatFeatureIdx,
-                    features->GetSubset(Data.CommonObjectsData.SubsetIndexing.Get())
-                );
-        }
-
         // TRawTargetData
 
         void AddTarget(TConstArrayRef<TString> value) override {
@@ -1302,7 +1117,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TRawPairsData&& pairs) override {
+        void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
@@ -1313,7 +1128,7 @@ namespace NCB {
 
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
-            return Data.CommonObjectsData.GroupIds.GetMaybeNumData();
+            return Data.CommonObjectsData.GroupIds;
         }
 
         void Finish() override {
@@ -1339,7 +1154,6 @@ namespace NCB {
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 Options.SkipCheck,
-                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -1423,17 +1237,12 @@ namespace NCB {
 
         TRawBuilderData Data;
 
-        TArrayRef<TGroupId> NumGroupIdsRef;
-        TArrayRef<TString> StringGroupIdsRef;
-        TArrayRef<TSubgroupId> NumSubgroupIdsRef;
-        TArrayRef<TString> StringSubgroupIdsRef;
-
         TDataProviderBuilderOptions Options;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
-        // have to make it THolder because NPar::ILocalExecutor::TExecRangeParams is unassignable/unmoveable
-        THolder<NPar::ILocalExecutor::TExecRangeParams> ObjectCalcParams;
+        // have to make it THolder because NPar::TLocalExecutor::TExecRangeParams is unassignable/unmoveable
+        THolder<NPar::TLocalExecutor::TExecRangeParams> ObjectCalcParams;
 
         bool InProcess;
         bool ResultTaken;
@@ -1447,7 +1256,7 @@ namespace NCB {
         TQuantizedFeaturesDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
             TDatasetSubset loadSubset,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         )
             : ObjectCount(0)
             , Options(options)
@@ -1465,12 +1274,11 @@ namespace NCB {
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
 
-            const NCB::TPoolQuantizationSchema& poolQuantizationSchema,
-            bool wholeColumns
+            const NCB::TPoolQuantizationSchema& poolQuantizationSchema
         ) override {
             CB_ENSURE(!InProcess, "Attempt to start new processing without finishing the last");
 
-            CB_ENSURE(poolQuantizationSchema.HasAvailableFeatures(), "No features in quantized pool!");
+            CB_ENSURE(!poolQuantizationSchema.FeatureIndices.empty(), "No features in quantized pool!");
 
             TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
 
@@ -1538,15 +1346,13 @@ namespace NCB {
 
             Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
             Data.CommonObjectsData.PrepareForInitialization(metaInfo, objectCount, 0);
-            Data.ObjectsData.PrepareForInitialization(
+            Data.ObjectsData.Data.PrepareForInitialization(
                 metaInfo,
 
                 // TODO(akhropov): get from quantized pool meta info when it will be available: MLTOOLS-2392.
                 NCatboostOptions::TBinarizationOptions(
                     EBorderSelectionType::GreedyLogSum, // default value
-                    (poolQuantizationSchema.Borders.size() > 0) ?
-                        SafeIntegerCast<ui32>(poolQuantizationSchema.Borders[0].size())
-                        : 32,
+                    SafeIntegerCast<ui32>(poolQuantizationSchema.Borders[0].size()),
                     ENanMode::Forbidden // default value
                 ),
                 TMap<ui32, NCatboostOptions::TBinarizationOptions>()
@@ -1554,7 +1360,7 @@ namespace NCB {
 
             FillQuantizedFeaturesInfo(
                 poolQuantizationSchema,
-                Data.ObjectsData.QuantizedFeaturesInfo.Get()
+                Data.ObjectsData.Data.QuantizedFeaturesInfo.Get()
             );
 
             Data.ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
@@ -1564,9 +1370,11 @@ namespace NCB {
 
             Data.ObjectsData.PackedBinaryFeaturesData = TPackedBinaryFeaturesData(
                 *metaInfo.FeaturesLayout,
-                *Data.ObjectsData.QuantizedFeaturesInfo,
+                *Data.ObjectsData.Data.QuantizedFeaturesInfo,
                 Data.ObjectsData.ExclusiveFeatureBundlesData,
-                /*dontPack*/ Options.GpuDistributedFormat
+
+                // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
+                /*dontPack*/ !Options.CpuCompatibleFormat || Options.GpuDistributedFormat
             );
 
             Data.ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
@@ -1583,18 +1391,16 @@ namespace NCB {
                 FloatFeaturesStorage.PrepareForInitialization(
                     *metaInfo.FeaturesLayout,
                     objectCount,
-                    Data.ObjectsData.QuantizedFeaturesInfo,
+                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
-                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
-                    wholeColumns
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
                 );
                 CategoricalFeaturesStorage.PrepareForInitialization(
                     *metaInfo.FeaturesLayout,
                     objectCount,
-                    Data.ObjectsData.QuantizedFeaturesInfo,
+                    Data.ObjectsData.Data.QuantizedFeaturesInfo,
                     BinaryFeaturesStorage,
-                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex,
-                    wholeColumns
+                    Data.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex
                 );
             }
 
@@ -1625,7 +1431,7 @@ namespace NCB {
         template <class T>
         static void CopyPart(ui32 objectOffset, TUnalignedArrayBuf<T> srcPart, TVector<T>* dstData) {
             CB_ENSURE_INTERNAL(
-                objectOffset <= dstData->size(),
+                objectOffset < dstData->size(),
                 LabeledOutput(objectOffset, srcPart.GetSize(), dstData->size()));
             CB_ENSURE_INTERNAL(
                 objectOffset + srcPart.GetSize() <= dstData->size(),
@@ -1637,11 +1443,11 @@ namespace NCB {
 
         // TCommonObjectsData
         void AddGroupIdPart(ui32 objectOffset, TUnalignedArrayBuf<TGroupId> groupIdPart) override {
-            CopyPart(objectOffset, groupIdPart, &(*Data.CommonObjectsData.GroupIds.GetMaybeNumData()));
+            CopyPart(objectOffset, groupIdPart, &(*Data.CommonObjectsData.GroupIds));
         }
 
         void AddSubgroupIdPart(ui32 objectOffset, TUnalignedArrayBuf<TSubgroupId> subgroupIdPart) override {
-            CopyPart(objectOffset, subgroupIdPart, &(*Data.CommonObjectsData.SubgroupIds.GetMaybeNumData()));
+            CopyPart(objectOffset, subgroupIdPart, &(*Data.CommonObjectsData.SubgroupIds));
         }
 
         void AddTimestampPart(ui32 objectOffset, TUnalignedArrayBuf<ui64> timestampPart) override {
@@ -1658,7 +1464,7 @@ namespace NCB {
                 GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx),
                 objectOffset,
                 bitsPerDocumentFeature,
-                std::move(featuresPart),
+                *featuresPart,
                 LocalExecutor
             );
         }
@@ -1673,7 +1479,7 @@ namespace NCB {
                 GetInternalFeatureIdx<EFeatureType::Categorical>(flatFeatureIdx),
                 objectOffset,
                 bitsPerDocumentFeature,
-                std::move(featuresPart),
+                *featuresPart,
                 LocalExecutor
             );
         }
@@ -1755,7 +1561,7 @@ namespace NCB {
             Data.TargetData.Baseline = std::move(baseline);
         }
 
-        void SetPairs(TRawPairsData&& pairs) override {
+        void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
@@ -1766,7 +1572,7 @@ namespace NCB {
 
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
-            return Data.CommonObjectsData.GroupIds.GetMaybeNumData();
+            return Data.CommonObjectsData.GroupIds;
         }
 
         void Finish() override {
@@ -1791,7 +1597,7 @@ namespace NCB {
                     *Data.MetaInfo.FeaturesLayout,
                     Data.CommonObjectsData.SubsetIndexing.Get(),
                     Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.FloatFeatures
+                    &Data.ObjectsData.Data.FloatFeatures
                 );
 
                 CategoricalFeaturesStorage.GetResult(
@@ -1799,19 +1605,18 @@ namespace NCB {
                     *Data.MetaInfo.FeaturesLayout,
                     Data.CommonObjectsData.SubsetIndexing.Get(),
                     Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.CatFeatures
+                    &Data.ObjectsData.Data.CatFeatures
                 );
             }
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(Data),
                 // without HasFeatures dataprovider self-test fails on distributed train
                 // on quantized pool
                 Options.SkipCheck || !DatasetSubset.HasFeatures,
-                Data.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -1846,7 +1651,7 @@ namespace NCB {
             GetBinaryFeaturesDataResult();
         }
 
-        TQuantizedBuilderData& GetDataRef() {
+        TQuantizedForCPUBuilderData& GetDataRef() {
             return Data;
         }
 
@@ -1902,8 +1707,8 @@ namespace NCB {
         ) {
             const auto& featuresLayout = *info->GetFeaturesLayout();
             const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
-            for (size_t i = 0, iEnd = schema.FloatFeatureIndices.size(); i < iEnd; ++i) {
-                const auto flatFeatureIdx = schema.FloatFeatureIndices[i];
+            for (size_t i = 0, iEnd = schema.FeatureIndices.size(); i < iEnd; ++i) {
+                const auto flatFeatureIdx = schema.FeatureIndices[i];
                 const auto nanMode = schema.NanModes[i];
                 const auto& metaInfo = metaInfos[flatFeatureIdx];
                 CB_ENSURE(
@@ -2018,36 +1823,17 @@ namespace NCB {
             static_assert(FeatureType == EFeatureType::Float || FeatureType == EFeatureType::Categorical,
                 "Only float and categorical features are currently supported");
 
-            bool WholeColumns = false;
-            size_t ObjectCount = 0;
-
             /******************************************************************************************/
             // non-binary features
 
             /* shared between this builder and created data provider for efficiency
              * (can be reused for cache here if there's no more references to data
              *  (data provider was freed))
-             *
-             *   Used if WholeColumns == false
              */
             TVector<TIntrusivePtr<TVectorHolder<ui64>>> DenseDataStorage; // [perTypeFeatureIdx]
 
             // view into storage for faster access
             TVector<TArrayRef<ui64>> DenseDstView; // [perTypeFeatureIdx]
-
-            // whole columns
-
-            /*
-             * Used if WholeColumns == true
-             *  if src array data is properly aligned (as ui64, because it is used in TCompressedArray)
-             *    just copy TMaybeOwningArrayHolder as, make a copy otherwise
-             *  but const cast is used because TCompressedArray accepts only TMaybeOwningArrayHolder
-             *  whereas in fact it is used only as read-only data later in data provider
-             *  TODO(akhropov): Propagate const-correctness here
-             */
-
-            TVector<TMaybeOwningArrayHolder<ui64>> DenseWholeColumns; // [perTypeFeatureIdx]
-
 
             TVector<TIndexHelper<ui64>> IndexHelpers; // [perTypeFeatureIdx]
 
@@ -2072,22 +1858,11 @@ namespace NCB {
                 ui32 objectCount,
                 const TQuantizedFeaturesInfoPtr& quantizedFeaturesInfoPtr,
                 TBinaryFeaturesStorage& binaryStorage,
-                TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex,
-                bool wholeColumns
+                TConstArrayRef<TMaybe<TPackedBinaryIndex>> flatFeatureIndexToPackedBinaryIndex
             ) {
-                ObjectCount = objectCount;
-                WholeColumns = wholeColumns;
-
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
-                if (WholeColumns) {
-                    DenseWholeColumns.resize(perTypeFeatureCount);
-                    DenseDataStorage.clear();
-                    DenseDstView.clear();
-                } else {
-                    DenseWholeColumns.clear();
-                    DenseDataStorage.resize(perTypeFeatureCount);
-                    DenseDstView.resize(perTypeFeatureCount);
-                }
+                DenseDataStorage.resize(perTypeFeatureCount);
+                DenseDstView.resize(perTypeFeatureCount);
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
                 FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
 
@@ -2116,35 +1891,33 @@ namespace NCB {
                         = flatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
                 }
 
-                if (!WholeColumns) {
-                    for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
-                        if (featuresLayout.GetInternalFeatureMetaInfo(
-                                perTypeFeatureIdx,
-                                FeatureType
-                            ).IsAvailable &&
-                            !FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx])
-                        {
-                            CB_ENSURE(
-                                IsAvailable[perTypeFeatureIdx],
-                                FeatureType << " feature #" << perTypeFeatureIdx
-                                << " has no data in quantized pool"
-                            );
+                for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
+                    if (featuresLayout.GetInternalFeatureMetaInfo(
+                            perTypeFeatureIdx,
+                            FeatureType
+                        ).IsAvailable &&
+                        !FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx])
+                    {
+                        CB_ENSURE(
+                            IsAvailable[perTypeFeatureIdx],
+                            FeatureType << " feature #" << perTypeFeatureIdx
+                            << " has no data in quantized pool"
+                        );
 
-                            auto& maybeSharedStoragePtr = DenseDataStorage[perTypeFeatureIdx];
-                            if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
-                                /* storage is either uninited or shared with some other references
-                                 * so it has to be reset to be reused
-                                 */
-                                DenseDataStorage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
-                            }
-                            maybeSharedStoragePtr->Data.yresize(
-                                IndexHelpers[perTypeFeatureIdx].CompressedSize(objectCount)
-                            );
-                            DenseDstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
-                        } else {
-                            DenseDataStorage[perTypeFeatureIdx] = nullptr;
-                            DenseDstView[perTypeFeatureIdx] = TArrayRef<ui64>();
+                        auto& maybeSharedStoragePtr = DenseDataStorage[perTypeFeatureIdx];
+                        if (!maybeSharedStoragePtr || (maybeSharedStoragePtr->RefCount() > 1)) {
+                            /* storage is either uninited or shared with some other references
+                             * so it has to be reset to be reused
+                             */
+                            DenseDataStorage[perTypeFeatureIdx] = MakeIntrusive<TVectorHolder<ui64>>();
                         }
+                        maybeSharedStoragePtr->Data.yresize(
+                            IndexHelpers[perTypeFeatureIdx].CompressedSize(objectCount)
+                        );
+                        DenseDstView[perTypeFeatureIdx] =  maybeSharedStoragePtr->Data;
+                    } else {
+                        DenseDataStorage[perTypeFeatureIdx] = nullptr;
+                        DenseDstView[perTypeFeatureIdx] = TArrayRef<ui64>();
                     }
                 }
 
@@ -2159,8 +1932,8 @@ namespace NCB {
                 TFeatureIdx<FeatureType> perTypeFeatureIdx,
                 ui32 objectOffset,
                 ui8 bitsPerDocumentFeature,
-                TMaybeOwningConstArrayHolder<ui8> featuresPart,
-                NPar::ILocalExecutor* localExecutor
+                TConstArrayRef<ui8> featuresPart,
+                NPar::TLocalExecutor* localExecutor
             ) {
                 if (!IsAvailable[*perTypeFeatureIdx]) {
                     return;
@@ -2170,10 +1943,10 @@ namespace NCB {
                     auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[*perTypeFeatureIdx];
                     auto dstSlice = DstBinaryView[packedBinaryIndex.PackIdx].Slice(
                         objectOffset,
-                        featuresPart.GetSize()
+                        featuresPart.size()
                     );
                     ParallelSetBinaryFeatureInPackArray(
-                        *featuresPart,
+                        featuresPart,
                         packedBinaryIndex.BitIdx,
                         /*needToClearDstBits*/ false,
                         localExecutor,
@@ -2188,47 +1961,23 @@ namespace NCB {
 
                     const auto bytesPerDocument = bitsPerDocumentFeature / (sizeof(ui8) * CHAR_BIT);
 
-                    if (WholeColumns) {
-                        CB_ENSURE(objectOffset == 0, "objectOffset must be 0 for WholeColumns");
-                        const ui8* dataPtr = featuresPart.data();
+                    const auto dstCapacityInBytes =
+                        DenseDstView[*perTypeFeatureIdx].size() *
+                        sizeof(decltype(*DenseDstView[*perTypeFeatureIdx].data()));
+                    const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
 
-                        if (reinterpret_cast<ui64>(dataPtr) % alignof(ui64)) {
-                            // fallback to data copying if it is unaligned
-                            TVector<ui64> dataCopy;
-                            dataCopy.yresize(IndexHelpers[*perTypeFeatureIdx].CompressedSize(ObjectCount));
-                            Copy(featuresPart.begin(), featuresPart.end(), (ui8*)dataCopy.data());
-
-                            DenseWholeColumns[*perTypeFeatureIdx] =
-                                TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(dataCopy));
-                        } else {
-                            DenseWholeColumns[*perTypeFeatureIdx] =
-                                TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                                    TArrayRef<ui64>(
-                                        (ui64*)const_cast<ui8*>(dataPtr),
-                                        CeilDiv(featuresPart.GetSize(), sizeof(ui64))
-                                    ),
-                                    featuresPart.GetResourceHolder()
-                                );
-                        }
-                    } else {
-                        const auto dstCapacityInBytes =
-                            DenseDstView[*perTypeFeatureIdx].size() *
-                            sizeof(decltype(*DenseDstView[*perTypeFeatureIdx].data()));
-                        const auto objectOffsetInBytes = objectOffset * bytesPerDocument;
-
-                        CB_ENSURE_INTERNAL(
-                            objectOffsetInBytes < dstCapacityInBytes,
-                            LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.GetSize(), dstCapacityInBytes));
-                        CB_ENSURE_INTERNAL(
-                            objectOffsetInBytes + featuresPart.GetSize() <= dstCapacityInBytes,
-                            LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.GetSize(), dstCapacityInBytes));
+                    CB_ENSURE_INTERNAL(
+                        objectOffsetInBytes < dstCapacityInBytes,
+                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
+                    CB_ENSURE_INTERNAL(
+                        objectOffsetInBytes + featuresPart.size() <= dstCapacityInBytes,
+                        LabeledOutput(perTypeFeatureIdx, objectOffset, objectOffsetInBytes, featuresPart.size(), dstCapacityInBytes));
 
 
-                        memcpy(
-                            ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
-                            featuresPart.data(),
-                            featuresPart.GetSize());
-                    }
+                    memcpy(
+                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
+                        featuresPart.data(),
+                        featuresPart.size());
                 }
             }
 
@@ -2240,25 +1989,17 @@ namespace NCB {
                 const TVector<THolder<IBinaryPacksArray>>& binaryFeaturesData,
                 TVector<THolder<TColumn>>* result
             ) {
-
+                CB_ENSURE_INTERNAL(
+                    DenseDataStorage.size() == DenseDstView.size(),
+                    "DenseDataStorage is inconsistent with DenseDstView; "
+                    LabeledOutput(DenseDataStorage.size(), DenseDstView.size()));
 
                 const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
 
-                if (WholeColumns) {
-                    CB_ENSURE_INTERNAL(
-                        DenseWholeColumns.size() == featureCount,
-                        "DenseWholeColumns is inconsistent with feature Layout; "
-                        LabeledOutput(DenseWholeColumns.size(), featureCount));
-                } else {
-                    CB_ENSURE_INTERNAL(
-                        DenseDataStorage.size() == featureCount,
-                        "DenseDataStorage is inconsistent with feature Layout; "
-                        LabeledOutput(DenseDataStorage.size(), featureCount));
-                    CB_ENSURE_INTERNAL(
-                        DenseDataStorage.size() == DenseDstView.size(),
-                        "DenseDataStorage is inconsistent with DenseDstView; "
-                        LabeledOutput(DenseDataStorage.size(), DenseDstView.size()));
-                }
+                CB_ENSURE_INTERNAL(
+                    DenseDataStorage.size() == featureCount,
+                    "DenseDataStorage is inconsistent with feature Layout; "
+                    LabeledOutput(DenseDataStorage.size(), featureCount));
 
                 result->clear();
                 result->reserve(featureCount);
@@ -2283,12 +2024,10 @@ namespace NCB {
                                     TCompressedArray(
                                         objectCount,
                                         IndexHelpers[perTypeFeatureIdx].GetBitsPerKey(),
-                                        WholeColumns ?
-                                            std::move(DenseWholeColumns[perTypeFeatureIdx])
-                                          : TMaybeOwningArrayHolder<ui64>::CreateOwning(
-                                              DenseDstView[perTypeFeatureIdx],
-                                              DenseDataStorage[perTypeFeatureIdx]
-                                            )
+                                        TMaybeOwningArrayHolder<ui64>::CreateOwning(
+                                            DenseDstView[perTypeFeatureIdx],
+                                            DenseDataStorage[perTypeFeatureIdx]
+                                        )
                                     ),
                                     subsetIndexing
                                 )
@@ -2304,7 +2043,10 @@ namespace NCB {
     private:
         ui32 ObjectCount;
 
-        TQuantizedBuilderData Data;
+        /* ForCPU because TQuantizedForCPUObjectsData is more generic than TQuantizedObjectsData -
+         * it contains it as a subset
+         */
+        TQuantizedForCPUBuilderData Data;
 
         TVector<TString> StringClassLabels; // if poolQuantizationSchema.ClassLabels has Strings
         TVector<float> FloatClassLabels;    // if poolQuantizationSchema.ClassLabels has Integer or Float
@@ -2324,7 +2066,7 @@ namespace NCB {
         TDataProviderBuilderOptions Options;
         TDatasetSubset DatasetSubset;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
         bool InProcess;
         bool ResultTaken;
@@ -2336,7 +2078,7 @@ namespace NCB {
     public:
         TLazyQuantizedFeaturesDataProviderBuilder(
             const TDataProviderBuilderOptions& options,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         )
             : TQuantizedFeaturesDataProviderBuilder(options, TDatasetSubset::MakeColumns(/*hasFeatures*/false), localExecutor)
             , Options(options)
@@ -2352,11 +2094,10 @@ namespace NCB {
 
             auto& dataRef = GetDataRef();
             const auto& subsetIndexing = *dataRef.CommonObjectsData.SubsetIndexing;
-            CB_ENSURE(subsetIndexing.IsFullSubset(), "Subset indexing is not supported for lazy columns");
             const auto& featuresLayout = *dataRef.MetaInfo.FeaturesLayout;
 
-            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical lazy columns are not supported");
-            dataRef.ObjectsData.CatFeatures.clear();
+            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical Lazy columns are not supported");
+            dataRef.ObjectsData.Data.CatFeatures.clear();
 
             const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(EFeatureType::Float);
 
@@ -2366,7 +2107,7 @@ namespace NCB {
             const auto& isAvailable = MakeIsAvailable<EFeatureType::Float>(featuresLayout);
 
             TVector<THolder<IQuantizedFloatValuesHolder>>& lazyQuantizedColumns =
-                dataRef.ObjectsData.FloatFeatures;
+                dataRef.ObjectsData.Data.FloatFeatures;
             lazyQuantizedColumns.clear();
             lazyQuantizedColumns.reserve(featureCount);
             for (auto perTypeFeatureIdx : xrange(featureCount)) {
@@ -2376,8 +2117,8 @@ namespace NCB {
                     lazyQuantizedColumns.push_back(
                         MakeHolder<TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>>(
                             flatFeatureIdx,
-                            PoolLoader->GetPoolPathWithScheme(),
-                            subsetIndexing.Size())
+                            &subsetIndexing,
+                            PoolLoader)
                     );
                 } else {
                     lazyQuantizedColumns.push_back(nullptr);
@@ -2386,11 +2127,10 @@ namespace NCB {
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
                 std::move(dataRef),
                 Options.SkipCheck,
-                dataRef.MetaInfo.ForceUnitAutoPairWeights,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();
         }
@@ -2398,7 +2138,7 @@ namespace NCB {
     private:
         TDataProviderBuilderOptions Options;
         TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
-        NPar::ILocalExecutor* const LocalExecutor;
+        NPar::TLocalExecutor* const LocalExecutor;
     };
 
 
@@ -2406,7 +2146,7 @@ namespace NCB {
         EDatasetVisitorType visitorType,
         const TDataProviderBuilderOptions& options,
         TDatasetSubset loadSubset,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         switch (visitorType) {
             case EDatasetVisitorType::RawObjectsOrder:

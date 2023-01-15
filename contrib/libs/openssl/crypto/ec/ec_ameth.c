@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2006-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -14,16 +14,16 @@
 #include <openssl/bn.h>
 #include <openssl/cms.h>
 #include <openssl/asn1t.h>
-#include "crypto/asn1.h"
-#include "crypto/evp.h"
-#include "ec_local.h"
+#include "internal/asn1_int.h"
+#include "internal/evp_int.h"
+#include "ec_lcl.h"
 
 #ifndef OPENSSL_NO_CMS
 static int ecdh_cms_decrypt(CMS_RecipientInfo *ri);
 static int ecdh_cms_encrypt(CMS_RecipientInfo *ri);
 #endif
 
-static int eckey_param2type(int *pptype, void **ppval, const EC_KEY *ec_key)
+static int eckey_param2type(int *pptype, void **ppval, EC_KEY *ec_key)
 {
     const EC_GROUP *group;
     int nid;
@@ -35,14 +35,7 @@ static int eckey_param2type(int *pptype, void **ppval, const EC_KEY *ec_key)
         && (nid = EC_GROUP_get_curve_name(group)))
         /* we have a 'named curve' => just set the OID */
     {
-        ASN1_OBJECT *asn1obj = OBJ_nid2obj(nid);
-
-        if (asn1obj == NULL || OBJ_length(asn1obj) == 0) {
-            ASN1_OBJECT_free(asn1obj);
-            ECerr(EC_F_ECKEY_PARAM2TYPE, EC_R_MISSING_OID);
-            return 0;
-        }
-        *ppval = asn1obj;
+        *ppval = OBJ_nid2obj(nid);
         *pptype = V_ASN1_OBJECT;
     } else {                    /* explicit parameters */
 
@@ -50,17 +43,7 @@ static int eckey_param2type(int *pptype, void **ppval, const EC_KEY *ec_key)
         pstr = ASN1_STRING_new();
         if (pstr == NULL)
             return 0;
-
-        /*
-         * The cast in the following line is intentional as the
-         * `i2d_ECParameters` signature can't be constified (see discussion at
-         * https://github.com/openssl/openssl/pull/9347 where related and
-         * required constification backports were rejected).
-         *
-         * This cast should be safe anyway, because we can expect
-         * `i2d_ECParameters()` to treat the first argument as if it was const.
-         */
-        pstr->length = i2d_ECParameters((EC_KEY *)ec_key, &pstr->data);
+        pstr->length = i2d_ECParameters(ec_key, &pstr->data);
         if (pstr->length <= 0) {
             ASN1_STRING_free(pstr);
             ECerr(EC_F_ECKEY_PARAM2TYPE, ERR_R_EC_LIB);
@@ -74,7 +57,7 @@ static int eckey_param2type(int *pptype, void **ppval, const EC_KEY *ec_key)
 
 static int eckey_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 {
-    const EC_KEY *ec_key = pkey->pkey.ec;
+    EC_KEY *ec_key = pkey->pkey.ec;
     void *pval = NULL;
     int ptype;
     unsigned char *penc = NULL, *p;

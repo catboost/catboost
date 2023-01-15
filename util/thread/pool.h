@@ -53,17 +53,15 @@ private:
 class TThreadPoolException: public yexception {
 };
 
-template <class T>
-class TThrFuncObj: public IObjectInQueue {
+template<class T>
+class TThrFuncObj : public IObjectInQueue {
 public:
     TThrFuncObj(const T& func)
-        : Func(func)
-    {
+        : Func(func) {
     }
 
     TThrFuncObj(T&& func)
-        : Func(std::move(func))
-    {
+        : Func(std::move(func)) {
     }
 
     void Process(void*) override {
@@ -75,71 +73,16 @@ private:
     T Func;
 };
 
-template <class T>
+template<class T>
 IObjectInQueue* MakeThrFuncObj(T&& func) {
     return new TThrFuncObj<std::remove_cv_t<std::remove_reference_t<T>>>(std::forward<T>(func));
 }
-
-struct TThreadPoolParams {
-    bool Catching_ = true;
-    bool Blocking_ = false;
-    IThreadFactory* Factory_ = SystemThreadFactory();
-    TString ThreadName_;
-    bool EnumerateThreads_ = false;
-
-    using TSelf = TThreadPoolParams;
-
-    TThreadPoolParams() {
-    }
-
-    TThreadPoolParams(IThreadFactory* factory)
-        : Factory_(factory)
-    {
-    }
-
-    TThreadPoolParams(const TString& name) {
-        SetThreadName(name);
-    }
-
-    TThreadPoolParams(const char* name) {
-        SetThreadName(name);
-    }
-
-    TSelf& SetCatching(bool val) {
-        Catching_ = val;
-        return *this;
-    }
-
-    TSelf& SetBlocking(bool val) {
-        Blocking_ = val;
-        return *this;
-    }
-
-    TSelf& SetFactory(IThreadFactory* factory) {
-        Factory_ = factory;
-        return *this;
-    }
-
-    TSelf& SetThreadName(const TString& name) {
-        ThreadName_ = name;
-        EnumerateThreads_ = false;
-        return *this;
-    }
-
-    TSelf& SetThreadNamePrefix(const TString& prefix) {
-        ThreadName_ = prefix;
-        EnumerateThreads_ = true;
-        return *this;
-    }
-};
 
 /**
  * A queue processed simultaneously by several threads
  */
 class IThreadPool: public IThreadFactory, public TNonCopyable {
 public:
-    using TParams = TThreadPoolParams;
-
     ~IThreadPool() override = default;
 
     /**
@@ -148,9 +91,9 @@ public:
      */
     void SafeAdd(IObjectInQueue* obj);
 
-    template <class T>
+    template<class T>
     void SafeAddFunc(T&& func) {
-        Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << TStringBuf("can not add function to queue"));
+        Y_ENSURE_EX(AddFunc(std::forward<T>(func)), TThreadPoolException() << AsStringBuf("can not add function to queue"));
     }
 
     void SafeAddAndOwn(THolder<IObjectInQueue> obj);
@@ -163,7 +106,7 @@ public:
      */
     virtual bool Add(IObjectInQueue* obj) Y_WARN_UNUSED_RESULT = 0;
 
-    template <class T>
+    template<class T>
     Y_WARN_UNUSED_RESULT bool AddFunc(T&& func) {
         THolder<IObjectInQueue> wrapper(MakeThrFuncObj(std::forward<T>(func)));
         bool added = Add(wrapper.Get());
@@ -255,18 +198,21 @@ public:
     }
 };
 
-class TThreadPoolBase: public IThreadPool, public TThreadFactoryHolder {
-public:
-    TThreadPoolBase(const TParams& params);
-
-protected:
-    TParams Params;
-};
-
 /** queue processed by fixed size thread pool */
-class TThreadPool: public TThreadPoolBase {
+class TThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
-    TThreadPool(const TParams& params = {});
+    enum EBlocking {
+        NonBlockingMode,
+        BlockingMode
+    };
+
+    enum ECatching {
+        NonCatchingMode,
+        CatchingMode
+    };
+
+    TThreadPool(EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
+    TThreadPool(IThreadFactory* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
     ~TThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -284,15 +230,19 @@ public:
 private:
     class TImpl;
     THolder<TImpl> Impl_;
+
+    const EBlocking Blocking;
+    const ECatching Catching;
 };
 
 /**
  * Always create new thread for new task, when all existing threads are busy.
  * Maybe dangerous, number of threads is not limited.
  */
-class TAdaptiveThreadPool: public TThreadPoolBase {
+class TAdaptiveThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
-    TAdaptiveThreadPool(const TParams& params = {});
+    TAdaptiveThreadPool();
+    TAdaptiveThreadPool(IThreadFactory* pool);
     ~TAdaptiveThreadPool() override;
 
     /**
@@ -308,15 +258,17 @@ public:
     void Stop() noexcept override;
     size_t Size() const noexcept override;
 
-private:
     class TImpl;
+
+private:
     THolder<TImpl> Impl_;
 };
 
 /** Behave like TThreadPool or TAdaptiveThreadPool, choosen by thrnum parameter of Start()  */
-class TSimpleThreadPool: public TThreadPoolBase {
+class TSimpleThreadPool: public IThreadPool, public TThreadFactoryHolder {
 public:
-    TSimpleThreadPool(const TParams& params = {});
+    TSimpleThreadPool();
+    TSimpleThreadPool(IThreadFactory* pool);
     ~TSimpleThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -345,8 +297,8 @@ public:
     {
     }
 
-    template <class... Args>
-    inline TThreadPoolBinder(TSlave* slave, Args&&... args)
+    template <class ...Args>
+    inline TThreadPoolBinder(TSlave* slave, Args&& ...args)
         : TQueueType(std::forward<Args>(args)...)
         , Slave_(slave)
     {
@@ -387,4 +339,4 @@ inline void Delete(THolder<IThreadPool> q) {
  * Creates and starts TThreadPool if threadsCount > 1, or TFakeThreadPool otherwise
  * You could specify blocking and catching modes for TThreadPool only
  */
-THolder<IThreadPool> CreateThreadPool(size_t threadCount, size_t queueSizeLimit = 0, const IThreadPool::TParams& params = {});
+THolder<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit = 0, TThreadPool::EBlocking blocking = TThreadPool::EBlocking::NonBlockingMode, TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode);

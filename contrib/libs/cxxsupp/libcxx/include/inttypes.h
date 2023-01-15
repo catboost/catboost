@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===--------------------------- inttypes.h -------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -238,7 +238,7 @@ uintmax_t wcstoumax(const wchar_t* restrict nptr, wchar_t** restrict endptr, int
 #include <__config>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 /* C99 stdlib (e.g. glibc < 2.18) does not provide format macros needed
@@ -248,7 +248,7 @@ uintmax_t wcstoumax(const wchar_t* restrict nptr, wchar_t** restrict endptr, int
 #   define __STDC_FORMAT_MACROS
 #endif
 
-#ifdef _LIBCPP_COMPILER_MSVC
+#if defined(_LIBCPP_COMPILER_MSVC)
 #include _LIBCPP_UCRT_INCLUDE(inttypes.h)
 #else
 #include_next <inttypes.h>
@@ -263,4 +263,4 @@ uintmax_t wcstoumax(const wchar_t* restrict nptr, wchar_t** restrict endptr, int
 
 #endif // __cplusplus
 
-#endif // _LIBCPP_INTTYPES_H
+#endif  // _LIBCPP_INTTYPES_H

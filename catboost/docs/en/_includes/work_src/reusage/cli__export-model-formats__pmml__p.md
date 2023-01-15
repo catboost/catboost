@@ -1,2 +1,0 @@
-
-{{ fitpython__model-format_pmml }} — [PMML version {{ pmml-supported-version }}]({{ pmml-v4point3 }}) format. Categorical features must be interpreted as one-hot encoded during the training if present in the training dataset. This can be accomplished by setting the `--one-hot-max-size`/`one_hot_max_size` parameter to a value that is greater than the maximum number of unique categorical feature values among all categorical features in the dataset. See the [PMML](../../../concepts/apply-pmml.md) section for details on applying the resulting model.

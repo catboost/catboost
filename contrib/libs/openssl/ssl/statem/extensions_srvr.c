@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2016-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -8,20 +8,20 @@
  */
 
 #include <openssl/ocsp.h>
-#include "../ssl_local.h"
-#include "statem_local.h"
+#include "../ssl_locl.h"
+#include "statem_locl.h"
 #include "internal/cryptlib.h"
 
-#define COOKIE_STATE_FORMAT_VERSION     1
+#define COOKIE_STATE_FORMAT_VERSION     0
 
 /*
  * 2 bytes for packet length, 2 bytes for format version, 2 bytes for
  * protocol version, 2 bytes for group id, 2 bytes for cipher id, 1 byte for
- * key_share present flag, 8 bytes for timestamp, 2 bytes for the hashlen,
+ * key_share present flag, 4 bytes for timestamp, 2 bytes for the hashlen,
  * EVP_MAX_MD_SIZE for transcript hash, 1 byte for app cookie length, app cookie
  * length bytes, SHA256_DIGEST_LENGTH bytes for the HMAC of the whole thing.
  */
-#define MAX_COOKIE_SIZE (2 + 2 + 2 + 2 + 2 + 1 + 8 + 2 + EVP_MAX_MD_SIZE + 1 \
+#define MAX_COOKIE_SIZE (2 + 2 + 2 + 2 + 2 + 1 + 4 + 2 + EVP_MAX_MD_SIZE + 1 \
                          + SSL_COOKIE_LENGTH + SHA256_DIGEST_LENGTH)
 
 /*
@@ -127,10 +127,6 @@ int tls_parse_ctos_server_name(SSL *s, PACKET *pkt, unsigned int context,
         return 0;
     }
 
-    /*
-     * In TLSv1.2 and below the SNI is associated with the session. In TLSv1.3
-     * we always use the SNI value from the handshake.
-     */
     if (!s->hit || SSL_IS_TLS13(s)) {
         if (PACKET_remaining(&hostname) > TLSEXT_MAXLEN_host_name) {
             SSLfatal(s, SSL_AD_UNRECOGNIZED_NAME,
@@ -159,12 +155,8 @@ int tls_parse_ctos_server_name(SSL *s, PACKET *pkt, unsigned int context,
         }
 
         s->servername_done = 1;
-    } else {
-        /*
-         * In TLSv1.2 and below we should check if the SNI is consistent between
-         * the initial handshake and the resumption. In TLSv1.3 SNI is not
-         * associated with the session.
-         */
+    }
+    if (s->hit) {
         /*
          * TODO(openssl-team): if the SNI doesn't match, we MUST
          * fall back to a full handshake.
@@ -172,6 +164,9 @@ int tls_parse_ctos_server_name(SSL *s, PACKET *pkt, unsigned int context,
         s->servername_done = (s->session->ext.hostname != NULL)
             && PACKET_equal(&hostname, s->session->ext.hostname,
                             strlen(s->session->ext.hostname));
+
+        if (!s->servername_done && s->session->ext.hostname != NULL)
+            s->ext.early_data_ok = 0;
     }
 
     return 1;
@@ -741,7 +736,7 @@ int tls_parse_ctos_cookie(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     unsigned char hmac[SHA256_DIGEST_LENGTH];
     unsigned char hrr[MAX_HRR_SIZE];
     size_t rawlen, hmaclen, hrrlen, ciphlen;
-    uint64_t tm, now;
+    unsigned long tm, now;
 
     /* Ignore any cookie if we're not set up to verify it */
     if (s->ctx->verify_stateless_cookie_cb == NULL
@@ -851,7 +846,7 @@ int tls_parse_ctos_cookie(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     }
 
     if (!PACKET_get_1(&cookie, &key_share)
-            || !PACKET_get_net_8(&cookie, &tm)
+            || !PACKET_get_net_4(&cookie, &tm)
             || !PACKET_get_length_prefixed_2(&cookie, &chhash)
             || !PACKET_get_length_prefixed_1(&cookie, &appcookie)
             || PACKET_remaining(&cookie) != SHA256_DIGEST_LENGTH) {
@@ -861,7 +856,7 @@ int tls_parse_ctos_cookie(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
     }
 
     /* We tolerate a cookie age of up to 10 minutes (= 60 * 10 seconds) */
-    now = time(NULL);
+    now = (unsigned long)time(NULL);
     if (tm > now || (now - tm) > 600) {
         /* Cookie is stale. Ignore it */
         return 1;
@@ -1151,7 +1146,7 @@ int tls_parse_ctos_psk(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
             if (sesstmp == NULL) {
                 SSLfatal(s, SSL_AD_INTERNAL_ERROR,
                          SSL_F_TLS_PARSE_CTOS_PSK, ERR_R_INTERNAL_ERROR);
-                goto err;
+                return 0;
             }
             SSL_SESSION_free(sess);
             sess = sesstmp;
@@ -1167,7 +1162,7 @@ int tls_parse_ctos_psk(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
                 s->ext.early_data_ok = 1;
             s->ext.ticket_expected = 1;
         } else {
-            uint32_t ticket_age = 0, agesec, agems;
+            uint32_t ticket_age = 0, now, agesec, agems;
             int ret;
 
             /*
@@ -1209,7 +1204,8 @@ int tls_parse_ctos_psk(SSL *s, PACKET *pkt, unsigned int context, X509 *x,
             }
 
             ticket_age = (uint32_t)ticket_agel;
-            agesec = (uint32_t)(time(NULL) - sess->time);
+            now = (uint32_t)time(NULL);
+            agesec = now - (uint32_t)sess->time;
             agems = agesec * (uint32_t)1000;
             ticket_age -= sess->ext.tick_age_add;
 
@@ -1334,14 +1330,8 @@ EXT_RETURN tls_construct_stoc_server_name(SSL *s, WPACKET *pkt,
                                           unsigned int context, X509 *x,
                                           size_t chainidx)
 {
-    if (s->servername_done != 1)
-        return EXT_RETURN_NOT_SENT;
-
-    /*
-     * Prior to TLSv1.3 we ignore any SNI in the current handshake if resuming.
-     * We just use the servername from the initial handshake.
-     */
-    if (s->hit && !SSL_IS_TLS13(s))
+    if (s->hit || s->servername_done != 1
+            || s->ext.hostname == NULL)
         return EXT_RETURN_NOT_SENT;
 
     if (!WPACKET_put_bytes_u16(pkt, TLSEXT_TYPE_server_name)
@@ -1713,13 +1703,6 @@ EXT_RETURN tls_construct_stoc_key_share(SSL *s, WPACKET *pkt,
         }
         return EXT_RETURN_NOT_SENT;
     }
-    if (s->hit && (s->ext.psk_kex_mode & TLSEXT_KEX_MODE_FLAG_KE_DHE) == 0) {
-        /*
-         * PSK ('hit') and explicitly not doing DHE (if the client sent the
-         * DHE option we always take it); don't send key share.
-         */
-        return EXT_RETURN_NOT_SENT;
-    }
 
     if (!WPACKET_put_bytes_u16(pkt, TLSEXT_TYPE_key_share)
             || !WPACKET_start_sub_packet_u16(pkt)
@@ -1799,7 +1782,7 @@ EXT_RETURN tls_construct_stoc_cookie(SSL *s, WPACKET *pkt, unsigned int context,
                                               &ciphlen)
                /* Is there a key_share extension present in this HRR? */
             || !WPACKET_put_bytes_u8(pkt, s->s3->peer_tmp == NULL)
-            || !WPACKET_put_bytes_u64(pkt, time(NULL))
+            || !WPACKET_put_bytes_u32(pkt, (unsigned int)time(NULL))
             || !WPACKET_start_sub_packet_u16(pkt)
             || !WPACKET_reserve_bytes(pkt, EVP_MAX_MD_SIZE, &hashval1)) {
         SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_TLS_CONSTRUCT_STOC_COOKIE,

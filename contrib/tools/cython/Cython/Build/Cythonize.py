@@ -103,7 +103,6 @@ def cython_compile(path_pattern, options):
                 compile_time_env=options.compile_time_env,
                 force=options.force,
                 quiet=options.quiet,
-                depfile=options.depfile,
                 **options.options)
 
             if ext_modules and options.build:
@@ -195,7 +194,6 @@ def parse_args(args):
                       help='increase Python compatibility by ignoring some compile time errors')
     parser.add_option('-k', '--keep-going', dest='keep_going', action='store_true',
                       help='compile as much as possible, ignore compilation failures')
-    parser.add_option('-M', '--depfile', action='store_true', help='produce depfiles for the sources')
 
     options, args = parser.parse_args(args)
     if not args:

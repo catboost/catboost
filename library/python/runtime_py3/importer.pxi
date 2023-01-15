@@ -2,7 +2,7 @@ import marshal
 import sys
 from _codecs import utf_8_decode, utf_8_encode
 from _frozen_importlib import _call_with_frames_removed, spec_from_loader, BuiltinImporter
-from _frozen_importlib_external import _os, _path_isfile, _path_isabs, path_sep, _path_join, _path_split
+from _frozen_importlib_external import _os, _path_isfile, path_sep
 from _io import FileIO
 
 import __res as __resource
@@ -11,9 +11,6 @@ _b = lambda x: x if isinstance(x, bytes) else utf_8_encode(x)[0]
 _s = lambda x: x if isinstance(x, str) else utf_8_decode(x)[0]
 env_entry_point = b'Y_PYTHON_ENTRY_POINT'
 env_source_root = b'Y_PYTHON_SOURCE_ROOT'
-cfg_source_root = b'arcadia-source-root'
-env_extended_source_search = b'Y_PYTHON_EXTENDED_SOURCE_SEARCH'
-res_ya_ide_venv = b'YA_IDE_VENV'
 executable = sys.executable or 'Y_PYTHON'
 sys.modules['run_import_hook'] = __resource
 
@@ -21,57 +18,7 @@ sys.modules['run_import_hook'] = __resource
 py_prefix = b'py/'
 py_prefix_len = len(py_prefix)
 
-YA_IDE_VENV = __resource.find(res_ya_ide_venv)
-Y_PYTHON_EXTENDED_SOURCE_SEARCH = _os.environ.get(env_extended_source_search) or YA_IDE_VENV
-
-
-def _init_venv():
-    if not _path_isabs(executable):
-        raise RuntimeError('path in sys.executable is not absolute: {}'.format(executable))
-
-    # Creative copy-paste from site.py
-    exe_dir, _ = _path_split(executable)
-    site_prefix, _ = _path_split(exe_dir)
-    libpath = _path_join(site_prefix, 'lib',
-                           'python%d.%d' % sys.version_info[:2],
-                           'site-packages')
-    sys.path.insert(0, libpath)
-
-    # emulate site.venv()
-    sys.prefix = site_prefix
-    sys.exec_prefix = site_prefix
-
-    conf_basename = 'pyvenv.cfg'
-    candidate_confs = [
-        conffile for conffile in (
-            _path_join(exe_dir, conf_basename),
-            _path_join(site_prefix, conf_basename)
-            )
-        if _path_isfile(conffile)
-        ]
-    if not candidate_confs:
-        raise RuntimeError('{} not found'.format(conf_basename))
-    virtual_conf = candidate_confs[0]
-    with FileIO(virtual_conf, 'r') as f:
-        for line in f:
-            if b'=' in line:
-                key, _, value = line.partition(b'=')
-                key = key.strip().lower()
-                value = value.strip()
-                if key == cfg_source_root:
-                    return value
-    raise RuntimeError('{} key not found in {}'.format(cfg_source_root, virtual_conf))
-
-
-def _get_source_root():
-    env_value = _os.environ.get(env_source_root)
-    if env_value or not YA_IDE_VENV:
-        return env_value
-
-    return _init_venv()
-
-
-Y_PYTHON_SOURCE_ROOT = _get_source_root()
+Y_PYTHON_SOURCE_ROOT = _os.environ.get(env_source_root)
 
 
 def _print(*xs):
@@ -181,10 +128,6 @@ class ResourceImporter(object):
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
         self._package_prefix = ''
-        if Y_PYTHON_SOURCE_ROOT and Y_PYTHON_EXTENDED_SOURCE_SEARCH:
-            self.arcadia_source_finder = ArcadiaSourceFinder(_s(Y_PYTHON_SOURCE_ROOT))
-        else:
-            self.arcadia_source_finder = None
 
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
@@ -197,13 +140,6 @@ class ResourceImporter(object):
         importer = copy.copy(self)
         importer._package_prefix = name + '.'
         return importer
-
-    def _find_mod_path(self, fullname):
-        """Find arcadia relative path by module name"""
-        relpath = resfs_src(mod_path(fullname), resfs_file=True)
-        if relpath or not self.arcadia_source_finder:
-            return relpath
-        return self.arcadia_source_finder.get_module_path(fullname)
 
     def find_spec(self, fullname, path=None, target=None):
         try:
@@ -245,7 +181,7 @@ class ResourceImporter(object):
         modname = fullname
         if self.is_package(fullname):
             fullname += '.__init__'
-        relpath = self._find_mod_path(fullname)
+        relpath = resfs_src(mod_path(fullname), resfs_file=True)
         if isinstance(relpath, bytes):
             relpath = _s(relpath)
         return relpath or modname
@@ -272,7 +208,7 @@ class ResourceImporter(object):
             fullname += '.__init__'
 
         path = mod_path(fullname)
-        relpath = self._find_mod_path(fullname)
+        relpath = resfs_src(path, resfs_file=True)
         if relpath:
             abspath = resfs_resolve(relpath)
             if abspath:
@@ -297,9 +233,6 @@ class ResourceImporter(object):
 
         if fullname + '.__init__' in self.memory:
             return True
-
-        if self.arcadia_source_finder:
-            return self.arcadia_source_finder.is_package(fullname)
 
         raise ImportError(fullname)
 
@@ -329,9 +262,6 @@ class ResourceImporter(object):
             m = rx.match(p)
             if m:
                 yield prefix + m.group(1), m.group(2) is not None
-        if self.arcadia_source_finder:
-            for m in self.arcadia_source_finder.iter_modules(self._package_prefix, prefix):
-                yield m
 
     def get_resource_reader(self, fullname):
         try:
@@ -394,147 +324,6 @@ class BuiltinSubmoduleImporter(BuiltinImporter):
             return None
 
 
-class ArcadiaSourceFinder:
-    """
-        Search modules and packages in arcadia source tree.
-        See https://wiki.yandex-team.ru/devtools/extended-python-source-search/ for details
-    """
-    NAMESPACE_PREFIX = b'py/namespace/'
-    PY_EXT = '.py'
-    YA_MAKE = 'ya.make'
-    S_IFDIR = 0o040000
-
-    def __init__(self, source_root):
-        self.source_root = source_root
-        self.module_path_cache = {'': set()}
-        for key, dirty_path in iter_keys(self.NAMESPACE_PREFIX):
-            # dirty_path contains unique prefix to prevent repeatable keys in the resource storage
-            path = dirty_path.split(b'/', 1)[1]
-            namespaces = __resource.find(key).split(b':')
-            for n in namespaces:
-                package_name = _s(n.rstrip(b'.'))
-                self.module_path_cache.setdefault(package_name, set()).add(_s(path))
-                # Fill parents with default empty path set if parent doesn't exist in the cache yet
-                while package_name:
-                    package_name = package_name.rpartition('.')[0]
-                    if package_name in self.module_path_cache:
-                        break
-                    self.module_path_cache.setdefault(package_name, set())
-        for package_name in self.module_path_cache.keys():
-            self._add_parent_dirs(package_name, visited=set())
-
-    def get_module_path(self, fullname):
-        """
-            Find file path for module 'fullname'.
-            For packages caller pass fullname as 'package.__init__'.
-            Return None if nothing is found.
-        """
-        try:
-            if not self.is_package(fullname):
-                return _b(self._cache_module_path(fullname))
-        except ImportError:
-            pass
-
-    def is_package(self, fullname):
-        """Check if fullname is a package. Raise ImportError if fullname is not found"""
-        path = self._cache_module_path(fullname)
-        if isinstance(path, set):
-            return True
-        if isinstance(path, str):
-            return False
-        raise ImportError(fullname)
-
-    def iter_modules(self, package_prefix, prefix):
-        paths = self._cache_module_path(package_prefix.rstrip('.'))
-        if paths is not None:
-            # Note: it's ok to yield duplicates because pkgutil discards them
-
-            # Yield from cache
-            import re
-            rx = re.compile(re.escape(package_prefix) + r'([^.]+)$')
-            # Save result to temporary list to prevent 'RuntimeError: dictionary changed size during iteration'
-            found = []
-            for mod, path in self.module_path_cache.items():
-                if path is not None:
-                    m = rx.match(mod)
-                    if m:
-                        found.append((prefix + m.group(1), self.is_package(mod)))
-            for cm in found:
-                yield cm
-
-            # Yield from file system
-            for path in paths:
-                abs_path = _path_join(self.source_root, path)
-                for dir_item in _os.listdir(abs_path):
-                    if self._path_is_simple_dir(_path_join(abs_path, dir_item)):
-                        yield prefix  +  dir_item, True
-                    elif dir_item.endswith(self.PY_EXT) and _path_isfile(_path_join(abs_path, dir_item)):
-                        yield prefix + dir_item[:-len(self.PY_EXT)], False
-
-    def _isdir(self, path):
-        """ Unlike _path_isdir() this function don't follow symlink """
-        try:
-            stat_info = _os.lstat(path)
-        except OSError:
-            return False
-        return (stat_info.st_mode & 0o170000) == self.S_IFDIR
-
-    def _path_is_simple_dir(self, abs_path):
-        """
-            Check if path is a directory but doesn't contain ya.make file.
-            We don't want to steal directory from nested project and treat it as a package
-        """
-        return self._isdir(abs_path) and not _path_isfile(_path_join(abs_path, self.YA_MAKE))
-
-    def _find_module_in_paths(self, find_package_only, paths, module):
-        """Auxiliary method. See _cache_module_path() for details"""
-        if paths:
-            package_paths = set()
-            for path in paths:
-                rel_path = _path_join(path, module)
-                if not find_package_only:
-                    # Check if file_path is a module
-                    module_path = rel_path + self.PY_EXT
-                    if _path_isfile(_path_join(self.source_root, module_path)):
-                        return module_path
-                # Check if file_path is a package
-                if self._path_is_simple_dir(_path_join(self.source_root, rel_path)):
-                    package_paths.add(rel_path)
-            if package_paths:
-                return package_paths
-
-    def _cache_module_path(self, fullname, find_package_only=False):
-        """
-            Find module path or package directory paths and save result in the cache
-
-            find_package_only=True - don't try to find module
-
-            Returns:
-               List of relative package paths - for a package
-               Relative module path - for a module
-               None - module or package is not found
-        """
-        if fullname not in self.module_path_cache:
-            parent, _, tail = fullname.rpartition('.')
-            parent_paths = self._cache_module_path(parent, find_package_only=True)
-            self.module_path_cache[fullname] = self._find_module_in_paths(find_package_only, parent_paths, tail)
-        return self.module_path_cache[fullname]
-
-    def _add_parent_dirs(self, package_name, visited):
-        if not package_name or package_name in visited:
-            return
-        visited.add(package_name)
-
-        parent, _, tail = package_name.rpartition('.')
-        self._add_parent_dirs(parent, visited)
-
-        paths = self.module_path_cache[package_name]
-        for parent_path in self.module_path_cache[parent]:
-            rel_path = _path_join(parent_path, tail)
-            if self._path_is_simple_dir(_path_join(self.source_root, rel_path)):
-                paths.add(rel_path)
-
-
 def excepthook(*args, **kws):
     # traceback module cannot be imported at module level, because interpreter
     # is not fully initialized yet
@@ -544,7 +333,10 @@ def excepthook(*args, **kws):
     return traceback.print_exception(*args, **kws)
 
 
+sys.meta_path.insert(0, BuiltinSubmoduleImporter)
+
 importer = ResourceImporter()
+sys.meta_path.insert(0, importer)
 
 
 def executable_path_hook(path):
@@ -557,19 +349,9 @@ def executable_path_hook(path):
     raise ImportError(path)
 
 
-if YA_IDE_VENV:
-    sys.meta_path.append(importer)
-    sys.meta_path.append(BuiltinSubmoduleImporter)
-    if executable not in sys.path:
-        sys.path.append(executable)
-    sys.path_hooks.append(executable_path_hook)
-else:
-    sys.meta_path.insert(0, BuiltinSubmoduleImporter)
-    sys.meta_path.insert(0, importer)
-    if executable not in sys.path:
-        sys.path.insert(0, executable)
-    sys.path_hooks.insert(0, executable_path_hook)
-
+if executable not in sys.path:
+    sys.path.insert(0, executable)
+sys.path_hooks.insert(0, executable_path_hook)
 sys.path_importer_cache[executable] = importer
 
 # Indicator that modules and resources are built-in rather than on the file system.

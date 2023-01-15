@@ -14,7 +14,7 @@ namespace NCatboostOptions {
         explicit TBootstrapConfig(ETaskType taskType)
             : TakenFraction("subsample", 0.66f)
             , BaggingTemperature("bagging_temperature", 1.0)
-            , MvsReg("mvs_reg", Nothing())
+            , MvsReg("mvs_reg", Nothing(), ETaskType::CPU)
             , BootstrapType("type", EBootstrapType::Bayesian)
             , SamplingUnit("sampling_unit", ESamplingUnit::Object)
             , TaskType(taskType)
@@ -102,7 +102,7 @@ namespace NCatboostOptions {
     private:
         TOption<float> TakenFraction;
         TOption<float> BaggingTemperature;
-        TOption<TMaybe<float>> MvsReg;
+        TCpuOnlyOption<TMaybe<float>> MvsReg;
         TOption<EBootstrapType> BootstrapType;
         TOption<ESamplingUnit> SamplingUnit;
         ETaskType TaskType;

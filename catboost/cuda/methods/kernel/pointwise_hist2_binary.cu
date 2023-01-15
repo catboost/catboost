@@ -3,10 +3,10 @@
 #include "compute_point_hist2_loop.cuh"
 #include "pointwise_hist2_half_byte_template.cuh"
 #include <cooperative_groups.h>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 
 using namespace cooperative_groups;
 

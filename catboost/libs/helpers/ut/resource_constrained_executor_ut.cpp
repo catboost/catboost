@@ -11,7 +11,7 @@
 
 #include <array>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
     Y_UNIT_TEST(TestDoNothing) {
@@ -30,7 +30,7 @@ Y_UNIT_TEST_SUITE(TResourceConstrainedExecutor) {
         size_t resourceConsumption = 0;
         std::array<size_t, TASK_TYPE_COUNT> counters{};
 
-        auto func = [&] (NPar::ILocalExecutor& localExecutor) {
+        auto func = [&] (NPar::TLocalExecutor& localExecutor) {
             {
                 NCB::TResourceConstrainedExecutor executor(
                     "Memory",

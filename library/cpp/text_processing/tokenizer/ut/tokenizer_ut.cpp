@@ -1,8 +1,7 @@
 #include <library/cpp/text_processing/tokenizer/tokenizer.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
-#include <util/generic/size_literals.h>
 #include <util/generic/xrange.h>
 
 using NTextProcessing::NTokenizer::TTokenizerOptions;
@@ -63,24 +62,6 @@ Y_UNIT_TEST_SUITE(TokenizerTests) {
         AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i ,love    catboost!!!!"));
         AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i ,love 43 4  catboost!!!!"));
 
-    }
-
-    Y_UNIT_TEST(TokenizerMainTestWithCache) {
-
-        TTokenizerOptions options;
-        options.SeparatorType = ESeparatorType::BySense;
-        options.TokenTypes = {ETokenType::Word};
-        options.Lowercasing = true;
-        options.Lemmatizing = true;
-        options.LemmerCacheSize = 1_KB;
-        TTokenizer tokenizer(options);
-
-        const TVector<TString> canonicalTokens = {"i", "love", "catboost"};
-        AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i love catboost"));
-        AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i loves catboost"));
-        AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("I LoVe cATbOoSt"));
-        AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i ,love    catboost!!!!"));
-        AssertTokensEqual(canonicalTokens, tokenizer.Tokenize("i ,love 43 4  catboost!!!!"));
     }
 
     Y_UNIT_TEST(TokenizerNumbersTest) {

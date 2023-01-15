@@ -5,7 +5,6 @@
 #include <util/generic/ymath.h>
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
-#include <util/ysaveload.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
 
@@ -69,7 +68,6 @@ namespace NCB {
         }
 
         SAVELOAD(Begin, End);
-        Y_SAVELOAD_DEFINE(Begin, End);
     };
 
     template <class TSize>

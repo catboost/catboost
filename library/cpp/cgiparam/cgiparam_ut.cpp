@@ -1,6 +1,6 @@
 #include "cgiparam.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TCgiParametersTest) {
     Y_UNIT_TEST(TestScan1) {
@@ -51,9 +51,9 @@ Y_UNIT_TEST_SUITE(TCgiParametersTest) {
         TCgiParameters c;
         c.Scan(parsee);
 
-        c.InsertUnescaped("d", "x=x");
+        c.InsertUnescaped("d", "xxx");
 
-        UNIT_ASSERT_VALUES_EQUAL(c.Print(), parsee + "&d=x\%3Dx");
+        UNIT_ASSERT_VALUES_EQUAL(c.Print(), parsee + "&d=xxx");
     }
 
     Y_UNIT_TEST(TestScanAddAll1) {

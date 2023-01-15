@@ -10,6 +10,7 @@
 
 #include <util/generic/va_args.h>
 
+using NCatboostCuda::EAucType;
 using NCudaLib::TCudaBuffer;
 using NCudaLib::TMirrorMapping;
 using NCudaLib::TStripeMapping;
@@ -34,13 +35,13 @@ static double ComputeAucImpl(
 
     auto indices = TSingleBuffer<ui32>::Create(singleDevMapping);
 
-    for (auto aucType : {NCatboostCuda::EAucType::Pessimistic, NCatboostCuda::EAucType::Optimistic}) {
+    for (auto aucType : {EAucType::Pessimistic, EAucType::Optimistic}) {
         MakeSequence(indices);
 
         {
             auto tmp = TSingleBuffer<float>::CopyMapping(singleDevTarget);
             tmp.Copy(singleDevTarget);
-            RadixSort(tmp, indices, aucType == NCatboostCuda::EAucType::Optimistic);
+            RadixSort(tmp, indices, aucType == EAucType::Optimistic);
         }
         {
             auto tmp = TSingleBuffer<float>::CopyMapping(singleDevCursor);

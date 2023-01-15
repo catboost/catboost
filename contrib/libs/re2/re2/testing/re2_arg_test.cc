@@ -10,8 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/logging.h"
+#include "util/test.h"
 #include "re2/re2.h"
 
 namespace re2 {
@@ -131,30 +130,6 @@ TEST(RE2ArgTest, Int64Test) {
 
 TEST(RE2ArgTest, Uint64Test) {
   PARSE_FOR_TYPE(uint64_t, 5);
-}
-
-TEST(RE2ArgTest, ParseFromTest) {
-#if !defined(_MSC_VER)
-  struct {
-    bool ParseFrom(const char* str, size_t n) {
-      LOG(INFO) << "str = " << str << ", n = " << n;
-      return true;
-    }
-  } obj1;
-  RE2::Arg arg1(&obj1);
-  EXPECT_TRUE(arg1.Parse("one", 3));
-
-  struct {
-    bool ParseFrom(const char* str, size_t n) {
-      LOG(INFO) << "str = " << str << ", n = " << n;
-      return false;
-    }
-    // Ensure that RE2::Arg works even with overloaded ParseFrom().
-    void ParseFrom(const char* str) {}
-  } obj2;
-  RE2::Arg arg2(&obj2);
-  EXPECT_FALSE(arg2.Parse("two", 3));
-#endif
 }
 
 }  // namespace re2

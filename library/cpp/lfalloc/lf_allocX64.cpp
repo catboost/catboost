@@ -63,10 +63,6 @@ extern "C" void* memalign(size_t alignment, size_t size) {
     return res ? nullptr : ptr;
 }
 
-extern "C" void* aligned_alloc(size_t alignment, size_t size) {
-    return memalign(alignment, size);
-}
-
 #if !defined(_MSC_VER) && !defined(_freebsd_)
 // Workaround for pthread_create bug in linux.
 extern "C" void* __libc_memalign(size_t alignment, size_t size) {
@@ -121,6 +117,29 @@ extern "C" size_t malloc_usable_size(void* ptr) {
     }
     return LFGetSize(ptr);
 }
+
+#if defined(_MSC_VER) && !defined(_DEBUG)
+extern "C" size_t _msize(void* memblock) {
+    return LFGetSize(memblock);
+}
+// MSVC runtime doesn't call memory functions directly.
+// It uses functions with _base suffix instead.
+extern "C" void* _calloc_base(size_t num, size_t size) {
+    return calloc(num, size);
+}
+
+extern "C" void* _realloc_base(void* old_ptr, size_t new_size) {
+    return realloc(old_ptr, new_size);
+}
+
+extern "C" void* _malloc_base(size_t new_size) {
+    return LFAlloc(new_size);
+}
+
+extern "C" void _free_base(void* ptr) {
+    return LFFree(ptr);
+}
+#endif
 
 NMalloc::TMallocInfo NMalloc::MallocInfo() {
     NMalloc::TMallocInfo r;

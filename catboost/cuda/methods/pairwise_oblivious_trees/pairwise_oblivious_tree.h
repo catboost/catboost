@@ -2,14 +2,12 @@
 
 #include "pairwise_structure_searcher.h"
 
-#include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
 #include <catboost/cuda/methods/leaves_estimation/doc_parallel_leaves_estimator.h>
-#include <catboost/private/libs/options/boosting_options.h>
 
 namespace NCatboostCuda {
     class TPairwiseObliviousTree {
@@ -19,17 +17,12 @@ namespace NCatboostCuda {
         using TDataSet = TDocParallelDataSet;
 
         TPairwiseObliviousTree(const TBinarizedFeaturesManager& featuresManager,
-                               const NCatboostOptions::TBoostingOptions& boostingOptions,
                                const NCatboostOptions::TCatBoostOptions& config,
-                               TGpuAwareRandom& random,
                                bool zeroAverage)
             : FeaturesManager(featuresManager)
-            , BoostingOptions(boostingOptions)
             , TreeConfig(config.ObliviousTreeOptions)
-            , LossDescription(config.LossFunctionDescription.Get())
             , Seed(config.RandomSeed)
             , ZeroAverage(zeroAverage)
-            , Random(random)
         {
         }
 
@@ -39,7 +32,7 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TPairwiseObliviousTreeSearcher CreateStructureSearcher(double, const TAdditiveModel<TResultModel>& /*result*/) {
+        TPairwiseObliviousTreeSearcher CreateStructureSearcher(double) {
             return TPairwiseObliviousTreeSearcher(FeaturesManager,
                                                   TreeConfig);
         }
@@ -47,10 +40,7 @@ namespace NCatboostCuda {
         TDocParallelLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
             return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
-                                                                            ZeroAverage,
-                                                                            LossDescription,
-                                                                            BoostingOptions),
-                                               Random);
+                                                                            ZeroAverage));
         }
 
         template <class TDataSet>
@@ -60,11 +50,8 @@ namespace NCatboostCuda {
 
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
-        const NCatboostOptions::TBoostingOptions& BoostingOptions;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
-        const NCatboostOptions::TLossDescription& LossDescription;
         ui64 Seed;
         bool ZeroAverage;
-        TGpuAwareRandom& Random;
     };
 }

@@ -52,14 +52,14 @@ public:
 
     template <typename T>
     TConstArrayRef<T> GetTypedArrayRefForBlobData() const {
-        if (std::holds_alternative<TSolidTable>(Impl)) {
-            auto& solid = std::get<TSolidTable>(Impl);
+        if (HoldsAlternative<TSolidTable>(Impl)) {
+            auto& solid = Get<TSolidTable>(Impl);
             return MakeArrayRef(
                 reinterpret_cast<const T*>(solid.CTRBlob.data()),
                 solid.CTRBlob.size() / sizeof(T)
             );
         } else {
-            auto& thin = std::get<TThinTable>(Impl);
+            auto& thin = Get<TThinTable>(Impl);
             return MakeArrayRef(
                 reinterpret_cast<const T*>(thin.CTRBlob.data()),
                 thin.CTRBlob.size() / sizeof(T)
@@ -69,7 +69,7 @@ public:
 
     template <typename T>
     TArrayRef<T> AllocateBlobAndGetArrayRef(size_t elementCount) {
-        auto& solid = std::get<TSolidTable>(Impl);
+        auto& solid = Get<TSolidTable>(Impl);
         solid.CTRBlob.resize(elementCount * sizeof(T));
         std::fill(solid.CTRBlob.begin(), solid.CTRBlob.end(), 0);
         return MakeArrayRef(
@@ -79,17 +79,17 @@ public:
     }
 
     NCatboost::TDenseIndexHashView GetIndexHashViewer() const {
-        if (std::holds_alternative<TSolidTable>(Impl)) {
-            auto& solid = std::get<TSolidTable>(Impl);
+        if (HoldsAlternative<TSolidTable>(Impl)) {
+            auto& solid = Get<TSolidTable>(Impl);
             return NCatboost::TDenseIndexHashView(solid.IndexBuckets);
         } else {
-            auto& thin = std::get<TThinTable>(Impl);
+            auto& thin = Get<TThinTable>(Impl);
             return NCatboost::TDenseIndexHashView(thin.IndexBuckets);
         }
     }
 
     NCatboost::TDenseIndexHashBuilder GetIndexHashBuilder(size_t uniqueValuesCount) {
-        auto& solid = std::get<TSolidTable>(Impl);
+        auto& solid = Get<TSolidTable>(Impl);
         auto bucketCount = NCatboost::TDenseIndexHashBuilder::GetProperBucketsCount(uniqueValuesCount);
         solid.IndexBuckets.resize(bucketCount);
         return NCatboost::TDenseIndexHashBuilder(solid.IndexBuckets);
@@ -99,11 +99,11 @@ public:
     void Load(IInputStream* s);
 
     void LoadSolid(void* buf, size_t length);
-    void LoadThin(TMemoryInput* in);
+
 public:
     TModelCtrBase ModelCtrBase;
     int CounterDenominator = 0;
     int TargetClassesCount = 0;
 private:
-    std::variant<TSolidTable, TThinTable> Impl;
+    TVariant<TSolidTable, TThinTable> Impl;
 };

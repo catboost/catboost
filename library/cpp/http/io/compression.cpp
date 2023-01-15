@@ -8,8 +8,8 @@
 #include <library/cpp/streams/lzma/lzma.h>
 #include <library/cpp/streams/bzip2/bzip2.h>
 
-#include <library/cpp/blockcodecs/stream.h>
-#include <library/cpp/blockcodecs/codecs.h>
+#include <library/blockcodecs/stream.h>
+#include <library/blockcodecs/codecs.h>
 
 #include <util/stream/zlib.h>
 

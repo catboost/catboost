@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{AC92B73C-DFD9-89C5-C716-4F75D190323D}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>dsolve-SuperLU-SRC</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>dsolve-SuperLU-SRC</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AC92B73C-DFD9-89C5-C716-4F75D190323D\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DNO_TIMER=1 -Dc_sqrt=SuperLU_c_sqrt -Dc_exp=SuperLU_c_exp -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -DNO_TIMER=1 -Dc_sqrt=SuperLU_c_sqrt -Dc_exp=SuperLU_c_exp -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ccolumn_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ccolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ccopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cdiagonal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgscon.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgsequ.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgsisx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgsitrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgsrfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgssv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgssvx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgstrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cgstrs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\clacon2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\clangs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\claqgs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cldperm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cmemory.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cmyblas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\colamd.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cpanel_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cpivotgrowth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cpruneL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\creadhb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\creadrb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\creadtriple.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\csnode_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\csnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\csp_blas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\csp_blas3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\cutil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dcolumn_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dcolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dcomplex.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dcopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ddiagonal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgscon.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgsequ.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgsisx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgsitrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgsrfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgssv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgssvx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgstrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dgstrs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dlacon2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dlangs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dlaqgs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dldperm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dmach.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dmemory.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dmyblas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dpanel_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dpivotgrowth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dpruneL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dreadhb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dreadrb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dreadtriple.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsnode_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsp_blas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsp_blas3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dutil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\dzsum1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\get_perm_c.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\heap_relax_snode.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\icmax1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_ccolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_ccopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_cdrop_row.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_cpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_cpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_csnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_dcolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_dcopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_ddrop_row.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_dpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_dpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_dsnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_heap_relax_snode.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_relax_snode.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_scolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_scopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_sdrop_row.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_spanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_spivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_ssnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zcolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zcopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zdrop_row.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ilu_zsnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\izmax1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\mark_relax.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\memory.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\mmd.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\qselect.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\relax_snode.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scolumn_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scomplex.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scsum1.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sdiagonal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgscon.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgsequ.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgsisx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgsitrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgsrfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgssv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgssvx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgstrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sgstrs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slacon2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slangs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slaqgs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sldperm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\smach.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\smemory.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\smyblas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sp_coletree.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sp_ienv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sp_preorder.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\spanel_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\spanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\spivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\spivotgrowth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\spruneL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sreadhb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sreadrb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sreadtriple.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ssnode_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ssnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ssp_blas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\ssp_blas3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\superlu_timer.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\sutil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\util.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zcolumn_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zcolumn_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zcopy_to_ucol.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zdiagonal.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgscon.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgsequ.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgsisx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgsitrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgsrfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgssv.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgssvx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgstrf.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zgstrs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zlacon2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zlangs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zlaqgs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zldperm.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zmemory.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zmyblas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zpanel_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zpanel_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zpivotL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zpivotgrowth.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zpruneL.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zreadhb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zreadrb.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zreadtriple.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zsnode_bmod.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zsnode_dfs.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zsp_blas2.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zsp_blas3.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\zutil.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\colamd.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\scipy_slu_config.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_Cnames.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_cdefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_dcomplex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_ddefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_scomplex.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_sdefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\slu_zdefs.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\superlu_enum_consts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\dsolve\SuperLU\SRC\supermatrix.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

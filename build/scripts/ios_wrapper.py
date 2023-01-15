@@ -27,7 +27,7 @@ def just_do_it(args):
             parts[-1].append(arg)
     if len(parts) != 3 or len(parts[0]) != 5:
         raise Exception('Bad call')
-    bin_name, ibtool_path, main_out, app_name, module_dir = parts[0]
+    bin_name, xcode_root, main_out, app_name, module_dir = parts[0]
     bin_name = os.path.basename(bin_name)
     inputs, storyboard_user_flags = parts[1:]
     plists, storyboards, signs, nibs, resources, signed_resources, plist_jsons, strings = [], [], [], [], [], [], [], []
@@ -76,7 +76,7 @@ def just_do_it(args):
         replaced_templates['$(' + k + ')'] = v
         replaced_templates['${' + k + '}'] = v
     make_main_plist(plists, os.path.join(app_dir, 'Info.plist'), replaced_templates)
-    link_storyboards(ibtool_path, storyboards, app_name, app_dir, storyboard_user_flags)
+    link_storyboards(os.path.join(xcode_root, 'Contents/Developer/usr/bin/ibtool'), storyboards, app_name, app_dir, storyboard_user_flags)
     if resources:
         extract_resources(resources, app_dir)
     if signed_resources:

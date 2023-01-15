@@ -8,7 +8,7 @@
 #include <util/generic/fwd.h>
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -24,6 +24,6 @@ TArray2D<double> ComputePairwiseWeightSums(
     int leafCount,
     int querycount,
     const TVector<TIndexType>& indices,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 

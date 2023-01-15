@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <openssl/crypto.h>
 #include "internal/cryptlib.h"
-#include "bn_local.h"
+#include "bn_lcl.h"
 
 #if defined(BN_LLONG) || defined(BN_UMULT_HIGH)
 

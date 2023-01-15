@@ -1,14 +1,32 @@
 
 
-IF (USE_PREBUILT_TOOLS)
-    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/contrib/tools/protoc/ya.make.prebuilt)
-ENDIF()
+IF (NOT USE_PREBUILT_PROTOC OR NOT HOST_OS_DARWIN AND NOT HOST_OS_LINUX AND NOT HOST_OS_WINDOWS)
+    PROGRAM()
 
-IF (NOT PREBUILT)
-    INCLUDE(${ARCADIA_ROOT}/contrib/tools/protoc/bin/ya.make)
-ENDIF()
+    NO_COMPILER_WARNINGS()
 
-RECURSE(
-    bin
-    plugins
-)
+    PEERDIR(
+        ADDINCL contrib/libs/protobuf
+        contrib/libs/protobuf/protoc
+    )
+
+    SRCDIR(
+        contrib/libs/protobuf/compiler
+    )
+
+    SRCS(
+        main.cc
+    )
+
+    SET(IDE_FOLDER "contrib/tools")
+
+    END()
+ELSE()
+    PREBUILT_PROGRAM()
+
+    PEERDIR(build/external_resources/arcadia_protoc)
+
+    PRIMARY_OUTPUT(${ARCADIA_PROTOC_RESOURCE_GLOBAL}/protoc${MODULE_SUFFIX})
+
+    END()
+ENDIF()

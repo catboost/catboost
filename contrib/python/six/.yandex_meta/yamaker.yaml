@@ -1,2 +1,0 @@
-keep:
-  - tests/test_six.py

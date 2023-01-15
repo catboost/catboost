@@ -11,7 +11,7 @@ using namespace NCB;
 struct TCtrCalcerParams {
     const int IteratorBlockSize = 4096;
 
-    TCtrCalcerParams(size_t sampleCount, ui64* hashArrayPtr, NPar::ILocalExecutor* localExecutor)
+    TCtrCalcerParams(size_t sampleCount, ui64* hashArrayPtr, NPar::TLocalExecutor* localExecutor)
         : BlockExecutionParams(0, sampleCount)
         , HashArrayPtr(hashArrayPtr)
         , LocalExecutor(localExecutor)
@@ -28,9 +28,9 @@ struct TCtrCalcerParams {
 
     TVector<THolder<IFeatureValuesHolder>> PermutedFeatureColumns;
     TVector<std::function<void(TArrayRef<ui64>, IDynamicBlockIteratorBase*)>> PerIteratorCallbacks;
-    NPar::ILocalExecutor::TExecRangeParams BlockExecutionParams;
+    NPar::TLocalExecutor::TExecRangeParams BlockExecutionParams;
     ui64* HashArrayPtr;
-    NPar::ILocalExecutor* LocalExecutor;
+    NPar::TLocalExecutor* LocalExecutor;
 
     void ThreadFunc(int threadId) {
         const int blockFirstId = BlockExecutionParams.FirstId + threadId * BlockExecutionParams.GetBlockSize();
@@ -69,15 +69,15 @@ struct TCtrCalcerParams {
 
 void CalcHashes(
     const TProjection& proj,
-    const TQuantizedObjectsDataProvider& objectsDataProvider,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
     ui64* begin,
     ui64* end,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::TLocalExecutor* localExecutor) {
 
     const size_t sampleCount = end - begin;
-    CB_ENSURE((size_t)featuresSubsetIndexing.Size() == sampleCount, "Unexpected range of samples");
+    Y_VERIFY((size_t)featuresSubsetIndexing.Size() == sampleCount);
     if (sampleCount == 0) {
         return;
     }

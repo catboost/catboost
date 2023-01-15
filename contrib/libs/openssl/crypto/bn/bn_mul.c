@@ -9,7 +9,7 @@
 
 #include <assert.h>
 #include "internal/cryptlib.h"
-#include "bn_local.h"
+#include "bn_lcl.h"
 
 #if defined(OPENSSL_NO_ASM) || !defined(OPENSSL_BN_ASM_PART_WORDS)
 /*

@@ -2,6 +2,8 @@
 
 #include <util/stream/output.h>
 
+#include <algorithm>
+
 template <>
 void Out<TSourceLocation>(IOutputStream& o, const TSourceLocation& t) {
 #if defined(_win_)

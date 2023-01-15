@@ -234,7 +234,7 @@ class CatBoostLearner(Learner):
 
         params = {
             'devices': [0],
-            'logging_level': 'Verbose',
+            'logging_level': 'Info',
             'use_best_model': False,
             'bootstrap_type': 'Bernoulli',
             'random_seed': RANDOM_SEED

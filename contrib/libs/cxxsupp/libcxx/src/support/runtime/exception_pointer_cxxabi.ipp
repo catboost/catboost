@@ -13,17 +13,17 @@
 
 namespace std {
 
-exception_ptr::~exception_ptr() noexcept {
+exception_ptr::~exception_ptr() _NOEXCEPT {
   __cxa_decrement_exception_refcount(__ptr_);
 }
 
-exception_ptr::exception_ptr(const exception_ptr& other) noexcept
+exception_ptr::exception_ptr(const exception_ptr& other) _NOEXCEPT
     : __ptr_(other.__ptr_)
 {
     __cxa_increment_exception_refcount(__ptr_);
 }
 
-exception_ptr& exception_ptr::operator=(const exception_ptr& other) noexcept
+exception_ptr& exception_ptr::operator=(const exception_ptr& other) _NOEXCEPT
 {
     if (__ptr_ != other.__ptr_)
     {
@@ -34,12 +34,12 @@ exception_ptr& exception_ptr::operator=(const exception_ptr& other) noexcept
     return *this;
 }
 
-nested_exception::nested_exception() noexcept
+nested_exception::nested_exception() _NOEXCEPT
     : __ptr_(current_exception())
 {
 }
 
-nested_exception::~nested_exception() noexcept
+nested_exception::~nested_exception() _NOEXCEPT
 {
 }
 
@@ -52,7 +52,7 @@ nested_exception::rethrow_nested() const
     rethrow_exception(__ptr_);
 }
 
-exception_ptr current_exception() noexcept
+exception_ptr current_exception() _NOEXCEPT
 {
     // be nicer if there was a constructor that took a ptr, then
     // this whole function would be just:

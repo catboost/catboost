@@ -1,5 +1,5 @@
 """Utility code for constructing importers, etc."""
-from ._abc import Loader
+from . import abc
 from ._bootstrap import module_from_spec
 from ._bootstrap import _resolve_name
 from ._bootstrap import spec_from_loader
@@ -29,8 +29,8 @@ def resolve_name(name, package):
     if not name.startswith('.'):
         return name
     elif not package:
-        raise ImportError(f'no package specified for {repr(name)} '
-                          '(required for relative module names)')
+        raise ValueError(f'no package specified for {repr(name)} '
+                         '(required for relative module names)')
     level = 0
     for character in name:
         if character != '.':
@@ -149,8 +149,7 @@ def set_package(fxn):
     """
     @functools.wraps(fxn)
     def set_package_wrapper(*args, **kwargs):
-        warnings.warn('The import system now takes care of this automatically; '
-                      'this decorator is slated for removal in Python 3.12',
+        warnings.warn('The import system now takes care of this automatically.',
                       DeprecationWarning, stacklevel=2)
         module = fxn(*args, **kwargs)
         if getattr(module, '__package__', None) is None:
@@ -169,8 +168,7 @@ def set_loader(fxn):
     """
     @functools.wraps(fxn)
     def set_loader_wrapper(self, *args, **kwargs):
-        warnings.warn('The import system now takes care of this automatically; '
-                      'this decorator is slated for removal in Python 3.12',
+        warnings.warn('The import system now takes care of this automatically.',
                       DeprecationWarning, stacklevel=2)
         module = fxn(self, *args, **kwargs)
         if getattr(module, '__loader__', None) is None:
@@ -197,8 +195,7 @@ def module_for_loader(fxn):
     the second argument.
 
     """
-    warnings.warn('The import system now takes care of this automatically; '
-                  'this decorator is slated for removal in Python 3.12',
+    warnings.warn('The import system now takes care of this automatically.',
                   DeprecationWarning, stacklevel=2)
     @functools.wraps(fxn)
     def module_for_loader_wrapper(self, fullname, *args, **kwargs):
@@ -235,6 +232,7 @@ class _LazyModule(types.ModuleType):
         # Figure out exactly what attributes were mutated between the creation
         # of the module and now.
         attrs_then = self.__spec__.loader_state['__dict__']
+        original_type = self.__spec__.loader_state['__class__']
         attrs_now = self.__dict__
         attrs_updated = {}
         for key, value in attrs_now.items():
@@ -265,7 +263,7 @@ class _LazyModule(types.ModuleType):
         delattr(self, attr)
 
 
-class LazyLoader(Loader):
+class LazyLoader(abc.Loader):
 
     """A loader that creates a module which defers loading until attribute access."""
 

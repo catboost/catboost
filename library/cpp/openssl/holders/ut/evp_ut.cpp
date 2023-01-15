@@ -1,6 +1,6 @@
 #include "evp.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(Evp) {
     Y_UNIT_TEST(Cipher) {

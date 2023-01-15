@@ -4,7 +4,10 @@
 #include <sys/time.h>
 #include <string.h>
 #include <errno.h>
+/* for sysconf */
+#if defined(HAVE_UNISTD_H)
 #include <unistd.h>
+#endif
 
 /* On some systems, these aren't in any header file.
    On others they are, with inconsistent prototypes.
@@ -63,20 +66,8 @@ static PyStructSequence_Desc struct_rusage_desc = {
     16          /* n_in_sequence */
 };
 
-typedef struct {
-  PyTypeObject *StructRUsageType;
-} resourcemodulestate;
-
-
-static inline resourcemodulestate*
-get_resource_state(PyObject *module)
-{
-    void *state = PyModule_GetState(module);
-    assert(state != NULL);
-    return (resourcemodulestate *)state;
-}
-
-static struct PyModuleDef resourcemodule;
+static int initialized;
+static PyTypeObject StructRUsageType;
 
 /*[clinic input]
 resource.getrusage
@@ -103,8 +94,7 @@ resource_getrusage_impl(PyObject *module, int who)
         return NULL;
     }
 
-    result = PyStructSequence_New(
-        get_resource_state(module)->StructRUsageType);
+    result = PyStructSequence_New(&StructRUsageType);
     if (!result)
         return NULL;
 
@@ -237,11 +227,6 @@ resource_setrlimit_impl(PyObject *module, int resource, PyObject *limits)
         return NULL;
     }
 
-    if (PySys_Audit("resource.setrlimit", "iO", resource,
-                    limits ? limits : Py_None) < 0) {
-        return NULL;
-    }
-
     if (py2rlimit(limits, &rl) < 0) {
         return NULL;
     }
@@ -287,11 +272,6 @@ resource_prlimit_impl(PyObject *module, pid_t pid, int resource,
         return NULL;
     }
 
-    if (PySys_Audit("resource.prlimit", "iiO", pid, resource,
-                    limits ? limits : Py_None) < 0) {
-        return NULL;
-    }
-
     if (group_right_1) {
         if (py2rlimit(limits, &new_limit) < 0) {
             return NULL;
@@ -326,10 +306,13 @@ resource_getpagesize_impl(PyObject *module)
     long pagesize = 0;
 #if defined(HAVE_GETPAGESIZE)
     pagesize = getpagesize();
-#elif defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
+#elif defined(HAVE_SYSCONF)
+#if defined(_SC_PAGE_SIZE)
     pagesize = sysconf(_SC_PAGE_SIZE);
 #else
-#   error "unsupported platform: resource.getpagesize()"
+    /* Irix 5.3 has _SC_PAGESIZE, but not _SC_PAGE_SIZE */
+    pagesize = sysconf(_SC_PAGESIZE);
+#endif
 #endif
     return pagesize;
 }
@@ -349,196 +332,156 @@ resource_methods[] = {
 
 /* Module initialization */
 
-static int
-resource_exec(PyObject *module)
+
+static struct PyModuleDef resourcemodule = {
+    PyModuleDef_HEAD_INIT,
+    "resource",
+    NULL,
+    -1,
+    resource_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+PyMODINIT_FUNC
+PyInit_resource(void)
 {
-    resourcemodulestate *state = get_resource_state(module);
-#define ADD_INT(module, value)                                    \
-    do {                                                          \
-        if (PyModule_AddIntConstant(module, #value, value) < 0) { \
-            return -1;                                            \
-        }                                                         \
-    } while (0)
+    PyObject *m, *v;
+
+    /* Create the module and add the functions */
+    m = PyModule_Create(&resourcemodule);
+    if (m == NULL)
+        return NULL;
 
     /* Add some symbolic constants to the module */
     Py_INCREF(PyExc_OSError);
-    if (PyModule_AddObject(module, "error", PyExc_OSError) < 0) {
-        Py_DECREF(PyExc_OSError);
-        return -1;
+    PyModule_AddObject(m, "error", PyExc_OSError);
+    if (!initialized) {
+        if (PyStructSequence_InitType2(&StructRUsageType,
+                                       &struct_rusage_desc) < 0)
+            return NULL;
     }
 
-    state->StructRUsageType = PyStructSequence_NewType(&struct_rusage_desc);
-    if (state->StructRUsageType == NULL) {
-        return -1;
-    }
-    if (PyModule_AddType(module, state->StructRUsageType) < 0) {
-        return -1;
-    }
+    Py_INCREF(&StructRUsageType);
+    PyModule_AddObject(m, "struct_rusage",
+                       (PyObject*) &StructRUsageType);
 
     /* insert constants */
 #ifdef RLIMIT_CPU
-    ADD_INT(module, RLIMIT_CPU);
+    PyModule_AddIntMacro(m, RLIMIT_CPU);
 #endif
 
 #ifdef RLIMIT_FSIZE
-    ADD_INT(module, RLIMIT_FSIZE);
+    PyModule_AddIntMacro(m, RLIMIT_FSIZE);
 #endif
 
 #ifdef RLIMIT_DATA
-    ADD_INT(module, RLIMIT_DATA);
+    PyModule_AddIntMacro(m, RLIMIT_DATA);
 #endif
 
 #ifdef RLIMIT_STACK
-    ADD_INT(module, RLIMIT_STACK);
+    PyModule_AddIntMacro(m, RLIMIT_STACK);
 #endif
 
 #ifdef RLIMIT_CORE
-    ADD_INT(module, RLIMIT_CORE);
+    PyModule_AddIntMacro(m, RLIMIT_CORE);
 #endif
 
 #ifdef RLIMIT_NOFILE
-    ADD_INT(module, RLIMIT_NOFILE);
+    PyModule_AddIntMacro(m, RLIMIT_NOFILE);
 #endif
 
 #ifdef RLIMIT_OFILE
-    ADD_INT(module, RLIMIT_OFILE);
+    PyModule_AddIntMacro(m, RLIMIT_OFILE);
 #endif
 
 #ifdef RLIMIT_VMEM
-    ADD_INT(module, RLIMIT_VMEM);
+    PyModule_AddIntMacro(m, RLIMIT_VMEM);
 #endif
 
 #ifdef RLIMIT_AS
-    ADD_INT(module, RLIMIT_AS);
+    PyModule_AddIntMacro(m, RLIMIT_AS);
 #endif
 
 #ifdef RLIMIT_RSS
-    ADD_INT(module, RLIMIT_RSS);
+    PyModule_AddIntMacro(m, RLIMIT_RSS);
 #endif
 
 #ifdef RLIMIT_NPROC
-    ADD_INT(module, RLIMIT_NPROC);
+    PyModule_AddIntMacro(m, RLIMIT_NPROC);
 #endif
 
 #ifdef RLIMIT_MEMLOCK
-    ADD_INT(module, RLIMIT_MEMLOCK);
+    PyModule_AddIntMacro(m, RLIMIT_MEMLOCK);
 #endif
 
 #ifdef RLIMIT_SBSIZE
-    ADD_INT(module, RLIMIT_SBSIZE);
+    PyModule_AddIntMacro(m, RLIMIT_SBSIZE);
 #endif
 
 /* Linux specific */
 #ifdef RLIMIT_MSGQUEUE
-    ADD_INT(module, RLIMIT_MSGQUEUE);
+    PyModule_AddIntMacro(m, RLIMIT_MSGQUEUE);
 #endif
 
 #ifdef RLIMIT_NICE
-    ADD_INT(module, RLIMIT_NICE);
+    PyModule_AddIntMacro(m, RLIMIT_NICE);
 #endif
 
 #ifdef RLIMIT_RTPRIO
-    ADD_INT(module, RLIMIT_RTPRIO);
+    PyModule_AddIntMacro(m, RLIMIT_RTPRIO);
 #endif
 
 #ifdef RLIMIT_RTTIME
-    ADD_INT(module, RLIMIT_RTTIME);
+    PyModule_AddIntMacro(m, RLIMIT_RTTIME);
 #endif
 
 #ifdef RLIMIT_SIGPENDING
-    ADD_INT(module, RLIMIT_SIGPENDING);
+    PyModule_AddIntMacro(m, RLIMIT_SIGPENDING);
 #endif
 
 /* target */
 #ifdef RUSAGE_SELF
-    ADD_INT(module, RUSAGE_SELF);
+    PyModule_AddIntMacro(m, RUSAGE_SELF);
 #endif
 
 #ifdef RUSAGE_CHILDREN
-    ADD_INT(module, RUSAGE_CHILDREN);
+    PyModule_AddIntMacro(m, RUSAGE_CHILDREN);
 #endif
 
 #ifdef RUSAGE_BOTH
-    ADD_INT(module, RUSAGE_BOTH);
+    PyModule_AddIntMacro(m, RUSAGE_BOTH);
 #endif
 
 #ifdef RUSAGE_THREAD
-    ADD_INT(module, RUSAGE_THREAD);
+    PyModule_AddIntMacro(m, RUSAGE_THREAD);
 #endif
 
 /* FreeBSD specific */
 
 #ifdef RLIMIT_SWAP
-    ADD_INT(module, RLIMIT_SWAP);
+    PyModule_AddIntMacro(m, RLIMIT_SWAP);
 #endif
 
 #ifdef RLIMIT_SBSIZE
-    ADD_INT(module, RLIMIT_SBSIZE);
+    PyModule_AddIntMacro(m, RLIMIT_SBSIZE);
 #endif
 
 #ifdef RLIMIT_NPTS
-    ADD_INT(module, RLIMIT_NPTS);
+    PyModule_AddIntMacro(m, RLIMIT_NPTS);
 #endif
 
-#ifdef RLIMIT_KQUEUES
-    ADD_INT(module, RLIMIT_KQUEUES);
-#endif
-
-    PyObject *v;
     if (sizeof(RLIM_INFINITY) > sizeof(long)) {
         v = PyLong_FromLongLong((long long) RLIM_INFINITY);
     } else
     {
         v = PyLong_FromLong((long) RLIM_INFINITY);
     }
-    if (!v) {
-        return -1;
+    if (v) {
+        PyModule_AddObject(m, "RLIM_INFINITY", v);
     }
-
-    if (PyModule_AddObject(module, "RLIM_INFINITY", v) < 0) {
-        Py_DECREF(v);
-        return -1;
-    }
-    return 0;
-
-#undef ADD_INT
-}
-
-static struct PyModuleDef_Slot resource_slots[] = {
-    {Py_mod_exec, resource_exec},
-    {0, NULL}
-};
-
-static int
-resourcemodule_traverse(PyObject *m, visitproc visit, void *arg) {
-    Py_VISIT(get_resource_state(m)->StructRUsageType);
-    return 0;
-}
-
-static int
-resourcemodule_clear(PyObject *m) {
-    Py_CLEAR(get_resource_state(m)->StructRUsageType);
-    return 0;
-}
-
-static void
-resourcemodule_free(void *m) {
-    resourcemodule_clear((PyObject *)m);
-}
-
-static struct PyModuleDef resourcemodule = {
-    PyModuleDef_HEAD_INIT,
-    .m_name = "resource",
-    .m_size = sizeof(resourcemodulestate),
-    .m_methods = resource_methods,
-    .m_slots = resource_slots,
-    .m_traverse = resourcemodule_traverse,
-    .m_clear = resourcemodule_clear,
-    .m_free = resourcemodule_free,
-};
-
-PyMODINIT_FUNC
-PyInit_resource(void)
-{
-    return PyModuleDef_Init(&resourcemodule);
+    initialized = 1;
+    return m;
 }

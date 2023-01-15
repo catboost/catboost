@@ -18,7 +18,7 @@ from library.cpp.text_processing.tokenizer.tokenizer cimport (
     ETokenType, ESeparatorType, ESubTokensPolicy, ETokenProcessPolicy, ELanguage, TTokenizer, TTokenizerOptions)
 
 
-cdef extern from "library/cpp/langs/langs.h" nogil:
+cdef extern from "library/langs/langs.h" nogil:
     cdef ELanguage LanguageByNameOrDie(TStringBuf language) except +
 
 
@@ -34,7 +34,7 @@ cdef TTokenizerOptions CreateTokenizerOptions(
     token_types,
     sub_tokens_policy,
     languages,
-) except *:
+):
     cdef TTokenizerOptions tokenizer_options
 
     if lowercasing is not None:
@@ -164,7 +164,8 @@ cdef class Tokenizer:
             languages,
         )
 
-        self.__tokenizer = MakeHolder[TTokenizer](tokenizer_options)
+        cdef TTokenizer* tokenizerPtr = new TTokenizer(tokenizer_options)
+        self.__tokenizer = THolder[TTokenizer](tokenizerPtr)
 
     def tokenize(self, string, types=False):
         """

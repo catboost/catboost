@@ -1,13 +1,13 @@
 #include "decl.h"
 #include "pmml.h"
 
-#include <contrib/libs/onnx/onnx/onnx_pb.h>
+#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
 
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <library/cpp/getopt/small/last_getopt.h>
-#include <library/cpp/json/writer/json.h>
+#include <library/json/writer/json.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/hash_set.h>
@@ -96,7 +96,7 @@ public:
         }
         SortUnique(allKeys);
         bool equal = true;
-        for (const auto& key : allKeys) {
+        for (const auto key : allKeys) {
             equal &= AlmostEqual(name + '.' + key,
                                  a.Value(key, NJson::TJsonValue(NJson::EJsonValueType::JSON_NULL)),
                                  b.Value(key, NJson::TJsonValue(NJson::EJsonValueType::JSON_NULL)));
@@ -157,11 +157,11 @@ public:
         result &= AlmostEqual(name + ".OneHotFeatures", a.GetOneHotFeatures(), b.GetOneHotFeatures());
         result &= AlmostEqual(name + ".CtrFeatures", a.GetCtrFeatures(), b.GetCtrFeatures());
         result &= AlmostEqual(name + ".ApproxDimension", a.GetDimensionsCount(), b.GetDimensionsCount());
-        result &= AlmostEqual(name + ".TreeSplits", a.GetModelTreeData()->GetTreeSplits(), b.GetModelTreeData()->GetTreeSplits());
-        result &= AlmostEqual(name + ".TreeSizes", a.GetModelTreeData()->GetTreeSizes(), b.GetModelTreeData()->GetTreeSizes());
-        result &= AlmostEqual(name + ".TreeStartOffsets", a.GetModelTreeData()->GetTreeStartOffsets(), b.GetModelTreeData()->GetTreeStartOffsets());
+        result &= AlmostEqual(name + ".TreeSplits", a.GetTreeSplits(), b.GetTreeSplits());
+        result &= AlmostEqual(name + ".TreeSizes", a.GetTreeSizes(), b.GetTreeSizes());
+        result &= AlmostEqual(name + ".TreeStartOffsets", a.GetTreeStartOffsets(), b.GetTreeStartOffsets());
         result &= AlmostEqualLeafValues(name + ".LeafValues", a, b);
-        result &= AlmostEqual(name + ".LeafWeights", a.GetModelTreeData()->GetLeafWeights(), b.GetModelTreeData()->GetLeafWeights());
+        result &= AlmostEqual(name + ".LeafWeights", a.GetLeafWeights(), b.GetLeafWeights());
         return result;
     }
 
@@ -189,7 +189,7 @@ public:
 
     bool AlmostEqualLeafValues(const TString& name, const TModelTrees& a, const TModelTrees& b) {
         if (a.GetScaleAndBias() == b.GetScaleAndBias()) {
-            return AlmostEqual(name, a.GetModelTreeData()->GetLeafValues(), b.GetModelTreeData()->GetLeafValues());
+            return AlmostEqual(name, a.GetLeafValues(), b.GetLeafValues());
         }
 
         Clog << name << ".ScaleAndBias: "
@@ -200,16 +200,13 @@ public:
             << Endl;
 
         auto normedLeafValues = [](const TModelTrees& trees) -> TVector<double> {
-            TVector<double> result(trees.GetModelTreeData()->GetLeafValues().begin(), trees.GetModelTreeData()->GetLeafValues().end());
+            TVector<double> result(trees.GetLeafValues().begin(), trees.GetLeafValues().end());
             int firstTreeLeafCount = trees.GetTreeCount() > 0 ? trees.GetTreeLeafCounts()[0] : 0;
             const auto norm = trees.GetScaleAndBias();
-
-            double bias = norm.GetOneDimensionalBias(
-                "Non single-dimension approxes are not supported");
             for (int i = 0; i < result.ysize(); ++i) {
                 result[i] *= norm.Scale;
                 if (i < firstTreeLeafCount) {
-                    result[i] += bias;
+                    result[i] += norm.Bias;
                 }
             }
             return result;
@@ -277,15 +274,15 @@ public:
         if (IsIgnored(name))
             return true;
         TVector<TString> allKeys;
-        for (const auto& kv : a) {
+        for (const auto kv : a) {
             allKeys.push_back(kv.first);
         }
-        for (const auto& kv : b) {
+        for (const auto kv : b) {
             allKeys.push_back(kv.first);
         }
         SortUnique(allKeys);
         bool equal = true;
-        for (const auto& key : allKeys) {
+        for (const auto key : allKeys) {
             TString nameKey = name + '.' + key;
             if (IsIgnored(nameKey))
                 continue;
@@ -314,14 +311,7 @@ public:
 
 template <>
 void Out<TScaleAndBias>(IOutputStream& out, TTypeTraits<TScaleAndBias>::TFuncParam norm) {
-    out << "{" << norm.Scale << "," << "[";
-    bool firstItem = true;
-    auto bias = norm.GetBiasRef();
-    for (auto b : bias) {
-        out << (firstItem ? "" : ",") << b;
-        firstItem = false;
-    }
-    out << "]}";
+    out << "{" << norm.Scale << "," << norm.Bias << "}";
 }
 
 template <>

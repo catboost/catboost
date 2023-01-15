@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include "catboost/private/libs/algo/fold.h"
 #include "catboost/private/libs/algo/tensor_search_helpers.h"
 #include "catboost/private/libs/algo/mvs.h"

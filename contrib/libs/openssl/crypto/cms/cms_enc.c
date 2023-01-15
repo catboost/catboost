@@ -14,7 +14,7 @@
 #include <openssl/err.h>
 #include <openssl/cms.h>
 #include <openssl/rand.h>
-#include "cms_local.h"
+#include "cms_lcl.h"
 
 /* CMS EncryptedData Utilities */
 

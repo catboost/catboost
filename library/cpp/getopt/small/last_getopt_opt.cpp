@@ -8,8 +8,8 @@
 #include <ctype.h>
 
 namespace NLastGetopt {
-    static const TStringBuf ExcludedShortNameChars = "= -\t\n";
-    static const TStringBuf ExcludedLongNameChars = "= \t\n";
+    static const TStringBuf ExcludedShortNameChars = AsStringBuf("= -\t\n");
+    static const TStringBuf ExcludedLongNameChars = AsStringBuf("= \t\n");
 
     bool TOpt::NameIs(const TString& name) const {
         for (const auto& next : LongNames_) {

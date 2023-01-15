@@ -53,8 +53,6 @@ struct TDateTimeFields {
         if (Minute > 59)
             return false;
 
-        // handle leap second which is explicitly allowed by ISO 8601:2004(E) $2.2.2
-        // https://datatracker.ietf.org/doc/html/rfc3339#section-5.6
         if (Second > 60)
             return false;
 
@@ -278,11 +276,11 @@ protected:
     }
 };
 
-#define DECLARE_PARSER(CLASS)                            \
-    struct CLASS: public TDateTimeParserBaseDeprecated { \
-        CLASS();                                         \
-        bool ParsePart(const char* input, size_t len);   \
-        TInstant GetResult(TInstant defaultValue) const; \
+#define DECLARE_PARSER(CLASS)                             \
+    struct CLASS: public TDateTimeParserBaseDeprecated {  \
+        CLASS();                                          \
+        bool ParsePart(const char* input, size_t len);    \
+        TInstant GetResult(TInstant defaultValue) const;  \
     };
 
 DECLARE_PARSER(TIso8601DateTimeParserDeprecated)

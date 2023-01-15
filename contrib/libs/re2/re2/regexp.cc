@@ -20,7 +20,6 @@
 #include "util/logging.h"
 #include "util/mutex.h"
 #include "util/utf.h"
-#include "re2/pod_array.h"
 #include "re2/stringpiece.h"
 #include "re2/walker-inl.h"
 
@@ -74,27 +73,16 @@ bool Regexp::QuickDestroy() {
   return false;
 }
 
-// Similar to EmptyStorage in re2.cc.
-struct RefStorage {
-  Mutex ref_mutex;
-  std::map<Regexp*, int> ref_map;
-};
-alignas(RefStorage) static char ref_storage[sizeof(RefStorage)];
-
-static inline Mutex* ref_mutex() {
-  return &reinterpret_cast<RefStorage*>(ref_storage)->ref_mutex;
-}
-
-static inline std::map<Regexp*, int>* ref_map() {
-  return &reinterpret_cast<RefStorage*>(ref_storage)->ref_map;
-}
+// Lazily allocated.
+static Mutex* ref_mutex;
+static std::map<Regexp*, int>* ref_map;
 
 int Regexp::Ref() {
   if (ref_ < kMaxRef)
     return ref_;
 
-  MutexLock l(ref_mutex());
-  return (*ref_map())[this];
+  MutexLock l(ref_mutex);
+  return (*ref_map)[this];
 }
 
 // Increments reference count, returns object as convenience.
@@ -102,17 +90,18 @@ Regexp* Regexp::Incref() {
   if (ref_ >= kMaxRef-1) {
     static std::once_flag ref_once;
     std::call_once(ref_once, []() {
-      (void) new (ref_storage) RefStorage;
+      ref_mutex = new Mutex;
+      ref_map = new std::map<Regexp*, int>;
     });
 
     // Store ref count in overflow map.
-    MutexLock l(ref_mutex());
+    MutexLock l(ref_mutex);
     if (ref_ == kMaxRef) {
       // already overflowed
-      (*ref_map())[this]++;
+      (*ref_map)[this]++;
     } else {
       // overflowing now
-      (*ref_map())[this] = kMaxRef;
+      (*ref_map)[this] = kMaxRef;
       ref_ = kMaxRef;
     }
     return this;
@@ -126,13 +115,13 @@ Regexp* Regexp::Incref() {
 void Regexp::Decref() {
   if (ref_ == kMaxRef) {
     // Ref count is stored in overflow map.
-    MutexLock l(ref_mutex());
-    int r = (*ref_map())[this] - 1;
+    MutexLock l(ref_mutex);
+    int r = (*ref_map)[this] - 1;
     if (r < kMaxRef) {
       ref_ = static_cast<uint16_t>(r);
-      ref_map()->erase(this);
+      ref_map->erase(this);
     } else {
-      (*ref_map())[this] = r;
+      (*ref_map)[this] = r;
     }
     return;
   }
@@ -254,15 +243,16 @@ Regexp* Regexp::ConcatOrAlternate(RegexpOp op, Regexp** sub, int nsub,
       return new Regexp(kRegexpEmptyMatch, flags);
   }
 
-  PODArray<Regexp*> subcopy;
+  Regexp** subcopy = NULL;
   if (op == kRegexpAlternate && can_factor) {
     // Going to edit sub; make a copy so we don't step on caller.
-    subcopy = PODArray<Regexp*>(nsub);
-    memmove(subcopy.data(), sub, nsub * sizeof sub[0]);
-    sub = subcopy.data();
+    subcopy = new Regexp*[nsub];
+    memmove(subcopy, sub, nsub * sizeof sub[0]);
+    sub = subcopy;
     nsub = FactorAlternation(sub, nsub, flags);
     if (nsub == 1) {
       Regexp* re = sub[0];
+      delete[] subcopy;
       return re;
     }
   }
@@ -279,6 +269,7 @@ Regexp* Regexp::ConcatOrAlternate(RegexpOp op, Regexp** sub, int nsub,
     subs[nbigsub - 1] = ConcatOrAlternate(op, sub+(nbigsub-1)*kMaxNsub,
                                           nsub - (nbigsub-1)*kMaxNsub, flags,
                                           false);
+    delete[] subcopy;
     return re;
   }
 
@@ -287,6 +278,8 @@ Regexp* Regexp::ConcatOrAlternate(RegexpOp op, Regexp** sub, int nsub,
   Regexp** subs = re->sub();
   for (int i = 0; i < nsub; i++)
     subs[i] = sub[i];
+
+  delete[] subcopy;
   return re;
 }
 
@@ -342,15 +335,13 @@ Regexp* Regexp::NewCharClass(CharClass* cc, ParseFlags flags) {
   return re;
 }
 
+// Swaps this and that in place.
 void Regexp::Swap(Regexp* that) {
-  // Regexp is not trivially copyable, so we cannot freely copy it with
-  // memmove(3), but swapping objects like so is safe for our purposes.
+  // Can use memmove because Regexp is just a struct (no vtable).
   char tmp[sizeof *this];
-  void* vthis = reinterpret_cast<void*>(this);
-  void* vthat = reinterpret_cast<void*>(that);
-  memmove(tmp, vthis, sizeof *this);
-  memmove(vthis, vthat, sizeof *this);
-  memmove(vthat, tmp, sizeof *this);
+  memmove(tmp, this, sizeof tmp);
+  memmove(this, that, sizeof tmp);
+  memmove(that, tmp, sizeof tmp);
 }
 
 // Tests equality of all top-level structure but not subregexps.
@@ -508,7 +499,6 @@ static const char *kErrorStrings[] = {
   "invalid character class range",
   "missing ]",
   "missing )",
-  "unexpected )",
   "trailing \\",
   "no argument for repetition operator",
   "invalid repetition size",
@@ -518,16 +508,16 @@ static const char *kErrorStrings[] = {
   "invalid named capture group",
 };
 
-std::string RegexpStatus::CodeText(enum RegexpStatusCode code) {
+string RegexpStatus::CodeText(enum RegexpStatusCode code) {
   if (code < 0 || code >= arraysize(kErrorStrings))
     code = kRegexpInternalError;
   return kErrorStrings[code];
 }
 
-std::string RegexpStatus::Text() const {
+string RegexpStatus::Text() const {
   if (error_arg_.empty())
     return CodeText(code_);
-  std::string s;
+  string s;
   s.append(CodeText(code_));
   s.append(": ");
   s.append(error_arg_.data(), error_arg_.size());
@@ -552,12 +542,9 @@ class NumCapturesWalker : public Regexp::Walker<Ignored> {
       ncapture_++;
     return ignored;
   }
-
   virtual Ignored ShortVisit(Regexp* re, Ignored ignored) {
-    // Should never be called: we use Walk(), not WalkExponential().
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+    // Should never be called: we use Walk not WalkExponential.
     LOG(DFATAL) << "NumCapturesWalker::ShortVisit called";
-#endif
     return ignored;
   }
 
@@ -580,42 +567,41 @@ class NamedCapturesWalker : public Regexp::Walker<Ignored> {
   NamedCapturesWalker() : map_(NULL) {}
   ~NamedCapturesWalker() { delete map_; }
 
-  std::map<std::string, int>* TakeMap() {
-    std::map<std::string, int>* m = map_;
+  std::map<string, int>* TakeMap() {
+    std::map<string, int>* m = map_;
     map_ = NULL;
     return m;
   }
 
-  virtual Ignored PreVisit(Regexp* re, Ignored ignored, bool* stop) {
+  Ignored PreVisit(Regexp* re, Ignored ignored, bool* stop) {
     if (re->op() == kRegexpCapture && re->name() != NULL) {
       // Allocate map once we find a name.
       if (map_ == NULL)
-        map_ = new std::map<std::string, int>;
+        map_ = new std::map<string, int>;
 
       // Record first occurrence of each name.
       // (The rule is that if you have the same name
       // multiple times, only the leftmost one counts.)
-      map_->insert({*re->name(), re->cap()});
+      if (map_->find(*re->name()) == map_->end())
+        (*map_)[*re->name()] = re->cap();
     }
     return ignored;
   }
 
   virtual Ignored ShortVisit(Regexp* re, Ignored ignored) {
-    // Should never be called: we use Walk(), not WalkExponential().
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+    // Should never be called: we use Walk not WalkExponential.
     LOG(DFATAL) << "NamedCapturesWalker::ShortVisit called";
-#endif
     return ignored;
   }
 
  private:
-  std::map<std::string, int>* map_;
+  std::map<string, int>* map_;
 
   NamedCapturesWalker(const NamedCapturesWalker&) = delete;
   NamedCapturesWalker& operator=(const NamedCapturesWalker&) = delete;
 };
 
-std::map<std::string, int>* Regexp::NamedCaptures() {
+std::map<string, int>* Regexp::NamedCaptures() {
   NamedCapturesWalker w;
   w.Walk(this, 0);
   return w.TakeMap();
@@ -627,17 +613,17 @@ class CaptureNamesWalker : public Regexp::Walker<Ignored> {
   CaptureNamesWalker() : map_(NULL) {}
   ~CaptureNamesWalker() { delete map_; }
 
-  std::map<int, std::string>* TakeMap() {
-    std::map<int, std::string>* m = map_;
+  std::map<int, string>* TakeMap() {
+    std::map<int, string>* m = map_;
     map_ = NULL;
     return m;
   }
 
-  virtual Ignored PreVisit(Regexp* re, Ignored ignored, bool* stop) {
+  Ignored PreVisit(Regexp* re, Ignored ignored, bool* stop) {
     if (re->op() == kRegexpCapture && re->name() != NULL) {
       // Allocate map once we find a name.
       if (map_ == NULL)
-        map_ = new std::map<int, std::string>;
+        map_ = new std::map<int, string>;
 
       (*map_)[re->cap()] = *re->name();
     }
@@ -645,109 +631,95 @@ class CaptureNamesWalker : public Regexp::Walker<Ignored> {
   }
 
   virtual Ignored ShortVisit(Regexp* re, Ignored ignored) {
-    // Should never be called: we use Walk(), not WalkExponential().
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+    // Should never be called: we use Walk not WalkExponential.
     LOG(DFATAL) << "CaptureNamesWalker::ShortVisit called";
-#endif
     return ignored;
   }
 
  private:
-  std::map<int, std::string>* map_;
+  std::map<int, string>* map_;
 
   CaptureNamesWalker(const CaptureNamesWalker&) = delete;
   CaptureNamesWalker& operator=(const CaptureNamesWalker&) = delete;
 };
 
-std::map<int, std::string>* Regexp::CaptureNames() {
+std::map<int, string>* Regexp::CaptureNames() {
   CaptureNamesWalker w;
   w.Walk(this, 0);
   return w.TakeMap();
-}
-
-void ConvertRunesToBytes(bool latin1, Rune* runes, int nrunes,
-                         std::string* bytes) {
-  if (latin1) {
-    bytes->resize(nrunes);
-    for (int i = 0; i < nrunes; i++)
-      (*bytes)[i] = static_cast<char>(runes[i]);
-  } else {
-    bytes->resize(nrunes * UTFmax);  // worst case
-    char* p = &(*bytes)[0];
-    for (int i = 0; i < nrunes; i++)
-      p += runetochar(p, &runes[i]);
-    bytes->resize(p - &(*bytes)[0]);
-    bytes->shrink_to_fit();
-  }
 }
 
 // Determines whether regexp matches must be anchored
 // with a fixed string prefix.  If so, returns the prefix and
 // the regexp that remains after the prefix.  The prefix might
 // be ASCII case-insensitive.
-bool Regexp::RequiredPrefix(std::string* prefix, bool* foldcase,
-                            Regexp** suffix) {
-  prefix->clear();
-  *foldcase = false;
-  *suffix = NULL;
-
+bool Regexp::RequiredPrefix(string *prefix, bool *foldcase, Regexp** suffix) {
   // No need for a walker: the regexp must be of the form
   // 1. some number of ^ anchors
   // 2. a literal char or string
   // 3. the rest
+  prefix->clear();
+  *foldcase = false;
+  *suffix = NULL;
   if (op_ != kRegexpConcat)
     return false;
+
+  // Some number of anchors, then a literal or concatenation.
   int i = 0;
-  while (i < nsub_ && sub()[i]->op_ == kRegexpBeginText)
+  Regexp** sub = this->sub();
+  while (i < nsub_ && sub[i]->op_ == kRegexpBeginText)
     i++;
   if (i == 0 || i >= nsub_)
     return false;
-  Regexp* re = sub()[i];
-  if (re->op_ != kRegexpLiteral &&
-      re->op_ != kRegexpLiteralString)
-    return false;
+
+  Regexp* re = sub[i];
+  switch (re->op_) {
+    default:
+      return false;
+
+    case kRegexpLiteralString:
+      // Convert to string in proper encoding.
+      if (re->parse_flags() & Latin1) {
+        prefix->resize(re->nrunes_);
+        for (int j = 0; j < re->nrunes_; j++)
+          (*prefix)[j] = static_cast<char>(re->runes_[j]);
+      } else {
+        // Convert to UTF-8 in place.
+        // Assume worst-case space and then trim.
+        prefix->resize(re->nrunes_ * UTFmax);
+        char *p = &(*prefix)[0];
+        for (int j = 0; j < re->nrunes_; j++) {
+          Rune r = re->runes_[j];
+          if (r < Runeself)
+            *p++ = static_cast<char>(r);
+          else
+            p += runetochar(p, &r);
+        }
+        prefix->resize(p - &(*prefix)[0]);
+      }
+      break;
+
+    case kRegexpLiteral:
+      if ((re->parse_flags() & Latin1) || re->rune_ < Runeself) {
+        prefix->append(1, static_cast<char>(re->rune_));
+      } else {
+        char buf[UTFmax];
+        prefix->append(buf, runetochar(buf, &re->rune_));
+      }
+      break;
+  }
+  *foldcase = (sub[i]->parse_flags() & FoldCase) != 0;
   i++;
+
+  // The rest.
   if (i < nsub_) {
     for (int j = i; j < nsub_; j++)
-      sub()[j]->Incref();
-    *suffix = Concat(sub() + i, nsub_ - i, parse_flags());
+      sub[j]->Incref();
+    re = Concat(sub + i, nsub_ - i, parse_flags());
   } else {
-    *suffix = new Regexp(kRegexpEmptyMatch, parse_flags());
+    re = new Regexp(kRegexpEmptyMatch, parse_flags());
   }
-
-  bool latin1 = (re->parse_flags() & Latin1) != 0;
-  Rune* runes = re->op_ == kRegexpLiteral ? &re->rune_ : re->runes_;
-  int nrunes = re->op_ == kRegexpLiteral ? 1 : re->nrunes_;
-  ConvertRunesToBytes(latin1, runes, nrunes, prefix);
-  *foldcase = (re->parse_flags() & FoldCase) != 0;
-  return true;
-}
-
-// Determines whether regexp matches must be unanchored
-// with a fixed string prefix.  If so, returns the prefix.
-// The prefix might be ASCII case-insensitive.
-bool Regexp::RequiredPrefixForAccel(std::string* prefix, bool* foldcase) {
-  prefix->clear();
-  *foldcase = false;
-
-  // No need for a walker: the regexp must either begin with or be
-  // a literal char or string. We "see through" capturing groups,
-  // but make no effort to glue multiple prefix fragments together.
-  Regexp* re = op_ == kRegexpConcat && nsub_ > 0 ? sub()[0] : this;
-  while (re->op_ == kRegexpCapture) {
-    re = re->sub()[0];
-    if (re->op_ == kRegexpConcat && re->nsub_ > 0)
-      re = re->sub()[0];
-  }
-  if (re->op_ != kRegexpLiteral &&
-      re->op_ != kRegexpLiteralString)
-    return false;
-
-  bool latin1 = (re->parse_flags() & Latin1) != 0;
-  Rune* runes = re->op_ == kRegexpLiteral ? &re->rune_ : re->runes_;
-  int nrunes = re->op_ == kRegexpLiteral ? 1 : re->nrunes_;
-  ConvertRunesToBytes(latin1, runes, nrunes, prefix);
-  *foldcase = (re->parse_flags() & FoldCase) != 0;
+  *suffix = re;
   return true;
 }
 
@@ -928,7 +900,7 @@ void CharClassBuilder::Negate() {
 // The ranges are allocated in the same block as the header,
 // necessitating a special allocator and Delete method.
 
-CharClass* CharClass::New(size_t maxranges) {
+CharClass* CharClass::New(int maxranges) {
   CharClass* cc;
   uint8_t* data = new uint8_t[sizeof *cc + maxranges*sizeof cc->ranges_[0]];
   cc = reinterpret_cast<CharClass*>(data);
@@ -945,7 +917,7 @@ void CharClass::Delete() {
 }
 
 CharClass* CharClass::Negate() {
-  CharClass* cc = CharClass::New(static_cast<size_t>(nranges_+1));
+  CharClass* cc = CharClass::New(nranges_+1);
   cc->folds_ascii_ = folds_ascii_;
   cc->nrunes_ = Runemax + 1 - nrunes_;
   int n = 0;
@@ -964,7 +936,7 @@ CharClass* CharClass::Negate() {
   return cc;
 }
 
-bool CharClass::Contains(Rune r) const {
+bool CharClass::Contains(Rune r) {
   RuneRange* rr = ranges_;
   int n = nranges_;
   while (n > 0) {
@@ -982,7 +954,7 @@ bool CharClass::Contains(Rune r) const {
 }
 
 CharClass* CharClassBuilder::GetCharClass() {
-  CharClass* cc = CharClass::New(ranges_.size());
+  CharClass* cc = CharClass::New(static_cast<int>(ranges_.size()));
   int n = 0;
   for (iterator it = begin(); it != end(); ++it)
     cc->ranges_[n++] = *it;

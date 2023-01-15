@@ -12,14 +12,12 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
     const TVector<TFloatFeature>& allFloatFeatures,
     const TVector<TCatFeature>& allCategoricalFeatures,
     const TVector<TTextFeature>& allTextFeatures,
-    const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
     int approxDimension
 )
     : ApproxDimension(approxDimension)
     , FloatFeatures(allFloatFeatures)
     , CatFeatures(allCategoricalFeatures)
     , TextFeatures(allTextFeatures)
-    , EmbeddingFeatures(allEmbeddingFeatures)
 {
     if (!FloatFeatures.empty()) {
         CB_ENSURE(IsSorted(FloatFeatures.begin(), FloatFeatures.end(),
@@ -61,22 +59,6 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
             TextFeaturesInternalIndexesMap.at((size_t)TextFeatures[i].Position.Index) = i;
         }
     }
-    if (!EmbeddingFeatures.empty()) {
-        CB_ENSURE(
-            IsSorted(
-                EmbeddingFeatures.begin(),
-                EmbeddingFeatures.end(),
-                [](const TEmbeddingFeature& f1, const TEmbeddingFeature& f2) {
-                    return f1.Position.FlatIndex < f2.Position.FlatIndex;
-                }
-            ),
-            "Embedding features should be sorted"
-        );
-        EmbeddingFeaturesInternalIndexesMap.resize((size_t)EmbeddingFeatures.back().Position.Index + 1, Max<size_t>());
-        for (auto i : xrange(EmbeddingFeatures.size())) {
-            EmbeddingFeaturesInternalIndexesMap.at((size_t)EmbeddingFeatures[i].Position.Index) = i;
-        }
-    }
 }
 
 template <class T>
@@ -106,17 +88,11 @@ void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelS
 
     MakeFeaturesUnused(MakeArrayRef(CatFeatures.begin(), CatFeatures.end()));
     MakeFeaturesUnused(MakeArrayRef(TextFeatures.begin(), TextFeatures.end()));
-    MakeFeaturesUnused(MakeArrayRef(EmbeddingFeatures.begin(), EmbeddingFeatures.end()));
 
     trees->SetCatFeatures(std::move(CatFeatures));
     trees->SetTextFeatures(std::move(TextFeatures));
-    trees->SetEmbeddingFeatures(std::move(EmbeddingFeatures));
 
-    trees->ProcessSplitsSet(modelSplitSet,
-                            FloatFeaturesInternalIndexesMap,
-                            CatFeaturesInternalIndexesMap,
-                            TextFeaturesInternalIndexesMap,
-                            EmbeddingFeaturesInternalIndexesMap);
+    trees->ProcessSplitsSet(modelSplitSet, FloatFeaturesInternalIndexesMap, CatFeaturesInternalIndexesMap, TextFeaturesInternalIndexesMap);
     for (const auto& split : modelSplitSet) {
         const int binFeatureIdx = BinFeatureIndexes.ysize();
         Y_ASSERT(!BinFeatureIndexes.contains(split));
@@ -130,13 +106,11 @@ TObliviousTreeBuilder::TObliviousTreeBuilder(
     const TVector<TFloatFeature>& allFloatFeatures,
     const TVector<TCatFeature>& allCategoricalFeatures,
     const TVector<TTextFeature>& allTextFeatures,
-    const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
     int approxDimension)
     : TCommonModelBuilderHelper(
         allFloatFeatures,
         allCategoricalFeatures,
         allTextFeatures,
-        allEmbeddingFeatures,
         approxDimension)
 {
 }
@@ -236,14 +210,9 @@ TNonSymmetricTreeModelBuilder::TNonSymmetricTreeModelBuilder(
     const TVector<TFloatFeature>& allFloatFeatures,
     const TVector<TCatFeature>& allCategoricalFeatures,
     const TVector<TTextFeature>& allTextFeatures,
-    const TVector<TEmbeddingFeature>& allEmbeddingFeatures,
     int approxDimension
 )
-    : TCommonModelBuilderHelper(allFloatFeatures,
-                                allCategoricalFeatures,
-                                allTextFeatures,
-                                allEmbeddingFeatures,
-                                approxDimension)
+    : TCommonModelBuilderHelper(allFloatFeatures, allCategoricalFeatures, allTextFeatures, approxDimension)
 {}
 
 ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& node) {
@@ -256,11 +225,9 @@ ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& nod
         FlatNonSymmetricStepNodes.emplace_back();
         if (node.Left->IsSplitNode() == node.Right->IsSplitNode()) {
             FlatNodeValueIndexes.emplace_back(Max<ui32>());
-            const auto leftId = AddTreeNode(*node.Left);
-            const auto rightId = AddTreeNode(*node.Right);
             FlatNonSymmetricStepNodes[stepNodeId] = TNonSymmetricTreeStepNode{
-                static_cast<ui16>(leftId - nodeId),
-                static_cast<ui16>(rightId - nodeId)
+                static_cast<ui16>(AddTreeNode(*node.Left) - nodeId),
+                static_cast<ui16>(AddTreeNode(*node.Right) - nodeId)
             };
         } else {
             if (node.Right->IsSplitNode()) {
@@ -287,11 +254,11 @@ ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& nod
 
 void TNonSymmetricTreeModelBuilder::InsertNodeValue(const TNonSymmetricTreeNode& node) {
     FlatNodeValueIndexes.emplace_back(FlatValueVector.size());
-    if (std::holds_alternative<double>(node.Value)) {
+    if (HoldsAlternative<double>(node.Value)) {
         CB_ENSURE(ApproxDimension == 1, "got single value for multidimensional model");
-        FlatValueVector.emplace_back(std::get<double>(node.Value));
+        FlatValueVector.emplace_back(Get<double>(node.Value));
     } else {
-        const auto& valueVector = std::get<TVector<double>>(node.Value);
+        const auto& valueVector = Get<TVector<double>>(node.Value);
         CB_ENSURE(ApproxDimension == static_cast<int>(valueVector.size())
             , "Different model approx dimension and value dimensions");
         for (const auto& value : valueVector) {

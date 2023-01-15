@@ -19,7 +19,7 @@ namespace NCatboostCuda {
                                                        TGpuAwareRandom& random,
                                                        ui32 approxDimension,
                                                        ITrainingCallbacks* trainingCallbacks,
-                                                       NPar::ILocalExecutor* localExecutor,
+                                                       NPar::TLocalExecutor* localExecutor,
                                                        TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
@@ -65,7 +65,7 @@ namespace NCatboostCuda {
                         const NCB::TTrainingDataProvider& test,
                         TGpuAwareRandom& random,
                         ui32 approxDimension,
-                        NPar::ILocalExecutor* localExecutor) {
+                        NPar::TLocalExecutor* localExecutor) {
         CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
             "Model based evaluation is supported only for DocParallel partition type");
         using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
@@ -91,7 +91,7 @@ namespace NCatboostCuda {
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
                                                                         ITrainingCallbacks* trainingCallbacks,
-                                                                        NPar::ILocalExecutor* localExecutor,
+                                                                        NPar::TLocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
             return Train<TTargetTemplate>(featuresManager,
@@ -116,7 +116,7 @@ namespace NCatboostCuda {
                                     const NCB::TTrainingDataProvider& test,
                                     TGpuAwareRandom& random,
                                     ui32 approxDimension,
-                                    NPar::ILocalExecutor* localExecutor) const {
+                                    NPar::TLocalExecutor* localExecutor) const {
             ::NCatboostCuda::ModelBasedEval<TTargetTemplate>(featuresManager,
                 catBoostOptions,
                 outputOptions,

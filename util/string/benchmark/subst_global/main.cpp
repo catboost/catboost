@@ -1,4 +1,4 @@
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/singleton.h>
@@ -154,7 +154,7 @@ namespace {
         for (const auto dummy : xrange(i.Iterations())) {                                         \
             Y_UNUSED(dummy);                                                                      \
             auto s = str;                                                                         \
-            NBench::Escape(s.data());                                                             \
+            NBench::Escape(s.data());                                                                   \
             Y_DO_NOT_OPTIMIZE_AWAY(SubstGlobal(s, ToUnderlying(D::WHAT), ToUnderlying(D::WITH))); \
             NBench::Clobber();                                                                    \
         }                                                                                         \
@@ -167,7 +167,7 @@ namespace {
         for (const auto dummy : xrange(i.Iterations())) {                                         \
             Y_UNUSED(dummy);                                                                      \
             auto s = str;                                                                         \
-            NBench::Escape(s.data());                                                             \
+            NBench::Escape(s.data());                                                                   \
             Y_DO_NOT_OPTIMIZE_AWAY(SubstGlobal(s, ToUnderlying(D::WHAT), ToUnderlying(D::WITH))); \
             NBench::Clobber();                                                                    \
         }                                                                                         \

@@ -23,12 +23,10 @@ If set, the passed list of parameters overrides the default values.
 
 Default value: Required argument}
 }
-\value{
-Model object.
-}
 \description{
 Train the model using a CatBoost dataset.
-
+}
+\details{
 The list of parameters
 
 \itemize{
@@ -36,61 +34,61 @@ The list of parameters
   \itemize{
     \item fold_permutation_block
 
-      Objects in the dataset are grouped in blocks before the random permutations.
+Objects in the dataset are grouped in blocks before the random permutations.
       This parameter defines the size of the blocks.
       The smaller is the value, the slower is the training.
       Large values may result in quality degradation.
 
-      Default value:
+Default value:
 
-      Default value differs depending on the dataset size and ranges from 1 to 256 inclusively
+Default value differs depending on the dataset size and ranges from 1 to 256 inclusively
     \item ignored_features
 
-      Identifiers of features to exclude from training.
+Identifiers of features to exclude from training.
       The non-negative indices that do not match any features are successfully ignored.
       For example, if five features are defined for the objects in the dataset and this parameter
       is set to "42", the corresponding non-existing feature is successfully ignored.
 
-      The identifier corresponds to the feature's index.
+The identifier corresponds to the feature's index.
       Feature indices used in train and feature importance are numbered from 0 to featureCount-1.
       If a file is used as input data then any non-feature column types are ignored when calculating these
       indices. For example, each row in the input file contains data in the following order:
       "categorical feature<\verb{\t}>label<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
       the identifier for the "rock" feature is 0, and for the "42" feature it is 1.
 
-      The identifiers of features to exclude should be enumerated at vector.
+The identifiers of features to exclude should be enumerated at vector.
 
-      For example, if training should exclude features with the identifiers
+For example, if training should exclude features with the identifiers
       1, 2, 7, 42, 43, 44, 45, the value of this parameter should be set to c(1,2,7,42,43,44,45).
 
-      Default value:
+Default value:
 
-      None (use all features)
+None (use all features)
     \item use_best_model
 
-      If this parameter is set, the number of trees that are saved in the resulting model is defined as follows:
+If this parameter is set, the number of trees that are saved in the resulting model is defined as follows:
 
-      Build the number of trees defined by the training parameters.
+Build the number of trees defined by the training parameters.
       \itemize{
         \item Identify the iteration with the optimal loss function value.
         \item No trees are saved after this iteration.
       }
 
-      This option requires a test dataset to be provided.
+This option requires a test dataset to be provided.
 
-      Default value:
+Default value:
 
-      FALSE (not used)
+FALSE (not used)
     \item loss_function
 
-      The loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
+The loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
       to use in training. The specified value also determines the machine learning problem to solve.
 
-      Format:
+Format:
 
-      <Loss function 1>[:<parameter 1>=<value>:..<parameter N>=<value>:]
+<Loss function 1>[:<parameter 1>=<value>:..<parameter N>=<value>:]
 
-      Supported loss functions:
+Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
@@ -112,36 +110,35 @@ The list of parameters
         \item 'QuerySoftMax'
       }
 
-      Supported parameters:
+Supported parameters:
       \itemize{
         \item alpha - The coefficient used in quantile-based losses ('Quantile' and 'LogLinQuantile'). The default value is 0.5.
 
-        For example, if you need to calculate the value of Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
+For example, if you need to calculate the value of Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
 
-        'Quantile:alpha=0.1'
+'Quantile:alpha=0.1'
       }
 
-      Default value:
+Default value:
 
-      'RMSE'
+'RMSE'
     \item custom_loss
 
-      Loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
+Loss function (see \url{https://catboost.ai/docs/concepts/loss-functions.html#loss-functions})
       values to output during training.
       These functions are not used for optimization and are displayed for informational purposes only.
 
-      Format:
+Format:
 
-      c(<Loss function 1>[:<parameter>=<value>],<Loss function 2>[:<parameter>=<value>],...,<Loss function N>[:<parameter>=<value>])
+c(<Loss function 1>[:<parameter>=<value>],<Loss function 2>[:<parameter>=<value>],...,<Loss function N>[:<parameter>=<value>])
 
-      Supported loss functions:
+Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
         \item 'Precision'
         \item 'Recall'
         \item 'F1'
-        \item 'F'
         \item 'BalancedAccuracy'
         \item 'BalancedErrorRate'
         \item 'MCC'
@@ -182,38 +179,35 @@ The list of parameters
         \item 'PrecisionAt'
         \item 'RecallAt'
         \item 'MAP'
-        \item 'MRR'
-        \item 'ERR'
       }
 
-      Supported parameters:
+Supported parameters:
       \itemize{
         \item alpha - The coefficient used in quantile-based losses ('Quantile' and 'LogLinQuantile'). The default value is 0.5.
       }
 
-      For example, if you need to calculate the value of CrossEntropy and Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
+For example, if you need to calculate the value of CrossEntropy and Quantile with the coefficient \eqn{\alpha = 0.1}, use the following construction:
 
-      c('CrossEntropy') or simply 'CrossEntropy'.
+c('CrossEntropy') or simply 'CrossEntropy'.
 
-      Values of all custom loss functions for learning and test datasets are saved to the Loss function
+Values of all custom loss functions for learning and test datasets are saved to the Loss function
       (see \url{https://catboost.ai/docs/concepts/output-data_loss-function.html#output-data_loss-function})
       output files (learn_error.tsv and test_error.tsv respectively). The catalog for these files is specified in the train-dir (train_dir) parameter.
 
-      Default value:
+Default value:
 
-      None (use one of the loss functions supported by the library)
+None (use one of the loss functions supported by the library)
     \item eval_metric
 
-      The loss function used for overfitting detection (if enabled) and best model selection (if enabled).
+The loss function used for overfitting detection (if enabled) and best model selection (if enabled).
 
-      Supported loss functions:
+Supported loss functions:
       \itemize{
         \item 'Logloss'
         \item 'CrossEntropy'
         \item 'Precision'
         \item 'Recall'
         \item 'F1'
-        \item 'F'
         \item 'BalancedAccuracy'
         \item 'BalancedErrorRate'
         \item 'MCC'
@@ -254,206 +248,204 @@ The list of parameters
         \item 'PrecisionAt'
         \item 'RecallAt'
         \item 'MAP'
-        \item 'MRR'
-        \item 'ERR'
       }
 
-      Format:
+Format:
 
-      metric_name:param=Value
+metric_name:param=Value
 
-      Examples:
+Examples:
 
-      \code{'R2'}
+\code{'R2'}
 
-      \code{'Quantile:alpha=0.3'}
+\code{'Quantile:alpha=0.3'}
 
-      Default value:
+Default value:
 
-      Optimized objective is used
+Optimized objective is used
 
-    \item iterations
+\item iterations
 
-      The maximum number of trees that can be built when solving machine learning problems.
+The maximum number of trees that can be built when solving machine learning problems.
 
-      When using other parameters that limit the number of iterations, the final number of trees may be less
+When using other parameters that limit the number of iterations, the final number of trees may be less
       than the number specified in this parameter.
 
-      Default value:
+Default value:
 
-      1000
+1000
 
-    \item border
+\item border
 
-      The target border. If the value is strictly greater than this threshold,
+The target border. If the value is strictly greater than this threshold,
       it is considered a positive class. Otherwise it is considered a negative class.
 
-      The parameter is obligatory if the Logloss function is used, since it uses borders to transform
+The parameter is obligatory if the Logloss function is used, since it uses borders to transform
       any given target to a binary target.
 
-      Used in binary classification.
+Used in binary classification.
 
-      Default value:
+Default value:
 
-      0.5
+0.5
 
-    \item leaf_estimation_iterations
+\item leaf_estimation_iterations
 
-      The number of gradient steps when calculating the values in leaves.
+The number of gradient steps when calculating the values in leaves.
 
-      Default value:
+Default value:
 
-      1
+1
 
-    \item depth
+\item depth
 
-      Depth of the tree.
+Depth of the tree.
 
-      The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
+The value can be any integer up to 16. It is recommended to use values in the range [1; 10].
 
-      Default value:
+Default value:
 
-      6
+6
     \item learning_rate
 
-      The learning rate.
+The learning rate.
 
-      Used for reducing the gradient step.
+Used for reducing the gradient step.
 
-      Default value:
+Default value:
 
-      0.03
+0.03
 
-    \item rsm
+\item rsm
 
-      Random subspace method. The percentage of features to use at each iteration of building trees. At each iteration, features are selected over again at random.
+Random subspace method. The percentage of features to use at each iteration of building trees. At each iteration, features are selected over again at random.
 
-      The value must be in the range [0;1].
+The value must be in the range [0;1].
 
-      Default value:
+Default value:
 
-      1
+1
 
-    \item random_seed
+\item random_seed
 
-      The random seed used for training.
+The random seed used for training.
 
-      Default value:
+Default value:
 
-      0
+0
 
-   \item nan_mode
+\item nan_mode
 
-      Way to process missing values.
+Way to process missing values.
 
-      Possible values:
+Possible values:
       \itemize{
         \item \code{'Min'}
         \item \code{'Max'}
         \item \code{'Forbidden'}
       }
 
-      Default value:
+Default value:
 
-      \code{'Min'}
+\code{'Min'}
 
-    \item od_pval
+\item od_pval
 
-      Use the Overfitting detector (see \url{https://catboost.ai/docs/concepts/overfitting-detector.html#overfitting-detector})
+Use the Overfitting detector (see \url{https://catboost.ai/docs/concepts/overfitting-detector.html#overfitting-detector})
       to stop training when the threshold is reached.
       Requires that a test dataset was input.
 
-      For best results, it is recommended to set a value in the range [10^-10; 10^-2].
+For best results, it is recommended to set a value in the range [10^-10; 10^-2].
 
-      The larger the value, the earlier overfitting is detected.
+The larger the value, the earlier overfitting is detected.
 
-      Default value:
+Default value:
 
-      The overfitting detection is turned off
+The overfitting detection is turned off
 
-    \item od_type
+\item od_type
 
-      The method used to calculate the values in leaves.
+The method used to calculate the values in leaves.
 
-      Possible values:
+Possible values:
       \itemize{
         \item IncToDec
         \item Iter
       }
 
-      Restriction.
+Restriction.
       Do not specify the overfitting detector threshold when using the Iter type.
 
-      Default value:
+Default value:
 
-      'IncToDec'
+'IncToDec'
 
-    \item od_wait
+\item od_wait
 
-      The number of iterations to continue the training after the iteration with the optimal loss function value.
+The number of iterations to continue the training after the iteration with the optimal loss function value.
       The purpose of this parameter differs depending on the selected overfitting detector type:
       \itemize{
         \item IncToDec - Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
         \item Iter - Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
       }
 
-      Default value:
+Default value:
 
-      20
+20
 
-    \item leaf_estimation_method
+\item leaf_estimation_method
 
-      The method used to calculate the values in leaves.
+The method used to calculate the values in leaves.
 
-      Possible values:
+Possible values:
       \itemize{
         \item Newton
         \item Gradient
       }
 
-      Default value:
+Default value:
 
-      Default value depends on the selected loss function
+Default value depends on the selected loss function
 
-    \item grow_policy
+\item grow_policy
 
-      GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+GPU only. The tree growing policy. It describes how to perform greedy tree construction.
 
-      Possible values:
+Possible values:
       \itemize{
         \item SymmetricTree
         \item Lossguide
         \item Depthwise
       }
 
-      Default value:
+Default value:
 
-      SymmetricTree
+SymmetricTree
 
-    \item min_data_in_leaf
+\item min_data_in_leaf
 
-      GPU only.
+GPU only.
       The minimum training samples count in leaf.
       CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
       This parameter is used only for Depthwise and Lossguide growing policies.
 
-      Default value:
+Default value:
 
-      1
+1
 
-    \item max_leaves
+\item max_leaves
 
-      GPU only. The maximum leaf count in resulting tree. Used only for Lossguide growing policy.
+GPU only. The maximum leaf count in resulting tree. Used only for Lossguide growing policy.
       This parameter is used only for Lossguide growing policy.
 
-      Default value:
+Default value:
 
-      31
+31
 
-    \item score_function
+\item score_function
       GPU only. Score that is used during tree construction to select the next tree split.
 
-      Possible values:
+Possible values:
       \itemize{
         \item L2
         \item Cosine
@@ -461,137 +453,137 @@ The list of parameters
         \item NewtonCosine
       }
 
-      Default value:
+Default value:
 
-      Cosine
+Cosine
 
-      For growing policy Lossguide default is NewtonL2.
+For growing policy Lossguide default is NewtonL2.
 
-    \item l2_leaf_reg
+\item l2_leaf_reg
 
-      L2 regularization coefficient. Used for leaf value calculation.
+L2 regularization coefficient. Used for leaf value calculation.
 
-      Any positive values are allowed.
+Any positive values are allowed.
 
-      Default value:
+Default value:
 
-      3
+3
 
-    \item model_size_reg
+\item model_size_reg
 
-      Model size regularization coefficient. The influence coefficient of the model size for choosing tree structure.
+Model size regularization coefficient. The influence coefficient of the model size for choosing tree structure.
       To get a smaller model size - increase this coefficient.
 
-      Any positive values are allowed.
+Any positive values are allowed.
 
-      Default value:
+Default value:
 
-      0.5
+0.5
 
-    \item has_time
+\item has_time
 
-      Use the order of objects in the input data
+Use the order of objects in the input data
       (do not perform a random permutation of the dataset at the preprocessing stage)
 
-      Default value:
+Default value:
 
-      FALSE (not used; permute input dataset)
+FALSE (not used; permute input dataset)
 
-    \item allow_const_label
+\item allow_const_label
 
-      To allow the constant label value in the dataset.
+To allow the constant label value in the dataset.
 
-      Default value:
+Default value:
 
-      FALSE
+FALSE
 
-    \item name
+\item name
 
-      The experiment name to display in visualization tools (see \url{https://catboost.ai/docs/features/visualization.html#visualization}).
+The experiment name to display in visualization tools (see \url{https://catboost.ai/docs/features/visualization.html#visualization}).
 
-      Default value:
+Default value:
 
-      experiment
+experiment
 
-    \item prediction_type
+\item prediction_type
 
-      The format for displaying approximated values in output data.
+The format for displaying approximated values in output data.
 
-      Possible values:
+Possible values:
       \itemize{
         \item 'Probability'
         \item 'Class'
         \item 'RawFormulaVal'
       }
 
-      Default value:
+Default value:
 
-      \code{'RawFormulaVal'}
+\code{'RawFormulaVal'}
 
-    \item fold_len_multiplier
+\item fold_len_multiplier
 
-      Coefficient for changing the length of folds.
+Coefficient for changing the length of folds.
 
-      The value must be greater than 1. The best validation result is achieved with minimum values.
+The value must be greater than 1. The best validation result is achieved with minimum values.
 
-      With values close to 1 (for example, \eqn{1 + \epsilon}), each iteration takes a quadratic amount of memory and time
+With values close to 1 (for example, \eqn{1 + \epsilon}), each iteration takes a quadratic amount of memory and time
       for the number of objects in the iteration. Thus, low values are possible only when there is a small number of objects.
 
-      Default value:
+Default value:
 
-      2
+2
 
-    \item class_weights
+\item class_weights
 
-      Classes weights. The values are used as multipliers for the object weights.
+Classes weights. The values are used as multipliers for the object weights.
 
-      For example, for 3 class classification you could use:
+For example, for 3 class classification you could use:
 
-      \code{c(0.85, 1.2, 1)}
+\code{c(0.85, 1.2, 1)}
 
-      Default value:
+Default value:
 
-      None (the weight for all classes is set to 1)
+None (the weight for all classes is set to 1)
 
-    \item classes_count
+\item classes_count
 
-      The upper limit for the numeric class label. Defines the number of classes for multiclassification.
+The upper limit for the numeric class label. Defines the number of classes for multiclassification.
 
-      Only non-negative integers can be specified. The given integer should be greater than any of the target
+Only non-negative integers can be specified. The given integer should be greater than any of the target
       values.
 
-      If this parameter is specified the labels for all classes in the input dataset should be smaller
+If this parameter is specified the labels for all classes in the input dataset should be smaller
       than the given value.
 
-      Default value:
+Default value:
 
-      maximum class label + 1
+maximum class label + 1
 
-    \item one_hot_max_size
+\item one_hot_max_size
 
-      Convert the feature to float if the number of different values that it takes exceeds the specified value. Ctrs are not calculated for such features.
+Convert the feature to float if the number of different values that it takes exceeds the specified value. Ctrs are not calculated for such features.
 
-      The one-vs.-all delimiter is used for the resulting float features.
+The one-vs.-all delimiter is used for the resulting float features.
 
-      Default value:
+Default value:
 
-      FALSE
+FALSE
 
-      Do not convert features to float based on the number of different values
+Do not convert features to float based on the number of different values
 
-    \item random_strength
+\item random_strength
 
-      Score standard deviation multiplier.
+Score standard deviation multiplier.
 
-       Default value:
+Default value:
 
-       1
+1
 
-    \item bootstrap_type
+\item bootstrap_type
 
-      Bootstrap type. Defines the method for sampling the weights of documents.
+Bootstrap type. Defines the method for sampling the weights of documents.
 
-      Possible values:
+Possible values:
       \itemize{
         \item 'Bayesian'
         \item 'Bernoulli'
@@ -600,82 +592,82 @@ The list of parameters
         \item 'No'
       }
 
-      Poisson bootstrap is supported only on GPU.
+Poisson bootstrap is supported only on GPU.
 
-      Default value:
+Default value:
 
-      \code{'Bayesian'}
+\code{'Bayesian'}
 
-    \item bagging_temperature
+\item bagging_temperature
 
-       Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
+Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
 
-       Typical values are in the range \eqn{[0, 1]} (0 is for no bagging).
+Typical values are in the range \eqn{[0, 1]} (0 is for no bagging).
 
-       Possible values are in the range \eqn{[0, +\infty)}.
+Possible values are in the range \eqn{[0, +\infty)}.
 
-       Default value:
+Default value:
 
-       1
+1
 
-    \item subsample
+\item subsample
 
-      Sample rate for bagging. This parameter can be used if one of the following bootstrap types is defined:
+Sample rate for bagging. This parameter can be used if one of the following bootstrap types is defined:
       \itemize{
         \item 'Bernoulli'
       }
 
-      Default value:
+Default value:
 
-      0.66
+0.66
 
-    \item sampling_unit
+\item sampling_unit
 
-      The parameter allows to specify the sampling scheme: sample weights for each object individually or for an entire group of objects together.
+The parameter allows to specify the sampling scheme: sample weights for each object individually or for an entire group of objects together.
 
-      Possible values:
+Possible values:
       \itemize{
         \item 'Object'
         \item 'Group'
       }
 
-      Default value:
+Default value:
 
-      \code{'Object'}
+\code{'Object'}
 
-    \item sampling_frequency
+\item sampling_frequency
 
-      Frequency to sample weights and objects when building trees.
+Frequency to sample weights and objects when building trees.
 
-      Possible values:
+Possible values:
       \itemize{
         \item 'PerTree'
         \item 'PerTreeLevel'
       }
 
-      Default value:
+Default value:
 
-      \code{'PerTreeLevel'}
+\code{'PerTreeLevel'}
 
-    \item model_shrink_rate
+\item model_shrink_rate
 
-      For i > 0 at the start of i-th iteration multiplies model by (1 - model_shrink_rate / i).
+For i > 0 at the start of i-th iteration multiplies model by (1 - model_shrink_rate / i).
 
-      Possible values: [0, 1).
+Possible values: [0, 1).
 
-      Default value: 0
+Default value: 0
   }
   \item CTR settings
   \itemize{
     \item simple_ctr
 
-      Binarization settings for categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
+Binarization settings for categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 
-      Format:
+Format:
 
-      \code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
+\code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
 
-      Components:
+Components:
       \itemize{
         \item CTR types for training on CPU:
         \itemize{
@@ -697,7 +689,7 @@ The list of parameters
         \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
         type for the label value. Only used for regression problems.
 
-        Possible values:
+Possible values:
         \itemize{
           \item \code{'Median'}
           \item \code{'Uniform'}
@@ -731,15 +723,15 @@ The list of parameters
         }
       }
 
-    \item combinations_ctr
+\item combinations_ctr
 
-      Binarization settings for combinations of categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
+Binarization settings for combinations of categorical features (see \url{https://catboost.ai/docs/concepts/algorithm-main-stages_cat-to-numberic.html}).
 
-      Format:
+Format:
 
-      \code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
+\code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
 
-      Components:
+Components:
       \itemize{
         \item CTR types for training on CPU:
         \itemize{
@@ -761,7 +753,7 @@ The list of parameters
         \item The binarization (see \url{https://catboost.ai/docs/concepts/quantization.html})
         type for the target. Only used for regression problems.
 
-        Possible values:
+Possible values:
         \itemize{
           \item \code{'Median'}
           \item \code{'Uniform'}
@@ -795,20 +787,20 @@ The list of parameters
         }
       }
 
-    \item ctr_target_border_count
+\item ctr_target_border_count
 
-      Maximum number of borders used in target binarization for categorical features that need it.
+Maximum number of borders used in target binarization for categorical features that need it.
       If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it overrides this value.
 
-      Default value:
+Default value:
 
-      1
+1
 
-    \item counter_calc_method
+\item counter_calc_method
 
-      The method for calculating the Counter CTR type for the test dataset.
+The method for calculating the Counter CTR type for the test dataset.
 
-      Possible values:
+Possible values:
         \itemize{
           \item \code{'Full'}
           \item \code{'FullTest'}
@@ -816,65 +808,64 @@ The list of parameters
           \item \code{'SkipTest'}
         }
 
-        Default value: \code{'PrefixTest'}
+Default value: \code{'PrefixTest'}
 
-    \item max_ctr_complexity
+\item max_ctr_complexity
 
-      The maximum number of categorical features that can be combined.
+The maximum number of categorical features that can be combined.
 
-      Default value:
+Default value:
 
-      4
+4
 
-    \item ctr_leaf_count_limit
+\item ctr_leaf_count_limit
 
-      The maximum number of leaves with categorical features.
+The maximum number of leaves with categorical features.
       If the number of leaves exceeds the specified limit, some leaves are discarded.
       The value must be positive (for zero limit use \code{ignored_features} parameter).
 
-      The leaves to be discarded are selected as follows:
+The leaves to be discarded are selected as follows:
       \enumerate{
         \item The leaves are sorted by the frequency of the values.
         \item The top N leaves are selected, where N is the value specified in the parameter.
         \item All leaves starting from N+1 are discarded.
       }
 
-      This option reduces the resulting model size and the amount of memory required for training.
+This option reduces the resulting model size and the amount of memory required for training.
       Note that the resulting quality of the model can be affected.
 
-      Default value:
+Default value:
 
-      None (The number of leaves with categorical features is not limited)
+None (The number of leaves with categorical features is not limited)
 
-    \item store_all_simple_ctr
+\item store_all_simple_ctr
 
-      Ignore categorical features, which are not used in feature combinations,
+Ignore categorical features, which are not used in feature combinations,
       when choosing candidates for exclusion.
 
-      Use this parameter with ctr-leaf-count-limit only.
+Use this parameter with ctr-leaf-count-limit only.
 
-      Default value:
+Default value:
 
-      FALSE (Both simple features and feature combinations are taken in account when limiting the number of leaves with categorical features)
+FALSE (Both simple features and feature combinations are taken in account when limiting the number of leaves with categorical features)
 
-
-  }
+}
   \item Binarization settings
   \itemize{
     \item  border_count
 
-      The number of splits for numerical features. Allowed values are integers from 1 to 255 inclusively.
+The number of splits for numerical features. Allowed values are integers from 1 to 255 inclusively.
 
-      Default value:
+Default value:
 
-      254 for training on CPU or 128 for training on GPU
+254 for training on CPU or 128 for training on GPU
 
-    \item feature_border_type
+\item feature_border_type
 
-      The binarization mode (see \url{https://catboost.ai/docs/concepts/quantization.html})
+The binarization mode (see \url{https://catboost.ai/docs/concepts/quantization.html})
       for numerical features.
 
-      Possible values:
+Possible values:
       \itemize{
         \item \code{'Median'}
         \item \code{'Uniform'}
@@ -884,27 +875,27 @@ The list of parameters
         \item \code{'GreedyLogSum'}
       }
 
-      Default value:
+Default value:
 
-      \code{'MinEntropy'}
+\code{'MinEntropy'}
   }
   \item Performance settings
   \itemize{
     \item thread_count
 
-      The number of threads to use when applying the model.
+The number of threads to use when applying the model.
 
-      Allows you to optimize the speed of execution. This parameter doesn't affect results.
+Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
-      Default value:
+Default value:
 
-      The number of CPU cores.
+The number of CPU cores.
   }
   \item Output settings
   \itemize{
     \item logging_level
 
-      Possible values:
+Possible values:
       \itemize{
         \item \code{'Silent'}
         \item \code{'Verbose'}
@@ -912,132 +903,131 @@ The list of parameters
         \item \code{'Debug'}
       }
 
-      Default value:
+Default value:
 
-      'Silent'
+'Silent'
 
-    \item metric_period
+\item metric_period
 
-      The frequency of iterations to print the information to stdout. The value should be a positive integer.
+The frequency of iterations to print the information to stdout. The value should be a positive integer.
 
-      Default value:
+Default value:
 
-      1
+1
 
-    \item train_dir
+\item train_dir
 
-      The directory for storing the files generated during training.
+The directory for storing the files generated during training.
 
-      Default value:
+Default value:
 
-      None (current catalog)
+None (current catalog)
 
-    \item save_snapshot
+\item save_snapshot
 
-      Enable snapshotting for restoring the training progress after an interruption.
+Enable snapshotting for restoring the training progress after an interruption.
 
-      Default value:
+Default value:
 
-      None
+None
 
-    \item snapshot_file
+\item snapshot_file
 
-      Settings for recovering training after an interruption (see
+Settings for recovering training after an interruption (see
       \url{https://catboost.ai/docs/features/snapshots.html}).
 
-      Depending on whether the file specified exists in the file system:
+Depending on whether the file specified exists in the file system:
       \itemize{
         \item Missing - write information about training progress to the specified file.
         \item Exists - load data from the specified file and continue training from where it left off.
       }
 
-      Default value:
+Default value:
 
-      File can't be generated or read. If the value is omitted, the file name is experiment.cbsnapshot.
+File can't be generated or read. If the value is omitted, the file name is experiment.cbsnapshot.
 
-  \item snapshot_interval
+\item snapshot_interval
 
-      Interval between saving snapshots (seconds)
+Interval between saving snapshots (seconds)
 
-      Default value:
+Default value:
 
-      600
+600
 
-  \item allow_writing_files
+\item allow_writing_files
 
-      If this flag is set to FALSE, no files with different diagnostic info will be created during training.
+If this flag is set to FALSE, no files with different diagnostic info will be created during training.
       With this flag set to FALSE no snapshotting can be done. Plus visualisation will not
       work, because visualisation uses files that are created and updated during training.
 
-      Default value:
+Default value:
 
-      TRUE
+TRUE
 
-  \item approx_on_full_history
+\item approx_on_full_history
 
-      If this flag is set to TRUE, each approximated value is calculated using all the preceding rows in the fold (slower, more accurate).
+If this flag is set to TRUE, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
       If this flag is set to FALSE, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
 
-      Default value:
+Default value:
 
-      FALSE
+FALSE
 
-  \item boosting_type
+\item boosting_type
 
-      Boosting scheme.
+Boosting scheme.
      Possible values:
          - 'Ordered' - Gives better quality, but may slow down the training.
          - 'Plain' - The classic gradient boosting scheme. May result in quality degradation, but does not slow down the training.
 
-      Default value:
+Default value:
 
-      Depends on object count and feature count in train dataset and on learning mode.
+Depends on object count and feature count in train dataset and on learning mode.
 
-  \item dev_score_calc_obj_block_size
+\item dev_score_calc_obj_block_size
 
-      CPU only. Size of block of samples in score calculation. Should be > 0
+CPU only. Size of block of samples in score calculation. Should be > 0
       Used only for learning speed tuning.
       Changing this parameter can affect results in pairwise scoring mode due to numerical accuracy differences
 
-      Default value:
+Default value:
 
-      5000000
+5000000
 
-  \item dev_efb_max_buckets
+\item dev_efb_max_buckets
 
-      CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
+CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
       Used only for learning speed tuning.
 
-      Default value:
+Default value:
 
-      1024
+1024
 
-  \item sparse_features_conflict_fraction
+\item sparse_features_conflict_fraction
 
-     CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
+CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
      Should be a real value in [0, 1) interval.
 
-     Default value:
+Default value:
 
-     0.0
+0.0
 
-   \item leaf_estimation_backtracking
+\item leaf_estimation_backtracking
 
-       Type of backtracking during gradient descent.
+Type of backtracking during gradient descent.
        Possible values:
            - 'No' - never backtrack; supported on CPU and GPU
            - 'AnyImprovement' - reduce the descent step until the value of loss function is less than before the step; supported on CPU and GPU
            - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
 
-       Default value:
+Default value:
 
-       'AnyImprovement'
+'AnyImprovement'
 
-  }
+}
 }
 }
 \examples{
-\dontrun{
 train_pool_path <- system.file("extdata", "adult_train.1000", package = "catboost")
 test_pool_path <- system.file("extdata", "adult_test.1000", package = "catboost")
 cd_path <- system.file("extdata", "adult.cd", package = "catboost")
@@ -1053,7 +1043,6 @@ fit_params <- list(
     l2_leaf_reg = 3.5,
     train_dir = 'train_dir')
 model <- catboost.train(train_pool, test_pool, fit_params)
-}
 }
 \seealso{
 \url{https://catboost.ai/docs/concepts/r-reference_catboost-train.html}

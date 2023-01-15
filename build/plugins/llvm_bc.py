@@ -8,7 +8,7 @@ def onllvm_bc(unit, *args):
     name = kwds['NAME'][0]
     symbols = kwds.get('SYMBOLS')
     obj_suf = unit.get('OBJ_SUF')
-    skip_compile_step = 'NO_COMPILE' in kwds
+    skip_compile_step = 'NO_COMPILE' in kwds 
     merged_bc = name + '_merged' + obj_suf + '.bc'
     out_bc = name + '_optimized' + obj_suf + '.bc'
     bcs = []

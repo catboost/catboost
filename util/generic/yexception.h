@@ -13,7 +13,6 @@
 #include <util/system/defaults.h>
 #include <util/system/error.h>
 #include <util/system/src_location.h>
-#include <util/system/platform.h>
 
 #include <exception>
 
@@ -66,8 +65,7 @@ namespace NPrivateException {
     };
 
     template <class E, class T>
-    static inline std::enable_if_t<std::is_base_of<yexception, std::decay_t<E>>::value, E&&>
-    operator<<(E&& e, const T& t) {
+    static inline E&& operator<<(E&& e, const T& t) {
         e.Append(t);
 
         return std::forward<E>(e);
@@ -75,7 +73,7 @@ namespace NPrivateException {
 
     template <class T>
     static inline T&& operator+(const TSourceLocation& sl, T&& t) {
-        return std::forward<T>(t << sl << TStringBuf(": "));
+        return std::forward<T>(t << sl << AsStringBuf(": "));
     }
 }
 
@@ -96,8 +94,7 @@ public:
 
     TSystemError()
         : TSystemError(LastSystemError())
-    {
-    }
+    {}
 
     int Status() const noexcept {
         return Status_;
@@ -155,37 +152,7 @@ namespace NPrivate {
 void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
-
-/**
- * Formats current exception for logging purposes. Includes formatted backtrace if it is stored 
- * alongside the exception.
- * The output format is a subject to change, do not depend or canonize it.
- * The speed of this method is not guaranteed either. Do not call it in hot paths of your code.
- * 
- * The lack of current exception prior to the invocation indicates logical bug in the client code.
- * Y_VERIFY asserts the existence of exception, otherwise panic and abort.
- */
-TString FormatCurrentException();
-void FormatCurrentExceptionTo(IOutputStream& out);
-
-/*
- * A neat method that detects wrether stack unwinding is in progress.
- * As its std counterpart (that is std::uncaught_exception())
- * was removed from the standard, this method uses std::uncaught_exceptions() internally.
- *
- * If you are struggling to use this method, please, consider reading
- *
- * http://www.gotw.ca/gotw/047.htm
- * and
- * http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4152.pdf
- *
- * DO NOT USE THIS METHOD IN DESTRUCTORS.
- */
 bool UncaughtException() noexcept;
-
-std::string CurrentExceptionTypeName();
-
-TString FormatExc(const std::exception& exception);
 
 #define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
     do {                                         \
@@ -206,10 +173,10 @@ TString FormatExc(const std::exception& exception);
         }                                                                                                                   \
     } while (false)
 
-#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
+#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)
 
-#define Y_ENSURE_BT_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::TStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYExceptionWithBacktrace)
+#define Y_ENSURE_BT_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYExceptionWithBacktrace)
 #define Y_ENSURE_BT_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, TWithBackTrace<yexception>() << MESSAGE)
 
 /**

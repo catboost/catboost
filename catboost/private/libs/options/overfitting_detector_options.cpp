@@ -3,7 +3,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 NCatboostOptions::TOverfittingDetectorOptions::TOverfittingDetectorOptions()
     : AutoStopPValue("stop_pvalue", 0)
@@ -34,8 +34,7 @@ void NCatboostOptions::TOverfittingDetectorOptions::Load(const NJson::TJsonValue
     CheckedLoad(options, &AutoStopPValue, &OverfittingDetectorType, &IterationsWait);
     CB_ENSURE(
             (OverfittingDetectorType.Get() != EOverfittingDetectorType::Iter)
-            || !options.Has("stop_pvalue")
-            || (options["stop_pvalue"].GetDouble() == 0.0),  // this check is needed because the default value is serialized
+            || !options.Has("stop_pvalue"),
             "Auto-stop PValue is not a valid parameter for Iter overfitting detector."
             );
     Validate();

@@ -1,14 +1,16 @@
+#include "datetime.h"
 #include "defaults.h"
 
+#include <cstdio>
+
+#include "atomic.h"
 #include "event.h"
 #include "mutex.h"
 #include "condvar.h"
 
 #ifdef _win_
-    #include "winint.h"
+#include "winint.h"
 #endif
-
-#include <atomic>
 
 class TSystemEvent::TEvImpl: public TAtomicRefCount<TSystemEvent::TEvImpl> {
 public:
@@ -50,12 +52,12 @@ public:
     }
 
     inline void Signal() noexcept {
-        if (Manual && Signaled.load(std::memory_order_acquire)) {
+        if (Manual && AtomicGet(Signaled)) {
             return; // shortcut
         }
 
         with_lock (Mutex) {
-            Signaled.store(true, std::memory_order_release);
+            AtomicSet(Signaled, 1);
         }
 
         if (Manual) {
@@ -66,27 +68,27 @@ public:
     }
 
     inline void Reset() noexcept {
-        Signaled.store(false, std::memory_order_release);
+        AtomicSet(Signaled, 0);
     }
 
     inline bool WaitD(TInstant deadLine) noexcept {
-        if (Manual && Signaled.load(std::memory_order_acquire)) {
+        if (Manual && AtomicGet(Signaled)) {
             return true; // shortcut
         }
 
         bool resSignaled = true;
 
         with_lock (Mutex) {
-            while (!Signaled.load(std::memory_order_acquire)) {
+            while (!AtomicGet(Signaled)) {
                 if (!Cond.WaitD(Mutex, deadLine)) {
-                    resSignaled = Signaled.load(std::memory_order_acquire); // timed out, but Signaled could have been set
+                    resSignaled = AtomicGet(Signaled); // timed out, but Signaled could have been set
 
                     break;
                 }
             }
 
             if (!Manual) {
-                Signaled.store(false, std::memory_order_release);
+                AtomicSet(Signaled, 0);
             }
         }
 
@@ -100,7 +102,7 @@ private:
 #else
     TCondVar Cond;
     TMutex Mutex;
-    std::atomic<bool> Signaled = false;
+    TAtomic Signaled = 0;
     bool Manual;
 #endif
 };

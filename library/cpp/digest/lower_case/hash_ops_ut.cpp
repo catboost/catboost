@@ -1,6 +1,6 @@
 #include "hash_ops.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestCIHash) {
     Y_UNIT_TEST(TestYHash1) {
@@ -30,7 +30,7 @@ Y_UNIT_TEST_SUITE(TestCIHash) {
     }
 
     Y_UNIT_TEST(Test1) {
-        UNIT_ASSERT_VALUES_EQUAL(TCIOps()("aBc3"), TCIOps()(TStringBuf("AbC3")));
+        UNIT_ASSERT_VALUES_EQUAL(TCIOps()("aBc3"), TCIOps()(AsStringBuf("AbC3")));
         UNIT_ASSERT(TCIOps()("aBc4", "AbC4"));
     }
 }

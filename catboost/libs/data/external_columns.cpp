@@ -13,7 +13,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
         return MakeHolder<TExternalFloatValuesHolder>(
@@ -61,7 +61,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
         return MakeHolder<TExternalCatValuesHolder>(
@@ -116,7 +116,7 @@ namespace NCB {
         ESparseArrayIndexingType sparseArrayIndexingType,
         ui32 dstBitsPerKey
     ) {
-        if (std::holds_alternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
+        if (HoldsAlternative<TFullSubset<ui32>>(subsetInvertedIndexing)) {
             return 0; // just clone
         }
 
@@ -132,7 +132,7 @@ namespace NCB {
                 ramUsedForDstIndexing = (sizeof(ui32) + sizeof(ui64)) * nonDefaultValuesCount;
                 break;
             default:
-                CB_ENSURE(false, "Unexpected sparse array indexing type");
+                Y_UNREACHABLE();
         }
 
         const ui64 ramUsedForDstValues = sizeof(TDst) * nonDefaultValuesCount;
@@ -214,7 +214,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalFloatSparseValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
 
@@ -225,7 +225,7 @@ namespace NCB {
             *this
         );
 
-        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalFloatSparseValuesHolder>(
                 this->GetId(),
@@ -248,7 +248,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder, ui8>(
                 this->GetId(),
                 this->SrcData,
-                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 [=] (float srcValue) -> ui8 {
                     return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
                 },
@@ -284,7 +284,7 @@ namespace NCB {
 
     THolder<IFeatureValuesHolder> TExternalCatSparseValuesHolder::CloneWithNewSubsetIndexing(
         const TCloningParams& cloningParams,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
 
@@ -294,7 +294,7 @@ namespace NCB {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
-        if (std::holds_alternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
             // just clone
             return MakeHolder<TExternalCatSparseValuesHolder>(
                 this->GetId(),
@@ -312,7 +312,7 @@ namespace NCB {
             return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder, ui32>(
                 this->GetId(),
                 this->SrcData,
-                std::get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
                 getPerfectHashValue,
                 sizeof(ui32) * CHAR_BIT
             );

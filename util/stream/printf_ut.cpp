@@ -4,7 +4,7 @@
 
 #include <util/generic/string.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TStreamPrintfTest) {
     Y_UNIT_TEST(TestPrintf) {
@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(TStreamPrintfTest) {
     }
 
 #ifdef __GNUC__
-    #pragma GCC diagnostic ignored "-Wformat-zero-length"
+#pragma GCC diagnostic ignored "-Wformat-zero-length"
 #endif // __GNUC__
 
     Y_UNIT_TEST(TestZeroString) {

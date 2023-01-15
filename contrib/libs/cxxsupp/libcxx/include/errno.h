@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===-------------------------- errno.h -----------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -25,7 +25,7 @@ Macros:
 #include <__config>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 #ifdef _LIBCPP_COMPILER_MSVC
@@ -85,9 +85,9 @@ static const int __elast2 = 105;
 #define ELAST ENOTRECOVERABLE
 #endif
 
-#endif // defined(EOWNERDEAD)
+#endif  // defined(EOWNERDEAD)
 
-#endif // !defined(EOWNERDEAD) || !defined(ENOTRECOVERABLE)
+#endif  // !defined(EOWNERDEAD) || !defined(ENOTRECOVERABLE)
 
 //  supply errno values likely to be missing, particularly on Windows
 
@@ -407,4 +407,4 @@ static const int __elast2 = 105;
 
 #endif // __cplusplus
 
-#endif // _LIBCPP_ERRNO_H
+#endif  // _LIBCPP_ERRNO_H

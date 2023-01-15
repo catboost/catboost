@@ -2,11 +2,10 @@
 
 #include <catboost/libs/data/load_data.h>
 
-#include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/stream/file.h>
-#include <util/system/tempfile.h>
+#include <util/system/mktemp.h>
 
 
 namespace NCB {
@@ -39,10 +38,7 @@ namespace NCB {
         SaveDataToTempFile(srcData.DatasetFileData, &(readDatasetMainParams->PoolPath), srcDataFiles);
         readDatasetMainParams->PoolPath.Scheme = srcData.Scheme;
         readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.HasHeader = srcData.DsvFileHasHeader;
-        readDatasetMainParams->ColumnarPoolFormatParams.DsvFormat.NumVectorDelimiter
-            = srcData.NumVectorDelimiter;
         SaveDataToTempFile(srcData.PairsFileData, &(readDatasetMainParams->PairsFilePath), srcDataFiles);
-        readDatasetMainParams->PairsFilePath.Scheme = srcData.PairsScheme;
         SaveDataToTempFile(
             srcData.GroupWeightsFileData,
             &(readDatasetMainParams->GroupWeightsFilePath),
@@ -71,32 +67,23 @@ namespace NCB {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(3);
 
-        auto readDataset = [&] () {
-            return ReadDataset(
-                /*taskType*/Nothing(),
-                readDatasetMainParams.PoolPath,
-                readDatasetMainParams.PairsFilePath, // can be uninited
-                readDatasetMainParams.GroupWeightsFilePath, // can be uninited
-                /*timestampsFilePath*/TPathWithScheme(),
-                readDatasetMainParams.BaselineFilePath, // can be uninited
-                readDatasetMainParams.FeatureNamesFilePath, // can be uninited
-                /*poolMetaInfoFilePath*/TPathWithScheme(),
-                readDatasetMainParams.ColumnarPoolFormatParams,
-                testCase.SrcData.IgnoredFeatures,
-                testCase.SrcData.ObjectsOrder,
-                TDatasetSubset::MakeColumns(),
-                /*forceUnitAutoPairWeights*/ true,
-                /*classLabels*/Nothing(),
-                &localExecutor
-            );
-        };
+        TDataProviderPtr dataProvider = ReadDataset(
+            /*taskType*/Nothing(),
+            readDatasetMainParams.PoolPath,
+            readDatasetMainParams.PairsFilePath, // can be uninited
+            readDatasetMainParams.GroupWeightsFilePath, // can be uninited
+            /*timestampsFilePath*/TPathWithScheme(),
+            readDatasetMainParams.BaselineFilePath, // can be uninited
+            readDatasetMainParams.FeatureNamesFilePath, // can be uninited
+            readDatasetMainParams.ColumnarPoolFormatParams,
+            testCase.SrcData.IgnoredFeatures,
+            testCase.SrcData.ObjectsOrder,
+            TDatasetSubset::MakeColumns(),
+            /*classLabels*/Nothing(),
+            &localExecutor
+        );
 
-        if (testCase.ExpectedReadError) {
-            UNIT_ASSERT_EXCEPTION(readDataset(), TCatBoostException);
-        } else {
-            TDataProviderPtr dataProvider = readDataset();
-            Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
-        }
+        Compare<TRawObjectsDataProvider>(std::move(dataProvider), testCase.ExpectedData);
     }
 
     }

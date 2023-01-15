@@ -1,29 +1,21 @@
-[![Run Linux Travis CI tasks](https://github.com/libexpat/libexpat/actions/workflows/linux.yml/badge.svg)](https://github.com/libexpat/libexpat/actions/workflows/linux.yml)
+[![Travis CI Build Status](https://travis-ci.org/libexpat/libexpat.svg?branch=master)](https://travis-ci.org/libexpat/libexpat)
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/libexpat/libexpat?svg=true)](https://ci.appveyor.com/project/libexpat/libexpat)
 [![Packaging status](https://repology.org/badge/tiny-repos/expat.svg)](https://repology.org/metapackage/expat/versions)
-[![Downloads SourceForge](https://img.shields.io/sourceforge/dt/expat?label=Downloads%20SourceForge)](https://sourceforge.net/projects/expat/files/)
-[![Downloads GitHub](https://img.shields.io/github/downloads/libexpat/libexpat/total?label=Downloads%20GitHub)](https://github.com/libexpat/libexpat/releases)
 
 
-# Expat, Release 2.5.0
+# Expat, Release 2.2.7
 
 This is Expat, a C library for parsing XML, started by
-[James Clark](https://en.wikipedia.org/wiki/James_Clark_%28programmer%29) in 1997.
+[James Clark](https://en.wikipedia.org/wiki/James_Clark_(programmer)) in 1997.
 Expat is a stream-oriented XML parser.  This means that you register
 handlers with the parser before starting the parse.  These handlers
 are called when the parser discovers the associated structures in the
 document being parsed.  A start tag is an example of the kind of
 structures for which you may register handlers.
 
-Expat supports the following compilers:
-
-- GNU GCC >=4.5
-- LLVM Clang >=3.5
-- Microsoft Visual Studio >=15.0/2017 (rolling `${today} minus 5 years`)
-
-Windows users can use the
-[`expat-win32bin-*.*.*.{exe,zip}` download](https://github.com/libexpat/libexpat/releases),
-which includes both pre-compiled libraries and executables, and source code for
+Windows users should use the
+[`expat_win32` package](https://sourceforge.net/projects/expat/files/expat_win32/),
+which includes both precompiled libraries and executables, and source code for
 developers.
 
 Expat is [free software](https://www.gnu.org/philosophy/free-sw.en.html).
@@ -32,67 +24,6 @@ contained in the file
 [`COPYING`](https://github.com/libexpat/libexpat/blob/master/expat/COPYING)
 distributed with this package.
 This license is the same as the MIT/X Consortium license.
-
-
-## Using libexpat in your CMake-Based Project
-
-There are two ways of using libexpat with CMake:
-
-### a) Module Mode
-
-This approach leverages CMake's own [module `FindEXPAT`](https://cmake.org/cmake/help/latest/module/FindEXPAT.html).
-
-Notice the *uppercase* `EXPAT` in the following example:
-
-```cmake
-cmake_minimum_required(VERSION 3.0)  # or 3.10, see below
-
-project(hello VERSION 1.0.0)
-
-find_package(EXPAT 2.2.8 MODULE REQUIRED)
-
-add_executable(hello
-    hello.c
-)
-
-# a) for CMake >=3.10 (see CMake's FindEXPAT docs)
-target_link_libraries(hello PUBLIC EXPAT::EXPAT)
-
-# b) for CMake >=3.0
-target_include_directories(hello PRIVATE ${EXPAT_INCLUDE_DIRS})
-target_link_libraries(hello PUBLIC ${EXPAT_LIBRARIES})
-```
-
-### b) Config Mode
-
-This approach requires files from…
-
-- libexpat >=2.2.8 where packaging uses the CMake build system
-or
-- libexpat >=2.3.0 where packaging uses the GNU Autotools build system
-  on Linux
-or
-- libexpat >=2.4.0 where packaging uses the GNU Autotools build system
-  on macOS or MinGW.
-
-Notice the *lowercase* `expat` in the following example:
-
-```cmake
-cmake_minimum_required(VERSION 3.0)
-
-project(hello VERSION 1.0.0)
-
-find_package(expat 2.2.8 CONFIG REQUIRED char dtd ns)
-
-add_executable(hello
-    hello.c
-)
-
-target_link_libraries(hello PUBLIC expat::expat)
-```
-
-
-## Building from a Git Clone
 
 If you are building Expat from a check-out from the
 [Git repository](https://github.com/libexpat/libexpat/),
@@ -106,11 +37,6 @@ autoconf 2.58 or newer. Run the script like this:
 
 Once this has been done, follow the same instructions as for building
 from a source distribution.
-
-
-## Building from a Source Distribution
-
-### a) Building with the configure script (i.e. GNU Autotools)
 
 To build Expat from a source distribution, you first run the
 configuration shell script in the top level distribution directory:
@@ -199,71 +125,3 @@ information.
 
 A reference manual is available in the file `doc/reference.html` in this
 distribution.
-
-
-### b) Building with CMake
-
-The CMake build system is still *experimental* and may replace the primary
-build system based on GNU Autotools at some point when it is ready.
-
-
-#### Available Options
-
-For an idea of the available (non-advanced) options for building with CMake:
-
-```console
-# rm -f CMakeCache.txt ; cmake -D_EXPAT_HELP=ON -LH . | grep -B1 ':.*=' | sed 's,^--$,,'
-// Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
-
-// Install path prefix, prepended onto install directories.
-CMAKE_INSTALL_PREFIX:PATH=/usr/local
-
-// Path to a program.
-DOCBOOK_TO_MAN:FILEPATH=/usr/bin/docbook2x-man
-
-// Build man page for xmlwf
-EXPAT_BUILD_DOCS:BOOL=ON
-
-// Build the examples for expat library
-EXPAT_BUILD_EXAMPLES:BOOL=ON
-
-// Build fuzzers for the expat library
-EXPAT_BUILD_FUZZERS:BOOL=OFF
-
-// Build pkg-config file
-EXPAT_BUILD_PKGCONFIG:BOOL=ON
-
-// Build the tests for expat library
-EXPAT_BUILD_TESTS:BOOL=ON
-
-// Build the xmlwf tool for expat library
-EXPAT_BUILD_TOOLS:BOOL=ON
-
-// Character type to use (char|ushort|wchar_t) [default=char]
-EXPAT_CHAR_TYPE:STRING=char
-
-// Install expat files in cmake install target
-EXPAT_ENABLE_INSTALL:BOOL=ON
-
-// Use /MT flag (static CRT) when compiling in MSVC
-EXPAT_MSVC_STATIC_CRT:BOOL=OFF
-
-// Build fuzzers via ossfuzz for the expat library
-EXPAT_OSSFUZZ_BUILD:BOOL=OFF
-
-// Build a shared expat library
-EXPAT_SHARED_LIBS:BOOL=ON
-
-// Treat all compiler warnings as errors
-EXPAT_WARNINGS_AS_ERRORS:BOOL=OFF
-
-// Make use of getrandom function (ON|OFF|AUTO) [default=AUTO]
-EXPAT_WITH_GETRANDOM:STRING=AUTO
-
-// Utilize libbsd (for arc4random_buf)
-EXPAT_WITH_LIBBSD:BOOL=OFF
-
-// Make use of syscall SYS_getrandom (ON|OFF|AUTO) [default=AUTO]
-EXPAT_WITH_SYS_GETRANDOM:STRING=AUTO
-```

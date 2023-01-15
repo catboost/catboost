@@ -71,15 +71,9 @@ The close() method is called automatically when the class instance
 is destroyed.
 """
 
-from chunk import Chunk
-from collections import namedtuple
-import audioop
 import builtins
-import struct
-import sys
 
-
-__all__ = ["open", "Error", "Wave_read", "Wave_write"]
+__all__ = ["open", "openfp", "Error", "Wave_read", "Wave_write"]
 
 class Error(Exception):
     pass
@@ -87,6 +81,13 @@ class Error(Exception):
 WAVE_FORMAT_PCM = 0x0001
 
 _array_fmts = None, 'b', 'h', None, 'i'
+
+import audioop
+import struct
+import sys
+from chunk import Chunk
+from collections import namedtuple
+import warnings
 
 _wave_params = namedtuple('_wave_params',
                      'nchannels sampwidth framerate nframes comptype compname')
@@ -511,3 +512,8 @@ def open(f, mode=None):
         return Wave_write(f)
     else:
         raise Error("mode must be 'r', 'rb', 'w', or 'wb'")
+
+def openfp(f, mode=None):
+    warnings.warn("wave.openfp is deprecated since Python 3.7. "
+                  "Use wave.open instead.", DeprecationWarning, stacklevel=2)
+    return open(f, mode=mode)

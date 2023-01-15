@@ -26,12 +26,8 @@ class netrc:
             file = os.path.join(os.path.expanduser("~"), ".netrc")
         self.hosts = {}
         self.macros = {}
-        try:
-            with open(file, encoding="utf-8") as fp:
-                self._parse(file, fp, default_netrc)
-        except UnicodeDecodeError:
-            with open(file, encoding="locale") as fp:
-                self._parse(file, fp, default_netrc)
+        with open(file) as fp:
+            self._parse(file, fp, default_netrc)
 
     def _parse(self, file, fp, default_netrc):
         lexer = shlex.shlex(fp)

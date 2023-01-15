@@ -10,9 +10,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include "pycore_long.h"          // _PyLong_GetOne()
-#include "pycore_object.h"
-#include <stddef.h>               // offsetof()
+#include "structmember.h"
 #include "_iomodule.h"
 
 /*[clinic input]
@@ -34,7 +32,8 @@ typedef struct {
 } iobase;
 
 PyDoc_STRVAR(iobase_doc,
-    "The abstract base class for all I/O classes.\n"
+    "The abstract base class for all I/O classes, acting on streams of\n"
+    "bytes. There is no public constructor.\n"
     "\n"
     "This class provides dummy implementations for many methods that\n"
     "derived classes can override selectively; the default implementations\n"
@@ -235,7 +234,7 @@ _io__IOBase_close_impl(PyObject *self)
         Py_RETURN_NONE;
     }
 
-    res = PyObject_CallMethodNoArgs(self, _PyIO_str_flush);
+    res = PyObject_CallMethodObjArgs(self, _PyIO_str_flush, NULL);
 
     PyErr_Fetch(&exc, &val, &tb);
     rc = _PyObject_SetAttrId(self, &PyId___IOBase_closed, Py_True);
@@ -281,25 +280,15 @@ iobase_finalize(PyObject *self)
            finalization process. */
         if (_PyObject_SetAttrId(self, &PyId__finalizing, Py_True))
             PyErr_Clear();
-        res = PyObject_CallMethodNoArgs((PyObject *)self, _PyIO_str_close);
+        res = PyObject_CallMethodObjArgs((PyObject *) self, _PyIO_str_close,
+                                          NULL);
         /* Silencing I/O errors is bad, but printing spurious tracebacks is
            equally as bad, and potentially more frequent (because of
            shutdown issues). */
-        if (res == NULL) {
-#ifndef Py_DEBUG
-            if (_Py_GetConfig()->dev_mode) {
-                PyErr_WriteUnraisable(self);
-            }
-            else {
-                PyErr_Clear();
-            }
-#else
-            PyErr_WriteUnraisable(self);
-#endif
-        }
-        else {
+        if (res == NULL)
+            PyErr_Clear();
+        else
             Py_DECREF(res);
-        }
     }
 
     /* Restore the saved exception. */
@@ -349,9 +338,8 @@ iobase_dealloc(iobase *self)
     if (_PyIOBase_finalize((PyObject *) self) < 0) {
         /* When called from a heap type's dealloc, the type will be
            decref'ed on return (see e.g. subtype_dealloc in typeobject.c). */
-        if (_PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_HEAPTYPE)) {
+        if (PyType_HasFeature(Py_TYPE(self), Py_TPFLAGS_HEAPTYPE))
             Py_INCREF(Py_TYPE(self));
-        }
         return;
     }
     _PyObject_GC_UNTRACK(self);
@@ -382,7 +370,7 @@ _io__IOBase_seekable_impl(PyObject *self)
 PyObject *
 _PyIOBase_check_seekable(PyObject *self, PyObject *args)
 {
-    PyObject *res  = PyObject_CallMethodNoArgs(self, _PyIO_str_seekable);
+    PyObject *res  = PyObject_CallMethodObjArgs(self, _PyIO_str_seekable, NULL);
     if (res == NULL)
         return NULL;
     if (res != Py_True) {
@@ -415,7 +403,7 @@ _io__IOBase_readable_impl(PyObject *self)
 PyObject *
 _PyIOBase_check_readable(PyObject *self, PyObject *args)
 {
-    PyObject *res = PyObject_CallMethodNoArgs(self, _PyIO_str_readable);
+    PyObject *res  = PyObject_CallMethodObjArgs(self, _PyIO_str_readable, NULL);
     if (res == NULL)
         return NULL;
     if (res != Py_True) {
@@ -448,7 +436,7 @@ _io__IOBase_writable_impl(PyObject *self)
 PyObject *
 _PyIOBase_check_writable(PyObject *self, PyObject *args)
 {
-    PyObject *res = PyObject_CallMethodNoArgs(self, _PyIO_str_writable);
+    PyObject *res  = PyObject_CallMethodObjArgs(self, _PyIO_str_writable, NULL);
     if (res == NULL)
         return NULL;
     if (res != Py_True) {
@@ -477,7 +465,7 @@ iobase_enter(PyObject *self, PyObject *args)
 static PyObject *
 iobase_exit(PyObject *self, PyObject *args)
 {
-    return PyObject_CallMethodNoArgs(self, _PyIO_str_close);
+    return PyObject_CallMethodObjArgs(self, _PyIO_str_close, NULL);
 }
 
 /* Lower-level APIs */
@@ -556,7 +544,7 @@ _io__IOBase_readline_impl(PyObject *self, Py_ssize_t limit)
         PyObject *b;
 
         if (peek != NULL) {
-            PyObject *readahead = PyObject_CallOneArg(peek, _PyLong_GetOne());
+            PyObject *readahead = PyObject_CallFunctionObjArgs(peek, _PyLong_One, NULL);
             if (readahead == NULL) {
                 /* NOTE: PyErr_SetFromErrno() calls PyErr_CheckSignals()
                    when EINTR occurs so we needn't do it ourselves. */
@@ -655,7 +643,7 @@ iobase_iter(PyObject *self)
 static PyObject *
 iobase_iternext(PyObject *self)
 {
-    PyObject *line = PyObject_CallMethodNoArgs(self, _PyIO_str_readline);
+    PyObject *line = PyObject_CallMethodObjArgs(self, _PyIO_str_readline, NULL);
 
     if (line == NULL)
         return NULL;
@@ -840,10 +828,10 @@ PyTypeObject PyIOBase_Type = {
     sizeof(iobase),             /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     (destructor)iobase_dealloc, /*tp_dealloc*/
-    0,                          /*tp_vectorcall_offset*/
+    0,                          /*tp_print*/
     0,                          /*tp_getattr*/
     0,                          /*tp_setattr*/
-    0,                          /*tp_as_async*/
+    0,                          /*tp_compare */
     0,                          /*tp_repr*/
     0,                          /*tp_as_number*/
     0,                          /*tp_as_sequence*/
@@ -855,7 +843,7 @@ PyTypeObject PyIOBase_Type = {
     0,                          /*tp_setattro*/
     0,                          /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE
-        | Py_TPFLAGS_HAVE_GC,   /*tp_flags*/
+        | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_HAVE_FINALIZE,   /*tp_flags*/
     iobase_doc,                 /* tp_doc */
     (traverseproc)iobase_traverse, /* tp_traverse */
     (inquiry)iobase_clear,      /* tp_clear */
@@ -920,7 +908,7 @@ _io__RawIOBase_read_impl(PyObject *self, Py_ssize_t n)
     if (n < 0) {
         _Py_IDENTIFIER(readall);
 
-        return _PyObject_CallMethodIdNoArgs(self, &PyId_readall);
+        return _PyObject_CallMethodId(self, &PyId_readall, NULL);
     }
 
     /* TODO: allocate a bytes object directly instead and manually construct
@@ -1036,10 +1024,10 @@ PyTypeObject PyRawIOBase_Type = {
     0,                          /*tp_basicsize*/
     0,                          /*tp_itemsize*/
     0,                          /*tp_dealloc*/
-    0,                          /*tp_vectorcall_offset*/
+    0,                          /*tp_print*/
     0,                          /*tp_getattr*/
     0,                          /*tp_setattr*/
-    0,                          /*tp_as_async*/
+    0,                          /*tp_compare */
     0,                          /*tp_repr*/
     0,                          /*tp_as_number*/
     0,                          /*tp_as_sequence*/
@@ -1050,7 +1038,7 @@ PyTypeObject PyRawIOBase_Type = {
     0,                          /*tp_getattro*/
     0,                          /*tp_setattro*/
     0,                          /*tp_as_buffer*/
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /*tp_flags*/
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_FINALIZE,  /*tp_flags*/
     rawiobase_doc,              /* tp_doc */
     0,                          /* tp_traverse */
     0,                          /* tp_clear */

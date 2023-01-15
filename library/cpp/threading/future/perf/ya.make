@@ -1,4 +1,4 @@
-Y_BENCHMARK(library-threading-future-perf)
+BENCHMARK(library-threading-future-perf)
 
 
 

@@ -44,11 +44,10 @@ namespace {
     template <typename TChar>
     static inline char HexDigit(TChar value) {
         Y_ASSERT(value < 16);
-        if (value < 10) {
+        if (value < 10)
             return '0' + value;
-        } else {
+        else
             return 'A' + value - 10;
-        }
     }
 
     template <typename TChar>
@@ -212,14 +211,12 @@ namespace {
     inline size_t CountOct(const TChar* p, const TChar* pe) {
         ui32 maxsz = Min<size_t>(sz, pe - p);
 
-        if (3 == sz && 3 == maxsz && !(*p >= '0' && *p <= '3')) {
+        if (3 == sz && 3 == maxsz && !(*p >= '0' && *p <= '3'))
             maxsz = 2;
-        }
 
         for (ui32 i = 0; i < maxsz; ++i, ++p) {
-            if (!IsOctDigit(*p)) {
+            if (!IsOctDigit(*p))
                 return i;
-            }
         }
 
         return maxsz;
@@ -234,9 +231,8 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
         if ('\\' == *p) {
             ++p;
 
-            if (p == pe) {
+            if (p == pe)
                 return res;
-            }
 
             switch (*p) {
                 default:
@@ -319,8 +315,11 @@ static TStr& DoUnescapeC(const TChar* p, size_t sz, TStr& res) {
 
             ++p;
         } else {
-            const auto r = std::basic_string_view<TChar>(p, pe - p).find('\\');
-            const auto n = r != std::string::npos ? p + r : pe;
+            auto n = TStr::TTraits::Find(p, '\\', pe - p);
+
+            if (!n) {
+                n = pe;
+            }
 
             res.append(p, n);
             p = n;
@@ -338,18 +337,25 @@ TBasicString<TChar>& UnescapeCImpl(const TChar* p, size_t sz, TBasicString<TChar
 template <class TChar>
 TChar* UnescapeC(const TChar* str, size_t len, TChar* buf) {
     struct TUnboundedString {
-        void append(TChar ch) noexcept {
+        using TTraits = TCharTraits<TChar>;
+
+        inline void append(TChar ch) noexcept {
             *P++ = ch;
         }
 
-        void append(const TChar* b, const TChar* e) noexcept {
+        inline void append(const TChar* b, const TChar* e) noexcept {
             while (b != e) {
                 append(*b++);
             }
         }
 
-        void AppendNoAlias(const TChar* s, size_t l) noexcept {
+        inline void AppendNoAlias(const TChar* s, size_t l) noexcept {
             append(s, s + l);
+        }
+
+        inline void X() {
+            TTraits t;
+            (void)t;
         }
 
         TChar* P;
@@ -365,15 +371,12 @@ template char* UnescapeC<char>(const char* str, size_t len, char* buf);
 
 template <class TChar>
 size_t UnescapeCCharLen(const TChar* begin, const TChar* end) {
-    if (begin >= end) {
+    if (begin >= end)
         return 0;
-    }
-    if (*begin != '\\') {
+    if (*begin != '\\')
         return 1;
-    }
-    if (++begin == end) {
+    if (++begin == end)
         return 1;
-    }
 
     switch (*begin) {
         default:

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2016-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -24,12 +24,12 @@
 #include <openssl/store.h>
 #include <openssl/ui.h>
 #include <openssl/x509.h>        /* For the PKCS8 stuff o.O */
-#include "crypto/asn1.h"
-#include "crypto/ctype.h"
+#include "internal/asn1_int.h"
+#include "internal/ctype.h"
 #include "internal/o_dir.h"
 #include "internal/cryptlib.h"
-#include "crypto/store.h"
-#include "store_local.h"
+#include "internal/store_int.h"
+#include "store_locl.h"
 
 #ifdef _WIN32
 # define stat    _stat
@@ -370,7 +370,6 @@ static OSSL_STORE_INFO *try_decode_PKCS8Encrypted(const char *pem_name,
     mem->data = (char *)new_data;
     mem->max = mem->length = (size_t)new_data_len;
     X509_SIG_free(p8);
-    p8 = NULL;
 
     store_info = ossl_store_info_new_EMBEDDED(PEM_STRING_PKCS8INF, mem);
     if (store_info == NULL) {
@@ -430,42 +429,6 @@ static OSSL_STORE_INFO *try_decode_PrivateKey(const char *pem_name,
         }
     } else {
         int i;
-#ifndef OPENSSL_NO_ENGINE
-        ENGINE *curengine = ENGINE_get_first();
-
-        while (curengine != NULL) {
-            ENGINE_PKEY_ASN1_METHS_PTR asn1meths =
-                ENGINE_get_pkey_asn1_meths(curengine);
-
-            if (asn1meths != NULL) {
-                const int *nids = NULL;
-                int nids_n = asn1meths(curengine, NULL, &nids, 0);
-
-                for (i = 0; i < nids_n; i++) {
-                    EVP_PKEY_ASN1_METHOD *ameth2 = NULL;
-                    EVP_PKEY *tmp_pkey = NULL;
-                    const unsigned char *tmp_blob = blob;
-
-                    if (!asn1meths(curengine, &ameth2, NULL, nids[i]))
-                        continue;
-                    if (ameth2 == NULL
-                        || ameth2->pkey_flags & ASN1_PKEY_ALIAS)
-                        continue;
-
-                    tmp_pkey = d2i_PrivateKey(ameth2->pkey_id, NULL,
-                                              &tmp_blob, len);
-                    if (tmp_pkey != NULL) {
-                        if (pkey != NULL)
-                            EVP_PKEY_free(tmp_pkey);
-                        else
-                            pkey = tmp_pkey;
-                        (*matchcount)++;
-                    }
-                }
-            }
-            curengine = ENGINE_get_next(curengine);
-        }
-#endif
 
         for (i = 0; i < EVP_PKEY_asn1_get_count(); i++) {
             EVP_PKEY *tmp_pkey = NULL;

@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/utf.h"
 #include "re2/regexp.h"
 
@@ -85,7 +85,7 @@ static CCTest tests[] = {
     { {-1} } },
 };
 
-template <typename CharClass>
+template<class CharClass>
 static void Broke(const char *desc, const CCTest* t, CharClass* cc) {
   if (t == NULL) {
     printf("\t%s:", desc);
@@ -136,7 +136,7 @@ void Delete(CharClassBuilder* cc) {
   delete cc;
 }
 
-template <typename CharClass>
+template<class CharClass>
 bool CorrectCC(CharClass *cc, CCTest *t, const char *desc) {
   typename CharClass::iterator it = cc->begin();
   int size = 0;
@@ -197,7 +197,7 @@ bool CorrectCC(CharClass *cc, CCTest *t, const char *desc) {
 
 TEST(TestCharClassBuilder, Adds) {
   int nfail = 0;
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (int i = 0; i < arraysize(tests); i++) {
     CharClassBuilder ccb;
     CCTest* t = &tests[i];
     for (int j = 0; t->add[j].lo >= 0; j++)

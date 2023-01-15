@@ -5,7 +5,7 @@ PROGRAM()
 IF(OS_LINUX)
 
 PEERDIR(
-    library/cpp/testing/unittest
+    library/unittest
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
 )
@@ -32,7 +32,7 @@ INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 IF (ARCH_AARCH64)
     ALLOCATOR(J)
 ELSE()
-    ALLOCATOR(TCMALLOC_256K)
+    ALLOCATOR(LF)
 ENDIF()
 
 END()

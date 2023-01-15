@@ -96,10 +96,10 @@ namespace NCB {
         const TExpectedFeatureColumn<T>& lhs,
         const ITypedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
-        if (const auto* lhsDenseData = std::get_if<TVector<T>>(&lhs)) {
+        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
             return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
-            const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
+            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
             using TColumn = ITypedFeatureValuesHolder<T, ValuesType>;
             if (const auto* rhsSparseArrayHolder
                     = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<TColumn>*>(&rhs))
@@ -124,11 +124,11 @@ namespace NCB {
         const TExpectedFeatureColumn<T>& lhs,
         const IQuantizedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
-        if (const auto* lhsDenseData = std::get_if<TVector<T>>(&lhs)) {
+        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
             return Equal<T>(rhs.template ExtractValues<T>(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             using TColumn = IQuantizedFeatureValuesHolder<T, ValuesType>;
-            const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
+            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
             if (const auto* rhsSparseArrayHolder
                            = dynamic_cast<const TSparseCompressedValuesHolderImpl<TColumn>*>(&rhs))
             {
@@ -173,7 +173,7 @@ namespace NCB {
                 return expectedData.Objects.FloatFeatures[floatFeatureIdx];
             },
             /*areEqualFunc*/ [&](const TExpectedFeatureColumn<float>& lhs, const TFloatValuesHolder& rhs) {
-                if (const auto* lhsDenseData = std::get_if<TVector<float>>(&lhs)) {
+                if (const auto* lhsDenseData = GetIf<TVector<float>>(&lhs)) {
                     auto rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
                     return std::equal(
                         lhsDenseData->begin(),
@@ -183,7 +183,7 @@ namespace NCB {
                         EqualWithNans<float>
                     );
                 } else {
-                    const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<float, ui32>>(lhs);
+                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<float, ui32>>(lhs);
 
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TFloatSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
@@ -210,7 +210,7 @@ namespace NCB {
             /*getFeatureFunc*/ [&] (ui32 catFeatureIdx) {return objectsData.GetCatFeature(catFeatureIdx);},
             /*getExpectedFeatureFunc*/ [&] (ui32 catFeatureIdx) -> TMaybe<TExpectedFeatureColumn<ui32>> {
                 if (expectedData.Objects.CatFeatures[catFeatureIdx]) {
-                    if (const auto* denseData = std::get_if<TVector<TStringBuf>>(expectedData.Objects.CatFeatures[catFeatureIdx].Get())) {
+                    if (const auto* denseData = GetIf<TVector<TStringBuf>>(expectedData.Objects.CatFeatures[catFeatureIdx].Get())) {
                         TVector<ui32> hashedCategoricalValues;
                         for (const auto& stringValue : *denseData) {
                             ui32 hashValue = (ui32)CalcCatFeatureHash(stringValue);
@@ -219,7 +219,7 @@ namespace NCB {
                         }
                         return hashedCategoricalValues;
                     } else {
-                        const auto& sparseData = std::get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(
+                        const auto& sparseData = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(
                             *expectedData.Objects.CatFeatures[catFeatureIdx]
                         );
 
@@ -278,7 +278,7 @@ namespace NCB {
             /*getExpectedFeatureFunc*/ [&](ui32 textFeatureIdx)
                 {return *expectedData.Objects.TextFeatures[textFeatureIdx];},
             /*areEqualFunc*/ [&](const TExpectedFeatureColumn<TStringBuf>& lhs, const TStringTextValuesHolder& rhs) {
-                if (const auto* lhsDenseData = std::get_if<TVector<TStringBuf>>(&lhs)) {
+                if (const auto* lhsDenseData = GetIf<TVector<TStringBuf>>(&lhs)) {
                     TMaybeOwningArrayHolder<TString> rhsValues = rhs.ExtractValues(&NPar::LocalExecutor());
                     return std::equal(
                         lhsDenseData->begin(),
@@ -287,7 +287,7 @@ namespace NCB {
                         rhsValues.end()
                     );
                 } else {
-                    const auto& lhsSparseArray = std::get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(lhs);
+                    const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<TStringBuf, ui32>>(lhs);
                     const auto* rhsSparseArrayHolder = dynamic_cast<const TStringTextSparseValuesHolder*>(&rhs);
                     UNIT_ASSERT(rhsSparseArrayHolder);
                     const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
@@ -302,41 +302,6 @@ namespace NCB {
                         lhsNonDefaultValues.GetImpl().GetBlockIterator(),
                         rhsNonDefaultValues.GetImpl().GetBlockIterator()
                     );
-                }
-            }
-        );
-
-        CompareFeatures<EFeatureType::Embedding, TVector<float>, TEmbeddingValuesHolder>(
-            *objectsData.GetFeaturesLayout(),
-            /*getFeatureFunc*/ [&](ui32 embeddingFeatureIdx) {
-                return objectsData.GetEmbeddingFeature(embeddingFeatureIdx);
-            },
-            /*getExpectedFeatureFunc*/ [&](ui32 embeddingFeatureIdx)
-                {return *expectedData.Objects.EmbeddingFeatures[embeddingFeatureIdx];},
-            /*areEqualFunc*/ [&](
-                const TExpectedFeatureColumn<TVector<float>>& lhs,
-                const TEmbeddingValuesHolder& rhs
-            ) {
-                if (const auto* lhsDenseData = std::get_if<TVector<TVector<float>>>(&lhs)) {
-                    TMaybeOwningArrayHolder<TMaybeOwningConstArrayHolder<float>> rhsValues
-                        = rhs.ExtractValues(&NPar::LocalExecutor());
-                    return std::equal(
-                        lhsDenseData->begin(),
-                        lhsDenseData->end(),
-                        rhsValues.begin(),
-                        rhsValues.end(),
-                        [&] (const TVector<float>& lhs1, const TMaybeOwningConstArrayHolder<float>& rhs1) {
-                            return std::equal(
-                                lhs1.begin(),
-                                lhs1.end(),
-                                rhs1.begin(),
-                                rhs1.end(),
-                                EqualWithNans<float>
-                            );
-                        }
-                    );
-                } else {
-                    return false;
                 }
             }
         );
@@ -391,6 +356,14 @@ namespace NCB {
             objectsData.GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn(),
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn
         );
+    }
+
+    void CompareObjectsData(
+        const TQuantizedForCPUObjectsDataProvider& objectsData,
+        const TExpectedQuantizedData& expectedData,
+        bool /*catFeaturesHashCanContainExtraData*/
+    ) {
+        CompareObjectsData((const TQuantizedObjectsDataProvider&)objectsData, expectedData);
 
         const auto& featuresLayout = *objectsData.GetFeaturesLayout();
 
@@ -463,12 +436,15 @@ namespace NCB {
             expectedData.Objects.PackedBinaryFeaturesData.SrcData.size()
         );
 
+        NPar::TLocalExecutor localExecutor;
+
         for (auto packIdx : xrange(objectsData.GetBinaryFeaturesPacksSize())) {
             UNIT_ASSERT_EQUAL(
                 expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx]->ExtractValues<ui8>(&localExecutor),
                 objectsData.GetBinaryFeaturesPack(packIdx).ExtractValues<ui8>(&localExecutor)
             );
         }
+
     }
 
     void CompareTargetData(
@@ -480,7 +456,6 @@ namespace NCB {
             MakeIntrusive<TObjectsGrouping>(expectedObjectsGrouping),
             TRawTargetData(expectedData),
             true,
-            /*forceUnitAutoPairWeights*/ true,
             Nothing()
         );
 

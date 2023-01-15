@@ -9,7 +9,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/dbg_output/dump.h>
+#include <library/dbg_output/dump.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/vector.h>
@@ -20,7 +20,7 @@
 
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -143,7 +143,7 @@ namespace NCB {
         const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     );
 }
 

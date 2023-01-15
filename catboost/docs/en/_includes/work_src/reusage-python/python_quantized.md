@@ -1,2 +1,0 @@
-
-Quantize the given pool.

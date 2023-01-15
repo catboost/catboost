@@ -59,23 +59,6 @@ namespace NCB {
         return EstimatorToSourceFeatures.at(estimatorId);
     }
 
-    EFeatureType TFeatureEstimators::GetEstimatorSourceType(TEstimatorId estimatorId) const {
-        if (estimatorId.IsOnline) {
-            return OnlineFeatureEstimators.at(estimatorId.Id)->GetSourceType();
-        } else {
-            return FeatureEstimators.at(estimatorId.Id)->GetSourceType();
-        }
-    }
-
-    EFeatureType TFeatureEstimators::GetEstimatorSourceType(const TGuid& guid) const {
-        CB_ENSURE(
-            EstimatorGuidToFlatId.contains(guid),
-            "There is no estimator with " << LabeledOutput(guid)
-        );
-        TEstimatorId estimatorId = EstimatorGuidToFlatId.at(guid);
-        return GetEstimatorSourceType(estimatorId);
-    }
-
     void TFeatureEstimators::RebuildInnerData() {
         for (const auto& [estimatorId, sourceId]: EstimatorToSourceFeatures) {
             TFeatureEstimatorPtr estimator;

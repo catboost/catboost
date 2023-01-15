@@ -154,13 +154,11 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
-                                        NCB::TPathWithScheme(),
                                         columnarPoolFormatParams,
                                         {},
                                         NCB::EObjectsOrder::Ordered,
                                         16,
                                         true,
-                                        false,
                                         /*classLabels*/ Nothing());
     }
 
@@ -178,8 +176,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
     TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
 
     *trainingData = NCB::GetTrainingData(std::move(dataProvider),
-                                         /*dataCanBeEmpty*/ false,
-                                         /*isLearn*/ true,
+                                         true,
                                          "learn",
                                          Nothing(),
                                          /*unloadCatFeaturePerfectHashFromRam*/ true,
@@ -197,8 +194,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         MakeIntrusiveConst<NCB::TFeatureEstimators>(estimators),
         *((*trainingData)->MetaInfo.FeaturesLayout),
         TVector<NCB::TExclusiveFeaturesBundle>(),
-        (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo(),
-        (*trainingData)->GetObjectCount());
+        (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
     (*featuresManager)->SetTargetBorders(

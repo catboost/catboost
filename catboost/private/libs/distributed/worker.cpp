@@ -1,9 +1,9 @@
 #include "worker.h"
 
-#include <library/cpp/par/par.h>
-#include <library/cpp/par/par_util.h>
+#include <library/par/par.h>
+#include <library/par/par_util.h>
 
-#include <library/cpp/par/par_settings.h>
+#include <library/par/par_settings.h>
 
 void RunWorker(ui32 numThreads, ui32 nodePort) {
     // avoid Netliba

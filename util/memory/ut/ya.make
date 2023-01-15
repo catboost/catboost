@@ -1,7 +1,6 @@
 UNITTEST_FOR(util)
 
 
-SUBSCRIBER(g:util-subscribers)
 
 SRCS(
     memory/addstorage_ut.cpp

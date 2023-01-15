@@ -1,6 +1,6 @@
 #include "f.h"
 
-#include <library/cpp/testing/benchmark/bench.h>
+#include <library/testing/benchmark/bench.h>
 
 #define DEFINE_BENCHMARK(N)                   \
     Y_CPU_BENCHMARK(Yvector_##N, iface) {     \

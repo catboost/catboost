@@ -3,7 +3,7 @@
 #include "detail.h"
 #include "token.h"
 
-namespace NYson {
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     namespace NDetail {
@@ -30,7 +30,7 @@ namespace NYson {
         //             None                    = 10111b
         //             Percent                 = 11011b
 
-        enum EReadStartCase : unsigned {
+        enum EReadStartCase {
             BinaryString = 0,      // =    00b
             OtherSpecialToken = 2, // =    10b
 
@@ -293,4 +293,4 @@ namespace NYson {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

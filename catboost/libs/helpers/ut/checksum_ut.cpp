@@ -7,7 +7,7 @@
 #include <array>
 #include <utility>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -23,6 +23,14 @@ Y_UNIT_TEST_SUITE(CheckSum) {
             1251117058
         );
         UNIT_ASSERT_VALUES_EQUAL(UpdateCheckSum(0, TVector<int>{10, 12}), 3507297803);
+        UNIT_ASSERT_VALUES_EQUAL(
+            UpdateCheckSum(0, THashMap<ui32, THashMap<ui32, ui32>>{{0, {{12, 10}}}, {2, {{0, 5}}}}),
+            855997978
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            UpdateCheckSum(0, THashMap<ui32, THashMap<ui32, ui32>>{{2, {{0, 5}}}, {0, {{12, 10}}}}),
+            855997978
+        );
         UNIT_ASSERT_VALUES_EQUAL(
             UpdateCheckSum(0, TVector<TMap<ui32, ui32>>{{{0, 1}, {2, 3}}, {{2, 11}, {3, 8}}}),
             288846871

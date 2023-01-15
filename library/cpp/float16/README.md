@@ -7,5 +7,3 @@ Sequence functions:
 - `PackFloat16SequenceAuto()`: float32 → float16 conversion for sequences
 
 For both of the functions above, `{Pack,Unpack}Float16SequenceIntrisincs()` will be called if F16C flag is set for CPU. Otherwise, a fallback function will be used.
-
-SEARCH TAGS: float16, half precision floating point, fp16

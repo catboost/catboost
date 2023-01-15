@@ -40,7 +40,7 @@
  */
 
 #include <openssl/camellia.h>
-#include "cmll_local.h"
+#include "cmll_locl.h"
 #include <string.h>
 #include <stdlib.h>
 

@@ -1,6 +1,6 @@
 #include <util/system/compiler.h>
 
-extern "C" void je_zone_register();
+extern "C" void je_register_zone();
 
 static volatile bool initialized = false;
 
@@ -8,19 +8,19 @@ namespace {
     struct TInit {
         inline TInit() {
             if (!initialized) {
-                je_zone_register();
+                je_register_zone();
                 initialized = true;
             }
         }
     };
 
-    void zone_register() {
+    void register_zone() {
         static TInit init;
     }
 }
 
 extern "C" {
-    void je_assure_zone_register() {
+    void je_assure_register_zone() {
         if (Y_LIKELY(initialized)) {
             return;
         }
@@ -28,6 +28,6 @@ extern "C" {
         // Even if we have read false "initialized", real init will be syncronized once by
         // Meyers singleton in <anonymous>::register_zone(). We could do a few
         // redundant "initialized" and singleton creation checks, but no more than that.
-        zone_register();
+        register_zone();
     }
 }

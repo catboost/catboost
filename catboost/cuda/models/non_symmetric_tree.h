@@ -74,7 +74,7 @@ namespace NCatboostCuda {
             while (!nodes.empty()) {
                 const auto current = nodes.back();
                 const auto& currentNode = Nodes[nodes.back()];
-                CB_ENSURE(currentNode.LeftSubtree >= 1 && currentNode.RightSubtree >= 1, "Left and/or right subtree is missing");
+                Y_VERIFY(currentNode.LeftSubtree >= 1 && currentNode.RightSubtree >= 1);
 
                 if (unwind) {
                     if (current + currentNode.LeftSubtree != prev) {
@@ -174,7 +174,7 @@ namespace NCatboostCuda {
         }
 
         void ComputeBins(const TDocParallelDataSet& dataSet,
-                         TStripeBuffer<ui32>* dst) const override;
+                         TStripeBuffer<ui32>* dst) const;
 
         ui32 OutputDim() const final {
             Y_ASSERT(Dim);

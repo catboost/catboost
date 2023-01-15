@@ -4,7 +4,7 @@
 
 #include <util/generic/yexception.h>
 
-namespace NYson {
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     int WriteVarUInt64(IOutputStream* output, ui64 value) {
@@ -68,4 +68,4 @@ namespace NYson {
         return bytesRead;
     }
 
-} // namespace NYson
+}

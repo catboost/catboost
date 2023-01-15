@@ -1,15 +1,19 @@
+#include "tls.h"
 #include "error.h"
 
+#include <util/string/strip.h>
 #include <util/generic/strfcpy.h>
 
 #include <cerrno>
+#include <cstdio>
 #include <cstring>
 
 #if defined(_win_)
-    #include <util/string/strip.h>
-    #include <util/network/socket.h>
-    #include <util/generic/singleton.h>
-    #include "winint.h"
+#include <util/network/socket.h>
+#include <util/generic/singleton.h>
+#include "winint.h"
+#elif defined(_unix_)
+#include <unistd.h>
 #endif
 
 void ClearLastSystemError() {
@@ -87,6 +91,6 @@ void LastSystemErrorText(char* str, size_t size, int code) {
     char* msg = strerror_r(code, str, size);
     strncpy(str, msg, size);
 #else
-    #error port me gently!
+#error port me gently!
 #endif
 }

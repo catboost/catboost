@@ -2,10 +2,9 @@
 
 RECURSE(
     antlr3
-    eslint
+    antlr4
     gradle
     maven
-    swift-demangle
 )
 
 IF (OS_ANDROID)
@@ -24,23 +23,24 @@ ENDIF()
 IF (OS_LINUX)
     RECURSE(
     codenavigation
-    squashfs_tools
+    llvm_cov9
 )
 ENDIF()
 
 IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     RECURSE(
+    arcadia_cpp_styleguide
+    arcadia_grpc_cpp
+    arcadia_protoc
     flake8_py2
     flake8_py3
-    go_fake_xcrun
+    flakes_py2
+    flakes_py3
     go_tools
     goyndexer
-    hermione
-    jest
-    nyc
-    pnpm
-    typescript
-    webpack
+    pep8_py2
+    pep8_py3
+    protoc-gen-javalite
     ymake
     yolint
 )

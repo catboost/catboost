@@ -16,7 +16,7 @@ def pytest_generate_tests(metafunc):
 
     tests = []
 
-    for py_ver in ["3.6"]:
+    for py_ver in "3.5", "3.6":
         python_bin, python_env = prepare_all(py_ver)
 
         update_env(python_env)
@@ -57,7 +57,7 @@ def test(py_ver, case):
             env=python_env,
             cwd=yatest.common.test_output_path()
         )
-    except yatest.common.process.ExecutionError as e:
+    except yatest.common.process.ExecutionError, e:
         stdout = e.execution_result.std_out
         stderr = e.execution_result.std_err
         assert 0, "python%s: %s\n%s\n%s" % (py_ver, case, stdout, stderr)
@@ -75,3 +75,4 @@ def test(py_ver, case):
                     diff_tool = args[1]
                 canon_files.append(yatest.common.canonical_file(canon_file, diff_tool=diff_tool, local=True))
         return canon_files
+

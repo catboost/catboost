@@ -41,13 +41,13 @@ namespace NCatboostCuda {
         }
 
         TStripeBuffer<const TFeatureInBlock> GetBlockFeatures(ui32 blockId) const {
-            CB_ENSURE(blockId < BlockSlices.size(), "Block id is too large");
+            Y_VERIFY(blockId < BlockSlices.size());
             TSlice blockSlice = BlockSlices[blockId];
-            return NCudaLib::ParallelStripeView(Features, blockSlice).AsConstBuf();
+            return NCudaLib::ParallelStripeView(Features, blockSlice);
         }
 
         ui32 GetIntsPerSample(ui32 blockId) const {
-            CB_ENSURE(blockId < BlockSlices.size(), "Block id is too large");
+            Y_VERIFY(blockId < BlockSlices.size());
             TSlice blockSlice = BlockSlices[blockId];
             EFeaturesGroupingPolicy policy = GetBlockPolicy(blockId);
             ui32 featuresPerInt = GetFeaturesPerInt(policy);
@@ -63,7 +63,7 @@ namespace NCatboostCuda {
         }
 
         EFeaturesGroupingPolicy GetBlockPolicy(ui32 blockId) const {
-            CB_ENSURE(blockId < BlockPolicies.size(), "Block id is too large");
+            Y_VERIFY(blockId < BlockPolicies.size());
             return BlockPolicies[blockId];
         }
 

@@ -1,6 +1,6 @@
 
 
-PY23_TEST()
+PYTEST()
 
 TEST_SRCS(
     test_fs.py

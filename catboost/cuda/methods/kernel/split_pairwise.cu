@@ -1,7 +1,7 @@
 #include "split_pairwise.cuh"
 #include "split_properties_helpers.cuh"
 #include <cooperative_groups.h>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
@@ -267,8 +267,8 @@ namespace NKernel {
                          ui32 depth,
                          ui32* bins,
                          TCudaStream stream) {
-        const ui32 blockSize = 256;
-        const ui32 numBlocks = min((pairCount + blockSize - 1) / blockSize,
+        const int blockSize = 256;
+        const int numBlocks = min((pairCount + blockSize - 1) / blockSize,
                                   TArchProps::MaxBlockCount());
         UpdateBinsPairs<<<numBlocks, blockSize, 0, stream>>>(feature, bin, compressedIndex, pairs, pairCount, depth, bins);
     }
@@ -277,40 +277,32 @@ namespace NKernel {
     template <int BLOCK_SIZE>
     __global__ void SelectBestSplitImpl(const float* scores,
                                         const TCBinFeature* binFeature, int size,
-                                        double scoreBeforeSplit, const float* featureWeights,
                                         int bestIndexBias, TBestSplitPropertiesWithIndex* best) {
         float maxScore = -INFINITY;
-        float maxGain = -INFINITY;
         int maxIdx = -1;
         int tid = threadIdx.x;
 
         #pragma unroll 8
         for (int i = tid; i < size; i += BLOCK_SIZE) {
             float score = scores[i];
-            auto featureId = binFeature[i].FeatureId;
-            float gain = (score + scoreBeforeSplit) * __ldg(featureWeights + featureId); // scoreBeforeSplit is -score from some previous tree level
-            if (gain > maxGain) {
+            if (score > maxScore) {
                 maxScore = score;
-                maxGain = gain;
                 maxIdx = i;
             }
         }
 
         __shared__ float vals[BLOCK_SIZE];
         __shared__ int inds[BLOCK_SIZE];
-        __shared__ float gains[BLOCK_SIZE];
 
         vals[tid] = maxScore;
         inds[tid] = maxIdx;
-        gains[tid] = maxGain;
         __syncthreads();
 
         for (int s = BLOCK_SIZE >> 1; s > 0; s >>= 1) {
             if (tid < s) {
-                if ( gains[tid] <  gains[tid + s] || (gains[tid] == gains[tid + s] && inds[tid] > inds[tid + s]) ) {
+                if ( vals[tid] <  vals[tid + s] || (vals[tid] == vals[tid + s] && inds[tid] > inds[tid + s]) ) {
                     vals[tid] = vals[tid + s];
                     inds[tid] = inds[tid + s];
-                    gains[tid] = gains[tid + s];
                 }
             }
             __syncthreads();
@@ -332,20 +324,15 @@ namespace NKernel {
             best->Score = -bestScore;
             best->BinId = bestFeature.BinId;
             best->FeatureId = bestFeature.FeatureId;
-            best->Gain = -gains[0];
         }
     }
 
     void SelectBestSplit(const float* scores,
                          const TCBinFeature* binFeature, int size,
-                         double scoreBeforeSplit, const float* featureWeights,
                          int bestIndexBias, TBestSplitPropertiesWithIndex* best,
                          TCudaStream stream) {
         const int blockSize = 1024;
-        SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(
-            scores,  binFeature, size,
-            scoreBeforeSplit, featureWeights,
-            bestIndexBias, best);
+        SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(scores,  binFeature, size, bestIndexBias, best);
     }
 
 
@@ -375,7 +362,7 @@ namespace NKernel {
     ) {
 
         if (pairCount > 0) {
-            const ui32 blockSize = 256;
+            const int blockSize = 256;
             const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
             ZeroSameLeafBinWeightsImpl<<<numBlocks, blockSize, 0, stream>>>(pairs, bins, pairCount, pairWeights);
         }
@@ -423,15 +410,15 @@ namespace NKernel {
                                          ui32 pairCount,
                                          float* pairDer2) {
 
-        const ui32 tid = threadIdx.x;
-        const ui32 i = blockIdx.x * blockDim.x + tid;
+        const int tid = threadIdx.x;
+        const int i = blockIdx.x * blockDim.x + tid;
 
         if (i < pairCount) {
             uint2 pair = Ldg(pairs + i);
 
             const float der2x = Ldg(ders2 + pair.x);
             const float der2y = Ldg(ders2 + pair.y);
-            const ui32 qid = Ldg(qids + pair.x);
+            const int qid = Ldg(qids + pair.x);
             const float groupDer2 = Ldg(groupDers2 + qid);
 
             pairDer2[i] = groupDer2 > 1e-20f ? der2x * der2y / (groupDer2 + 1e-20f) : 0;
@@ -450,8 +437,8 @@ namespace NKernel {
                           float* pairDer2,
                           TCudaStream stream
     ) {
-        const ui32 blockSize = 256;
-        const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
+        const int blockSize = 256;
+        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             FillPairDer2OnlyImpl<<< numBlocks, blockSize, 0, stream >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
         }

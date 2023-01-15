@@ -41,14 +41,14 @@ namespace NEscJ {
     }
 
     struct TEscapeUtil {
-        static constexpr size_t ESCAPE_C_BUFFER_SIZE = 6;
+        static const size_t ESCAPE_C_BUFFER_SIZE = 6;
 
-        template <bool asunicode, bool hasCustomSafeUnsafe>
+        template <bool asunicode>
         static inline size_t EscapeJ(ui8 c, ui8 next, char r[ESCAPE_C_BUFFER_SIZE], TStringBuf safe, TStringBuf unsafe) {
             // (1) Printable characters go as-is, except backslash and double quote.
             // (2) Characters \r, \n, \t and \0 ... \7 replaced by their simple escape characters (if possible).
             // (3) Otherwise, character is encoded using hexadecimal escape sequence (if possible), or octal.
-            if (hasCustomSafeUnsafe && safe.find(c) != TStringBuf::npos) {
+            if (safe.find(c) != TStringBuf::npos) {
                 r[0] = c;
                 return 1;
             }
@@ -60,7 +60,7 @@ namespace NEscJ {
                 r[0] = '\\';
                 r[1] = '\\';
                 return 2;
-            } else if (IsPrintable(c) && (!hasCustomSafeUnsafe || unsafe.find(c) == TStringBuf::npos)) {
+            } else if (IsPrintable(c) && unsafe.find(c) == TStringBuf::npos) {
                 r[0] = c;
                 return 1;
             } else if (c == '\b') {
@@ -109,48 +109,44 @@ namespace NEscJ {
                 return 4;
             }
         }
+
+        static inline size_t EscapeJ(ui8 c, ui8 next, char r[ESCAPE_C_BUFFER_SIZE], TStringBuf safe, TStringBuf unsafe) {
+            return EscapeJ<false>(c, next, r, safe, unsafe);
+        }
     };
 
     inline size_t SuggestBuffer(size_t len) {
         return len * TEscapeUtil::ESCAPE_C_BUFFER_SIZE;
     }
 
-    template <bool tounicode, bool hasCustomSafeUnsafe>
-    inline size_t EscapeJImpl(const char* str, size_t len, char* out, TStringBuf safe, TStringBuf unsafe) {
+    template <bool tounicode>
+    inline size_t EscapeJ(const char* str, size_t len, char* out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
         char* out0 = out;
         char buffer[TEscapeUtil::ESCAPE_C_BUFFER_SIZE];
 
         size_t i, j;
         for (i = 0, j = 0; i < len; ++i) {
-            size_t rlen = TEscapeUtil::EscapeJ<tounicode, hasCustomSafeUnsafe>(str[i], (i + 1 < len ? str[i + 1] : 0), buffer, safe, unsafe);
+            size_t rlen = TEscapeUtil::EscapeJ<tounicode>(str[i], (i + 1 < len ? str[i + 1] : 0), buffer, safe, unsafe);
 
             if (rlen > 1) {
-                memcpy(out, str + j, i - j);
+                strncpy(out, str + j, i - j);
                 out += i - j;
                 j = i + 1;
 
-                memcpy(out, buffer, rlen);
+                strncpy(out, buffer, rlen);
                 out += rlen;
             }
         }
 
         if (j > 0) {
-            memcpy(out, str + j, len - j);
+            strncpy(out, str + j, len - j);
             out += len - j;
         } else {
-            memcpy(out, str, len);
+            strncpy(out, str, len);
             out += len;
         }
 
         return out - out0;
-    }
-
-    template <bool tounicode>
-    inline size_t EscapeJ(const char* str, size_t len, char* out, TStringBuf safe = TStringBuf(), TStringBuf unsafe = TStringBuf()) {
-        if (Y_LIKELY(safe.empty() && unsafe.empty())) {
-            return EscapeJImpl<tounicode, false>(str, len, out, safe, unsafe);
-        }
-        return EscapeJImpl<tounicode, true>(str, len, out, safe, unsafe);
     }
 
     template <bool quote, bool tounicode>

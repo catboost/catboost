@@ -9,7 +9,7 @@
  */
 
 #include "e_os.h"
-#include "crypto/cryptlib.h"
+#include "internal/cryptlib_int.h"
 #include <openssl/safestack.h>
 
 #if     defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \
@@ -49,7 +49,7 @@ typedef char variant_char;
 #   define ossl_getenv getenv
 #  endif
 
-#  include "crypto/ctype.h"
+#  include "internal/ctype.h"
 
 static int todigit(variant_char c)
 {

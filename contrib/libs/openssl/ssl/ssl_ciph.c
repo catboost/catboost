@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  * Copyright 2005 Nokia. All rights reserved.
  *
@@ -17,7 +17,7 @@
 #include <openssl/crypto.h>
 #include <openssl/conf.h>
 #include "internal/nelem.h"
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include "internal/thread_once.h"
 #include "internal/cryptlib.h"
 
@@ -92,7 +92,7 @@ static CRYPTO_ONCE ssl_load_builtin_comp_once = CRYPTO_ONCE_STATIC_INIT;
 
 /*
  * Constant SSL_MAX_DIGEST equal to size of digests array should be defined
- * in the ssl_local.h
+ * in the ssl_locl.h
  */
 
 #define SSL_MD_NUM_IDX  SSL_MAX_DIGEST
@@ -1026,7 +1026,9 @@ static int ssl_cipher_process_rulestr(const char *rule_str,
                  * alphanumeric, so we call this an error.
                  */
                 SSLerr(SSL_F_SSL_CIPHER_PROCESS_RULESTR, SSL_R_INVALID_COMMAND);
-                return 0;
+                retval = found = 0;
+                l++;
+                break;
             }
 
             if (rule == CIPHER_SPECIAL) {
@@ -1599,7 +1601,6 @@ STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
     for (i = 0; i < sk_SSL_CIPHER_num(tls13_ciphersuites); i++) {
         if (!sk_SSL_CIPHER_push(cipherstack,
                                 sk_SSL_CIPHER_value(tls13_ciphersuites, i))) {
-            OPENSSL_free(co_list);
             sk_SSL_CIPHER_free(cipherstack);
             return NULL;
         }

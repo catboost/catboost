@@ -40,7 +40,7 @@ public:
     }
 
     inline T Cur() const noexcept {
-        Y_ASSERT(C_ < L_ || sizeof(T) < Align);
+        Y_ASSERT(C_ < L_);
         return ::ReadUnaligned<T>(C_);
     }
 

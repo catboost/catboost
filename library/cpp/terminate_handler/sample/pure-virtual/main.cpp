@@ -1,3 +1,4 @@
+#include "../../terminate_handler.h"
 
 struct TFoo {
     TFoo() {
@@ -17,6 +18,7 @@ struct TQux: public TFoo {
 };
 
 int main() {
+    SetFancyTerminateHandler();
     TQux();
     return 0;
 }

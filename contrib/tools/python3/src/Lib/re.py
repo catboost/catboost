@@ -44,7 +44,7 @@ The special characters are:
     "|"      A|B, creates an RE that will match either A or B.
     (...)    Matches the RE inside the parentheses.
              The contents can be retrieved or matched later in the string.
-    (?aiLmsux) The letters set the corresponding flags defined below.
+    (?aiLmsux) Set the A, I, L, M, S, U, or X flag for the RE (see below).
     (?:...)  Non-grouping version of regular parentheses.
     (?P<name>...) The substring matched by the group is accessible by name.
     (?P=name)     Matches the text matched earlier by the group named name.
@@ -97,9 +97,7 @@ This module exports the following functions:
     purge     Clear the regular expression cache.
     escape    Backslash all non-alphanumerics in a string.
 
-Each function other than purge and escape can take an optional 'flags' argument
-consisting of one or more of the following module constants, joined by "|".
-A, L, and U are mutually exclusive.
+Some of the functions in this module takes flags as optional parameters:
     A  ASCII       For string patterns, make \w, \W, \b, \B, \d, \D
                    match the corresponding ASCII character categories
                    (rather than the whole Unicode categories, which is the
@@ -143,39 +141,24 @@ __all__ = [
 __version__ = "2.2.1"
 
 class RegexFlag(enum.IntFlag):
-    ASCII = A = sre_compile.SRE_FLAG_ASCII # assume ascii "locale"
-    IGNORECASE = I = sre_compile.SRE_FLAG_IGNORECASE # ignore case
-    LOCALE = L = sre_compile.SRE_FLAG_LOCALE # assume current 8-bit locale
-    UNICODE = U = sre_compile.SRE_FLAG_UNICODE # assume unicode "locale"
-    MULTILINE = M = sre_compile.SRE_FLAG_MULTILINE # make anchors look for newline
-    DOTALL = S = sre_compile.SRE_FLAG_DOTALL # make dot match newline
-    VERBOSE = X = sre_compile.SRE_FLAG_VERBOSE # ignore whitespace and comments
+    ASCII = sre_compile.SRE_FLAG_ASCII # assume ascii "locale"
+    IGNORECASE = sre_compile.SRE_FLAG_IGNORECASE # ignore case
+    LOCALE = sre_compile.SRE_FLAG_LOCALE # assume current 8-bit locale
+    UNICODE = sre_compile.SRE_FLAG_UNICODE # assume unicode "locale"
+    MULTILINE = sre_compile.SRE_FLAG_MULTILINE # make anchors look for newline
+    DOTALL = sre_compile.SRE_FLAG_DOTALL # make dot match newline
+    VERBOSE = sre_compile.SRE_FLAG_VERBOSE # ignore whitespace and comments
+    A = ASCII
+    I = IGNORECASE
+    L = LOCALE
+    U = UNICODE
+    M = MULTILINE
+    S = DOTALL
+    X = VERBOSE
     # sre extensions (experimental, don't rely on these)
-    TEMPLATE = T = sre_compile.SRE_FLAG_TEMPLATE # disable backtracking
+    TEMPLATE = sre_compile.SRE_FLAG_TEMPLATE # disable backtracking
+    T = TEMPLATE
     DEBUG = sre_compile.SRE_FLAG_DEBUG # dump pattern after compilation
-
-    def __repr__(self):
-        if self._name_ is not None:
-            return f're.{self._name_}'
-        value = self._value_
-        members = []
-        negative = value < 0
-        if negative:
-            value = ~value
-        for m in self.__class__:
-            if value & m._value_:
-                value &= ~m._value_
-                members.append(f're.{m._name_}')
-        if value:
-            members.append(hex(value))
-        res = '|'.join(members)
-        if negative:
-            if len(members) > 1:
-                res = f'~({res})'
-            else:
-                res = f'~{res}'
-        return res
-    __str__ = object.__str__
 globals().update(RegexFlag.__members__)
 
 # sre exception
@@ -351,7 +334,7 @@ class Scanner:
         self.lexicon = lexicon
         # combine phrases into a compound pattern
         p = []
-        s = sre_parse.State()
+        s = sre_parse.Pattern()
         s.flags = flags
         for phrase, action in lexicon:
             gid = s.opengroup()

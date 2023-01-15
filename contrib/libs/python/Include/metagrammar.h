@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef USE_PYTHON3
-#error "No <metagrammar.h> in Python3"
+#include <contrib/tools/python3/src/Include/metagrammar.h>
 #else
 #include <contrib/tools/python/src/Include/metagrammar.h>
 #endif

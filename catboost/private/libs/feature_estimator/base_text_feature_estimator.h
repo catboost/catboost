@@ -1,18 +1,15 @@
 #pragma once
 
-#include "classification_target.h"
 #include "feature_estimator.h"
-
 #include <catboost/private/libs/text_processing/text_dataset.h>
-
 
 namespace NCB {
     //TODO(noxoomo): we could fuse estimation in one pass for naive bayes and bm25
     template <class TFeatureCalcer, class TCalcerVisitor>
-    class TTextBaseEstimator : public IOnlineFeatureEstimator {
+    class TBaseEstimator : public IOnlineFeatureEstimator {
     public:
-        TTextBaseEstimator(
-            TClassificationTargetPtr target,
+        TBaseEstimator(
+            TTextClassificationTargetPtr target,
             TTextDataSetPtr learnTexts,
             TArrayRef<TTextDataSetPtr> testTexts)
             : Target(std::move(target))
@@ -24,7 +21,7 @@ namespace NCB {
         void ComputeFeatures(
             TCalculatedFeatureVisitor learnVisitor,
             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-            NPar::ILocalExecutor*) const override {
+            NPar::TLocalExecutor*) const override {
 
             THolder<TFeatureCalcer> featureCalcer = EstimateFeatureCalcer();
 
@@ -43,7 +40,7 @@ namespace NCB {
             TConstArrayRef<ui32> learnPermutation,
             TCalculatedFeatureVisitor learnVisitor,
             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
-            NPar::ILocalExecutor*) const override {
+            NPar::TLocalExecutor*) const override {
 
             TFeatureCalcer featureCalcer = CreateFeatureCalcer();
             TCalcerVisitor calcerVisitor = CreateCalcerVisitor();
@@ -79,17 +76,13 @@ namespace NCB {
             }
         }
 
-        virtual EFeatureType GetSourceType() const override {
-            return EFeatureType::Text;
-        }
-
         TGuid Id() const override {
             return Guid;
         }
 
         THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
             TConstArrayRef<ui32> featureIndices,
-            NPar::ILocalExecutor* executor) const override {
+            NPar::TLocalExecutor* executor) const override {
 
             Y_UNUSED(executor);
 
@@ -162,7 +155,7 @@ namespace NCB {
             featureCalcer.Compute(text, outputFeaturesIterator);
         }
 
-        const TClassificationTarget& GetTarget() const {
+        const TTextClassificationTarget& GetTarget() const {
             return *Target;
         }
 
@@ -190,7 +183,7 @@ namespace NCB {
         }
 
     private:
-        TClassificationTargetPtr Target;
+        TTextClassificationTargetPtr Target;
         TTextDataSetPtr LearnTexts;
         TVector<TTextDataSetPtr> TestTexts;
         const TGuid Guid;

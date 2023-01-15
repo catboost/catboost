@@ -89,7 +89,7 @@ template<typename T> class Regexp::Walker {
 
  private:
   // Walk state for the entire traversal.
-  std::stack<WalkState<T>> stack_;
+  std::stack<WalkState<T> >* stack_;
   bool stopped_early_;
   int max_visits_;
 
@@ -119,7 +119,7 @@ template<typename T> T Regexp::Walker<T>::Copy(T arg) {
 
 // State about a single level in the traversal.
 template<typename T> struct WalkState {
-  WalkState(Regexp* re, T parent)
+  WalkState<T>(Regexp* re, T parent)
     : re(re),
       n(-1),
       parent_arg(parent),
@@ -134,23 +134,24 @@ template<typename T> struct WalkState {
 };
 
 template<typename T> Regexp::Walker<T>::Walker() {
+  stack_ = new std::stack<WalkState<T> >;
   stopped_early_ = false;
 }
 
 template<typename T> Regexp::Walker<T>::~Walker() {
   Reset();
+  delete stack_;
 }
 
 // Clears the stack.  Should never be necessary, since
 // Walk always enters and exits with an empty stack.
 // Logs DFATAL if stack is not already clear.
 template<typename T> void Regexp::Walker<T>::Reset() {
-  if (!stack_.empty()) {
+  if (stack_ && stack_->size() > 0) {
     LOG(DFATAL) << "Stack not empty.";
-    while (!stack_.empty()) {
-      if (stack_.top().re->nsub_ > 1)
-        delete[] stack_.top().child_args;
-      stack_.pop();
+    while (stack_->size() > 0) {
+      delete stack_->top().child_args;
+      stack_->pop();
     }
   }
 }
@@ -164,13 +165,13 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
     return top_arg;
   }
 
-  stack_.push(WalkState<T>(re, top_arg));
+  stack_->push(WalkState<T>(re, top_arg));
 
   WalkState<T>* s;
   for (;;) {
     T t;
-    s = &stack_.top();
-    re = s->re;
+    s = &stack_->top();
+    Regexp* re = s->re;
     switch (s->n) {
       case -1: {
         if (--max_visits_ < 0) {
@@ -200,7 +201,7 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
               s->child_args[s->n] = Copy(s->child_args[s->n - 1]);
               s->n++;
             } else {
-              stack_.push(WalkState<T>(sub[s->n], s->pre_arg));
+              stack_->push(WalkState<T>(sub[s->n], s->pre_arg));
             }
             continue;
           }
@@ -213,12 +214,12 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
       }
     }
 
-    // We've finished stack_.top().
+    // We've finished stack_->top().
     // Update next guy down.
-    stack_.pop();
-    if (stack_.empty())
+    stack_->pop();
+    if (stack_->size() == 0)
       return t;
-    s = &stack_.top();
+    s = &stack_->top();
     if (s->child_args != NULL)
       s->child_args[s->n] = t;
     else

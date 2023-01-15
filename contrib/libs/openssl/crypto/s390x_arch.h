@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2017-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef OSSL_CRYPTO_S390X_ARCH_H
-# define OSSL_CRYPTO_S390X_ARCH_H
+#ifndef S390X_ARCH_H
+# define S390X_ARCH_H
 
 # ifndef __ASSEMBLER__
 
@@ -47,9 +47,6 @@ struct OPENSSL_s390xcap_st {
     unsigned long long kma[2];
 };
 
-#if defined(__GNUC__) && defined(__linux)
-__attribute__ ((visibility("hidden")))
-#endif
 extern struct OPENSSL_s390xcap_st OPENSSL_s390xcap_P;
 
 /* convert facility bit number or function code to bit mask */

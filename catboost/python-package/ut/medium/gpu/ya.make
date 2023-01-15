@@ -1,4 +1,4 @@
-PY3TEST()
+PYTEST()
 
 
 
@@ -7,7 +7,9 @@ PY3TEST()
 PEERDIR(
     contrib/python/pandas
     contrib/python/numpy
-    contrib/python/scipy
+    contrib/python/scipy/scipy/integrate
+    contrib/python/scipy/scipy/sparse
+    contrib/python/scipy/scipy/special
     library/python/pytest
     catboost/python-package/lib
     catboost/pytest/lib
@@ -30,7 +32,7 @@ ELSE()
     TAG(ya:fat ya:yt ya:noretries)
 ENDIF()
 
-YT_SPEC(catboost/pytest/cuda_tests/yt_spec.yson)
+YT_SPEC(catboost/pytest/cuda_tests/yt_spec.json)
 
 DATA(
     arcadia/catboost/pytest/data
@@ -39,17 +41,15 @@ DATA(
 
 DEPENDS(
     catboost/tools/limited_precision_dsv_diff
-    catboost/tools/limited_precision_json_diff
-    catboost/tools/limited_precision_numpy_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost
     catboost/python-package/ut/medium/python_binary
 )
 
-IF (OS_LINUX AND NOT ARCH_AARCH64)
-    ALLOCATOR(TCMALLOC_256K)
-ELSE()
+IF (ARCH_AARCH64 OR OS_WINDOWS)
     ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(LF)
 ENDIF()
 
 END()

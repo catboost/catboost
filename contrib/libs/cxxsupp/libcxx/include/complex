@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===--------------------------- complex ----------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -227,23 +227,27 @@ template<class T> complex<T> sqrt (const complex<T>&);
 template<class T> complex<T> tan (const complex<T>&);
 template<class T> complex<T> tanh (const complex<T>&);
 
+template<class T, class charT, class traits>
+  basic_istream<charT, traits>&
+  operator>>(basic_istream<charT, traits>& is, complex<T>& x);
+
+template<class T, class charT, class traits>
+  basic_ostream<charT, traits>&
+  operator<<(basic_ostream<charT, traits>& o, const complex<T>& x);
+
 }  // std
 
 */
 
 #include <__config>
-#include <cmath>
-#include <iosfwd>
-#include <stdexcept>
 #include <type_traits>
+#include <stdexcept>
+#include <cmath>
+#include <sstream>
 #include <version>
 
-#if !defined(_LIBCPP_HAS_NO_LOCALIZATION)
-#   include <sstream> // for std::basic_ostringstream
-#endif
-
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -950,7 +954,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 complex<_Tp>
 proj(const complex<_Tp>& __c)
 {
-    complex<_Tp> __r = __c;
+    std::complex<_Tp> __r = __c;
     if (__libcpp_isinf_or_builtin(__c.real()) || __libcpp_isinf_or_builtin(__c.imag()))
         __r = complex<_Tp>(INFINITY, copysign(_Tp(0), __c.imag()));
     return __r;
@@ -1056,9 +1060,6 @@ complex<_Tp>
 exp(const complex<_Tp>& __x)
 {
     _Tp __i = __x.imag();
-    if (__i == 0) {
-        return complex<_Tp>(exp(__x.real()), copysign(_Tp(0), __x.imag()));
-    }
     if (__libcpp_isinf_or_builtin(__x.real()))
     {
         if (__x.real() < _Tp(0))
@@ -1073,6 +1074,8 @@ exp(const complex<_Tp>& __x)
             return complex<_Tp>(__x.real(), __i);
         }
     }
+    else if (__libcpp_isnan_or_builtin(__x.real()) && __x.imag() == 0)
+        return __x;
     _Tp __e = exp(__x.real());
     return complex<_Tp>(__e * cos(__i), __e * sin(__i));
 }
@@ -1270,8 +1273,8 @@ tanh(const complex<_Tp>& __x)
     if (__libcpp_isinf_or_builtin(__x.real()))
     {
         if (!__libcpp_isfinite_or_builtin(__x.imag()))
-            return complex<_Tp>(copysign(_Tp(1), __x.real()), _Tp(0));
-        return complex<_Tp>(copysign(_Tp(1), __x.real()), copysign(_Tp(0), sin(_Tp(2) * __x.imag())));
+            return complex<_Tp>(_Tp(1), _Tp(0));
+        return complex<_Tp>(_Tp(1), copysign(_Tp(0), sin(_Tp(2) * __x.imag())));
     }
     if (__libcpp_isnan_or_builtin(__x.real()) && __x.imag() == 0)
         return __x;
@@ -1403,10 +1406,10 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __x)
                             __x = complex<_Tp>(__r, __i);
                         }
                         else
-                            __is.setstate(__is.failbit);
+                            __is.setstate(ios_base::failbit);
                     }
                     else
-                        __is.setstate(__is.failbit);
+                        __is.setstate(ios_base::failbit);
                 }
                 else if (__c == _CharT(')'))
                 {
@@ -1414,10 +1417,10 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __x)
                     __x = complex<_Tp>(__r, _Tp(0));
                 }
                 else
-                    __is.setstate(__is.failbit);
+                    __is.setstate(ios_base::failbit);
             }
             else
-                __is.setstate(__is.failbit);
+                __is.setstate(ios_base::failbit);
         }
         else
         {
@@ -1426,15 +1429,14 @@ operator>>(basic_istream<_CharT, _Traits>& __is, complex<_Tp>& __x)
             if (!__is.fail())
                 __x = complex<_Tp>(__r, _Tp(0));
             else
-                __is.setstate(__is.failbit);
+                __is.setstate(ios_base::failbit);
         }
     }
     else
-        __is.setstate(__is.failbit);
+        __is.setstate(ios_base::failbit);
     return __is;
 }
 
-#if !defined(_LIBCPP_HAS_NO_LOCALIZATION)
 template<class _Tp, class _CharT, class _Traits>
 basic_ostream<_CharT, _Traits>&
 operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
@@ -1446,12 +1448,11 @@ operator<<(basic_ostream<_CharT, _Traits>& __os, const complex<_Tp>& __x)
     __s << '(' << __x.real() << ',' << __x.imag() << ')';
     return __os << __s.str();
 }
-#endif // !_LIBCPP_HAS_NO_LOCALIZATION
 
-#if _LIBCPP_STD_VER > 11
+#if _LIBCPP_STD_VER > 11 
 // Literal suffix for complex number literals [complex.literals]
 inline namespace literals
-{
+{ 
   inline namespace complex_literals
   {
     constexpr complex<long double> operator""il(long double __im)
@@ -1487,10 +1488,10 @@ inline namespace literals
         return { 0.0f, static_cast<float>(__im) };
     }
 #endif
-  } // namespace complex_literals
-} // namespace literals
+  }
+}
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP_COMPLEX
+#endif  // _LIBCPP_COMPLEX

@@ -5,7 +5,7 @@
 #include "order.h"
 #include "quantized_features_info.h"
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
@@ -16,7 +16,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 namespace NCB {
@@ -30,7 +30,6 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
-        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const TPathWithScheme& inputBordersPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -40,7 +39,7 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         TDatasetSubset loadSubset,
         TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     );
 
     // for use from context where there's no localExecutor and proper logging handling is unimplemented
@@ -51,7 +50,6 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
-        const TPathWithScheme& poolMetaInfoPath, // can be uninited
         const TPathWithScheme& inputBordersPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,

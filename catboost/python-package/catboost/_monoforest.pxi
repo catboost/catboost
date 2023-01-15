@@ -3,12 +3,38 @@
 # cython: wraparound=False
 
 
-cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
+cdef extern from "catboost/libs/monoforest/enums.h" namespace "NMonoForest":
+    cdef cppclass EBinSplitType:
+        bool_t operator==(EBinSplitType)
+
+    cdef EBinSplitType EBinSplitType_TakeGreater "NMonoForest::EBinSplitType::TakeGreater"
+    cdef EBinSplitType EBinSplitType_TakeEqual "NMonoForest::EBinSplitType::TakeBin"
+
+
+cdef extern from "catboost/libs/monoforest/enums.h" namespace "NMonoForest":
     cdef cppclass EFeatureType:
         bool_t operator==(EFeatureType)
 
-    cdef EFeatureType EMonoForestFeatureType_Float "NMonoForest::EFeatureType::Float"
-    cdef EFeatureType EMonoForestFeatureType_OneHot "NMonoForest::EFeatureType::OneHot"
+
+cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
+    cdef cppclass EMonoForestFeatureType:
+        bool_t operator==(EMonoForestFeatureType)
+
+    cdef EMonoForestFeatureType EMonoForestFeatureType_Float "NMonoForest::EMonoForestFeatureType::Float"
+    cdef EMonoForestFeatureType EMonoForestFeatureType_OneHot "NMonoForest::EMonoForestFeatureType::OneHot"
+
+
+cdef extern from "catboost/libs/monoforest/interpretation.h" namespace "NMonoForest":
+    cdef cppclass TBorderExplanation:
+        float Border
+        double ProbabilityToSatisfy
+        TVector[double] ExpectedValueChange
+
+    cdef cppclass TFeatureExplanation:
+        int FeatureIdx
+        EMonoForestFeatureType FeatureType
+        TVector[double] ExpectedBias
+        TVector[TBorderExplanation] BordersExplanations
 
 
 cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
@@ -24,9 +50,9 @@ cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespa
 
 
 cdef extern from "catboost/python-package/catboost/monoforest_helpers.h" namespace "NMonoForest":
-    TString ConvertFullModelToPolynomString(const TFullModel& fullModel) except +ProcessException
-    TVector[THumanReadableMonom] ConvertFullModelToPolynom(const TFullModel& fullModel) except +ProcessException
-    TVector[TFeatureExplanation] ExplainFeatures(const TFullModel& fullModel) except +ProcessException
+    TString ConvertFullModelToPolynomString(const TFullModel& fullModel)
+    TVector[THumanReadableMonom] ConvertFullModelToPolynom(const TFullModel& fullModel)
+    TVector[TFeatureExplanation] ExplainFeatures(const TFullModel& fullModel)
 
 
 class Split:
@@ -100,7 +126,7 @@ class FeatureExplanation:
         if self.type == "Float":
             values.append(self.expected_bias[dim])
             for border_expl in self.borders_explanations:
-                values.append(values[len(values) - 1] + border_expl.expected_value_change[dim])
+                values.append(values[-1] + border_expl.expected_value_change[dim])
         else:
             for border_expl in self.borders_explanations:
                 values.append(self.expected_bias[dim] + border_expl.expected_value_change[dim])

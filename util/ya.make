@@ -1,7 +1,6 @@
 LIBRARY(yutil)
 
 
-SUBSCRIBER(g:util-subscribers)
 
 NEED_CHECK()
 
@@ -15,9 +14,14 @@ PEERDIR(
     contrib/libs/double-conversion
 )
 
-PEERDIR(
-    contrib/libs/libc_compat
-)
+IF (OS_ANDROID)
+    PEERDIR(
+        contrib/libs/android_ifaddrs
+    )
+    ADDINCL(
+        contrib/libs/android_ifaddrs
+    )
+ENDIF()
 
 # datetime
 JOIN_SRCS(
@@ -65,7 +69,6 @@ JOIN_SRCS(
     folder/dirut.cpp
     folder/filelist.cpp
     folder/fts.cpp
-    folder/fwd.cpp
     folder/iterator.cpp
     folder/path.cpp
     folder/pathsplit.cpp
@@ -82,6 +85,7 @@ ENDIF()
 # generic
 JOIN_SRCS(
     all_generic.cpp
+    generic/scope.cpp
     generic/adaptor.cpp
     generic/algorithm.cpp
     generic/array_ref.cpp
@@ -91,17 +95,15 @@ JOIN_SRCS(
     generic/bt_exception.cpp
     generic/buffer.cpp
     generic/cast.cpp
+    generic/chartraits.cpp
     generic/deque.cpp
     generic/explicit_type.cpp
     generic/fastqueue.cpp
     generic/flags.cpp
     generic/function.cpp
-    generic/function_ref.cpp
     generic/fwd.cpp
     generic/guid.cpp
     generic/hash.cpp
-    generic/hash_multi_map.cpp
-    generic/hash_table.cpp
     generic/hash_primes.cpp
     generic/hash_set.cpp
     generic/hide_ptr.cpp
@@ -117,11 +119,9 @@ JOIN_SRCS(
     generic/mem_copy.cpp
     generic/noncopyable.cpp
     generic/object_counter.cpp
-    generic/overloaded.cpp
     generic/ptr.cpp
     generic/queue.cpp
     generic/refcount.cpp
-    generic/scope.cpp
     generic/serialized_enum.cpp
     generic/set.cpp
     generic/singleton.cpp
@@ -132,10 +132,10 @@ JOIN_SRCS(
     generic/strfcpy.cpp
     generic/string.cpp
     generic/typelist.cpp
+    generic/type_name.cpp
     generic/typetraits.cpp
     generic/utility.cpp
     generic/va_args.cpp
-    generic/variant.cpp
     generic/vector.cpp
     generic/xrange.cpp
     generic/yexception.cpp
@@ -167,6 +167,7 @@ JOIN_SRCS(
     network/interface.cpp
     network/iovec.cpp
     network/ip.cpp
+    network/netloss.cpp
     network/nonblock.cpp
     network/pair.cpp
     network/poller.cpp
@@ -232,7 +233,6 @@ JOIN_SRCS(
     string/hex.cpp
     string/join.cpp
     string/printf.cpp
-    string/reverse.cpp
     string/split.cpp
     string/strip.cpp
     string/strspn.cpp
@@ -242,16 +242,8 @@ JOIN_SRCS(
     string/vector.cpp
 )
 
-IF (GCC OR CLANG OR CLANG_CL)
-    CFLAGS(-Wnarrowing)
-ENDIF()
-
 IF (ARCH_ARM)
     CFLAGS(-D_FORTIFY_SOURCE=0)
-ENDIF()
-
-IF (TSTRING_IS_STD_STRING)
-    CFLAGS(GLOBAL -DTSTRING_IS_STD_STRING)
 ENDIF()
 
 JOIN_SRCS(
@@ -259,14 +251,17 @@ JOIN_SRCS(
     system/atexit.cpp
     system/backtrace.cpp
     system/compat.cpp
+    system/compiler.cpp
     system/condvar.cpp
     system/context.cpp
     system/daemon.cpp
     system/datetime.cpp
     system/defaults.c
+    system/demangle.cpp
     system/direct_io.cpp
     system/dynlib.cpp
     system/env.cpp
+    system/err.cpp
     system/error.cpp
     system/event.cpp
     system/execpath.cpp
@@ -284,13 +279,10 @@ JOIN_SRCS(
     system/info.cpp
 )
 
-IF (OS_WINDOWS)
-    SRCS(system/err.cpp)
-ENDIF()
-
 JOIN_SRCS(
     all_system_2.cpp
     system/align.cpp
+    system/atomic.cpp
     system/byteorder.cpp
     system/cpu_id.cpp
     system/fhandle.cpp
@@ -324,15 +316,12 @@ JOIN_SRCS(
     system/thread.cpp
     system/tls.cpp
     system/types.cpp
-    system/type_name.cpp
     system/unaligned_mem.cpp
     system/user.cpp
     system/utime.cpp
     system/yassert.cpp
     system/yield.cpp
 )
-
-SRC_C_NO_LTO(system/compiler.cpp)
 
 IF (OS_WINDOWS)
     SRCS(
@@ -369,6 +358,9 @@ IF (MUSL)
         contrib/libs/linuxvdso
     )
 ELSE()
+    SRCS(
+        system/strlcpy.c
+    )
     IF (OS_LINUX OR SUN OR CYGWIN OR OS_WINDOWS)
         SRCS(
             system/mktemp_system.cpp
@@ -388,20 +380,3 @@ JOIN_SRCS(
 )
 
 END()
-
-RECURSE(
-    charset
-    datetime
-    digest
-    draft
-    folder
-    generic
-    memory
-    network
-    random
-    stream
-    string
-    system
-    thread
-    ut
-)

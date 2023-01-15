@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -8,15 +8,15 @@
  */
 
 #include <stdio.h>
-#include "crypto/ctype.h"
+#include "internal/ctype.h"
 #include <limits.h>
 #include "internal/cryptlib.h"
 #include <openssl/lhash.h>
 #include <openssl/asn1.h>
-#include "crypto/objects.h"
+#include "internal/objects.h"
 #include <openssl/bn.h>
-#include "crypto/asn1.h"
-#include "obj_local.h"
+#include "internal/asn1_int.h"
+#include "obj_lcl.h"
 
 /* obj_dat.h is generated from objects.h by obj_dat.pl */
 #include "obj_dat.h"
@@ -228,10 +228,9 @@ ASN1_OBJECT *OBJ_nid2obj(int n)
             return NULL;
         }
         return (ASN1_OBJECT *)&(nid_objs[n]);
-    } else if (added == NULL) {
-        OBJerr(OBJ_F_OBJ_NID2OBJ, OBJ_R_UNKNOWN_NID);
+    } else if (added == NULL)
         return NULL;
-    } else {
+    else {
         ad.type = ADDED_NID;
         ad.obj = &ob;
         ob.nid = n;

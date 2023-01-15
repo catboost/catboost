@@ -3,24 +3,17 @@ RESOURCES_LIBRARY()
 
 
 IF (OS_ANDROID)
-    # Android SDK for darwin: Build-Tools 30.0.3, Platform 30 with upgraded emulator and armv8-arm64 system image
-    IF(ARCH_ARM64 AND HOST_OS_DARWIN)
-        DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
-            ANDROID_SDK
-            sbr:2966636073 FOR DARWIN
-        )
-    ELSE()
-        # Android SDK for linux and darwin: Build-Tools 30.0.3, Platform 30
-        DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
-            ANDROID_SDK
-            sbr:2564045529 FOR LINUX
-            sbr:2564523615 FOR DARWIN
-        )
-    ENDIF()
+    # Android SDK for linux: Build-Tools 28.0.0, Build-Tools 28.0.2, Platform 28, Tools 26.1.1
+    # DECLARE_EXTERNAL_RESOURCE(ANDROID_SDK sbr:1080226315)
+    DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
+        ANDROID_SDK
+        sbr:1385186850 FOR LINUX
+        sbr:1369991121 FOR DARWIN
+    )
     IF (NOT HOST_OS_LINUX AND NOT HOST_OS_DARWIN)
         MESSAGE(FATAL_ERROR Unsupported platform for ANDROID_SDK)
     ENDIF()
-    DECLARE_EXTERNAL_RESOURCE(ANDROID_AVD sbr:2965845602)
+    DECLARE_EXTERNAL_RESOURCE(ANDROID_AVD sbr:1113208990)
 ELSE()
     MESSAGE(FATAL_ERROR Unsupported platform)
 ENDIF()

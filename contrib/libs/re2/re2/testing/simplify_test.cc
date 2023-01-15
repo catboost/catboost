@@ -7,7 +7,7 @@
 #include <string.h>
 #include <string>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "re2/regexp.h"
 
@@ -125,7 +125,7 @@ static Test tests[] = {
   // explicit (?:) in place of non-parenthesized empty strings,
   // to make them easier to spot for other parsers.
   { "(a|b|)", "([a-b]|(?:))" },
-  { "(|)", "((?:)|(?:))" },
+  { "(|)", "()" },
   { "a()", "a()" },
   { "(()|())", "(()|())" },
   { "(a|)", "(a|(?:))" },
@@ -245,20 +245,20 @@ static Test tests[] = {
 };
 
 TEST(TestSimplify, SimpleRegexps) {
-  for (size_t i = 0; i < arraysize(tests); i++) {
+  for (int i = 0; i < arraysize(tests); i++) {
     RegexpStatus status;
     VLOG(1) << "Testing " << tests[i].regexp;
     Regexp* re = Regexp::Parse(tests[i].regexp,
                                Regexp::MatchNL | (Regexp::LikePerl &
                                                   ~Regexp::OneLine),
                                &status);
-    ASSERT_TRUE(re != NULL) << " " << tests[i].regexp << " " << status.Text();
+    CHECK(re != NULL) << " " << tests[i].regexp << " " << status.Text();
     Regexp* sre = re->Simplify();
-    ASSERT_TRUE(sre != NULL);
+    CHECK(sre != NULL);
 
     // Check that already-simple regexps don't allocate new ones.
     if (strcmp(tests[i].regexp, tests[i].simplified) == 0) {
-      ASSERT_TRUE(re == sre) << " " << tests[i].regexp
+      CHECK(re == sre) << " " << tests[i].regexp
         << " " << re->ToString() << " " << sre->ToString();
     }
 

@@ -1,6 +1,6 @@
 #include "format.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <util/charset/wide.h>
 
 Y_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
@@ -49,7 +49,7 @@ Y_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
     Y_UNIT_TEST(TestHexText) {
         {
             TStringStream ss;
-            ss << HexText(TStringBuf("abcи"));
+            ss << HexText(AsStringBuf("abcи"));
             UNIT_ASSERT_VALUES_EQUAL("61 62 63 D0 B8", ss.Str());
         }
         {
@@ -76,9 +76,9 @@ Y_UNIT_TEST_SUITE(TOutputStreamFormattingTest) {
     }
 
     Y_UNIT_TEST(TestBinText) {
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(TStringBuf("\1"))), "00000001");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(TStringBuf("\1\1"))), "00000001 00000001");
-        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(TStringBuf("aaa"))), "01100001 01100001 01100001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("\1"))), "00000001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("\1\1"))), "00000001 00000001");
+        UNIT_ASSERT_VALUES_EQUAL(ToString(BinText(AsStringBuf("aaa"))), "01100001 01100001 01100001");
     }
 
     Y_UNIT_TEST(TestPrec) {

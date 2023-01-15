@@ -1,12 +1,12 @@
 pathlib2
 ========
 
-|jazzband| |github| |codecov|
+|appveyor| |travis| |codecov|
 
 Fork of pathlib aiming to support the full stdlib Python API.
 
-The `old pathlib <https://web.archive.org/web/20181106215056/https://bitbucket.org/pitrou/pathlib/>`_
-module on bitbucket is no longer maintained.
+The `old pathlib <https://bitbucket.org/pitrou/pathlib>`_
+module on bitbucket is in bugfix-only mode.
 The goal of pathlib2 is to provide a backport of
 `standard pathlib <http://docs.python.org/dev/library/pathlib.html>`_
 module which tracks the standard library module,
@@ -29,7 +29,7 @@ In particular, new features should be submitted to the
 
 Issues that occur in this backport, but that do not occur not in the
 standard Python pathlib module can be submitted on
-the `pathlib2 bug tracker <https://github.com/jazzband/pathlib2/issues>`_.
+the `pathlib2 bug tracker <https://github.com/mcmtroffaes/pathlib2/issues>`_.
 
 Documentation
 -------------
@@ -50,16 +50,17 @@ which is obviously completely useless.
 
 Therefore, on Windows with Python 2.7, until this problem is fixed upstream,
 unfortunately you cannot rely on pathlib2 to support the full unicode range for filenames.
-See `issue #56 <https://github.com/jazzband/pathlib2/issues/56>`_ for more details.
+See `issue #56 <https://github.com/mcmtroffaes/pathlib2/issues/56>`_ for more details.
 
-.. |github| image:: https://github.com/jazzband/pathlib2/actions/workflows/python-package.yml/badge.svg
-   :target: https://github.com/jazzband/pathlib2/actions/workflows/python-package.yml
-   :alt: github
+.. |travis| image:: https://travis-ci.org/mcmtroffaes/pathlib2.png?branch=develop
+    :target: https://travis-ci.org/mcmtroffaes/pathlib2
+    :alt: travis-ci
 
-.. |codecov| image:: https://codecov.io/gh/jazzband/pathlib2/branch/develop/graph/badge.svg
-    :target: https://codecov.io/gh/jazzband/pathlib2
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/baddx3rpet2wyi2c?svg=true
+    :target: https://ci.appveyor.com/project/mcmtroffaes/pathlib2
+    :alt: appveyor
+
+.. |codecov| image:: https://codecov.io/gh/mcmtroffaes/pathlib2/branch/develop/graph/badge.svg
+    :target: https://codecov.io/gh/mcmtroffaes/pathlib2
     :alt: codecov
 
-.. |jazzband| image:: https://jazzband.co/static/img/badge.svg
-   :alt: Jazzband
-   :target: https://jazzband.co/

@@ -4,7 +4,7 @@
 #include <utility>
 
 #include <library/cpp/http/io/headers.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 namespace {
     class THeadersExistence {
@@ -54,7 +54,6 @@ class THttpHeadersTest: public TTestBase {
 
 private:
     typedef void (*TAddHeaderFunction)(THttpHeaders&, TStringBuf name, TStringBuf value);
-    typedef void (*TAddOrReplaceHeaderFunction)(THttpHeaders&, TStringBuf name, TStringBuf value);
 
 public:
     void TestAddOperation1Arg();
@@ -73,16 +72,8 @@ private:
         headers.AddHeader(TString(name), TString(value));
     }
 
-    static void AddOrReplaceHeaderImpl1Arg(THttpHeaders& headers, TStringBuf name, TStringBuf value) {
-        headers.AddOrReplaceHeader(THttpInputHeader(TString(name), TString(value)));
-    }
-
-    static void AddOrReplaceHeaderImpl2Args(THttpHeaders& headers, TStringBuf name, TStringBuf value) {
-        headers.AddOrReplaceHeader(TString(name), TString(value));
-    }
-
     void DoTestAddOperation(TAddHeaderFunction);
-    void DoTestAddOrReplaceOperation(TAddHeaderFunction, TAddOrReplaceHeaderFunction);
+    void DoTestAddOrReplaceOperation(TAddHeaderFunction);
 };
 
 UNIT_TEST_SUITE_REGISTRATION(THttpHeadersTest);
@@ -95,10 +86,10 @@ void THttpHeadersTest::TestAddOperation2Args() {
 }
 
 void THttpHeadersTest::TestAddOrReplaceOperation1Arg() {
-    DoTestAddOrReplaceOperation(AddHeaderImpl1Arg, AddOrReplaceHeaderImpl1Arg);
+    DoTestAddOrReplaceOperation(AddHeaderImpl1Arg);
 }
 void THttpHeadersTest::TestAddOrReplaceOperation2Args() {
-    DoTestAddOrReplaceOperation(AddHeaderImpl2Args, AddOrReplaceHeaderImpl2Args);
+    DoTestAddOrReplaceOperation(AddHeaderImpl2Args);
 }
 
 void THttpHeadersTest::DoTestAddOperation(TAddHeaderFunction addHeader) {
@@ -124,19 +115,19 @@ void THttpHeadersTest::DoTestAddOperation(TAddHeaderFunction addHeader) {
 }
 
 // Sorry, but AddOrReplaceHeader replaces only first occurence
-void THttpHeadersTest::DoTestAddOrReplaceOperation(TAddHeaderFunction addHeader, TAddOrReplaceHeaderFunction addOrReplaceHeader) {
+void THttpHeadersTest::DoTestAddOrReplaceOperation(TAddHeaderFunction addHeader) {
     THttpHeaders h1;
 
     addHeader(h1, "h1", "v1");
 
-    addOrReplaceHeader(h1, "h2", "v1");
-    addOrReplaceHeader(h1, "h2", "v2");
-    addOrReplaceHeader(h1, "h2", "v3");
+    h1.AddOrReplaceHeader(THttpInputHeader("h2", "v1"));
+    h1.AddOrReplaceHeader(THttpInputHeader("h2", "v2"));
+    h1.AddOrReplaceHeader(THttpInputHeader("h2", "v3"));
     addHeader(h1, "h2", "v4");
 
     addHeader(h1, "h3", "v1");
     addHeader(h1, "h3", "v2");
-    addOrReplaceHeader(h1, "h3", "v3");
+    h1.AddOrReplaceHeader(THttpInputHeader("h3", "v3"));
 
     THeadersExistence h2;
 
@@ -155,7 +146,7 @@ void THttpHeadersTest::TestAddHeaderTemplateness() {
     THttpHeaders h1;
     h1.AddHeader("h1", "v1");
     h1.AddHeader("h2", TString("v2"));
-    h1.AddHeader("h3", TStringBuf("v3"));
+    h1.AddHeader("h3", AsStringBuf("v3"));
     h1.AddHeader("h4", TStringBuf("v4"));
 
     THeadersExistence h2;

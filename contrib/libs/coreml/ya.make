@@ -1,11 +1,8 @@
 PROTO_LIBRARY()
 
 LICENSE(
-    BSD-3-Clause AND
-    MIT
+    BSD
 )
-
-LICENSE_TEXTS(.yandex_meta/licenses.list.txt)
 
 
 
@@ -28,11 +25,6 @@ SRCS(
     Scaler.proto
     TreeEnsemble.proto
 )
-
-# TODO: remove (DEVTOOLS-3496)
-EXCLUDE_TAGS(
-    GO_PROTO
-    JAVA_PROTO
-)
+EXCLUDE_TAGS(JAVA_PROTO)
 
 END()

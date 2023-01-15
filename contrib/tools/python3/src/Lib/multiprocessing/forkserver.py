@@ -11,7 +11,7 @@ import warnings
 from . import connection
 from . import process
 from .context import reduction
-from . import resource_tracker
+from . import semaphore_tracker
 from . import spawn
 from . import util
 
@@ -38,26 +38,6 @@ class ForkServer(object):
         self._inherited_fds = None
         self._lock = threading.Lock()
         self._preload_modules = ['__main__']
-
-    def _stop(self):
-        # Method used by unit tests to stop the server
-        with self._lock:
-            self._stop_unlocked()
-
-    def _stop_unlocked(self):
-        if self._forkserver_pid is None:
-            return
-
-        # close the "alive" file descriptor asks the server to stop
-        os.close(self._forkserver_alive_fd)
-        self._forkserver_alive_fd = None
-
-        os.waitpid(self._forkserver_pid, 0)
-        self._forkserver_pid = None
-
-        if not util.is_abstract_socket_namespace(self._forkserver_address):
-            os.unlink(self._forkserver_address)
-        self._forkserver_address = None
 
     def set_forkserver_preload(self, modules_names):
         '''Set list of module names to try to load in forkserver process.'''
@@ -89,7 +69,7 @@ class ForkServer(object):
             parent_r, child_w = os.pipe()
             child_r, parent_w = os.pipe()
             allfds = [child_r, child_w, self._forkserver_alive_fd,
-                      resource_tracker.getfd()]
+                      semaphore_tracker.getfd()]
             allfds += fds
             try:
                 reduction.sendfds(client, allfds)
@@ -110,7 +90,7 @@ class ForkServer(object):
         ensure_running() will do nothing.
         '''
         with self._lock:
-            resource_tracker.ensure_running()
+            semaphore_tracker.ensure_running()
             if self._forkserver_pid is not None:
                 # forkserver was launched before, is it still running?
                 pid, status = os.waitpid(self._forkserver_pid, os.WNOHANG)
@@ -136,8 +116,7 @@ class ForkServer(object):
             with socket.socket(socket.AF_UNIX) as listener:
                 address = connection.arbitrary_address('AF_UNIX')
                 listener.bind(address)
-                if not util.is_abstract_socket_namespace(address):
-                    os.chmod(address, 0o600)
+                os.chmod(address, 0o600)
                 listener.listen()
 
                 # all client processes own the write end of the "alive" pipe;
@@ -237,8 +216,14 @@ def main(listener_fd, alive_r, preload, main_path=None, sys_path=None):
                             break
                         child_w = pid_to_fd.pop(pid, None)
                         if child_w is not None:
-                            returncode = os.waitstatus_to_exitcode(sts)
-
+                            if os.WIFSIGNALED(sts):
+                                returncode = -os.WTERMSIG(sts)
+                            else:
+                                if not os.WIFEXITED(sts):
+                                    raise AssertionError(
+                                        "Child {0:n} status is {1:n}".format(
+                                            pid,sts))
+                                returncode = os.WEXITSTATUS(sts)
                             # Send exit code to client process
                             try:
                                 write_signed(child_w, returncode)
@@ -305,12 +290,11 @@ def _serve_one(child_r, fds, unused_fds, handlers):
         os.close(fd)
 
     (_forkserver._forkserver_alive_fd,
-     resource_tracker._resource_tracker._fd,
+     semaphore_tracker._semaphore_tracker._fd,
      *_forkserver._inherited_fds) = fds
 
     # Run process object received over pipe
-    parent_sentinel = os.dup(child_r)
-    code = spawn._main(child_r, parent_sentinel)
+    code = spawn._main(child_r)
 
     return code
 

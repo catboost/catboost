@@ -3,7 +3,6 @@
 #include "recode_result.h"
 #include "unidata.h"
 #include "utf8.h"
-#include "wide_specific.h"
 
 #include <util/generic/algorithm.h>
 #include <util/generic/string.h>
@@ -16,7 +15,7 @@
 #include <cstring>
 
 #ifdef _sse2_
-    #include <emmintrin.h>
+#include <emmintrin.h>
 #endif
 
 template <class T>
@@ -81,7 +80,7 @@ inline const wchar32* SkipSymbol(const wchar32* begin, const wchar32* end) noexc
 inline wchar32 ReadSymbol(const wchar16* begin, const wchar16* end) noexcept {
     Y_ASSERT(begin < end);
     if (IsW16SurrogateLead(*begin)) {
-        if (begin + 1 < end && IsW16SurrogateTail(*(begin + 1)))
+        if (begin + 1 != end && IsW16SurrogateTail(*(begin + 1)))
             return ::NDetail::ReadSurrogatePair(begin);
 
         return BROKEN_RUNE;
@@ -350,17 +349,7 @@ template <bool robust>
 inline TWtringBuf UTF8ToWide(const TStringBuf src, TUtf16String& dst) {
     dst.ReserveAndResize(src.size());
     size_t written = 0;
-    UTF8ToWideImpl<robust>(src.data(), src.size(), dst.begin(), written);
-    dst.resize(written);
-    return dst;
-}
-
-//! if not robust will stop at first error position
-template <bool robust>
-inline TUtf32StringBuf UTF8ToUTF32(const TStringBuf src, TUtf32String& dst) {
-    dst.ReserveAndResize(src.size());
-    size_t written = 0;
-    UTF8ToWideImpl<robust>(src.data(), src.size(), dst.begin(), written);
+    UTF8ToWide<robust>(src.data(), src.size(), dst.begin(), written);
     dst.resize(written);
     return dst;
 }
@@ -376,13 +365,6 @@ inline TUtf16String UTF8ToWide(const char* text, size_t len) {
 template <bool robust>
 inline TUtf16String UTF8ToWide(const TStringBuf s) {
     return UTF8ToWide<robust>(s.data(), s.size());
-}
-
-template <bool robust>
-inline TUtf32String UTF8ToUTF32(const TStringBuf s) {
-    TUtf32String r;
-    UTF8ToUTF32<robust>(s, r);
-    return r;
 }
 
 inline TUtf16String UTF8ToWide(const TStringBuf s) {
@@ -815,7 +797,7 @@ void EscapeHtmlChars(TUtf16String& str);
 //! returns number of characters in range. Handle surrogate pairs as one character.
 inline size_t CountWideChars(const wchar16* b, const wchar16* e) {
     size_t count = 0;
-    Y_ENSURE(b <= e, TStringBuf("invalid iterators"));
+    Y_ENSURE(b <= e, AsStringBuf("invalid iterators"));
     while (b < e) {
         b = SkipSymbol(b, e);
         ++count;
@@ -829,7 +811,7 @@ inline size_t CountWideChars(const TWtringBuf str) {
 
 //! checks whether the range is valid UTF-16 sequence
 inline bool IsValidUTF16(const wchar16* b, const wchar16* e) {
-    Y_ENSURE(b <= e, TStringBuf("invalid iterators"));
+    Y_ENSURE(b <= e, AsStringBuf("invalid iterators"));
     while (b < e) {
         wchar32 symbol = ReadSymbolAndAdvance(b, e);
         if (symbol == BROKEN_RUNE)

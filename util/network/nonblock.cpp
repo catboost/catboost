@@ -5,13 +5,13 @@
 #include <util/generic/singleton.h>
 
 #if defined(_unix_)
-    #include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 #if defined(_linux_)
-    #if !defined(SOCK_NONBLOCK)
-        #define SOCK_NONBLOCK 04000
-    #endif
+#if !defined(SOCK_NONBLOCK)
+#define SOCK_NONBLOCK 04000
+#endif
 #endif
 
 namespace {
@@ -24,12 +24,12 @@ namespace {
             {
                 Accept4 = reinterpret_cast<TAccept4>(dlsym(RTLD_DEFAULT, "accept4"));
 
-    #if defined(_musl_)
+#if defined(_musl_)
                 //musl always statically linked
                 if (!Accept4) {
                     Accept4 = accept4;
                 }
-    #endif
+#endif
 
                 if (Accept4) {
                     Accept4(-1, nullptr, nullptr, SOCK_NONBLOCK);

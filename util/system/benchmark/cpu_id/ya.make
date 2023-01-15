@@ -1,7 +1,6 @@
 
-SUBSCRIBER(g:util-subscribers)
 
-Y_BENCHMARK()
+BENCHMARK()
 
 SRCS(
     main.cpp

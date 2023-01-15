@@ -3,7 +3,6 @@
 .text
 
 
-.hidden	OPENSSL_armcap_P
 
 .align	5
 .Lsigma:

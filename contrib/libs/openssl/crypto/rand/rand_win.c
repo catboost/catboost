@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -9,8 +9,8 @@
 
 #include "internal/cryptlib.h"
 #include <openssl/rand.h>
-#include "rand_local.h"
-#include "crypto/rand.h"
+#include "rand_lcl.h"
+#include "internal/rand_int.h"
 #if defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WIN32)
 
 # ifndef OPENSSL_RAND_SEED_OS
@@ -26,9 +26,7 @@
 
 # ifdef USE_BCRYPTGENRANDOM
 #  include <bcrypt.h>
-#  ifdef _MSC_VER
-#   pragma comment(lib, "bcrypt.lib")
-#  endif
+#  pragma comment(lib, "bcrypt.lib")
 #  ifndef STATUS_SUCCESS
 #   define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
 #  endif
@@ -132,7 +130,7 @@ int rand_pool_add_nonce_data(RAND_POOL *pool)
 
     /*
      * Add process id, thread id, and a high resolution timestamp to
-     * ensure that the nonce is unique with high probability for
+     * ensure that the nonce is unique whith high probability for
      * different process instances.
      */
     data.pid = GetCurrentProcessId();

@@ -1,19 +1,18 @@
 #include <util/system/defaults.h>
 
 #if defined(_freebsd_) && !defined(__LONG_LONG_SUPPORTED)
-    #define __LONG_LONG_SUPPORTED
+#define __LONG_LONG_SUPPORTED
 #endif
 
-#include <cmath>
 #include <cstdio>
-#include <filesystem>
 #include <string>
+#include <cmath>
 
 #include <util/string/type.h>
 #include <util/string/cast.h>
 #include <util/string/escape.h>
 
-#include <contrib/libs/double-conversion/double-conversion/double-conversion.h>
+#include <contrib/libs/double-conversion/double-conversion.h>
 
 #include <util/generic/string.h>
 #include <util/system/yassert.h>
@@ -32,12 +31,12 @@ using double_conversion::StringToDoubleConverter;
  */
 
 namespace {
-    constexpr char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    static const char IntToChar[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     static_assert(Y_ARRAY_SIZE(IntToChar) == 16, "expect Y_ARRAY_SIZE(IntToChar) == 16");
 
     // clang-format off
-    constexpr int LetterToIntMap[] = {
+    static const int LetterToIntMap[] = {
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
         20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
@@ -53,17 +52,17 @@ namespace {
     // clang-format on
 
     template <class T>
-    std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
+    static std::enable_if_t<std::is_signed<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T value) noexcept {
         return std::make_unsigned_t<T>(-(value + 1)) + std::make_unsigned_t<T>(1);
     }
 
     template <class T>
-    std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
+    static std::enable_if_t<std::is_unsigned<T>::value, std::make_unsigned_t<T>> NegateNegativeSigned(T) noexcept {
         Y_UNREACHABLE();
     }
 
     template <class T>
-    std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
+    static std::make_signed_t<T> NegatePositiveSigned(T value) noexcept {
         return value > 0 ? (-std::make_signed_t<T>(value - 1) - 1) : 0;
     }
 
@@ -73,7 +72,7 @@ namespace {
         static_assert(std::is_unsigned<T>::value, "TBasicIntFormatter can only handle unsigned integers.");
 
         static inline size_t Format(T value, TChar* buf, size_t len) {
-            Y_ENSURE(len, TStringBuf("zero length"));
+            Y_ENSURE(len, AsStringBuf("zero length"));
 
             TChar* tmp = buf;
 
@@ -84,7 +83,7 @@ namespace {
                 value = nextVal;
             } while (value && --len);
 
-            Y_ENSURE(!value, TStringBuf("not enough room in buffer"));
+            Y_ENSURE(!value, AsStringBuf("not enough room in buffer"));
 
             const size_t result = tmp - buf;
 
@@ -112,7 +111,7 @@ namespace {
             using TUFmt = TBasicIntFormatter<std::make_unsigned_t<T>, base, TChar>;
 
             if (std::is_signed<T>::value && value < 0) {
-                Y_ENSURE(len >= 2, TStringBuf("not enough room in buffer"));
+                Y_ENSURE(len >= 2, AsStringBuf("not enough room in buffer"));
 
                 *buf = '-';
 
@@ -127,15 +126,15 @@ namespace {
     struct TFltModifiers;
 
     template <class T, int base, class TChar>
-    Y_NO_INLINE size_t FormatInt(T value, TChar* buf, size_t len) {
+    static Y_NO_INLINE size_t FormatInt(T value, TChar* buf, size_t len) {
         return TIntFormatter<T, base, TChar>::Format(value, buf, len);
     }
 
     template <class T>
-    inline size_t FormatFlt(T t, char* buf, size_t len) {
+    static inline size_t FormatFlt(T t, char* buf, size_t len) {
         const int ret = snprintf(buf, len, TFltModifiers<T>::ModifierWrite, t);
 
-        Y_ENSURE(ret >= 0 && (size_t)ret <= len, TStringBuf("cannot format float"));
+        Y_ENSURE(ret >= 0 && (size_t)ret <= len, AsStringBuf("cannot format float"));
 
         return (size_t)ret;
     }
@@ -149,7 +148,7 @@ namespace {
         PS_OVERFLOW,
     };
 
-    constexpr ui8 SAFE_LENS[4][17] = {
+    static const ui8 SAFE_LENS[4][17] = {
         {0, 0, 7, 5, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1},
         {0, 0, 15, 10, 7, 6, 6, 5, 5, 5, 4, 4, 4, 4, 4, 4, 3},
         {0, 0, 31, 20, 15, 13, 12, 11, 10, 10, 9, 9, 8, 8, 8, 8, 7},
@@ -161,7 +160,7 @@ namespace {
     }
 
     template <unsigned BASE, class TChar, class T>
-    inline std::enable_if_t<(BASE > 10), bool> CharToDigit(TChar c, T* digit) noexcept {
+    static inline std::enable_if_t<(BASE > 10), bool> CharToDigit(TChar c, T* digit) noexcept {
         unsigned uc = c;
 
         if (uc >= Y_ARRAY_SIZE(LetterToIntMap)) {
@@ -174,7 +173,7 @@ namespace {
     }
 
     template <unsigned BASE, class TChar, class T>
-    inline std::enable_if_t<(BASE <= 10), bool> CharToDigit(TChar c, T* digit) noexcept {
+    static inline std::enable_if_t<(BASE <= 10), bool> CharToDigit(TChar c, T* digit) noexcept {
         return (c >= '0') && ((*digit = (c - '0')) < BASE);
     }
 
@@ -330,22 +329,22 @@ namespace {
 
         switch (status) {
             case PS_EMPTY_STRING:
-                ythrow TFromStringException() << TStringBuf("Cannot parse empty string as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse empty string as number. ");
             case PS_PLUS_STRING:
-                ythrow TFromStringException() << TStringBuf("Cannot parse string \"+\" as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse string \"+\" as number. ");
             case PS_MINUS_STRING:
-                ythrow TFromStringException() << TStringBuf("Cannot parse string \"-\" as number. ");
+                ythrow TFromStringException() << AsStringBuf("Cannot parse string \"-\" as number. ");
             case PS_BAD_SYMBOL:
-                ythrow TFromStringException() << TStringBuf("Unexpected symbol \"") << EscapeC(*pos) << TStringBuf("\" at pos ") << (pos - data) << TStringBuf(" in string ") << TStringType(data, len).Quote() << TStringBuf(". ");
+                ythrow TFromStringException() << AsStringBuf("Unexpected symbol \"") << EscapeC(*pos) << AsStringBuf("\" at pos ") << (pos - data) << AsStringBuf(" in string ") << TStringType(data, len).Quote() << AsStringBuf(". ");
             case PS_OVERFLOW:
-                ythrow TFromStringException() << TStringBuf("Integer overflow in string ") << TStringType(data, len).Quote() << TStringBuf(". ");
+                ythrow TFromStringException() << AsStringBuf("Integer overflow in string ") << TStringType(data, len).Quote() << AsStringBuf(". ");
             default:
-                ythrow yexception() << TStringBuf("Unknown error code in string converter. ");
+                ythrow yexception() << AsStringBuf("Unknown error code in string converter. ");
         }
     }
 
     template <typename T, typename TUnsigned, int base, typename TChar>
-    Y_NO_INLINE T ParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds) {
+    static Y_NO_INLINE T ParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds) {
         T result;
         const TChar* pos = data;
         EParseStatus status = TIntParser<T, base, TChar>::Parse(&pos, pos + len, bounds, &result);
@@ -358,12 +357,12 @@ namespace {
     }
 
     template <typename T, typename TUnsigned, int base, typename TChar>
-    Y_NO_INLINE bool TryParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds, T* result) {
+    static Y_NO_INLINE bool TryParseInt(const TChar* data, size_t len, const TBounds<TUnsigned>& bounds, T* result) {
         return TIntParser<T, base, TChar>::Parse(&data, data + len, bounds, result) == PS_OK;
     }
 
     template <class T>
-    inline T ParseFlt(const char* data, size_t len) {
+    static inline T ParseFlt(const char* data, size_t len) {
         /*
          * TODO
          */
@@ -385,7 +384,7 @@ namespace {
             return ret;
         }
 
-        ythrow TFromStringException() << TStringBuf("cannot parse float(") << TStringBuf(data, len) << TStringBuf(")");
+        ythrow TFromStringException() << AsStringBuf("cannot parse float(") << TStringBuf(data, len) << AsStringBuf(")");
     }
 
 #define DEF_FLT_MOD(type, modifierWrite, modifierRead)                    \
@@ -406,16 +405,16 @@ namespace {
      * sure they go into binary as actual values and there is no associated
      * initialization code.
      * */
-    constexpr TBounds<ui64> bSBounds = {static_cast<ui64>(SCHAR_MAX), static_cast<ui64>(UCHAR_MAX - SCHAR_MAX)};
-    constexpr TBounds<ui64> bUBounds = {static_cast<ui64>(UCHAR_MAX), 0};
-    constexpr TBounds<ui64> sSBounds = {static_cast<ui64>(SHRT_MAX), static_cast<ui64>(USHRT_MAX - SHRT_MAX)};
-    constexpr TBounds<ui64> sUBounds = {static_cast<ui64>(USHRT_MAX), 0};
-    constexpr TBounds<ui64> iSBounds = {static_cast<ui64>(INT_MAX), static_cast<ui64>(UINT_MAX - INT_MAX)};
-    constexpr TBounds<ui64> iUBounds = {static_cast<ui64>(UINT_MAX), 0};
-    constexpr TBounds<ui64> lSBounds = {static_cast<ui64>(LONG_MAX), static_cast<ui64>(ULONG_MAX - LONG_MAX)};
-    constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
-    constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
-    constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
+    static constexpr TBounds<ui64> bSBounds = {static_cast<ui64>(SCHAR_MAX), static_cast<ui64>(UCHAR_MAX - SCHAR_MAX)};
+    static constexpr TBounds<ui64> bUBounds = {static_cast<ui64>(UCHAR_MAX), 0};
+    static constexpr TBounds<ui64> sSBounds = {static_cast<ui64>(SHRT_MAX), static_cast<ui64>(USHRT_MAX - SHRT_MAX)};
+    static constexpr TBounds<ui64> sUBounds = {static_cast<ui64>(USHRT_MAX), 0};
+    static constexpr TBounds<ui64> iSBounds = {static_cast<ui64>(INT_MAX), static_cast<ui64>(UINT_MAX - INT_MAX)};
+    static constexpr TBounds<ui64> iUBounds = {static_cast<ui64>(UINT_MAX), 0};
+    static constexpr TBounds<ui64> lSBounds = {static_cast<ui64>(LONG_MAX), static_cast<ui64>(ULONG_MAX - LONG_MAX)};
+    static constexpr TBounds<ui64> lUBounds = {static_cast<ui64>(ULONG_MAX), 0};
+    static constexpr TBounds<ui64> llSBounds = {static_cast<ui64>(LLONG_MAX), static_cast<ui64>(ULLONG_MAX - LLONG_MAX)};
+    static constexpr TBounds<ui64> llUBounds = {static_cast<ui64>(ULLONG_MAX), 0};
 }
 
 #define DEF_INT_SPEC_II(TYPE, ITYPE, BASE)                              \
@@ -444,13 +443,6 @@ DEF_INT_SPEC(int)
 DEF_INT_SPEC(long)
 DEF_INT_SPEC(long long)
 
-#ifdef __cpp_char8_t
-template <>
-size_t ToStringImpl<char8_t>(char8_t value, char* buf, size_t len) {
-    return FormatInt<ui64, 10, char>(value, buf, len);
-}
-#endif
-
 using TCharIType = std::conditional_t<std::is_signed<char>::value, i64, ui64>;
 using TWCharIType = std::conditional_t<std::is_signed<wchar_t>::value, i64, ui64>;
 
@@ -475,7 +467,7 @@ DEF_FLT_SPEC(long double)
 
 template <>
 size_t ToStringImpl<bool>(bool t, char* buf, size_t len) {
-    Y_ENSURE(len, TStringBuf("zero length"));
+    Y_ENSURE(len, AsStringBuf("zero length"));
     *buf = t ? '1' : '0';
     return 1;
 }
@@ -511,7 +503,7 @@ bool FromStringImpl<bool>(const char* data, size_t len) {
     bool result;
 
     if (!TryFromStringImpl<bool>(data, len, result)) {
-        ythrow TFromStringException() << TStringBuf("Cannot parse bool(") << TStringBuf(data, len) << TStringBuf("). ");
+        ythrow TFromStringException() << AsStringBuf("Cannot parse bool(") << TStringBuf(data, len) << AsStringBuf("). ");
     }
 
     return result;
@@ -531,14 +523,6 @@ template <>
 std::string FromStringImpl<std::string>(const char* data, size_t len) {
     return std::string(data, len);
 }
-
-#ifndef USE_STL_SYSTEM
-// FIXME thegeorg@: remove #ifndef upon raising minimal macOS version to 10.15 in https://st.yandex-team.ru/DTCC-836
-template <>
-std::filesystem::path FromStringImpl<std::filesystem::path>(const char* data, size_t len) {
-    return std::filesystem::path(std::string(data, len));
-}
-#endif
 
 template <>
 TUtf16String FromStringImpl<TUtf16String>(const wchar16* data, size_t len) {
@@ -692,7 +676,7 @@ template <>
 double FromStringImpl<double>(const char* data, size_t len) {
     double d = 0.0;
     if (!TryFromStringImpl(data, len, d)) {
-        ythrow TFromStringException() << TStringBuf("cannot parse float(") << TStringBuf(data, len) << TStringBuf(")");
+        ythrow TFromStringException() << AsStringBuf("cannot parse float(") << TStringBuf(data, len) << AsStringBuf(")");
     }
     return d;
 }

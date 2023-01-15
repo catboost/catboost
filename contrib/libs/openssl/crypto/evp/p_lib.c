@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -21,8 +21,8 @@
 #include <openssl/cmac.h>
 #include <openssl/engine.h>
 
-#include "crypto/asn1.h"
-#include "crypto/evp.h"
+#include "internal/asn1_int.h"
+#include "internal/evp_int.h"
 
 static void EVP_PKEY_free_it(EVP_PKEY *x);
 
@@ -102,7 +102,7 @@ int EVP_PKEY_copy_parameters(EVP_PKEY *to, const EVP_PKEY *from)
 
 int EVP_PKEY_missing_parameters(const EVP_PKEY *pkey)
 {
-    if (pkey != NULL && pkey->ameth && pkey->ameth->param_missing)
+    if (pkey->ameth && pkey->ameth->param_missing)
         return pkey->ameth->param_missing(pkey);
     return 0;
 }
@@ -212,15 +212,10 @@ static int pkey_set_type(EVP_PKEY *pkey, ENGINE *e, int type, const char *str,
     }
     if (pkey) {
         pkey->ameth = ameth;
+        pkey->engine = e;
+
         pkey->type = pkey->ameth->pkey_id;
         pkey->save_type = type;
-# ifndef OPENSSL_NO_ENGINE
-        if (eptr == NULL && e != NULL && !ENGINE_init(e)) {
-            EVPerr(EVP_F_PKEY_SET_TYPE, EVP_R_INITIALIZATION_ERROR);
-            return 0;
-        }
-# endif
-        pkey->engine = e;
     }
     return 1;
 }
@@ -470,7 +465,7 @@ int EVP_PKEY_set1_RSA(EVP_PKEY *pkey, RSA *key)
 
 RSA *EVP_PKEY_get0_RSA(EVP_PKEY *pkey)
 {
-    if (pkey->type != EVP_PKEY_RSA && pkey->type != EVP_PKEY_RSA_PSS) {
+    if (pkey->type != EVP_PKEY_RSA) {
         EVPerr(EVP_F_EVP_PKEY_GET0_RSA, EVP_R_EXPECTING_AN_RSA_KEY);
         return NULL;
     }
@@ -525,7 +520,7 @@ int EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key)
 
 EC_KEY *EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
 {
-    if (EVP_PKEY_base_id(pkey) != EVP_PKEY_EC) {
+    if (pkey->type != EVP_PKEY_EC) {
         EVPerr(EVP_F_EVP_PKEY_GET0_EC_KEY, EVP_R_EXPECTING_A_EC_KEY);
         return NULL;
     }
@@ -545,9 +540,7 @@ EC_KEY *EVP_PKEY_get1_EC_KEY(EVP_PKEY *pkey)
 
 int EVP_PKEY_set1_DH(EVP_PKEY *pkey, DH *key)
 {
-    int type = DH_get0_q(key) == NULL ? EVP_PKEY_DH : EVP_PKEY_DHX;
-    int ret = EVP_PKEY_assign(pkey, type, key);
-
+    int ret = EVP_PKEY_assign_DH(pkey, key);
     if (ret)
         DH_up_ref(key);
     return ret;

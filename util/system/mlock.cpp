@@ -5,32 +5,23 @@
 #include "mlock.h"
 
 #if defined(_unix_)
-    #include <sys/mman.h>
-    #if !defined(MCL_ONFAULT) && defined(MCL_FUTURE) // Old glibc.
-        #define MCL_ONFAULT (MCL_FUTURE << 1)
-    #endif
-    #if defined(_android_)
-        #include <sys/syscall.h>
-        #define munlockall() syscall(__NR_munlockall)
-    #endif
-#else
-    #include "winint.h"
+#include <sys/mman.h>
+#if !defined(MCL_ONFAULT) && defined(MCL_FUTURE) // Old glibc.
+#define MCL_ONFAULT (MCL_FUTURE << 1)
 #endif
-
-#include <limits>
+#if defined(_android_)
+#include <sys/syscall.h>
+#define munlockall() syscall(__NR_munlockall)
+#endif
+#else
+#include "winint.h"
+#endif
 
 void LockMemory(const void* addr, size_t len) {
 #if defined(_unix_)
-    if (0 == len) {
-        return;
-    }
-    Y_ASSERT(static_cast<ssize_t>(len) > 0);
     const size_t pageSize = NSystemInfo::GetPageSize();
-    const char* begin = AlignDown(static_cast<const char*>(addr), pageSize);
-    const char* end = AlignUp(static_cast<const char*>(addr) + len, pageSize);
-    if (mlock(begin, end - begin)) {
+    if (mlock(AlignDown(addr, pageSize), AlignUp(len, pageSize)))
         ythrow yexception() << LastSystemErrorText();
-    }
 #elif defined(_win_)
     HANDLE hndl = GetCurrentProcess();
     SIZE_T min, max;
@@ -45,16 +36,8 @@ void LockMemory(const void* addr, size_t len) {
 
 void UnlockMemory(const void* addr, size_t len) {
 #if defined(_unix_)
-    if (0 == len) {
-        return;
-    }
-    Y_ASSERT(static_cast<ssize_t>(len) > 0);
-    const size_t pageSize = NSystemInfo::GetPageSize();
-    const char* begin = AlignDown(static_cast<const char*>(addr), pageSize);
-    const char* end = AlignUp(static_cast<const char*>(addr) + len, pageSize);
-    if (munlock(begin, end - begin)) {
+    if (munlock(addr, len))
         ythrow yexception() << LastSystemErrorText();
-    }
 #elif defined(_win_)
     HANDLE hndl = GetCurrentProcess();
     SIZE_T min, max;

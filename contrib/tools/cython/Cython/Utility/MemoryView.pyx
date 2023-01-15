@@ -23,7 +23,6 @@ cdef extern from "<string.h>":
     void *memset(void *b, int c, size_t len)
 
 cdef extern from *:
-    bint __PYX_CYTHON_ATOMICS_ENABLED() noexcept
     int __Pyx_GetBuffer(object, Py_buffer *, int) except -1
     void __Pyx_ReleaseBuffer(Py_buffer *)
 
@@ -352,15 +351,14 @@ cdef class memoryview(object):
                 (<__pyx_buffer *> &self.view).obj = Py_None
                 Py_INCREF(Py_None)
 
-        if not __PYX_CYTHON_ATOMICS_ENABLED():
-            global __pyx_memoryview_thread_locks_used
-            if __pyx_memoryview_thread_locks_used < THREAD_LOCKS_PREALLOCATED:
-                self.lock = __pyx_memoryview_thread_locks[__pyx_memoryview_thread_locks_used]
-                __pyx_memoryview_thread_locks_used += 1
+        global __pyx_memoryview_thread_locks_used
+        if __pyx_memoryview_thread_locks_used < THREAD_LOCKS_PREALLOCATED:
+            self.lock = __pyx_memoryview_thread_locks[__pyx_memoryview_thread_locks_used]
+            __pyx_memoryview_thread_locks_used += 1
+        if self.lock is NULL:
+            self.lock = PyThread_allocate_lock()
             if self.lock is NULL:
-                self.lock = PyThread_allocate_lock()
-                if self.lock is NULL:
-                    raise MemoryError
+                raise MemoryError
 
         if flags & PyBUF_FORMAT:
             self.dtype_is_object = (self.view.format[0] == b'O' and self.view.format[1] == b'\0')
@@ -1052,7 +1050,7 @@ cdef memoryview_fromslice({{memviewslice_name}} memviewslice,
 
 @cname('__pyx_memoryview_get_slice_from_memoryview')
 cdef {{memviewslice_name}} *get_slice_from_memview(memoryview memview,
-                                                   {{memviewslice_name}} *mslice) except NULL:
+                                                   {{memviewslice_name}} *mslice):
     cdef _memoryviewslice obj
     if isinstance(memview, _memoryviewslice):
         obj = memview
@@ -1178,10 +1176,11 @@ cdef void copy_strided_to_strided({{memviewslice_name}} *src,
 @cname('__pyx_memoryview_slice_get_size')
 cdef Py_ssize_t slice_get_size({{memviewslice_name}} *src, int ndim) nogil:
     "Return the size of the memory occupied by the slice in number of bytes"
-    cdef Py_ssize_t shape, size = src.memview.view.itemsize
+    cdef int i
+    cdef Py_ssize_t size = src.memview.view.itemsize
 
-    for shape in src.shape[:ndim]:
-        size *= shape
+    for i in range(ndim):
+        size *= src.shape[i]
 
     return size
 
@@ -1198,11 +1197,11 @@ cdef Py_ssize_t fill_contig_strides_array(
     if order == 'F':
         for idx in range(ndim):
             strides[idx] = stride
-            stride *= shape[idx]
+            stride = stride * shape[idx]
     else:
         for idx in range(ndim - 1, -1, -1):
             strides[idx] = stride
-            stride *= shape[idx]
+            stride = stride * shape[idx]
 
     return stride
 
@@ -1468,8 +1467,7 @@ cdef bytes format_from_typeinfo(__Pyx_TypeInfo *type):
     cdef bytes part, result
 
     if type.typegroup == 'S':
-        assert type.fields != NULL
-        assert type.fields.type != NULL
+        assert type.fields != NULL and type.fields.type != NULL
 
         if type.flags & __PYX_BUF_FLAGS_PACKED_STRUCT:
             alignment = b'^'

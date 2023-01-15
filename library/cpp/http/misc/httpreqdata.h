@@ -13,54 +13,54 @@
 #include <util/system/yassert.h>
 #include <util/generic/string.h>
 #include <util/datetime/base.h>
-#include <util/generic/vector.h>
-#include <util/generic/maybe.h>
-
-using THttpHeadersContainer = THashMap<TString, TString, TCIOps, TCIOps>;
+#include <util/generic/buffer.h>
 
 class TBaseServerRequestData {
+    typedef THashMap<TString, TString, TCIOps, TCIOps> HeaderInHash;
+
 public:
     TBaseServerRequestData(SOCKET s = INVALID_SOCKET);
-    TBaseServerRequestData(TStringBuf qs, SOCKET s = INVALID_SOCKET);
+    TBaseServerRequestData(const char* qs, SOCKET s = INVALID_SOCKET);
 
     void SetHost(const TString& host, ui16 port) {
-        Host_ = host;
-        Port_ = ToString(port);
+        Host = host;
+        Port = ToString(port);
     }
 
     const TString& ServerName() const {
-        return Host_;
+        return Host;
     }
 
     NAddr::IRemoteAddrPtr ServerAddress() const {
-        return NAddr::GetSockAddr(Socket_);
+        return NAddr::GetSockAddr(Socket);
     }
 
     const TString& ServerPort() const {
-        return Port_;
+        return Port;
     }
 
-    TStringBuf ScriptName() const {
-        return Path_;
+    const char* ScriptName() const {
+        return Path;
     }
 
-    TStringBuf Query() const {
-        return Query_;
+    const char* QueryString() const {
+        return Search;
     }
 
-    TStringBuf OrigQuery() const {
-        return OrigQuery_;
+    TStringBuf QueryStringBuf() const {
+        return TStringBuf(Search, SearchLength);
     }
 
-    void AppendQueryString(TStringBuf str);
-    TStringBuf RemoteAddr() const;
+    TStringBuf OrigQueryStringBuf() const {
+        return OrigSearch;
+    }
+
+    void AppendQueryString(const char* str, size_t length);
+    const char* RemoteAddr() const;
     void SetRemoteAddr(TStringBuf addr);
-    // Returns nullptr when the header does not exist
-    const TString* HeaderIn(TStringBuf key) const;
-    // Throws on missing header
-    TStringBuf HeaderInOrEmpty(TStringBuf key) const;
+    const char* HeaderIn(const char* key) const;
 
-    const THttpHeadersContainer& HeadersIn() const {
+    const HeaderInHash& HeadersIn() const {
         return HeadersIn_;
     }
 
@@ -69,36 +69,39 @@ public:
     }
 
     TString HeaderByIndex(size_t n) const noexcept;
-    TStringBuf Environment(TStringBuf key) const;
+    const char* Environment(const char* key) const;
 
     void Clear();
 
     void SetSocket(SOCKET s) noexcept {
-        Socket_ = s;
+        Socket = s;
     }
 
     ui64 RequestBeginTime() const noexcept {
-        return BeginTime_;
+        return BeginTime;
     }
 
-    void SetPath(TString path);
-    const TString& GetCurPage() const;
-    bool Parse(TStringBuf req);
+    void SetPath(const TString& path);
+    const char* GetCurPage() const;
+    bool Parse(const char* req);
     void AddHeader(const TString& name, const TString& value);
 
 private:
-    mutable TMaybe<TString> Addr_;
-    TString Host_;
-    TString Port_;
-    TString Path_;
-    TStringBuf Query_;
-    TStringBuf OrigQuery_;
-    THttpHeadersContainer HeadersIn_;
-    SOCKET Socket_;
-    ui64 BeginTime_;
-    mutable TString CurPage_;
-    TVector<char> ParseBuf_;
-    TString ModifiedQueryString_;
+    TBuffer PathStorage;
+    mutable char* Addr;
+    TString Host;
+    TString Port;
+    char* Path;
+    char* Search;
+    size_t SearchLength; // length of Search
+    TStringBuf OrigSearch;
+    HeaderInHash HeadersIn_;
+    mutable char AddrData[INET6_ADDRSTRLEN];
+    SOCKET Socket;
+    ui64 BeginTime;
+    mutable TString CurPage;
+    TBuffer ParseBuf;
+    TBuffer ModifiedQueryString;
 };
 
 class TServerRequestData: public TBaseServerRequestData {
@@ -107,14 +110,14 @@ public:
         : TBaseServerRequestData(s)
     {
     }
-    TServerRequestData(TStringBuf qs, SOCKET s = INVALID_SOCKET)
+    TServerRequestData(const char* qs, SOCKET s = INVALID_SOCKET)
         : TBaseServerRequestData(qs, s)
     {
         Scan();
     }
 
     void Scan() {
-        CgiParam.Scan(Query());
+        CgiParam.Scan(QueryStringBuf());
     }
 
 public:

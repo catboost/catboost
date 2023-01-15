@@ -6,11 +6,11 @@ SRCS(
     column_printer.cpp
     eval_helpers.cpp
     eval_result.cpp
-    GLOBAL pool_printer.cpp
+    pool_printer.cpp
 )
 
 PEERDIR(
-    library/cpp/threading/local_executor
+    library/threading/local_executor
     catboost/libs/column_description
     catboost/libs/data
     catboost/private/libs/data_util

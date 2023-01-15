@@ -28,7 +28,6 @@ fn main() {
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .clang_arg(format!("-I{}", cb_model_interface_root.display()))
-        .size_t_is_usize(true)
         .rustfmt_bindings(true)
         .generate()
         .expect("Unable to generate bindings.");

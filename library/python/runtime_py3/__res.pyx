@@ -1,3 +1,5 @@
+# cython: language_level=3
+
 from _codecs import utf_8_decode, utf_8_encode
 
 from libcpp cimport bool
@@ -5,7 +7,7 @@ from libcpp cimport bool
 from util.generic.string cimport TString, TStringBuf
 
 
-cdef extern from "library/cpp/resource/resource.h" namespace "NResource":
+cdef extern from "library/resource/resource.h" namespace "NResource":
     cdef size_t Count() except +
     cdef TStringBuf KeyByIndex(size_t idx) except +
     cdef bool FindExact(const TStringBuf key, TString* result) nogil except +

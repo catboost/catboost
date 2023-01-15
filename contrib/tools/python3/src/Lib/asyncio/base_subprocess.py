@@ -120,9 +120,10 @@ class BaseSubprocessTransport(transports.SubprocessTransport):
 
             # Don't clear the _proc reference yet: _post_init() may still run
 
-    def __del__(self, _warn=warnings.warn):
+    def __del__(self):
         if not self._closed:
-            _warn(f"unclosed transport {self!r}", ResourceWarning, source=self)
+            warnings.warn(f"unclosed transport {self!r}", ResourceWarning,
+                          source=self)
             self.close()
 
     def get_pid(self):
@@ -182,9 +183,7 @@ class BaseSubprocessTransport(transports.SubprocessTransport):
             for callback, data in self._pending_calls:
                 loop.call_soon(callback, *data)
             self._pending_calls = None
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except BaseException as exc:
+        except Exception as exc:
             if waiter is not None and not waiter.cancelled():
                 waiter.set_exception(exc)
         else:

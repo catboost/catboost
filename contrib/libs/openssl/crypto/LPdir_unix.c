@@ -131,8 +131,9 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
         return 0;
     }
 
-    OPENSSL_strlcpy((*ctx)->entry_name, direntry->d_name,
-                    sizeof((*ctx)->entry_name));
+    strncpy((*ctx)->entry_name, direntry->d_name,
+            sizeof((*ctx)->entry_name) - 1);
+    (*ctx)->entry_name[sizeof((*ctx)->entry_name) - 1] = '\0';
 #ifdef __VMS
     if ((*ctx)->expect_file_generations) {
         char *p = (*ctx)->entry_name + strlen((*ctx)->entry_name);

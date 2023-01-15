@@ -1,5 +1,0 @@
-RECURSE(
-    hnsw
-    lib
-    ut
-)

@@ -33,19 +33,6 @@ static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& p
     return {};
 }
 
-template <>
-inline TString BuildDescription(const char* fmt, const TMetricParam<TVector<double>>& param) {
-    if (param.IsUserDefined() && param.Get().size() > 0) {
-        TStringBuilder description;
-        description << param.GetName() << "=" << Sprintf(fmt, param.Get()[0]) << ",";
-        for (auto idx : xrange<size_t>(1, param.Get().size(), 1)) {
-            description << "," << Sprintf(fmt, param.Get()[idx]);
-        }
-        return description;
-    }
-    return {};
-}
-
 template <typename T, typename... TRest>
 static inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
     const TString& head = BuildDescription(param);
@@ -77,7 +64,7 @@ static inline TString BuildDescription(const TString& description, const TParams
     return TStringBuilder() << description << sep << tail;
 }
 
-TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams& params);
+TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TString, TString>& params);
 
 static inline TMetricParam<double> MakeTargetBorderParam(double targetBorder) {
     return {"border", targetBorder, targetBorder != GetDefaultTargetBorder()};

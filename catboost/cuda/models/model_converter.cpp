@@ -6,7 +6,7 @@
 
 namespace NCatboostCuda {
     template <>
-    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TObliviousTreeModel>>&& model, NPar::ILocalExecutor*) {
+    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TObliviousTreeModel>>&& model, NPar::TLocalExecutor*) {
         return std::move(model);
     }
 
@@ -48,7 +48,7 @@ namespace NCatboostCuda {
     void AddNode(const TLeafPath& leafPath, size_t position, TVector<double>& values, THolder<TNode>* rootPtr) {
         auto& root = *rootPtr;
         if (!root) {
-            root = MakeHolder<TNode>(values.size());
+            root = new TNode(values.size());
         } else {
             Y_ASSERT(root->NodeValues.size() == values.size());
         }
@@ -204,7 +204,7 @@ namespace NCatboostCuda {
     }
 
     template <>
-    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TRegionModel>>&& model, NPar::ILocalExecutor*) {
+    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TRegionModel>>&& model, NPar::TLocalExecutor*) {
         auto approxDim = model->OutputDim();
 
         THolder<TNode> root = MakeHolder<TNode>(approxDim);
@@ -248,8 +248,8 @@ namespace NCatboostCuda {
     }
 
     template <>
-    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TNonSymmetricTree>>&& model, NPar::ILocalExecutor* executor) {
-        THolder<TAdditiveModel<TObliviousTreeModel>> result = MakeHolder<TAdditiveModel<TObliviousTreeModel>>();
+    THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TNonSymmetricTree>>&& model, NPar::TLocalExecutor* executor) {
+        THolder<TAdditiveModel<TObliviousTreeModel>> result = new TAdditiveModel<TObliviousTreeModel>;
         (*result) = MakeOTEnsemble(*model, executor);
         return result;
     }

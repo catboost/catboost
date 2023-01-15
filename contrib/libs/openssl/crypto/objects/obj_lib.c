@@ -11,7 +11,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/objects.h>
 #include <openssl/buffer.h>
-#include "crypto/asn1.h"
+#include "internal/asn1_int.h"
 
 ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
 {

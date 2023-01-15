@@ -20,17 +20,17 @@ static const unsigned char IS_XML_ASCII_NAME_CHAR[128] = {
 
 
 void CheckIsValidXmlAsciiName(TStringBuf name, TStringBuf contextForErrorMessage) {
-    CB_ENSURE(!name.empty(), contextForErrorMessage << ": name is empty");
+    Y_ENSURE(!name.empty(), contextForErrorMessage << ": name is empty");
 
-    CB_ENSURE(
+    Y_ENSURE(
         IsAscii(name[0]) && (IsAsciiAlpha(name[0]) || (name[0] == '_') || (name[0] == ':')),
-        TString(contextForErrorMessage) << ": name \"" << name
+        contextForErrorMessage << ": name \"" << name
             << "\" has the first character that is invalid for XML ASCII names"
     );
     for (auto i : xrange<size_t>(1, name.size())) {
-        CB_ENSURE(
+        Y_ENSURE(
             IsAscii(name[i]) && IS_XML_ASCII_NAME_CHAR[(size_t)name[i]],
-            TString(contextForErrorMessage) << ": name \"" << name
+            contextForErrorMessage << ": name \"" << name
                 << "\" has a character at code unit " << i << " that is invalid for XML ASCII names"
         );
     }

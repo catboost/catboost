@@ -156,7 +156,7 @@ def test_python_export_from_app(dataset):
     pred_model = model.predict(test_pool, prediction_type='RawFormulaVal')
 
     scope = {}
-    exec(open(model_py).read(), scope)
+    execfile(model_py, scope)
     pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)
@@ -175,7 +175,7 @@ def test_python_export_from_python(dataset, iterations):
     model.save_model(model_py, format="python", pool=train_pool)
 
     scope = {}
-    exec(open(model_py).read(), scope)
+    execfile(model_py, scope)
     pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)
@@ -199,7 +199,7 @@ def test_python_after_load(dataset):
     pred_model_loaded = model_loaded.predict(test_pool, prediction_type='RawFormulaVal')
 
     scope = {}
-    exec(open(model_py).read(), scope)
+    execfile(model_py, scope)
     pred_python = _predict_python_on_test(dataset, scope['apply_catboost_model'])
 
     assert _check_data(pred_model, pred_python)

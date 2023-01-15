@@ -15,7 +15,6 @@
  */
 
 #include "flatbuffers/flatc.h"
-#include "flatbuffers/util.h"
 
 static const char *g_program_name = nullptr;
 
@@ -30,26 +29,11 @@ static void Error(const flatbuffers::FlatCompiler *flatc,
                   const std::string &err, bool usage, bool show_exe_name) {
   if (show_exe_name) { printf("%s: ", g_program_name); }
   printf("error: %s\n", err.c_str());
-  if (usage && flatc) {
-    printf("%s", flatc->GetUsageString(g_program_name).c_str());
-  }
+  if (usage) { printf("%s", flatc->GetUsageString(g_program_name).c_str()); }
   exit(1);
 }
 
-namespace flatbuffers {
-void LogCompilerWarn(const std::string &warn) {
-  Warn(static_cast<const flatbuffers::FlatCompiler *>(nullptr), warn, true);
-}
-void LogCompilerError(const std::string &err) {
-  Error(static_cast<const flatbuffers::FlatCompiler *>(nullptr), err, false,
-        true);
-}
-}  // namespace flatbuffers
-
 int main(int argc, const char *argv[]) {
-  // Prevent Appveyor-CI hangs.
-  flatbuffers::SetupDefaultCRTReportMode();
-
   g_program_name = argv[0];
 
   const flatbuffers::FlatCompiler::Generator generators[] = {
@@ -62,52 +46,58 @@ int main(int argc, const char *argv[]) {
       "Generate text output for any data definitions",
       flatbuffers::TextMakeRule },
     { flatbuffers::GenerateCPP, "-c", "--cpp", "C++", true,
-      flatbuffers::GenerateCppGRPC, flatbuffers::IDLOptions::kCpp,
+      nullptr, flatbuffers::IDLOptions::kCpp,
       "Generate C++ headers for tables/structs", flatbuffers::CPPMakeRule },
     { flatbuffers::GenerateGo, "-g", "--go", "Go", true,
-      flatbuffers::GenerateGoGRPC, flatbuffers::IDLOptions::kGo,
-      "Generate Go files for tables/structs", nullptr },
-    { flatbuffers::GenerateJava, "-j", "--java", "Java", true,
-      flatbuffers::GenerateJavaGRPC, flatbuffers::IDLOptions::kJava,
+      nullptr, flatbuffers::IDLOptions::kGo,
+      "Generate Go files for tables/structs", flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateGeneral, "-j", "--java", "Java", true,
+      nullptr, flatbuffers::IDLOptions::kJava,
       "Generate Java classes for tables/structs",
-      flatbuffers::JavaCSharpMakeRule },
+      flatbuffers::GeneralMakeRule },
+    { flatbuffers::GeneratePython, "-p", "--python", "Python", true, nullptr,
+      flatbuffers::IDLOptions::kPython,
+      "Generate Python files for tables/structs",
+      flatbuffers::GeneralMakeRule },
+// NB(eeight) disable unsupported languages
+#if 0
+    { flatbuffers::GenerateJS, "-s", "--js", "JavaScript", true, nullptr,
+      flatbuffers::IDLOptions::kJs,
+      "Generate JavaScript code for tables/structs", flatbuffers::JSMakeRule },
     { flatbuffers::GenerateDart, "-d", "--dart", "Dart", true, nullptr,
       flatbuffers::IDLOptions::kDart,
       "Generate Dart classes for tables/structs", flatbuffers::DartMakeRule },
-    { flatbuffers::GenerateTS, "-T", "--ts", "TypeScript", true,
-      flatbuffers::GenerateTSGRPC, flatbuffers::IDLOptions::kTs,
-      "Generate TypeScript code for tables/structs", flatbuffers::TSMakeRule },
-    { flatbuffers::GenerateCSharp, "-n", "--csharp", "C#", true, nullptr,
+    { flatbuffers::GenerateJS, "-T", "--ts", "TypeScript", true, nullptr,
+      flatbuffers::IDLOptions::kTs,
+      "Generate TypeScript code for tables/structs", flatbuffers::JSMakeRule },
+    { flatbuffers::GenerateGeneral, "-n", "--csharp", "C#", true, nullptr,
       flatbuffers::IDLOptions::kCSharp,
-      "Generate C# classes for tables/structs",
-      flatbuffers::JavaCSharpMakeRule },
-    { flatbuffers::GeneratePython, "-p", "--python", "Python", true,
-      flatbuffers::GeneratePythonGRPC, flatbuffers::IDLOptions::kPython,
-      "Generate Python files for tables/structs", nullptr },
-    { flatbuffers::GenerateLobster, nullptr, "--lobster", "Lobster", true,
-      nullptr, flatbuffers::IDLOptions::kLobster,
-      "Generate Lobster files for tables/structs", nullptr },
+      "Generate C# classes for tables/structs", flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateLobster, nullptr, "--lobster", "Lobster", true, nullptr,
+      flatbuffers::IDLOptions::kLobster,
+      "Generate Lobster files for tables/structs",
+      flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateLua, "-l", "--lua", "Lua", true, nullptr,
-      flatbuffers::IDLOptions::kLua, "Generate Lua files for tables/structs",
-      nullptr },
+      flatbuffers::IDLOptions::kLua,
+      "Generate Lua files for tables/structs",
+      flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateRust, "-r", "--rust", "Rust", true, nullptr,
-      flatbuffers::IDLOptions::kRust, "Generate Rust files for tables/structs",
+      flatbuffers::IDLOptions::kRust,
+      "Generate Rust files for tables/structs",
       flatbuffers::RustMakeRule },
     { flatbuffers::GeneratePhp, nullptr, "--php", "PHP", true, nullptr,
       flatbuffers::IDLOptions::kPhp, "Generate PHP files for tables/structs",
-      nullptr },
-    { flatbuffers::GenerateKotlin, nullptr, "--kotlin", "Kotlin", true, nullptr,
-      flatbuffers::IDLOptions::kKotlin,
-      "Generate Kotlin classes for tables/structs", nullptr },
+      flatbuffers::GeneralMakeRule },
+#endif
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,
-      "Generate Json schema", nullptr },
-    { flatbuffers::GenerateSwift, nullptr, "--swift", "swift", true,
-      flatbuffers::GenerateSwiftGRPC, flatbuffers::IDLOptions::kSwift,
-      "Generate Swift files for tables/structs", nullptr },
+      "Generate Json schema", flatbuffers::GeneralMakeRule },
     { flatbuffers::GenerateCPPYandexMapsIter, nullptr, "--yandex-maps-iter", "C++Iter",
-      true, nullptr, flatbuffers::IDLOptions::kCppYandexMapsIter,
-      "Generate C++ template headers for tables/structs", nullptr },
+      true, nullptr,
+      flatbuffers::IDLOptions::kCppYandexMapsIter,
+      "Generate C++ template headers for tables/structs",
+      flatbuffers::GeneralMakeRule },
+
   };
 
   flatbuffers::FlatCompiler::InitParams params;

@@ -16,7 +16,7 @@ namespace NOpenSSL {
     )
         : THolder(type, name)
     {
-        BIO_meth_set_write(*this, write);
+        BIO_meth_set_write(*this, write);  
         BIO_meth_set_read(*this, read);
         BIO_meth_set_puts(*this, puts);
         BIO_meth_set_gets(*this, gets);

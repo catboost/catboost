@@ -4,13 +4,12 @@
 #include "enums.h"
 #include "binarization_options.h"
 #include "text_processing_options.h"
-#include "embedding_processing_options.h"
 #include "unimplemented_aware_option.h"
 
 #include <catboost/libs/helpers/sparse_array.h>
 
 #include <library/cpp/grid_creator/binarization.h>
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/map.h>
 #include <util/generic/maybe.h>
@@ -37,16 +36,12 @@ namespace NCatboostOptions {
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
         TOption<TMap<ui32, TBinarizationOptions>> PerFloatFeatureQuantization;
         TOption<TTextProcessingOptions> TextProcessingOptions;
-        TOption<TEmbeddingProcessingOptions> EmbeddingProcessingOptions;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
-        TOption<EAutoClassWeightsType> AutoClassWeights;
         TOption<TVector<NJson::TJsonValue>> ClassLabels; // can be Integers, Floats or Strings
 
         TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled
         TOption<NCB::ESparseArrayIndexingType> DevSparseArrayIndexingType;
-        TOption<bool> ForceUnitAutoPairWeights;
-        TOption<float> EvalFraction;
 
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
         TCpuOnlyOption<bool> DevLeafwiseScoring;
@@ -62,4 +57,9 @@ namespace NCatboostOptions {
     constexpr float GetDefaultPredictionBorder() {
         return 0.5;
     }
+
+    // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
+    // key). Returns nothing if the key isn't present in the map and throws an exception if the border target is not
+    // a valid floating point number.
+    TMaybe<float> GetPredictionBorderFromLossParams(const TMap<TString, TString>& params);
 }

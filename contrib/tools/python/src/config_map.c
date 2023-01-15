@@ -87,6 +87,6 @@
 {"_winreg", init_winreg},
 #endif
 
-#if defined(_x86_) && !defined(_CYGWIN_) || defined(__powerpc__) || defined(__aarch64__)
+#if defined(_x86_) && !defined(_CYGWIN_)
 {"_ctypes", init_ctypes},
 #endif

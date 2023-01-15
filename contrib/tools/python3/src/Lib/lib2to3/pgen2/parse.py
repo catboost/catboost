@@ -24,9 +24,6 @@ class ParseError(Exception):
         self.value = value
         self.context = context
 
-    def __reduce__(self):
-        return type(self), (self.msg, self.type, self.value, self.context)
-
 class Parser(object):
     """Parser engine.
 

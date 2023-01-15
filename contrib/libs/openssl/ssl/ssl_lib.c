@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  * Copyright 2005 Nokia. All rights reserved.
  *
@@ -10,7 +10,7 @@
  */
 
 #include <stdio.h>
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include <openssl/objects.h>
 #include <openssl/x509v3.h>
 #include <openssl/rand.h>
@@ -779,10 +779,8 @@ SSL *SSL_new(SSL_CTX *ctx)
         s->ext.ecpointformats =
             OPENSSL_memdup(ctx->ext.ecpointformats,
                            ctx->ext.ecpointformats_len);
-        if (!s->ext.ecpointformats) {
-            s->ext.ecpointformats_len = 0;
+        if (!s->ext.ecpointformats)
             goto err;
-        }
         s->ext.ecpointformats_len =
             ctx->ext.ecpointformats_len;
     }
@@ -791,10 +789,8 @@ SSL *SSL_new(SSL_CTX *ctx)
             OPENSSL_memdup(ctx->ext.supportedgroups,
                            ctx->ext.supportedgroups_len
                                 * sizeof(*ctx->ext.supportedgroups));
-        if (!s->ext.supportedgroups) {
-            s->ext.supportedgroups_len = 0;
+        if (!s->ext.supportedgroups)
             goto err;
-        }
         s->ext.supportedgroups_len = ctx->ext.supportedgroups_len;
     }
 #endif
@@ -804,10 +800,8 @@ SSL *SSL_new(SSL_CTX *ctx)
 
     if (s->ctx->ext.alpn) {
         s->ext.alpn = OPENSSL_malloc(s->ctx->ext.alpn_len);
-        if (s->ext.alpn == NULL) {
-            s->ext.alpn_len = 0;
+        if (s->ext.alpn == NULL)
             goto err;
-        }
         memcpy(s->ext.alpn, s->ctx->ext.alpn, s->ctx->ext.alpn_len);
         s->ext.alpn_len = s->ctx->ext.alpn_len;
     }
@@ -1206,8 +1200,6 @@ void SSL_free(SSL *s)
     OPENSSL_free(s->ext.ocsp.resp);
     OPENSSL_free(s->ext.alpn);
     OPENSSL_free(s->ext.tls13_cookie);
-    if (s->clienthello != NULL)
-        OPENSSL_free(s->clienthello->pre_proc_exts);
     OPENSSL_free(s->clienthello);
     OPENSSL_free(s->pha_context);
     EVP_MD_CTX_free(s->pha_dgst);
@@ -1510,26 +1502,12 @@ int SSL_has_pending(const SSL *s)
 {
     /*
      * Similar to SSL_pending() but returns a 1 to indicate that we have
-     * processed or unprocessed data available or 0 otherwise (as opposed to the
-     * number of bytes available). Unlike SSL_pending() this will take into
-     * account read_ahead data. A 1 return simply indicates that we have data.
-     * That data may not result in any application data, or we may fail to parse
-     * the records for some reason.
+     * unprocessed data available or 0 otherwise (as opposed to the number of
+     * bytes available). Unlike SSL_pending() this will take into account
+     * read_ahead data. A 1 return simply indicates that we have unprocessed
+     * data. That data may not result in any application data, or we may fail
+     * to parse the records for some reason.
      */
-
-    /* Check buffered app data if any first */
-    if (SSL_IS_DTLS(s)) {
-        DTLS1_RECORD_DATA *rdata;
-        pitem *item, *iter;
-
-        iter = pqueue_iterator(s->rlayer.d->buffered_app_data.q);
-        while ((item = pqueue_next(&iter)) != NULL) {
-            rdata = item->data;
-            if (rdata->rrec.length > 0)
-                return 1;
-        }
-    }
-
     if (RECORD_LAYER_processed_read_pending(&s->rlayer))
         return 1;
 
@@ -1698,8 +1676,6 @@ static int ssl_start_async_job(SSL *s, struct ssl_async_args *args,
         if (s->waitctx == NULL)
             return -1;
     }
-
-    s->rwstate = SSL_NOTHING;
     switch (ASYNC_start_job(&s->job, s->waitctx, &ret, func, args,
                             sizeof(struct ssl_async_args))) {
     case ASYNC_ERR:
@@ -2098,7 +2074,6 @@ int SSL_shutdown(SSL *s)
         if ((s->mode & SSL_MODE_ASYNC) && ASYNC_get_current_job() == NULL) {
             struct ssl_async_args args;
 
-            memset(&args, 0, sizeof(args));
             args.s = s;
             args.type = OTHERFUNC;
             args.f.func_other = s->method->ssl_shutdown;
@@ -2133,11 +2108,6 @@ int SSL_key_update(SSL *s, int updatetype)
 
     if (!SSL_is_init_finished(s)) {
         SSLerr(SSL_F_SSL_KEY_UPDATE, SSL_R_STILL_IN_INIT);
-        return 0;
-    }
-
-    if (RECORD_LAYER_write_pending(&s->rlayer)) {
-        SSLerr(SSL_F_SSL_KEY_UPDATE, SSL_R_BAD_WRITE_RETRY);
         return 0;
     }
 
@@ -2653,85 +2623,31 @@ char *SSL_get_shared_ciphers(const SSL *s, char *buf, int size)
     return buf;
 }
 
-/**
- * Return the requested servername (SNI) value. Note that the behaviour varies
- * depending on:
- * - whether this is called by the client or the server,
- * - if we are before or during/after the handshake,
- * - if a resumption or normal handshake is being attempted/has occurred
- * - whether we have negotiated TLSv1.2 (or below) or TLSv1.3
- * 
- * Note that only the host_name type is defined (RFC 3546).
+/** return a servername extension value if provided in Client Hello, or NULL.
+ * So far, only host_name types are defined (RFC 3546).
  */
+
 const char *SSL_get_servername(const SSL *s, const int type)
 {
-    /*
-     * If we don't know if we are the client or the server yet then we assume
-     * client.
-     */
-    int server = s->handshake_func == NULL ? 0 : s->server;
     if (type != TLSEXT_NAMETYPE_host_name)
         return NULL;
 
-    if (server) {
-        /**
-         * Server side
-         * In TLSv1.3 on the server SNI is not associated with the session
-         * but in TLSv1.2 or below it is.
-         *
-         * Before the handshake:
-         *  - return NULL
-         *
-         * During/after the handshake (TLSv1.2 or below resumption occurred):
-         * - If a servername was accepted by the server in the original
-         *   handshake then it will return that servername, or NULL otherwise.
-         *
-         * During/after the handshake (TLSv1.2 or below resumption did not occur):
-         * - The function will return the servername requested by the client in
-         *   this handshake or NULL if none was requested.
-         */
-         if (s->hit && !SSL_IS_TLS13(s))
-            return s->session->ext.hostname;
-    } else {
-        /**
-         * Client side
-         *
-         * Before the handshake:
-         *  - If a servername has been set via a call to
-         *    SSL_set_tlsext_host_name() then it will return that servername
-         *  - If one has not been set, but a TLSv1.2 resumption is being
-         *    attempted and the session from the original handshake had a
-         *    servername accepted by the server then it will return that
-         *    servername
-         *  - Otherwise it returns NULL
-         *
-         * During/after the handshake (TLSv1.2 or below resumption occurred):
-         * - If the session from the original handshake had a servername accepted
-         *   by the server then it will return that servername.
-         * - Otherwise it returns the servername set via
-         *   SSL_set_tlsext_host_name() (or NULL if it was not called).
-         *
-         * During/after the handshake (TLSv1.2 or below resumption did not occur):
-         * - It will return the servername set via SSL_set_tlsext_host_name()
-         *   (or NULL if it was not called).
-         */
-        if (SSL_in_before(s)) {
-            if (s->ext.hostname == NULL
-                    && s->session != NULL
-                    && s->session->ssl_version != TLS1_3_VERSION)
-                return s->session->ext.hostname;
-        } else {
-            if (!SSL_IS_TLS13(s) && s->hit && s->session->ext.hostname != NULL)
-                return s->session->ext.hostname;
-        }
-    }
-
+    /*
+     * SNI is not negotiated in pre-TLS-1.3 resumption flows, so fake up an
+     * SNI value to return if we are resuming/resumed.  N.B. that we still
+     * call the relevant callbacks for such resumption flows, and callbacks
+     * might error out if there is not a SNI value available.
+     */
+    if (s->hit)
+        return s->session->ext.hostname;
     return s->ext.hostname;
 }
 
 int SSL_get_servername_type(const SSL *s)
 {
-    if (SSL_get_servername(s, TLSEXT_NAMETYPE_host_name) != NULL)
+    if (s->session
+        && (!s->ext.hostname ? s->session->
+            ext.hostname : s->ext.hostname))
         return TLSEXT_NAMETYPE_host_name;
     return -1;
 }
@@ -2851,19 +2767,6 @@ void SSL_CTX_set_npn_select_cb(SSL_CTX *ctx,
 }
 #endif
 
-static int alpn_value_ok(const unsigned char *protos, unsigned int protos_len)
-{
-    unsigned int idx;
-
-    if (protos_len < 2 || protos == NULL)
-        return 0;
-
-    for (idx = 0; idx < protos_len; idx += protos[idx] + 1) {
-        if (protos[idx] == 0)
-            return 0;
-    }
-    return idx == protos_len;
-}
 /*
  * SSL_CTX_set_alpn_protos sets the ALPN protocol list on |ctx| to |protos|.
  * |protos| must be in wire-format (i.e. a series of non-empty, 8-bit
@@ -2872,25 +2775,12 @@ static int alpn_value_ok(const unsigned char *protos, unsigned int protos_len)
 int SSL_CTX_set_alpn_protos(SSL_CTX *ctx, const unsigned char *protos,
                             unsigned int protos_len)
 {
-    unsigned char *alpn;
-
-    if (protos_len == 0 || protos == NULL) {
-        OPENSSL_free(ctx->ext.alpn);
-        ctx->ext.alpn = NULL;
-        ctx->ext.alpn_len = 0;
-        return 0;
-    }
-    /* Not valid per RFC */
-    if (!alpn_value_ok(protos, protos_len))
-        return 1;
-
-    alpn = OPENSSL_memdup(protos, protos_len);
-    if (alpn == NULL) {
+    OPENSSL_free(ctx->ext.alpn);
+    ctx->ext.alpn = OPENSSL_memdup(protos, protos_len);
+    if (ctx->ext.alpn == NULL) {
         SSLerr(SSL_F_SSL_CTX_SET_ALPN_PROTOS, ERR_R_MALLOC_FAILURE);
         return 1;
     }
-    OPENSSL_free(ctx->ext.alpn);
-    ctx->ext.alpn = alpn;
     ctx->ext.alpn_len = protos_len;
 
     return 0;
@@ -2904,25 +2794,12 @@ int SSL_CTX_set_alpn_protos(SSL_CTX *ctx, const unsigned char *protos,
 int SSL_set_alpn_protos(SSL *ssl, const unsigned char *protos,
                         unsigned int protos_len)
 {
-    unsigned char *alpn;
-
-    if (protos_len == 0 || protos == NULL) {
-        OPENSSL_free(ssl->ext.alpn);
-        ssl->ext.alpn = NULL;
-        ssl->ext.alpn_len = 0;
-        return 0;
-    }
-    /* Not valid per RFC */
-    if (!alpn_value_ok(protos, protos_len))
-        return 1;
-
-    alpn = OPENSSL_memdup(protos, protos_len);
-    if (alpn == NULL) {
+    OPENSSL_free(ssl->ext.alpn);
+    ssl->ext.alpn = OPENSSL_memdup(protos, protos_len);
+    if (ssl->ext.alpn == NULL) {
         SSLerr(SSL_F_SSL_SET_ALPN_PROTOS, ERR_R_MALLOC_FAILURE);
         return 1;
     }
-    OPENSSL_free(ssl->ext.alpn);
-    ssl->ext.alpn = alpn;
     ssl->ext.alpn_len = protos_len;
 
     return 0;
@@ -2964,8 +2841,7 @@ int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
                                const unsigned char *context, size_t contextlen,
                                int use_context)
 {
-    if (s->session == NULL
-        || (s->version < TLS1_VERSION && s->version != DTLS1_BAD_VER))
+    if (s->version < TLS1_VERSION && s->version != DTLS1_BAD_VER)
         return -1;
 
     return s->method->ssl3_enc->export_keying_material(s, out, olen, label,
@@ -3724,7 +3600,6 @@ int SSL_do_handshake(SSL *s)
         if ((s->mode & SSL_MODE_ASYNC) && ASYNC_get_current_job() == NULL) {
             struct ssl_async_args args;
 
-            memset(&args, 0, sizeof(args));
             args.s = s;
 
             ret = ssl_start_async_job(s, &args, ssl_do_handshake_intern);
@@ -3895,8 +3770,6 @@ SSL *SSL_dup(SSL *s)
         goto err;
     ret->version = s->version;
     ret->options = s->options;
-    ret->min_proto_version = s->min_proto_version;
-    ret->max_proto_version = s->max_proto_version;
     ret->mode = s->mode;
     SSL_set_max_cert_list(ret, SSL_get_max_cert_list(s));
     SSL_set_read_ahead(ret, SSL_get_read_ahead(s));
@@ -3911,6 +3784,21 @@ SSL *SSL_dup(SSL *s)
     /* copy app data, a little dangerous perhaps */
     if (!CRYPTO_dup_ex_data(CRYPTO_EX_INDEX_SSL, &ret->ex_data, &s->ex_data))
         goto err;
+
+    /* setup rbio, and wbio */
+    if (s->rbio != NULL) {
+        if (!BIO_dup_state(s->rbio, (char *)&ret->rbio))
+            goto err;
+    }
+    if (s->wbio != NULL) {
+        if (s->wbio != s->rbio) {
+            if (!BIO_dup_state(s->wbio, (char *)&ret->wbio))
+                goto err;
+        } else {
+            BIO_up_ref(ret->rbio);
+            ret->wbio = ret->rbio;
+        }
+    }
 
     ret->server = s->server;
     if (s->handshake_func) {
@@ -4580,11 +4468,8 @@ int ssl_handshake_hash(SSL *s, unsigned char *out, size_t outlen,
     }
 
     ctx = EVP_MD_CTX_new();
-    if (ctx == NULL) {
-        SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_F_SSL_HANDSHAKE_HASH,
-                 ERR_R_INTERNAL_ERROR);
+    if (ctx == NULL)
         goto err;
-    }
 
     if (!EVP_MD_CTX_copy_ex(ctx, hdgst)
         || EVP_DigestFinal_ex(ctx, out, NULL) <= 0) {

@@ -668,11 +668,9 @@ def get_type_information_cname(code, dtype, maxdepth=None):
         if dtype.is_simple_buffer_dtype():
             structinfo_name = "NULL"
         elif dtype.is_struct:
-            struct_scope = dtype.scope
-            if dtype.is_const:
-                struct_scope = struct_scope.const_base_type_scope
-            # Must pre-call all used types in order not to recurse during utility code writing.
-            fields = struct_scope.var_entries
+            fields = dtype.scope.var_entries
+            # Must pre-call all used types in order not to recurse utility code
+            # writing.
             assert len(fields) > 0
             types = [get_type_information_cname(code, f.type, maxdepth - 1)
                      for f in fields]

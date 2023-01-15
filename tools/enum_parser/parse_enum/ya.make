@@ -11,12 +11,3 @@ PEERDIR(
 )
 
 END()
-
-RECURSE(
-    benchmark
-    ut
-)
-
-RECURSE_FOR_TESTS(
-    benchmark_build
-)

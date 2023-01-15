@@ -19,7 +19,7 @@ typedef struct {
     int cf_flags;  /* bitmask of CO_xxx flags relevant to future */
 } PyCompilerFlags;
 
-PyAPI_FUNC(void) Py_SetProgramName(const char *);
+PyAPI_FUNC(void) Py_SetProgramName(char *);
 PyAPI_FUNC(char *) Py_GetProgramName(void);
 
 PyAPI_FUNC(void) Py_SetPythonHome(char *);

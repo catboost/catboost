@@ -2,6 +2,10 @@
 
 This module provides an implementation of the HeaderRegistry API.
 The implementation is designed to flexibly follow RFC5322 rules.
+
+Eventually HeaderRegistry will be a public API, but it isn't yet,
+and will probably change some before that happens.
+
 """
 from types import MappingProxyType
 
@@ -27,11 +31,6 @@ class Address:
         without any Content Transfer Encoding.
 
         """
-
-        inputs = ''.join(filter(None, (display_name, username, domain, addr_spec)))
-        if '\r' in inputs or '\n' in inputs:
-            raise ValueError("invalid arguments; address parts cannot contain CR or LF")
-
         # This clause with its potential 'raise' may only happen when an
         # application program creates an Address object using an addr_spec
         # keyword.  The email library code itself must always supply username
@@ -70,9 +69,11 @@ class Address:
         """The addr_spec (username@domain) portion of the address, quoted
         according to RFC 5322 rules, but with no Content Transfer Encoding.
         """
-        lp = self.username
-        if not parser.DOT_ATOM_ENDS.isdisjoint(lp):
-            lp = parser.quote_string(lp)
+        nameset = set(self.username)
+        if len(nameset) > len(nameset-parser.DOT_ATOM_ENDS):
+            lp = parser.quote_string(self.username)
+        else:
+            lp = self.username
         if self.domain:
             return lp + '@' + self.domain
         if not lp:
@@ -85,17 +86,19 @@ class Address:
                         self.display_name, self.username, self.domain)
 
     def __str__(self):
-        disp = self.display_name
-        if not parser.SPECIALS.isdisjoint(disp):
-            disp = parser.quote_string(disp)
+        nameset = set(self.display_name)
+        if len(nameset) > len(nameset-parser.SPECIALS):
+            disp = parser.quote_string(self.display_name)
+        else:
+            disp = self.display_name
         if disp:
             addr_spec = '' if self.addr_spec=='<>' else self.addr_spec
             return "{} <{}>".format(disp, addr_spec)
         return self.addr_spec
 
     def __eq__(self, other):
-        if not isinstance(other, Address):
-            return NotImplemented
+        if type(other) != type(self):
+            return False
         return (self.display_name == other.display_name and
                 self.username == other.username and
                 self.domain == other.domain)
@@ -138,15 +141,17 @@ class Group:
         if self.display_name is None and len(self.addresses)==1:
             return str(self.addresses[0])
         disp = self.display_name
-        if disp is not None and not parser.SPECIALS.isdisjoint(disp):
-            disp = parser.quote_string(disp)
+        if disp is not None:
+            nameset = set(disp)
+            if len(nameset) > len(nameset-parser.SPECIALS):
+                disp = parser.quote_string(disp)
         adrstr = ", ".join(str(x) for x in self.addresses)
         adrstr = ' ' + adrstr if adrstr else adrstr
         return "{}:{};".format(disp, adrstr)
 
     def __eq__(self, other):
-        if not isinstance(other, Group):
-            return NotImplemented
+        if type(other) != type(self):
+            return False
         return (self.display_name == other.display_name and
                 self.addresses == other.addresses)
 
@@ -298,14 +303,7 @@ class DateHeader:
             kwds['parse_tree'] = parser.TokenList()
             return
         if isinstance(value, str):
-            kwds['decoded'] = value
-            try:
-                value = utils.parsedate_to_datetime(value)
-            except ValueError:
-                kwds['defects'].append(errors.InvalidDateDefect('Invalid date value or format'))
-                kwds['datetime'] = None
-                kwds['parse_tree'] = parser.TokenList()
-                return
+            value = utils.parsedate_to_datetime(value)
         kwds['datetime'] = value
         kwds['decoded'] = utils.format_datetime(kwds['datetime'])
         kwds['parse_tree'] = cls.value_parser(kwds['decoded'])
@@ -522,18 +520,6 @@ class ContentTransferEncodingHeader:
         return self._cte
 
 
-class MessageIDHeader:
-
-    max_count = 1
-    value_parser = staticmethod(parser.parse_message_id)
-
-    @classmethod
-    def parse(cls, value, kwds):
-        kwds['parse_tree'] = parse_tree = cls.value_parser(value)
-        kwds['decoded'] = str(parse_tree)
-        kwds['defects'].extend(parse_tree.all_defects)
-
-
 # The header factory #
 
 _default_header_map = {
@@ -556,7 +542,6 @@ _default_header_map = {
     'content-type':                 ContentTypeHeader,
     'content-disposition':          ContentDispositionHeader,
     'content-transfer-encoding':    ContentTransferEncodingHeader,
-    'message-id':                   MessageIDHeader,
     }
 
 class HeaderRegistry:

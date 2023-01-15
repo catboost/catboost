@@ -11,7 +11,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
 #include <openssl/cmac.h>
-#include "crypto/asn1.h"
+#include "internal/asn1_int.h"
 
 /*
  * CMAC "ASN1" method. This is just here to indicate the maximum CMAC output

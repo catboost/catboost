@@ -1,5 +1,4 @@
 #include "endpoint.h"
-#include "sock.h"
 
 TEndpoint::TEndpoint(const TEndpoint::TAddrRef& addr)
     : Addr_(addr)
@@ -7,7 +6,7 @@ TEndpoint::TEndpoint(const TEndpoint::TAddrRef& addr)
     const sockaddr* sa = Addr_->Addr();
 
     if (sa->sa_family != AF_INET && sa->sa_family != AF_INET6 && sa->sa_family != AF_UNIX) {
-        ythrow yexception() << TStringBuf("endpoint can contain only ipv4, ipv6 or unix address");
+        ythrow yexception() << AsStringBuf("endpoint can contain only ipv4, ipv6 or unix address");
     }
 }
 

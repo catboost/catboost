@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -20,7 +20,7 @@ template <bool StoreExpApprox>
 inline void UpdateBodyTailApprox(
     const TVector<TVector<TVector<double>>>& approxDelta,
     double learningRate,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TFold* fold
 ) {
     const auto applyLearningRate = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
@@ -42,6 +42,5 @@ void UpdateAvrgApprox(
     const TVector<TVector<double>>& treeDelta,
     TConstArrayRef<NCB::TTrainingDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
-    NPar::ILocalExecutor* localExecutor,
-    TVector<TVector<double>>* trainFoldApprox = nullptr
+    NPar::TLocalExecutor* localExecutor
 );

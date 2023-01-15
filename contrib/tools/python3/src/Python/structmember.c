@@ -2,14 +2,15 @@
 /* Map C struct members to Python object attributes */
 
 #include "Python.h"
-#include "structmember.h"         // PyMemberDef
+
+#include "structmember.h"
 
 PyObject *
-PyMember_GetOne(const char *obj_addr, PyMemberDef *l)
+PyMember_GetOne(const char *addr, PyMemberDef *l)
 {
     PyObject *v;
 
-    const char* addr = obj_addr + l->offset;
+    addr += l->offset;
     switch (l->type) {
     case T_BOOL:
         v = PyBool_FromLong(*(char*)addr);
@@ -69,13 +70,8 @@ PyMember_GetOne(const char *obj_addr, PyMemberDef *l)
         break;
     case T_OBJECT_EX:
         v = *(PyObject **)addr;
-        if (v == NULL) {
-            PyObject *obj = (PyObject *)obj_addr;
-            PyTypeObject *tp = Py_TYPE(obj);
-            PyErr_Format(PyExc_AttributeError,
-                         "'%.200s' object has no attribute '%s'",
-                         tp->tp_name, l->name);
-       }
+        if (v == NULL)
+            PyErr_SetString(PyExc_AttributeError, l->name);
         Py_XINCREF(v);
         break;
     case T_LONGLONG:

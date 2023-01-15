@@ -1,6 +1,6 @@
 #pragma once
-#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
-#include <contrib/libs/nvidia/cub/cub/thread/thread_store.cuh>
+#include <contrib/libs/cub/cub/thread/thread_load.cuh>
+#include <contrib/libs/cub/cub/thread/thread_store.cuh>
 #include <cooperative_groups.h>
 
 

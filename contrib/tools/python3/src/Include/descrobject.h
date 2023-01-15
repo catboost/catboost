@@ -53,7 +53,6 @@ typedef struct {
 typedef struct {
     PyDescr_COMMON;
     PyMethodDef *d_method;
-    vectorcallfunc vectorcall;
 } PyMethodDescrObject;
 
 typedef struct {
@@ -91,9 +90,12 @@ PyAPI_FUNC(PyObject *) PyDescr_NewMember(PyTypeObject *,
 PyAPI_FUNC(PyObject *) PyDescr_NewGetSet(PyTypeObject *,
                                                struct PyGetSetDef *);
 #ifndef Py_LIMITED_API
+
+PyAPI_FUNC(PyObject *) _PyMethodDescr_FastCallKeywords(
+        PyObject *descrobj, PyObject *const *stack, Py_ssize_t nargs, PyObject *kwnames);
 PyAPI_FUNC(PyObject *) PyDescr_NewWrapper(PyTypeObject *,
                                                 struct wrapperbase *, void *);
-PyAPI_FUNC(int) PyDescr_IsData(PyObject *);
+#define PyDescr_IsData(d) (Py_TYPE(d)->tp_descr_set != NULL)
 #endif
 
 PyAPI_FUNC(PyObject *) PyDictProxy_New(PyObject *);

@@ -10,7 +10,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/json_helper.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/ptr.h>
@@ -61,7 +61,7 @@ public:
         LearningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
         TMaybe<double> startingApprox = Nothing();
         if (paramsJson["boost_from_average"].GetBoolean()) {
-             startingApprox = NCB::CalcOneDimensionalOptimumConstApprox(
+            startingApprox = NCB::CalcOptimumConstApprox(
                 NCatboostOptions::ParseLossDescription(ToString(LossFunction)),
                 processedData.TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                 GetWeights(*processedData.TargetData)

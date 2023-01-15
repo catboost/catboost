@@ -3,20 +3,20 @@
 <Header copyright="(c) catboost team" description="CatBoostModel_for_binclass" modelVersion="1">
 <Application name="CatBoost" version="Svn info:
     URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
-    Last Changed Rev: 8549445
-    Last Changed Author: robot-vcs-sync
-    Last Changed Date: 2021-08-23T13:36:54.102985Z
+    Last Changed Rev: 6748893
+    Last Changed Author: osidorkin
+    Last Changed Date: 2020-04-28T16:51:29.183514Z
 
 Other info:
     Build by: eermishkina
-    Top src dir: /home/eermishkina/trunc/arcadia
-    Top build dir: /home/eermishkina/.ya/build
-    Hostname: zombmlplatformmsk-All-Series
+    Top src dir: /place/home/eermishkina/trunc2/arcadia
+    Top build dir: /place/home/eermishkina/.ya/build
+    Hostname: su57.search.yandex.net
     Host information: 
-        Linux zombmlplatformmsk-All-Series 4.15.0-147-generic #151-Ubuntu SMP Fri Jun 18 19:21:19 UTC 2021 x86_64
+        Linux su57.search.yandex.net 4.4.88-42 #1 SMP Mon Sep 18 14:33:37 UTC 2017 x86_64
 
     "/>
-<Timestamp>2021-08-23T14:45:36Z</Timestamp>
+<Timestamp>2020-04-28T17:35:52Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>

@@ -146,19 +146,19 @@ int Prefix_SpongeSqueeze(Prefix_SpongeInstance *spongeInstance, unsigned char *d
     int prefix##_SpongeSqueeze(prefix##_SpongeInstance *spongeInstance, unsigned char *data, size_t dataByteLen);
 
 #ifndef KeccakP200_excluded
-    #error #include "KeccakP-200-SnP.h"
+    #include "KeccakP-200-SnP.h" // Y_IGNORE
     KCP_DeclareSpongeStructure(KeccakWidth200, KeccakP200_stateSizeInBytes, KeccakP200_stateAlignment)
     KCP_DeclareSpongeFunctions(KeccakWidth200)
 #endif
 
 #ifndef KeccakP400_excluded
-    #error #include "KeccakP-400-SnP.h"
+    #include "KeccakP-400-SnP.h" // Y_IGNORE
     KCP_DeclareSpongeStructure(KeccakWidth400, KeccakP400_stateSizeInBytes, KeccakP400_stateAlignment)
     KCP_DeclareSpongeFunctions(KeccakWidth400)
 #endif
 
 #ifndef KeccakP800_excluded
-    #error #include "KeccakP-800-SnP.h"
+    #include "KeccakP-800-SnP.h" // Y_IGNORE
     KCP_DeclareSpongeStructure(KeccakWidth800, KeccakP800_stateSizeInBytes, KeccakP800_stateAlignment)
     KCP_DeclareSpongeFunctions(KeccakWidth800)
 #endif

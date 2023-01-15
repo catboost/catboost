@@ -1,1 +1,0 @@
-{% include [python-reference_catboost_get_feature_importance](python-reference_catboost_get_feature_importance.md) %}

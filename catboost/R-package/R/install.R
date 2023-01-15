@@ -6,8 +6,8 @@ catboost_download_dynlib <- function(dest_dir) {
     src_dynlib <- "libcatboostr.dll"
     dst_dynlib <- src_dynlib
   } else if (grepl("darwin", R.version$os)) {
-    src_dynlib <- "libcatboostr-darwin.dylib"
-    dst_dynlib <- "libcatboostr.dylib"
+    src_dynlib <- "libcatboostr-darwin.so"
+    dst_dynlib <- "libcatboostr.so"
   } else if (.Platform$OS.type == "unix") {
     src_dynlib <- "libcatboostr-linux.so"
     dst_dynlib <- "libcatboostr.so"
@@ -23,7 +23,6 @@ catboost_download_dynlib <- function(dest_dir) {
     }
     dest_fpath <- file.path(dest_dir, dst_dynlib)
     suppressWarnings(file.remove(dest_fpath))
-    options(timeout = 600)
     if (download.file(url, dest_fpath, mode = "wb") == 0) {
       message("CatBoost fetch successful")
       TRUE

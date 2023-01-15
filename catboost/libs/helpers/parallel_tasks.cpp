@@ -3,7 +3,7 @@
 #include <util/generic/cast.h>
 
 
-void NCB::ExecuteTasksInParallel(TVector<std::function<void()>>* tasks, NPar::ILocalExecutor* localExecutor) {
+void NCB::ExecuteTasksInParallel(TVector<std::function<void()>>* tasks, NPar::TLocalExecutor* localExecutor) {
     localExecutor->ExecRangeWithThrow(
         [&tasks](int id) {
             (*tasks)[id]();

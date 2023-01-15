@@ -8,7 +8,7 @@
  */
 
 #include "e_os.h"
-#include "des_local.h"
+#include "des_locl.h"
 #include <assert.h>
 
 /*

@@ -1,4 +1,4 @@
-PY2_LIBRARY()
+PY_LIBRARY()
 
 
 
@@ -6,7 +6,7 @@ NO_WSHADOW()
 
 PEERDIR(
     contrib/tools/python/lib
-    library/cpp/resource
+    library/resource
 )
 
 CFLAGS(-DCYTHON_REGISTER_ABCS=0)

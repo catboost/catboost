@@ -1,14 +1,12 @@
 #include "yeti_rank_pointwise.cuh"
 #include "radix_sort_block.cuh"
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/scan.cuh>
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
-
-#include <util/generic/cast.h>
+#include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
 
 namespace NKernel
 {
@@ -36,26 +34,26 @@ namespace NKernel
     }
 
 
-    template <ui32 BLOCK_SIZE, ui32 THREADS_PER_QUERY>
+    template <int BLOCK_SIZE, int THREADS_PER_QUERY>
     __global__ void MakePairsImpl(const ui32* queryOffsets,
-                                  const ui64* matrixOffsets,
+                                  const ui32* matrixOffsets,
                                   ui32 queryCount,
                                   uint2* pairs) {
-        const ui32 queriesPerBlock = BLOCK_SIZE / THREADS_PER_QUERY;
-        const ui32 localQid = threadIdx.x / THREADS_PER_QUERY;
-        const ui32 qid = blockIdx.x * queriesPerBlock + localQid;
+        const int queriesPerBlock = BLOCK_SIZE / THREADS_PER_QUERY;
+        const int localQid = threadIdx.x / THREADS_PER_QUERY;
+        const int qid = blockIdx.x * queriesPerBlock + localQid;
 
 
         ui32 queryOffset = qid < queryCount ? queryOffsets[qid] : 0;
-        ui32 querySize = qid < queryCount ? queryOffsets[qid + 1] - queryOffset : 0; // queryCount = QOffsets.Size() - 1
-        ui64 matrixOffset = qid < queryCount ? matrixOffsets[qid] : 0;
+        ui32 querySize = qid < queryCount ? queryOffsets[qid + 1] - queryOffset : 0;
+        ui32 matrixOffset = qid < queryCount ? matrixOffsets[qid] : 0;
 
-        const ui32 x = threadIdx.x & (THREADS_PER_QUERY - 1);
+        const int x = threadIdx.x & (THREADS_PER_QUERY - 1);
 
 
         const ui32 matrixSize = querySize * (querySize - 1) / 2;
         pairs += matrixOffset;
-        for (ui32 i = x; i < matrixSize; i += THREADS_PER_QUERY) {
+        for (int i = x; i < matrixSize; i += THREADS_PER_QUERY) {
             uint2 pair = GetPair(i);
             pair.x += queryOffset;
             pair.y += queryOffset;
@@ -64,14 +62,14 @@ namespace NKernel
     }
 
     void MakePairs(const ui32* qOffsets,
-                   const ui64* matrixOffset,
+                   const ui32* matrixOffset,
                    ui32 qCount,
                    uint2* pairs,
                    TCudaStream stream) {
 
-        const ui32 blockSize = 128;
-        const ui32 threadPerQuery = 32;
-        const ui32 numBlocks = SafeIntegerCast<ui32>((((ui64)qCount + 1) * threadPerQuery +  blockSize - 1) / blockSize);
+        const int blockSize = 128;
+        const int threadPerQuery = 32;
+        const int numBlocks = (qCount * threadPerQuery +  blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             MakePairsImpl<blockSize, threadPerQuery> <<< numBlocks, blockSize, 0, stream >>> (qOffsets, matrixOffset, qCount, pairs);
         }
@@ -84,9 +82,9 @@ namespace NKernel
                                                 const float decaySpeed,
                                                 const float* __restrict__ expApprox,
                                                 const float* __restrict__ relev,
-                                                const ui32* __restrict__ qids,
-                                                const ui64* __restrict__ matrixOffsets,
-                                                ui32 docCount,
+                                                const int* __restrict__ qids,
+                                                const ui32* __restrict__ matrixOffsets,
+                                                int docCount,
                                                 float* sharedApproxes,
                                                 volatile float* __restrict__ weightsMatrixDst) {
 
@@ -96,17 +94,17 @@ namespace NKernel
         i16 queryBegin[N];
         uchar queryId[N];
 
-        __shared__ float sharedRelev[BLOCK_SIZE * 4]; // 4K
+        __shared__ float relevs[BLOCK_SIZE * 4]; // 4K
 
         {
             {
-                ui32* blockQueryIds = (ui32*) sharedApproxes;
-                const ui32 firstQid = __ldg(qids);
+                int* blockQueryIds = (int*) sharedApproxes;
+                const int firstQid = __ldg(qids);
                 matrixOffsets += firstQid;
 
                 for (int k = 0; k < N; k++) {
-                    ui32 offset = threadIdx.x + k * BLOCK_SIZE;
-                    ui32 qid = offset < docCount ? qids[offset] : qids[docCount - 1] + 1;
+                    int offset = threadIdx.x + k * BLOCK_SIZE;
+                    int qid = offset < docCount ? qids[offset] : qids[docCount - 1] + 1;
                     qid -= firstQid;
                     blockQueryIds[offset] = qid;
 
@@ -115,17 +113,14 @@ namespace NKernel
                 }
 
 
-                ui32* queryOffsets = (ui32*) sharedRelev;
-                for (int k = 0; k < N; k++) {
-                    ui32 offset = threadIdx.x + k * BLOCK_SIZE;
-                    queryOffsets[offset] = docCount; // init [0, 4 * BLOCK_SIZE)
-                }
+                int* queryOffsets = (int*) relevs;
+                queryOffsets[threadIdx.x] = docCount;
                 __syncthreads();
 
                 for (int k = 0; k < N; k++) {
-                    const ui32 offset = threadIdx.x + k * BLOCK_SIZE; //point id
+                    const int offset = threadIdx.x + k * BLOCK_SIZE; //point id
                     if (!offset || blockQueryIds[offset] != blockQueryIds[offset - 1]) {
-                        const ui32 qid = blockQueryIds[offset];
+                        const int qid = blockQueryIds[offset];
                         queryOffsets[qid] = offset;
                     }
                 }
@@ -133,8 +128,8 @@ namespace NKernel
                 __syncthreads();
 
                 for (int k = 0; k < N; k++) {
-                    const ui32 offset = threadIdx.x + k * BLOCK_SIZE; //point id
-                    ui32 qid = blockQueryIds[offset];
+                    const int offset = threadIdx.x + k * BLOCK_SIZE; //point id
+                    int qid = blockQueryIds[offset];
 
                     queryBegin[k] = queryOffsets[qid];
                     queryId[k] = qid;
@@ -144,8 +139,8 @@ namespace NKernel
 
 
             for (int k = 0; k < 4; k++) {
-                const ui32 offset = threadIdx.x + k * BLOCK_SIZE;
-                sharedRelev[offset] = offset < docCount ? relev[offset] : 1000.0f;
+                const int offset = threadIdx.x + k * BLOCK_SIZE;
+                relevs[offset] = offset < docCount ? relev[offset] : 1000.0f;
                 sharedApproxes[offset] = offset < docCount ? expApprox[offset] : 1000.0f;
             }
         }
@@ -173,7 +168,7 @@ namespace NKernel
             //now key[k] is idx of document on position (threadIdx.x + k * BlockSize - queryOffset) in query key[k] >> 10
 
             for (int k = 0; k < N; k++) {
-                const ui32 offset = threadIdx.x + k * BLOCK_SIZE;
+                const int offset = threadIdx.x + k * BLOCK_SIZE;
                 indices[offset] = idx[k] & 1023;
             }
             __syncthreads();
@@ -181,26 +176,26 @@ namespace NKernel
 
             #pragma unroll
             for (int k = 0; k < N; k++) {
-                const ui32 offset = threadIdx.x + k * BLOCK_SIZE;
+                const int offset = threadIdx.x + k * BLOCK_SIZE;
 
-                const ui32 idx1 =  offset != queryBegin[k] ? indices[offset - 1] : -1u;
-                const ui32 idx2 =  indices[offset];
+                const int idx1 =  offset != queryBegin[k] ? (int)indices[offset - 1] : -1;
+                const int idx2 =  (int)indices[offset];
 
-                const float relev1 = idx1 != -1u ? sharedRelev[idx1] : 0;
-                const float relev2 = sharedRelev[idx2];
+                const float relev1 = idx1 != -1 ? relevs[idx1] : 0;
+                const float relev2 = relevs[idx2];
 
                 const float decay =  powf(decaySpeed, offset - queryBegin[k] - 1);
 
                 float pairWeight = 0.15f * decay * fabs(relev1 - relev2) /  bootstrapIter;
 
 
-                ui64 pairIdx = idx1 < idx2 ? GetPairIndex(idx1 - queryBegin[k], idx2 - queryBegin[k])
+                ui32 pairIdx = idx1 < idx2 ? GetPairIndex(idx1 - queryBegin[k], idx2 - queryBegin[k])
                                            : GetPairIndex(idx2 - queryBegin[k], idx1 - queryBegin[k]);
 
                 pairIdx += __ldg(matrixOffsets + queryId[k]);
 
                 //there can't be write conflicts
-                if (idx1 != -1u && offset < docCount) {
+                if (idx1 != -1 && offset < docCount) {
                     weightsMatrixDst[pairIdx] += pairWeight;
                 }
                 //without sync we can't be sure that right to weights will be correct
@@ -212,26 +207,26 @@ namespace NKernel
         }
     };
 
-    template <ui32 BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void PFoundFGradientImpl(int seed, float decaySpeed,
                                         ui32 bootstrapIter,
                                         const ui32* queryOffsets,
-                                        volatile ui32* qidCursor,
+                                        volatile int* qidCursor,
                                         ui32 qCount,
-                                        const ui32* qids,
-                                        const ui64* matrixOffsets,
+                                        const int* qids,
+                                        const ui32* matrixOffsets,
                                         const float* expApprox,
                                         const float* relev,
                                         ui32 size,
                                         float* weightMatrixDst) {
 
-        __shared__ float sharedApproxes[BLOCK_SIZE * 4]; // 4K
+        __shared__ float approxes[BLOCK_SIZE * 4]; // 4K
 
         while (true) {
-            ui32 taskQid = 0;
-            ui32* sharedQid = (ui32*) sharedApproxes;
-            ui32 offset = 0;
-            ui32 nextTaskOffset = 0;
+            int taskQid = 0;
+            int* sharedQid = (int*) approxes;
+            int offset = 0;
+            int nextTaskOffset = 0;
 
             if (threadIdx.x == 0) {
                 taskQid = qidCursor[0];
@@ -242,8 +237,8 @@ namespace NKernel
 
                     offset = queryOffsets[taskQid];
                     nextTaskOffset = min(offset + 4 * BLOCK_SIZE, size);
-                    ui32 nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
-                    ui32 oldQid = atomicCAS(const_cast<ui32*>(qidCursor), taskQid, nextTaskQid);
+                    int nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
+                    int oldQid = atomicCAS(const_cast<int*>(qidCursor), taskQid, nextTaskQid);
                     if (oldQid == taskQid) {
                         nextTaskOffset = queryOffsets[nextTaskQid];
                         break;
@@ -286,7 +281,7 @@ namespace NKernel
                                                    qids + offset,
                                                    matrixOffsets,
                                                    nextTaskOffset - offset,
-                                                   sharedApproxes,
+                                                   approxes,
                                                    weightMatrixDst);
             __syncthreads();
         }
@@ -297,10 +292,10 @@ namespace NKernel
                          float decaySpeed,
                          ui32 bootstrapIter,
                          const ui32* queryOffsets,
-                         ui32* qidCursor,
+                         int* qidCursor,
                          ui32 qCount,
                          const ui32* qids,
-                         const ui64* matrixOffsets,
+                         const ui32* matrixOffsets,
                          const float* expApprox,
                          const float* relev,
                          ui32 size,
@@ -309,9 +304,9 @@ namespace NKernel
 
         const ui32 maxBlocksPerSm = 4;
         const ui32 smCount = TArchProps::SMCount();
-        const ui32 blockSize = 256;
+        const int blockSize = 256;
 
-        FillBuffer(qidCursor, 0u, 1, stream);
+        FillBuffer(qidCursor, 0, 1, stream);
 
         int cudaSeed = seed + (seed >> 32);
 
@@ -321,7 +316,7 @@ namespace NKernel
                 queryOffsets,
                 qidCursor,
                 qCount,
-                qids,
+                (const int*)qids,
                 matrixOffsets,
                 expApprox,
                 relev,
@@ -346,8 +341,8 @@ namespace NKernel
 
             uint2 pair = nzPairs[i];
 
-            const float approx1 = __ldg(expApprox + pair.x) + 1e-20; // avoid ll == nan, if approx1 == approx2 == 0
-            const float approx2 = __ldg(expApprox + pair.y) + 1e-20;
+            const float approx1 = __ldg(expApprox + pair.x);
+            const float approx2 = __ldg(expApprox + pair.y);
 
             const float relev1 = __ldg(relevs + pair.x);
             const float relev2 = __ldg(relevs + pair.y);
@@ -383,8 +378,8 @@ namespace NKernel
                          uint2* nzPairs,
                          TCudaStream stream) {
 
-        const ui32 blockSize = 256;
-        const ui32 numBlocks = (nzPairCount + blockSize - 1) / blockSize;
+        const int blockSize = 256;
+        const int numBlocks = (nzPairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             MakeFinalTargetImpl<<< numBlocks, blockSize, 0, stream >>> (docIds, expApprox, querywiseWeights, relevs, nzPairWeights, nzPairCount, resultDers, nzPairs);
         }
@@ -419,8 +414,8 @@ namespace NKernel
                              uint2* nzPairs,
                              TCudaStream stream) {
 
-        const ui32 blockSize = 256;
-        const ui32 numBlocks = (nzPairCount + blockSize - 1) / blockSize;
+        const int blockSize = 256;
+        const int numBlocks = (nzPairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             SwapWrongOrderPairsImpl<<< numBlocks, blockSize, 0, stream >>> (relevs, nzPairCount, nzPairs);
         }

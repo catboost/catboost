@@ -1,14 +1,12 @@
 
 #include "murmur.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 class TMurmurHashTest: public TTestBase {
     UNIT_TEST_SUITE(TMurmurHashTest);
     UNIT_TEST(TestHash32)
-    UNIT_TEST(TestUnalignedHash32)
     UNIT_TEST(TestHash64)
-    UNIT_TEST(TestUnalignedHash64)
     UNIT_TEST(TestWrapperBiggerTypes)
     UNIT_TEST_SUITE_END();
 
@@ -27,17 +25,6 @@ private:
         Test<ui32>(buf, 253, 80030810UL);
     }
 
-    inline void TestUnalignedHash32() {
-        ui8 buf[257];
-        ui8* unalignedBuf = buf + 1;
-
-        for (size_t i = 0; i < 256; ++i) {
-            unalignedBuf[i] = i;
-        }
-
-        Test<ui32>(unalignedBuf, 256, 2373126550UL);
-    }
-
     inline void TestHash64() {
         ui8 buf[256];
 
@@ -50,17 +37,6 @@ private:
         Test<ui64>(buf, 255, ULL(1708835094528446095));
         Test<ui64>(buf, 254, ULL(5077937678736514994));
         Test<ui64>(buf, 253, ULL(11553864555081396353));
-    }
-
-    inline void TestUnalignedHash64() {
-        ui8 buf[257];
-        ui8* unalignedBuf = buf + 1;
-
-        for (size_t i = 0; i < 256; ++i) {
-            unalignedBuf[i] = i;
-        }
-
-        Test<ui64>(unalignedBuf, 256, ULL(12604435678857905857));
     }
 
     inline void TestWrapperBiggerTypes() {

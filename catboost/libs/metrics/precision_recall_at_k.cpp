@@ -33,7 +33,7 @@ static TVector<std::pair<double, float>> GetSortedApproxAndTarget(TConstArrayRef
     return approxAndTarget;
 };
 
-static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, float border, size_t size) {
+static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, double border, size_t size) {
     int relevant = 0;
     for (size_t i = 0; i < size; i++) {
         if (approxAndTarget[i].second > border)
@@ -42,24 +42,24 @@ static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget
     return relevant;
 }
 
-static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, float border) {
+static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, double border) {
     return CalcRelevant(approxAndTarget, border, approxAndTarget.size());
 }
 
-double CalcPrecisionAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, float border) {
+double CalcPrecisionAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {
     size_t size = CalcSampleSize(target.size(), top);
     TVector<std::pair<double, float>> approxAndTarget = GetSortedApproxAndTarget(approx, target, size);
     return CalcRelevant(approxAndTarget, border, size) / static_cast<double>(size);
 }
 
-double CalcRecallAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, float border) {
+double CalcRecallAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {
     size_t size = CalcSampleSize(target.size(), top);
     TVector<std::pair<double, float>> approxAndTarget = GetSortedApproxAndTarget(approx, target, size);
     int relevant = CalcRelevant(approxAndTarget, border);
     return relevant != 0 ? CalcRelevant(approxAndTarget, border, size) / static_cast<double>(relevant) : 1;
 }
 
-double CalcAveragePrecisionK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, float border) {
+double CalcAveragePrecisionK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {
     double score = 0;
     double hits = 0;
 

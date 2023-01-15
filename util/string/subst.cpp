@@ -175,9 +175,9 @@ size_t SubstGlobal(TUtf32String& text, const TUtf32StringBuf what, const TUtf32S
 
 size_t SubstGlobal(std::u16string& text, const TWtringBuf what, const TWtringBuf with, size_t from) {
     return SubstGlobalImpl(text,
-                           std::u16string_view(reinterpret_cast<const char16_t*>(what.data()), what.size()),
-                           std::u16string_view(reinterpret_cast<const char16_t*>(with.data()), with.size()),
-                           from);
+        std::u16string_view(reinterpret_cast<const char16_t*>(what.data()), what.size()),
+        std::u16string_view(reinterpret_cast<const char16_t*>(with.data()), with.size()),
+        from);
 }
 
 size_t SubstGlobal(TString& text, char what, char with, size_t from) {

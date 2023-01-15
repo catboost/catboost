@@ -4,7 +4,7 @@
 
 #include <util/generic/xrange.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;
@@ -33,7 +33,6 @@ static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode m
             metaInfo.HasWeights = addWeights;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 (ui32)3,
-                TVector<ui32>{},
                 TVector<ui32>{},
                 TVector<ui32>{},
                 TVector<TString>{});
@@ -81,7 +80,6 @@ static TFullModel TrainModelOnPool(TDataProviderPtr pool, ETargetDimMode multicl
         nullptr,
         Nothing(),
         Nothing(),
-        Nothing(),
         TDataProviders{pool, {pool}},
         /*initModel*/ Nothing(),
         /*initLearnProgress*/ nullptr,
@@ -109,7 +107,7 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
 }
 
 static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& model) {
-    if (model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty()) {
+    if (model.ModelTrees->GetLeafWeights().empty()) {
         return;
     }
 
@@ -118,11 +116,10 @@ static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& mo
         trueWeightSum += docWeights[i];
     }
 
-    const auto weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
-    const auto treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
+    const auto weights = model.ModelTrees->GetLeafWeights();
+    const auto treeSizes = model.ModelTrees->GetTreeSizes();
     const int approxDimension = model.ModelTrees->GetDimensionsCount();
-    auto applyData = model.ModelTrees->GetApplyData();
-    auto leafOffsetPtr = applyData->TreeFirstLeafOffsets.data();
+    auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         double weightSumInTree = 0;
         const size_t offset = leafOffsetPtr[treeIdx] / approxDimension;
@@ -148,7 +145,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     if (exportToCBM) {
         CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel);
     } else {
-        UNIT_ASSERT(deserializedModel.ModelTrees->GetModelTreeData()->GetLeafWeights().empty());
+        UNIT_ASSERT(deserializedModel.ModelTrees->GetLeafWeights().empty());
     }
 }
 

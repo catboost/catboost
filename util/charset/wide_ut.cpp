@@ -1,9 +1,7 @@
 #include "utf8.h"
 #include "wide.h"
 
-#include <library/cpp/testing/unittest/registar.h>
-
-#include <util/string/reverse.h>
+#include <library/unittest/registar.h>
 
 #include <algorithm>
 
@@ -163,8 +161,8 @@ namespace {
 class TConversionTest: public TTestBase {
 private:
     //! @note every of the text can have zeros in the middle
-    const TUtf16String UnicodeText_;
-    const TString Utf8Text_;
+    const TUtf16String UnicodeText;
+    const TString UTF8Text;
 
 private:
     UNIT_TEST_SUITE(TConversionTest);
@@ -182,8 +180,8 @@ private:
 
 public:
     TConversionTest()
-        : UnicodeText_(CreateUnicodeText())
-        , Utf8Text_(CreateUTF8Text())
+        : UnicodeText(CreateUnicodeText())
+        , UTF8Text(CreateUTF8Text())
     {
     }
 
@@ -466,13 +464,13 @@ static void TestSurrogates(const char* str, const wchar16* wide, size_t wideSize
 }
 
 void TConversionTest::TestUTF8ToWide() {
-    TUtf16String w = UTF8ToWide(Utf8Text_);
+    TUtf16String w = UTF8ToWide(UTF8Text);
 
     UNIT_ASSERT(w.size() == 256);
-    UNIT_ASSERT(w.size() == UnicodeText_.size());
+    UNIT_ASSERT(w.size() == UnicodeText.size());
 
     for (int i = 0; i < 256; ++i) {
-        UNIT_ASSERT_VALUES_EQUAL(w[i], UnicodeText_[i]);
+        UNIT_ASSERT_VALUES_EQUAL(w[i], UnicodeText[i]);
     }
 
     wchar16 buffer[4] = {0};
@@ -516,23 +514,22 @@ void TConversionTest::TestUTF8ToWide() {
 }
 
 void TConversionTest::TestWideToUTF8() {
-    TString s = WideToUTF8(UnicodeText_);
+    TString s = WideToUTF8(UnicodeText);
     size_t len = 0;
-    for (TUtf16String::const_iterator i = UnicodeText_.begin(), ie = UnicodeText_.end(); i != ie; ++i) {
+    for (TUtf16String::const_iterator i = UnicodeText.begin(), ie = UnicodeText.end(); i != ie; ++i)
         len += UTF8RuneLenByUCS(*i);
-    }
 
-    UNIT_ASSERT(s.size() == Utf8Text_.size());
+    UNIT_ASSERT(s.size() == UTF8Text.size());
     UNIT_ASSERT(s.size() == len);
 
     for (int i = 0; i < static_cast<int>(s.size()); ++i) {
-        UNIT_ASSERT_VALUES_EQUAL(s[i], Utf8Text_[i]);
+        UNIT_ASSERT_VALUES_EQUAL(s[i], UTF8Text[i]);
     }
 }
 
 void TConversionTest::TestGetNumOfUTF8Chars() {
     size_t n = 0;
-    bool result = GetNumberOfUTF8Chars(Utf8Text_.c_str(), Utf8Text_.size(), n);
+    bool result = GetNumberOfUTF8Chars(UTF8Text.c_str(), UTF8Text.size(), n);
     UNIT_ASSERT(result);
     UNIT_ASSERT(n == 256);
 
@@ -613,9 +610,7 @@ public:
             s = w;
             Collapse(s);
             UNIT_ASSERT(s == w);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
-#endif
         }
         s = ASCIIToWide("  123    456  ");
         Collapse(s);
@@ -641,9 +636,7 @@ public:
             s = w;
             Collapse(s);
             UNIT_ASSERT(s == w);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.c_str() == w.c_str()); // Collapse() does not change the string at all
-#endif
         }
         s = ASCIIToWide("   ");
         Collapse(s);
@@ -774,21 +767,15 @@ public:
         s = w;
         Strip(s);
         UNIT_ASSERT(s == w);
-#ifndef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
-#endif
         s = w;
         StripLeft(s);
         UNIT_ASSERT(s == w);
-#ifndef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
-#endif
         s = w;
         StripRight(s);
         UNIT_ASSERT(s == w);
-#ifndef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s.c_str() == w.c_str()); // Strip() does not change the string at all
-#endif
     }
 
     void TestIsSpace() {
@@ -865,7 +852,7 @@ public:
         wchar16 upperCase[n];
         std::copy(wideCyrillicAlphabet, wideCyrillicAlphabet + n, upperCase);
         ToLower(upperCase, n);
-        UNIT_ASSERT(TWtringBuf(upperCase, n) == TWtringBuf(wideCyrillicAlphabet + n, n));
+        UNIT_ASSERT(TCharTraits<wchar16>::Compare(upperCase, wideCyrillicAlphabet + n, n) == 0);
     }
 
     void TestToUpper() {
@@ -873,7 +860,7 @@ public:
         wchar16 lowerCase[n];
         std::copy(wideCyrillicAlphabet + n, wideCyrillicAlphabet + n * 2, lowerCase);
         ToUpper(lowerCase, n);
-        UNIT_ASSERT(TWtringBuf(lowerCase, n) == TWtringBuf(wideCyrillicAlphabet, n));
+        UNIT_ASSERT(TCharTraits<wchar16>::Compare(lowerCase, wideCyrillicAlphabet, n) == 0);
     }
 
     void TestWideString() {
@@ -909,10 +896,10 @@ public:
 
         TVector<wchar32> buffer(WideStringTestData[0], WideStringTestData[0] + CaseTestDataSize);
         std::reverse(buffer.begin(), buffer.end());
-        const TUtf16String reversed = UTF32ToWide(buffer.data(), buffer.size());
+        const TUtf16String reversed = UTF32ToWide(buffer.begin(), buffer.size());
 
         temp = original;
-        ReverseInPlace(temp);
+        temp.reverse();
         UNIT_ASSERT(temp == reversed);
     }
 
@@ -1099,9 +1086,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == lower);
@@ -1120,9 +1105,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == lower);
@@ -1140,9 +1123,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s, 100500));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToLowerRet(copy, 100500) == lower);
             UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 100500) == lower);
@@ -1154,9 +1135,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s, 100500, 1111));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToLowerRet(copy, 100500, 1111) == lower);
             UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 100500, 1111) == lower);
@@ -1187,9 +1166,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == lower);
@@ -1208,9 +1185,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToLower(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == lower);
@@ -1257,9 +1232,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s, 2));
             UNIT_ASSERT(s == lower);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToLowerRet(copy, 2) == lower);
             UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 2) == lower);
@@ -1282,9 +1255,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s, 3, 1));
             UNIT_ASSERT(s == copy);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToLowerRet(copy, 3, 1) == lower);
             UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 3, 1) == lower);
@@ -1296,9 +1267,7 @@ public:
 
             UNIT_ASSERT(!ToLower(s, 3, 100500));
             UNIT_ASSERT(s == copy);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToLowerRet(copy, 3, 100500) == lower);
             UNIT_ASSERT(ToLowerRet(TWtringBuf(copy), 3, 100500) == lower);
@@ -1314,9 +1283,7 @@ public:
 
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == upper);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == upper);
@@ -1335,9 +1302,7 @@ public:
 
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == upper);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == upper);
@@ -1356,9 +1321,7 @@ public:
 
             UNIT_ASSERT(!ToUpper(s, 100500));
             UNIT_ASSERT(s == upper);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == upper);
@@ -1376,9 +1339,7 @@ public:
 
             UNIT_ASSERT(!ToUpper(s, 100500, 1111));
             UNIT_ASSERT(s == upper);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToUpperRet(copy, 100500, 1111) == upper);
             UNIT_ASSERT(ToUpperRet(TWtringBuf(copy), 100500, 1111) == upper);
@@ -1409,9 +1370,7 @@ public:
 
             UNIT_ASSERT(!ToUpper(s));
             UNIT_ASSERT(s == copy);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToUpper(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == upper);
@@ -1531,9 +1490,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == title);
@@ -1552,9 +1509,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == title);
@@ -1572,9 +1527,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s, 100500));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToTitleRet(copy) == title);
             UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
@@ -1586,9 +1539,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s, 100500, 1111));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToTitleRet(copy) == title);
             UNIT_ASSERT(ToTitleRet(TWtringBuf(copy)) == title);
@@ -1619,9 +1570,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == title);
@@ -1658,9 +1607,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(!ToTitle(writableCopy.Detach(), writableCopy.size()));
             UNIT_ASSERT(writableCopy == title);
@@ -1707,9 +1654,7 @@ public:
 
             UNIT_ASSERT(!ToTitle(s, 2));
             UNIT_ASSERT(s == title);
-#ifndef TSTRING_IS_STD_STRING
             UNIT_ASSERT(s.data() == copy.data());
-#endif
 
             UNIT_ASSERT(ToTitleRet(copy, 2) == title);
             UNIT_ASSERT(ToTitleRet(TWtringBuf(copy), 2) == title);

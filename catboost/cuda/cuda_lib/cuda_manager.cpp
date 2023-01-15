@@ -13,8 +13,8 @@ void TCudaManager::CreateProfiler() {
     Profiler = new TCudaProfiler(EProfileMode::LabelAsync, 0, false);
 }
 
-TCudaManager::~TCudaManager() noexcept(false) {
-    CB_ENSURE(Profiler == nullptr, "Reset profile before stopping cuda manager");
+TCudaManager::~TCudaManager() {
+    Y_VERIFY(Profiler == nullptr, "Reset profile before stopping cuda manager");
     CB_ENSURE(FreeStreams.size() == 0, "Error: CudaManager was not stopped");
     CB_ENSURE(Streams.size() == 0, "Error: CudaManager was not stopped");
 }
@@ -193,7 +193,7 @@ void TCudaManager::WaitComplete(TDevicesList&& devices) {
 
     for (auto& event : waitComplete) {
         event->Wait();
-        CB_ENSURE(event->Has(), "Wait completed without value");
+        Y_VERIFY(event->Has());
     }
 }
 
@@ -298,7 +298,7 @@ THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceReques
     }
     InitMemPerformanceTables(manager);
 
-    return MakeHolder<TStopCudaManagerCallback>();
+    return new TStopCudaManagerCallback();
 }
 
 THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel) {

@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef USE_PYTHON3
-#error "No <Python-ast.h> in Python3"
+#include <contrib/tools/python3/src/Include/Python-ast.h>
 #else
 #include <contrib/tools/python/src/Include/Python-ast.h>
 #endif

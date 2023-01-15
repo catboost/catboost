@@ -2,5 +2,4 @@
   includes:
   - inttypes.h: contrib/libs/cxxsupp/libcxx/include/inttypes.h
   - string.h:   contrib/libs/cxxsupp/libcxx/include/string.h
-  - stddef.h:   contrib/libs/cxxsupp/libcxx/include/stddef.h
   - stdint.h:   contrib/libs/cxxsupp/libcxx/include/stdint.h

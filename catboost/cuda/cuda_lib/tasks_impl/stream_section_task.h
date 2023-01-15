@@ -96,7 +96,8 @@ namespace NCudaLib {
                     return true;
                 }
             }
-            CB_ENSURE(false, "Unexpected stream section state");
+            Y_UNREACHABLE();
+            Y_VERIFY(false);
         }
 
     protected:

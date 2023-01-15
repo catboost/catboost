@@ -8,15 +8,15 @@
 #include <new>
 
 #if defined(_darwin_)
-    #define Y_DISABLE_THRKEY_OPTIMIZATION
+#define Y_DISABLE_THRKEY_OPTIMIZATION
 #endif
 
 #if defined(_arm_) && defined(_linux_)
-    #define Y_DISABLE_THRKEY_OPTIMIZATION
+#define Y_DISABLE_THRKEY_OPTIMIZATION
 #endif
 
 #if defined(__GNUC__) && defined(__ANDROID__) && defined(__i686__) // https://st.yandex-team.ru/DEVTOOLS-3352
-    #define Y_DISABLE_THRKEY_OPTIMIZATION
+#define Y_DISABLE_THRKEY_OPTIMIZATION
 #endif
 
 /**
@@ -129,22 +129,22 @@
 #if defined(Y_DISABLE_THRKEY_OPTIMIZATION)
 // nothing to do
 #elif defined(__clang__)
-    #define Y_POD_THREAD(T) thread_local T
-    #define Y_POD_STATIC_THREAD(T) static thread_local T
+#define Y_POD_THREAD(T) thread_local T
+#define Y_POD_STATIC_THREAD(T) static thread_local T
 #elif defined(__GNUC__) && !defined(_cygwin_) && !defined(_arm_) && !defined(__IOS_SIMULATOR__)
-    #define Y_POD_THREAD(T) __thread T
-    #define Y_POD_STATIC_THREAD(T) static __thread T
+#define Y_POD_THREAD(T) __thread T
+#define Y_POD_STATIC_THREAD(T) static __thread T
 // msvc doesn't support __declspec(thread) in dlls, loaded manually (via LoadLibrary)
 #elif (defined(_MSC_VER) && !defined(_WINDLL)) || defined(_arm_)
-    #define Y_POD_THREAD(T) __declspec(thread) T
-    #define Y_POD_STATIC_THREAD(T) __declspec(thread) static T
+#define Y_POD_THREAD(T) __declspec(thread) T
+#define Y_POD_STATIC_THREAD(T) __declspec(thread) static T
 #endif
 
 #if !defined(Y_POD_THREAD) || !defined(Y_POD_STATIC_THREAD)
-    #define Y_POD_THREAD(T) Y_THREAD(T)
-    #define Y_POD_STATIC_THREAD(T) Y_STATIC_THREAD(T)
+#define Y_POD_THREAD(T) Y_THREAD(T)
+#define Y_POD_STATIC_THREAD(T) Y_STATIC_THREAD(T)
 #else
-    #define Y_HAVE_FAST_POD_TLS
+#define Y_HAVE_FAST_POD_TLS
 #endif
 
 namespace NPrivate {
@@ -157,7 +157,6 @@ namespace NTls {
     class TKey {
     public:
         TKey(TDtor dtor);
-        TKey(TKey&&) noexcept;
         ~TKey();
 
         void* Get() const;
@@ -177,7 +176,7 @@ namespace NTls {
     };
 
     template <class T>
-    class TValue: public TMoveOnly {
+    class TValue: public TNonCopyable {
         class TConstructor {
         public:
             TConstructor() noexcept = default;

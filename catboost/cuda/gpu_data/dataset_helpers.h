@@ -11,7 +11,7 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <util/generic/fwd.h>
 
 namespace NCatboostCuda {
@@ -50,12 +50,14 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
-                                      bool skipExclusiveFeatureBundles)
+                                      bool skipExclusiveFeatureBundles,
+                                      NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
             , SkipExclusiveFeatureBundles(skipExclusiveFeatureBundles)
             , IndexBuilder(indexBuilder)
+            , LocalExecutor(localExecutor)
         {
         }
 
@@ -101,7 +103,6 @@ namespace NCatboostCuda {
             const auto& objectsData = *dataProvider.ObjectsData;
             const auto featureCount = features.size();
             TVector<ui32> featureBinCounts(featureCount);
-
             for (auto taskIdx : xrange(featureCount)) {
                 const auto feature = features[taskIdx];
                 const auto dataProviderFeatureId = FeaturesManager.GetDataProviderId(feature);
@@ -125,7 +126,9 @@ namespace NCatboostCuda {
                         features[taskIdx],
                         FeaturesManager.GetBinCount(feature),
                         *objectsData.GetFloatFeature(*floatFeatureIdx),
-                        baseValue
+                        [baseValue] (ui16 value) -> ui8 {
+                            return (ui8)Min(Max(value - baseValue, 0), 255);
+                        }
                     );
                 }
             }
@@ -169,6 +172,7 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>

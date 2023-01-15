@@ -1,22 +1,22 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/stream/str.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include "maybe.h"
 
 class TIncrementOnDestroy {
 private:
-    int* Ptr_;
+    int* Ptr;
 
 public:
     TIncrementOnDestroy(int* ptr) noexcept
-        : Ptr_(ptr)
+        : Ptr(ptr)
     {
     }
 
     ~TIncrementOnDestroy() {
-        ++*Ptr_;
+        ++*Ptr;
     }
 };
 
@@ -201,12 +201,6 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         m4 = std::move(m2);
         UNIT_ASSERT(m4.Defined());
         UNIT_ASSERT_VALUES_EQUAL(m4->Flag, 2);
-
-        // Move value from temporary maybe instance
-        TMovable o5 = *MakeMaybe<TMovable>(5);
-        UNIT_ASSERT_VALUES_EQUAL(o5.Flag, 5);
-        TMovable o6 = MakeMaybe<TMovable>(6).GetRef();
-        UNIT_ASSERT_VALUES_EQUAL(o6.Flag, 6);
     }
 
     Y_UNIT_TEST(TestCast) {
@@ -971,14 +965,10 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
             bool FromMaybeConstructorApplied;
 
             explicit TDst(TSrc)
-                : FromMaybeConstructorApplied(false)
-            {
-            }
+                : FromMaybeConstructorApplied(false) {}
 
             explicit TDst(TMaybe<TSrc>)
-                : FromMaybeConstructorApplied(true)
-            {
-            }
+                : FromMaybeConstructorApplied(true) {}
 
             TDst& operator=(TSrc) {
                 FromMaybeConstructorApplied = false;
@@ -997,10 +987,5 @@ Y_UNIT_TEST_SUITE(TMaybeTest) {
         m = TMaybe<TSrc>();
         UNIT_ASSERT(m.Defined());
         UNIT_ASSERT(m->FromMaybeConstructorApplied);
-    }
-
-    Y_UNIT_TEST(TestOnEmptyException) {
-        TMaybe<TStringBuf> v;
-        UNIT_ASSERT_EXCEPTION_CONTAINS(v.GetRef(), yexception, "StringBuf");
     }
 }

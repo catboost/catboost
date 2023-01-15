@@ -1,5 +1,7 @@
 #include "str.h"
 
+#include <util/generic/yexception.h>
+
 static constexpr size_t MIN_BUFFER_GROW_SIZE = 16;
 
 TStringInput::~TStringInput() = default;
@@ -19,26 +21,26 @@ void TStringInput::DoUndo(size_t len) {
 TStringOutput::~TStringOutput() = default;
 
 size_t TStringOutput::DoNext(void** ptr) {
-    if (S_->size() == S_->capacity()) {
-        S_->reserve(FastClp2(S_->capacity() + MIN_BUFFER_GROW_SIZE));
+    if (S_.size() == S_.capacity()) {
+        S_.reserve(FastClp2(S_.capacity() + MIN_BUFFER_GROW_SIZE));
     }
-    size_t previousSize = S_->size();
-    ResizeUninitialized(*S_, S_->capacity());
-    *ptr = S_->begin() + previousSize;
-    return S_->size() - previousSize;
+    size_t previousSize = S_.size();
+    S_.ReserveAndResize(S_.capacity());
+    *ptr = S_.begin() + previousSize;
+    return S_.size() - previousSize;
 }
 
 void TStringOutput::DoUndo(size_t len) {
-    Y_VERIFY(len <= S_->size(), "trying to undo more bytes than actually written");
-    S_->resize(S_->size() - len);
+    Y_VERIFY(len <= S_.size(), "trying to undo more bytes than actually written");
+    S_.resize(S_.size() - len);
 }
 
 void TStringOutput::DoWrite(const void* buf, size_t len) {
-    S_->append((const char*)buf, len);
+    S_.append((const char*)buf, len);
 }
 
 void TStringOutput::DoWriteC(char c) {
-    S_->push_back(c);
+    S_.append(c);
 }
 
 TStringStream::~TStringStream() = default;

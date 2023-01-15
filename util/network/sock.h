@@ -7,10 +7,10 @@
 #include <util/system/sysstat.h>
 
 #if defined(_win_) || defined(_cygwin_)
-    #include <util/system/file.h>
+#include <util/system/file.h>
 #else
-    #include <sys/un.h>
-    #include <sys/stat.h>
+#include <sys/un.h>
+#include <sys/stat.h>
 #endif //_win_
 
 #include "init.h"
@@ -46,7 +46,7 @@ protected:
 };
 
 #if defined(_win_) || defined(_cygwin_)
-    #define YAF_LOCAL AF_INET
+#define YAF_LOCAL AF_INET
 struct TSockAddrLocal: public ISockAddr {
     TSockAddrLocal() {
         Clear();
@@ -75,14 +75,6 @@ struct TSockAddrLocal: public ISockAddr {
         in.sin_addr.s_addr = IpFromString("127.0.0.1");
         in.sin_port = 0;
         strlcpy(Path, path, PathSize);
-    }
-
-    inline void Set(TStringBuf path) noexcept {
-        Clear();
-        in.sin_family = AF_INET;
-        in.sin_addr.s_addr = IpFromString("127.0.0.1");
-        in.sin_port = 0;
-        strlcpy(Path, path.data(), Min(PathSize, path.size() + 1));
     }
 
     sockaddr* SockAddr() {
@@ -150,14 +142,10 @@ struct TSockAddrLocal: public ISockAddr {
     char Path[PathSize];
 };
 #else
-    #define YAF_LOCAL AF_LOCAL
+#define YAF_LOCAL AF_LOCAL
 struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
     TSockAddrLocal() {
         Clear();
-    }
-
-    TSockAddrLocal(TStringBuf path) {
-        Set(path);
     }
 
     TSockAddrLocal(const char* path) {
@@ -180,12 +168,6 @@ struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
         Clear();
         sun_family = AF_UNIX;
         strlcpy(sun_path, path, sizeof(sun_path));
-    }
-
-    inline void Set(TStringBuf path) noexcept {
-        Clear();
-        sun_family = AF_UNIX;
-        strlcpy(sun_path, path.data(), Min(sizeof(sun_path), path.size() + 1));
     }
 
     sockaddr* SockAddr() override {

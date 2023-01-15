@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -300,15 +300,9 @@ int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_tmp)
         int ui_flags = 0;
         const char *prompt_info = NULL;
         char *prompt;
-        int pw_min_len = PW_MIN_LENGTH;
 
         if (cb_data != NULL && cb_data->prompt_info != NULL)
             prompt_info = cb_data->prompt_info;
-        if (cb_data != NULL && cb_data->password != NULL
-                && *(const char*)cb_data->password != '\0')
-            pw_min_len = 1;
-        else if (!verify)
-            pw_min_len = 0;
         prompt = UI_construct_prompt(ui, "pass phrase", prompt_info);
         if (!prompt) {
             BIO_printf(bio_err, "Out of memory\n");
@@ -323,12 +317,12 @@ int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_tmp)
         (void)UI_add_user_data(ui, cb_data);
 
         ok = UI_add_input_string(ui, prompt, ui_flags, buf,
-                                 pw_min_len, bufsiz - 1);
+                                 PW_MIN_LENGTH, bufsiz - 1);
 
         if (ok >= 0 && verify) {
             buff = app_malloc(bufsiz, "password buffer");
             ok = UI_add_verify_string(ui, prompt, ui_flags, buff,
-                                      pw_min_len, bufsiz - 1, buf);
+                                      PW_MIN_LENGTH, bufsiz - 1, buf);
         }
         if (ok >= 0)
             do {
@@ -1376,8 +1370,7 @@ static IMPLEMENT_LHASH_HASH_FN(index_name, OPENSSL_CSTRING)
 static IMPLEMENT_LHASH_COMP_FN(index_name, OPENSSL_CSTRING)
 #undef BSIZE
 #define BSIZE 256
-BIGNUM *load_serial(const char *serialfile, int *exists, int create,
-                    ASN1_INTEGER **retai)
+BIGNUM *load_serial(const char *serialfile, int create, ASN1_INTEGER **retai)
 {
     BIO *in = NULL;
     BIGNUM *ret = NULL;
@@ -1389,8 +1382,6 @@ BIGNUM *load_serial(const char *serialfile, int *exists, int create,
         goto err;
 
     in = BIO_new_file(serialfile, "r");
-    if (exists != NULL)
-        *exists = in != NULL;
     if (in == NULL) {
         if (!create) {
             perror(serialfile);
@@ -1398,14 +1389,8 @@ BIGNUM *load_serial(const char *serialfile, int *exists, int create,
         }
         ERR_clear_error();
         ret = BN_new();
-        if (ret == NULL) {
+        if (ret == NULL || !rand_serial(ret, ai))
             BIO_printf(bio_err, "Out of memory\n");
-        } else if (!rand_serial(ret, ai)) {
-            BIO_printf(bio_err, "Error creating random number to store in %s\n",
-                       serialfile);
-            BN_free(ret);
-            ret = NULL;
-        }
     } else {
         if (!a2i_ASN1_INTEGER(in, ai, buf, 1024)) {
             BIO_printf(bio_err, "unable to load number from %s\n",
@@ -1425,8 +1410,6 @@ BIGNUM *load_serial(const char *serialfile, int *exists, int create,
         ai = NULL;
     }
  err:
-    if (ret == NULL)
-        ERR_print_errors(bio_err);
     BIO_free(in);
     ASN1_INTEGER_free(ai);
     return ret;
@@ -1979,46 +1962,26 @@ unsigned char *next_protos_parse(size_t *outlen, const char *in)
     size_t len;
     unsigned char *out;
     size_t i, start = 0;
-    size_t skipped = 0;
 
     len = strlen(in);
-    if (len == 0 || len >= 65535)
+    if (len >= 65535)
         return NULL;
 
-    out = app_malloc(len + 1, "NPN buffer");
+    out = app_malloc(strlen(in) + 1, "NPN buffer");
     for (i = 0; i <= len; ++i) {
         if (i == len || in[i] == ',') {
-            /*
-             * Zero-length ALPN elements are invalid on the wire, we could be
-             * strict and reject the entire string, but just ignoring extra
-             * commas seems harmless and more friendly.
-             *
-             * Every comma we skip in this way puts the input buffer another
-             * byte ahead of the output buffer, so all stores into the output
-             * buffer need to be decremented by the number commas skipped.
-             */
-            if (i == start) {
-                ++start;
-                ++skipped;
-                continue;
-            }
             if (i - start > 255) {
                 OPENSSL_free(out);
                 return NULL;
             }
-            out[start-skipped] = (unsigned char)(i - start);
+            out[start] = (unsigned char)(i - start);
             start = i + 1;
         } else {
-            out[i + 1 - skipped] = in[i];
+            out[i + 1] = in[i];
         }
     }
 
-    if (len <= skipped) {
-        OPENSSL_free(out);
-        return NULL;
-    }
-
-    *outlen = len + 1 - skipped;
+    *outlen = len + 1;
     return out;
 }
 

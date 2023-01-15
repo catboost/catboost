@@ -285,7 +285,7 @@ class IterationTransform(Visitor.EnvTransform):
                 return self._transform_reversed_iteration(node, iterable)
 
         # range() iteration?
-        if Options.convert_range and 1 <= arg_count <= 3 and (
+        if Options.convert_range and arg_count >= 1 and (
                 iterable.self is None and
                 function.is_name and function.name in ('range', 'xrange') and
                 function.entry and function.entry.is_builtin):
@@ -1345,10 +1345,6 @@ class FlattenInListTransform(Visitor.VisitorTransform, SkipDeclarations):
         args = node.operand2.args
         if len(args) == 0:
             # note: lhs may have side effects
-            return node
-
-        if any([arg.is_starred for arg in args]):
-            # Starred arguments do not directly translate to comparisons or "in" tests.
             return node
 
         lhs = UtilNodes.ResultRefNode(node.operand1)
@@ -2860,7 +2856,7 @@ class OptimizeBuiltinCalls(Visitor.NodeRefCleanupMixin,
         """Optimistic optimisation as X.append() is almost always
         referring to a list.
         """
-        if len(args) != 2 or node.result_is_used or node.function.entry:
+        if len(args) != 2 or node.result_is_used:
             return node
 
         return ExprNodes.PythonCapiCallNode(
@@ -4255,7 +4251,6 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                 string_node.unicode_value = encoded_string(
                     string_node.unicode_value * multiplier,
                     string_node.unicode_value.encoding)
-            build_string = encoded_string if string_node.value.is_unicode else bytes_literal
         elif isinstance(string_node, ExprNodes.UnicodeNode):
             if string_node.bytes_value is not None:
                 string_node.bytes_value = bytes_literal(
@@ -4263,14 +4258,9 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                     string_node.bytes_value.encoding)
         else:
             assert False, "unknown string node type: %s" % type(string_node)
-        string_node.value = build_string(
+        string_node.constant_result = string_node.value = build_string(
             string_node.value * multiplier,
             string_node.value.encoding)
-        # follow constant-folding and use unicode_value in preference
-        if isinstance(string_node, ExprNodes.StringNode) and string_node.unicode_value is not None:
-            string_node.constant_result = string_node.unicode_value
-        else:
-            string_node.constant_result = string_node.value
         return string_node
 
     def _calculate_constant_seq(self, node, sequence_node, factor):
@@ -4302,10 +4292,10 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
         return self.visit_BinopNode(node)
 
     _parse_string_format_regex = (
-        u'(%(?:'              # %...
-        u'(?:[-0-9]+|[ ])?'   # width (optional) or space prefix fill character (optional)
-        u'(?:[.][0-9]+)?'     # precision (optional)
-        u')?.)'               # format type (or something different for unsupported formats)
+        u'(%(?:'            # %...
+        u'(?:[0-9]+|[ ])?'  # width (optional) or space prefix fill character (optional)
+        u'(?:[.][0-9]+)?'   # precision (optional)
+        u')?.)'             # format type (or something different for unsupported formats)
     )
 
     def _build_fstring(self, pos, ustring, format_args):
@@ -4337,25 +4327,14 @@ class ConstantFolding(Visitor.VisitorTransform, SkipDeclarations):
                 break
             if format_type in u'asrfdoxX':
                 format_spec = s[1:]
-                conversion_char = None
                 if format_type in u'doxX' and u'.' in format_spec:
                     # Precision is not allowed for integers in format(), but ok in %-formatting.
                     can_be_optimised = False
                 elif format_type in u'ars':
                     format_spec = format_spec[:-1]
-                    conversion_char = format_type
-                    if format_spec.startswith('0'):
-                        format_spec = '>' + format_spec[1:]  # right-alignment '%05s' spells '{:>5}'
-                elif format_type == u'd':
-                    # '%d' formatting supports float, but '{obj:d}' does not => convert to int first.
-                    conversion_char = 'd'
-
-                if format_spec.startswith('-'):
-                    format_spec = '<' + format_spec[1:]  # left-alignment '%-5s' spells '{:<5}'
-
                 substrings.append(ExprNodes.FormattedValueNode(
                     arg.pos, value=arg,
-                    conversion_char=conversion_char,
+                    conversion_char=format_type if format_type in u'ars' else None,
                     format_spec=ExprNodes.UnicodeNode(
                         pos, value=EncodedString(format_spec), constant_result=format_spec)
                         if format_spec else None,

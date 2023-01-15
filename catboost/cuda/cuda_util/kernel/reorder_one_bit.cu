@@ -1,9 +1,7 @@
 #include "reorder_one_bit.cuh"
 #include "reorder_one_bit_impl.cuh"
-
+#include <contrib/libs/cub/cub/device/device_scan.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-
-#include <contrib/libs/nvidia/cub/cub/device/device_scan.cuh>
 
 namespace NKernel {
 

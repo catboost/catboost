@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -8,7 +8,6 @@
  */
 
 #include <stdio.h>
-#include <limits.h>
 #include <assert.h>
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
@@ -16,8 +15,8 @@
 #include <openssl/rand.h>
 #include <openssl/rand_drbg.h>
 #include <openssl/engine.h>
-#include "crypto/evp.h"
-#include "evp_local.h"
+#include "internal/evp_int.h"
+#include "evp_locl.h"
 
 int EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c)
 {
@@ -85,11 +84,7 @@ int EVP_CipherInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
          * previous check attempted to avoid this if the same ENGINE and
          * EVP_CIPHER could be used).
          */
-        if (ctx->cipher
-#ifndef OPENSSL_NO_ENGINE
-                || ctx->engine
-#endif
-                || ctx->cipher_data) {
+        if (ctx->cipher) {
             unsigned long flags = ctx->flags;
             EVP_CIPHER_CTX_reset(ctx);
             /* Restore encrypt and flags */
@@ -109,7 +104,11 @@ int EVP_CipherInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
             /* There's an ENGINE for this job ... (apparently) */
             const EVP_CIPHER *c = ENGINE_get_cipher(impl, cipher->nid);
             if (!c) {
-                ENGINE_finish(impl);
+                /*
+                 * One positive side-effect of US's export control history,
+                 * is that we should at least be able to avoid using US
+                 * misspellings of "initialisation"?
+                 */
                 EVPerr(EVP_F_EVP_CIPHERINIT_EX, EVP_R_INITIALIZATION_ERROR);
                 return 0;
             }
@@ -281,7 +280,7 @@ int EVP_DecryptInit_ex(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *cipher,
 # define PTRDIFF_T size_t
 #endif
 
-int is_partially_overlapping(const void *ptr1, const void *ptr2, size_t len)
+int is_partially_overlapping(const void *ptr1, const void *ptr2, int len)
 {
     PTRDIFF_T diff = (PTRDIFF_T)ptr1-(PTRDIFF_T)ptr2;
     /*
@@ -299,24 +298,12 @@ static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
                                     unsigned char *out, int *outl,
                                     const unsigned char *in, int inl)
 {
-    int i, j, bl;
-    size_t cmpl = (size_t)inl;
+    int i, j, bl, cmpl = inl;
 
     if (EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS))
         cmpl = (cmpl + 7) / 8;
 
     bl = ctx->cipher->block_size;
-
-    /*
-     * CCM mode needs to know about the case where inl == 0 && in == NULL - it
-     * means the plaintext/ciphertext length is 0
-     */
-    if (inl < 0
-            || (inl == 0
-                && EVP_CIPHER_mode(ctx->cipher) != EVP_CIPH_CCM_MODE)) {
-        *outl = 0;
-        return inl == 0;
-    }
 
     if (ctx->cipher->flags & EVP_CIPH_FLAG_CUSTOM_CIPHER) {
         /* If block size > 1 then the cipher will have to do this check */
@@ -333,6 +320,10 @@ static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
         return 1;
     }
 
+    if (inl <= 0) {
+        *outl = 0;
+        return inl == 0;
+    }
     if (is_partially_overlapping(out + ctx->buf_len, in, cmpl)) {
         EVPerr(EVP_F_EVP_ENCRYPTDECRYPTUPDATE, EVP_R_PARTIALLY_OVERLAPPING);
         return 0;
@@ -357,19 +348,6 @@ static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
             return 1;
         } else {
             j = bl - i;
-
-            /*
-             * Once we've processed the first j bytes from in, the amount of
-             * data left that is a multiple of the block length is:
-             * (inl - j) & ~(bl - 1)
-             * We must ensure that this amount of data, plus the one block that
-             * we process from ctx->buf does not exceed INT_MAX
-             */
-            if (((inl - j) & ~(bl - 1)) > INT_MAX - bl) {
-                EVPerr(EVP_F_EVP_ENCRYPTDECRYPTUPDATE,
-                       EVP_R_OUTPUT_WOULD_OVERFLOW);
-                return 0;
-            }
             memcpy(&(ctx->buf[i]), in, j);
             inl -= j;
             in += j;
@@ -465,9 +443,8 @@ int EVP_EncryptFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl)
 int EVP_DecryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,
                       const unsigned char *in, int inl)
 {
-    int fix_len;
+    int fix_len, cmpl = inl;
     unsigned int b;
-    size_t cmpl = (size_t)inl;
 
     /* Prevent accidental use of encryption context when decrypting */
     if (ctx->encrypt) {
@@ -479,17 +456,6 @@ int EVP_DecryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,
 
     if (EVP_CIPHER_CTX_test_flags(ctx, EVP_CIPH_FLAG_LENGTH_BITS))
         cmpl = (cmpl + 7) / 8;
-
-    /*
-     * CCM mode needs to know about the case where inl == 0 - it means the
-     * plaintext/ciphertext length is 0
-     */
-    if (inl < 0
-            || (inl == 0
-                && EVP_CIPHER_mode(ctx->cipher) != EVP_CIPH_CCM_MODE)) {
-        *outl = 0;
-        return inl == 0;
-    }
 
     if (ctx->cipher->flags & EVP_CIPH_FLAG_CUSTOM_CIPHER) {
         if (b == 1 && is_partially_overlapping(out, in, cmpl)) {
@@ -506,6 +472,11 @@ int EVP_DecryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,
         return 1;
     }
 
+    if (inl <= 0) {
+        *outl = 0;
+        return inl == 0;
+    }
+
     if (ctx->flags & EVP_CIPH_NO_PADDING)
         return evp_EncryptDecryptUpdate(ctx, out, outl, in, inl);
 
@@ -516,19 +487,6 @@ int EVP_DecryptUpdate(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl,
         if (((PTRDIFF_T)out == (PTRDIFF_T)in)
             || is_partially_overlapping(out, in, b)) {
             EVPerr(EVP_F_EVP_DECRYPTUPDATE, EVP_R_PARTIALLY_OVERLAPPING);
-            return 0;
-        }
-        /*
-         * final_used is only ever set if buf_len is 0. Therefore the maximum
-         * length output we will ever see from evp_EncryptDecryptUpdate is
-         * the maximum multiple of the block length that is <= inl, or just:
-         * inl & ~(b - 1)
-         * Since final_used has been set then the final output length is:
-         * (inl & ~(b - 1)) + b
-         * This must never exceed INT_MAX
-         */
-        if ((inl & ~(b - 1)) > INT_MAX - b) {
-            EVPerr(EVP_F_EVP_DECRYPTUPDATE, EVP_R_OUTPUT_WOULD_OVERFLOW);
             return 0;
         }
         memcpy(out, ctx->final, b);

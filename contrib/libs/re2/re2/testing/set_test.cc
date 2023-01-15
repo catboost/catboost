@@ -3,11 +3,9 @@
 // license that can be found in the LICENSE file.
 
 #include <stddef.h>
-#include <string>
 #include <vector>
-#include <utility>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "re2/re2.h"
 #include "re2/set.h"
@@ -17,214 +15,162 @@ namespace re2 {
 TEST(Set, Unanchored) {
   RE2::Set s(RE2::DefaultOptions, RE2::UNANCHORED);
 
-  ASSERT_EQ(s.Add("foo", NULL), 0);
-  ASSERT_EQ(s.Add("(", NULL), -1);
-  ASSERT_EQ(s.Add("bar", NULL), 1);
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Add("foo", NULL), 0);
+  CHECK_EQ(s.Add("(", NULL), -1);
+  CHECK_EQ(s.Add("bar", NULL), 1);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("foobar", NULL), true);
-  ASSERT_EQ(s.Match("fooba", NULL), true);
-  ASSERT_EQ(s.Match("oobar", NULL), true);
+  CHECK_EQ(s.Match("foobar", NULL), true);
+  CHECK_EQ(s.Match("fooba", NULL), true);
+  CHECK_EQ(s.Match("oobar", NULL), true);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("foobar", &v), true);
-  ASSERT_EQ(v.size(), 2);
-  ASSERT_EQ(v[0], 0);
-  ASSERT_EQ(v[1], 1);
+  CHECK_EQ(s.Match("foobar", &v), true);
+  CHECK_EQ(v.size(), 2);
+  CHECK_EQ(v[0], 0);
+  CHECK_EQ(v[1], 1);
 
-  ASSERT_EQ(s.Match("fooba", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
+  CHECK_EQ(s.Match("fooba", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 
-  ASSERT_EQ(s.Match("oobar", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 1);
+  CHECK_EQ(s.Match("oobar", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 1);
 }
 
 TEST(Set, UnanchoredFactored) {
   RE2::Set s(RE2::DefaultOptions, RE2::UNANCHORED);
 
-  ASSERT_EQ(s.Add("foo", NULL), 0);
-  ASSERT_EQ(s.Add("(", NULL), -1);
-  ASSERT_EQ(s.Add("foobar", NULL), 1);
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Add("foo", NULL), 0);
+  CHECK_EQ(s.Add("(", NULL), -1);
+  CHECK_EQ(s.Add("foobar", NULL), 1);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("foobar", NULL), true);
-  ASSERT_EQ(s.Match("obarfoobaroo", NULL), true);
-  ASSERT_EQ(s.Match("fooba", NULL), true);
-  ASSERT_EQ(s.Match("oobar", NULL), false);
+  CHECK_EQ(s.Match("foobar", NULL), true);
+  CHECK_EQ(s.Match("obarfoobaroo", NULL), true);
+  CHECK_EQ(s.Match("fooba", NULL), true);
+  CHECK_EQ(s.Match("oobar", NULL), false);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("foobar", &v), true);
-  ASSERT_EQ(v.size(), 2);
-  ASSERT_EQ(v[0], 0);
-  ASSERT_EQ(v[1], 1);
+  CHECK_EQ(s.Match("foobar", &v), true);
+  CHECK_EQ(v.size(), 2);
+  CHECK_EQ(v[0], 0);
+  CHECK_EQ(v[1], 1);
 
-  ASSERT_EQ(s.Match("obarfoobaroo", &v), true);
-  ASSERT_EQ(v.size(), 2);
-  ASSERT_EQ(v[0], 0);
-  ASSERT_EQ(v[1], 1);
+  CHECK_EQ(s.Match("obarfoobaroo", &v), true);
+  CHECK_EQ(v.size(), 2);
+  CHECK_EQ(v[0], 0);
+  CHECK_EQ(v[1], 1);
 
-  ASSERT_EQ(s.Match("fooba", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
+  CHECK_EQ(s.Match("fooba", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 
-  ASSERT_EQ(s.Match("oobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("oobar", &v), false);
+  CHECK_EQ(v.size(), 0);
 }
 
 TEST(Set, UnanchoredDollar) {
   RE2::Set s(RE2::DefaultOptions, RE2::UNANCHORED);
 
-  ASSERT_EQ(s.Add("foo$", NULL), 0);
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Add("foo$", NULL), 0);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("foo", NULL), true);
-  ASSERT_EQ(s.Match("foobar", NULL), false);
-
-  std::vector<int> v;
-  ASSERT_EQ(s.Match("foo", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
-
-  ASSERT_EQ(s.Match("foobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
-}
-
-TEST(Set, UnanchoredWordBoundary) {
-  RE2::Set s(RE2::DefaultOptions, RE2::UNANCHORED);
-
-  ASSERT_EQ(s.Add("foo\\b", NULL), 0);
-  ASSERT_EQ(s.Compile(), true);
-
-  ASSERT_EQ(s.Match("foo", NULL), true);
-  ASSERT_EQ(s.Match("foobar", NULL), false);
-  ASSERT_EQ(s.Match("foo bar", NULL), true);
+  CHECK_EQ(s.Match("foo", NULL), true);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("foo", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
-
-  ASSERT_EQ(s.Match("foobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
-
-  ASSERT_EQ(s.Match("foo bar", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
+  CHECK_EQ(s.Match("foo", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 }
 
 TEST(Set, Anchored) {
   RE2::Set s(RE2::DefaultOptions, RE2::ANCHOR_BOTH);
 
-  ASSERT_EQ(s.Add("foo", NULL), 0);
-  ASSERT_EQ(s.Add("(", NULL), -1);
-  ASSERT_EQ(s.Add("bar", NULL), 1);
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Add("foo", NULL), 0);
+  CHECK_EQ(s.Add("(", NULL), -1);
+  CHECK_EQ(s.Add("bar", NULL), 1);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("foobar", NULL), false);
-  ASSERT_EQ(s.Match("fooba", NULL), false);
-  ASSERT_EQ(s.Match("oobar", NULL), false);
-  ASSERT_EQ(s.Match("foo", NULL), true);
-  ASSERT_EQ(s.Match("bar", NULL), true);
+  CHECK_EQ(s.Match("foobar", NULL), false);
+  CHECK_EQ(s.Match("fooba", NULL), false);
+  CHECK_EQ(s.Match("oobar", NULL), false);
+  CHECK_EQ(s.Match("foo", NULL), true);
+  CHECK_EQ(s.Match("bar", NULL), true);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("foobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("foobar", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("fooba", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("fooba", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("oobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("oobar", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("foo", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
+  CHECK_EQ(s.Match("foo", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 
-  ASSERT_EQ(s.Match("bar", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 1);
+  CHECK_EQ(s.Match("bar", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 1);
 }
 
 TEST(Set, EmptyUnanchored) {
   RE2::Set s(RE2::DefaultOptions, RE2::UNANCHORED);
 
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("", NULL), false);
-  ASSERT_EQ(s.Match("foobar", NULL), false);
+  CHECK_EQ(s.Match("", NULL), false);
+  CHECK_EQ(s.Match("foobar", NULL), false);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("foobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("foobar", &v), false);
+  CHECK_EQ(v.size(), 0);
 }
 
 TEST(Set, EmptyAnchored) {
   RE2::Set s(RE2::DefaultOptions, RE2::ANCHOR_BOTH);
 
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("", NULL), false);
-  ASSERT_EQ(s.Match("foobar", NULL), false);
+  CHECK_EQ(s.Match("", NULL), false);
+  CHECK_EQ(s.Match("foobar", NULL), false);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("foobar", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("foobar", &v), false);
+  CHECK_EQ(v.size(), 0);
 }
 
 TEST(Set, Prefix) {
   RE2::Set s(RE2::DefaultOptions, RE2::ANCHOR_BOTH);
 
-  ASSERT_EQ(s.Add("/prefix/\\d*", NULL), 0);
-  ASSERT_EQ(s.Compile(), true);
+  CHECK_EQ(s.Add("/prefix/\\d*", NULL), 0);
+  CHECK_EQ(s.Compile(), true);
 
-  ASSERT_EQ(s.Match("/prefix", NULL), false);
-  ASSERT_EQ(s.Match("/prefix/", NULL), true);
-  ASSERT_EQ(s.Match("/prefix/42", NULL), true);
+  CHECK_EQ(s.Match("/prefix", NULL), false);
+  CHECK_EQ(s.Match("/prefix/", NULL), true);
+  CHECK_EQ(s.Match("/prefix/42", NULL), true);
 
   std::vector<int> v;
-  ASSERT_EQ(s.Match("/prefix", &v), false);
-  ASSERT_EQ(v.size(), 0);
+  CHECK_EQ(s.Match("/prefix", &v), false);
+  CHECK_EQ(v.size(), 0);
 
-  ASSERT_EQ(s.Match("/prefix/", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
+  CHECK_EQ(s.Match("/prefix/", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 
-  ASSERT_EQ(s.Match("/prefix/42", &v), true);
-  ASSERT_EQ(v.size(), 1);
-  ASSERT_EQ(v[0], 0);
-}
-
-TEST(Set, MoveSemantics) {
-  RE2::Set s1(RE2::DefaultOptions, RE2::UNANCHORED);
-  ASSERT_EQ(s1.Add("foo\\d+", NULL), 0);
-  ASSERT_EQ(s1.Compile(), true);
-  ASSERT_EQ(s1.Match("abc foo1 xyz", NULL), true);
-  ASSERT_EQ(s1.Match("abc bar2 xyz", NULL), false);
-
-  // The moved-to object should do what the moved-from object did.
-  RE2::Set s2 = std::move(s1);
-  ASSERT_EQ(s2.Match("abc foo1 xyz", NULL), true);
-  ASSERT_EQ(s2.Match("abc bar2 xyz", NULL), false);
-
-  // The moved-from object should have been reset and be reusable.
-  ASSERT_EQ(s1.Add("bar\\d+", NULL), 0);
-  ASSERT_EQ(s1.Compile(), true);
-  ASSERT_EQ(s1.Match("abc foo1 xyz", NULL), false);
-  ASSERT_EQ(s1.Match("abc bar2 xyz", NULL), true);
-
-  // Verify that "overwriting" works and also doesn't leak memory.
-  // (The latter will need a leak detector such as LeakSanitizer.)
-  s1 = std::move(s2);
-  ASSERT_EQ(s1.Match("abc foo1 xyz", NULL), true);
-  ASSERT_EQ(s1.Match("abc bar2 xyz", NULL), false);
+  CHECK_EQ(s.Match("/prefix/42", &v), true);
+  CHECK_EQ(v.size(), 1);
+  CHECK_EQ(v[0], 0);
 }
 
 }  // namespace re2

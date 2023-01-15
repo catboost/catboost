@@ -1,9 +1,7 @@
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
-
-#include <util/generic/cast.h>
 
 namespace NKernel
 {
@@ -12,10 +10,10 @@ namespace NKernel
     __global__ void FillBufferImpl(T* buffer, T value, ui64  size, ui64 alignSize)
     {
         buffer += blockIdx.y * alignSize;
-        ui64 i = (ui64)blockIdx.x * blockDim.x + threadIdx.x;
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             WriteThrough(buffer + i, value);
-            i += (ui64)gridDim.x * blockDim.x;
+            i += gridDim.x * blockDim.x;
         }
     }
 
@@ -24,7 +22,7 @@ namespace NKernel
         if (size > 0) {
             dim3 numBlocks;
             const ui32 blockSize = 128;
-            numBlocks.x = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount()));
+            numBlocks.x =  min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
             numBlocks.y = columnCount;
             numBlocks.z = 1;
             FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size, alignSize);
@@ -36,10 +34,10 @@ namespace NKernel
     template <typename T>
     __global__ void MakeSequenceImpl(T offset, T* buffer, ui64  size)
     {
-        ui64 i = (ui64)blockIdx.x * blockDim.x + threadIdx.x;
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             WriteThrough(buffer + i, (T)(offset + i));
-            i += (ui64)gridDim.x * blockDim.x;
+            i += gridDim.x * blockDim.x;
         }
     }
 
@@ -49,18 +47,18 @@ namespace NKernel
         if (size > 0)
         {
             const ui32 blockSize = 512;
-            const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
-                                         (ui64)TArchProps::MaxBlockCount()));
+            const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
+                                         (ui64)TArchProps::MaxBlockCount());
             MakeSequenceImpl<T> << < numBlocks, blockSize, 0, stream >> > (offset, buffer, size);
         }
     }
 
     template <typename T>
     __global__ void InversePermutationImpl(const T* indices, T* dst, ui64 size) {
-        ui64 i = (ui64)blockIdx.x * blockDim.x + threadIdx.x;
+        ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             dst[indices[i]] = i;
-            i += (ui64)gridDim.x * blockDim.x;
+            i += gridDim.x * blockDim.x;
         }
     }
 
@@ -70,8 +68,8 @@ namespace NKernel
         if (size > 0)
         {
             const ui32 blockSize = 512;
-            const ui32 numBlocks = SafeIntegerCast<ui32>(min((size + blockSize - 1) / blockSize,
-                                       (ui64)TArchProps::MaxBlockCount()));
+            const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
+                                       (ui64)TArchProps::MaxBlockCount());
             InversePermutationImpl<T> << < numBlocks, blockSize, 0, stream >> > (order, inverseOrder, size);
         }
     }

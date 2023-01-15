@@ -62,13 +62,13 @@ dependencies {{
 android {{
     {keystore}
 
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
 
 
     defaultConfig {{
-        minSdkVersion 21
-        targetSdkVersion 30
+        minSdkVersion 15
+        targetSdkVersion 28
         applicationId "{app_id}"
     }}
 
@@ -89,8 +89,8 @@ android {{
     }}
 
     dependencies {{
-        implementation 'com.google.android.gms:play-services-location:20.0.0'
-        implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+        implementation 'com.google.android.gms:play-services-location:16.0.0'
+        implementation 'com.google.android.gms:play-services-gcm:16.0.0'
         implementation 'com.evernote:android-job:1.2.6'
         implementation 'androidx.annotation:annotation:1.1.0'
         implementation 'androidx.core:core:1.1.0'
@@ -105,6 +105,7 @@ def create_native_properties(output_dir, library_name):
     name = etree.SubElement(resources, 'item', dict(name='native_library_name', type='string'))
     name.text = library_name
     etree.ElementTree(resources).write(native_properties_file, xml_declaration=True, encoding='utf-8')
+
 
 
 def gen_build_script(args):

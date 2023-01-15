@@ -17,10 +17,6 @@ def fix(s):
     if s.startswith('-fabi-version'):
         return None
 
-    # remove arguments unknown to clang-cl
-    if s == '-fcase-insensitive-paths':  # or s == '-fno-lto':  # DEVTOOLSSUPPORT-3966
-        return None
-
     # Paths under .ya/tools/v3/.../msvc/include are divided with '\'
     return s.replace('\\', '/')
 

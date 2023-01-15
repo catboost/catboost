@@ -10,12 +10,12 @@
 
 #include <cmath>
 
-namespace NYson {
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     // Copied from <util/string/escape.cpp>
     namespace {
-        inline char HexDigit(char value) {
+        static inline char HexDigit(char value) {
             Y_ASSERT(value < 16);
             if (value < 10)
                 return '0' + value;
@@ -23,26 +23,26 @@ namespace NYson {
                 return 'A' + value - 10;
         }
 
-        inline char OctDigit(char value) {
+        static inline char OctDigit(char value) {
             Y_ASSERT(value < 8);
             return '0' + value;
         }
 
-        inline bool IsPrintable(char c) {
+        static inline bool IsPrintable(char c) {
             return c >= 32 && c <= 126;
         }
 
-        inline bool IsHexDigit(char c) {
+        static inline bool IsHexDigit(char c) {
             return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f');
         }
 
-        inline bool IsOctDigit(char c) {
+        static inline bool IsOctDigit(char c) {
             return c >= '0' && c <= '7';
         }
 
-        const size_t ESCAPE_C_BUFFER_SIZE = 4;
+        static const size_t ESCAPE_C_BUFFER_SIZE = 4;
 
-        inline size_t EscapeC(unsigned char c, char next, char r[ESCAPE_C_BUFFER_SIZE]) {
+        static inline size_t EscapeC(unsigned char c, char next, char r[ESCAPE_C_BUFFER_SIZE]) {
             // (1) Printable characters go as-is, except backslash and double quote.
             // (2) Characters \r, \n, \t and \0 ... \7 replaced by their simple escape characters (if possible).
             // (3) Otherwise, character is encoded using hexadecimal escape sequence (if possible), or octal.
@@ -114,9 +114,9 @@ namespace NYson {
                 return ::ToString(value);
             }
 
-            static const TStringBuf nanLiteral = "%nan";
-            static const TStringBuf infLiteral = "%inf";
-            static const TStringBuf negativeInfLiteral = "%-inf";
+            static const auto nanLiteral = AsStringBuf("%nan");
+            static const auto infLiteral = AsStringBuf("%inf");
+            static const auto negativeInfLiteral = AsStringBuf("%-inf");
 
             TStringBuf str;
             if (std::isnan(value)) {
@@ -155,17 +155,17 @@ namespace NYson {
     }
 
     bool TYsonWriter::IsTopLevelFragmentContext() const {
-        return Depth == 0 && (Type == ::NYson::EYsonType::ListFragment || Type == ::NYson::EYsonType::MapFragment);
+        return Depth == 0 && (Type == YT_LIST_FRAGMENT || Type == YT_MAP_FRAGMENT);
     }
 
     void TYsonWriter::EndNode() {
         if (IsTopLevelFragmentContext()) {
             ETokenType separatorToken =
-                Type == ::NYson::EYsonType::ListFragment
+                Type == YT_LIST_FRAGMENT
                     ? ListItemSeparatorToken
                     : KeyedItemSeparatorToken;
             Stream->Write(TokenTypeToChar(separatorToken));
-            if (Format == EYsonFormat::Text || Format == EYsonFormat::Pretty) {
+            if (Format == YF_TEXT || Format == YF_PRETTY) {
                 Stream->Write('\n');
             }
         }
@@ -183,7 +183,7 @@ namespace NYson {
                 Stream->Write(TokenTypeToChar(separatorToken));
             }
 
-            if (Format == EYsonFormat::Pretty) {
+            if (Format == YF_PRETTY) {
                 Stream->Write('\n');
                 WriteIndent();
             }
@@ -194,7 +194,7 @@ namespace NYson {
 
     void TYsonWriter::EndCollection(ETokenType endToken) {
         --Depth;
-        if (Format == EYsonFormat::Pretty && !BeforeFirstItem) {
+        if (Format == YF_PRETTY && !BeforeFirstItem) {
             Stream->Write('\n');
             WriteIndent();
         }
@@ -203,7 +203,7 @@ namespace NYson {
     }
 
     void TYsonWriter::WriteStringScalar(const TStringBuf& value) {
-        if (Format == EYsonFormat::Binary) {
+        if (Format == YF_BINARY) {
             Stream->Write(NDetail::StringMarker);
             WriteVarInt32(Stream, static_cast<i32>(value.length()));
             Stream->Write(value.begin(), value.length());
@@ -214,13 +214,13 @@ namespace NYson {
         }
     }
 
-    void TYsonWriter::OnStringScalar(TStringBuf value) {
+    void TYsonWriter::OnStringScalar(const TStringBuf& value) {
         WriteStringScalar(value);
         EndNode();
     }
 
     void TYsonWriter::OnInt64Scalar(i64 value) {
-        if (Format == EYsonFormat::Binary) {
+        if (Format == YF_BINARY) {
             Stream->Write(NDetail::Int64Marker);
             WriteVarInt64(Stream, value);
         } else {
@@ -230,7 +230,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnUint64Scalar(ui64 value) {
-        if (Format == EYsonFormat::Binary) {
+        if (Format == YF_BINARY) {
             Stream->Write(NDetail::Uint64Marker);
             WriteVarUInt64(Stream, value);
         } else {
@@ -241,7 +241,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnDoubleScalar(double value) {
-        if (Format == EYsonFormat::Binary) {
+        if (Format == YF_BINARY) {
             Stream->Write(NDetail::DoubleMarker);
             Stream->Write(&value, sizeof(double));
         } else {
@@ -255,7 +255,7 @@ namespace NYson {
     }
 
     void TYsonWriter::OnBooleanScalar(bool value) {
-        if (Format == EYsonFormat::Binary) {
+        if (Format == YF_BINARY) {
             Stream->Write(value ? NDetail::TrueMarker : NDetail::FalseMarker);
         } else {
             Stream->Write(value ? "%true" : "%false");
@@ -285,16 +285,16 @@ namespace NYson {
         BeginCollection(BeginMapToken);
     }
 
-    void TYsonWriter::OnKeyedItem(TStringBuf key) {
+    void TYsonWriter::OnKeyedItem(const TStringBuf& key) {
         CollectionItem(KeyedItemSeparatorToken);
 
         WriteStringScalar(key);
 
-        if (Format == NYson::EYsonFormat::Pretty) {
+        if (Format == YF_PRETTY) {
             Stream->Write(' ');
         }
         Stream->Write(TokenTypeToChar(KeyValueSeparatorToken));
-        if (Format == NYson::EYsonFormat::Pretty) {
+        if (Format == YF_PRETTY) {
             Stream->Write(' ');
         }
 
@@ -312,12 +312,12 @@ namespace NYson {
 
     void TYsonWriter::OnEndAttributes() {
         EndCollection(EndAttributesToken);
-        if (Format == NYson::EYsonFormat::Pretty) {
+        if (Format == YF_PRETTY) {
             Stream->Write(' ');
         }
     }
 
-    void TYsonWriter::OnRaw(TStringBuf yson, EYsonType type) {
+    void TYsonWriter::OnRaw(const TStringBuf& yson, EYsonType type) {
         if (EnableRaw) {
             Stream->Write(yson);
             BeforeFirstItem = false;
@@ -352,4 +352,4 @@ namespace NYson {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

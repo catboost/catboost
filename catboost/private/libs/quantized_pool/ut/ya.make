@@ -19,7 +19,7 @@ PEERDIR(
 
     contrib/libs/flatbuffers
 
-    library/cpp/json
+    library/json
 )
 
 END()

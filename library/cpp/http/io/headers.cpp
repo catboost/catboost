@@ -29,6 +29,9 @@ THttpInputHeader::THttpInputHeader(TString name, TString value)
 {
 }
 
+THttpInputHeader::~THttpInputHeader() {
+}
+
 void THttpInputHeader::OutTo(IOutputStream* stream) const {
     typedef IOutputStream::TPart TPart;
 
@@ -40,6 +43,9 @@ void THttpInputHeader::OutTo(IOutputStream* stream) const {
     };
 
     stream->Write(parts, sizeof(parts) / sizeof(*parts));
+}
+
+THttpHeaders::THttpHeaders() {
 }
 
 THttpHeaders::THttpHeaders(IInputStream* stream) {
@@ -94,6 +100,9 @@ void THttpHeaders::AddOrReplaceHeader(const THttpInputHeader& header) {
 
 void THttpHeaders::AddHeader(THttpInputHeader header) {
     Headers_.push_back(std::move(header));
+}
+
+THttpHeaders::~THttpHeaders() {
 }
 
 void THttpHeaders::OutTo(IOutputStream* stream) const {

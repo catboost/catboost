@@ -81,7 +81,7 @@ def formataddr(pair, charset='utf-8'):
     If the first element of pair is false, then the second element is
     returned unmodified.
 
-    The optional charset is the character set that is used to encode
+    Optional charset if given is the character set that is used to encode
     realname in case realname is not ASCII safe.  Can be an instance of str or
     a Charset-like object which has a header_encode method.  Default is
     'utf-8'.
@@ -109,7 +109,7 @@ def formataddr(pair, charset='utf-8'):
 
 def getaddresses(fieldvalues):
     """Return a list of (REALNAME, EMAIL) for each fieldvalue."""
-    all = COMMASPACE.join(str(v) for v in fieldvalues)
+    all = COMMASPACE.join(fieldvalues)
     a = _AddressList(all)
     return a.addresslist
 
@@ -195,10 +195,7 @@ def make_msgid(idstring=None, domain=None):
 
 
 def parsedate_to_datetime(data):
-    parsed_date_tz = _parsedate_tz(data)
-    if parsed_date_tz is None:
-        raise ValueError('Invalid date value or format "%s"' % str(data))
-    *dtuple, tz = parsed_date_tz
+    *dtuple, tz = _parsedate_tz(data)
     if tz is None:
         return datetime.datetime(*dtuple[:6])
     return datetime.datetime(*dtuple[:6],
@@ -262,13 +259,21 @@ def decode_params(params):
 
     params is a sequence of 2-tuples containing (param name, string value).
     """
-    new_params = [params[0]]
+    # Copy params so we don't mess with the original
+    params = params[:]
+    new_params = []
     # Map parameter's name to a list of continuations.  The values are a
     # 3-tuple of the continuation number, the string value, and a flag
     # specifying whether a particular segment is %-encoded.
     rfc2231_params = {}
-    for name, value in params[1:]:
-        encoded = name.endswith('*')
+    name, value = params.pop(0)
+    new_params.append((name, value))
+    while params:
+        name, value = params.pop(0)
+        if name.endswith('*'):
+            encoded = True
+        else:
+            encoded = False
         value = unquote(value)
         mo = rfc2231_continuation.match(name)
         if mo:

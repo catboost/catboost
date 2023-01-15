@@ -1,13 +1,12 @@
 #include "json_model_helpers.h"
 
-#include <catboost/libs/helpers/json_helpers.h>
 #include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
-#include <library/cpp/json/json_reader.h>
-#include <library/cpp/json/json_writer.h>
+#include <library/json/json_reader.h>
+#include <library/json/json_writer.h>
 
 #include <util/generic/set.h>
 #include <util/string/builder.h>
@@ -19,6 +18,67 @@
 
 using namespace NJson;
 
+
+template <typename T>
+static TJsonValue VectorToJson(const TVector<T>& values) {
+    TJsonValue jsonValue;
+    for (const auto& value: values) {
+        jsonValue.AppendValue(value);
+    }
+    return jsonValue;
+}
+
+static void FromJson(const TJsonValue& value, TString* result) {
+    *result = value.GetString();
+}
+
+static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput, IOutputStream* out) {
+    TJsonWriterConfig config;
+    config.FormatOutput = formatOutput;
+    config.FloatNDigits = 9;
+    config.DoubleNDigits = 17;
+    config.SortKeys = true;
+    WriteJson(out, &value, config);
+}
+
+static TString WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput) {
+    TStringStream ss;
+    WriteJsonWithCatBoostPrecision(value, formatOutput, &ss);
+    return ss.Str();
+}
+
+template <typename T>
+static void FromJson(const TJsonValue& value, T* result) {
+    switch (value.GetType()) {
+        case EJsonValueType::JSON_INTEGER:
+            *result = T(value.GetInteger());
+            break;
+        case EJsonValueType::JSON_DOUBLE:
+            *result = T(value.GetDouble());
+            break;
+        case EJsonValueType::JSON_UINTEGER:
+            *result = T(value.GetUInteger());
+            break;
+        default:
+            Y_ASSERT(false);
+    }
+}
+
+template <typename T>
+static T FromJson(const TJsonValue& value) {
+    T result;
+    FromJson(value, &result);
+    return result;
+}
+
+template <typename T>
+static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
+    TVector<T> result;
+    for (const auto& value: jsonValue.GetArray()) {
+        result.push_back(FromJson<T>(value));
+    }
+    return result;
+}
 
 static TJsonValue ToJson(const TFloatSplit& floatSplit) {
     TJsonValue jsonValue;
@@ -162,7 +222,6 @@ static TJsonValue ToJson(const TFloatFeature& floatFeature) {
     jsonValue.InsertValue("feature_index", floatFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", floatFeature.Position.FlatIndex);
     jsonValue.InsertValue("borders", VectorToJson(floatFeature.Borders));
-    jsonValue.InsertValue("feature_id", floatFeature.FeatureId);
     switch (floatFeature.NanValueTreatment) {
         case TFloatFeature::ENanValueTreatment::AsIs:
             jsonValue.InsertValue("nan_value_treatment", "AsIs");
@@ -178,21 +237,17 @@ static TJsonValue ToJson(const TFloatFeature& floatFeature) {
 }
 
 static TFloatFeature FloatFeatureFromJson(const TJsonValue& value) {
-    auto feature = TFloatFeature(
-        value["has_nans"].GetBoolean(),
-        value["feature_index"].GetInteger(),
-        value["flat_feature_index"].GetInteger(),
-        JsonToVector<float>(value["borders"]),
-        value["feature_id"].GetString());
-    feature.NanValueTreatment = FromString<TFloatFeature::ENanValueTreatment>(value["nan_value_treatment"].GetString());
-    return feature;
+    return TFloatFeature(
+            value["has_nans"].GetBoolean(),
+            value["feature_index"].GetInteger(),
+            value["flat_feature_index"].GetInteger(),
+            JsonToVector<float>(value["borders"]));
 }
 
 static TJsonValue ToJson(const TCatFeature& catFeature) {
     TJsonValue jsonValue;
     jsonValue.InsertValue("feature_index", catFeature.Position.Index);
     jsonValue.InsertValue("flat_feature_index", catFeature.Position.FlatIndex);
-    jsonValue.InsertValue("feature_id", catFeature.FeatureId);
     return jsonValue;
 }
 
@@ -200,7 +255,6 @@ static TCatFeature CatFeatureFromJson(const TJsonValue& value) {
     TCatFeature catFeature;
     catFeature.Position.Index = value["feature_index"].GetInteger();
     catFeature.Position.FlatIndex = value["flat_feature_index"].GetInteger();
-    catFeature.FeatureId = value["feature_id"].GetString();
     return catFeature;
 }
 
@@ -295,31 +349,31 @@ static TJsonValue GetObliviousModelTreesJson(const TModelTrees& modelTrees) {
     int leafWeightsOffset = 0;
     TJsonValue jsonValue;
     const auto& binFeatures = modelTrees.GetBinFeatures();
-    for (int treeIdx = 0; treeIdx < modelTrees.GetModelTreeData()->GetTreeSizes().ysize(); ++treeIdx) {
+    for (int treeIdx = 0; treeIdx < modelTrees.GetTreeSizes().ysize(); ++treeIdx) {
         TJsonValue tree;
-        const size_t treeLeafCount = (1uLL << modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]) * modelTrees.GetDimensionsCount();
-        const size_t treeWeightsCount = (1uLL << modelTrees.GetModelTreeData()->GetTreeSizes()[treeIdx]);
-        if (!modelTrees.GetModelTreeData()->GetLeafWeights().empty()) {
+        const size_t treeLeafCount = (1uLL << modelTrees.GetTreeSizes()[treeIdx]) * modelTrees.GetDimensionsCount();
+        const size_t treeWeightsCount = (1uLL << modelTrees.GetTreeSizes()[treeIdx]);
+        if (!modelTrees.GetLeafWeights().empty()) {
             for (size_t idx = 0; idx < treeWeightsCount; ++idx) {
-                tree["leaf_weights"].AppendValue(modelTrees.GetModelTreeData()->GetLeafWeights()[leafWeightsOffset + idx]);
+                tree["leaf_weights"].AppendValue(modelTrees.GetLeafWeights()[leafWeightsOffset + idx]);
             }
         }
         tree.InsertValue("leaf_values", TJsonValue());
         for (size_t idx = 0; idx < treeLeafCount; ++idx) {
-            tree["leaf_values"].AppendValue(modelTrees.GetModelTreeData()->GetLeafValues()[leafValuesOffset + idx]);
+            tree["leaf_values"].AppendValue(modelTrees.GetLeafValues()[leafValuesOffset + idx]);
         }
         leafValuesOffset += treeLeafCount;
         leafWeightsOffset += treeWeightsCount;
         int treeSplitEnd;
-        if (treeIdx + 1 < modelTrees.GetModelTreeData()->GetTreeStartOffsets().ysize()) {
-            treeSplitEnd = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx + 1];
+        if (treeIdx + 1 < modelTrees.GetTreeStartOffsets().ysize()) {
+            treeSplitEnd = modelTrees.GetTreeStartOffsets()[treeIdx + 1];
         } else {
-            treeSplitEnd = modelTrees.GetModelTreeData()->GetTreeSplits().ysize();
+            treeSplitEnd = modelTrees.GetTreeSplits().ysize();
         }
         tree.InsertValue("splits", TJsonValue());
-        for (int idx = modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx]; idx < treeSplitEnd; ++idx) {
-            tree["splits"].AppendValue(ToJson(binFeatures[modelTrees.GetModelTreeData()->GetTreeSplits()[idx]]));
-            tree["splits"].Back().InsertValue("split_index", modelTrees.GetModelTreeData()->GetTreeSplits()[idx]);
+        for (int idx = modelTrees.GetTreeStartOffsets()[treeIdx]; idx < treeSplitEnd; ++idx) {
+            tree["splits"].AppendValue(ToJson(binFeatures[modelTrees.GetTreeSplits()[idx]]));
+            tree["splits"].Back().InsertValue("split_index", modelTrees.GetTreeSplits()[idx]);
         }
         jsonValue.AppendValue(tree);
     }
@@ -327,13 +381,13 @@ static TJsonValue GetObliviousModelTreesJson(const TModelTrees& modelTrees) {
 }
 
 static TJsonValue BuildLeafJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
-    ui32 leafIdx = modelTrees.GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+    ui32 leafIdx = modelTrees.GetNonSymmetricNodeIdToLeafId()[nodeIdx];
     TJsonValue leafJson;
-    leafJson.InsertValue("weight", modelTrees.GetModelTreeData()->GetLeafWeights()[leafIdx / modelTrees.GetDimensionsCount()]);
+    leafJson.InsertValue("weight", modelTrees.GetLeafWeights()[leafIdx / modelTrees.GetDimensionsCount()]);
     if (modelTrees.GetDimensionsCount() == 1) {
-        leafJson.InsertValue("value", modelTrees.GetModelTreeData()->GetLeafValues()[leafIdx]);
+        leafJson.InsertValue("value", modelTrees.GetLeafValues()[leafIdx]);
     } else {
-        TConstArrayRef<double> valueRef(modelTrees.GetModelTreeData()->GetLeafValues().begin() + leafIdx, modelTrees.GetDimensionsCount());
+        TConstArrayRef<double> valueRef(modelTrees.GetLeafValues().begin() + leafIdx, modelTrees.GetDimensionsCount());
         leafJson.InsertValue("value", VectorToJson<double>({valueRef.begin(), valueRef.end()}));
     }
     return leafJson;
@@ -341,12 +395,12 @@ static TJsonValue BuildLeafJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
 
 static TJsonValue BuildTreeJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
     TJsonValue tree;
-    const TNonSymmetricTreeStepNode& node = modelTrees.GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
+    const TNonSymmetricTreeStepNode& node = modelTrees.GetNonSymmetricStepNodes()[nodeIdx];
     if (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0) {
         return BuildLeafJson(modelTrees, nodeIdx);
     } else {
-        tree.InsertValue("split", ToJson(modelTrees.GetBinFeatures()[modelTrees.GetModelTreeData()->GetTreeSplits()[nodeIdx]]));
-        tree["split"].InsertValue("split_index", modelTrees.GetModelTreeData()->GetTreeSplits()[nodeIdx]);
+        tree.InsertValue("split", ToJson(modelTrees.GetBinFeatures()[modelTrees.GetTreeSplits()[nodeIdx]]));
+        tree["split"].InsertValue("split_index", modelTrees.GetTreeSplits()[nodeIdx]);
         tree.InsertValue("left",
             node.LeftSubtreeDiff ? BuildTreeJson(modelTrees, nodeIdx + node.LeftSubtreeDiff) : BuildLeafJson(modelTrees, nodeIdx));
         tree.InsertValue("right",
@@ -357,8 +411,8 @@ static TJsonValue BuildTreeJson(const TModelTrees& modelTrees, ui32 nodeIdx) {
 
 static TJsonValue GetNonSymmetricModelTreesJson(const TModelTrees& modelTrees) {
     TJsonValue jsonValue(JSON_ARRAY);
-    for (int treeIdx = 0; treeIdx < modelTrees.GetModelTreeData()->GetTreeSizes().ysize(); ++treeIdx) {
-        jsonValue.AppendValue(BuildTreeJson(modelTrees, modelTrees.GetModelTreeData()->GetTreeStartOffsets()[treeIdx]));
+    for (int treeIdx = 0; treeIdx < modelTrees.GetTreeSizes().ysize(); ++treeIdx) {
+        jsonValue.AppendValue(BuildTreeJson(modelTrees, modelTrees.GetTreeStartOffsets()[treeIdx]));
     }
     return jsonValue;
 }
@@ -398,7 +452,7 @@ static void GetNonSymmetricModelTrees(const TJsonValue& jsonValue, TModelTrees* 
         nodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
         if (jsonNode.Has("value")) {
             const TJsonValue& value = jsonNode["value"];
-            nodeIdToLeafId.push_back(modelTrees->GetModelTreeData()->GetLeafValues().size());
+            nodeIdToLeafId.push_back(modelTrees->GetLeafValues().size());
             modelTrees->AddTreeSplit(0);
             if (value.GetType() == EJsonValueType::JSON_ARRAY) {
                 modelTrees->SetApproxDimension(value.GetArray().ysize());
@@ -428,7 +482,7 @@ static void GetNonSymmetricModelTrees(const TJsonValue& jsonValue, TModelTrees* 
     modelTrees->SetNonSymmetricNodeIdToLeafId(std::move(nodeIdToLeafId));
 }
 
-static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TConstArrayRef<TModelCtr> neededCtrs) {
+static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TVector<TModelCtr>& neededCtrs) {
     NJson::TJsonValue jsonValue;
     if (neededCtrs.empty()) {
         return jsonValue;
@@ -488,11 +542,7 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
 static TJsonValue GetScaleAndBiasJson(const TFullModel& model) {
     TJsonValue jsonValue;
     jsonValue.AppendValue(model.GetScaleAndBias().Scale);
-    jsonValue.AppendValue(TJsonValue());
-    auto bias = model.GetScaleAndBias().GetBiasRef();
-    for (auto b : bias) {
-        jsonValue[1].AppendValue(b);
-    }
+    jsonValue.AppendValue(model.GetScaleAndBias().Bias);
     return jsonValue;
 }
 
@@ -520,8 +570,7 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
     jsonModel.InsertValue("features_info", GetFeaturesInfoJson(*model.ModelTrees, featureId, catFeaturesHashToString));
     const TStaticCtrProvider* ctrProvider = dynamic_cast<TStaticCtrProvider*>(model.CtrProvider.Get());
     if (ctrProvider) {
-        auto applyData = model.ModelTrees->GetApplyData();
-        jsonModel.InsertValue("ctr_data", ConvertCtrsToJson(ctrProvider, applyData->UsedModelCtrs));
+        jsonModel.InsertValue("ctr_data", ConvertCtrsToJson(ctrProvider, model.ModelTrees->GetUsedModelCtrs()));
     }
     jsonModel.InsertValue("scale_and_bias", GetScaleAndBiasJson(model));
     return jsonModel;
@@ -597,10 +646,7 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     if (jsonModel.Has("scale_and_bias")) {
         const auto& scaleAndBias = jsonModel["scale_and_bias"].GetArray();
         double scale = scaleAndBias[0].GetDouble();
-        TVector<double> bias;
-        for (const auto& biasValue : scaleAndBias[1].GetArray()) {
-            bias.push_back(biasValue.GetDouble());
-        }
+        double bias = scaleAndBias[1].GetDouble();
         fullModel->SetScaleAndBias({scale, bias});
     }
 

@@ -1237,9 +1237,6 @@ class _Method:
     def __init__(self, send, name):
         self.__send = send
         self.__name = name
-    def __repr__(self):
-        return "<_Method for %s>" % self.__name
-    __str__ = __repr__
     def __getattr__(self, name):
         return _Method(self.__send, "%s.%s" % (self.__name, name))
     def __call__(self, *args):

@@ -1,29 +1,23 @@
-import collections
 import csv
 import json
+import itertools
 import os
 import random
 import shutil
 import sys
-from pandas import read_csv, DataFrame
+from pandas import read_csv
 from copy import deepcopy
 import numpy as np
 from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
-    'append_params_to_cmdline',
     'binary_path',
     'compare_evals',
     'compare_evals_with_precision',
     'compare_fit_evals_with_precision',
     'compare_metrics_with_diff',
-    'format_crossvalidation',
-    'get_limited_precision_dsv_diff_tool',
-    'get_limited_precision_json_diff_tool',
-    'get_limited_precision_numpy_diff_tool',
     'generate_random_labeled_dataset',
     'generate_concatenated_random_labeled_dataset',
-    'generate_dataset_with_num_and_cat_features',
     'load_dataset_as_dataframe',
     'load_pool_features_as_df',
     'permute_dataset_columns',
@@ -108,29 +102,6 @@ def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=2018
     return np.concatenate([label, feature], axis=1)
 
 
-def generate_patients_datasets(train_path, test_path):
-    samples = 237
-
-    for samples, path in zip([237, 154], [train_path, test_path]):
-        data = DataFrame()
-        data['age'] = np.random.randint(20, 71, size=samples)
-        data['gender'] = np.where(np.random.binomial(1, 0.7, samples) == 1, 'male', 'female')
-        data['diet'] = np.where(np.random.binomial(1, 0.1, samples) == 1, 'yes', 'no')
-        data['glucose'] = np.random.uniform(4, 12, size=samples)
-        data['platelets'] = np.random.randint(100, 500, size=samples)
-        data['cholesterol'] = np.random.uniform(4.5, 6.5, size=samples)
-        data['survival_in_days'] = np.random.randint(30, 500, size=samples)
-        data['outcome'] = np.where(np.random.binomial(1, 0.8, size=samples) == 1, 'dead', 'alive')
-        data['target'] = np.where(data['outcome'] == 'dead', data['survival_in_days'], - data['survival_in_days'])
-        data = data.drop(['outcome', 'survival_in_days'], axis=1)
-        data.to_csv(
-            path,
-            header=False,
-            index=False,
-            sep='\t'
-        )
-
-
 # returns (features : numpy.ndarray, labels : list) tuple
 def generate_random_labeled_dataset(
     n_samples,
@@ -156,87 +127,9 @@ def generate_random_labeled_dataset(
                 value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
             features[sample_idx, feature_idx] = features_dtype(value)
 
-    labels = [random.choice(tuple(labels)) for _ in range(n_samples)]
-
-    return (features, labels)
-
-
-# returns (features : pandas.DataFrame, labels : list) tuple
-def generate_dataset_with_num_and_cat_features(
-    n_samples,
-    n_num_features,
-    n_cat_features,
-    labels,
-    num_features_density=1.0,
-    num_features_dtype=np.float32,
-    num_features_range=(-1., 1.),
-    cat_features_uniq_value_count=5,
-    cat_features_dtype=np.int32,
-    seed=20201015
-):
-    assert num_features_density > 0.0
-    assert cat_features_uniq_value_count > 0
-
-    random.seed(seed)
-
-    # put num and categ features to the result DataFrame in random order but keep sequential names within each type
-    feature_columns = collections.OrderedDict()
-
-    num_feature_idx = 0
-    cat_feature_idx = 0
-    while (num_feature_idx < n_num_features) or (cat_feature_idx < n_cat_features):
-        if (cat_feature_idx < n_cat_features) and random.randrange(2):
-            values = []
-            for sample_idx in range(n_samples):
-                values.append(cat_features_dtype(random.randrange(cat_features_uniq_value_count)))
-            feature_columns['c' + str(cat_feature_idx)] = values
-            cat_feature_idx += 1
-        elif num_feature_idx < n_num_features:
-            values = []
-            for sample_idx in range(n_samples):
-                v1 = random.random()
-                if v1 > num_features_density:
-                    value = 0
-                else:
-                    value = (
-                        num_features_range[0]
-                            + (num_features_range[1] - num_features_range[0]) * (v1 / num_features_density)
-                    )
-                values.append(num_features_dtype(value))
-            feature_columns['n' + str(num_feature_idx)] = values
-            num_feature_idx += 1
-
     labels = [random.choice(labels) for i in range(n_samples)]
 
-    return (DataFrame(feature_columns), labels)
-
-
-def generate_survival_dataset(seed=20201015):
-    np.random.seed(seed)
-
-    X = np.random.rand(200, 20)*10
-
-    mean_y = np.sin(X[:, 0])
-
-    y = np.random.randn(200, 10) * 0.3 + mean_y[:, None]
-
-    y_lower = np.min(y, axis=1)
-    y_upper = np.max(y, axis=1)
-    y_upper = np.where(y_upper >= 1.4, -1, y_upper+abs(np.min(y_lower)))
-    y_lower += abs(np.min(y_lower))
-
-    right_censored_ids = np.where(y_upper == -1)[0]
-    interval_censored_ids = np.where(y_upper != -1)[0]
-
-    train_ids = np.hstack(
-        [right_censored_ids[::2], interval_censored_ids[:140]])
-    test_ids = np.hstack(
-        [right_censored_ids[1::2], interval_censored_ids[140:]])
-
-    X_train, y_lower_train, y_upper_train = X[train_ids], y_lower[train_ids], y_upper[train_ids]
-    X_test, y_lower_test, y_upper_test = X[test_ids], y_lower[test_ids], y_upper[test_ids]
-
-    return [(X_train, y_lower_train, y_upper_train), (X_test, y_lower_test, y_upper_test)]
+    return (features, labels)
 
 
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
@@ -249,7 +142,7 @@ def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
     head_fit = next(csv_fit)
     head_calc = next(csv_calc)
 
-    if isinstance(custom_metric, str):
+    if isinstance(custom_metric, basestring):
         custom_metric = [custom_metric]
 
     for metric_name in deepcopy(custom_metric):
@@ -283,12 +176,9 @@ def compare_metrics_with_diff(custom_metric, fit_eval, calc_eval, eps=1e-7):
             break
 
 
-def compare_evals(fit_eval, calc_eval, skip_header=False):
+def compare_evals(fit_eval, calc_eval):
     csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
     csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
-    if skip_header:
-        next(csv_fit)
-        next(csv_calc)
     while True:
         try:
             line_fit = next(csv_fit)
@@ -301,37 +191,21 @@ def compare_evals(fit_eval, calc_eval, skip_header=False):
 
 
 def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, atol=1e-8, skip_last_column_in_fit=True):
-    df_fit = read_csv(fit_eval, sep='\t')
+    array_fit = np.loadtxt(fit_eval, delimiter='\t', skiprows=1, ndmin=2)
+    array_calc = np.loadtxt(calc_eval, delimiter='\t', skiprows=1, ndmin=2)
+    header_fit = open(fit_eval, "r").readline().split()
+    header_calc = open(calc_eval, "r").readline().split()
     if skip_last_column_in_fit:
-        df_fit = df_fit.iloc[:, :-1]
-
-    df_calc = read_csv(calc_eval, sep='\t')
-
-    if np.any(df_fit.columns != df_calc.columns):
-        sys.stderr.write('column sets differ: {}, {}'.format(df_fit.columns, df_calc.columns))
+        array_fit = np.delete(array_fit, np.s_[-1], 1)
+        header_fit = header_fit[:-1]
+    if header_fit != header_calc:
         return False
-
-    def print_diff(column, row_idx):
-        sys.stderr.write(
-            "column: {}, index: {} {} != {}\n".format(
-                column,
-                row_idx,
-                df_fit[column][row_idx],
-                df_calc[column][row_idx]
-            )
-        )
-
-    for column in df_fit.columns:
-        if column in ['SampleId', 'Label']:
-            if (df_fit[column] != df_calc[column]).any():
-                print_diff(column, np.where(df_fit[column] != df_calc[column])[0])
-                return False
-        else:
-            is_close = np.isclose(df_fit[column].to_numpy(), df_calc[column].to_numpy(), rtol=rtol, atol=atol)
-            if np.any(is_close == 0):
-                print_diff(column, np.where(is_close == 0)[0])
-                return False
-    return True
+    is_close = np.isclose(array_fit, array_calc, rtol=rtol, atol=atol)
+    if np.all(is_close):
+        return True
+    for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
+        sys.stderr.write("index: {} {} != {}\n".format(i, array_fit[i], array_calc[i]))
+    return False
 
 
 def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6, atol=1e-8):
@@ -355,11 +229,10 @@ def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):
     df = read_csv(
         data_file,
         sep='\t',
-        header=1 if has_header else None
+        names=columns_metadata['column_names'],
+        dtype=columns_metadata['column_dtypes'],
+        skiprows=1 if has_header else 0
     )
-
-    df.columns = columns_metadata['column_names']
-    df = df.astype(columns_metadata['column_dtypes'])
 
     result = {}
     result['target'] = df.iloc[:, columns_metadata['column_type_to_indices']['Label'][0]].values
@@ -374,51 +247,3 @@ def load_pool_features_as_df(pool_file, cd_file):
     columns_metadata = read_cd(cd_file, data_file=pool_file, canonize_column_types=True)
     data = load_dataset_as_dataframe(pool_file, columns_metadata)
     return (data['features'], columns_metadata['cat_feature_indices'])
-
-
-def append_params_to_cmdline(cmd, params):
-    if isinstance(params, dict):
-        for param in params.items():
-            key = "{}".format(param[0])
-            value = "{}".format(param[1])
-            cmd.append(key)
-            cmd.append(value)
-    else:
-        for param in params:
-            cmd.append(param)
-
-
-def format_crossvalidation(is_inverted, n, k):
-    cv_type = 'Inverted' if is_inverted else 'Classical'
-    return '{}:{};{}'.format(cv_type, n, k)
-
-
-def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
-    diff_tool = [
-        binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
-    ]
-    if diff_limit is not None:
-        diff_tool += ['--diff-limit', str(diff_limit)]
-    if have_header:
-        diff_tool += ['--have-header']
-    return diff_tool
-
-
-def get_limited_precision_json_diff_tool(diff_limit):
-    diff_tool = [
-        binary_path("catboost/tools/limited_precision_json_diff/limited_precision_json_diff"),
-    ]
-    if diff_limit is not None:
-        diff_tool += ['--diff-limit', str(diff_limit)]
-    return diff_tool
-
-
-def get_limited_precision_numpy_diff_tool(rtol=None, atol=None):
-    diff_tool = [
-        binary_path("catboost/tools/limited_precision_numpy_diff/limited_precision_numpy_diff"),
-    ]
-    if rtol is not None:
-        diff_tool += ['--rtol', str(rtol)]
-    if atol is not None:
-        diff_tool += ['--atol', str(atol)]
-    return diff_tool

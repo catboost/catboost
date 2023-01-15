@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -50,8 +50,7 @@ typedef enum OPTION_choice {
 
 const OPTIONS enc_options[] = {
     {"help", OPT_HELP, '-', "Display this summary"},
-    {"list", OPT_LIST, '-', "List ciphers"},
-    {"ciphers", OPT_LIST, '-', "Alias for -list"},
+    {"ciphers", OPT_LIST, '-', "List ciphers"},
     {"in", OPT_IN, '<', "Input file"},
     {"out", OPT_OUT, '>', "Output file"},
     {"pass", OPT_PASS, 's', "Passphrase source"},
@@ -81,7 +80,7 @@ const OPTIONS enc_options[] = {
     {"", OPT_CIPHER, '-', "Any supported cipher"},
     OPT_R_OPTIONS,
 #ifdef ZLIB
-    {"z", OPT_Z, '-', "Compress or decompress encrypted data using zlib"},
+    {"z", OPT_Z, '-', "Use zlib as the 'encryption'"},
 #endif
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},

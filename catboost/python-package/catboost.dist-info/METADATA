@@ -18,6 +18,7 @@ Requires-Dist: pandas >=0.24.0
 Requires-Dist: scipy
 Requires-Dist: plotly
 Requires-Dist: six
+Requires-Dist: enum34; python_version < "3.4"
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
 Classifier: Topic :: Software Development :: Libraries :: Python Modules

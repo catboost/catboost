@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
@@ -34,8 +34,8 @@ static double CalculateLastIterMeanLeafValue(const TVector<TVector<TVector<doubl
     return sumOverLeaves / numLeaves;
 }
 
-static double CalculateMeanGradValue(const TVector<TConstArrayRef<double>>& derivatives, ui32 cnt, NPar::ILocalExecutor* localExecutor) {
-        NPar::ILocalExecutor::TExecRangeParams blockParams(0, cnt);
+static double CalculateMeanGradValue(const TVector<TConstArrayRef<double>>& derivatives, ui32 cnt, NPar::TLocalExecutor* localExecutor) {
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, cnt);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
         TVector<double> gradSumInBlock(blockParams.GetBlockCount(), 0.0);
         localExecutor->ExecRange(
@@ -67,7 +67,7 @@ static double CalculateMeanGradValue(const TVector<TConstArrayRef<double>>& deri
 double TMvsSampler::GetLambda(
     const TVector<TConstArrayRef<double>>& derivatives,
     const TVector<TVector<TVector<double>>>& leafValues,
-    NPar::ILocalExecutor* localExecutor) const {
+    NPar::TLocalExecutor* localExecutor) const {
 
     if (Lambda.Defined()) {
         return Lambda.GetRef();
@@ -121,7 +121,7 @@ void TMvsSampler::GenSampleWeights(
     EBoostingType boostingType,
     const TVector<TVector<TVector<double>>>& leafValues,
     TRestorableFastRng64* rand,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TFold* fold) const {
 
     if (SampleRate == 1.0f) {
@@ -159,7 +159,7 @@ void TMvsSampler::GenSampleWeights(
                     }
                 },
                 0,
-                SafeIntegerCast<int>(fold->BodyTailArr.size()),
+                fold->BodyTailArr.size(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
             for (auto dim : xrange(approxDimension)) {
@@ -169,7 +169,7 @@ void TMvsSampler::GenSampleWeights(
 
         double lambda = GetLambda(derivatives, leafValues, localExecutor);
 
-        NPar::ILocalExecutor::TExecRangeParams blockParams(0, SampleCount);
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, SampleCount);
         blockParams.SetBlockSize(BlockSize);
         const ui64 randSeed = rand->GenRand();
         localExecutor->ExecRange(

@@ -1,6 +1,6 @@
 #include "parser.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 static const time_t SECONDS_PER_HOUR = 3600;
 static const time_t SECONDS_PER_MINUTE = 60;
@@ -404,6 +404,9 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
         ret = ParseISO8601DateTime("1990-03-151T15:16:17.18Z+21:32", t);
         UNIT_ASSERT(!ret);
+
+        ret = ParseISO8601DateTime("1990-03-29 01:42:57.7587777777", t);
+        UNIT_ASSERT(!ret);
     }
 
     Y_UNIT_TEST(TestIso8601Fractions) {
@@ -419,36 +422,6 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         UNIT_ASSERT_VALUES_EQUAL(
             TInstant::ParseIso8601("2009-09-19 03:37:03.012331+04:00"),
             TInstant::Seconds(1253317023) + TDuration::MicroSeconds(12331));
-    }
-
-    Y_UNIT_TEST(TestIso8601FractionsBelowMicro) {
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.0000000+00:00"),
-            TInstant::Seconds(0));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.0000009+00:00"),
-            TInstant::Seconds(0));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.000000789+00:00"),
-            TInstant::Seconds(0));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.1234560+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(123456));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.1234569+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(123456));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.123456789+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(123456));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.9999990+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(999999));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.9999999+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(999999));
-        UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("1970-01-01 00:00:00.999999789+00:00"),
-            TInstant::Seconds(0) + TDuration::MicroSeconds(999999));
     }
 
     Y_UNIT_TEST(TestIso8601BigDate) {
@@ -516,53 +489,53 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
     Y_UNIT_TEST(TestTInstantTryParse) {
         {
-            const TStringBuf s = "2009-09-19 03:37:08.1+04:00";
+            const auto s = AsStringBuf("2009-09-19 03:37:08.1+04:00");
             const auto i = TInstant::ParseIso8601(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseIso8601(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const TStringBuf s = "2009-09aslkdjfkljasdjfl4:00";
+            const auto s = AsStringBuf("2009-09aslkdjfkljasdjfl4:00");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseIso8601(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseIso8601(s, iTry));
         }
         {
-            const TStringBuf s = "Wed, 14 Oct 2009 16:55:33 GMT";
+            const auto s = AsStringBuf("Wed, 14 Oct 2009 16:55:33 GMT");
             const auto i = TInstant::ParseRfc822(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseRfc822(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const TStringBuf s = "Wed, alsdjflkasjdfl:55:33 GMT";
+            const auto s = AsStringBuf("Wed, alsdjflkasjdfl:55:33 GMT");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseRfc822(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseRfc822(s, iTry));
         }
         {
-            const TStringBuf s = "20091014165533Z";
+            const auto s = AsStringBuf("20091014165533Z");
             const auto i = TInstant::ParseX509Validity(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const TStringBuf s = "200asdfasdf533Z";
+            const auto s = AsStringBuf("200asdfasdf533Z");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
         }
         {
-            const TStringBuf s = "990104074212Z";
+            const auto s = AsStringBuf("990104074212Z");
             const auto i = TInstant::ParseX509Validity(s);
             TInstant iTry;
             UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
-            const TStringBuf s = "9901asdf4212Z";
+            const auto s = AsStringBuf("9901asdf4212Z");
             TInstant iTry;
             UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
             UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
@@ -572,7 +545,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
 Y_UNIT_TEST_SUITE(TDurationParseTest) {
     Y_UNIT_TEST(TestParse) {
-        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60 * 60 * 24 * 7), TDuration::Parse("1w"));
+        UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60*60*24*7), TDuration::Parse("1w"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(60), TDuration::Parse("1m"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(90), TDuration::Parse("1.5m"));
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Seconds(102), TDuration::Parse("1.7m"));

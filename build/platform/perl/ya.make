@@ -1,28 +1,42 @@
-LIBRARY()
+RESOURCES_LIBRARY()
 
 
 
-NO_PLATFORM()
+IF (WINDOWS OR PERL_LIBRARY_PATH)
+    ENABLE(USE_PERL_SYSTEM)
+ENDIF()
 
 IF (USE_PERL_SYSTEM)
-    IF (PERL_SDK == "ubuntu-12")
-        PEERDIR(build/platform/perl/5.14)
-    ELSEIF (PERL_SDK == "ubuntu-14")
-        PEERDIR(build/platform/perl/5.18)
-    ELSEIF (PERL_SDK == "ubuntu-16")
-        PEERDIR(build/platform/perl/5.22)
-    ELSEIF (PERL_SDK == "ubuntu-18")
-        PEERDIR(build/platform/perl/5.26)
-    ELSEIF (PERL_SDK == "ubuntu-20")
-        PEERDIR(build/platform/perl/5.30)
+    IF (OS_SDK STREQUAL "ubuntu-12")
+        DECLARE_EXTERNAL_RESOURCE(SYSTEM_PERL sbr:337748278)
+    ELSEIF (OS_SDK STREQUAL "ubuntu-14")
+        DECLARE_EXTERNAL_RESOURCE(SYSTEM_PERL sbr:323263857)
+    ELSEIF (OS_SDK STREQUAL "ubuntu-16")
+        DECLARE_EXTERNAL_RESOURCE(SYSTEM_PERL sbr:323251590)
+    ELSEIF (OS_SDK STREQUAL "ubuntu-18")
+        DECLARE_EXTERNAL_RESOURCE(SYSTEM_PERL sbr:616700320)
+    ENDIF()
+
+    IF (PERL_INCLUDE)
+        CFLAGS(GLOBAL $PERL_INCLUDE)
+    ENDIF()
+
+    CFLAGS(GLOBAL -I$PERL_ARCHLIB/CORE)
+
+    IF (PERL_LIBS)
+        LDFLAGS(-L${PERL_LIBS})
+    ENDIF()
+
+    IF (NOT OS_WINDOWS)
+        LDFLAGS(-lperl)
     ELSE()
-        MESSAGE(FATAL_ERROR "Building against system perl is not supported on ${PERL_SDK}")
+        LDFLAGS(perl.lib)
     ENDIF()
 
 ELSE()
-
-    MESSAGE(FATAL_ERROR "There is no perl ready for static linkage. Try using the system one.")
-
+    PEERDIR(build/platform/perl/5.14.4)
 ENDIF()
+
+CFLAGS(GLOBAL -DUSE_PERL)
 
 END()

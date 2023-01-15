@@ -2,7 +2,6 @@
 
 #include "meta_info.h"
 #include "objects_grouping.h"
-#include "pairs.h"
 #include "util.h"
 #include "weights.h"
 
@@ -17,7 +16,7 @@
 
 #include <library/cpp/binsaver/bin_saver.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/array_ref.h>
@@ -57,7 +56,7 @@ namespace NCB {
     );
 
     // Integer target type is stored as ITypedSequencePtr<float>
-    using TRawTarget = std::variant<ITypedSequencePtr<float>, TVector<TString>>;
+    using TRawTarget = TVariant<ITypedSequencePtr<float>, TVector<TString>>;
 
 
     // for use while building
@@ -75,7 +74,7 @@ namespace NCB {
         // weights in each group must be equal, it's checked
         TWeights<float> GroupWeights; // [objectIdx]
 
-        TMaybeData<TRawPairsData> Pairs;
+        TVector<TPair> Pairs; // can be empty
     public:
         bool operator==(const TRawTargetData& rhs) const;
 
@@ -84,7 +83,7 @@ namespace NCB {
             GroupWeights = TWeights<float>(objectCount);
         }
 
-        void Check(const TObjectsGrouping& objectsGrouping, NPar::ILocalExecutor* localExecutor) const;
+        void Check(const TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
 
         void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount, ui32 prevTailSize);
     };
@@ -100,17 +99,15 @@ namespace NCB {
             TObjectsGroupingPtr objectsGrouping,
             TRawTargetData&& data,
             bool skipCheck,
-            bool forceUnitAutoPairWeights,
 
             // used only if skipCheck == false, it's ok to pass nullptr if skipCheck is true
-            TMaybe<NPar::ILocalExecutor*> localExecutor
+            TMaybe<NPar::TLocalExecutor*> localExecutor
         ) {
             if (!skipCheck) {
                 data.Check(*objectsGrouping, *localExecutor);
             }
             ObjectsGrouping = std::move(objectsGrouping);
             Data = std::move(data);
-            ForceUnitAutoPairWeights = forceUnitAutoPairWeights;
             SetBaselineViewFromBaseline();
         }
 
@@ -157,10 +154,6 @@ namespace NCB {
             return Data.Target.size();
         }
 
-        bool IsForceUnitAutoPairWeights() const {
-            return ForceUnitAutoPairWeights;
-        }
-
         // can return empty array
         TMaybeData<TBaselineArrayRef> GetBaseline() const {  // [approxIdx][objectIdx]
             return !BaselineView.empty() ? TMaybeData<TBaselineArrayRef>(BaselineView) : Nothing();
@@ -174,7 +167,7 @@ namespace NCB {
             return Data.GroupWeights;
         }
 
-        const TMaybeData<TRawPairsData>& GetPairs() const {
+        TConstArrayRef<TPair> GetPairs() const { // can return empty array
             return Data.Pairs;
         }
 
@@ -198,18 +191,17 @@ namespace NCB {
 
         void SetPairs(TConstArrayRef<TPair> pairs) {
             CheckPairs(pairs, *ObjectsGrouping);
-            Data.Pairs = TFlatPairsInfo(pairs.begin(), pairs.end());
+            Assign(pairs, &Data.Pairs);
         }
 
         TRawTargetDataProvider GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const;
 
     private:
         friend class TQuantizationImpl;
-        template <class TTObjectsDataProvider>
-        friend class TBuilderDataHelper;
+        friend class TRawBuilderDataHelper;
 
     private:
         void AssignWeights(TConstArrayRef<float> src, TWeights<float>* dst);
@@ -221,7 +213,6 @@ namespace NCB {
     private:
         TObjectsGroupingPtr ObjectsGrouping;
         TRawTargetData Data;
-        bool ForceUnitAutoPairWeights;
 
         // for returning from GetBaseline
         TVector<TConstArrayRef<float>> BaselineView; // [approxIdx][objectIdx]
@@ -279,7 +270,7 @@ namespace NCB {
 
         TIntrusivePtr<TTargetDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const;
 
 
@@ -312,7 +303,7 @@ namespace NCB {
         TMaybeData<TConstArrayRef<float>> GetOneDimensionalTarget(const TString& name = "") const { // [targetIdx][objectIdx]
             const auto target = GetTarget(name);
             if (target) {
-                CB_ENSURE(target->size() == 1, "Attempt to use multi-dimensional target as one-dimensional");
+                CB_ENSURE(target->size() == 1, "Attempt to use multidimintional target as one-dimensional");
                 return target.GetRef()[0];
             } else {
                 return Nothing();
@@ -376,7 +367,7 @@ namespace NCB {
     void GetGroupInfosSubset(
         TConstArrayRef<TQueryInfo> src,
         const TObjectsGroupingSubset& objectsGroupingSubset,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TVector<TQueryInfo>* dstSubset
     );
 

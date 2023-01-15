@@ -1,8 +1,7 @@
 from . import _catboost
-from .core import Pool, CatBoostError, ARRAY_TYPES, PATH_TYPES, STRING_TYPES, fspath, _update_params_quantize_part, _process_synonyms
+from .core import Pool, CatBoostError, ARRAY_TYPES, STRING_TYPES, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
-import sys
 import numpy as np
 import warnings
 
@@ -12,7 +11,6 @@ _get_confusion_matrix = _catboost._get_confusion_matrix
 _select_threshold = _catboost._select_threshold
 _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 _get_onnx_model = _catboost._get_onnx_model
-_calculate_quantization_grid = _catboost._calculate_quantization_grid
 
 compute_wx_test = _catboost.compute_wx_test
 TargetStats = _catboost.TargetStats
@@ -47,8 +45,6 @@ def _draw(plt, x, y, x_label, y_label, title):
 def create_cd(
     label=None,
     cat_features=None,
-    text_features=None,
-    embedding_features=None,
     weight=None,
     baseline=None,
     doc_id=None,
@@ -71,7 +67,7 @@ def create_cd(
     _column_description = defaultdict(lambda: ['Num', ''])
     for key, value in locals().copy().items():
         if not (key.startswith('_') or value is None):
-            if key in ('cat_features', 'text_features', 'embedding_features', 'auxiliary_columns'):
+            if key in ('cat_features', 'auxiliary_columns'):
                 if isinstance(value, int):
                     value = [value]
                 for index in value:
@@ -79,14 +75,7 @@ def create_cd(
                         raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(index)))
                     if index in _column_description:
                         raise CatBoostError('The index {} occurs more than once'.format(index))
-                    if key == 'cat_features':
-                        _column_description[index] = ['Categ', '']
-                    elif key == 'text_features':
-                        _column_description[index] = ['Text', '']
-                    elif key == 'embedding_features':
-                        _column_description[index] = ['NumVector', '']
-                    else:
-                        _column_description[index] = ['Auxiliary', '']
+                    _column_description[index] = ['Categ', ''] if key == 'cat_features' else ['Auxiliary', '']
             elif key not in ('feature_names', 'output_path'):
                 if not isinstance(value, int):
                     raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(value)))
@@ -94,11 +83,15 @@ def create_cd(
                     raise CatBoostError('The index {} occurs more than once'.format(value))
                 _column_description[value] = [_from_param_to_cd[key], '']
     if feature_names is not None:
-        for feature_column_index, name in feature_names.items():
-            if _column_description[feature_column_index][0] not in ('Num', 'Categ', 'Text', 'NumVector'):
-                raise CatBoostError('feature_names contains index {} that does not correspond to feature column'.format(feature_column_index))
-            _column_description[feature_column_index][1] = name
-    with open(fspath(output_path), 'w') as f:
+        for feature_index, name in feature_names.items():
+            real_feature_index = feature_index
+            for column_index, (title, _) in sorted(_column_description.items()):
+                if column_index > real_feature_index:
+                    break
+                if title not in ('Num', 'Categ'):
+                    real_feature_index += 1
+            _column_description[real_feature_index][1] = name
+    with open(output_path, 'w') as f:
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
 
@@ -110,14 +103,8 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
 
     Parameters
     ----------
-    cd_file : str or pathlib.Path
-        path to column description file
-
     column_count : integer
-        total number of columns
-
-    data_file : str or pathlib.Path
-        path to dataset file in CatBoost format
+    data_file : path to dataset file in CatBoost format
         specify either column_count directly or data_file to detect it
 
     canonize_column_types : bool
@@ -133,14 +120,6 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
 
         "cat_feature_indices" : list of integers
             indices of categorical features in array of all features.
-            Note: indices in array of features, not indices in array of all columns!
-
-        "text_feature_indices" : list of integers
-            indices of text features in array of all features.
-            Note: indices in array of features, not indices in array of all columns!
-
-        "embedding_feature_indices" : list of integers
-            indices of embedding features in array of all features.
             Note: indices in array of features, not indices in array of all columns!
 
         "column_names" : list of strings
@@ -160,14 +139,13 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                 'Cannot obtain column count: either specify column_count parameter or specify data_file '
                 + 'parameter to get it'
             )
-        with open(fspath(data_file)) as f:
+        with open(data_file) as f:
             column_count = len(f.readline()[:-1].split('\t'))
 
     column_type_to_indices = {}
     column_dtypes = {}
     cat_feature_indices = []
     text_feature_indices = []
-    embedding_feature_indices = []
     column_names = []
     non_feature_column_indices = []
 
@@ -180,15 +158,13 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             column_dtypes[column_name] = np.float32
 
     last_column_idx = -1
-    with open(fspath(cd_file)) as f:
+    with open(cd_file) as f:
         for line_idx, line in enumerate(f):
-            line = line.strip()
-
             # some cd files in the wild contain empty lines
-            if len(line) == 0:
+            if len(line.strip()) == 0:
                 continue
 
-            line_columns = line.split('\t')
+            line_columns = line[:-1].split('\t')
             if len(line_columns) not in [2, 3]:
                 raise Exception('Wrong number of columns in cd file')
 
@@ -208,7 +184,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             if len(line_columns) == 3:
                 column_name = line_columns[2]
 
-            if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
+            if column_type in ['Num', 'Categ', 'Text']:
                 feature_idx = column_idx - len(non_feature_column_indices)
                 if column_name is None:
                     column_name = 'feature_%i' % feature_idx
@@ -217,9 +193,6 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                     column_dtypes[column_name] = 'category'
                 elif column_type == 'Text':
                     text_feature_indices.append(feature_idx)
-                    column_dtypes[column_name] = object
-                elif column_type == 'NumVector':
-                    embedding_feature_indices.append(feature_idx)
                     column_dtypes[column_name] = object
                 else:
                     column_dtypes[column_name] = np.float32
@@ -239,23 +212,22 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
         'column_dtypes' : column_dtypes,
         'cat_feature_indices' : cat_feature_indices,
         'text_feature_indices' : text_feature_indices,
-        'embedding_feature_indices' : embedding_feature_indices,
         'column_names' : column_names,
         'non_feature_column_indices' : non_feature_column_indices
     }
 
 
-def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs=None, thread_count=-1):
+def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=None, pairs=None, thread_count=-1):
     """
     Evaluate metrics with raw approxes and labels.
 
     Parameters
     ----------
     label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
-        Object labels with shape (n_objects,) or (n_object, n_target_dimension)
+        Object labels.
 
     approx : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
-        Object approxes with shape (n_objects,) or (n_object, n_approx_dimension).
+        Object approxes.
 
     metric : string
         Metric name.
@@ -266,20 +238,17 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
         Object group ids.
 
-    group_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
-        Group weights.
-
     subgroup_id : list or numpy.ndarray, optional (default=None)
         subgroup id for each instance.
         If not None, giving 1 dimensional array like data.
 
-    pairs : list or numpy.ndarray or pandas.DataFrame or string or pathlib.Path
+    pairs : list or numpy.ndarray or pandas.DataFrame or string
         The pairs description.
         If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
         The shape should be Nx2, where N is the pairs' count. The first element of the pair is
         the index of winner object in the training set. The second element of the pair is
         the index of loser object in the training set.
-        If string or pathlib.Path, giving the path to the file with pairs description.
+        If string, giving the path to the file with pairs description.
 
     thread_count : int, optional (default=-1)
         Number of threads to work with.
@@ -289,12 +258,13 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, group_weight=
     -------
     metric results : list with metric values.
     """
-    if len(label) > 0:
-        label = np.transpose(label) if isinstance(label[0], ARRAY_TYPES) else [label]
+    if len(label) > 0 and not isinstance(label[0], ARRAY_TYPES):
+        label = [label]
     if len(approx) == 0:
         approx = [[]]
-    approx = np.transpose(approx) if isinstance(approx[0], ARRAY_TYPES) else [approx]
-    return _eval_metric_util(label, approx, metric, weight, group_id, group_weight, subgroup_id, pairs, thread_count)
+    if not isinstance(approx[0], ARRAY_TYPES):
+        approx = [approx]
+    return _eval_metric_util(label, approx, metric, weight, group_id, subgroup_id, pairs, thread_count)
 
 
 def get_gpu_device_count():
@@ -518,7 +488,6 @@ def quantize(
     pairs=None,
     delimiter='\t',
     has_header=False,
-    ignore_csv_quoting=False,
     feature_names=None,
     thread_count=-1,
     ignored_features=None,
@@ -531,8 +500,6 @@ def quantize(
     task_type=None,
     used_ram_limit=None,
     random_seed=None,
-    log_cout=sys.stdout,
-    log_cerr=sys.stderr,
     **kwargs
 ):
     """
@@ -542,7 +509,7 @@ def quantize(
 
     Parameters
     ----------
-    data_path : string or pathlib.Path
+    data_path : string
         Path (with optional scheme) to non-quantized dataset.
 
     column_description : string, [default=None]
@@ -551,18 +518,15 @@ def quantize(
         All columns are Num as default, it's not necessary to specify
         this type of columns. Default Label column index is 0 (zero).
         If None, Label column is 0 (zero) as default, all data columns are Num as default.
-        If string or pathlib.Path, giving the path to the file with ColumnsDescription in column_description format.
+        If string, giving the path to the file with ColumnsDescription in column_description format.
 
-    pairs : string or pathlib.Path, [default=None]
+    pairs : string, [default=None]
         Path to the file with pairs description.
 
     has_header : bool, [default=False]
         If True, read column names from first line.
 
-    ignore_csv_quoting : bool optional (default=False)
-        If True ignore quoting '"'.
-
-    feature_names : string or pathlib.Path, [default=None]
+    feature_names : string, [default=None]
         Path with scheme for feature names data to load.
 
     thread_count : int, [default=-1]
@@ -604,7 +568,7 @@ def quantize(
             - 'Max' - each missing value will be processed as the maximum numerical value.
         If None, then nan_mode=Min.
 
-    input_borders : string or pathlib.Path, [default=None]
+    input_borders : string, [default=None]
         input file with borders used in numeric features binarization.
 
     task_type : string, [default=None]
@@ -626,15 +590,15 @@ def quantize(
     """
     if not data_path:
         raise CatBoostError("Data filename is empty.")
-    if not isinstance(data_path, PATH_TYPES):
-        raise CatBoostError("Data filename should be string or pathlib.Path type.")
+    if not isinstance(data_path, STRING_TYPES):
+        raise CatBoostError("Data filename should be string type.")
 
-    if pairs is not None and not isinstance(pairs, PATH_TYPES):
-        raise CatBoostError("pairs should have None or string or pathlib.Path type when the pool is read from the file.")
-    if column_description is not None and not isinstance(column_description, PATH_TYPES):
-        raise CatBoostError("column_description should have None or string or pathlib.Path type when the pool is read from the file.")
-    if feature_names is not None and not isinstance(feature_names, PATH_TYPES):
-        raise CatBoostError("feature_names should have None or string or pathlib.Path type when the pool is read from the file.")
+    if pairs is not None and not isinstance(pairs, STRING_TYPES):
+        raise CatBoostError("pairs should have None or string type when the pool is read from the file.")
+    if column_description is not None and not isinstance(column_description, STRING_TYPES):
+        raise CatBoostError("column_description should have None or string type when the pool is read from the file.")
+    if feature_names is not None and not isinstance(feature_names, STRING_TYPES):
+        raise CatBoostError("feature_names should have None or string type when the pool is read from the file.")
 
     params = {}
     _process_synonyms(params)
@@ -663,16 +627,15 @@ def quantize(
         task_type,
         used_ram_limit,
         random_seed,
-        dev_max_subset_size_for_build_borders
-    )
+        dev_max_subset_size_for_build_borders)
 
     result = Pool(None)
-    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params, log_cout=log_cout, log_cerr=log_cerr)
+    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, thread_count, params)
 
     return result
 
 
-def convert_to_onnx_object(model, export_parameters=None, **kwargs):
+def convert_to_onnx_object(model, export_parameters=None):
     """
     Convert given CatBoost model to ONNX-ML model.
     Categorical Features are not supported.
@@ -706,12 +669,6 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
         raise CatBoostError(
             "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
 
-    for name, value in kwargs.items():
-        if name == 'target_opset' and value not in [None, 2]:
-            warnings.warn('target_opset argument is not supported. Default target_opset is 2 (ai.onnx.ml domain)')
-        elif name == 'initial_types' and value is not None:
-            warnings.warn('initial_types argument is not supported')
-
     params_string = ""
     if export_parameters:
         params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
@@ -719,7 +676,3 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
     model_str = _get_onnx_model(model._object, params_string)
     onnx_model = onnx.load_model_from_string(model_str)
     return onnx_model
-
-def calculate_quantization_grid(values, border_count, border_type='Median'):
-    assert border_count > 0, 'Border count should be > 0'
-    return _calculate_quantization_grid(values, border_count, border_type)

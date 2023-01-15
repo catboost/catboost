@@ -5,7 +5,7 @@
 #include <catboost/libs/data/loader.h> // for IsMissingValue
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -25,35 +25,37 @@
 
 namespace NCB {
     static float ConvertToFloatTarget(const TString& stringLabel) {
-        if (IsMissingValue(stringLabel)) {
-            return std::nan("");
-        } else {
-            float floatLabel;
-            CB_ENSURE(
-                TryFromString(stringLabel, floatLabel),
-                "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
-            );
-            return floatLabel;
-        }
+        CB_ENSURE(
+            !IsMissingValue(stringLabel),
+            "Missing values like \"" << EscapeC(stringLabel)
+                << "\" are not supported for target"
+        );
+        float floatLabel;
+        CB_ENSURE(
+            TryFromString(stringLabel, floatLabel),
+            "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
+        );
+        return floatLabel;
     }
 
     static TVector<float> ConvertRawToFloatTarget(
         const TRawTarget& rawTarget,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         TVector<float> result;
 
-        if (const ITypedSequencePtr<float>* floatSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
+        if (const ITypedSequencePtr<float>* floatSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
             result.yresize((*floatSequence)->GetSize());
             TArrayRef<float> resultRef = result;
             size_t i = 0;
             (*floatSequence)->ForEach(
                 [resultRef, &i] (float value) {
+                    CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                     resultRef[i++] = value;
                 }
             );
         } else {
-            TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
+            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
             result.yresize(stringLabels.size());
             TArrayRef<float> resultRef = result;
             localExecutor->ExecRangeBlockedWithThrow(
@@ -77,7 +79,7 @@ namespace NCB {
         TVector<float> Process(
             ERawTargetType targetType,
             const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) override {
             Y_UNUSED(targetType);
             return ConvertRawToFloatTarget(rawTarget, localExecutor);
@@ -101,7 +103,7 @@ namespace NCB {
         TVector<float> Process(
             ERawTargetType targetType,
             const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) override {
             Y_UNUSED(targetType);
             TVector<float> floatTarget = ConvertRawToFloatTarget(rawTarget, localExecutor);
@@ -127,7 +129,7 @@ namespace NCB {
         TVector<float> Process(
             ERawTargetType targetType,
             const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) override {
             Y_UNUSED(targetType);
 
@@ -177,7 +179,7 @@ namespace NCB {
     class TUseClassLabelsTargetConverter : public ITargetConverter {
     public:
         TUseClassLabelsTargetConverter(const TVector<NJson::TJsonValue>& inputClassLabels) {
-            CB_ENSURE(!inputClassLabels.empty(), "Class labels are missing");
+            Y_VERIFY(!inputClassLabels.empty());
 
             float classIdx = 0;
 
@@ -208,13 +210,13 @@ namespace NCB {
         TVector<float> Process(
             ERawTargetType targetType,
             const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) override {
             Y_UNUSED(targetType);
 
             TVector<float> result;
 
-            if (const ITypedSequencePtr<float>* typedSequence = std::get_if<ITypedSequencePtr<float>>(&rawTarget)) {
+            if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
                 UpdateFloatLabelToClass();
 
                 result.yresize((*typedSequence)->GetSize());
@@ -223,24 +225,23 @@ namespace NCB {
                 (*typedSequence)->ForEach(
                     [this, resultRef, &i] (float srcLabel) {
                         const auto it = FloatLabelToClass.find(srcLabel);
-                        if (it == FloatLabelToClass.end()) {
-                            ythrow TUnknownClassLabelException(ToString(srcLabel));
-                        }
+                        CB_ENSURE(it != FloatLabelToClass.end(), "Unknown class label: \"" << srcLabel << '"');
                         resultRef[i++] = it->second;
                     }
                 );
             } else {
                 UpdateStringLabelToClass();
 
-                TConstArrayRef<TString> stringLabels = std::get<TVector<TString>>(rawTarget);
+                TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
                 result.yresize(stringLabels.size());
                 TArrayRef<float> resultRef = result;
                 localExecutor->ExecRangeBlockedWithThrow(
                     [this, resultRef, stringLabels] (int i) {
                         const auto it = StringLabelToClass.find(stringLabels[i]);
-                        if (it == StringLabelToClass.end()) {
-                            ythrow TUnknownClassLabelException(EscapeC(stringLabels[i]));
-                        }
+                        CB_ENSURE(
+                            it != StringLabelToClass.end(),
+                            "Unknown class label: \"" << EscapeC(stringLabels[i]) << '"'
+                        );
                         resultRef[i] = it->second;
                     },
                     0,
@@ -278,7 +279,7 @@ namespace NCB {
                         StringLabelToClass.emplace(ToString(static_cast<i64>(floatLabel)), classIdx);
                     }
                 } else {
-                    CB_ENSURE(ClassLabelType == ERawTargetType::Float, "Unexpected class label type");
+                    Y_VERIFY(ClassLabelType == ERawTargetType::Float);
                     for (const auto& [floatLabel, classIdx] : FloatLabelToClass) {
                         StringLabelToClass.emplace(ToString(floatLabel), classIdx);
                     }
@@ -305,14 +306,14 @@ namespace NCB {
         TVector<float> Process(
             ERawTargetType targetType,
             const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) override {
             CB_ENSURE_INTERNAL(targetType != ERawTargetType::None, "targetType=None is unexpected");
 
             TargetType = targetType;
 
             TVector<float> result;
-            std::visit(
+            Visit(
                 [&] (const auto& value) {
                     result = ProcessMakeClassLabelsImpl(value, localExecutor);
                 },
@@ -332,7 +333,7 @@ namespace NCB {
                     classCount = SafeIntegerCast<ui32>(StringLabelToClass.size());
                     break;
                 default:
-                    CB_ENSURE(false, "Uexpected target type");
+                    Y_UNREACHABLE();
             }
             Y_ASSERT(classCount > 1);
             return classCount;
@@ -380,7 +381,7 @@ namespace NCB {
         }
 
         TVector<float> ProcessMakeClassLabelsImpl(const ITypedSequencePtr<float>& labels,
-                                                  NPar::ILocalExecutor* localExecutor) {
+                                                  NPar::TLocalExecutor* localExecutor) {
             CB_ENSURE_INTERNAL(
                 (TargetType == ERawTargetType::Float) || (TargetType == ERawTargetType::Integer),
                 "TargetType is " << TargetType << ", but labels is ITypedSequencePtr<float>"
@@ -429,7 +430,7 @@ namespace NCB {
         }
 
         TVector<float> ProcessMakeClassLabelsImpl(TConstArrayRef<TString> labels,
-                                                  NPar::ILocalExecutor* localExecutor) {
+                                                  NPar::TLocalExecutor* localExecutor) {
             CB_ENSURE_INTERNAL(
                 TargetType == ERawTargetType::String,
                 "TargetType is " << TargetType << ", but labels is TVector<TString>"
@@ -481,103 +482,14 @@ namespace NCB {
     };
 
 
-    class TMakeMultiLabelTargetConverter : public ITargetConverter {
-    public:
-        TMakeMultiLabelTargetConverter(
-            ui32 targetDim,
-            bool isRealTarget,
-            TMaybe<float> targetBorder,
-            const TVector<NJson::TJsonValue>& inputClassLabels
-        )
-            : TargetDim(targetDim)
-            , IsRealTarget(isRealTarget)
-            , TargetBorder(targetBorder)
-            , InputClassLabels(inputClassLabels)
-        {
-            CB_ENSURE(
-                !isRealTarget || !targetBorder.Defined(),
-                "Converted real target is incompatible with targetBorder"
-            );
-
-            CB_ENSURE(
-                inputClassLabels.empty() || size_t(targetDim) == inputClassLabels.size(),
-                "length of classLabels is not equal to targetDim"
-            );
-        }
-
-        TVector<float> Process(
-            ERawTargetType /* targetType */,
-            const TRawTarget& rawTarget,
-            NPar::ILocalExecutor* localExecutor
-        ) override {
-            TVector<float> result = ConvertRawToFloatTarget(rawTarget, localExecutor);
-            if (TargetBorder.Defined()) {
-                PrepareTargetBinary(result, *TargetBorder, &result);
-            } else {
-                CheckTarget(result);
-            }
-            return result;
-        }
-
-        ui32 GetClassCount() const override {
-            return TargetDim;
-        }
-
-        TMaybe<TVector<NJson::TJsonValue>> GetClassLabels() override {
-            TVector<NJson::TJsonValue> result;
-
-            if (!InputClassLabels.empty()) {
-                result.yresize(InputClassLabels.size());
-                for (size_t idx = 0; idx < InputClassLabels.size(); ++idx) {
-                    result[idx] = InputClassLabels[idx];
-                }
-            }
-            else {
-                result.yresize(TargetDim);
-                for (size_t idx = 0; idx < TargetDim; ++idx) {
-                    result[idx] = static_cast<i64>(idx);
-                }
-            }
-
-            return MakeMaybe<TVector<NJson::TJsonValue>>(std::move(result));
-        }
-
-    private:
-        void CheckTarget(const TVector<float>& target) {
-            if (IsRealTarget) {
-                for (float value : target) {
-                    CB_ENSURE(0 <= value && value <= 1, "Target Labels for MultiCrossEntropy must be in range [0, 1]");
-                }
-            } else {
-                for (float value : target) {
-                    CB_ENSURE(value == 0 || value == 1, "Target Labels for MultiLogloss must be 0 or 1");
-                }
-            }
-        }
-
-    private:
-        const ui32 TargetDim;
-        const bool IsRealTarget;
-        const TMaybe<float> TargetBorder;
-        const TVector<NJson::TJsonValue> InputClassLabels;
-    };
-
-
     THolder<ITargetConverter> MakeTargetConverter(bool isRealTarget,
                                                   bool isClass,
                                                   bool isMultiClass,
-                                                  bool isMultiLabel,
                                                   TMaybe<float> targetBorder,
-                                                  size_t targetDim,
                                                   TMaybe<ui32> classCount,
                                                   const TVector<NJson::TJsonValue>& inputClassLabels) {
 
         CB_ENSURE_INTERNAL(!isMultiClass || isClass, "isMultiClass is true, but isClass is false");
-        CB_ENSURE_INTERNAL(!isMultiLabel || isMultiClass, "isMultiLabel is true, but isMultiClass is false");
-
-        if (isMultiLabel) {
-            return MakeHolder<TMakeMultiLabelTargetConverter>(targetDim, isRealTarget, targetBorder, inputClassLabels);
-        }
 
         if (isRealTarget) {
             CB_ENSURE(!isMultiClass, "Converted real target is incompatible with Multiclass");

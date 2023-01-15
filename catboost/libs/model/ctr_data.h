@@ -2,8 +2,6 @@
 
 #include "ctr_value_table.h"
 
-#include <catboost/libs/logging/logging.h>
-
 #include <util/generic/hash.h>
 #include <util/stream/fwd.h>
 #include <util/system/mutex.h>
@@ -29,7 +27,6 @@ public:
     void Save(IOutputStream* s) const;
 
     void Load(IInputStream* s);
-    void LoadNonOwning(TMemoryInput* in);
 };
 
 class TCtrDataStreamWriter {
@@ -40,17 +37,14 @@ public:
     {
         ::SaveSize(StreamPtr, ExpectedWritesCount);
     }
-    ~TCtrDataStreamWriter() noexcept(false) {
-        if (WritesCount != ExpectedWritesCount) {
-            CATBOOST_ERROR_LOG << "Some CTR data are lost" << Endl;
-            if (!std::uncaught_exceptions()) {
-                CB_ENSURE(WritesCount == ExpectedWritesCount);
-            }
+    ~TCtrDataStreamWriter() {
+        if (!std::uncaught_exception()) {
+            Y_VERIFY(WritesCount == ExpectedWritesCount);
         }
     }
     void SaveOneCtr(const TCtrValueTable& valTable) {
         with_lock (StreamLock) {
-            CB_ENSURE(WritesCount < ExpectedWritesCount, "Too many calls to SaveOneCtr");
+            Y_VERIFY(WritesCount < ExpectedWritesCount);
             ++WritesCount;
             ::SaveMany(StreamPtr, valTable);
         }

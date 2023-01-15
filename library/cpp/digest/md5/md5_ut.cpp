@@ -1,6 +1,6 @@
 #include "md5.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/system/fs.h>
 #include <util/stream/file.h>
@@ -8,7 +8,7 @@
 Y_UNIT_TEST_SUITE(TMD5Test) {
     Y_UNIT_TEST(TestMD5) {
         // echo -n 'qwertyuiopqwertyuiopasdfghjklasdfghjkl' | md5sum
-        constexpr const char* b = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";
+        char b[] = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";
 
         MD5 r;
         r.Update((const unsigned char*)b, 15);
@@ -18,11 +18,11 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         TString s(r.End(rs));
         s.to_lower();
 
-        UNIT_ASSERT_NO_DIFF(s, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_EQUAL(s, AsStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
 
-        TString result = r.Calc(TStringBuf(b));
+        TString result = r.Calc(AsStringBuf(b));
         result.to_lower();
-        UNIT_ASSERT_NO_DIFF(result, TStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
+        UNIT_ASSERT_EQUAL(result, AsStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
     }
 
     Y_UNIT_TEST(TestFile) {
@@ -39,10 +39,10 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         TString fileHash = MD5::File(tmpFile.data(), fileBuf);
         TString memoryHash = MD5::Data((const unsigned char*)s.data(), s.size(), memBuf);
 
-        UNIT_ASSERT_NO_DIFF(fileHash, memoryHash);
+        UNIT_ASSERT_EQUAL(fileHash, memoryHash);
 
         fileHash = MD5::File(tmpFile);
-        UNIT_ASSERT_NO_DIFF(fileHash, memoryHash);
+        UNIT_ASSERT_EQUAL(fileHash, memoryHash);
 
         NFs::Remove(tmpFile);
         fileHash = MD5::File(tmpFile);
@@ -51,12 +51,12 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
 
     Y_UNIT_TEST(TestIsMD5) {
         UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf()));
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa0")));   // length 31
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa000"))); // length 33
-        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa0g")));  // wrong character 'g'
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136EBB0E4C45D21E2B09294C75CFA08")));
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136ebb0E4C45D21e2b09294C75CfA08")));
-        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(TStringBuf("4136ebb0e4c45d21e2b09294c75cfa08")));
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa0")));   // length 31
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa000"))); // length 33
+        UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa0g")));  // wrong character 'g'
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136EBB0E4C45D21E2B09294C75CFA08")));
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0E4C45D21e2b09294C75CfA08")));
+        UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa08")));
     }
 
     Y_UNIT_TEST(TestMd5HalfMix) {

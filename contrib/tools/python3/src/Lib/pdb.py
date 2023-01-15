@@ -68,7 +68,6 @@ Debugger commands
 # commands and is appended to __doc__ after the class has been defined.
 
 import os
-import io
 import re
 import sys
 import cmd
@@ -79,7 +78,6 @@ import glob
 import pprint
 import signal
 import inspect
-import tokenize
 import traceback
 import linecache
 
@@ -94,7 +92,7 @@ __all__ = ["run", "pm", "Pdb", "runeval", "runctx", "runcall", "set_trace",
 def find_function(funcname, filename):
     cre = re.compile(r'def\s+%s\s*[(]' % re.escape(funcname))
     try:
-        fp = tokenize.open(filename)
+        fp = open(filename)
     except OSError:
         return None
     # consumer of this info expects the first line to be 1
@@ -143,7 +141,6 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                  nosigint=False, readrc=True):
         bdb.Bdb.__init__(self, skip=skip)
         cmd.Cmd.__init__(self, completekey, stdin, stdout)
-        sys.audit("pdb.Pdb")
         if stdout:
             self.use_rawinput = 0
         self.prompt = '(Pdb) '
@@ -342,12 +339,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
     def interaction(self, frame, traceback):
         # Restore the previous signal handler at the Pdb prompt.
         if Pdb._previous_sigint_handler:
-            try:
-                signal.signal(signal.SIGINT, Pdb._previous_sigint_handler)
-            except ValueError:  # ValueError: signal only works in main thread
-                pass
-            else:
-                Pdb._previous_sigint_handler = None
+            signal.signal(signal.SIGINT, Pdb._previous_sigint_handler)
+            Pdb._previous_sigint_handler = None
         if self.setup(frame, traceback):
             # no interaction desired at this time (happens if .pdbrc contains
             # a command like "continue")
@@ -384,7 +377,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 sys.stdin = save_stdin
                 sys.displayhook = save_displayhook
         except:
-            self._error_exc()
+            exc_info = sys.exc_info()[:2]
+            self.error(traceback.format_exception_only(*exc_info)[-1].strip())
 
     def precmd(self, line):
         """Handle alias expansion and ';;' separator."""
@@ -473,7 +467,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         except Exception:
             ret = []
         # Then, try to complete file names as well.
-        globs = glob.glob(glob.escape(text) + '*')
+        globs = glob.glob(text + '*')
         for fn in globs:
             if os.path.isdir(fn):
                 ret.append(fn + '/')
@@ -495,7 +489,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         # Collect globals and locals.  It is usually not really sensible to also
         # complete builtins, and they clutter the namespace quite heavily, so we
         # leave them out.
-        ns = {**self.curframe.f_globals, **self.curframe_locals}
+        ns = self.curframe.f_globals.copy()
+        ns.update(self.curframe_locals)
         if '.' in text:
             # Walk an attribute chain up to the last part, similar to what
             # rlcompleter does.  This will bail if any of the parts are not
@@ -751,8 +746,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         """
         # this method should be callable before starting debugging, so default
         # to "no globals" if there is no current frame
-        frame = getattr(self, 'curframe', None)
-        globs = frame.f_globals if frame else None
+        globs = self.curframe.f_globals if hasattr(self, 'curframe') else None
         line = linecache.getline(filename, lineno, globs)
         if not line:
             self.message('End of file')
@@ -893,7 +887,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             except ValueError:
                 err = "Invalid line number (%s)" % arg
             else:
-                bplist = self.get_breaks(filename, lineno)[:]
+                bplist = self.get_breaks(filename, lineno)
                 err = self.clear_break(filename, lineno)
             if err:
                 self.error(err)
@@ -1026,11 +1020,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         if arg:
             import shlex
             argv0 = sys.argv[0:1]
-            try:
-                sys.argv = shlex.split(arg)
-            except ValueError as e:
-                self.error('Cannot run %s: %s' % (arg, e))
-                return
+            sys.argv = shlex.split(arg)
             sys.argv[:0] = argv0
         # this is caught in the main debugger loop
         raise Restart
@@ -1107,7 +1097,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         try:
             sys.call_tracing(p.run, (arg, globals, locals))
         except Exception:
-            self._error_exc()
+            exc_info = sys.exc_info()[:2]
+            self.error(traceback.format_exception_only(*exc_info)[-1].strip())
         self.message("LEAVING RECURSIVE DEBUGGER")
         sys.settrace(self.trace_dispatch)
         self.lastcmd = p.lastcmd
@@ -1165,7 +1156,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         try:
             return eval(arg, self.curframe.f_globals, self.curframe_locals)
         except:
-            self._error_exc()
+            exc_info = sys.exc_info()[:2]
+            self.error(traceback.format_exception_only(*exc_info)[-1].strip())
             raise
 
     def _getval_except(self, arg, frame=None):
@@ -1179,31 +1171,23 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             err = traceback.format_exception_only(*exc_info)[-1].strip()
             return _rstr('** raised %s **' % err)
 
-    def _error_exc(self):
-        exc_info = sys.exc_info()[:2]
-        self.error(traceback.format_exception_only(*exc_info)[-1].strip())
-
-    def _msg_val_func(self, arg, func):
-        try:
-            val = self._getval(arg)
-        except:
-            return  # _getval() has displayed the error
-        try:
-            self.message(func(val))
-        except:
-            self._error_exc()
-
     def do_p(self, arg):
         """p expression
         Print the value of the expression.
         """
-        self._msg_val_func(arg, repr)
+        try:
+            self.message(repr(self._getval(arg)))
+        except:
+            pass
 
     def do_pp(self, arg):
         """pp expression
         Pretty-print the value of the expression.
         """
-        self._msg_val_func(arg, pprint.pformat)
+        try:
+            self.message(pprint.pformat(self._getval(arg)))
+        except:
+            pass
 
     complete_print = _complete_expression
     complete_p = _complete_expression
@@ -1248,12 +1232,6 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         if last is None:
             last = first + 10
         filename = self.curframe.f_code.co_filename
-        # gh-93696: stdlib frozen modules provide a useful __file__
-        # this workaround can be removed with the closure of gh-89815
-        if filename.startswith("<frozen"):
-            tmp = self.curframe.f_globals.get("__file__")
-            if isinstance(tmp, str):
-                filename = tmp
         breaklist = self.get_file_breaks(filename)
         try:
             lines = linecache.getlines(filename, self.curframe.f_globals)
@@ -1328,14 +1306,6 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             # _getval() already printed the error
             return
         code = None
-        # Is it an instance method?
-        try:
-            code = value.__func__.__code__
-        except Exception:
-            pass
-        if code:
-            self.message('Method %s' % code.co_name)
-            return
         # Is it a function?
         try:
             code = value.__code__
@@ -1343,6 +1313,14 @@ class Pdb(bdb.Bdb, cmd.Cmd):
             pass
         if code:
             self.message('Function %s' % code.co_name)
+            return
+        # Is it an instance method?
+        try:
+            code = value.__func__.__code__
+        except Exception:
+            pass
+        if code:
+            self.message('Method %s' % code.co_name)
             return
         # Is it a class?
         if value.__class__ is type:
@@ -1397,7 +1375,8 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         Start an interactive interpreter whose global namespace
         contains all the (global and local) names found in the current scope.
         """
-        ns = {**self.curframe.f_globals, **self.curframe_locals}
+        ns = self.curframe.f_globals.copy()
+        ns.update(self.curframe_locals)
         code.interact("*interactive*", local=ns)
 
     def do_alias(self, arg):
@@ -1499,9 +1478,6 @@ class Pdb(bdb.Bdb, cmd.Cmd):
                 self.error('No help for %r; please do not run Python with -OO '
                            'if you need command help' % arg)
                 return
-            if command.__doc__ is None:
-                self.error('No help for %r; __doc__ string missing' % arg)
-                return
             self.message(command.__doc__.rstrip())
 
     do_h = do_help
@@ -1586,7 +1562,7 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self._wait_for_mainpyfile = True
         self.mainpyfile = self.canonic(filename)
         self._user_requested_quit = False
-        with io.open_code(filename) as fp:
+        with open(filename, "rb") as fp:
             statement = "exec(compile(%r, %r, 'exec'))" % \
                         (fp.read(), self.mainpyfile)
         self.run(statement)
@@ -1703,19 +1679,10 @@ def main():
         print('Error:', mainpyfile, 'does not exist')
         sys.exit(1)
 
-    if run_as_module:
-        import runpy
-        try:
-            runpy._get_module_details(mainpyfile)
-        except Exception:
-            traceback.print_exc()
-            sys.exit(1)
-
     sys.argv[:] = args      # Hide "pdb.py" and pdb options from argument list
 
+    # Replace pdb's dir with script's dir in front of module search path.
     if not run_as_module:
-        mainpyfile = os.path.realpath(mainpyfile)
-        # Replace pdb's dir with script's dir in front of module search path.
         sys.path[0] = os.path.dirname(mainpyfile)
 
     # Note on saving/restoring sys.argv: it's a good idea when sys.argv was
@@ -1735,7 +1702,7 @@ def main():
             print("The program finished and will be restarted")
         except Restart:
             print("Restarting", mainpyfile, "with arguments:")
-            print("\t" + " ".join(sys.argv[1:]))
+            print("\t" + " ".join(args))
         except SystemExit:
             # In most cases SystemExit does not warrant a post-mortem session.
             print("The program exited via sys.exit(). Exit status:", end=' ')

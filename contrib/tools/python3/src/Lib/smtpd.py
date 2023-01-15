@@ -83,6 +83,8 @@ import errno
 import getopt
 import time
 import socket
+import asyncore
+import asynchat
 import collections
 from warnings import warn
 from email._header_value_parser import get_addr_spec, get_angle_addr
@@ -91,20 +93,6 @@ __all__ = [
     "SMTPChannel", "SMTPServer", "DebuggingServer", "PureProxy",
     "MailmanProxy",
 ]
-
-warn(
-    'The smtpd module is deprecated and unmaintained and will be removed '
-    'in Python 3.12.  Please see aiosmtpd '
-    '(https://aiosmtpd.readthedocs.io/) for the recommended replacement.',
-    DeprecationWarning,
-    stacklevel=2)
-
-
-# These are imported after the above warning so that users get the correct
-# deprecation warning.
-import asyncore
-import asynchat
-
 
 program = sys.argv[0]
 __version__ = 'Python SMTP proxy version 0.3'
@@ -175,7 +163,7 @@ class SMTPChannel(asynchat.async_chat):
             # a race condition  may occur if the other end is closing
             # before we can get the peername
             self.close()
-            if err.errno != errno.ENOTCONN:
+            if err.args[0] != errno.ENOTCONN:
                 raise
             return
         print('Peer:', repr(self.peer), file=DEBUGSTREAM)
@@ -791,8 +779,6 @@ class PureProxy(SMTPServer):
 
 class MailmanProxy(PureProxy):
     def __init__(self, *args, **kwargs):
-        warn('MailmanProxy is deprecated and will be removed '
-             'in future', DeprecationWarning, 2)
         if 'enable_SMTPUTF8' in kwargs and kwargs['enable_SMTPUTF8']:
             raise ValueError("MailmanProxy does not support SMTPUTF8.")
         super(PureProxy, self).__init__(*args, **kwargs)

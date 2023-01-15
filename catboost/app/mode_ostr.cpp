@@ -77,12 +77,10 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                        /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                        /*featureNamesFilePath=*/NCB::TPathWithScheme(),
-                                                       /*poolMetaInfoFilePath=*/NCB::TPathWithScheme(),
                                                        params.ColumnarPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
-                                                       /*forceUnitAutoPairWeight*/ false,
                                                        /*classLabels=*/Nothing(),
                                                        &localExecutor);
 
@@ -93,12 +91,10 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
                                                       /*featureNamesFilePath=*/NCB::TPathWithScheme(),
-                                                      /*poolMetaInfoFilePath=*/NCB::TPathWithScheme(),
                                                       params.ColumnarPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),
-                                                      /*forceUnitAutoPairWeight*/ false,
                                                       /*classLabels=*/Nothing(),
                                                       &localExecutor);
 

@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "dh_local.h"
+#include "dh_locl.h"
 #include <string.h>
 #include <openssl/err.h>
 

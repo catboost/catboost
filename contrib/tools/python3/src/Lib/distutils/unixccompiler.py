@@ -215,8 +215,7 @@ class UnixCCompiler(CCompiler):
         return "-L" + dir
 
     def _is_gcc(self, compiler_name):
-        # clang uses same syntax for rpath as gcc
-        return any(name in compiler_name for name in ("gcc", "g++", "clang"))
+        return "gcc" in compiler_name or "g++" in compiler_name
 
     def runtime_library_dir_option(self, dir):
         # XXX Hackish, at the very least.  See Python bug #445902:
@@ -289,9 +288,9 @@ class UnixCCompiler(CCompiler):
             # vs
             #   /usr/lib/libedit.dylib
             cflags = sysconfig.get_config_var('CFLAGS')
-            m = re.search(r'-isysroot\s*(\S+)', cflags)
+            m = re.search(r'-isysroot\s+(\S+)', cflags)
             if m is None:
-                sysroot = _osx_support._default_sysroot(sysconfig.get_config_var('CC'))
+                sysroot = '/'
             else:
                 sysroot = m.group(1)
 

@@ -18,7 +18,7 @@ void IBinSaver::StoreObject(IObjectBase* pObject) {
         Y_ASSERT(pSaverClasses->GetObjectTypeID(pObject) != -1 && "trying to save unregistered object");
     }
 
-    ui64 ptrId = reinterpret_cast<ui64>(pObject) / sizeof(char);
+    ui64 ptrId = ((char*)pObject) - ((char*)nullptr);
     if (StableOutput) {
         ui32 id = 0;
         if (pObject) {

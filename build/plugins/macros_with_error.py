@@ -21,9 +21,3 @@ def onrestrict_path(unit, *args):
         if not _common.strip_roots(unit.path()).startswith(paths):
             error_msg = "Path '[[imp]]{}[[rst]]' is restricted - [[bad]]{}[[rst]]. Valid path prefixes are: [[unimp]]{}[[rst]]".format(unit.path(), msg, ', '.join(paths))
             ymake.report_configure_error(error_msg)
-
-def onassert(unit, *args):
-    val = unit.get(args[0])
-    if val and val.lower() == "no":
-        msg = ' '.join(args[1:])
-        ymake.report_configure_error(msg)

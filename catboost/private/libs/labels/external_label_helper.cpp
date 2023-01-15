@@ -10,7 +10,7 @@
 
 #include <catboost/libs/model/model.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/cast.h>
 #include <util/string/cast.h>
@@ -20,7 +20,7 @@ TExternalLabelsHelper::TExternalLabelsHelper(const TFullModel& model)
     : Initialized(false)
     , ExternalApproxDimension(0)
 {
-    if (model.GetDimensionsCount() > 1 || model.GetModelClassLabels().size() == 1) {  // is multiclass or multilabel?
+    if (model.GetDimensionsCount() > 1) {  // is multiclass?
         // "class_params" is new, more generic option, used for binclass as well
         for (const auto& paramName : {"class_params", "multiclass_params"}) {
             if (model.ModelInfo.contains(paramName)) {

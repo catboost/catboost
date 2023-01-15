@@ -1,6 +1,6 @@
 
 
-Y_BENCHMARK()
+BENCHMARK()
 
 SRCS(
     main.cpp
@@ -11,7 +11,3 @@ PEERDIR(
 )
 
 END()
-
-RECURSE(
-    metrics
-)

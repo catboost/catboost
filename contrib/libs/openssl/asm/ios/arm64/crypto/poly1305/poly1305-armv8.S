@@ -4,14 +4,10 @@
 
 // forward "declarations" are required for Apple
 
-.private_extern	_OPENSSL_armcap_P
-.globl	_poly1305_init
-.private_extern	_poly1305_init
 .globl	_poly1305_blocks
-.private_extern	_poly1305_blocks
 .globl	_poly1305_emit
-.private_extern	_poly1305_emit
 
+.globl	_poly1305_init
 
 .align	5
 _poly1305_init:
@@ -799,8 +795,8 @@ Lshort_tail:
 	st1	{v23.s}[0],[x0]
 
 Lno_data_neon:
-	ldr	x29,[sp],#80
 .long	0xd50323bf		// autiasp
+	ldr	x29,[sp],#80
 	ret
 
 

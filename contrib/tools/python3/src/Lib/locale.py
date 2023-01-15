@@ -185,14 +185,8 @@ def _format(percent, value, grouping=False, monetary=False, *additional):
         formatted = percent % ((value,) + additional)
     else:
         formatted = percent % value
-    if percent[-1] in 'eEfFgGdiu':
-        formatted = _localize(formatted, grouping, monetary)
-    return formatted
-
-# Transform formatted as locale number according to the locale settings
-def _localize(formatted, grouping=False, monetary=False):
     # floats and decimal ints need special action!
-    if '.' in formatted:
+    if percent[-1] in 'eEfFgG':
         seps = 0
         parts = formatted.split('.')
         if grouping:
@@ -202,7 +196,7 @@ def _localize(formatted, grouping=False, monetary=False):
         formatted = decimal_point.join(parts)
         if seps:
             formatted = _strip_padding(formatted, seps)
-    else:
+    elif percent[-1] in 'diu':
         seps = 0
         if grouping:
             formatted, seps = _group(formatted, monetary=monetary)
@@ -273,7 +267,7 @@ def currency(val, symbol=True, grouping=False, international=False):
         raise ValueError("Currency formatting is not possible using "
                          "the 'C' locale.")
 
-    s = _localize(f'{abs(val):.{digits}f}', grouping, monetary=True)
+    s = _format('%%.%if' % digits, abs(val), grouping, monetary=True)
     # '<' and '>' are markers if the sign must be inserted between symbol and value
     s = '<' + s + '>'
 
@@ -285,8 +279,6 @@ def currency(val, symbol=True, grouping=False, international=False):
         if precedes:
             s = smb + (separated and ' ' or '') + s
         else:
-            if international and smb[-1] == ' ':
-                smb = smb[:-1]
             s = s + (separated and ' ' or '') + smb
 
     sign_pos = conv[val<0 and 'n_sign_posn' or 'p_sign_posn']
@@ -328,10 +320,6 @@ def delocalize(string):
     if dd:
         string = string.replace(dd, '.')
     return string
-
-def localize(string, grouping=False, monetary=False):
-    """Parses a string as locale number according to the locale settings."""
-    return _localize(string, grouping, monetary)
 
 def atof(string, func=float):
     "Parses a string as a float according to the locale settings."
@@ -629,49 +617,53 @@ def resetlocale(category=LC_ALL):
     """
     _setlocale(category, _build_localename(getdefaultlocale()))
 
-
-try:
-    from _locale import _get_locale_encoding
-except ImportError:
-    def _get_locale_encoding():
+if sys.platform.startswith("win"):
+    # On Win32, this will return the ANSI code page
+    def getpreferredencoding(do_setlocale = True):
+        """Return the charset that the user is likely using."""
+        if sys.flags.utf8_mode:
+            return 'UTF-8'
+        import _bootlocale
+        return _bootlocale.getpreferredencoding(False)
+else:
+    # On Unix, if CODESET is available, use that.
+    try:
+        CODESET
+    except NameError:
         if hasattr(sys, 'getandroidapilevel'):
             # On Android langinfo.h and CODESET are missing, and UTF-8 is
             # always used in mbstowcs() and wcstombs().
-            return 'UTF-8'
-        if sys.flags.utf8_mode:
-            return 'UTF-8'
-        encoding = getdefaultlocale()[1]
-        if encoding is None:
-            # LANG not set, default conservatively to ASCII
-            encoding = 'ascii'
-        return encoding
-
-try:
-    CODESET
-except NameError:
-    def getpreferredencoding(do_setlocale=True):
-        """Return the charset that the user is likely using."""
-        return _get_locale_encoding()
-else:
-    # On Unix, if CODESET is available, use that.
-    def getpreferredencoding(do_setlocale=True):
-        """Return the charset that the user is likely using,
-        according to the system configuration."""
-        if sys.flags.utf8_mode:
-            return 'UTF-8'
-
-        if not do_setlocale:
-            return _get_locale_encoding()
-
-        old_loc = setlocale(LC_CTYPE)
-        try:
-            try:
-                setlocale(LC_CTYPE, "")
-            except Error:
-                pass
-            return _get_locale_encoding()
-        finally:
-            setlocale(LC_CTYPE, old_loc)
+            def getpreferredencoding(do_setlocale = True):
+                return 'UTF-8'
+        else:
+            # Fall back to parsing environment variables :-(
+            def getpreferredencoding(do_setlocale = True):
+                """Return the charset that the user is likely using,
+                by looking at environment variables."""
+                if sys.flags.utf8_mode:
+                    return 'UTF-8'
+                res = getdefaultlocale()[1]
+                if res is None:
+                    # LANG not set, default conservatively to ASCII
+                    res = 'ascii'
+                return res
+    else:
+        def getpreferredencoding(do_setlocale = True):
+            """Return the charset that the user is likely using,
+            according to the system configuration."""
+            if sys.flags.utf8_mode:
+                return 'UTF-8'
+            import _bootlocale
+            if do_setlocale:
+                oldloc = setlocale(LC_CTYPE)
+                try:
+                    setlocale(LC_CTYPE, "")
+                except Error:
+                    pass
+            result = _bootlocale.getpreferredencoding(False)
+            if do_setlocale:
+                setlocale(LC_CTYPE, oldloc)
+            return result
 
 
 ### Database

@@ -1,5 +1,5 @@
 /*
- * Copyright 1999-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1999-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include "internal/cryptlib.h"
-#include "crypto/x509.h"
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
 #include "ext_dat.h"
@@ -53,24 +52,11 @@ STACK_OF(CONF_VALUE) *i2v_GENERAL_NAMES(X509V3_EXT_METHOD *method,
 {
     int i;
     GENERAL_NAME *gen;
-    STACK_OF(CONF_VALUE) *tmpret = NULL, *origret = ret;
-
     for (i = 0; i < sk_GENERAL_NAME_num(gens); i++) {
         gen = sk_GENERAL_NAME_value(gens, i);
-        /*
-         * i2v_GENERAL_NAME allocates ret if it is NULL. If something goes
-         * wrong we need to free the stack - but only if it was empty when we
-         * originally entered this function.
-         */
-        tmpret = i2v_GENERAL_NAME(method, gen, ret);
-        if (tmpret == NULL) {
-            if (origret == NULL)
-                sk_CONF_VALUE_pop_free(ret, X509V3_conf_free);
-            return NULL;
-        }
-        ret = tmpret;
+        ret = i2v_GENERAL_NAME(method, gen, ret);
     }
-    if (ret == NULL)
+    if (!ret)
         return sk_CONF_VALUE_new_null();
     return ret;
 }
@@ -100,20 +86,17 @@ STACK_OF(CONF_VALUE) *i2v_GENERAL_NAME(X509V3_EXT_METHOD *method,
         break;
 
     case GEN_EMAIL:
-        if (!x509v3_add_len_value_uchar("email", gen->d.ia5->data,
-                                        gen->d.ia5->length, &ret))
+        if (!X509V3_add_value_uchar("email", gen->d.ia5->data, &ret))
             return NULL;
         break;
 
     case GEN_DNS:
-        if (!x509v3_add_len_value_uchar("DNS", gen->d.ia5->data,
-                                        gen->d.ia5->length, &ret))
+        if (!X509V3_add_value_uchar("DNS", gen->d.ia5->data, &ret))
             return NULL;
         break;
 
     case GEN_URI:
-        if (!x509v3_add_len_value_uchar("URI", gen->d.ia5->data,
-                                        gen->d.ia5->length, &ret))
+        if (!X509V3_add_value_uchar("URI", gen->d.ia5->data, &ret))
             return NULL;
         break;
 
@@ -279,7 +262,6 @@ static int copy_issuer(X509V3_CTX *ctx, GENERAL_NAMES *gens)
     num = sk_GENERAL_NAME_num(ialt);
     if (!sk_GENERAL_NAME_reserve(gens, num)) {
         X509V3err(X509V3_F_COPY_ISSUER, ERR_R_MALLOC_FAILURE);
-        sk_GENERAL_NAME_free(ialt);
         goto err;
     }
 

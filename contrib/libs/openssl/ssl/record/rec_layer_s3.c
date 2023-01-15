@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -10,15 +10,15 @@
 #include <stdio.h>
 #include <limits.h>
 #include <errno.h>
-#include "../ssl_local.h"
+#include "../ssl_locl.h"
 #include <openssl/evp.h>
 #include <openssl/buffer.h>
 #include <openssl/rand.h>
-#include "record_local.h"
-#include "../packet_local.h"
+#include "record_locl.h"
+#include "../packet_locl.h"
 
 #if     defined(OPENSSL_SMALL_FOOTPRINT) || \
-        !(      defined(AESNI_ASM) &&   ( \
+        !(      defined(AES_ASM) &&     ( \
                 defined(__x86_64)       || defined(__x86_64__)  || \
                 defined(_M_AMD64)       || defined(_M_X64)      ) \
         )
@@ -115,22 +115,10 @@ size_t ssl3_pending(const SSL *s)
     if (s->rlayer.rstate == SSL_ST_READ_BODY)
         return 0;
 
-    /* Take into account DTLS buffered app data */
-    if (SSL_IS_DTLS(s)) {
-        DTLS1_RECORD_DATA *rdata;
-        pitem *item, *iter;
-
-        iter = pqueue_iterator(s->rlayer.d->buffered_app_data.q);
-        while ((item = pqueue_next(&iter)) != NULL) {
-            rdata = item->data;
-            num += rdata->rrec.length;
-        }
-    }
-
     for (i = 0; i < RECORD_LAYER_get_numrpipes(&s->rlayer); i++) {
         if (SSL3_RECORD_get_type(&s->rlayer.rrec[i])
             != SSL3_RT_APPLICATION_DATA)
-            return num;
+            return 0;
         num += SSL3_RECORD_get_length(&s->rlayer.rrec[i]);
     }
 
@@ -184,9 +172,9 @@ int ssl3_read_n(SSL *s, size_t n, size_t max, int extend, int clearold,
     /*
      * If extend == 0, obtain new n-byte packet; if extend == 1, increase
      * packet by another n bytes. The packet will be in the sub-array of
-     * s->rlayer.rbuf.buf specified by s->rlayer.packet and
-     * s->rlayer.packet_length. (If s->rlayer.read_ahead is set, 'max' bytes may
-     * be stored in rbuf [plus s->rlayer.packet_length bytes if extend == 1].)
+     * s->s3->rbuf.buf specified by s->packet and s->packet_length. (If
+     * s->rlayer.read_ahead is set, 'max' bytes may be stored in rbuf [plus
+     * s->packet_length bytes if extend == 1].)
      * if clearold == 1, move the packet to the start of the buffer; if
      * clearold == 0 then leave any old packets where they were
      */

@@ -4,10 +4,10 @@
 #include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/fstr/compare_documents.h>
 #include <catboost/libs/fstr/output_fstr.h>
-#include <catboost/libs/fstr/sage_values.h>
 #include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/model/model.h>
 
 #include <library/cpp/getopt/small/last_getopt.h>
 
@@ -49,12 +49,10 @@ namespace {
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),
                                            /*featureNamesPath=*/ NCB::TPathWithScheme(),
-                                           /*poolMetaInfoPath=*/ NCB::TPathWithScheme(),
                                            Params.DatasetReadingParams.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
-                                           /*forceUnitAutoPairWeights*/ false,
                                            /*classLabels*/ Nothing(),
                                            LocalExecutor.Get());
                 CheckModelAndDatasetCompatibility(Model, *Dataset->ObjectsData.Get());
@@ -106,24 +104,28 @@ void NCB::PrepareFstrModeParamsParser(
     parser.SetFreeArgsNum(0);
 }
 
-void NCB::ModeFstrSingleHostInner(
-    const NCB::TAnalyticalModeCommonParams& params,
-    const TFullModel& model) {
+void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
+    params.DatasetReadingParams.ValidatePoolParams();
 
-    auto fstrType = AdjustFeatureImportanceType(params.FstrType, model.GetLossFunctionName());
-    if (fstrType != EFstrType::PredictionValuesChange) {
-        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "model fstr");
+    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
+    if (model.HasCategoricalFeatures()) {
+        CB_ENSURE(model.HasValidCtrProvider(),
+                  "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
-
-    bool isInternalFstr = IsInternalFeatureImportanceType(params.FstrType);
-    const TString* fstrPathPtr = isInternalFstr ? nullptr : &(params.OutputPath.Path);
-    const TString* internalFstrPathPtr = !isInternalFstr ? nullptr : &(params.OutputPath.Path);
+    // TODO(noxoomo): have ignoredFeatures and const features saved in the model file
 
     auto localExecutor = MakeAtomicShared<NPar::TLocalExecutor>();
     localExecutor->RunAdditionalThreads(params.ThreadCount - 1);
 
     TLazyPoolLoader poolLoader(params, model, localExecutor);
     TFsPath inputPath(params.DatasetReadingParams.PoolPath.Path);
+    auto fstrType = AdjustFeatureImportanceType(params.FstrType, model.GetLossFunctionName());
+    if (fstrType != EFstrType::PredictionValuesChange) {
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "model fstr");
+    }
+    bool isInternalFstr = IsInternalFeatureImportanceType(params.FstrType);
+    const TString* fstrPathPtr = isInternalFstr ? nullptr : &(params.OutputPath.Path);
+    const TString* internalFstrPathPtr = !isInternalFstr ? nullptr : &(params.OutputPath.Path);
 
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
@@ -154,13 +156,6 @@ void NCB::ModeFstrSingleHostInner(
                                     localExecutor.Get(),
                                     params.ShapCalcType);
             break;
-        case EFstrType::SageValues:
-            CalcAndOutputSageValues(model,
-                                    *poolLoader(),
-                                    params.Verbose,
-                                    params.OutputPath.Path,
-                                    localExecutor.Get());
-            break;
         case EFstrType::PredictionDiff:
             CalcAndOutputPredictionDiff(
                 model,
@@ -171,18 +166,6 @@ void NCB::ModeFstrSingleHostInner(
         default:
             Y_ASSERT(false);
     }
-}
 
-void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
-    params.DatasetReadingParams.ValidatePoolParams();
-
-    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
-    if (model.HasCategoricalFeatures()) {
-        CB_ENSURE(model.HasValidCtrProvider(),
-                  "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
-    }
-    // TODO: have ignoredFeatures and const features saved in the model file
-
-    ModeFstrSingleHostInner(params, model);
 }
 

@@ -163,10 +163,7 @@ class LocalPath(FSBase):
             self.strpath = abspath(path)
 
     def __hash__(self):
-        s = self.strpath
-        if iswin32:
-            s = s.lower()
-        return hash(s)
+        return hash(self.strpath)
 
     def __eq__(self, other):
         s1 = fspath(self)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2020 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,13 +27,11 @@
 
 
 #include "mpdecimal.h"
-
-#include <assert.h>
 #include <stdlib.h>
-
+#include <assert.h>
 #include "bits.h"
-#include "numbertheory.h"
 #include "umodarith.h"
+#include "numbertheory.h"
 
 
 /* Bignum: Initialize the Number Theoretic Transform. */
@@ -130,3 +128,5 @@ _mpd_init_w3table(mpd_uint_t w3table[3], int sign, int modnum)
     w3table[1] = kernel;
     w3table[2] = POWMOD(kernel, 2);
 }
+
+

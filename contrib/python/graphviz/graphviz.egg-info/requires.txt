@@ -1,0 +1,12 @@
+
+[dev]
+flake8
+pep8-naming
+wheel
+twine
+
+[test]
+mock>=2
+pytest>=3.3
+pytest-mock
+pytest-cov

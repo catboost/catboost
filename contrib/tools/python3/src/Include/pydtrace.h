@@ -8,7 +8,7 @@ extern "C" {
 
 #ifdef WITH_DTRACE
 
-#error #include "pydtrace_probes.h"
+#include "pydtrace_probes.h" // Y_IGNORE
 
 /* pydtrace_probes.h, on systems with DTrace, is auto-generated to include
    `PyDTrace_{PROBE}` and `PyDTrace_{PROBE}_ENABLED()` macros for every probe
@@ -36,7 +36,6 @@ static inline void PyDTrace_INSTANCE_DELETE_START(int arg0) {}
 static inline void PyDTrace_INSTANCE_DELETE_DONE(int arg0) {}
 static inline void PyDTrace_IMPORT_FIND_LOAD_START(const char *arg0) {}
 static inline void PyDTrace_IMPORT_FIND_LOAD_DONE(const char *arg0, int arg1) {}
-static inline void PyDTrace_AUDIT(const char *arg0, void *arg1) {}
 
 static inline int PyDTrace_LINE_ENABLED(void) { return 0; }
 static inline int PyDTrace_FUNCTION_ENTRY_ENABLED(void) { return 0; }
@@ -49,7 +48,6 @@ static inline int PyDTrace_INSTANCE_DELETE_START_ENABLED(void) { return 0; }
 static inline int PyDTrace_INSTANCE_DELETE_DONE_ENABLED(void) { return 0; }
 static inline int PyDTrace_IMPORT_FIND_LOAD_START_ENABLED(void) { return 0; }
 static inline int PyDTrace_IMPORT_FIND_LOAD_DONE_ENABLED(void) { return 0; }
-static inline int PyDTrace_AUDIT_ENABLED(void) { return 0; }
 
 #endif /* !WITH_DTRACE */
 

@@ -124,9 +124,8 @@ function calls leading up to the error, in the order they occurred.</p>'''
         args, varargs, varkw, locals = inspect.getargvalues(frame)
         call = ''
         if func != '?':
-            call = 'in ' + strong(pydoc.html.escape(func))
-            if func != "<module>":
-                call += inspect.formatargvalues(args, varargs, varkw, locals,
+            call = 'in ' + strong(pydoc.html.escape(func)) + \
+                inspect.formatargvalues(args, varargs, varkw, locals,
                     formatvalue=lambda value: '=' + pydoc.html.repr(value))
 
         highlight = {}
@@ -181,8 +180,8 @@ function calls leading up to the error, in the order they occurred.</p>'''
 
 
 <!-- The above is a description of an error in a Python program, formatted
-     for a web browser because the 'cgitb' module was enabled.  In case you
-     are not reading this in a web browser, here is the original traceback:
+     for a Web browser because the 'cgitb' module was enabled.  In case you
+     are not reading this in a Web browser, here is the original traceback:
 
 %s
 -->
@@ -208,9 +207,8 @@ function calls leading up to the error, in the order they occurred.
         args, varargs, varkw, locals = inspect.getargvalues(frame)
         call = ''
         if func != '?':
-            call = 'in ' + func
-            if func != "<module>":
-                call += inspect.formatargvalues(args, varargs, varkw, locals,
+            call = 'in ' + func + \
+                inspect.formatargvalues(args, varargs, varkw, locals,
                     formatvalue=lambda value: '=' + pydoc.text.repr(value))
 
         highlight = {}

@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <unistd.h>
 #endif
 
 #include "segv_handler.h"

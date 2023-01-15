@@ -3,94 +3,88 @@
 #include "platform.h"
 
 #if defined _unix_
-    #define LOCSLASH_C '/'
-    #define LOCSLASH_S "/"
+#define LOCSLASH_C '/'
+#define LOCSLASH_S "/"
 #else
-    #define LOCSLASH_C '\\'
-    #define LOCSLASH_S "\\"
+#define LOCSLASH_C '\\'
+#define LOCSLASH_S "\\"
 #endif // _unix_
 
 #if defined(__INTEL_COMPILER) && defined(__cplusplus)
-    #include <new>
+#include <new>
 #endif
 
 // low and high parts of integers
 #if !defined(_win_)
-    #include <sys/param.h>
+#include <sys/param.h>
 #endif
 
 #if defined(BSD) || defined(_android_)
 
-    #if defined(BSD)
-        #include <machine/endian.h>
-    #endif
+#if defined(BSD)
+#include <machine/endian.h>
+#endif
 
-    #if defined(_android_)
-        #include <endian.h>
-    #endif
+#if defined(_android_)
+#include <endian.h>
+#endif
 
-    #if (BYTE_ORDER == LITTLE_ENDIAN)
-        #define _little_endian_
-    #elif (BYTE_ORDER == BIG_ENDIAN)
-        #define _big_endian_
-    #else
-        #error unknown endian not supported
-    #endif
+#if (BYTE_ORDER == LITTLE_ENDIAN)
+#define _little_endian_
+#elif (BYTE_ORDER == BIG_ENDIAN)
+#define _big_endian_
+#else
+#error unknown endian not supported
+#endif
 
 #elif (defined(_sun_) && !defined(__i386__)) || defined(_hpux_) || defined(WHATEVER_THAT_HAS_BIG_ENDIAN)
-    #define _big_endian_
+#define _big_endian_
 #else
-    #define _little_endian_
+#define _little_endian_
 #endif
 
 // alignment
 #if (defined(_sun_) && !defined(__i386__)) || defined(_hpux_) || defined(__alpha__) || defined(__ia64__) || defined(WHATEVER_THAT_NEEDS_ALIGNING_QUADS)
-    #define _must_align8_
+#define _must_align8_
 #endif
 
 #if (defined(_sun_) && !defined(__i386__)) || defined(_hpux_) || defined(__alpha__) || defined(__ia64__) || defined(WHATEVER_THAT_NEEDS_ALIGNING_LONGS)
-    #define _must_align4_
+#define _must_align4_
 #endif
 
 #if (defined(_sun_) && !defined(__i386__)) || defined(_hpux_) || defined(__alpha__) || defined(__ia64__) || defined(WHATEVER_THAT_NEEDS_ALIGNING_SHORTS)
-    #define _must_align2_
+#define _must_align2_
 #endif
 
 #if defined(__GNUC__)
-    #define alias_hack __attribute__((__may_alias__))
+#define alias_hack __attribute__((__may_alias__))
 #endif
 
 #ifndef alias_hack
-    #define alias_hack
+#define alias_hack
 #endif
 
 #include "types.h"
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-    #define PRAGMA(x) _Pragma(#x)
-    #define RCSID(idstr) PRAGMA(comment(exestr, idstr))
+#define PRAGMA(x) _Pragma(#x)
+#define RCSID(idstr) PRAGMA(comment(exestr, idstr))
 #else
-    #define RCSID(idstr) static const char rcsid[] = idstr
+#define RCSID(idstr) static const char rcsid[] = idstr
 #endif
 
 #include "compiler.h"
 
 #ifdef _win_
-    #include <malloc.h>
+#include <malloc.h>
 #elif defined(_sun_)
-    #include <alloca.h>
+#include <alloca.h>
 #endif
 
 #ifdef NDEBUG
-    #define Y_IF_DEBUG(X)
-    #ifdef __cplusplus
-constexpr bool Y_IS_DEBUG_BUILD = false;
-    #endif
+#define Y_IF_DEBUG(X)
 #else
-    #define Y_IF_DEBUG(X) X
-    #ifdef __cplusplus
-constexpr bool Y_IS_DEBUG_BUILD = true;
-    #endif
+#define Y_IF_DEBUG(X) X
 #endif
 
 /**
@@ -121,11 +115,11 @@ constexpr bool Y_IS_DEBUG_BUILD = true;
  * falsefully accept pointers to types of sizes that are divisors of 8 (1, 2, 4 and 8).
  */
 #if defined(__cplusplus)
-    #include <util/generic/array_size.h>
+#include <util/generic/array_size.h>
 #else
-    #undef Y_ARRAY_SIZE
-    #define Y_ARRAY_SIZE(arr) \
-        ((sizeof(arr) / sizeof((arr)[0])) / static_cast<size_t>(!(sizeof(arr) % sizeof((arr)[0]))))
+#undef Y_ARRAY_SIZE
+#define Y_ARRAY_SIZE(arr) \
+    ((sizeof(arr) / sizeof((arr)[0])) / static_cast<size_t>(!(sizeof(arr) % sizeof((arr)[0]))))
 #endif
 
 #undef Y_ARRAY_BEGIN
@@ -145,11 +139,11 @@ constexpr bool Y_IS_DEBUG_BUILD = true;
 #define UTIL_PRIVATE_STRINGIZE_AUX(X) #X
 
 #if defined(__COUNTER__)
-    #define Y_GENERATE_UNIQUE_ID(N) Y_CAT(N, __COUNTER__)
+#define Y_GENERATE_UNIQUE_ID(N) Y_CAT(N, __COUNTER__)
 #endif
 
 #if !defined(Y_GENERATE_UNIQUE_ID)
-    #define Y_GENERATE_UNIQUE_ID(N) Y_CAT(N, __LINE__)
+#define Y_GENERATE_UNIQUE_ID(N) Y_CAT(N, __LINE__)
 #endif
 
 #define NPOS ((size_t)-1)

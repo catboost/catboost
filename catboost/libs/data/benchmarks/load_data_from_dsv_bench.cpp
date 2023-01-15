@@ -4,8 +4,8 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data/objects_grouping.h>
 
-#include <library/cpp/testing/benchmark/bench.h>
-#include <library/cpp/testing/unittest/tests_data.h>
+#include <library/testing/benchmark/bench.h>
+#include <library/unittest/tests_data.h>
 
 using namespace NCB;
 using namespace NDataNewUT;
@@ -63,12 +63,10 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
-            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*forceUnitAutoPairWeights*/ true,
             /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
@@ -101,12 +99,10 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
-            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
@@ -139,12 +135,10 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
             /*featureNamesFilePath*/TPathWithScheme(),
-            /*poolMetaInfoFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*forceUnitAutoPairWeights*/ false,
             /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);

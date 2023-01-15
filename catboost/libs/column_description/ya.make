@@ -5,7 +5,6 @@ LIBRARY()
 SRCS(
     cd_parser.cpp
     column.cpp
-    feature_tag.cpp
 )
 
 PEERDIR(

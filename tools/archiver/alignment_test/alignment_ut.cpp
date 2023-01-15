@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <library/cpp/archive/yarchive.h>
 #include <util/memory/blob.h>
 

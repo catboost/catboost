@@ -6,14 +6,21 @@ ELSE()
     EXPORTS_SCRIPT(catboost.exports)
 ENDIF()
 
-PYTHON2_ADDINCL()
+PYTHON_ADDINCL()
+
+# add only headers for dynamic linking
+ADDINCL(
+    contrib/python/numpy/numpy/core/include
+    contrib/python/numpy/numpy/core/include/numpy
+    contrib/python/numpy/numpy/core/src/common
+    contrib/python/numpy/numpy/core/src/npymath
+)
 
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
-    catboost/libs/eval_result
-    catboost/libs/features_selection
     catboost/libs/fstr
+    catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/loggers
     catboost/libs/logging
@@ -31,16 +38,15 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/quantized_pool_analysis
     catboost/private/libs/target
-    contrib/python/numpy/include # add only headers for dynamic linking
     library/cpp/containers/2d_array
-    library/cpp/json/writer
+    library/json/writer
     library/cpp/text_processing/tokenizer
     library/cpp/text_processing/app_helpers
 )
 
 SRCS(
-    helpers.cpp
-    monoforest_helpers.cpp
+	helpers.cpp
+	monoforest_helpers.cpp
 )
 
 # have to disable them because cython's numpy integration uses deprecated numpy API
@@ -51,10 +57,10 @@ BUILDWITH_CYTHON_CPP(
     --module-name _catboost
 )
 
-IF (OS_WINDOWS)
+IF (ARCH_AARCH64 OR OS_WINDOWS)
     ALLOCATOR(J)
 ELSE()
-    ALLOCATOR(MIM)
+    ALLOCATOR(LF)
 ENDIF()
 
 IF (OS_DARWIN)

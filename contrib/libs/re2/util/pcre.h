@@ -61,13 +61,13 @@
 //    CHECK(PCRE::FullMatch(utf8_string, re));
 //
 // -----------------------------------------------------------------------
-// MATCHING WITH SUBSTRING EXTRACTION:
+// MATCHING WITH SUB-STRING EXTRACTION:
 //
-// You can supply extra pointer arguments to extract matched substrings.
+// You can supply extra pointer arguments to extract matched subpieces.
 //
 // Example: extracts "ruby" into "s" and 1234 into "i"
 //    int i;
-//    std::string s;
+//    string s;
 //    CHECK(PCRE::FullMatch("ruby:1234", "(\\w+):(\\d+)", &s, &i));
 //
 // Example: fails because string cannot be stored in integer
@@ -124,10 +124,10 @@
 // which represents a sub-range of a real string.
 //
 // Example: read lines of the form "var = value" from a string.
-//      std::string contents = ...;     // Fill string somehow
+//      string contents = ...;          // Fill string somehow
 //      StringPiece input(contents);    // Wrap a StringPiece around it
 //
-//      std::string var;
+//      string var;
 //      int value;
 //      while (PCRE::Consume(&input, "(\\w+) = (\\d+)\n", &var, &value)) {
 //        ...;
@@ -212,21 +212,21 @@ class PCRE {
   // pass in a string or a "const char*" wherever an "PCRE" is expected.
   PCRE(const char* pattern);
   PCRE(const char* pattern, Option option);
-  PCRE(const std::string& pattern);
-  PCRE(const std::string& pattern, Option option);
+  PCRE(const string& pattern);
+  PCRE(const string& pattern, Option option);
   PCRE(const char *pattern, const PCRE_Options& re_option);
-  PCRE(const std::string& pattern, const PCRE_Options& re_option);
+  PCRE(const string& pattern, const PCRE_Options& re_option);
 
   ~PCRE();
 
   // The string specification for this PCRE.  E.g.
   //   PCRE re("ab*c?d+");
   //   re.pattern();    // "ab*c?d+"
-  const std::string& pattern() const { return pattern_; }
+  const string& pattern() const { return pattern_; }
 
   // If PCRE could not be created properly, returns an error string.
   // Else returns the empty string.
-  const std::string& error() const { return *error_; }
+  const string& error() const { return *error_; }
 
   // Whether the PCRE has hit a match limit during execution.
   // Not thread safe.  Intended only for testing.
@@ -241,12 +241,12 @@ class PCRE {
   // Matches "text" against "pattern".  If pointer arguments are
   // supplied, copies matched sub-patterns into them.
   //
-  // You can pass in a "const char*" or a "std::string" for "text".
-  // You can pass in a "const char*" or a "std::string" or a "PCRE" for "pattern".
+  // You can pass in a "const char*" or a "string" for "text".
+  // You can pass in a "const char*" or a "string" or a "PCRE" for "pattern".
   //
   // The provided pointer arguments can be pointers to any scalar numeric
   // type, or one of:
-  //    std::string     (matched piece is copied to string)
+  //    string          (matched piece is copied to string)
   //    StringPiece     (StringPiece is mutated to point to matched piece)
   //    T               (where "bool T::ParseFrom(const char*, size_t)" exists)
   //    (void*)NULL     (the corresponding matched sub-pattern is not copied)
@@ -369,14 +369,14 @@ class PCRE {
   // from the pattern.  \0 in "rewrite" refers to the entire matching
   // text.  E.g.,
   //
-  //   std::string s = "yabba dabba doo";
+  //   string s = "yabba dabba doo";
   //   CHECK(PCRE::Replace(&s, "b+", "d"));
   //
   // will leave "s" containing "yada dabba doo"
   //
   // Returns true if the pattern matches and a replacement occurs,
   // false otherwise.
-  static bool Replace(std::string *str,
+  static bool Replace(string *str,
                       const PCRE& pattern,
                       const StringPiece& rewrite);
 
@@ -384,13 +384,13 @@ class PCRE {
   // the string with the rewrite.  Replacements are not subject to
   // re-matching.  E.g.,
   //
-  //   std::string s = "yabba dabba doo";
+  //   string s = "yabba dabba doo";
   //   CHECK(PCRE::GlobalReplace(&s, "b+", "d"));
   //
   // will leave "s" containing "yada dada doo"
   //
   // Returns the number of replacements made.
-  static int GlobalReplace(std::string *str,
+  static int GlobalReplace(string *str,
                            const PCRE& pattern,
                            const StringPiece& rewrite);
 
@@ -403,7 +403,7 @@ class PCRE {
   static bool Extract(const StringPiece &text,
                       const PCRE& pattern,
                       const StringPiece &rewrite,
-                      std::string *out);
+                      string *out);
 
   // Check that the given @p rewrite string is suitable for use with
   // this PCRE.  It checks that:
@@ -418,8 +418,7 @@ class PCRE {
   // @param error An error message is recorded here, iff we return false.
   //              Otherwise, it is unchanged.
   // @return true, iff @p rewrite is suitable for use with the PCRE.
-  bool CheckRewriteString(const StringPiece& rewrite,
-                          std::string* error) const;
+  bool CheckRewriteString(const StringPiece& rewrite, string* error) const;
 
   // Returns a copy of 'unquoted' with all potentially meaningful
   // regexp characters backslash-escaped.  The returned string, used
@@ -428,7 +427,7 @@ class PCRE {
   //           1.5-2.0?
   //  becomes:
   //           1\.5\-2\.0\?
-  static std::string QuoteMeta(const StringPiece& unquoted);
+  static string QuoteMeta(const StringPiece& unquoted);
 
   /***** Generic matching interface (not so nice to use) *****/
 
@@ -474,7 +473,7 @@ class PCRE {
 
   // Append the "rewrite" string, with backslash subsitutions from "text"
   // and "vec", to string "out".
-  bool Rewrite(std::string *out,
+  bool Rewrite(string *out,
                const StringPiece &rewrite,
                const StringPiece &text,
                int *vec,
@@ -492,15 +491,15 @@ class PCRE {
   // Compile the regexp for the specified anchoring mode
   pcre* Compile(Anchor anchor);
 
-  std::string         pattern_;
-  Option              options_;
-  pcre*               re_full_;        // For full matches
-  pcre*               re_partial_;     // For partial matches
-  const std::string*  error_;          // Error indicator (or empty string)
-  bool                report_errors_;  // Silences error logging if false
-  int                 match_limit_;    // Limit on execution resources
-  int                 stack_limit_;    // Limit on stack resources (bytes)
-  mutable int32_t     hit_limit_;      // Hit limit during execution (bool)
+  string            pattern_;
+  Option            options_;
+  pcre*             re_full_;        // For full matches
+  pcre*             re_partial_;     // For partial matches
+  const string*     error_;          // Error indicator (or empty string)
+  bool              report_errors_;  // Silences error logging if false
+  int               match_limit_;    // Limit on execution resources
+  int               stack_limit_;    // Limit on stack resources (bytes)
+  mutable int32_t   hit_limit_;  // Hit limit during execution (bool)?
 
   PCRE(const PCRE&) = delete;
   PCRE& operator=(const PCRE&) = delete;
@@ -555,7 +554,7 @@ class PCRE_Options {
 // Hex/Octal/Binary?
 
 // Special class for parsing into objects that define a ParseFrom() method
-template <typename T>
+template <class T>
 class _PCRE_MatchObject {
  public:
   static inline bool Parse(const char* str, size_t n, void* dest) {
@@ -585,7 +584,7 @@ class PCRE::Arg {
   MAKE_PARSER(unsigned char,      parse_uchar);
   MAKE_PARSER(float,              parse_float);
   MAKE_PARSER(double,             parse_double);
-  MAKE_PARSER(std::string,        parse_string);
+  MAKE_PARSER(string,             parse_string);
   MAKE_PARSER(StringPiece,        parse_stringpiece);
 
   MAKE_PARSER(short,              parse_short);
@@ -600,9 +599,9 @@ class PCRE::Arg {
 #undef MAKE_PARSER
 
   // Generic constructor
-  template <typename T> Arg(T*, Parser parser);
+  template <class T> Arg(T*, Parser parser);
   // Generic constructor template
-  template <typename T> Arg(T* p)
+  template <class T> Arg(T* p)
     : arg_(p), parser_(_PCRE_MatchObject<T>::Parse) {
   }
 

@@ -16,7 +16,7 @@
 # define _GNU_SOURCE            /* make sure dladdr is declared */
 #endif
 
-#include "dso_local.h"
+#include "dso_locl.h"
 #include "e_os.h"
 
 #ifdef DSO_DLFCN
@@ -324,7 +324,7 @@ static int dladdr(void *address, Dl_info *dl)
  *  Base Operating System and Extensions, Volume 1 and 2
  *  https://www.ibm.com/support/knowledgecenter/ssw_aix_72/com.ibm.aix.base/technicalreferences.htm
  */
-#  error #include <sys/ldr.h>
+# error include <sys/ldr.h>
 #  include <errno.h>
 /* ~ 64 * (sizeof(struct ld_info) + _XOPEN_PATH_MAX + _XOPEN_NAME_MAX) */
 #  define DLFCN_LDINFO_SIZE 86976

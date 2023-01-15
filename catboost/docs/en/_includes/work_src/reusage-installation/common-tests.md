@@ -1,2 +1,0 @@
-
-Execute common tests:

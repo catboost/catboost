@@ -7,17 +7,16 @@
 #include <cstring>
 
 namespace {
-    static inline bool MyAtomicTryLock(std::atomic<size_t>& a, size_t v) noexcept {
-        size_t zero = 0;
-        return a.compare_exchange_strong(zero, v);
+    static inline bool MyAtomicTryLock(TAtomic& a, TAtomicBase v) noexcept {
+        return AtomicCas(&a, v, 0);
     }
 
-    static inline bool MyAtomicTryAndTryLock(std::atomic<size_t>& a, size_t v) noexcept {
-        return a.load(std::memory_order_acquire) == 0 && MyAtomicTryLock(a, v);
+    static inline bool MyAtomicTryAndTryLock(TAtomic& a, TAtomicBase v) noexcept {
+        return (AtomicGet(a) == 0) && MyAtomicTryLock(a, v);
     }
 
-    static inline size_t MyThreadId() noexcept {
-        const size_t ret = TThread::CurrentThreadId();
+    static inline TAtomicBase MyThreadId() noexcept {
+        const TAtomicBase ret = TThread::CurrentThreadId();
 
         if (ret) {
             return ret;
@@ -42,10 +41,10 @@ void NPrivate::FillWithTrash(void* ptr, size_t len) {
 #endif
 }
 
-void NPrivate::LockRecursive(std::atomic<size_t>& lock) noexcept {
-    const size_t id = MyThreadId();
+void NPrivate::LockRecursive(TAtomic& lock) noexcept {
+    const TAtomicBase id = MyThreadId();
 
-    Y_VERIFY(lock.load(std::memory_order_acquire) != id, "recursive singleton initialization");
+    Y_VERIFY(AtomicGet(lock) != id, "recursive singleton initialization");
 
     if (!MyAtomicTryLock(lock, id)) {
         TSpinWait sw;
@@ -56,7 +55,7 @@ void NPrivate::LockRecursive(std::atomic<size_t>& lock) noexcept {
     }
 }
 
-void NPrivate::UnlockRecursive(std::atomic<size_t>& lock) noexcept {
-    Y_VERIFY(lock.load(std::memory_order_acquire) == MyThreadId(), "unlock from another thread?!?!");
-    lock.store(0);
+void NPrivate::UnlockRecursive(TAtomic& lock) noexcept {
+    Y_VERIFY(AtomicGet(lock) == MyThreadId(), "unlock from another thread?!?!");
+    AtomicUnlock(&lock);
 }

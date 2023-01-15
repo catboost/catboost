@@ -93,7 +93,7 @@ class PortManager(object):
                 if filelock:
                     filelock.release()
 
-    def get_port_range(self, start_port, count, random_start=True):
+    def get_port_range(self, start_port, count):
         assert count > 0
         if start_port and self._no_random_ports():
             return start_port
@@ -106,16 +106,9 @@ class PortManager(object):
             candidates[:] = []
 
         with self._lock:
-            for attempts in six.moves.range(128):
+            for attempts in six.moves.range(5):
                 for left, right in self._valid_range:
-                    if right - left < count:
-                        continue
-
-                    if random_start:
-                        start = random.randint(left, right - ((right - left) // 2))
-                    else:
-                        start = left
-                    for probe_port in six.moves.range(start, right):
+                    for probe_port in six.moves.range(left, right):
                         if self._capture_port_no_lock(probe_port, socket.SOCK_STREAM):
                             candidates.append(probe_port)
                         else:
@@ -126,11 +119,8 @@ class PortManager(object):
                     # Can't find required number of ports without gap in the current range
                     drop_candidates()
 
-            raise PortManagerException(
-                "Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
-                    start_port, count, self._valid_range, self._filelocks
-                )
-            )
+            raise PortManagerException("Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
+                start_port, count, self._valid_range, self._filelocks))
 
     def _count_valid_ports(self):
         res = 0
@@ -160,9 +150,7 @@ class PortManager(object):
                 continue
             return probe_port
 
-        raise PortManagerException(
-            "Failed to find valid port (range: {} used: {})".format(self._valid_range, self._filelocks)
-        )
+        raise PortManagerException("Failed to find valid port (range: {} used: {})".format(self._valid_range, self._filelocks))
 
     def _capture_port(self, port, sock_type):
         with self._lock:

@@ -2,15 +2,13 @@
 python-atomicwrites
 ===================
 
-.. image:: https://travis-ci.com/untitaker/python-atomicwrites.svg?branch=master
-    :target: https://travis-ci.com/untitaker/python-atomicwrites
+.. image:: https://travis-ci.org/untitaker/python-atomicwrites.svg?branch=master
+    :target: https://travis-ci.org/untitaker/python-atomicwrites
+
 .. image:: https://ci.appveyor.com/api/projects/status/vadc4le3c27to59x/branch/master?svg=true
    :target: https://ci.appveyor.com/project/untitaker/python-atomicwrites/branch/master
-.. image:: https://readthedocs.org/projects/python-atomicwrites/badge/?version=latest
-   :target: https://python-atomicwrites.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
 
-**Atomic file writes.**
+Atomic file writes.
 
 .. code-block:: python
 
@@ -21,9 +19,7 @@ python-atomicwrites
         # "foo.txt" doesn't exist yet.
 
     # Now it does.
-    
-See `API documentation <https://python-atomicwrites.readthedocs.io/en/latest/#api>`_ for more
-low-level interfaces.
+
 
 Features that distinguish it from other similar libraries (see `Alternatives and Credit`_):
 
@@ -34,11 +30,12 @@ Features that distinguish it from other similar libraries (see `Alternatives and
   explicit about which operations are atomic. I'm basing my assumptions off `a
   comment
   <https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/449bb49d-8acc-48dc-a46f-0760ceddbfc3/movefileexmovefilereplaceexisting-ntfs-same-volume-atomic?forum=windowssdk#a239bc26-eaf0-4920-9f21-440bd2be9cc8>`_
-  by `Doug Cook
+  by `Doug Crook
   <https://social.msdn.microsoft.com/Profile/doug%20e.%20cook>`_, who appears
   to be a Microsoft employee:
 
-      Question: Is MoveFileEx atomic if the existing and new
+      FAQ: Is MoveFileEx atomic
+      Frequently asked question: Is MoveFileEx atomic if the existing and new
       files are both on the same drive?
 
       The simple answer is "usually, but in some cases it will silently fall-back

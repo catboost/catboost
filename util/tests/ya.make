@@ -1,7 +1,8 @@
 RECURSE(
     benchmark
+    cython
     fuzzing
-    style
+    ut
 )
 
 IF (OS_LINUX)

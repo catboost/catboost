@@ -2,15 +2,16 @@
 #include "defaults.h"
 
 #if defined(_win_)
-    #include "fs_win.h"
+#include "fs_win.h"
 #else
-    #include <unistd.h>
-    #include <errno.h>
+#include <unistd.h>
+#include <errno.h>
 #endif
 
 #include <util/generic/yexception.h>
 #include <util/memory/tempbuf.h>
 #include <util/stream/file.h>
+#include <util/charset/wide.h>
 #include <util/folder/iterator.h>
 #include <util/system/fstat.h>
 #include <util/folder/path.h>
@@ -31,9 +32,8 @@ void NFs::RemoveRecursive(const TString& path) {
     }
 
     if (!TFileStat(path).IsDir()) {
-        if (!NFs::Remove(path)) {
+        if (!NFs::Remove(path))
             ythrow TSystemError() << errStr << path << " with cwd (" << NFs::CurrentWorkingDirectory() << ")";
-        }
     }
 
     TDirIterator dir(path);
@@ -44,9 +44,8 @@ void NFs::RemoveRecursive(const TString& path) {
             case FTS_D:
                 break;
             default:
-                if (!NFs::Remove(it->fts_path)) {
+                if (!NFs::Remove(it->fts_path))
                     ythrow TSystemError() << errStr << it->fts_path << " with cwd (" << NFs::CurrentWorkingDirectory() << ")";
-                }
                 break;
         }
     }
@@ -120,12 +119,10 @@ TString NFs::ReadLink(const TString& path) {
     TTempBuf buf;
     while (true) {
         ssize_t r = readlink(path.data(), buf.Data(), buf.Size());
-        if (r < 0) {
+        if (r < 0)
             ythrow yexception() << "can't read link " << path << ", errno = " << errno;
-        }
-        if (r < (ssize_t)buf.Size()) {
+        if (r < (ssize_t)buf.Size())
             return TString(buf.Data(), r);
-        }
         buf = TTempBuf(buf.Size() * 2);
     }
 #endif
@@ -159,20 +156,18 @@ TString NFs::CurrentWorkingDirectory() {
 #elif defined(_unix_)
     TTempBuf result;
     char* r = getcwd(result.Data(), result.Size());
-    if (r == nullptr) {
+    if (r == nullptr)
         throw TIoSystemError() << "failed to getcwd";
-    }
     return result.Data();
 #endif
 }
 
-void NFs::SetCurrentWorkingDirectory(const TString& path) {
+void NFs::SetCurrentWorkingDirectory(TString path) {
 #ifdef _win_
     bool ok = NFsPrivate::WinSetCurrentWorkingDirectory(path);
 #else
     bool ok = !chdir(path.data());
 #endif
-    if (!ok) {
+    if (!ok)
         ythrow TSystemError() << "failed to change directory to " << path.Quote();
-    }
 }

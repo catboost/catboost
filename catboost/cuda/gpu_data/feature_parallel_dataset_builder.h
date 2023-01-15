@@ -2,7 +2,7 @@
 
 #include "feature_parallel_dataset.h"
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
     //Test dataset will be linked on first permutation (direct indexing)
@@ -26,7 +26,7 @@ namespace NCatboostCuda {
         }
 
         TFeatureParallelDataSetsHolder BuildDataSet(ui32 permutationCount,
-                                                    NPar::ILocalExecutor* localExecutor);
+                                                    NPar::TLocalExecutor* localExecutor);
 
     private:
         void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
@@ -34,7 +34,7 @@ namespace NCatboostCuda {
 
         void BuildCompressedCatFeatures(const NCB::TTrainingDataProvider& dataProvider,
                                         TCompressedCatFeatureDataSet& dataset,
-                                        NPar::ILocalExecutor* localExecutor);
+                                        NPar::TLocalExecutor* localExecutor);
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;

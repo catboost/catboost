@@ -19,7 +19,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/stream/format.h>
 
@@ -68,7 +68,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
     private:
         struct TFold {
@@ -166,7 +166,7 @@ namespace NCatboostCuda {
         THolder<TObjective> CreateTarget(const TFeatureParallelDataSet& dataSet) const {
             auto slice = dataSet.GetSamplesMapping().GetObjectsSlice();
             CB_ENSURE(slice.Size());
-            return MakeHolder<TObjective>(dataSet,
+            return new TObjective(dataSet,
                                   Random,
                                   slice,
                                   TargetOptions);
@@ -255,7 +255,7 @@ namespace NCatboostCuda {
             TMetricCalcer<TObjective> metricCalcer(target.GetTarget(estimationPermutation), LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
-                testMetricCalcer = MakeHolder<TMetricCalcer<TObjective>>(*testTarget, LocalExecutor);
+                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget, LocalExecutor);
             }
 
             auto snapshotSaver = [&](IOutputStream* out) {
@@ -266,7 +266,7 @@ namespace NCatboostCuda {
                 }
             };
 
-            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, Config, CatBoostOptions, Random);
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
@@ -293,8 +293,7 @@ namespace NCatboostCuda {
 
                         auto optimizer = weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
                             *iterationCacheHolderPtr,
-                            taskDataSet,
-                            *result);
+                            taskDataSet);
 
                         optimizer.SetRandomStrength(
                             CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),
@@ -312,16 +311,18 @@ namespace NCatboostCuda {
                         } else {
                             for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId) {
                                 const auto& fold = taskFolds[foldId];
-                                auto learnTarget = TTargetAtPointTrait<TObjective>::Create(
-                                    taskTarget,
-                                    fold.EstimateSamples,
-                                    cursor.Get(learnPermutationId, foldId).SliceView(fold.EstimateSamples).AsConstBuf()
-                                );
-                                auto validateTarget = TTargetAtPointTrait<TObjective>::Create(
-                                    taskTarget,
-                                    fold.QualityEvaluateSamples,
-                                    cursor.Get(learnPermutationId, foldId).SliceView(fold.QualityEvaluateSamples).AsConstBuf()
-                                );
+                                auto learnTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                           fold.EstimateSamples,
+                                                                                           cursor.Get(learnPermutationId,
+                                                                                                      foldId)
+                                                                                               .SliceView(
+                                                                                                   fold.EstimateSamples));
+                                auto validateTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                              fold.QualityEvaluateSamples,
+                                                                                              cursor.Get(learnPermutationId,
+                                                                                                         foldId)
+                                                                                                  .SliceView(
+                                                                                                      fold.QualityEvaluateSamples));
 
                                 optimizer.AddTask(std::move(learnTarget),
                                                   std::move(validateTarget));
@@ -388,7 +389,7 @@ namespace NCatboostCuda {
                                 estimator.AddEstimationTask(*iterationCacheHolderPtr,
                                                             targetSlice,
                                                             permutationDataSet,
-                                                            cursorSlice.AsConstBuf(),
+                                                            cursorSlice,
                                                             &models.FoldData[permutation][foldId]);
                             }
                         }
@@ -479,7 +480,7 @@ namespace NCatboostCuda {
                 }
 
                 if (iterationProgressTracker.IsBestTestIteration() && bestTestCursor) {
-                    CB_ENSURE(testCursor, "Need cursor for test data");
+                    Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
             }
@@ -504,7 +505,7 @@ namespace NCatboostCuda {
                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                          EGpuCatFeaturesStorage catFeaturesStorage,
                          TGpuAwareRandom& random,
-                         NPar::ILocalExecutor* localExecutor)
+                         NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , CatFeaturesStorage(catFeaturesStorage)
             , Random(random)
@@ -559,7 +560,7 @@ namespace NCatboostCuda {
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                state->StartingPoint = NCB::CalcOneDimensionalOptimumConstApprox(
+                state->StartingPoint = NCB::CalcOptimumConstApprox(
                     CatBoostOptions.LossFunctionDescription,
                     DataProvider->TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*DataProvider->TargetData));

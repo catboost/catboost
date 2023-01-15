@@ -1,4 +1,4 @@
-G_BENCHMARK()
+BENCHMARK()
 
 
 

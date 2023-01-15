@@ -8,7 +8,6 @@ import logging
 from . import tools
 from datetime import date, datetime
 
-import enum
 import six
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ def is_coroutine(val):
         return False
     else:
         import asyncio
-        return asyncio.iscoroutinefunction(val) or asyncio.iscoroutine(val)
+        return asyncio.iscoroutinefunction(val)
 
 
 def serialize(value):
@@ -67,8 +66,6 @@ def serialize(value):
             return val
         if isinstance(val, six.string_types) or isinstance(val, bytes):
             return tools.to_utf8(val)
-        if isinstance(val, enum.Enum):
-            return str(val)
         if isinstance(val, six.integer_types) or type(val) in [float, bool]:
             return val
         if is_external(val):
@@ -76,7 +73,7 @@ def serialize(value):
         if isinstance(val, (date, datetime)):
             return repr(val)
         if is_coroutine(val):
-            return None
+            return repr(val)
         raise ValueError("Cannot serialize value '{}' of type {}".format(val, type(val)))
     return apply(_serialize, value, apply_to_keys=True)
 

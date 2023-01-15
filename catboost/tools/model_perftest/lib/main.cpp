@@ -5,9 +5,9 @@
 
 #include <catboost/libs/logging/logging.h>
 
-#include <library/cpp/json/json_value.h>
+#include <library/json/json_value.h>
 #include <library/cpp/getopt/small/last_getopt.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <library/cpp/threading/future/async.h>
 
 #include <util/system/info.h>
@@ -203,13 +203,11 @@ int DoMain(int argc, char** argv) {
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),
-        NCB::TPathWithScheme(),
         columnarPoolFormatParams,
         TVector<ui32>(),
         NCB::EObjectsOrder::Undefined,
         NSystemInfo::CachedNumberOfCpus(),
         true,
-        /*forceUnitAutoPairWeights*/ false,
         /*classNames*/ Nothing()
     );
 
@@ -239,7 +237,7 @@ int DoMain(int argc, char** argv) {
 
 
     options.BlockSize = Min(options.BlockSize, (size_t)dataset->GetObjectCount());
-    CB_ENSURE(options.BlockSize > 0, "Empty pool");
+    Y_ENSURE(options.BlockSize > 0, "Empty pool");
     const size_t docsCount = dataset->GetObjectCount();
     const size_t blockCount = (docsCount) / options.BlockSize;
     const size_t factorsCount = featureUsedInModel.size();

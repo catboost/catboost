@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef OSSL_CRYPTO_SPARC_ARCH_H
-# define OSSL_CRYPTO_SPARC_ARCH_H
+#ifndef __SPARC_ARCH_H__
+# define __SPARC_ARCH_H__
 
 # define SPARCV9_TICK_PRIVILEGED (1<<0)
 # define SPARCV9_PREFER_FPU      (1<<1)
@@ -115,4 +115,4 @@
         mov     tmp, %o7;
 # endif
 
-#endif                          /* OSSL_CRYPTO_SPARC_ARCH_H */
+#endif                          /* __SPARC_ARCH_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2022 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2001-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -13,41 +13,28 @@
 # define __NEW_STARLET 1         /* New starlet definitions since VMS 7.0 */
 # include <unistd.h>
 # include "internal/cryptlib.h"
-# include <openssl/bio.h>
-# include <openssl/err.h>
 # include <openssl/rand.h>
-# include "crypto/rand.h"
-# include "rand_local.h"
+# include "internal/rand_int.h"
+# include "rand_lcl.h"
 # include <descrip.h>
 # include <dvidef.h>
 # include <jpidef.h>
-# error #include <rmidef.h>
+# error include <rmidef.h>
 # include <syidef.h>
 # include <ssdef.h>
 # include <starlet.h>
-# error #include <efndef.h>
+# error include <efndef.h>
 # include <gen64def.h>
-# error #include <iosbdef.h>
+# error include <iosbdef.h>
 # include <iledef.h>
 # include <lib$routines.h>
 # ifdef __DECC
 #  pragma message disable DOLLARID
 # endif
 
-# include <dlfcn.h>              /* SYS$GET_ENTROPY presence */
-
 # ifndef OPENSSL_RAND_SEED_OS
 #  error "Unsupported seeding method configured; must be os"
 # endif
-
-/*
- * DATA COLLECTION METHOD
- * ======================
- *
- * This is a method to get low quality entropy.
- * It works by collecting all kinds of statistical data that
- * VMS offers and using them as random seed.
- */
 
 /* We need to make sure we have the right size pointer in some cases */
 # if __INITIAL_POINTER_SIZE == 64
@@ -343,7 +330,7 @@ static void massage_JPI(ILE3 *items)
  */
 #define ENTROPY_FACTOR  20
 
-size_t data_collect_method(RAND_POOL *pool)
+size_t rand_pool_acquire_entropy(RAND_POOL *pool)
 {
     ILE3 JPI_items_64bit[OSSL_NELEM(JPI_item_data_64bit) + 1];
     ILE3 RMI_items_64bit[OSSL_NELEM(RMI_item_data_64bit) + 1];
@@ -458,12 +445,15 @@ size_t data_collect_method(RAND_POOL *pool)
      * If we can't feed the requirements from the caller, we're in deep trouble.
      */
     if (!ossl_assert(total_length >= bytes_needed)) {
-        char buf[100];           /* That should be enough */
+        char neededstr[20];
+        char availablestr[20];
 
-        BIO_snprintf(buf, sizeof(buf), "Needed: %zu, Available: %zu",
-                     bytes_needed, total_length);
-        RANDerr(RAND_F_DATA_COLLECT_METHOD, RAND_R_RANDOM_POOL_UNDERFLOW);
-        ERR_add_error_data(1, buf);
+        BIO_snprintf(neededstr, sizeof(neededstr), "%zu", bytes_needed);
+        BIO_snprintf(availablestr, sizeof(availablestr), "%zu", total_length);
+        RANDerr(RAND_F_RAND_POOL_ACQUIRE_ENTROPY,
+                RAND_R_RANDOM_POOL_UNDERFLOW);
+        ERR_add_error_data(4, "Needed: ", neededstr, ", Available: ",
+                           availablestr);
         return 0;
     }
 
@@ -479,129 +469,27 @@ size_t data_collect_method(RAND_POOL *pool)
     return rand_pool_entropy_available(pool);
 }
 
-/*
- * SYS$GET_ENTROPY METHOD
- * ======================
- *
- * This is a high entropy method based on a new system service that is
- * based on getentropy() from FreeBSD 12.  It's only used if available,
- * and its availability is detected at run-time.
- *
- * We assume that this function provides full entropy random output.
- */
-#define PUBLIC_VECTORS "SYS$LIBRARY:SYS$PUBLIC_VECTORS.EXE"
-#define GET_ENTROPY "SYS$GET_ENTROPY"
-
-static int get_entropy_address_flag = 0;
-static int (*get_entropy_address)(void *buffer, size_t buffer_size) = NULL;
-static int init_get_entropy_address(void)
-{
-    if (get_entropy_address_flag == 0)
-        get_entropy_address = dlsym(dlopen(PUBLIC_VECTORS, 0), GET_ENTROPY);
-    get_entropy_address_flag = 1;
-    return get_entropy_address != NULL;
-}
-
-size_t get_entropy_method(RAND_POOL *pool)
-{
-    /*
-     * The documentation says that SYS$GET_ENTROPY will give a maximum of
-     * 256 bytes of data.
-     */
-    unsigned char buffer[256];
-    size_t bytes_needed;
-    size_t bytes_to_get = 0;
-    uint32_t status;
-
-    for (bytes_needed = rand_pool_bytes_needed(pool, 1);
-         bytes_needed > 0;
-         bytes_needed -= bytes_to_get) {
-        bytes_to_get =
-            bytes_needed > sizeof(buffer) ? sizeof(buffer) : bytes_needed;
-
-        status = get_entropy_address(buffer, bytes_to_get);
-        if (status == SS$_RETRY) {
-            /* Set to zero so the loop doesn't diminish |bytes_needed| */
-            bytes_to_get = 0;
-            /* Should sleep some amount of time */
-            continue;
-        }
-
-        if (status != SS$_NORMAL) {
-            lib$signal(status);
-            return 0;
-        }
-
-        rand_pool_add(pool, buffer, bytes_to_get, 8 * bytes_to_get);
-    }
-
-    return rand_pool_entropy_available(pool);
-}
-
-/*
- * MAIN ENTROPY ACQUISITION FUNCTIONS
- * ==================================
- *
- * These functions are called by the RAND / DRBG functions
- */
-
-size_t rand_pool_acquire_entropy(RAND_POOL *pool)
-{
-    if (init_get_entropy_address())
-        return get_entropy_method(pool);
-    return data_collect_method(pool);
-}
-
 int rand_pool_add_nonce_data(RAND_POOL *pool)
 {
-    /*
-     * Two variables to ensure that two nonces won't ever be the same
-     */
-    static unsigned __int64 last_time = 0;
-    static unsigned __int32 last_seq = 0;
-
     struct {
         pid_t pid;
         CRYPTO_THREAD_ID tid;
-        unsigned __int64 time;
-        unsigned __int32 seq;
-    } data;
-
-    /* Erase the entire structure including any padding */
-    memset(&data, 0, sizeof(data));
+        uint64_t time;
+    } data = { 0 };
 
     /*
-     * Add process id, thread id, a timestamp, and a sequence number in case
-     * the same time stamp is repeated, to ensure that the nonce is unique
-     * with high probability for different process instances.
-     *
-     * The normal OpenVMS time is specified to be high granularity (100ns),
-     * but the time update granularity given by sys$gettim() may be lower.
-     *
-     * OpenVMS version 8.4 (which is the latest for Alpha and Itanium) and
-     * on have sys$gettim_prec() as well, which is supposedly having a better
-     * time update granularity, but tests on Itanium (and even Alpha) have
-     * shown that compared with sys$gettim(), the difference is marginal,
-     * so of very little significance in terms of entropy.
-     * Given that, and that it's a high ask to expect everyone to have
-     * upgraded to OpenVMS version 8.4, only sys$gettim() is used, and a
-     * sequence number is added as well, in case sys$gettim() returns the
-     * same time value more than once.
-     *
-     * This function is assumed to be called under thread lock, and does
-     * therefore not take concurrency into account.
+     * Add process id, thread id, and a high resolution timestamp
+     * (where available, which is OpenVMS v8.4 and up) to ensure that
+     * the nonce is unique whith high probability for different process
+     * instances.
      */
     data.pid = getpid();
     data.tid = CRYPTO_THREAD_get_current_id();
-    data.seq = 0;
+#if __CRTL_VER >= 80400000
+    sys$gettim_prec(&data.time);
+#else
     sys$gettim((void*)&data.time);
-
-    if (data.time == last_time) {
-        data.seq = ++last_seq;
-    } else {
-        last_time = data.time;
-        last_seq = 0;
-    }
+#endif
 
     return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }
@@ -610,16 +498,20 @@ int rand_pool_add_additional_data(RAND_POOL *pool)
 {
     struct {
         CRYPTO_THREAD_ID tid;
-        unsigned __int64 time;
+        uint64_t time;
     } data = { 0 };
 
     /*
-     * Add some noise from the thread id and a timer.  The thread id adds a
-     * little randomness if the drbg is accessed concurrently (which is the
-     * case for the <master> drbg).
+     * Add some noise from the thread id and a high resolution timer.
+     * The thread id adds a little randomness if the drbg is accessed
+     * concurrently (which is the case for the <master> drbg).
      */
     data.tid = CRYPTO_THREAD_get_current_id();
+#if __CRTL_VER >= 80400000
+    sys$gettim_prec(&data.time);
+#else
     sys$gettim((void*)&data.time);
+#endif
 
     return rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
 }

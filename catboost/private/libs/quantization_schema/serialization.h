@@ -1,13 +1,16 @@
 #pragma once
 
-#include "schema.h"
-
-#include <catboost/idl/pool/proto/quantization_schema.pb.h>
-
+#include <util/generic/fwd.h>
 #include <util/stream/fwd.h>
-#include <util/generic/strbuf.h>
 #include <util/system/types.h>
 
+namespace NCB {
+    struct TPoolQuantizationSchema;
+
+    namespace NIdl {
+        class TPoolQuantizationSchema;
+    }
+}
 
 namespace NCB {
     enum class EQuantizationSchemaSerializationFormat : ui8 {

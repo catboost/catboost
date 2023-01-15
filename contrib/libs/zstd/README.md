@@ -4,8 +4,7 @@ __Zstandard__, or `zstd` as short version, is a fast lossless compression algori
 targeting real-time compression scenarios at zlib-level and better compression ratios.
 It's backed by a very fast entropy stage, provided by [Huff0 and FSE library](https://github.com/Cyan4973/FiniteStateEntropy).
 
-Zstandard's format is stable and documented in [RFC8878](https://datatracker.ietf.org/doc/html/rfc8878). Multiple independent implementations are already available.
-This repository represents the reference implementation, provided as an open-source dual [BSD](LICENSE) and [GPLv2](COPYING) licensed **C** library,
+The project is provided as an open-source dual [BSD](LICENSE) and [GPLv2](COPYING) licensed **C** library,
 and a command line utility producing and decoding `.zst`, `.gz`, `.xz` and `.lz4` files.
 Should your project require another programming language,
 a list of known ports and bindings is provided on [Zstandard homepage](http://www.zstd.net/#other-languages).
@@ -18,8 +17,8 @@ a list of known ports and bindings is provided on [Zstandard homepage](http://ww
 [![Build status][CirrusDevBadge]][CirrusLink]
 [![Fuzzing Status][OSSFuzzBadge]][OSSFuzzLink]
 
-[travisDevBadge]: https://api.travis-ci.com/facebook/zstd.svg?branch=dev "Continuous Integration test suite"
-[travisLink]: https://travis-ci.com/facebook/zstd
+[travisDevBadge]: https://travis-ci.org/facebook/zstd.svg?branch=dev "Continuous Integration test suite"
+[travisLink]: https://travis-ci.org/facebook/zstd
 [AppveyorDevBadge]: https://ci.appveyor.com/api/projects/status/xt38wbdxjk5mrbem/branch/dev?svg=true "Windows test suite"
 [AppveyorLink]: https://ci.appveyor.com/project/YannCollet/zstd-p0yf0
 [CircleDevBadge]: https://circleci.com/gh/facebook/zstd/tree/dev.svg?style=shield "Short test suite"
@@ -32,10 +31,10 @@ a list of known ports and bindings is provided on [Zstandard homepage](http://ww
 ## Benchmarks
 
 For reference, several fast compression algorithms were tested and compared
-on a desktop running Ubuntu 20.04 (`Linux 5.11.0-41-generic`),
-with a Core i7-9700K CPU @ 4.9GHz,
+on a server running Arch Linux (`Linux version 5.0.5-arch1-1`),
+with a Core i9-9900K CPU @ 5.0GHz,
 using [lzbench], an open-source in-memory benchmark by @inikep
-compiled with [gcc] 9.3.0,
+compiled with [gcc] 8.2.1,
 on the [Silesia compression corpus].
 
 [lzbench]: https://github.com/inikep/lzbench
@@ -44,24 +43,17 @@ on the [Silesia compression corpus].
 
 | Compressor name         | Ratio | Compression| Decompress.|
 | ---------------         | ------| -----------| ---------- |
-| **zstd 1.5.1 -1**       | 2.887 |   530 MB/s |  1700 MB/s |
-| [zlib] 1.2.11 -1        | 2.743 |    95 MB/s |   400 MB/s |
-| brotli 1.0.9 -0         | 2.702 |   395 MB/s |   450 MB/s |
-| **zstd 1.5.1 --fast=1** | 2.437 |   600 MB/s |  2150 MB/s |
-| **zstd 1.5.1 --fast=3** | 2.239 |   670 MB/s |  2250 MB/s |
-| quicklz 1.5.0 -1        | 2.238 |   540 MB/s |   760 MB/s |
-| **zstd 1.5.1 --fast=4** | 2.148 |   710 MB/s |  2300 MB/s |
-| lzo1x 2.10 -1           | 2.106 |   660 MB/s |   845 MB/s |
-| [lz4] 1.9.3             | 2.101 |   740 MB/s |  4500 MB/s |
-| lzf 3.6 -1              | 2.077 |   410 MB/s |   830 MB/s |
-| snappy 1.1.9            | 2.073 |   550 MB/s |  1750 MB/s |
+| **zstd 1.4.0 -1**       | 2.884 |   530 MB/s |  1360 MB/s |
+| zlib 1.2.11 -1          | 2.743 |   110 MB/s |   440 MB/s |
+| brotli 1.0.7 -0         | 2.701 |   430 MB/s |   470 MB/s |
+| quicklz 1.5.0 -1        | 2.238 |   600 MB/s |   800 MB/s |
+| lzo1x 2.09 -1           | 2.106 |   680 MB/s |   950 MB/s |
+| lz4 1.8.3               | 2.101 |   800 MB/s |  4220 MB/s |
+| snappy 1.1.4            | 2.073 |   580 MB/s |  2020 MB/s |
+| lzf 3.6 -1              | 2.077 |   440 MB/s |   930 MB/s |
 
 [zlib]: http://www.zlib.net/
-[lz4]: http://www.lz4.org/
-
-The negative compression levels, specified with `--fast=#`,
-offer faster compression and decompression speed
-at the cost of compression ratio (compared to level 1).
+[LZ4]: http://www.lz4.org/
 
 Zstd can also offer stronger compression ratios at the cost of compression speed.
 Speed vs Compression trade-off is configurable by small increments.
@@ -151,18 +143,6 @@ example about how Meson is used to build this project.
 
 Note that default build type is **release**.
 
-### VCPKG
-You can build and install zstd [vcpkg](https://github.com/Microsoft/vcpkg/) dependency manager:
-
-    git clone https://github.com/Microsoft/vcpkg.git
-    cd vcpkg
-    ./bootstrap-vcpkg.sh
-    ./vcpkg integrate install
-    ./vcpkg install zstd
-
-The zstd port in vcpkg is kept up to date by Microsoft team members and community contributors.
-If the version is out of date, please [create an issue or pull request](https://github.com/Microsoft/vcpkg) on the vcpkg repository.
-
 ### Visual Studio (Windows)
 
 Going into `build` directory, you will find additional possibilities:
@@ -176,12 +156,6 @@ Going into `build` directory, you will find additional possibilities:
 You can build the zstd binary via buck by executing: `buck build programs:zstd` from the root of the repo.
 The output binary will be in `buck-out/gen/programs/`.
 
-## Testing
-
-You can run quick local smoke tests by executing the `playTest.sh` script from the `src/tests` directory.
-Two env variables `$ZSTD_BIN` and `$DATAGEN_BIN` are needed for the test script to locate the zstd and datagen binary.
-For information on CI testing, please refer to TESTING.md
-
 ## Status
 
 Zstandard is currently deployed within Facebook. It is used continuously to compress large amounts of data in multiple formats and use cases.
@@ -193,7 +167,7 @@ Zstandard is dual-licensed under [BSD](LICENSE) and [GPLv2](COPYING).
 
 ## Contributing
 
-The `dev` branch is the one where all contributions are merged before reaching `release`.
-If you plan to propose a patch, please commit into the `dev` branch, or its own feature branch.
-Direct commit to `release` are not permitted.
+The "dev" branch is the one where all contributions are merged before reaching "master".
+If you plan to propose a patch, please commit into the "dev" branch, or its own feature branch.
+Direct commit to "master" are not permitted.
 For more information, please read [CONTRIBUTING](CONTRIBUTING.md).

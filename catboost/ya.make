@@ -1,13 +1,8 @@
 
 
-IF (SANITIZER_TYPE != "undefined")  # XXX
+IF (NOT SANITIZER_TYPE STREQUAL "undefined")  # XXX
 
-IF (EXPORT_CMAKE AND OS_ANDROID)
-    RECURSE(
-    libs/model_interface
-)
-ELSE()
-    RECURSE(
+RECURSE(
     R-package
     app
     idl
@@ -16,13 +11,10 @@ ELSE()
     private
     pytest
     python-package
-    spark
     tools
-    docs
 )
-ENDIF()
 
-IF (NOT OPENSOURCE)
+IF (NOT CATBOOST_OPENSOURCE)
 RECURSE(
     
 )

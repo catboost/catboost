@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/buffer.h>
 #include <util/generic/hash_set.h>
@@ -14,7 +16,6 @@
 #include "reader.h"
 #include "writer.h"
 
-#include <cmath>
 #include <cstddef>
 
 template <typename T>

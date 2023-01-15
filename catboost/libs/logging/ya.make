@@ -7,8 +7,8 @@ SRCS(
 )
 
 PEERDIR(
-    library/cpp/logger
-    library/cpp/logger/global
+    library/logger
+    library/logger/global
 )
 
 GENERATE_ENUM_SERIALIZATION(logging_level.h)

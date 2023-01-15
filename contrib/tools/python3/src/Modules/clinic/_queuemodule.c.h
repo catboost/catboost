@@ -16,11 +16,11 @@ simplequeue_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
 {
     PyObject *return_value = NULL;
 
-    if ((type == simplequeue_get_state_by_type(type)->SimpleQueueType) &&
+    if ((type == &PySimpleQueueType) &&
         !_PyArg_NoPositional("SimpleQueue", args)) {
         goto exit;
     }
-    if ((type == simplequeue_get_state_by_type(type)->SimpleQueueType) &&
+    if ((type == &PySimpleQueueType) &&
         !_PyArg_NoKeywords("SimpleQueue", kwargs)) {
         goto exit;
     }
@@ -40,7 +40,7 @@ PyDoc_STRVAR(_queue_SimpleQueue_put__doc__,
 "never blocks.  They are provided for compatibility with the Queue class.");
 
 #define _QUEUE_SIMPLEQUEUE_PUT_METHODDEF    \
-    {"put", (PyCFunction)(void(*)(void))_queue_SimpleQueue_put, METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_put__doc__},
+    {"put", (PyCFunction)_queue_SimpleQueue_put, METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_put__doc__},
 
 static PyObject *
 _queue_SimpleQueue_put_impl(simplequeueobject *self, PyObject *item,
@@ -51,32 +51,15 @@ _queue_SimpleQueue_put(simplequeueobject *self, PyObject *const *args, Py_ssize_
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"item", "block", "timeout", NULL};
-    static _PyArg_Parser _parser = {NULL, _keywords, "put", 0};
-    PyObject *argsbuf[3];
-    Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 1;
+    static _PyArg_Parser _parser = {"O|pO:put", _keywords, 0};
     PyObject *item;
     int block = 1;
     PyObject *timeout = Py_None;
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 1, 3, 0, argsbuf);
-    if (!args) {
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &item, &block, &timeout)) {
         goto exit;
     }
-    item = args[0];
-    if (!noptargs) {
-        goto skip_optional_pos;
-    }
-    if (args[1]) {
-        block = PyObject_IsTrue(args[1]);
-        if (block < 0) {
-            goto exit;
-        }
-        if (!--noptargs) {
-            goto skip_optional_pos;
-        }
-    }
-    timeout = args[2];
-skip_optional_pos:
     return_value = _queue_SimpleQueue_put_impl(self, item, block, timeout);
 
 exit:
@@ -93,7 +76,7 @@ PyDoc_STRVAR(_queue_SimpleQueue_put_nowait__doc__,
 "for compatibility with the Queue class.");
 
 #define _QUEUE_SIMPLEQUEUE_PUT_NOWAIT_METHODDEF    \
-    {"put_nowait", (PyCFunction)(void(*)(void))_queue_SimpleQueue_put_nowait, METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_put_nowait__doc__},
+    {"put_nowait", (PyCFunction)_queue_SimpleQueue_put_nowait, METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_put_nowait__doc__},
 
 static PyObject *
 _queue_SimpleQueue_put_nowait_impl(simplequeueobject *self, PyObject *item);
@@ -103,15 +86,13 @@ _queue_SimpleQueue_put_nowait(simplequeueobject *self, PyObject *const *args, Py
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"item", NULL};
-    static _PyArg_Parser _parser = {NULL, _keywords, "put_nowait", 0};
-    PyObject *argsbuf[1];
+    static _PyArg_Parser _parser = {"O:put_nowait", _keywords, 0};
     PyObject *item;
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 1, 1, 0, argsbuf);
-    if (!args) {
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &item)) {
         goto exit;
     }
-    item = args[0];
     return_value = _queue_SimpleQueue_put_nowait_impl(self, item);
 
 exit:
@@ -133,42 +114,26 @@ PyDoc_STRVAR(_queue_SimpleQueue_get__doc__,
 "in that case).");
 
 #define _QUEUE_SIMPLEQUEUE_GET_METHODDEF    \
-    {"get", (PyCFunction)(void(*)(void))_queue_SimpleQueue_get, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_get__doc__},
+    {"get", (PyCFunction)_queue_SimpleQueue_get, METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_get__doc__},
 
 static PyObject *
-_queue_SimpleQueue_get_impl(simplequeueobject *self, PyTypeObject *cls,
-                            int block, PyObject *timeout);
+_queue_SimpleQueue_get_impl(simplequeueobject *self, int block,
+                            PyObject *timeout);
 
 static PyObject *
-_queue_SimpleQueue_get(simplequeueobject *self, PyTypeObject *cls, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+_queue_SimpleQueue_get(simplequeueobject *self, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
 {
     PyObject *return_value = NULL;
     static const char * const _keywords[] = {"block", "timeout", NULL};
-    static _PyArg_Parser _parser = {NULL, _keywords, "get", 0};
-    PyObject *argsbuf[2];
-    Py_ssize_t noptargs = nargs + (kwnames ? PyTuple_GET_SIZE(kwnames) : 0) - 0;
+    static _PyArg_Parser _parser = {"|pO:get", _keywords, 0};
     int block = 1;
     PyObject *timeout = Py_None;
 
-    args = _PyArg_UnpackKeywords(args, nargs, NULL, kwnames, &_parser, 0, 2, 0, argsbuf);
-    if (!args) {
+    if (!_PyArg_ParseStackAndKeywords(args, nargs, kwnames, &_parser,
+        &block, &timeout)) {
         goto exit;
     }
-    if (!noptargs) {
-        goto skip_optional_pos;
-    }
-    if (args[0]) {
-        block = PyObject_IsTrue(args[0]);
-        if (block < 0) {
-            goto exit;
-        }
-        if (!--noptargs) {
-            goto skip_optional_pos;
-        }
-    }
-    timeout = args[1];
-skip_optional_pos:
-    return_value = _queue_SimpleQueue_get_impl(self, cls, block, timeout);
+    return_value = _queue_SimpleQueue_get_impl(self, block, timeout);
 
 exit:
     return return_value;
@@ -184,20 +149,15 @@ PyDoc_STRVAR(_queue_SimpleQueue_get_nowait__doc__,
 "raise the Empty exception.");
 
 #define _QUEUE_SIMPLEQUEUE_GET_NOWAIT_METHODDEF    \
-    {"get_nowait", (PyCFunction)(void(*)(void))_queue_SimpleQueue_get_nowait, METH_METHOD|METH_FASTCALL|METH_KEYWORDS, _queue_SimpleQueue_get_nowait__doc__},
+    {"get_nowait", (PyCFunction)_queue_SimpleQueue_get_nowait, METH_NOARGS, _queue_SimpleQueue_get_nowait__doc__},
 
 static PyObject *
-_queue_SimpleQueue_get_nowait_impl(simplequeueobject *self,
-                                   PyTypeObject *cls);
+_queue_SimpleQueue_get_nowait_impl(simplequeueobject *self);
 
 static PyObject *
-_queue_SimpleQueue_get_nowait(simplequeueobject *self, PyTypeObject *cls, PyObject *const *args, Py_ssize_t nargs, PyObject *kwnames)
+_queue_SimpleQueue_get_nowait(simplequeueobject *self, PyObject *Py_UNUSED(ignored))
 {
-    if (nargs) {
-        PyErr_SetString(PyExc_TypeError, "get_nowait() takes no arguments");
-        return NULL;
-    }
-    return _queue_SimpleQueue_get_nowait_impl(self, cls);
+    return _queue_SimpleQueue_get_nowait_impl(self);
 }
 
 PyDoc_STRVAR(_queue_SimpleQueue_empty__doc__,
@@ -255,4 +215,4 @@ _queue_SimpleQueue_qsize(simplequeueobject *self, PyObject *Py_UNUSED(ignored))
 exit:
     return return_value;
 }
-/*[clinic end generated code: output=a9d567e8a64e6170 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=8badc3bb85263689 input=a9049054013a1b77]*/

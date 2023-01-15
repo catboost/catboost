@@ -5,7 +5,6 @@ UNITTEST_FOR(catboost/libs/data)
 SRCS(
     borders_io_ut.cpp
     columns_ut.cpp
-    ctrs_ut.cpp
     data_provider_ut.cpp
     external_columns_ut.cpp
     features_layout_ut.cpp

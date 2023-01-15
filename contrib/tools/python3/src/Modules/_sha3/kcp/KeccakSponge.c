@@ -16,11 +16,11 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #include "KeccakSponge.h"
 
 #ifdef KeccakReference
-    #error #include "displayIntermediateValues.h"
+    #include "displayIntermediateValues.h" // Y_IGNORE
 #endif
 
 #ifndef KeccakP200_excluded
-    #error #include "KeccakP-200-SnP.h"
+    #include "KeccakP-200-SnP.h" // Y_IGNORE
 
     #define prefix KeccakWidth200
     #define SnP KeccakP200
@@ -38,7 +38,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #endif
 
 #ifndef KeccakP400_excluded
-    #error #include "KeccakP-400-SnP.h"
+    #include "KeccakP-400-SnP.h" // Y_IGNORE
 
     #define prefix KeccakWidth400
     #define SnP KeccakP400
@@ -56,7 +56,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #endif
 
 #ifndef KeccakP800_excluded
-    #error #include "KeccakP-800-SnP.h"
+    #include "KeccakP-800-SnP.h" // Y_IGNORE
 
     #define prefix KeccakWidth800
     #define SnP KeccakP800

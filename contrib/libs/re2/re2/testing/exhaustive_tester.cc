@@ -13,8 +13,7 @@
 
 #include <stdio.h>
 
-#include "library/cpp/testing/gtest/gtest.h"
-#include "util/flags.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "util/strutil.h"
 #include "re2/testing/exhaustive_tester.h"
@@ -25,11 +24,11 @@
 #define LOGGING 0
 #endif
 
-DEFINE_FLAG(bool, show_regexps, false, "show regexps during testing");
+DEFINE_bool(show_regexps, false, "show regexps during testing");
 
-DEFINE_FLAG(int, max_bad_regexp_inputs, 1,
-            "Stop testing a regular expression after finding this many "
-            "strings that break it.");
+DEFINE_int32(max_bad_regexp_inputs, 1,
+             "Stop testing a regular expression after finding this many "
+             "strings that break it.");
 
 namespace re2 {
 
@@ -63,26 +62,24 @@ static void PrintResult(const RE2& re, const StringPiece& input, RE2::Anchor anc
   for (int i = 0; i < n; i++) {
     if (i > 0)
       printf(" ");
-    if (m[i].data() == NULL)
+    if (m[i].begin() == NULL)
       printf("-");
     else
       printf("%td-%td",
-             BeginPtr(m[i]) - BeginPtr(input),
-             EndPtr(m[i]) - BeginPtr(input));
+             m[i].begin() - input.begin(), m[i].end() - input.begin());
   }
 }
 
 // Processes a single generated regexp.
 // Compiles it using Regexp interface and PCRE, and then
 // checks that NFA, DFA, and PCRE all return the same results.
-void ExhaustiveTester::HandleRegexp(const std::string& const_regexp) {
+void ExhaustiveTester::HandleRegexp(const string& const_regexp) {
   regexps_++;
-  std::string regexp = const_regexp;
-  if (!topwrapper_.empty()) {
+  string regexp = const_regexp;
+  if (!topwrapper_.empty())
     regexp = StringPrintf(topwrapper_.c_str(), regexp.c_str());
-  }
 
-  if (GetFlag(FLAGS_show_regexps)) {
+  if (FLAGS_show_regexps) {
     printf("\r%s", regexp.c_str());
     fflush(stdout);
   }
@@ -137,7 +134,7 @@ void ExhaustiveTester::HandleRegexp(const std::string& const_regexp) {
     tests_++;
     if (!tester.TestInput(strgen_.Next())) {
       failures_++;
-      if (++bad_inputs >= GetFlag(FLAGS_max_bad_regexp_inputs))
+      if (++bad_inputs >= FLAGS_max_bad_regexp_inputs)
         break;
     }
   }
@@ -145,12 +142,12 @@ void ExhaustiveTester::HandleRegexp(const std::string& const_regexp) {
 
 // Runs an exhaustive test on the given parameters.
 void ExhaustiveTest(int maxatoms, int maxops,
-                    const std::vector<std::string>& alphabet,
-                    const std::vector<std::string>& ops,
+                    const std::vector<string>& alphabet,
+                    const std::vector<string>& ops,
                     int maxstrlen,
-                    const std::vector<std::string>& stralphabet,
-                    const std::string& wrapper,
-                    const std::string& topwrapper) {
+                    const std::vector<string>& stralphabet,
+                    const string& wrapper,
+                    const string& topwrapper) {
   if (RE2_DEBUG_MODE) {
     if (maxatoms > 1)
       maxatoms--;
@@ -172,12 +169,12 @@ void ExhaustiveTest(int maxatoms, int maxops,
 
 // Runs an exhaustive test using the given parameters and
 // the basic egrep operators.
-void EgrepTest(int maxatoms, int maxops, const std::string& alphabet,
-               int maxstrlen, const std::string& stralphabet,
-               const std::string& wrapper) {
+void EgrepTest(int maxatoms, int maxops, const string& alphabet,
+               int maxstrlen, const string& stralphabet,
+               const string& wrapper) {
   const char* tops[] = { "", "^(?:%s)", "(?:%s)$", "^(?:%s)$" };
 
-  for (size_t i = 0; i < arraysize(tops); i++) {
+  for (int i = 0; i < arraysize(tops); i++) {
     ExhaustiveTest(maxatoms, maxops,
                    Split("", alphabet),
                    RegexpGenerator::EgrepOps(),

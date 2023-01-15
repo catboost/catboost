@@ -1,4 +1,4 @@
-PY2_PROGRAM()
+PY_PROGRAM()
 
 
 

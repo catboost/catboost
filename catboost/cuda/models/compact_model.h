@@ -7,6 +7,6 @@
 
 namespace NCatboostCuda {
     TAdditiveModel<TObliviousTreeModel> MakeOTEnsemble(const TAdditiveModel<TNonSymmetricTree>& ensemble,
-                                                       NPar::ILocalExecutor* localExecutor);
+                                                       NPar::TLocalExecutor* localExecutor);
 
 }

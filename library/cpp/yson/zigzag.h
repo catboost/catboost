@@ -2,7 +2,7 @@
 
 #include <util/system/defaults.h>
 
-namespace NYson {
+namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     //! Functions that provide coding of integers with property: 0 <= f(x) <= 2 * |x|
@@ -28,4 +28,4 @@ namespace NYson {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-} // namespace NYson
+}

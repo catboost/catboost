@@ -1,10 +1,13 @@
 LIBRARY()
 
-LICENSE(PSF-2.0)
+LICENSE(
+    PSF
+)
 
 
 
 NO_WSHADOW()
+ENABLE(NO_WIN32_LEAN)
 
 CFLAGS(
     GLOBAL -DARCADIA_PYTHON_UNICODE_SIZE=${ARCADIA_PYTHON_UNICODE_SIZE}
@@ -23,6 +26,8 @@ SRCDIR(
 INCLUDE(${ARCADIA_ROOT}/contrib/tools/python/pyconfig.inc)
 INCLUDE(CMakeLists.inc)
 
-CHECK_CONFIG_H(pyconfig.h)
+IF (YMAKE)
+    CHECK_CONFIG_H(pyconfig.h)
+ENDIF ()
 
 END()

@@ -1,6 +1,5 @@
 #include "oblivious_tree_leaves_estimator.h"
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
-#include <catboost/libs/metrics/optimal_const_for_loss.h>
 
 namespace NCatboostCuda {
     void TObliviousTreeLeavesEstimator::WriteValueAndFirstDerivatives(double* value,
@@ -67,33 +66,10 @@ namespace NCatboostCuda {
         }
     }
 
-    TVector<float> NCatboostCuda::TObliviousTreeLeavesEstimator::EstimateExact() {
-        const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
-        const ui32 streamCount = Min<ui32>(taskCount, 8);
-
-        TVector<float> result(TaskSlices.back().Right);
-        RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
-            TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
-            TSlice taskSlice = TaskSlices[taskId];
-            ui32 taskSliceSize = taskSlice.Size();
-
-            TVector<float> point(taskSliceSize);
-            taskHelper.ComputeExact(point, this->LeavesEstimationConfig.LossDescription, streamId);
-            CB_ENSURE(point.size() == taskSliceSize);
-
-            for (ui32 index = taskSlice.Left; index < taskSlice.Right; ++index) {
-                result[index] = point[index - taskSlice.Left];
-            }
-        });
-
-        MoveTo(result);
-        return MakeEstimationResult(result);
-    }
-
     const TVector<double>& NCatboostCuda::TObliviousTreeLeavesEstimator::GetCurrentPointInfo() {
         if (CurrentPointInfo == nullptr) {
             CB_ENSURE(CurrentPoint.size(), "Error: set point first");
-            CurrentPointInfo = MakeHolder<TVector<double>>();
+            CurrentPointInfo = new TVector<double>;
             auto& profiler = NCudaLib::GetProfiler();
             auto projectDerGuard = profiler.Profile("Compute values and derivatives");
 
@@ -111,7 +87,7 @@ namespace NCatboostCuda {
                                                             TSlice(derOffset, derOffset + taskSlice.Size()));
 
                 TCudaBuffer<double, NCudaLib::TStripeMapping> der2View;
-                if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+                if (LeavesEstimationConfig.UseNewton) {
                     const ui32 der2Offset = taskCount + TaskSlices.back().Right + taskSlice.Left;
                     der2View = NCudaLib::ParallelStripeView(PartStats,
                                                             TSlice(der2Offset, der2Offset + taskSlice.Size()));
@@ -119,7 +95,7 @@ namespace NCatboostCuda {
 
                 taskHelper.Project(&scoreView,
                                    &derView,
-                                   LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton ? &der2View : nullptr,
+                                   LeavesEstimationConfig.UseNewton ? &der2View : nullptr,
                                    streamId);
             });
 
@@ -146,7 +122,7 @@ namespace NCatboostCuda {
         secondDer->clear();
         secondDer->resize(totalLeavesCount);
 
-        if (LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton) {
+        if (LeavesEstimationConfig.UseNewton) {
             Copy(data.begin() + taskCount + totalLeavesCount,
                  data.begin() + taskCount + 2 * totalLeavesCount,
                  secondDer->begin());
@@ -162,14 +138,7 @@ namespace NCatboostCuda {
         }
     }
 
-    void TObliviousTreeLeavesEstimator::AddLangevinNoiseToDerivatives(TVector<double>* derivatives,
-                                                                      NPar::ILocalExecutor* localExecutor) {
-        if (LeavesEstimationConfig.Langevin) {
-            AddLangevinNoise(LeavesEstimationConfig, derivatives, localExecutor, Random.NextUniformL());
-        }
-    }
-
-    void TObliviousTreeLeavesEstimator::Estimate(NPar::ILocalExecutor* localExecutor) {
+    void TObliviousTreeLeavesEstimator::Estimate(NPar::TLocalExecutor* localExecutor) {
         CreatePartStats();
         ComputePartWeights();
 
@@ -177,15 +146,13 @@ namespace NCatboostCuda {
         LeafValues = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(totalLeavesCount));
         FillBuffer(LeafValues, 0.0f);
 
+        TNewtonLikeWalker newtonLikeWalker(*this,
+                                           LeavesEstimationConfig.Iterations,
+                                           LeavesEstimationConfig.BacktrackingType);
+
         TVector<float> point;
-        if (this->LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
-            point = EstimateExact();
-        } else {
-            TNewtonLikeWalker newtonLikeWalker(*this,
-                                               LeavesEstimationConfig.Iterations,
-                                               LeavesEstimationConfig.BacktrackingType);
-            point = newtonLikeWalker.Estimate(point, localExecutor);
-        }
+        point.resize(totalLeavesCount);
+        point = newtonLikeWalker.Estimate(point, localExecutor);
 
         for (ui32 taskId = 0; taskId < TaskHelpers.size(); ++taskId) {
             float* values = point.data() + TaskSlices[taskId].Left;
@@ -263,7 +230,7 @@ namespace NCatboostCuda {
     void TObliviousTreeLeavesEstimator::CreatePartStats() {
         const ui32 taskCount = TaskHelpers.size();
         const ui32 totalLeavesCount = TaskSlices.back().Right;
-        ui32 sumCount = LeavesEstimationConfig.LeavesEstimationMethod == ELeavesEstimation::Newton ? 2 : 1;
+        ui32 sumCount = LeavesEstimationConfig.UseNewton ? 2 : 1;
         auto mapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(totalLeavesCount * sumCount + taskCount);
         PartStats.Reset(mapping);
     }

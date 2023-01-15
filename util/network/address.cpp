@@ -3,13 +3,8 @@
 #include "address.h"
 
 #if defined(_unix_)
-    #include <sys/un.h>
-#endif
-
-#ifndef UNIX_PATH_MAX
-inline constexpr size_t UNIX_PATH_LIMIT = 108;
-#else
-inline constexpr size_t UNIX_PATH_LIMIT = UNIX_PATH_MAX;
+#include <sys/types.h>
+#include <sys/un.h>
 #endif
 
 using namespace NAddr;
@@ -142,17 +137,7 @@ IRemoteAddrPtr NAddr::GetSockAddr(SOCKET s) {
         ythrow TSystemError() << "getsockname() failed";
     }
 
-    return addr;
-}
-
-IRemoteAddrPtr NAddr::GetPeerAddr(SOCKET s) {
-    auto addr = MakeHolder<TOpaqueAddr>();
-
-    if (getpeername(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
-        ythrow TSystemError() << "getpeername() failed";
-    }
-
-    return addr;
+    return addr.Release();
 }
 
 static const in_addr& InAddr(const IRemoteAddr& addr) {
@@ -206,18 +191,4 @@ socklen_t NAddr::SockAddrLength(const sockaddr* addr) {
     }
 
     ythrow yexception() << "unsupported address family: " << addr->sa_family;
-}
-
-TUnixSocketAddr::TUnixSocketAddr(TStringBuf path) {
-    Y_ENSURE(path.Size() <= UNIX_PATH_LIMIT - 1,
-             "Unix path \"" << path << "\" is longer than " << UNIX_PATH_LIMIT);
-    SockAddr_.Set(path);
-}
-
-const sockaddr* TUnixSocketAddr::Addr() const {
-    return SockAddr_.SockAddr();
-}
-
-socklen_t TUnixSocketAddr::Len() const {
-    return SockAddr_.Len();
 }

@@ -21,6 +21,10 @@ public:
     inline explicit operator bool() const noexcept {
         return !this->empty();
     }
+
+    inline bool contains(const K& key) const {
+        return this->find(key) != this->end();
+    }
 };
 
 template <class K, class V, class Less, class A>
@@ -32,5 +36,9 @@ public:
 
     inline explicit operator bool() const noexcept {
         return !this->empty();
+    }
+
+    inline bool contains(const K& key) const {
+        return this->find(key) != this->end();
     }
 };

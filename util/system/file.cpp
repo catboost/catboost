@@ -3,7 +3,6 @@
 #include "fstat.h"
 #include "sysstat.h"
 #include "align.h"
-#include "info.h"
 
 #include <array>
 
@@ -16,7 +15,6 @@
 
 #include <util/random/random.h>
 
-#include <util/generic/size_literals.h>
 #include <util/generic/string.h>
 #include <util/generic/ylimits.h>
 #include <util/generic/yexception.h>
@@ -26,37 +24,37 @@
 #include <errno.h>
 
 #if defined(_unix_)
-    #include <fcntl.h>
-
-    #if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21) && !defined(FALLOC_FL_KEEP_SIZE)
-        #include <linux/falloc.h>
-    #endif
-
-    #include <stdlib.h>
-    #include <unistd.h>
-    #include <sys/mman.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
 #elif defined(_win_)
-    #include "winint.h"
-    #include "fs_win.h"
-    #include <io.h>
+#include "winint.h"
+#include "fs_win.h"
+#include <io.h>
 #endif
 
 #if defined(_bionic_)
-    #include <sys/sendfile.h>
-    #define HAVE_POSIX_FADVISE 0
-    #define HAVE_SYNC_FILE_RANGE 0
+#include <sys/sendfile.h>
+#define HAVE_POSIX_FADVISE 0
+#define HAVE_SYNC_FILE_RANGE 0
 #elif defined(_linux_)
-    #include <sys/sendfile.h>
-    #define HAVE_POSIX_FADVISE 1
-    #define HAVE_SYNC_FILE_RANGE 1
+#include <sys/sendfile.h>
+#define HAVE_POSIX_FADVISE 1
+#define HAVE_SYNC_FILE_RANGE 1
 #elif defined(__FreeBSD__) && !defined(WITH_VALGRIND)
-    #include <sys/param.h>
-    #define HAVE_POSIX_FADVISE (__FreeBSD_version >= 900501)
-    #define HAVE_SYNC_FILE_RANGE 0
+#include <sys/param.h>
+#define HAVE_POSIX_FADVISE (__FreeBSD_version >= 900501)
+#define HAVE_SYNC_FILE_RANGE 0
 #else
-    #define HAVE_POSIX_FADVISE 0
-    #define HAVE_SYNC_FILE_RANGE 0
+#define HAVE_POSIX_FADVISE 0
+#define HAVE_SYNC_FILE_RANGE 0
 #endif
+
+// Maximum amount of bytes to be read or written via single system call.
+// Some libraries fail when it is greater than max int.
+// FreeBSD has performance loss when it is greater than 1GB.
+const size_t MaxPortion = size_t(1 << 30);
 
 static bool IsStupidFlagCombination(EOpenMode oMode) {
     // ForAppend will actually not be applied in the following combinations:
@@ -179,11 +177,11 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
         fcMode |= O_CLOEXEC;
     }
 
-    /* I don't now about this for unix...
+/* I don't now about this for unix...
     if (oMode & Temp) {
     }
     */
-    #if defined(_freebsd_)
+#if defined(_freebsd_)
     if (oMode & (Direct | DirectAligned)) {
         fcMode |= O_DIRECT;
     }
@@ -191,7 +189,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     if (oMode & Sync) {
         fcMode |= O_SYNC;
     }
-    #elif defined(_linux_)
+#elif defined(_linux_)
     if (oMode & DirectAligned) {
         /*
          * O_DIRECT in Linux requires aligning request size and buffer address
@@ -203,11 +201,11 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
     if (oMode & Sync) {
         fcMode |= O_SYNC;
     }
-    #endif
+#endif
 
-    #if defined(_linux_)
+#if defined(_linux_)
     fcMode |= O_LARGEFILE;
-    #endif
+#endif
 
     ui32 permMode = 0;
     if (oMode & AXOther) {
@@ -242,7 +240,7 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
         Fd_ = ::open(fName.data(), fcMode, permMode);
     } while (Fd_ == -1 && errno == EINTR);
 
-    #if HAVE_POSIX_FADVISE
+#if HAVE_POSIX_FADVISE
     if (Fd_ >= 0) {
         if (oMode & NoReuse) {
             ::posix_fadvise(Fd_, 0, 0, POSIX_FADV_NOREUSE);
@@ -256,14 +254,14 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
             ::posix_fadvise(Fd_, 0, 0, POSIX_FADV_RANDOM);
         }
     }
-    #endif
+#endif
 
     //temp file
     if (Fd_ >= 0 && (oMode & Transient)) {
         unlink(fName.data());
     }
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -288,7 +286,7 @@ bool TFileHandle::Close() noexcept {
         Y_VERIFY(errno != EBADF, "must not quietly close bad descriptor: fd=%d", int(Fd_));
     }
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
     Fd_ = INVALID_FHANDLE;
     return isOk;
@@ -309,13 +307,13 @@ static inline i64 DoSeek(FHANDLE h, i64 offset, SeekDir origin) noexcept {
     return pos.QuadPart;
 #elif defined(_unix_)
     static int dir[] = {SEEK_SET, SEEK_CUR, SEEK_END};
-    #if defined(_sun_)
+#if defined(_sun_)
     return ::llseek(h, (offset_t)offset, dir[origin]);
-    #else
-    return ::lseek(h, (off_t)offset, dir[origin]);
-    #endif
 #else
-    #error unsupported platform
+    return ::lseek(h, (off_t)offset, dir[origin]);
+#endif
+#else
+#error unsupported platform
 #endif
 }
 
@@ -359,7 +357,7 @@ bool TFileHandle::Resize(i64 length) noexcept {
 #elif defined(_unix_)
     return (0 == ftruncate(Fd_, (off_t)length));
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -383,33 +381,9 @@ bool TFileHandle::Reserve(i64 length) noexcept {
 #elif defined(_unix_)
 // No way to implement this under FreeBSD. Just do nothing
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
     return true;
-}
-
-bool TFileHandle::FallocateNoResize(i64 length) noexcept {
-    if (!IsOpen()) {
-        return false;
-    }
-#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
-    return !fallocate(Fd_, FALLOC_FL_KEEP_SIZE, 0, length);
-#else
-    Y_UNUSED(length);
-    return true;
-#endif
-}
-
-// Pair for FallocateNoResize
-bool TFileHandle::ShrinkToFit() noexcept {
-    if (!IsOpen()) {
-        return false;
-    }
-#if defined(_linux_) && (!defined(_android_) || __ANDROID_API__ >= 21)
-    return !ftruncate(Fd_, (off_t)GetLength());
-#else
-    return true;
-#endif
 }
 
 bool TFileHandle::Flush() noexcept {
@@ -433,13 +407,13 @@ bool TFileHandle::Flush() noexcept {
      * Fail in case of EIO, ENOSPC, EDQUOT - data might be lost.
      */
     return ret == 0 || errno == EROFS || errno == EINVAL
-    #if defined(_darwin_)
+#if defined(_darwin_)
            // ENOTSUP fd does not refer to a vnode
            || errno == ENOTSUP
-    #endif
+#endif
         ;
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -476,7 +450,7 @@ i32 TFileHandle::Read(void* buffer, ui32 byteCount) noexcept {
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -497,7 +471,7 @@ i32 TFileHandle::Write(const void* buffer, ui32 byteCount) noexcept {
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -522,7 +496,7 @@ i32 TFileHandle::Pread(void* buffer, ui32 byteCount, i64 offset) const noexcept 
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -544,7 +518,7 @@ i32 TFileHandle::Pwrite(const void* buffer, ui32 byteCount, i64 offset) const no
     } while (ret == -1 && errno == EINTR);
     return ret;
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -561,39 +535,7 @@ FHANDLE TFileHandle::Duplicate() const noexcept {
 #elif defined(_unix_)
     return ::dup(Fd_);
 #else
-    #error unsupported platform
-#endif
-}
-
-int TFileHandle::Duplicate2Posix(int dstHandle) const noexcept {
-    if (!IsOpen()) {
-        return -1;
-    }
-#if defined(_win_)
-    FHANDLE dupHandle = Duplicate();
-    if (dupHandle == INVALID_FHANDLE) {
-        _set_errno(EMFILE);
-        return -1;
-    }
-    int posixHandle = _open_osfhandle((intptr_t)dupHandle, 0);
-    if (posixHandle == -1) {
-        CloseHandle(dupHandle);
-        return -1;
-    }
-    if (dup2(posixHandle, dstHandle) == -1) {
-        dstHandle = -1;
-    }
-    _close(posixHandle);
-    return dstHandle;
-#elif defined(_unix_)
-    while (dup2(Fd_, dstHandle) == -1) {
-        if (errno != EINTR) {
-            return -1;
-        }
-    }
-    return dstHandle;
-#else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -617,7 +559,7 @@ bool TFileHandle::LinkTo(const TFileHandle& fh) const noexcept {
 
     return true;
 #else
-    #error unsupported
+#error unsupported
 #endif
 }
 
@@ -646,7 +588,7 @@ void TFileHandle::ResetDirect() {
 i64 TFileHandle::CountCache(i64 offset, i64 length) const noexcept {
 #ifdef _linux_
     const i64 pageSize = NSystemInfo::GetPageSize();
-    constexpr size_t vecSize = 512; // Fetch up to 2MiB at once
+    constexpr size_t vecSize = 512;  // Fetch up to 2MiB at once
     const i64 batchSize = vecSize * pageSize;
     std::array<ui8, vecSize> vec;
     void* ptr = nullptr;
@@ -723,10 +665,10 @@ i64 TFileHandle::CountCache(i64 offset, i64 length) const noexcept {
 
 void TFileHandle::PrefetchCache(i64 offset, i64 length, bool wait) const noexcept {
 #ifdef _linux_
-    #if HAVE_POSIX_FADVISE
+#if HAVE_POSIX_FADVISE
     // POSIX_FADV_WILLNEED starts reading upto read_ahead_kb in background
     ::posix_fadvise(Fd_, offset, length, POSIX_FADV_WILLNEED);
-    #endif
+#endif
 
     if (wait) {
         TFileHandle devnull("/dev/null", OpenExisting | WrOnly | CloseOnExec);
@@ -780,13 +722,13 @@ TString DecodeOpenMode(ui32 mode0) {
 
     TStringBuilder r;
 
-#define F(flag)                   \
-    if ((mode & flag) == flag) {  \
-        mode &= ~flag;            \
-        if (r) {                  \
-            r << TStringBuf("|"); \
-        }                         \
-        r << TStringBuf(#flag);   \
+#define F(flag)                    \
+    if ((mode & flag) == flag) {   \
+        mode &= ~flag;             \
+        if (r) {                   \
+            r << AsStringBuf("|"); \
+        }                          \
+        r << AsStringBuf(#flag);   \
     }
 
     F(RdWr)
@@ -828,7 +770,7 @@ TString DecodeOpenMode(ui32 mode0) {
 
     if (mode != 0) {
         if (r) {
-            r << TStringBuf("|");
+            r << AsStringBuf("|");
         }
 
         r << Hex(mode);
@@ -898,18 +840,6 @@ public:
         }
     }
 
-    void FallocateNoResize(i64 length) {
-        if (!Handle_.FallocateNoResize(length)) {
-            ythrow TFileError() << "can't allocate " << length << "bytes of space for file " << FileName_.Quote();
-        }
-    }
-
-    void ShrinkToFit() {
-        if (!Handle_.ShrinkToFit()) {
-            ythrow TFileError() << "can't shrink " << FileName_.Quote() << " to logical size";
-        }
-    }
-
     void Flush() {
         if (!Handle_.Flush()) {
             ythrow TFileError() << "can't flush " << FileName_.Quote();
@@ -932,31 +862,20 @@ public:
         return res;
     }
 
-    // Maximum amount of bytes to be read via single system call.
-    // Some libraries fail when it is greater than max int.
-    // Syscalls can cause contention if they operate on very large data blocks.
-    static constexpr size_t MaxReadPortion = 1_GB;
-
     i32 RawRead(void* bufferIn, size_t numBytes) {
-        const size_t toRead = Min(MaxReadPortion, numBytes);
-        return Handle_.Read(bufferIn, toRead);
-    }
-
-    size_t ReadOrFail(void* buf, size_t numBytes) {
-        const i32 reallyRead = RawRead(buf, numBytes);
-
-        if (reallyRead < 0) {
-            ythrow TFileError() << "can not read data from " << FileName_.Quote();
-        }
-
-        return reallyRead;
+        return Handle_.Read(bufferIn, numBytes);
     }
 
     size_t Read(void* bufferIn, size_t numBytes) {
         ui8* buf = (ui8*)bufferIn;
 
         while (numBytes) {
-            const size_t reallyRead = ReadOrFail(buf, numBytes);
+            const i32 toRead = (i32)Min(MaxPortion, numBytes);
+            const i32 reallyRead = RawRead(buf, toRead);
+
+            if (reallyRead < 0) {
+                ythrow TFileError() << "can not read data from " << FileName_.Quote();
+            }
 
             if (reallyRead == 0) {
                 // file exhausted
@@ -976,16 +895,11 @@ public:
         }
     }
 
-    // Maximum amount of bytes to be written via single system call.
-    // Some libraries fail when it is greater than max int.
-    // Syscalls can cause contention if they operate on very large data blocks.
-    static constexpr size_t MaxWritePortion = 1_GB;
-
     void Write(const void* buffer, size_t numBytes) {
         const ui8* buf = (const ui8*)buffer;
 
         while (numBytes) {
-            const i32 toWrite = (i32)Min(MaxWritePortion, numBytes);
+            const i32 toWrite = (i32)Min(MaxPortion, numBytes);
             const i32 reallyWritten = Handle_.Write(buf, toWrite);
 
             if (reallyWritten < 0) {
@@ -1001,7 +915,7 @@ public:
         ui8* buf = (ui8*)bufferIn;
 
         while (numBytes) {
-            const i32 toRead = (i32)Min(MaxReadPortion, numBytes);
+            const i32 toRead = (i32)Min(MaxPortion, numBytes);
             const i32 reallyRead = RawPread(buf, toRead, offset);
 
             if (reallyRead < 0) {
@@ -1035,7 +949,7 @@ public:
         const ui8* buf = (const ui8*)buffer;
 
         while (numBytes) {
-            const i32 toWrite = (i32)Min(MaxWritePortion, numBytes);
+            const i32 toWrite = (i32)Min(MaxPortion, numBytes);
             const i32 reallyWritten = Handle_.Pwrite(buf, toWrite, offset);
 
             if (reallyWritten < 0) {
@@ -1145,14 +1059,6 @@ void TFile::Reserve(i64 length) {
     Impl_->Reserve(length);
 }
 
-void TFile::FallocateNoResize(i64 length) {
-    Impl_->FallocateNoResize(length);
-}
-
-void TFile::ShrinkToFit() {
-    Impl_->ShrinkToFit();
-}
-
 void TFile::Flush() {
     Impl_->Flush();
 }
@@ -1173,10 +1079,6 @@ size_t TFile::Read(void* buf, size_t len) {
 
 i32 TFile::RawRead(void* buf, size_t len) {
     return Impl_->RawRead(buf, len);
-}
-
-size_t TFile::ReadOrFail(void* buf, size_t len) {
-    return Impl_->ReadOrFail(buf, len);
 }
 
 void TFile::Load(void* buf, size_t len) {
@@ -1279,7 +1181,7 @@ TFile Duplicate(int fd) {
 #elif defined(_unix_)
     return TFile(::dup(fd));
 #else
-    #error unsupported platform
+#error unsupported platform
 #endif
 }
 
@@ -1287,13 +1189,13 @@ bool PosixDisableReadAhead(FHANDLE fileHandle, void* addr) noexcept {
     int ret = -1;
 
 #if HAVE_POSIX_FADVISE
-    #if defined(_linux_)
+#if defined(_linux_)
     Y_UNUSED(fileHandle);
     ret = madvise(addr, 0, MADV_RANDOM); // according to klamm@ posix_fadvise does not work under linux, madvise does work
-    #else
+#else
     Y_UNUSED(addr);
     ret = ::posix_fadvise(fileHandle, 0, 0, POSIX_FADV_RANDOM);
-    #endif
+#endif
 #else
     Y_UNUSED(fileHandle);
     Y_UNUSED(addr);

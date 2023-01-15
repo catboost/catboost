@@ -1,7 +1,5 @@
 #pragma once
 
-#include <util/generic/maybe.h>
-
 #include <ostream>
 
 namespace NCatboostCuda {
@@ -15,7 +13,6 @@ namespace NCatboostCuda {
         }
 
         TAdditiveModel(const TAdditiveModel& other) = default;
-        TAdditiveModel& operator=(const TAdditiveModel& other) = default;
 
         template <class TDataSet, class TCursor>
         void Append(const TDataSet& ds,
@@ -76,14 +73,6 @@ namespace NCatboostCuda {
             for (ui32 i = 0; i < WeakModels.size(); i++)
                 value += (double)WeakModels[i].Value(point);
             return value;
-        }
-
-        // Calculate MVS Lambda
-        TMaybe<float> GetL1LeavesSum() const {
-            if (WeakModels.empty()) {
-                return Nothing();
-            }
-            return WeakModels.back().GetL1LeavesSum();
         }
 
         Y_SAVELOAD_DEFINE(Bias, WeakModels);

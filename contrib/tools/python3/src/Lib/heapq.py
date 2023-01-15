@@ -468,7 +468,10 @@ def nsmallest(n, iterable, key=None):
     if n == 1:
         it = iter(iterable)
         sentinel = object()
-        result = min(it, default=sentinel, key=key)
+        if key is None:
+            result = min(it, default=sentinel)
+        else:
+            result = min(it, default=sentinel, key=key)
         return [] if result is sentinel else [result]
 
     # When n>=size, it's faster to use sorted()
@@ -528,7 +531,10 @@ def nlargest(n, iterable, key=None):
     if n == 1:
         it = iter(iterable)
         sentinel = object()
-        result = max(it, default=sentinel, key=key)
+        if key is None:
+            result = max(it, default=sentinel)
+        else:
+            result = max(it, default=sentinel, key=key)
         return [] if result is sentinel else [result]
 
     # When n>=size, it's faster to use sorted()
@@ -597,5 +603,5 @@ except ImportError:
 
 if __name__ == "__main__":
 
-    import doctest # pragma: no cover
-    print(doctest.testmod()) # pragma: no cover
+    import doctest
+    print(doctest.testmod())

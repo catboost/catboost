@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2011-2019 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -68,61 +68,26 @@ void OPENSSL_cpuid_setup(void) __attribute__ ((constructor));
 #   include <sys/auxv.h>
 #   define OSSL_IMPLEMENT_GETAUXVAL
 #  endif
-# elif defined(__ANDROID_API__)
-/* see https://developer.android.google.cn/ndk/guides/cpu-features */
-#  if __ANDROID_API__ >= 18
-#   include <sys/auxv.h>
-#   define OSSL_IMPLEMENT_GETAUXVAL
-#  endif
 # endif
-# if defined(__FreeBSD__)
-#  include <sys/param.h>
-#  if __FreeBSD_version >= 1200000
-#   include <sys/auxv.h>
-#   define OSSL_IMPLEMENT_GETAUXVAL
-
-static unsigned long getauxval(unsigned long key)
-{
-  unsigned long val = 0ul;
-
-  if (elf_aux_info((int)key, &val, sizeof(val)) != 0)
-    return 0ul;
-
-  return val;
-}
-#  endif
-# endif
-
-/*
- * Android: according to https://developer.android.com/ndk/guides/cpu-features,
- * getauxval is supported starting with API level 18
- */
-#  if defined(__ANDROID__) && defined(__ANDROID_API__) && __ANDROID_API__ >= 18
-#   include <sys/auxv.h>
-#   define OSSL_IMPLEMENT_GETAUXVAL
-#  endif
 
 /*
  * ARM puts the feature bits for Crypto Extensions in AT_HWCAP2, whereas
  * AArch64 used AT_HWCAP.
  */
-# ifndef AT_HWCAP
-#  define AT_HWCAP               16
-# endif
-# ifndef AT_HWCAP2
-#  define AT_HWCAP2              26
-# endif
 # if defined(__arm__) || defined (__arm)
-#  define HWCAP                  AT_HWCAP
+#  define HWCAP                  16
+                                  /* AT_HWCAP */
 #  define HWCAP_NEON             (1 << 12)
 
-#  define HWCAP_CE               AT_HWCAP2
+#  define HWCAP_CE               26
+                                  /* AT_HWCAP2 */
 #  define HWCAP_CE_AES           (1 << 0)
 #  define HWCAP_CE_PMULL         (1 << 1)
 #  define HWCAP_CE_SHA1          (1 << 2)
 #  define HWCAP_CE_SHA256        (1 << 3)
 # elif defined(__aarch64__)
-#  define HWCAP                  AT_HWCAP
+#  define HWCAP                  16
+                                  /* AT_HWCAP */
 #  define HWCAP_NEON             (1 << 1)
 
 #  define HWCAP_CE               HWCAP
@@ -237,13 +202,11 @@ void OPENSSL_cpuid_setup(void)
     }
 # endif
 
-    #ifndef ARCADIA_OPENSSL_DISABLE_ARMV7_TICK
     /* Things that getauxval didn't tell us */
     if (sigsetjmp(ill_jmp, 1) == 0) {
         _armv7_tick();
         OPENSSL_armcap_P |= ARMV7_TICK;
     }
-    #endif
 
     sigaction(SIGILL, &ill_oact, NULL);
     sigprocmask(SIG_SETMASK, &oset, NULL);

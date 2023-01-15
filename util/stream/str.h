@@ -42,11 +42,6 @@ public:
     TStringInput(TStringInput&&) noexcept = default;
     TStringInput& operator=(TStringInput&&) noexcept = default;
 
-    inline void Swap(TStringInput& s) noexcept {
-        DoSwap(S_, s.S_);
-        DoSwap(Pos_, s.Pos_);
-    }
-
 protected:
     size_t DoNext(const void** ptr, size_t len) override;
     void DoUndo(size_t len) override;
@@ -74,11 +69,11 @@ public:
      * @param s                         String to append to.
      */
     inline TStringOutput(TString& s) noexcept
-        : S_(&s)
+        : S_(s)
     {
     }
 
-    TStringOutput(TStringOutput&& s) noexcept = default;
+     TStringOutput(TStringOutput&& s) noexcept = default;
 
     ~TStringOutput() override;
 
@@ -87,11 +82,7 @@ public:
      *                                  reserve in output string.
      */
     inline void Reserve(size_t size) {
-        S_->reserve(S_->size() + size);
-    }
-
-    inline void Swap(TStringOutput& s) noexcept {
-        DoSwap(S_, s.S_);
+        S_.reserve(S_.size() + size);
     }
 
 protected:
@@ -101,34 +92,34 @@ protected:
     void DoWriteC(char c) override;
 
 private:
-    TString* S_;
+    TString& S_;
 };
 
 /**
  * String input/output stream, similar to `std::stringstream`.
  */
 class TStringStream: private TEmbedPolicy<TString>, public TStringInput, public TStringOutput {
-    using TEmbeddedString = TEmbedPolicy<TString>;
+    using TEmbededString = TEmbedPolicy<TString>;
 
 public:
     inline TStringStream()
-        : TEmbeddedString()
-        , TStringInput(*TEmbeddedString::Ptr())
-        , TStringOutput(*TEmbeddedString::Ptr())
+        : TEmbededString()
+        , TStringInput(*TEmbededString::Ptr())
+        , TStringOutput(*TEmbededString::Ptr())
     {
     }
 
     inline TStringStream(const TString& string)
-        : TEmbeddedString(string)
-        , TStringInput(*TEmbeddedString::Ptr())
-        , TStringOutput(*TEmbeddedString::Ptr())
+        : TEmbededString(string)
+        , TStringInput(*TEmbededString::Ptr())
+        , TStringOutput(*TEmbededString::Ptr())
     {
     }
 
     inline TStringStream(const TStringStream& other)
-        : TEmbeddedString(other.Str())
-        , TStringInput(*TEmbeddedString::Ptr())
-        , TStringOutput(*TEmbeddedString::Ptr())
+        : TEmbededString(other.Str())
+        , TStringInput(*TEmbededString::Ptr())
+        , TStringOutput(*TEmbededString::Ptr())
     {
     }
 
@@ -136,7 +127,6 @@ public:
         // All references remain alive, we need to change position only
         Str() = other.Str();
         Pos_ = other.Pos_;
-
         return *this;
     }
 
@@ -186,7 +176,8 @@ public:
      * @returns                         Whether the string that this stream
      *                                  operates on is empty.
      */
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return Str().empty();
     }
 
@@ -203,7 +194,8 @@ public:
 
     // TODO: compatibility with existing code, remove
 
-    Y_PURE_FUNCTION bool empty() const {
+    Y_PURE_FUNCTION
+    bool empty() const {
         return Empty();
     }
 

@@ -1,6 +1,5 @@
 DLL(catboost)
 EXPORTS_SCRIPT(catboost.exports)
-CMAKE_EXPORTED_TARGET_NAME(catboost_train_interface)
 
 
 
@@ -24,9 +23,9 @@ PEERDIR(
     catboost/private/libs/target
     catboost/libs/train_lib
     library/cpp/grid_creator
-    library/cpp/threading/local_executor
-    library/cpp/json
-    library/cpp/logger
+    library/threading/local_executor
+    library/json
+    library/logger
 )
 
 IF(HAVE_CUDA)
@@ -34,14 +33,15 @@ IF(HAVE_CUDA)
         catboost/cuda/train_lib
         catboost/libs/model/cuda
     )
-    INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 ENDIF()
 
-IF (OS_LINUX AND NOT ARCH_AARCH64)
-    ALLOCATOR(TCMALLOC_256K)
-ELSE()
+IF (ARCH_AARCH64 OR OS_WINDOWS)
     ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(LF)
 ENDIF()
+
+INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 
 IF (OS_WINDOWS)
     CFLAGS(-D_WINDLL)

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===-------------------------- scoped_allocator --------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -91,10 +91,6 @@ public:
     scoped_allocator_adaptor select_on_container_copy_construction() const noexcept;
 };
 
-template<class OuterAlloc, class... InnerAllocs>
-    scoped_allocator_adaptor(OuterAlloc, InnerAllocs...)
-        -> scoped_allocator_adaptor<OuterAlloc, InnerAllocs...>;
-
 template <class OuterA1, class OuterA2, class... InnerAllocs>
     bool
     operator==(const scoped_allocator_adaptor<OuterA1, InnerAllocs...>& a,
@@ -110,12 +106,11 @@ template <class OuterA1, class OuterA2, class... InnerAllocs>
 */
 
 #include <__config>
-#include <__utility/forward.h>
 #include <memory>
 #include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -380,7 +375,7 @@ struct __outermost<_Alloc, true>
 {
     typedef typename remove_reference
                      <
-                        decltype(declval<_Alloc>().outer_allocator())
+                        decltype(_VSTD::declval<_Alloc>().outer_allocator())
                      >::type                                    _OuterAlloc;
     typedef typename __outermost<_OuterAlloc>::type             type;
     _LIBCPP_INLINE_VISIBILITY
@@ -653,12 +648,6 @@ private:
     template <class...> friend class __scoped_allocator_storage;
 };
 
-#if _LIBCPP_STD_VER > 14
-template<class _OuterAlloc, class... _InnerAllocs>
-    scoped_allocator_adaptor(_OuterAlloc, _InnerAllocs...)
-        -> scoped_allocator_adaptor<_OuterAlloc, _InnerAllocs...>;
-#endif
-
 template <class _OuterA1, class _OuterA2>
 inline _LIBCPP_INLINE_VISIBILITY
 bool
@@ -687,8 +676,8 @@ operator!=(const scoped_allocator_adaptor<_OuterA1, _InnerAllocs...>& __a,
     return !(__a == __b);
 }
 
-#endif // !defined(_LIBCPP_CXX03_LANG)
+#endif  // !defined(_LIBCPP_CXX03_LANG)
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP_SCOPED_ALLOCATOR
+#endif  // _LIBCPP_SCOPED_ALLOCATOR

@@ -1,11 +1,15 @@
 #pragma once
 
-#if defined(__APPLE__) && (defined(__aarch64__) || defined(_M_ARM64))
-#   include "jemalloc_internal_defs-osx-arm64.h"
-#elif defined(__APPLE__)
-#   include "jemalloc_internal_defs-osx.h"
-#elif defined(_MSC_VER)
-#   include "jemalloc_internal_defs-win.h"
-#else
+#include <util/system/platform.h>
+
+#if defined(_linux_) || defined(__CYGWIN__)
 #   include "jemalloc_internal_defs-linux.h"
+#elif defined(_freebsd_)
+#   include "jemalloc_internal_defs-freebsd.h"
+#elif defined(_windows_)
+#   include "jemalloc_internal_defs-windows.h"
+#elif defined(_darwin_)
+#   include "jemalloc_internal_defs-darwin.h"
+#else
+#   error There is no jemalloc_internal_defs-PLATFORM.h for this platform
 #endif

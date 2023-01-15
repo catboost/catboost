@@ -12,7 +12,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509v3.h>
 #include <openssl/ts.h>
-#include "ts_local.h"
+#include "ts_lcl.h"
 
 int TS_REQ_set_version(TS_REQ *a, long version)
 {

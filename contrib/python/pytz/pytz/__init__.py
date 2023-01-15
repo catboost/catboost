@@ -22,8 +22,8 @@ from pytz.tzfile import build_tzinfo
 
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2022f'
-VERSION = '2022.6'  # pip compatible version number.
+OLSON_VERSION = '2020a'
+VERSION = '2020.1'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -86,7 +86,7 @@ def open_resource(name):
     """
     name_parts = name.lstrip('/').split('/')
     for part in name_parts:
-        if part == os.path.pardir or os.sep in part:
+        if part == os.path.pardir or os.path.sep in part:
             raise ValueError('Bad path segment: %r' % part)
     zoneinfo_dir = os.environ.get('PYTZ_TZDATADIR', None)
     if zoneinfo_dir is not None:
@@ -111,13 +111,6 @@ def open_resource(name):
 def resource_exists(name):
     """Return true if the given resource exists"""
     try:
-        if os.environ.get('PYTZ_SKIPEXISTSCHECK', ''):
-            # In "standard" distributions, we can assume that
-            # all the listed timezones are present. As an
-            # import-speed optimization, you can set the
-            # PYTZ_SKIPEXISTSCHECK flag to skip checking
-            # for the presence of the resource file on disk.
-            return True
         open_resource(name).close()
         return True
     except IOError:
@@ -964,7 +957,6 @@ all_timezones = \
  'Europe/Kaliningrad',
  'Europe/Kiev',
  'Europe/Kirov',
- 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1059,7 +1051,6 @@ all_timezones = \
  'Pacific/Guam',
  'Pacific/Honolulu',
  'Pacific/Johnston',
- 'Pacific/Kanton',
  'Pacific/Kiritimati',
  'Pacific/Kosrae',
  'Pacific/Kwajalein',
@@ -1267,6 +1258,7 @@ common_timezones = \
  'America/Montserrat',
  'America/Nassau',
  'America/New_York',
+ 'America/Nipigon',
  'America/Nome',
  'America/Noronha',
  'America/North_Dakota/Beulah',
@@ -1283,6 +1275,7 @@ common_timezones = \
  'America/Porto_Velho',
  'America/Puerto_Rico',
  'America/Punta_Arenas',
+ 'America/Rainy_River',
  'America/Rankin_Inlet',
  'America/Recife',
  'America/Regina',
@@ -1303,6 +1296,7 @@ common_timezones = \
  'America/Swift_Current',
  'America/Tegucigalpa',
  'America/Thule',
+ 'America/Thunder_Bay',
  'America/Tijuana',
  'America/Toronto',
  'America/Tortola',
@@ -1419,6 +1413,7 @@ common_timezones = \
  'Australia/Adelaide',
  'Australia/Brisbane',
  'Australia/Broken_Hill',
+ 'Australia/Currie',
  'Australia/Darwin',
  'Australia/Eucla',
  'Australia/Hobart',
@@ -1454,8 +1449,8 @@ common_timezones = \
  'Europe/Istanbul',
  'Europe/Jersey',
  'Europe/Kaliningrad',
+ 'Europe/Kiev',
  'Europe/Kirov',
- 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1483,6 +1478,7 @@ common_timezones = \
  'Europe/Tallinn',
  'Europe/Tirane',
  'Europe/Ulyanovsk',
+ 'Europe/Uzhgorod',
  'Europe/Vaduz',
  'Europe/Vatican',
  'Europe/Vienna',
@@ -1490,6 +1486,7 @@ common_timezones = \
  'Europe/Volgograd',
  'Europe/Warsaw',
  'Europe/Zagreb',
+ 'Europe/Zaporozhye',
  'Europe/Zurich',
  'GMT',
  'Indian/Antananarivo',
@@ -1510,6 +1507,7 @@ common_timezones = \
  'Pacific/Chuuk',
  'Pacific/Easter',
  'Pacific/Efate',
+ 'Pacific/Enderbury',
  'Pacific/Fakaofo',
  'Pacific/Fiji',
  'Pacific/Funafuti',
@@ -1518,7 +1516,6 @@ common_timezones = \
  'Pacific/Guadalcanal',
  'Pacific/Guam',
  'Pacific/Honolulu',
- 'Pacific/Kanton',
  'Pacific/Kiritimati',
  'Pacific/Kosrae',
  'Pacific/Kwajalein',

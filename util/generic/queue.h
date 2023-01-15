@@ -36,7 +36,6 @@ public:
 template <class T, class S, class C>
 class TPriorityQueue: public std::priority_queue<T, S, C> {
     using TBase = std::priority_queue<T, S, C>;
-
 public:
     using TBase::TBase;
 

@@ -109,9 +109,8 @@ void Out<NFormatPrivate::THumanReadableDuration>(IOutputStream& os, const NForma
 
         for (size_t i = 0; i < Y_ARRAY_SIZE(times); ++i) {
             if (times[i] > 0) {
-                if (!first) {
+                if (!first)
                     ss << ' ';
-                }
                 ss << times[i] << names[i];
                 first = false;
             }

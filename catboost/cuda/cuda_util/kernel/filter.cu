@@ -1,7 +1,5 @@
 #include "filter.cuh"
 
-#include <util/generic/cast.h>
-
 namespace NKernel {
 
     struct TZeroWeightFilter {
@@ -11,11 +9,11 @@ namespace NKernel {
         }
     };
 
-    template <class Filter = TZeroWeightFilter, typename TResult>
+    template <class Filter = TZeroWeightFilter>
     __global__ void FilterImpl(const float* weights,
-                               ui64 size,
-                               TResult* result) {
-        const ui64 i = (ui64)blockIdx.x * blockDim.x + threadIdx.x;
+                               int size,
+                               ui32* result) {
+        const int i = blockIdx.x * blockDim.x + threadIdx.x;
         Filter filter;
         if (i < size) {
             result[i] = filter(__ldg(weights + i));
@@ -23,18 +21,11 @@ namespace NKernel {
     }
 
 
-    template <typename TResult>
-    void Filter(const float* weights, const ui64 size, TResult* result, TCudaStream stream) {
+    void Filter(const float* weights, const ui32 size, ui32* result, TCudaStream stream) {
         if (size > 0) {
             const ui32 blockSize = 512;
-            const ui32 numBlocks = SafeIntegerCast<ui32>((size + blockSize - 1) / (blockSize));
+            const ui32 numBlocks = (size + blockSize - 1) / (blockSize);
             FilterImpl << <numBlocks, blockSize, 0, stream>>>(weights, size, result);
         }
     }
-
-    template
-    void Filter<ui32>(const float* weights, const ui64 size, ui32* result, TCudaStream stream);
-
-    template
-    void Filter<ui64>(const float* weights, const ui64 size, ui64* result, TCudaStream stream);
 }

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===---------------------------- bitset ----------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -112,19 +112,17 @@ template <size_t N> struct hash<std::bitset<N>>;
 
 */
 
-#include <__algorithm/fill.h>
-#include <__bit_reference>
 #include <__config>
-#include <__functional/unary_function.h>
-#include <climits>
+#include <__bit_reference>
 #include <cstddef>
-#include <iosfwd>
-#include <stdexcept>
+#include <climits>
 #include <string>
-#include <version>
+#include <stdexcept>
+#include <iosfwd>
+#include <__functional_base>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 _LIBCPP_PUSH_MACROS
@@ -208,7 +206,7 @@ private:
     void __init(unsigned long long __v, false_type) _NOEXCEPT;
     _LIBCPP_INLINE_VISIBILITY
     void __init(unsigned long long __v, true_type) _NOEXCEPT;
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
     unsigned long to_ulong(false_type) const;
     _LIBCPP_INLINE_VISIBILITY
     unsigned long to_ulong(true_type) const;
@@ -264,7 +262,7 @@ __bitset<_N_words, _Size>::__init(unsigned long long __v, true_type) _NOEXCEPT
     _VSTD::fill(__first_ + 1, __first_ + sizeof(__first_)/sizeof(__first_[0]), __storage_type(0));
 }
 
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
 template <size_t _N_words, size_t _Size>
 inline
@@ -386,7 +384,7 @@ unsigned long long
 __bitset<_N_words, _Size>::to_ullong(true_type, true_type) const
 {
     unsigned long long __r = __first_[0];
-    for (size_t __i = 1; __i < sizeof(unsigned long long) / sizeof(__storage_type); ++__i)
+    for (std::size_t __i = 1; __i < sizeof(unsigned long long) / sizeof(__storage_type); ++__i)
         __r |= static_cast<unsigned long long>(__first_[__i]) << (sizeof(__storage_type) * CHAR_BIT);
     return __r;
 }
@@ -631,13 +629,13 @@ protected:
     explicit _LIBCPP_CONSTEXPR __bitset(unsigned long long) _NOEXCEPT;
 
     _LIBCPP_INLINE_VISIBILITY reference __make_ref(size_t) _NOEXCEPT
-        {return reference(nullptr, 1);}
+        {return reference(0, 1);}
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR const_reference __make_ref(size_t) const _NOEXCEPT
-        {return const_reference(nullptr, 1);}
+        {return const_reference(0, 1);}
     _LIBCPP_INLINE_VISIBILITY iterator __make_iter(size_t) _NOEXCEPT
-        {return iterator(nullptr, 0);}
+        {return iterator(0, 0);}
     _LIBCPP_INLINE_VISIBILITY const_iterator __make_iter(size_t) const _NOEXCEPT
-        {return const_iterator(nullptr, 0);}
+        {return const_iterator(0, 0);}
 
     _LIBCPP_INLINE_VISIBILITY void operator&=(const __bitset&) _NOEXCEPT {}
     _LIBCPP_INLINE_VISIBILITY void operator|=(const __bitset&) _NOEXCEPT {}
@@ -685,7 +683,7 @@ public:
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR bitset() _NOEXCEPT {}
     _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
         bitset(unsigned long long __v) _NOEXCEPT : base(__v) {}
-    template<class _CharT, class = __enable_if_t<_IsCharLikeType<_CharT>::value> >
+    template<class _CharT, class = _EnableIf<_IsCharLikeType<_CharT>::value> >
         explicit bitset(const _CharT* __str,
                         typename basic_string<_CharT>::size_type __n = basic_string<_CharT>::npos,
                         _CharT __zero = _CharT('0'), _CharT __one = _CharT('1'));
@@ -781,7 +779,10 @@ bitset<_Size>::bitset(const _CharT* __str,
     for (; __i < _Mp; ++__i)
     {
         _CharT __c = __str[_Mp - 1 - __i];
-        (*this)[__i] = (__c == __one);
+        if (__c == __zero)
+            (*this)[__i] = false;
+        else
+            (*this)[__i] = true;
     }
     _VSTD::fill(base::__make_iter(__i), base::__make_iter(_Size), false);
 }
@@ -806,7 +807,10 @@ bitset<_Size>::bitset(const basic_string<_CharT,_Traits,_Allocator>& __str,
     for (; __i < _Mp; ++__i)
     {
         _CharT __c = __str[__pos + _Mp - 1 - __i];
-        (*this)[__i] = _Traits::eq(__c, __one);
+        if (_Traits::eq(__c, __zero))
+            (*this)[__i] = false;
+        else
+            (*this)[__i] = true;
     }
     _VSTD::fill(base::__make_iter(__i), base::__make_iter(_Size), false);
 }
@@ -990,7 +994,7 @@ inline
 size_t
 bitset<_Size>::count() const _NOEXCEPT
 {
-    return static_cast<size_t>(_VSTD::__count_bool_true(base::__make_iter(0), _Size));
+    return static_cast<size_t>(__count_bool_true(base::__make_iter(0), _Size));
 }
 
 template <size_t _Size>
@@ -1106,4 +1110,4 @@ _LIBCPP_END_NAMESPACE_STD
 
 _LIBCPP_POP_MACROS
 
-#endif // _LIBCPP_BITSET
+#endif  // _LIBCPP_BITSET

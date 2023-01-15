@@ -8,7 +8,7 @@
 #include <util/stream/buffer.h>
 #include <util/system/yassert.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 using namespace NCB;
@@ -17,7 +17,7 @@ using namespace NCB;
 Y_UNIT_TEST_SUITE(Compression) {
     template <class T>
     TVector<T> GenerateRandomVector(ui32 size, ui32 bitsPerKey) {
-        CB_ENSURE((bitsPerKey > 0) && (bitsPerKey <= CHAR_BIT * sizeof(T)));
+        Y_VERIFY((bitsPerKey > 0) && (bitsPerKey <= CHAR_BIT * sizeof(T)));
 
         const ui64 upperBound = ui64(1) << bitsPerKey;
 
@@ -96,7 +96,7 @@ Y_UNIT_TEST_SUITE(Compression) {
 
         {
             TBufferOutput out(buffer);
-            SerializeToArcadiaStream(out, data);
+            SerializeToStream(out, data);
         }
 
         TCompressedArray loadedData;

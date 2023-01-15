@@ -2,20 +2,21 @@
 #include "array_size.h"
 #include "algorithm.h"
 
+
 /// Order of fields: reciprocal, reciprocal shift, adjacent hint, divisor
 #if defined(_32_)
 static constexpr ::NPrivate::THashDivisor PRIME_DIVISORS_HOLDER[]{
-    {0x00000000u, 0u, -1, 0xffffffffu}, // guard value, not a valid divisor
-    {0x24924925u, 2u, 0, 7u},
-    {0xe1e1e1e2u, 4u, 1, 17u},
-    {0x1a7b9612u, 4u, 2, 29u},
-    {0x3521cfb3u, 5u, 3, 53u},
-    {0x51d07eafu, 6u, 4, 97u},
-    {0x53909490u, 7u, 5, 193u},
-    {0x50f22e12u, 8u, 6, 389u},
-    {0x54e3b41au, 9u, 7, 769u},
-    {0x53c8eaeeu, 10u, 8, 1543u},
-    {0x548eacc6u, 11u, 9, 3079u},
+    {0x00000000u,  0u, -1, 0xffffffffu},  // guard value, not a valid divisor
+    {0x24924925u,  2u,  0, 7u},
+    {0xe1e1e1e2u,  4u,  1, 17u},
+    {0x1a7b9612u,  4u,  2, 29u},
+    {0x3521cfb3u,  5u,  3, 53u},
+    {0x51d07eafu,  6u,  4, 97u},
+    {0x53909490u,  7u,  5, 193u},
+    {0x50f22e12u,  8u,  6, 389u},
+    {0x54e3b41au,  9u,  7, 769u},
+    {0x53c8eaeeu, 10u,  8, 1543u},
+    {0x548eacc6u, 11u,  9, 3079u},
     {0x54f1e41eu, 12u, 10, 6151u},
     {0x554e390au, 13u, 11, 12289u},
     {0x5518ee41u, 14u, 12, 24593u},
@@ -40,17 +41,17 @@ static constexpr ::NPrivate::THashDivisor PRIME_DIVISORS_HOLDER[]{
 };
 #else
 static constexpr ::NPrivate::THashDivisor PRIME_DIVISORS_HOLDER[]{
-    {0x0000000000000000ul, 0u, -1, 0xffffffffu}, // guard value, not a valid divisor
-    {0x2492492492492493ul, 2u, 0, 7u},
-    {0xe1e1e1e1e1e1e1e2ul, 4u, 1, 17u},
-    {0x1a7b9611a7b9611bul, 4u, 2, 29u},
-    {0x3521cfb2b78c1353ul, 5u, 3, 53u},
-    {0x51d07eae2f8151d1ul, 6u, 4, 97u},
-    {0x5390948f40feac70ul, 7u, 5, 193u},
-    {0x50f22e111c4c56dful, 8u, 6, 389u},
-    {0x54e3b4194ce65de1ul, 9u, 7, 769u},
-    {0x53c8eaedea6e7f17ul, 10u, 8, 1543u},
-    {0x548eacc5e1e6e3fcul, 11u, 9, 3079u},
+    {0x0000000000000000ul,  0u, -1, 0xffffffffu},  // guard value, not a valid divisor
+    {0x2492492492492493ul,  2u,  0, 7u},
+    {0xe1e1e1e1e1e1e1e2ul,  4u,  1, 17u},
+    {0x1a7b9611a7b9611bul,  4u,  2, 29u},
+    {0x3521cfb2b78c1353ul,  5u,  3, 53u},
+    {0x51d07eae2f8151d1ul,  6u,  4, 97u},
+    {0x5390948f40feac70ul,  7u,  5, 193u},
+    {0x50f22e111c4c56dful,  8u,  6, 389u},
+    {0x54e3b4194ce65de1ul,  9u,  7, 769u},
+    {0x53c8eaedea6e7f17ul, 10u,  8, 1543u},
+    {0x548eacc5e1e6e3fcul, 11u,  9, 3079u},
     {0x54f1e41d7767d70cul, 12u, 10, 6151u},
     {0x554e39097a781d80ul, 13u, 11, 12289u},
     {0x5518ee4079ea6929ul, 14u, 12, 24593u},
@@ -76,17 +77,20 @@ static constexpr ::NPrivate::THashDivisor PRIME_DIVISORS_HOLDER[]{
 #endif
 
 static constexpr const ::NPrivate::THashDivisor* PRIME_DIVISORS = &PRIME_DIVISORS_HOLDER[1]; ///< Address of the first valid divisor
-static constexpr size_t PRIME_DIVISORS_SIZE = Y_ARRAY_SIZE(PRIME_DIVISORS_HOLDER) - 1;       ///< Number of valid divisors without the guarding value
+static constexpr size_t PRIME_DIVISORS_SIZE = Y_ARRAY_SIZE(PRIME_DIVISORS_HOLDER) - 1; ///< Number of valid divisors without the guarding value
+
 
 unsigned long HashBucketCount(unsigned long elementCount) {
     return HashBucketCountExt(elementCount)();
 }
+
 
 static inline ::NPrivate::THashDivisor HashBucketBoundedSearch(unsigned long elementCount) {
     const auto begin = PRIME_DIVISORS;
     const auto end = PRIME_DIVISORS + PRIME_DIVISORS_SIZE - 1; // adjust range so the last element will be returned if elementCount is bigger than all PRIME_DIVISORS
     return *LowerBoundBy(begin, end, elementCount, std::mem_fn(&::NPrivate::THashDivisor::Divisor));
 }
+
 
 Y_CONST_FUNCTION
 ::NPrivate::THashDivisor HashBucketCountExt(unsigned long elementCount) {

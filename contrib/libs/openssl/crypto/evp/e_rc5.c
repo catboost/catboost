@@ -13,9 +13,9 @@
 #ifndef OPENSSL_NO_RC5
 
 # include <openssl/evp.h>
-# include "crypto/evp.h"
+# include "internal/evp_int.h"
 # include <openssl/objects.h>
-# include "evp_local.h"
+# include "evp_locl.h"
 # include <openssl/rc5.h>
 
 static int r_32_12_16_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,

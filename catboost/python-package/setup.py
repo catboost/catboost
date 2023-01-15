@@ -222,11 +222,11 @@ class build_ext(_build_ext):
 
     def build_with_make(self, topsrc_dir, build_dir, catboost_ext, put_dir, verbose, dry_run):
         logging.info('Buildling {} with gnu make'.format(catboost_ext))
-        makefile = 'python{}.{}CLANG11-LINUX-X86_64.makefile'.format(python_version()[0], 'CUDA.' if self.with_cuda else '')
+        makefile = 'python{}.{}CLANG50-LINUX-X86_64.makefile'.format(python_version()[0], 'CUDA.' if self.with_cuda else '')
         make_cmd = [
             'make', '-f', '../../make/' + makefile,
-            'CC=clang-11',
-            'CXX=clang++-11',
+            'CC=clang-5.0',
+            'CXX=clang++-5.0',
             'BUILD_ROOT=' + build_dir,
             'SOURCE_ROOT=' + topsrc_dir,
         ]

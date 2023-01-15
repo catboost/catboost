@@ -47,7 +47,7 @@ struct TMinMax {
 template <typename TForwardIterator, typename T = typename std::iterator_traits<TForwardIterator>::value_type>
 inline TMinMax<T> CalcMinMax(TForwardIterator begin, TForwardIterator end) {
     auto minmax = std::minmax_element(begin, end);
-    CB_ENSURE(minmax.first != end, "Empty iterator range in CalcMinMax");
+    Y_VERIFY(minmax.first != end);
     return {*minmax.first, *minmax.second};
 }
 
@@ -68,19 +68,6 @@ inline bool IsConst(TConstArrayRef<float> array) {
         array.end(),
         [first = array.front()] (auto element) { return element != first; }
     ) == array.end();
-}
-
-template <typename TArrayLike>
-inline TArrayRef<typename TArrayLike::value_type> GetSlice(TArrayLike& array, size_t offset, size_t count) {
-    if (array.empty()) {
-        return TArrayRef<typename TArrayLike::value_type>();
-    }
-    return TArrayRef<typename TArrayLike::value_type>(array.begin() + offset, count);
-}
-
-template <typename TArrayLike, typename TIsDefined>
-inline typename TArrayLike::value_type GetIf(TIsDefined isDefined, const TArrayLike& array, size_t index, typename TArrayLike::value_type orElse) {
-    return isDefined ? array.at(index) : orElse;
 }
 
 template <typename Int1, typename Int2, typename T>
@@ -117,15 +104,6 @@ inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& a
     auto arrayView = TVector<TConstArrayRef<T>>();
     for (const auto& subArray : array) {
         arrayView.emplace_back(subArray);
-    }
-    return arrayView;
-}
-
-template <typename T, typename T2DArrayLike>
-inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array, size_t offset, size_t count) {
-    auto arrayView = TVector<TConstArrayRef<T>>();
-    for (const auto& subArray : array) {
-        arrayView.emplace_back(MakeArrayRef(subArray.begin() + offset, count));
     }
     return arrayView;
 }
@@ -204,16 +182,4 @@ inline void SumTransposedBlocks(
             }
         }
     }
-}
-
-template <typename T>
-TVector<size_t> GetNonEmptyElementsIndices(const TVector<TVector<T>>& data) {
-    TVector<size_t> result;
-    result.reserve(data.size());
-    for (auto i : xrange(data.size())) {
-        if (!data[i].empty()) {
-            result.push_back(i);
-        }
-    }
-    return result;
 }

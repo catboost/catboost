@@ -8,17 +8,17 @@ namespace NYT {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Serialize(const TString& value, NYson::IYsonConsumer* consumer)
+void Serialize(const TString& value, IYsonConsumer* consumer)
 {
     consumer->OnStringScalar(value);
 }
 
-void Serialize(const TStringBuf& value, NYson::IYsonConsumer* consumer)
+void Serialize(const TStringBuf& value, IYsonConsumer* consumer)
 {
     consumer->OnStringScalar(value);
 }
 
-void Serialize(const char* value, NYson::IYsonConsumer* consumer)
+void Serialize(const char* value, IYsonConsumer* consumer)
 {
     consumer->OnStringScalar(value);
 }
@@ -29,13 +29,13 @@ void Deserialize(TString& value, const TNode& node)
 }
 
 #define SERIALIZE_SIGNED(type) \
-void Serialize(type value, NYson::IYsonConsumer* consumer) \
+void Serialize(type value, IYsonConsumer* consumer) \
 { \
     consumer->OnInt64Scalar(static_cast<i64>(value)); \
 }
 
 #define SERIALIZE_UNSIGNED(type) \
-void Serialize(type value, NYson::IYsonConsumer* consumer) \
+void Serialize(type value, IYsonConsumer* consumer) \
 { \
     consumer->OnUint64Scalar(static_cast<ui64>(value)); \
 }
@@ -65,7 +65,7 @@ void Deserialize(ui64& value, const TNode& node)
     value = node.AsUint64();
 }
 
-void Serialize(double value, NYson::IYsonConsumer* consumer)
+void Serialize(double value, IYsonConsumer* consumer)
 {
     consumer->OnDoubleScalar(value);
 }
@@ -75,7 +75,7 @@ void Deserialize(double& value, const TNode& node)
     value = node.AsDouble();
 }
 
-void Serialize(bool value, NYson::IYsonConsumer* consumer)
+void Serialize(bool value, IYsonConsumer* consumer)
 {
     consumer->OnBooleanScalar(value);
 }
@@ -85,7 +85,7 @@ void Deserialize(bool& value, const TNode& node)
     value = node.AsBool();
 }
 
-void Serialize(const TNode& node, NYson::IYsonConsumer* consumer)
+void Serialize(const TNode& node, IYsonConsumer* consumer)
 {
     TNodeVisitor visitor(consumer);
     visitor.Visit(node);

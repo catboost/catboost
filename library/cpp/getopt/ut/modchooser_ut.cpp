@@ -1,36 +1,26 @@
 #include <library/cpp/getopt/modchooser.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/str.h>
 
-void ValidateArgcArgv(int argc, const char** argv) {
-    UNIT_ASSERT_EQUAL(argc, 1);
-    UNIT_ASSERT_EQUAL(argv[argc], nullptr);
-}
-
-int One(int argc, const char** argv) {
-    ValidateArgcArgv(argc, argv);
+int One(int, const char**) {
     return 1;
 }
 
-int Two(int argc, const char** argv) {
-    ValidateArgcArgv(argc, argv);
+int Two(int, const char**) {
     return 2;
 }
 
-int Three(int argc, const char** argv) {
-    ValidateArgcArgv(argc, argv);
+int Three(int, const char**) {
     return 3;
 }
 
-int Four(int argc, const char** argv) {
-    ValidateArgcArgv(argc, argv);
+int Four(int, const char**) {
     return 4;
 }
 
-int Five(int argc, const char** argv) {
-    ValidateArgcArgv(argc, argv);
+int Five(int, const char**) {
     return 5;
 }
 
@@ -46,17 +36,10 @@ Y_UNIT_TEST_SUITE(TModChooserTest) {
             chooser.AddMode(NAMES[idx], FUNCTIONS[idx], NAMES[idx]);
         }
 
-        // test argc, argv
         for (size_t idx = 0; idx < Y_ARRAY_SIZE(NAMES); ++idx) {
             int argc = 2;
-            const char* argv[] = {"UNITTEST", NAMES[idx], nullptr};
+            const char* argv[] = {"UNITTEST", NAMES[idx]};
             UNIT_ASSERT_EQUAL(static_cast<int>(idx) + 1, chooser.Run(argc, argv));
-        }
-
-        // test TVector<TString> argv
-        for (size_t idx = 0; idx < Y_ARRAY_SIZE(NAMES); ++idx) {
-            const TVector<TString> argv = {"UNITTEST", NAMES[idx]};
-            UNIT_ASSERT_EQUAL(static_cast<int>(idx) + 1, chooser.Run(argv));
         }
     }
 
@@ -64,7 +47,7 @@ Y_UNIT_TEST_SUITE(TModChooserTest) {
         TModChooser chooser;
 
         int argc = 2;
-        const char* argv[] = {"UNITTEST", "-?", nullptr};
+        const char* argv[] = {"UNITTEST", "-?"};
 
         chooser.Run(argc, argv);
     }

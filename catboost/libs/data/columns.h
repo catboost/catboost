@@ -11,7 +11,7 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/system/types.h>
 #include <util/generic/noncopyable.h>
@@ -40,7 +40,6 @@ namespace NCB {
         PerfectHashedCategorical,   //after perfect hashing
         StringText,                 //unoptimized text feature
         TokenizedText,              //32 bits for each token in string
-        Embedding,                  //array of float values
         BinaryPack,                 //aggregate of binary features
         ExclusiveFeatureBundle,     //aggregate of exclusive quantized features
         FeaturesGroup               //aggregate of several quantized float features
@@ -97,14 +96,12 @@ namespace NCB {
                 case EFeatureValuesType::StringText:
                 case EFeatureValuesType::TokenizedText:
                     return EFeatureType::Text;
-                case EFeatureValuesType::Embedding:
-                    return EFeatureType::Embedding;
                 case EFeatureValuesType::BinaryPack:
                 case EFeatureValuesType::ExclusiveFeatureBundle:
                 case EFeatureValuesType::FeaturesGroup:
                     CB_ENSURE_INTERNAL(false, "GetFeatureType called for Aggregate type");
             }
-            CB_ENSURE(false, "This place should be inaccessible");
+            Y_FAIL("This place should be inaccessible");
             return EFeatureType::Float; // to keep compiler happy
         }
 
@@ -124,7 +121,7 @@ namespace NCB {
             return nullptr;
         }
 
-        virtual ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const = 0;
+        virtual ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const = 0;
         virtual bool IsSparse() const = 0;
 
         virtual ui64 EstimateMemoryForCloning(
@@ -133,7 +130,7 @@ namespace NCB {
 
         virtual THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
     private:
@@ -152,11 +149,11 @@ namespace NCB {
         ITypedFeatureValuesHolder(ui32 featureId, ui32 size)
             : IFeatureValuesHolder(ValuesType, featureId, size)
         {}
-        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::ILocalExecutor* localExecutor) const = 0;
+        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
 
         virtual IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const = 0;
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
             const auto repackedHolder = ExtractValues(localExecutor);
             return UpdateCheckSum(0, *repackedHolder);
         }
@@ -171,7 +168,7 @@ namespace NCB {
         } else if (auto ui32iter = dynamic_cast<IDynamicBlockIterator<ui32>*>(blockIterator)) {
             typedIteratorFunc(ui32iter);
         } else {
-            CB_ENSURE(0, "Unexpected iterator basetype");
+            Y_VERIFY(0, "Unexpected iterator basetype");
         }
     }
 
@@ -185,7 +182,7 @@ namespace NCB {
         {}
 
         template <typename TExtractType>
-        TVector<TExtractType> ExtractValues(NPar::ILocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
+        TVector<TExtractType> ExtractValues(NPar::TLocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
             TVector<TExtractType> result;
             result.yresize(this->GetSize());
             ParallelForEachBlock(
@@ -222,8 +219,8 @@ namespace NCB {
         }
 
         template<class TBlockCallable>
-        void ParallelForEachBlock(NPar::ILocalExecutor* localExecutor, TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
-            NPar::ILocalExecutor::TExecRangeParams blockParams(0, this->GetSize());
+        void ParallelForEachBlock(NPar::TLocalExecutor* localExecutor, TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
+            NPar::TLocalExecutor::TExecRangeParams blockParams(0, this->GetSize());
             blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
             // round per-thread block size to iteration block size
             blockParams.SetBlockSize(Min<int>(this->GetSize(), CeilDiv<int>(blockParams.GetBlockSize(), blockSize) * blockSize));
@@ -236,7 +233,7 @@ namespace NCB {
             );
         }
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             ui32 checkSum = 0;
             auto blockFunc = [&checkSum] (size_t /*blockStartIdx*/, auto block) {
@@ -285,7 +282,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const override {
             Y_UNUSED(localExecutor);
             CB_ENSURE_INTERNAL(
@@ -298,7 +295,7 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<TValueType> ExtractValues(NPar::ILocalExecutor* localExecutor) const override {
+        TMaybeOwningArrayHolder<TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
             TVector<TValueType> result;
             result.yresize(Data->GetSize());
             TArrayRef<TValueType> resultRef = result;
@@ -347,7 +344,7 @@ namespace NCB {
             return false;
         }
 
-        ui32 CalcChecksum(NPar::ILocalExecutor* localExecutor) const override {
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
             TConstCompressedArraySubset compressedDataSubset = GetCompressedData();
 
             auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
@@ -358,7 +355,7 @@ namespace NCB {
                     0,
                     MakeArrayRef(
                         compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
-                        compressedDataSubset.Size() * byteSize)
+                        compressedDataSubset.Size())
                 );
             }
             return TBase::CalcChecksum(localExecutor);
@@ -379,7 +376,7 @@ namespace NCB {
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
-            NPar::ILocalExecutor* localExecutor
+            NPar::TLocalExecutor* localExecutor
         ) const override {
             if (!cloningParams.MakeConsecutive) {
                 return MakeHolder<TCompressedValuesHolderImpl>(
@@ -472,13 +469,6 @@ namespace NCB {
 
     using TTokenizedTextValuesHolder = ITypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
     using TTokenizedTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TTokenizedTextValuesHolder>;
-
-
-    using TConstEmbedding = TMaybeOwningConstArrayHolder<float>;
-
-    using TEmbeddingValuesHolder = ITypedFeatureValuesHolder<TConstEmbedding, EFeatureValuesType::Embedding>;
-    using TEmbeddingArrayValuesHolder = TPolymorphicArrayValuesHolder<TEmbeddingValuesHolder>;
-
 
     using IQuantizedFloatValuesHolder = IQuantizedFeatureValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
     using IQuantizedCatValuesHolder = IQuantizedFeatureValuesHolder<ui32, EFeatureValuesType::PerfectHashedCategorical>;

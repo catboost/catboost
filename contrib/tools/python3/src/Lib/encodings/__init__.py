@@ -12,7 +12,7 @@
     * getregentry() -> codecs.CodecInfo object
     The getregentry() API must return a CodecInfo object with encoder, decoder,
     incrementalencoder, incrementaldecoder, streamwriter and streamreader
-    attributes which adhere to the Python Codec Interface Standard.
+    atttributes which adhere to the Python Codec Interface Standard.
 
     In addition, a module may optionally also define the following
     APIs which are then used by the package's codec search function:
@@ -49,7 +49,8 @@ def normalize_encoding(encoding):
         collapsed and replaced with a single underscore, e.g. '  -;#'
         becomes '_'. Leading and trailing underscores are removed.
 
-        Note that encoding names should be ASCII only.
+        Note that encoding names should be ASCII only; if they do use
+        non-ASCII characters, these must be Latin-1 compatible.
 
     """
     if isinstance(encoding, bytes):
@@ -61,8 +62,7 @@ def normalize_encoding(encoding):
         if c.isalnum() or c == '.':
             if punct and chars:
                 chars.append('_')
-            if c.isascii():
-                chars.append(c)
+            chars.append(c)
             punct = False
         else:
             punct = True

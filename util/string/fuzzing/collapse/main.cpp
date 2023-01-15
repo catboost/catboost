@@ -6,7 +6,7 @@ extern "C" int LLVMFuzzerTestOneInput(const ui8* data, size_t size) {
     Collapse(w);
 
     TString s((const char*)data, size);
-    CollapseInPlace(s);
+    Collapse(s);
 
     return 0; // Non-zero return values are reserved for future use.
 }

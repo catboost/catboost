@@ -5,7 +5,7 @@ from . import events
 from . import tasks
 
 
-def run(main, *, debug=None):
+def run(main, *, debug=False):
     """Execute the coroutine and return the result.
 
     This function runs the passed coroutine, taking care of
@@ -39,14 +39,12 @@ def run(main, *, debug=None):
     loop = events.new_event_loop()
     try:
         events.set_event_loop(loop)
-        if debug is not None:
-            loop.set_debug(debug)
+        loop.set_debug(debug)
         return loop.run_until_complete(main)
     finally:
         try:
             _cancel_all_tasks(loop)
             loop.run_until_complete(loop.shutdown_asyncgens())
-            loop.run_until_complete(loop.shutdown_default_executor())
         finally:
             events.set_event_loop(None)
             loop.close()
@@ -60,7 +58,8 @@ def _cancel_all_tasks(loop):
     for task in to_cancel:
         task.cancel()
 
-    loop.run_until_complete(tasks.gather(*to_cancel, return_exceptions=True))
+    loop.run_until_complete(
+        tasks.gather(*to_cancel, loop=loop, return_exceptions=True))
 
     for task in to_cancel:
         if task.cancelled():

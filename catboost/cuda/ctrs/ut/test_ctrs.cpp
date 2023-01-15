@@ -7,8 +7,8 @@
 #include <catboost/cuda/data/data_utils.h>
 #include <util/generic/hash.h>
 #include <util/random/shuffle.h>
-#include <library/cpp/testing/unittest/registar.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/unittest/registar.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <iostream>
 
 using namespace std;
@@ -238,7 +238,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                     auto targets = BuildRandomBins<ui8>(rand, numClasses, size);
                     auto targetsGpu = TMirrorBuffer<ui8>::CopyMapping(indices);
                     targetsGpu.Write(targets);
-                    builder.SetBinarizedSample(targetsGpu.AsConstBuf());
+                    builder.SetBinarizedSample(targetsGpu);
 
                     const float prior = 0.5;
 

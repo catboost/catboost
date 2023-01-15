@@ -10,7 +10,7 @@
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/cpp/json/json_reader.h>
+#include <library/json/json_reader.h>
 
 #include <util/generic/xrange.h>
 #include <util/system/fs.h>
@@ -97,36 +97,17 @@ void UpdateUndefinedClassLabels(
     if (classLabels.empty()) {
         return;
     }
-    (*updatedJsonParams)["data_processing_options"]["class_names"] = {};
+    (*updatedJsonParams)["data_processing_options"] = {};
     for (const auto& classLabel : classLabels) {
         (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(classLabel);
     }
 }
 
-static void CheckTimestampsInEachGroup(
-    TConstArrayRef<TGroupBounds> groupsBounds,
-    TConstArrayRef<ui64> timestamps
-) {
-    for (auto groupBounds : groupsBounds) {
-        if (groupBounds.GetSize()) {
-            ui64 groupTimestamp = timestamps[groupBounds.Begin];
-            for (auto objectIdx : xrange(groupBounds.Begin + 1, groupBounds.End)) {
-                CB_ENSURE(
-                    groupTimestamp == timestamps[objectIdx],
-                    "timestamps[" << objectIdx << "] = " << timestamps[objectIdx]
-                    << " is not equal to the timestamp of group's first element "
-                    << " (timestamps[" << groupBounds.Begin << "] = " << groupTimestamp << ")."
-                    << " CatBoost supports training only with groups with the same timestamp for each element."
-                );
-            }
-        }
-    }
-}
 
 TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::TLocalExecutor* localExecutor) {
 
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag &&
         learnData->MetaInfo.HasTimestamp &&
@@ -134,12 +115,11 @@ TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     {
         auto objectsGrouping = learnData->ObjectsData->GetObjectsGrouping();
 
-        if (!objectsGrouping->IsTrivial()) {
-            CheckTimestampsInEachGroup(
-                objectsGrouping->GetNonTrivialGroups(),
-                *learnData->ObjectsData->GetTimestamp()
-            );
-        }
+        // TODO(akhropov): Allow if all objects in each group have the same timestamp
+        CB_ENSURE(
+            objectsGrouping->IsTrivial(),
+            "Reordering grouped data by timestamp is not supported yet"
+        );
 
         auto objectsPermutation = CreateOrderByKey<ui32>(*learnData->ObjectsData->GetTimestamp());
 
@@ -182,7 +162,7 @@ static bool NeedShuffle(
 TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand) {
 
     if (NeedShuffle(

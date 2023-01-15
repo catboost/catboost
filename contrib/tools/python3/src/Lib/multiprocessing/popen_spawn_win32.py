@@ -22,7 +22,8 @@ WINSERVICE = sys.executable.lower().endswith("pythonservice.exe")
 def _path_eq(p1, p2):
     return p1 == p2 or os.path.normcase(p1) == os.path.normcase(p2)
 
-WINENV = not _path_eq(sys.executable, sys._base_executable)
+WINENV = (hasattr(sys, '_base_executable') and
+          not _path_eq(sys.executable, sys._base_executable))
 
 
 def _close_handles(*handles):
@@ -44,12 +45,8 @@ class Popen(object):
     def __init__(self, process_obj):
         prep_data = spawn.get_preparation_data(process_obj._name)
 
-        # read end of pipe will be duplicated by the child process
+        # read end of pipe will be "stolen" by the child process
         # -- see spawn_main() in spawn.py.
-        #
-        # bpo-33929: Previously, the read end of pipe was "stolen" by the child
-        # process, but it leaked a handle if the child process had been
-        # terminated before it could steal the handle from the parent process.
         rhandle, whandle = _winapi.CreatePipe(None, 0)
         wfd = msvcrt.open_osfhandle(whandle, 0)
         cmd = spawn.get_command_line(parent_pid=os.getpid(),
@@ -84,8 +81,7 @@ class Popen(object):
             self.returncode = None
             self._handle = hp
             self.sentinel = int(hp)
-            self.finalizer = util.Finalize(self, _close_handles,
-                                           (self.sentinel, int(rhandle)))
+            self.finalizer = util.Finalize(self, _winapi.CloseHandle, (self.sentinel,))
 
             # send information to child
             set_spawning_popen(self)

@@ -1,6 +1,6 @@
 
 
-PY2TEST()
+PYTEST()
 
 SIZE(LARGE)
 

@@ -20,8 +20,6 @@ namespace NCatboostCuda {
                                                 treeConfig.MaxDepth,
                                                 treeConfig.ScoreFunction,
                                                 treeConfig.L2Reg,
-                                                treeConfig.MetaL2Exponent,
-                                                treeConfig.MetaL2Frequency,
                                                 treeConfig.FoldSizeLossNormalization,
                                                 requestStream);
     };
@@ -30,7 +28,6 @@ namespace NCatboostCuda {
     class TScoresCalcerOnCompressedDataSet {
     public:
         using TSamplesMapping = typename TLayoutPolicy::TSamplesMapping;
-        using TFeatureWeightsMapping = typename TLayoutPolicy::TFeatureWeightsMapping;
 
         TScoresCalcerOnCompressedDataSet(const TCompressedDataSet<TLayoutPolicy>& features,
                                          const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
@@ -79,14 +76,11 @@ namespace NCatboostCuda {
         }
 
         TScoresCalcerOnCompressedDataSet& ComputeOptimalSplit(const TCudaBuffer<const TPartitionStatistics, NCudaLib::TMirrorMapping>& partStats,
-                                                              const TCudaBuffer<const float, TFeatureWeightsMapping>& catFeatureWeights,
-                                                              const TMirrorBuffer<const float>& featureWeights,
-                                                              double scoreBeforeSplit,
                                                               double scoreStdDev = 0,
                                                               ui64 seed = 0) {
             TRandom rand(seed);
             for (auto& helper : ScoreHelpers) {
-                helper.second->ComputeOptimalSplit(partStats, catFeatureWeights, featureWeights, scoreBeforeSplit, scoreStdDev, rand.NextUniformL());
+                helper.second->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             return *this;
         }
@@ -94,7 +88,6 @@ namespace NCatboostCuda {
         TBestSplitProperties ReadOptimalSplit() {
             TBestSplitProperties best = {static_cast<ui32>(-1),
                                          0,
-                                         std::numeric_limits<float>::infinity(),
                                          std::numeric_limits<float>::infinity()};
             for (auto& helper : ScoreHelpers) {
                 best = TakeBest(helper.second->ReadOptimalSplit(), best);

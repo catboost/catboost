@@ -19,7 +19,7 @@
 # include <openssl/objects.h>
 # include <openssl/rc4.h>
 # include <openssl/md5.h>
-# include "crypto/evp.h"
+# include "internal/evp_int.h"
 
 typedef struct {
     RC4_KEY ks;

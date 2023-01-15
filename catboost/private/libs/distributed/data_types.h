@@ -3,7 +3,6 @@
 #include <catboost/private/libs/algo/calc_score_cache.h>
 #include <catboost/private/libs/algo/fold.h>
 #include <catboost/private/libs/algo/learn_context.h>
-#include <catboost/private/libs/algo/online_ctr.h>
 #include <catboost/private/libs/algo/pairwise_scoring.h>
 #include <catboost/private/libs/algo/score_calcers.h>
 #include <catboost/private/libs/algo/target_classifier.h>
@@ -12,16 +11,15 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/cpp/json/json_value.h>
-#include <library/cpp/par/par.h>
-#include <library/cpp/par/par_util.h>
+#include <library/json/json_value.h>
+#include <library/par/par.h>
+#include <library/par/par_util.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -54,7 +52,7 @@ namespace NCatboostDistributed {
         {
         }
 
-        SAVELOAD_OVERRIDE_WITHOUT_BASE(TrainData);
+        SAVELOAD(TrainData);
 
         OBJECT_NOCOPY_METHODS(TTrainData);
     };
@@ -69,6 +67,8 @@ namespace NCatboostDistributed {
         EHessianType HessianType;
 
     public:
+        TPlainFoldBuilderParams() = default;
+
         SAVELOAD(
             TargetClassifiers,
             RandomSeed,
@@ -83,58 +83,20 @@ namespace NCatboostDistributed {
         NCatboostOptions::TPoolLoadParams PoolLoadOptions;
         TString TrainOptions;
         NCB::EObjectsOrder ObjectsOrder;
-        NCB::TObjectsGrouping LearnObjectsGrouping;
-        TVector<NCB::TObjectsGrouping> TestObjectsGroupings;
+        NCB::TObjectsGrouping ObjectsGrouping;
         NCB::TFeaturesLayout FeaturesLayout;
-        TLabelConverter LabelConverter;
         ui64 RandomSeed;
 
     public:
+        TDatasetLoaderParams() = default;
+
         SAVELOAD(
             PoolLoadOptions,
             TrainOptions,
             ObjectsOrder,
-            LearnObjectsGrouping,
-            TestObjectsGroupings,
+            ObjectsGrouping,
             FeaturesLayout,
-            LabelConverter,
             RandomSeed);
-    };
-
-    struct TApproxReconstructorParams {
-        TMaybe<int> BestIteration;
-        TVector<std::variant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
-        TVector<TVector<TVector<double>>> LeafValues;
-
-    public:
-        SAVELOAD(BestIteration, TreeStruct, LeafValues);
-    };
-
-    struct TApproxGetterParams {
-        bool ReturnLearnApprox;
-        bool ReturnTestApprox;
-        bool ReturnBestTestApprox;
-
-    public:
-        SAVELOAD(ReturnLearnApprox, ReturnTestApprox, ReturnBestTestApprox);
-    };
-
-    struct TApproxesResult {
-        TVector<TVector<double>> LearnApprox;         //       [dim][docIdx]
-        TVector<TVector<TVector<double>>> TestApprox; // [test][dim][docIdx]
-        TVector<TVector<double>> BestTestApprox;      //       [dim][docIdx]
-
-    public:
-        SAVELOAD(LearnApprox, TestApprox, BestTestApprox);
-    };
-
-    struct TErrorCalcerParams {
-        bool CalcOnlyBacktrackingObjective;
-        bool CalcAllMetrics;
-        bool CalcErrorTrackerMetric;
-
-    public:
-        SAVELOAD(CalcOnlyBacktrackingObjective, CalcAllMetrics, CalcErrorTrackerMetric);
     };
 
     struct TLocalTensorSearchData {
@@ -175,8 +137,6 @@ namespace NCatboostDistributed {
         NCatboostOptions::TCatBoostOptions Params;
 
         NCB::TTrainingDataProviders TrainData;
-        TMaybe<NCB::TPrecomputedOnlineCtrData> PrecomputedSingleOnlineCtrDataForSingleFold;
-
         TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;

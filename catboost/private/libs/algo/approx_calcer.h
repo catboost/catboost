@@ -17,7 +17,7 @@ namespace NCatboostOptions {
 }
 
 namespace NPar {
-    class ITLocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -25,7 +25,7 @@ void UpdateApproxDeltas(
     bool storeExpApprox,
     const TVector<TIndexType>& indices,
     int docCount,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<double>* leafDeltas,
     TVector<double>* deltasDimension
 );
@@ -43,7 +43,7 @@ void CalcLeafDersSimple(
     ELeavesEstimation estimationMethod,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TSum>* leafDers,
     TArray2D<double>* pairwiseBuckets,
     TVector<TDers>* scratchDers
@@ -62,7 +62,7 @@ void CalcLeafValues(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices
@@ -73,7 +73,7 @@ void CalcApproxForLeafStruct(
     const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const std::variant<TSplitTree, TNonSymmetricTreeStructure>& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]

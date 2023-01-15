@@ -10,7 +10,7 @@ THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::Bui
                                        test ? MakeMaybe(*test->TargetData->GetOneDimensionalTarget()) : Nothing());
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> ctrsTargetPtr;
-    ctrsTargetPtr = MakeHolder<TCtrTargets<NCudaLib::TMirrorMapping>>();
+    ctrsTargetPtr = new TCtrTargets<NCudaLib::TMirrorMapping>;
     auto& ctrsTarget = *ctrsTargetPtr;
     ctrsTarget.BinarizedTarget = BuildBinarizedTarget(featuresManager,
                                                       joinedTarget);

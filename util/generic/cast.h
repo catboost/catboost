@@ -2,9 +2,9 @@
 
 #include "typetraits.h"
 #include "yexception.h"
+#include "type_name.h"
 
 #include <util/system/compat.h>
-#include <util/system/type_name.h>
 #include <util/system/unaligned_mem.h>
 #include <util/system/yassert.h>
 
@@ -24,7 +24,7 @@ static inline T VerifyDynamicCast(F f) {
 }
 
 #if !defined(NDEBUG)
-    #define USE_DEBUG_CHECKED_CAST
+#define USE_DEBUG_CHECKED_CAST
 #endif
 
 namespace NPrivate {
@@ -107,7 +107,7 @@ namespace NPrivate {
 }
 
 template <class TSmallInt, class TLargeInt>
-constexpr std::enable_if_t<::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {
+constexpr std::enable_if_t< ::NPrivate::TSafelyConvertible<TSmallInt, TLargeInt>::Result, TSmallInt> SafeIntegerCast(TLargeInt largeInt) noexcept {
     return static_cast<TSmallInt>(largeInt);
 }
 

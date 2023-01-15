@@ -1,7 +1,7 @@
 # cython.* namespace for pure mode.
 from __future__ import absolute_import
 
-__version__ = "0.29.32"
+__version__ = "0.29.13"
 
 try:
     from __builtin__ import basestring
@@ -122,8 +122,6 @@ overflowcheck.fold = optimization.use_switch = \
     optimization.unpack_method_calls = lambda arg: _EmptyDecoratorAndManager()
 
 final = internal = type_version_tag = no_gc_clear = no_gc = _empty_decorator
-
-binding = lambda _: _empty_decorator
 
 
 _cython_inline = None
@@ -305,7 +303,7 @@ class UnionType(CythonType):
             setattr(self, key, value)
 
     def __setattr__(self, key, value):
-        if key == '__dict__':
+        if key in '__dict__':
             CythonType.__setattr__(self, key, value)
         elif key in self._members:
             self.__dict__ = {key: cast(self._members[key], value)}
@@ -353,7 +351,7 @@ class typedef(CythonType):
     __getitem__ = index_type
 
 class _FusedType(CythonType):
-    __getitem__ = index_type
+    pass
 
 
 def fused_type(*args):

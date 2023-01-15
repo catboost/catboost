@@ -2,7 +2,7 @@
 
 #include <util/string/cast.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TUtilUrlTest) {
     Y_UNIT_TEST(TestGetHostAndGetHostAndPort) {
@@ -16,102 +16,10 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHostAndPort("ya.ru/bebe:8080"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("ya.ru:8080/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("https://ya.ru:8080/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetHost("www.ya.ru:8080/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetHost("https://www.ya.ru:8080/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru:8080", GetHostAndPort("ya.ru:8080/bebe"));
         // irl RFC3986 sometimes gets ignored
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHost("pravda-kmv.ru?page=news&id=6973"));
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHostAndPort("pravda-kmv.ru?page=news&id=6973"));
-        // check simple string
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetHost("some_blender_url"));
-        UNIT_ASSERT_VALUES_EQUAL("", GetHost(""));
-    }
-
-    Y_UNIT_TEST(TestGetSchemeHostAndPortWithoutSplit) {
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("http://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHostAndPort("http://ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHostAndPort("http://ya.ru/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetSchemeHostAndPort("http://www.ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru", GetSchemeHostAndPort("http://www.ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru", GetSchemeHostAndPort("http://www.ya.ru/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHostAndPort("https://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHostAndPort("https://ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHostAndPort("https://ya.ru/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHostAndPort("ftp://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHostAndPort("ftp://ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHostAndPort("ftp://ya.ru/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("http://ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetSchemeHostAndPort("http://www.ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru", GetSchemeHostAndPort("http://www.ya.ru:80/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://www.ya.ru", GetSchemeHostAndPort("https://www.ya.ru:443/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru:80", GetSchemeHostAndPort("http://www.ya.ru:80/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHostAndPort("https://ya.ru:443/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru:444", GetSchemeHostAndPort("https://ya.ru:444/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru:444", GetSchemeHostAndPort("https://ya.ru:444/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru:8080", GetSchemeHostAndPort("ftp://ya.ru:8080/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru:1234", GetSchemeHostAndPort("ftp://ya.ru:1234/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru:80", GetSchemeHostAndPort("ftp://ya.ru:80/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru:80", GetSchemeHostAndPort("ftp://ya.ru:80/bebe", /*trimHttp*/false, /*trimDefaultPort*/false));
-
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("ya.ru:80"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("ya.ru"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHostAndPort("http://ya.ru:80"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHostAndPort("http://ya.ru:80", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru:81", GetSchemeHostAndPort("http://ya.ru:81", /*trimHttp*/false, /*trimDefaultPort*/false));
-
-        // irl RFC3986 sometimes gets ignored
-        UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHostAndPort("pravda-kmv.ru?page=news&id=6973"));
-        UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHostAndPort("pravda-kmv.ru?page=news&id=6973", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHostAndPort("pravda-kmv.ru?page=news&id=6973", /*trimHttp*/false, /*trimDefaultPort*/false));
-        // check simple string
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetSchemeHostAndPort("some_blender_url"));
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetSchemeHostAndPort("some_blender_url", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetSchemeHostAndPort("some_blender_url", /*trimHttp*/false, /*trimDefaultPort*/false));
-        UNIT_ASSERT_VALUES_EQUAL("", GetSchemeHostAndPort(""));
-        UNIT_ASSERT_VALUES_EQUAL("", GetSchemeHostAndPort("", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("", GetSchemeHostAndPort("", /*trimHttp*/false, /*trimDefaultPort*/false));
-    }
-
-    Y_UNIT_TEST(TestGetSchemeHost) {
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("http://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHost("http://ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetSchemeHost("http://www.ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru", GetSchemeHost("http://www.ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHost("https://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHost("https://ya.ru/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHost("ftp://ya.ru/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHost("ftp://ya.ru/bebe", /*trimHttp*/false));
-
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("http://ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHost("http://ya.ru:81/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetSchemeHost("http://www.ya.ru:80/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("http://www.ya.ru", GetSchemeHost("http://www.ya.ru:80/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHost("https://ya.ru:443/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("https://ya.ru", GetSchemeHost("https://ya.ru:444/bebe", /*trimHttp*/false));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHost("ftp://ya.ru:8080/bebe"));
-        UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", GetSchemeHost("ftp://ya.ru:1234/bebe", /*trimHttp*/false));
-
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("ya.ru:80"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("ya.ru"));
-        UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetSchemeHost("http://ya.ru:80"));
-        UNIT_ASSERT_VALUES_EQUAL("http://ya.ru", GetSchemeHost("http://ya.ru:81", /*trimHttp*/false));
-
-        // irl RFC3986 sometimes gets ignored
-        UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHost("pravda-kmv.ru?page=news&id=6973"));
-        UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetSchemeHost("pravda-kmv.ru?page=news&id=6973", /*trimHttp*/ false));
-        // check simple string
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetSchemeHost("some_blender_url"));
-        UNIT_ASSERT_VALUES_EQUAL("some_blender_url", GetSchemeHost("some_blender_url", /*trimHttp*/ false));
-        UNIT_ASSERT_VALUES_EQUAL("", GetSchemeHost(""));
-        UNIT_ASSERT_VALUES_EQUAL("", GetSchemeHost("", /*trimHttp*/ false));
     }
 
     Y_UNIT_TEST(TestGetPathAndQuery) {
@@ -232,10 +140,6 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         SplitUrlToHostAndPath("invalid url /", host, path);
         UNIT_ASSERT_STRINGS_EQUAL(host, "invalid url ");
         UNIT_ASSERT_STRINGS_EQUAL(path, "/");
-
-        SplitUrlToHostAndPath("some_blender_url", host, path);
-        UNIT_ASSERT_STRINGS_EQUAL(host, "some_blender_url");
-        UNIT_ASSERT_STRINGS_EQUAL(path, "");
     }
 
     Y_UNIT_TEST(TestSeparateUrlFromQueryAndFragment) {
@@ -358,7 +262,6 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe?", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("https://ya.ru/bebe", "bebe"));
-        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebezzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebe.zzz", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/", "bebe"));
         UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru", "bebe"));

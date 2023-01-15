@@ -1,6 +1,6 @@
 #include "fast.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TTestFastRng) {
     Y_UNIT_TEST(Test1) {
@@ -46,17 +46,15 @@ Y_UNIT_TEST_SUITE(TTestFastRng) {
     Y_UNIT_TEST(TestAdvance) {
         TReallyFastRng32 rng1(17);
         TReallyFastRng32 rng2(17);
-        for (size_t i = 0; i < 100; i++) {
+        for (size_t i = 0; i < 100; i++)
             rng1.GenRand();
-        }
         rng2.Advance(100);
         UNIT_ASSERT_VALUES_EQUAL(rng1.GenRand(), rng2.GenRand());
 
         TFastRng64 rng3(0, 1, 2, 3);
         TFastRng64 rng4(0, 1, 2, 3);
-        for (size_t i = 0; i < 100; i++) {
+        for (size_t i = 0; i < 100; i++)
             rng3.GenRand();
-        }
         rng4.Advance(100);
         UNIT_ASSERT_VALUES_EQUAL(rng3.GenRand(), rng4.GenRand());
     }

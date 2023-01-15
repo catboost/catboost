@@ -6,11 +6,9 @@
 #include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
-#include <util/generic/ylimits.h>
 #include <util/string/cast.h>
 
 #include <cmath>
-#include <variant>
 
 class IInputStream;
 class IOutputStream;
@@ -57,7 +55,7 @@ private:
         bool operator==(const TUndefined&) const;
     };
 
-    using TValue = std::variant<
+    using TValue = ::TVariant<
         bool,
         i64,
         ui64,
@@ -73,9 +71,7 @@ public:
 
     TNode();
     TNode(const char* s);
-    TNode(TStringBuf s);
-    explicit TNode(std::string_view s);
-    explicit TNode(const std::string& s);
+    TNode(const TStringBuf& s);
     TNode(TString s);
     TNode(int i);
 
@@ -106,8 +102,8 @@ public:
     TNode(const TNode& rhs);
     TNode& operator=(const TNode& rhs);
 
-    TNode(TNode&& rhs) noexcept;
-    TNode& operator=(TNode&& rhs) noexcept;
+    TNode(TNode&& rhs);
+    TNode& operator=(TNode&& rhs);
 
     ~TNode();
 
@@ -324,7 +320,8 @@ inline T TNode::ConvertTo() const {
             case NYT::TNode::Uint64:
                 return IntCast<T>();
             case NYT::TNode::Double:
-                if (AsDouble() < Min<T>() || AsDouble() > MaxFloor<T>() || !std::isfinite(AsDouble())) {
+                // >= because of (1<<sizeof(T)) + 1
+                if (AsDouble() < std::numeric_limits<T>::min() || AsDouble() >= std::numeric_limits<T>::max() || !std::isfinite(AsDouble())) {
                     ythrow TTypeError() << AsDouble() << " can't be converted to " << TypeName<T>();
                 }
                 return AsDouble();
@@ -495,17 +492,17 @@ inline T& TNode::ChildAs(size_t index) {
 
 template<typename T>
 inline bool TNode::IsOfType() const noexcept {
-    return std::holds_alternative<T>(Value_);
+    return ::HoldsAlternative<T>(Value_);
 }
 
 template<typename T>
 inline T& TNode::As() {
-    return std::get<T>(Value_);
+    return ::Get<T>(Value_);
 }
 
 template<typename T>
 inline const T& TNode::As() const {
-    return std::get<T>(Value_);
+    return ::Get<T>(Value_);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

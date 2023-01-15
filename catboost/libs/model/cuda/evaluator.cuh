@@ -1,4 +1,4 @@
-#include <library/cpp/cuda/wrappers/cuda_vec.h>
+#include <library/cuda/wrappers/cuda_vec.h>
 
 #include <catboost/libs/model/fwd.h>
 

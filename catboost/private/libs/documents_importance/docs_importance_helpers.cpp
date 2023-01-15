@@ -5,7 +5,7 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/private/libs/algo/index_calcer.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -25,7 +25,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
     auto binarizedFeatures = MakeQuantizedFeaturesForEvaluator(Model, *processedData.ObjectsData.Get());
     LocalExecutor->ExecRange([&] (int treeId) {
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures.Get(), treeId);
-    }, NPar::ILocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
     UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetOneDimensionalTarget());
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
@@ -42,7 +42,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
             TVector<TVector<TVector<double>>> leafDerivatives(TreeCount, TVector<TVector<double>>(LeavesEstimationIterations)); // [treeCount][LeavesEstimationIterationsCount][leafCount]
             UpdateLeavesDerivatives(docId, &leafDerivatives);
             GetDocumentImportancesForOneTrainDoc(leafDerivatives, leafIndices, &documentImportances[docId]);
-        }, NPar::ILocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
+        }, NPar::TLocalExecutor::TExecRangeParams(start, end), NPar::TLocalExecutor::WAIT_COMPLETE);
 
         processDocumentsProfile.FinishIterationBlock(end - start);
         auto profileResults = processDocumentsProfile.GetProfileResults();
@@ -71,7 +71,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {
     TVector<ui32> leafIdToUpdate;
-    const ui32 leafCount = 1 << Model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeId];
+    const ui32 leafCount = 1 << Model.ModelTrees->GetTreeSizes()[treeId];
 
     if (UpdateMethod.UpdateType == EUpdateType::AllPoints) {
         leafIdToUpdate.resize(leafCount);

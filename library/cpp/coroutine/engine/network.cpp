@@ -4,7 +4,9 @@
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 
-#include <sys/uio.h>
+#if defined(_win_)
+#   define IOV_MAX 16
+#endif
 
 #if defined(_bionic_)
 #   define IOV_MAX 1024
@@ -51,7 +53,7 @@ namespace NCoro {
         for (auto i : xrange(nfds)) {
             cont->Executor()->ScheduleIoWait(events.Data() + i);
         }
-        cont->Switch();
+        cont->SwitchTo(cont->Executor()->SchedContext());
 
         if (cont->Cancelled()) {
             return ECANCELED;
@@ -68,8 +70,7 @@ namespace NCoro {
             case ETIMEDOUT:
                 if (status != EINPROGRESS) {
                     break;
-                }
-                [[fallthrough]];
+                } // else fallthrough
             default:
                 status = ev.Status();
                 ret = &ev;

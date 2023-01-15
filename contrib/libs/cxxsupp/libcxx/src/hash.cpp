@@ -1,4 +1,4 @@
-//===----------------------------------------------------------------------===//
+//===-------------------------- hash.cpp ----------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -6,12 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <__hash_table>
-#include <algorithm>
-#include <stdexcept>
-#include <type_traits>
+#include "__hash_table"
+#include "algorithm"
+#include "stdexcept"
+#include "type_traits"
 
-_LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Wtautological-constant-out-of-range-compare")
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 

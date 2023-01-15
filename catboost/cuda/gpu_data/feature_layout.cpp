@@ -9,6 +9,7 @@ namespace NCatboostCuda {
     template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
     template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
 
+    template struct TCudaFeaturesLayoutHelper<TSingleDevLayout>;
     template struct TCudaFeaturesLayoutHelper<TFeatureParallelLayout>;
     template struct TCudaFeaturesLayoutHelper<TDocParallelLayout>;
 

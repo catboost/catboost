@@ -11,7 +11,7 @@
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/maybe.h>
+#include <catboost/libs/helpers/maybe_data.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_util/path_with_scheme.h>
@@ -20,7 +20,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
@@ -34,7 +34,7 @@ namespace {
         // unsampled data from external data sources
         TMaybeData<TVector<float>> GroupWeights;
         TMaybeData<TVector<TVector<float>>> MultidimBaseline;
-        TMaybeData<TRawPairsData> Pairs;
+        TMaybeData<TVector<TPair>> Pairs;
         TMaybeData<TVector<ui64>> Timestamps;
     };
 
@@ -67,7 +67,7 @@ namespace {
             TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
             THolder<IDataProviderBuilder> builder,
             TRestorableFastRng64* rand,
-            NPar::ILocalExecutor* localExecutor)
+            NPar::TLocalExecutor* localExecutor)
             : LocalExecutor(localExecutor)
             , PlainJsonParams(std::move(plainJsonParams))
             , InputBordersPath(std::move(inputBordersPath))
@@ -122,7 +122,7 @@ namespace {
             SampleInvertedSubset = GetInvertedIndexing(SampleSubset, ObjectCount, LocalExecutor);
             IsFullSubset = SampleSubset.IsFullSubset();
             if (!IsFullSubset) {
-                auto* indexedSubset = ::std::get_if<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
+                auto* indexedSubset = ::GetIf<TInvertedIndexedSubset<ui32>>(&SampleInvertedSubset);
                 CB_ENSURE_INTERNAL(
                     indexedSubset != nullptr,
                     "inverted subset should be either indexed or full");
@@ -177,18 +177,6 @@ namespace {
                 return;
             }
             DataVisitor->AddSubgroupId(sampleIdx, value);
-        }
-
-        void AddGroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
-            CB_ENSURE_INTERNAL(false, "unsupported function");
-        }
-
-        void AddSubgroupId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
-            CB_ENSURE_INTERNAL(false, "unsupported function");
-        }
-
-        void AddSampleId(ui32 /*localObjectIdx*/, const TString& /*value*/) override {
-            CB_ENSURE_INTERNAL(false, "unsupported function");
         }
 
         void AddTimestamp(ui32 localObjectIdx, ui64 value) override {
@@ -306,18 +294,6 @@ namespace {
             DataVisitor->AddAllTextFeatures(sampleIdx, std::move(features));
         }
 
-        void AddEmbeddingFeature(
-            ui32 localObjectIdx,
-            ui32 flatFeatureIdx,
-            TMaybeOwningConstArrayHolder<float> feature) override {
-
-            const ui32 sampleIdx = GetSampleIdx(localObjectIdx);
-            if (sampleIdx == NotSet) {
-                return;
-            }
-            DataVisitor->AddEmbeddingFeature(sampleIdx, flatFeatureIdx, std::move(feature));
-        }
-
         void AddTarget(ui32 localObjectIdx, const TString& value) override {
             const ui32 sampleIdx = GetSampleIdx(localObjectIdx);
             if (sampleIdx == NotSet) {
@@ -384,7 +360,7 @@ namespace {
             UnsampledData.MultidimBaseline = std::move(multidimBaseline);
         }
 
-        void SetPairs(TRawPairsData&& pairs) override {
+        void SetPairs(TVector<TPair>&& pairs) override {
             // TODO(vetaleha): fill for sample, if needed for quantization
             UnsampledData.Pairs = std::move(pairs);
         }
@@ -441,7 +417,7 @@ namespace {
         bool IsStarted = false;
         bool ResultsTaken = false;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
         NJson::TJsonValue PlainJsonParams;
         TMaybe<TString> InputBordersPath;
@@ -474,7 +450,7 @@ namespace {
     template <class T, class ValuesHolder>
     TMaybeOwningConstArrayHolder<ui8> ExtractValuesForQuantizedVisitor(
         const ValuesHolder& srcValues,
-        NPar::ILocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor) {
 
         TMaybeOwningConstArrayHolder<T> values =
             TMaybeOwningConstArrayHolder<T>::CreateOwning(srcValues.template ExtractValues<T>(localExecutor));
@@ -488,7 +464,7 @@ namespace {
             TDatasetSubset loadSubset,
             EObjectsOrder objectsOrder,
             TRestorableFastRng64* rand,
-            NPar::ILocalExecutor* localExecutor)
+            NPar::TLocalExecutor* localExecutor)
             : LocalExecutor(localExecutor)
             , FirstPassResult(std::move(firstPassResult))
             , QuantizedDataBuilder(
@@ -514,21 +490,52 @@ namespace {
             const auto& quantizedFeaturesInfo = *FirstPassResult.QuantizedFeaturesInfo;
             const auto featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
 
+            TVector<TVector<float>> borders;
+            TVector<ENanMode> nanModes;
+            TVector<size_t> floatFeatureIndices;
+            TVector<size_t> catFeatureIndices;
+
             for (auto flatFeatureIdx : xrange(featuresLayout->GetExternalFeatureCount())) {
                 const auto featureMetaInfo = featuresLayout->GetExternalFeatureMetaInfo(flatFeatureIdx);
 
                 if (featureMetaInfo.IsIgnored) {
                     IgnoredFeatures.emplace_back(flatFeatureIdx);
                 }
-            }
 
+                if (featureMetaInfo.Type == EFeatureType::Float) {
+                    const auto floatFeatureIdx =
+                        featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(flatFeatureIdx);
+
+                    const auto featureBorders = quantizedFeaturesInfo.HasBorders(floatFeatureIdx)
+                                                ? quantizedFeaturesInfo.GetBorders(floatFeatureIdx)
+                                                : TVector<float>();
+                    const auto featureNanMode = quantizedFeaturesInfo.HasNanMode(floatFeatureIdx)
+                                                ? quantizedFeaturesInfo.GetNanMode(floatFeatureIdx)
+                                                : ENanMode::Forbidden;
+                    borders.push_back(featureBorders);
+                    nanModes.push_back(featureNanMode);
+                    floatFeatureIndices.push_back(flatFeatureIdx);
+                } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
+                    catFeatureIndices.push_back(flatFeatureIdx);
+                } else {
+                    CB_ENSURE_INTERNAL(
+                        false,
+                        "building quantization results is supported only for numerical and categorical features");
+                }
+            }
             QuantizedDataVisitor->Start(
                 FirstPassResult.MetaInfo,
                 FirstPassResult.ObjectCount,
                 ObjectsOrder,
                 /*resourceHolders*/ {},
-                GetPoolQuantizationSchema(quantizedFeaturesInfo, /*classLabels*/ {}),
-                /*wholeColumns*/ false);
+                TPoolQuantizationSchema{
+                    std::move(floatFeatureIndices),
+                    std::move(borders),
+                    std::move(nanModes),
+                    /*ClassLabels*/ {},
+                    std::move(catFeatureIndices),
+                    TVector<TMap<ui32, TValueWithCount>>() // TODO(vetaleha): build CatFeaturesPerfectHash
+                });
         }
 
         TVector<ui32> GetIgnoredFeatures() {
@@ -735,7 +742,7 @@ namespace {
     private:
         bool ResultsTaken = false;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
         TQuantizationFirstPassResult FirstPassResult;
         THolder<IDataProviderBuilder> QuantizedDataBuilder;
@@ -758,7 +765,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
     const TPathWithScheme& featureNamesPath,     // can be uninited
-    const TPathWithScheme& poolMetaInfoPath,     // can be uninited
     const TPathWithScheme& inputBordersPath,     // can be uninited
     const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
     const TVector<ui32>& ignoredFeatures,
@@ -768,7 +774,7 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
     TDatasetSubset loadSubset,
     TMaybe<TVector<NJson::TJsonValue>*> classLabels,
-    NPar::ILocalExecutor* localExecutor) {
+    NPar::TLocalExecutor* localExecutor) {
 
     if (!blockSize) {
         blockSize = 10000;
@@ -784,23 +790,17 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         classLabels = &emptyClassLabels;
     }
 
-    NJson::TJsonValue jsonParams;
-    NJson::TJsonValue outputJsonParams;
-    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
-    NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
-
     auto datasetLoader = GetProcessor<IDatasetLoader>(
         poolPath, // for choosing processor
         // processor args
         TDatasetLoaderPullArgs{
             poolPath,
-            TDatasetLoaderCommonArgs {
+            TDatasetLoaderCommonArgs{
                 pairsFilePath,
                 groupWeightsFilePath,
                 baselineFilePath,
                 timestampsFilePath,
                 featureNamesPath,
-                poolMetaInfoPath,
                 **classLabels,
                 columnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
@@ -808,8 +808,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
                 objectsOrder,
                 *blockSize,
                 loadSubset,
-                /*LoadColumnsAsString*/ false,
-                catBoostOptions.DataProcessingOptions->ForceUnitAutoPairWeights,
                 localExecutor}});
 
     CB_ENSURE(
@@ -818,6 +816,11 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     CB_ENSURE_INTERNAL(
         datasetLoader->GetVisitorType() == EDatasetVisitorType::RawObjectsOrder,
         "dataset should be loaded by RawObjectsOrder loader");
+
+    NJson::TJsonValue jsonParams;
+    NJson::TJsonValue outputJsonParams;
+    NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
 
     TRestorableFastRng64 rand(catBoostOptions.RandomSeed);
 
@@ -853,7 +856,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     params.ColumnarPoolFormatParams = columnarPoolFormatParams;
     params.PoolPath = poolPath;
     params.FeatureNamesPath = featureNamesPath;
-    params.PoolMetaInfoPath = poolMetaInfoPath;
     params.ClassLabels = **classLabels;
     params.IgnoredFeatures = secondPassQuantizer.GetIgnoredFeatures();
     ReadAndProceedPoolInBlocks(
@@ -872,7 +874,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
     const TPathWithScheme& timestampsFilePath,   // can be uninited
     const TPathWithScheme& baselineFilePath,     // can be uninited
     const TPathWithScheme& featureNamesPath,     // can be uninited
-    const TPathWithScheme& poolMetaInfoPath,     // can be uninited
     const TPathWithScheme& inputBordersPath,     // can be uninited
     const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
     const TVector<ui32>& ignoredFeatures,
@@ -896,7 +897,6 @@ TDataProviderPtr NCB::ReadAndQuantizeDataset(
         timestampsFilePath,
         baselineFilePath,
         featureNamesPath,
-        poolMetaInfoPath,
         inputBordersPath,
         columnarPoolFormatParams,
         ignoredFeatures,

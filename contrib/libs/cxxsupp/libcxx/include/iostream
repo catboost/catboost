@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===--------------------------- iostream ---------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -14,9 +14,9 @@
     iostream synopsis
 
 #include <ios>
+#include <streambuf>
 #include <istream>
 #include <ostream>
-#include <streambuf>
 
 namespace std {
 
@@ -35,55 +35,46 @@ extern wostream wclog;
 
 #include <__config>
 #include <ios>
+#include <streambuf>
 #include <istream>
 #include <ostream>
-#include <streambuf>
-#include <version>
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
+#ifndef _LIBCPP_HAS_NO_STDIN
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS istream& cin;
+extern _LIBCPP_FUNC_VIS wistream& wcin;
 #else
 extern _LIBCPP_FUNC_VIS istream cin;
+extern _LIBCPP_FUNC_VIS wistream wcin;
 #endif
+#endif
+#ifndef _LIBCPP_HAS_NO_STDOUT
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS ostream& cout;
+extern _LIBCPP_FUNC_VIS wostream& wcout;
 #else
 extern _LIBCPP_FUNC_VIS ostream cout;
+extern _LIBCPP_FUNC_VIS wostream wcout;
+#endif
 #endif
 #if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS ostream& cerr;
-extern _LIBCPP_FUNC_VIS ostream& clog;
-#else
-extern _LIBCPP_FUNC_VIS ostream cerr;
-extern _LIBCPP_FUNC_VIS ostream clog;
-#endif
-
-#ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
-#if defined(_MSC_VER) && !defined(__clang__)
-extern _LIBCPP_FUNC_VIS wistream& wcin;
-#else
-extern _LIBCPP_FUNC_VIS wistream wcin;
-#endif
-#if defined(_MSC_VER) && !defined(__clang__)
-extern _LIBCPP_FUNC_VIS wostream& wcout;
-#else
-extern _LIBCPP_FUNC_VIS wostream wcout;
-#endif
-#if defined(_MSC_VER) && !defined(__clang__)
 extern _LIBCPP_FUNC_VIS wostream& wcerr;
+extern _LIBCPP_FUNC_VIS ostream& clog;
 extern _LIBCPP_FUNC_VIS wostream& wclog;
 #else
+extern _LIBCPP_FUNC_VIS ostream cerr;
 extern _LIBCPP_FUNC_VIS wostream wcerr;
+extern _LIBCPP_FUNC_VIS ostream clog;
 extern _LIBCPP_FUNC_VIS wostream wclog;
-#endif
 #endif
 
 _LIBCPP_END_NAMESPACE_STD
 
-#endif // _LIBCPP_IOSTREAM
+#endif  // _LIBCPP_IOSTREAM

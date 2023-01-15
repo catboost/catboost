@@ -73,7 +73,7 @@ TVector<float> NCatboostCuda::TGpuBordersBuilder::GetOrComputeBorders(
     } else {
         TSingleBuffer<float> floatFeatureGpu = TSingleBuffer<float>::Create(NCudaLib::TSingleMapping(0, floatFeature.size()));
         floatFeatureGpu.Write(floatFeature, stream);
-        return GetOrComputeBorders(featureId, binarizationDescription, floatFeatureGpu.AsConstBuf(), stream);
+        return GetOrComputeBorders(featureId, binarizationDescription, floatFeatureGpu, stream);
     }
 }
 

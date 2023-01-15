@@ -22,11 +22,11 @@ namespace NCatboostOptions {
 }
 
 namespace NCB {
-    class TQuantizedObjectsDataProvider;
+    class TQuantizedForCPUObjectsDataProvider;
 }
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -35,8 +35,8 @@ namespace NPar {
 // This function does all the work - it calculates sums in buckets, gets real sums for splits and
 // (optionally - if scoreCalcer is non-null) calculates scores.
 void CalcStatsAndScores(
-    const NCB::TQuantizedObjectsDataProvider& objectsDataProvider,
-    const std::tuple<const TOnlineCtrBase&, const TOnlineCtrBase&>& allCtrs,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
 
@@ -49,7 +49,7 @@ void CalcStatsAndScores(
     bool useTreeLevelCaching,
     const TVector<int>& currTreeMonotonicConstraints,
     const TMap<ui32, int>& monotonicConstraints,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d, // can be nullptr (and if PairwiseScoring must be), if so - don't return this data
 

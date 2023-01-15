@@ -4,8 +4,6 @@
 
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
-#include <util/generic/cast.h>
-
 namespace NKernel {
 
     template <ui32 BLOCK_SIZE>
@@ -157,7 +155,7 @@ namespace NKernel {
         for (int i = x; i < querySize; i += 32) {
             const float t = __ldg(target + i);
             const float w = weights != nullptr ? __ldg(weights + i) : 1.0f;
-            sumTarget += t * w;
+            sumTarget += t;
             sumWeight += w;
         }
 
@@ -208,7 +206,7 @@ namespace NKernel {
         line[threadIdx.x] = 0;
 
         const int x = threadIdx.x & 31;
-        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0; // qCount == QidsOffsets.Size() - 1
+        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0;
 
         float sumTarget = 0;
         float sumWeight = 0;
@@ -238,8 +236,8 @@ namespace NKernel {
     void ComputeGroupMeans(const float* target, const float* weights,
                            const ui32* qOffsets,  ui32 qCount,
                            float* result, TCudaStream stream) {
-        const ui32 blockSize = 128;
-        const ui32 numBlocks = SafeIntegerCast<ui32>(((ui64)(qCount + 1) * 32 + blockSize - 1) / blockSize); // qOffsets points at qCount+1 ui32's
+        const int blockSize = 128;
+        const int numBlocks = (qCount * 32 + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             ComputeGroupMeansImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, weights, qOffsets,  qCount, result);
         }
@@ -261,7 +259,7 @@ namespace NKernel {
         line[threadIdx.x] = 0;
 
         const int x = threadIdx.x & 31;
-        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0; // qCount == QidsOffsets.Size() - 1
+        const int querySize = qid < qCount ? qOffsets[qid + 1] - queryOffset : 0;
 
         float maxValue = NegativeInfty();
 
@@ -283,8 +281,8 @@ namespace NKernel {
     void ComputeGroupMax(const float* target,
                          const ui32* qOffsets,  ui32 qCount,
                          float* result, TCudaStream stream) {
-        const ui32 blockSize = 128;
-        const ui32 numBlocks = SafeIntegerCast<ui32>(((ui64)(qCount + 1) * 32 + blockSize - 1) / blockSize); // qOffsets points at qCount+1 ui32's
+        const int blockSize = 128;
+        const int numBlocks = (qCount * 32 + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
             ComputeGroupMaxImpl<blockSize> <<< numBlocks, blockSize, 0, stream >>> (target, qOffsets,  qCount, result);
         }

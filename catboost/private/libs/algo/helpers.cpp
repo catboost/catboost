@@ -3,7 +3,6 @@
 #include "learn_context.h"
 
 #include <catboost/libs/data/quantized_features_info.h>
-#include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/libs/logging/logging.h>
 
@@ -48,8 +47,8 @@ static TVector<TFeature> CreateFeatures(
 
 TVector<TFloatFeature> CreateFloatFeatures(
     const NCB::TFeaturesLayout& featuresLayout,
-    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo
-) {
+    const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+
     return CreateFeatures<TFloatFeature, EFeatureType::Float>(
         featuresLayout,
         [&] (TFloatFeature& floatFeature) {
@@ -83,18 +82,12 @@ TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLay
     );
 }
 
-TVector<TEmbeddingFeature> CreateEmbeddingFeatures(const NCB::TFeaturesLayout& featuresLayout) {
-    return CreateFeatures<TEmbeddingFeature, EFeatureType::Embedding>(
-        featuresLayout,
-        [] (TEmbeddingFeature&) {
-            //Dimension!!!
-        }
-    );
-}
 
 void ConfigureMalloc() {
-#if !(defined(__APPLE__) && defined(__MACH__)) && !defined(__aarch64__) // there is no LF for MacOS and aarch64
-    NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000");
+#if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
+    if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
+        CATBOOST_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
+    }
 #endif
 }
 
@@ -103,7 +96,7 @@ double CalcMetric(
     const IMetric& metric,
     const TTargetDataProviderPtr& targetData,
     const TVector<TVector<double>>& approx,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(
         approx[0].size() == targetData->GetObjectCount(),
@@ -113,9 +106,7 @@ double CalcMetric(
     const auto weights = GetWeights(*targetData);
     const auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     const auto& additiveStats = EvalErrors(
-        To2DConstArrayRef<double>(approx),
-        /*approxDelta*/{},
-        /*isExpApprox*/false,
+        approx,
         target,
         weights,
         queryInfo,
@@ -125,43 +116,29 @@ double CalcMetric(
     return metric.GetFinalError(additiveStats);
 }
 
-TVector<const IMetric*> FilterTrainMetrics(
-    const TVector<THolder<IMetric>>& metrics,
-    bool calcAdditiveMetrics,
-    bool calcNonAdditiveMetrics
-) {
+static TVector<const IMetric*> FilterTrainMetrics(const TVector<THolder<IMetric>>& metrics) {
     TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     TVector<const IMetric*> filtered;
     for (auto i : xrange(metrics.size())) {
         auto metric = metrics[i].Get();
-        auto isAdditive = metric->IsAdditiveMetric();
-        if (((isAdditive && calcAdditiveMetrics) || (!isAdditive && calcNonAdditiveMetrics)) &&
-            !skipMetricOnTrain[i])
-        {
+        if (!skipMetricOnTrain[i]) {
             filtered.push_back(metric);
         }
     }
     return filtered;
 }
 
-TVector<const IMetric*> FilterTestMetrics(
-    const TVector<THolder<IMetric>>& metrics,
-    bool calcAllMetrics,
-    bool calcAdditiveMetrics,
-    bool calcNonAdditiveMetrics,
-    bool hasTarget,
-    TMaybe<int> trackerIdx,
-    TMaybe<int>* filteredTrackerIdx
+static TVector<const IMetric*> FilterTestMetrics(
+    const TVector<THolder<IMetric>>& metrics, bool calcAllMetrics, bool hasTarget,
+    TMaybe<int> trackerIdx, TMaybe<int>* filteredTrackerIdx
 ) {
     *filteredTrackerIdx = Nothing();
     TVector<const IMetric*> filtered;
     for (int i : xrange(metrics.size())) {
         auto metric = metrics[i].Get();
-        auto isAdditive = metric->IsAdditiveMetric();
 
         const bool skipMetric = (!calcAllMetrics && (!trackerIdx || i != *trackerIdx))
-            || (!hasTarget && metric->NeedTarget())
-            || (isAdditive && !calcAdditiveMetrics) || (!isAdditive && !calcNonAdditiveMetrics);
+            || (!hasTarget && metric->NeedTarget());
 
         if (!skipMetric) {
             if (trackerIdx && i == trackerIdx) {
@@ -173,7 +150,7 @@ TVector<const IMetric*> FilterTestMetrics(
     return filtered;
 }
 
-TVector<int> FilterTestPools(const TTrainingDataProviders& trainingDataProviders, bool calcAllMetrics) {
+static TVector<int> FilterTestPools(const TTrainingDataProviders& trainingDataProviders, bool calcAllMetrics) {
     TVector<int> filtered;
     for (int i : xrange(trainingDataProviders.Test.size())) {
         const auto &testPool = trainingDataProviders.Test[i];
@@ -187,127 +164,81 @@ TVector<int> FilterTestPools(const TTrainingDataProviders& trainingDataProviders
     return filtered;
 }
 
-void CalcErrorsLocally(
+void CalcErrors(
     const TTrainingDataProviders& trainingDataProviders,
     const TVector<THolder<IMetric>>& errors,
     bool calcAllMetrics,
     bool calcErrorTrackerMetric,
-    bool calcNonAdditiveMetricsOnly,
     TLearnContext* ctx
 ) {
-    auto onLearn = [&] (TConstArrayRef<const IMetric*> trainMetrics) {
-        const auto& targetData = trainingDataProviders.Learn->TargetData;
-
-        auto weights = GetWeights(*targetData);
-        auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
-
-        TVector<TVector<double>>* approx = &ctx->LearnProgress->AvrgApprox;
-        bool isExpApprox = false;
-        if (UseAveragingFoldAsFoldZero(*ctx) && trainMetrics.size() == 1) {
-            const auto lossFunction = ctx->Params.LossFunctionDescription->GetLossFunction();
-            isExpApprox = IsStoreExpApprox(lossFunction);
-            approx = &ctx->LearnProgress->AveragingFold.BodyTailArr[0].Approx;
-        }
-
-        auto errors = EvalErrorsWithCaching(
-            *approx,
-            /*approxDelta*/{},
-            isExpApprox,
-            targetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
-            weights,
-            queryInfo,
-            trainMetrics,
-            ctx->LocalExecutor
-        );
-
-        for (auto i : xrange(trainMetrics.size())) {
-            auto metric = trainMetrics[i];
-            ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(
-                *metric,
-                metric->GetFinalError(errors[i])
-            );
-        }
-    };
-    auto onTest = [&] (size_t testIdx,
-        TConstArrayRef<const IMetric*> testMetrics,
-        TMaybe<int> filteredTrackerIdx
-    ) {
-        const auto &targetData = trainingDataProviders.Test[testIdx]->TargetData;
-
-        auto maybeTarget = targetData->GetTarget();
-        auto weights = GetWeights(*targetData);
-        auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
-
-        auto errors = EvalErrorsWithCaching(
-            ctx->LearnProgress->TestApprox[testIdx],
-            /*approxDelta*/{},
-            /*isExpApprox*/false,
-            maybeTarget.GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
-            weights,
-            queryInfo,
-            testMetrics,
-            ctx->LocalExecutor
-        );
-
-        for (int i : xrange(testMetrics.size())) {
-            auto metric = testMetrics[i];
-            const bool updateBestIteration = filteredTrackerIdx && (i == *filteredTrackerIdx)
-                && (testIdx == (trainingDataProviders.Test.size() - 1));
-
-            ctx->LearnProgress->MetricsAndTimeHistory.AddTestError(
-                testIdx,
-                *metric,
-                metric->GetFinalError(errors[i]),
-                updateBestIteration
-            );
-        }
-    };
-
-    IterateOverMetrics(
-        trainingDataProviders,
-        errors,
-        calcAllMetrics,
-        calcErrorTrackerMetric,
-        /*calcAdditiveMetrics*/ !calcNonAdditiveMetricsOnly,
-        /*calcNonAdditiveMetrics*/ true,
-        onLearn,
-        onTest
-    );
-}
-
-void IterateOverMetrics(
-    const NCB::TTrainingDataProviders& trainingDataProviders,
-    const TVector<THolder<IMetric>>& errors,
-    bool calcAllMetrics, // bool value for each error
-    bool calcErrorTrackerMetric,
-    bool calcAdditiveMetrics,
-    bool calcNonAdditiveMetrics,
-    std::function<void(TConstArrayRef<const IMetric*> /*metrics*/)> onLearnCallback,
-    std::function<
-        void(size_t /*testIdx*/, TConstArrayRef<const IMetric*> /*metrics*/, TMaybe<int> /*filteredTrackerIdx*/)
-    > onTestCallback
-) {
     if (trainingDataProviders.Learn->GetObjectCount() > 0) {
+        ctx->LearnProgress->MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
         if (calcAllMetrics) {
-            onLearnCallback(FilterTrainMetrics(errors, calcAdditiveMetrics, calcNonAdditiveMetrics));
+            if (ctx->Params.SystemOptions->IsSingleHost()) {
+                auto trainMetrics = FilterTrainMetrics(errors);
+
+                const auto& targetData = trainingDataProviders.Learn->TargetData;
+
+                auto weights = GetWeights(*targetData);
+                auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+
+                auto errors = EvalErrorsWithCaching(
+                    ctx->LearnProgress->AvrgApprox,
+                    /*approxDelta*/{},
+                    /*isExpApprox*/false,
+                    targetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+                    weights,
+                    queryInfo,
+                    trainMetrics,
+                    ctx->LocalExecutor
+                );
+
+                for (auto i : xrange(trainMetrics.size())) {
+                    auto metric = trainMetrics[i];
+                    ctx->LearnProgress->MetricsAndTimeHistory.AddLearnError(*metric, metric->GetFinalError(errors[i]));
+                }
+            } else {
+                MapCalcErrors(ctx);
+            }
         }
     }
+
     if (trainingDataProviders.GetTestSampleCount() > 0) {
+        ctx->LearnProgress->MetricsAndTimeHistory.TestMetricsHistory.emplace_back();
         for (auto testIdx : FilterTestPools(trainingDataProviders, calcAllMetrics)) {
             const auto &targetData = trainingDataProviders.Test[testIdx]->TargetData;
 
+            auto maybeTarget = targetData->GetTarget();
+            auto weights = GetWeights(*targetData);
+            auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());;
+
             TMaybe<int> trackerIdx = calcErrorTrackerMetric ? TMaybe<int>(0) : Nothing();
             TMaybe<int> filteredTrackerIdx;
-            auto testMetrics = FilterTestMetrics(
-                errors,
-                calcAllMetrics,
-                calcAdditiveMetrics,
-                calcNonAdditiveMetrics,
-                targetData->GetTarget().Defined(),
-                trackerIdx,
-                &filteredTrackerIdx);
+            auto testMetrics = FilterTestMetrics(errors, calcAllMetrics, maybeTarget.Defined(), trackerIdx, &filteredTrackerIdx);
 
-            onTestCallback(testIdx, testMetrics, filteredTrackerIdx);
+            auto errors = EvalErrorsWithCaching(
+                ctx->LearnProgress->TestApprox[testIdx],
+                /*approxDelta*/{},
+                /*isExpApprox*/false,
+                maybeTarget.GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+                weights,
+                queryInfo,
+                testMetrics,
+                ctx->LocalExecutor
+            );
+
+            for (int i : xrange(testMetrics.size())) {
+                auto metric = testMetrics[i];
+                const bool updateBestIteration = filteredTrackerIdx && (i == *filteredTrackerIdx)
+                    && (testIdx == SafeIntegerCast<int>(trainingDataProviders.Test.size() - 1));
+
+                ctx->LearnProgress->MetricsAndTimeHistory.AddTestError(
+                    testIdx,
+                    *metric,
+                    metric->GetFinalError(errors[i]),
+                    updateBestIteration
+                );
+            }
         }
     }
 }

@@ -1,26 +1,17 @@
 import os
 import json
 from threading import Thread, Event
+from IPython.core.display import display, HTML
 from traitlets import Unicode, Dict, default
-from IPython.display import display
 from ipywidgets import DOMWidget, Layout, widget_serialization
 
 
-class MetricWidget(DOMWidget):
-    _view_name = Unicode('CatboostWidgetView').tag(sync=True)
-    _model_name = Unicode('CatboostWidgetModel').tag(sync=True)
-    _view_module = Unicode('catboost-widget').tag(sync=True)
-    _model_module = Unicode('catboost-widget').tag(sync=True)
-    _view_module_version = Unicode('^1.0.0').tag(sync=True)
-    _model_module_version = Unicode('^1.0.0').tag(sync=True)
+class MetricVisualizer(DOMWidget):
+    _view_name = Unicode('CatboostIpythonWidgetView').tag(sync=True)
+    _view_module = Unicode('catboost_module').tag(sync=True)
 
     data = Dict({}).tag(sync=True, **widget_serialization)
 
-    @default('layout')
-    def _default_layout(self):
-        return Layout(height='500px', align_self='stretch')
-
-class MetricVisualizer(MetricWidget):
     def __init__(self, train_dirs, subdirs=False):
         super(self.__class__, self).__init__()
         if isinstance(train_dirs, str):
@@ -39,8 +30,14 @@ class MetricVisualizer(MetricWidget):
         self._need_to_stop = Event()
         self._update_after_stop_signal = False
 
+    @default('layout')
+    def _default_layout(self):
+        return Layout(height='500px', align_self='stretch')
+
     def start(self):
+        self._init_static()
         display(self)
+
         self._update_data()
         while not self._need_to_stop.wait(1.0):
             self._update_data()
@@ -64,7 +61,6 @@ class MetricVisualizer(MetricWidget):
         data = {}
         dirs = [{'name': name, 'path': path} for name, path in zip(self._names, self._train_dirs)]
 
-        all_completed = True
         for dir_info in dirs:
             path = dir_info.get('path')
             content = self._update_data_from_dir(path)
@@ -80,10 +76,8 @@ class MetricVisualizer(MetricWidget):
 
             passed_iterations = data[path]['content']['passed_iterations']
             total_iterations = data[path]['content']['total_iterations']
-            all_completed &= (passed_iterations + 1 >= total_iterations and total_iterations != 0)
-
-        if all_completed:
-            self._need_to_stop.set()
+            if passed_iterations + 1 >= total_iterations and total_iterations != 0:
+                self._need_to_stop.set()
 
         self.data = data
 
@@ -113,3 +107,29 @@ class MetricVisualizer(MetricWidget):
     @staticmethod
     def _get_static_path(file_name):
         return os.path.join(os.path.dirname(__file__), file_name)
+
+    def _init_static(self):
+        with open(self._get_static_path('CatboostIpython.css')) as f:
+            css = f.read()
+        js = ''
+
+        # never use require in your projects
+        js += 'window.__define = window.define;window.__require = window.require;window.define = undefined;window.require = undefined;'
+        with open(self._get_static_path('plotly-basic.min.js')) as f:
+            js += f.read()
+        js += 'window.define = window.__define;window.require = window.__require;window.__define = undefined; window.__require = undefined;'
+
+        with open(self._get_static_path('CatboostIpythonPlotly.js')) as f:
+            js += f.read()
+        with open(self._get_static_path('CatboostIpythonInit.js')) as f:
+            js += f.read()
+        html = """
+            <style>
+                {}
+            </style>
+            <script>
+                {}
+            </script>
+        """.format(css, js)
+
+        display(HTML(html))

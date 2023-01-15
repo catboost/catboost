@@ -30,14 +30,12 @@ namespace NCB {
         TStringBuf CdFileData;
         TStringBuf DatasetFileData;
         bool DsvFileHasHeader = false;
-        TStringBuf PairsScheme = "dsv-flat";
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
         TStringBuf BaselineFileData;
         TStringBuf FeatureNamesFileData;
         TVector<ui32> IgnoredFeatures;
         EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
-        char NumVectorDelimiter = ';';
     };
 
     struct TReadDatasetMainParams {
@@ -59,7 +57,6 @@ namespace NCB {
     struct TReadDatasetTestCase {
         TSrcData SrcData;
         TExpectedRawData ExpectedData;
-        bool ExpectedReadError = false; // if it is true do not fill ExpectedData
     };
 
     void TestReadDataset(const TReadDatasetTestCase& testCase);

@@ -8,14 +8,13 @@
 #include <catboost/private/libs/options/dataset_reading_params.h>
 
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 template <class TConsumer>
 inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingParams& params,
                                        ui32 blockSize,
                                        TConsumer&& poolConsumer,
-                                       NPar::ILocalExecutor* localExecutor,
-                                       THolder<ICdProvider> cdProvider=nullptr) {
+                                       NPar::TLocalExecutor* localExecutor) {
 
     auto datasetLoader = NCB::GetProcessor<NCB::IDatasetLoader>(
         params.PoolPath, // for choosing processor
@@ -30,16 +29,13 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
                 /*BaselineFilePath=*/NCB::TPathWithScheme(),
                 /*TimestampsFilePath*/NCB::TPathWithScheme(),
                 params.FeatureNamesPath,
-                params.PoolMetaInfoPath,
                 params.ClassLabels,
                 params.ColumnarPoolFormatParams.DsvFormat,
-                cdProvider ? std::move(cdProvider) : MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
+                MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
                 params.IgnoredFeatures,
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
                 NCB::TDatasetSubset::MakeColumns(),
-                /*LoadColumnsAsString*/ false,
-                params.ForceUnitAutoPairWeights,
                 localExecutor
             }
         }
@@ -59,7 +55,7 @@ inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingPa
     NCB::IRawObjectsOrderDatasetLoader* rawObjectsOrderDatasetLoader
         = dynamic_cast<NCB::IRawObjectsOrderDatasetLoader*>(datasetLoader.Get());
 
-    if (rawObjectsOrderDatasetLoader && !params.PairsFilePath.Inited()) {
+    if (rawObjectsOrderDatasetLoader) {
         // process in blocks
         NCB::IRawObjectsOrderDataVisitor* visitor = dynamic_cast<NCB::IRawObjectsOrderDataVisitor*>(
             dataProviderBuilder.Get()

@@ -30,8 +30,8 @@
  * Plain C interface (a wrapper around the C++ implementation).
  */
 
-#ifndef THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_C_H_
-#define THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_C_H_
+#ifndef UTIL_SNAPPY_OPENSOURCE_SNAPPY_C_H_
+#define UTIL_SNAPPY_OPENSOURCE_SNAPPY_C_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +46,7 @@ extern "C" {
 typedef enum {
   SNAPPY_OK = 0,
   SNAPPY_INVALID_INPUT = 1,
-  SNAPPY_BUFFER_TOO_SMALL = 2
+  SNAPPY_BUFFER_TOO_SMALL = 2,
 } snappy_status;
 
 /*
@@ -135,4 +135,4 @@ snappy_status snappy_validate_compressed_buffer(const char* compressed,
 }  // extern "C"
 #endif
 
-#endif  /* THIRD_PARTY_SNAPPY_OPENSOURCE_SNAPPY_C_H_ */
+#endif  /* UTIL_SNAPPY_OPENSOURCE_SNAPPY_C_H_ */

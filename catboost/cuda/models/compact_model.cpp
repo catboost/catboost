@@ -18,7 +18,7 @@ namespace NCatboostCuda {
     //stupid O(n^2)
     //but for most models should be sufficient
     //TODO: if'll be bottleneck, stupid optimization: map feature -> structures with this feature, loop through structures with only this feature. for most application should be fast enough
-    static TVector<ui64> FindDeepestSupstructure(const TVector<TObliviousTreeStructure>& structures, NPar::ILocalExecutor* executor) {
+    static TVector<ui64> FindDeepestSupstructure(const TVector<TObliviousTreeStructure>& structures, NPar::TLocalExecutor* executor) {
         TVector<ui64> indicesOfDeepestSupstructure;
         indicesOfDeepestSupstructure.resize(structures.size());
 
@@ -53,7 +53,7 @@ namespace NCatboostCuda {
     }
 
     //paths are sorted
-    static THashMap<TObliviousTreeStructure, TVector<TLeafPath>> MapPathToStructures(const TVector<TLeafPath>& paths, NPar::ILocalExecutor* executor) {
+    static THashMap<TObliviousTreeStructure, TVector<TLeafPath>> MapPathToStructures(const TVector<TLeafPath>& paths, NPar::TLocalExecutor* executor) {
         THashMap<TObliviousTreeStructure, TVector<TLeafPath>> structuresToPath;
         for (const auto& path: paths) {
             Y_ASSERT(path.IsSorted());
@@ -84,7 +84,7 @@ namespace NCatboostCuda {
 
     //for each leaf path search for deepest OT structure, for which this path is subset
     static THashMap<TObliviousTreeStructure, TVector<TLeafPath>> MapPathToStructures(const THashMap<TLeafPath, TVector<float>>& leaves,
-        NPar::ILocalExecutor* executor) {
+        NPar::TLocalExecutor* executor) {
         TVector<TLeafPath> pathOnly;
         for (const auto& [path, values] : leaves) {
             Y_UNUSED(values);
@@ -155,7 +155,7 @@ namespace NCatboostCuda {
     };
 
     //leaf paths are sorted by binary splits
-    static THashMap<TLeafPath, TVector<float>> ExtractLeaves(const TAdditiveModel<TNonSymmetricTree>& ensemble, NPar::ILocalExecutor* executor) {
+    static THashMap<TLeafPath, TVector<float>> ExtractLeaves(const TAdditiveModel<TNonSymmetricTree>& ensemble, NPar::TLocalExecutor* executor) {
         THashMap<TLeafPath, TVector<float>> leaves;
         TAdaptiveLock lock;
 
@@ -219,7 +219,7 @@ namespace NCatboostCuda {
 
     TAdditiveModel<TObliviousTreeModel> MakeOTEnsemble(
         const TAdditiveModel<TNonSymmetricTree>& ensemble,
-        NPar::ILocalExecutor* executor
+        NPar::TLocalExecutor* executor
         ) {
         const ui64 outputDim = ensemble.OutputDim();
         THashMap<TLeafPath, TVector<float>> leaves = ExtractLeaves(ensemble, executor);

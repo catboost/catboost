@@ -24,7 +24,6 @@ SRCS(
    kernel/dot_product.cu
    kernel/fill.cu
    kernel/filter.cu
-   kernel/mvs.cu
    kernel/operators.cu
    kernel/partitions.cu
    kernel/random.cu
@@ -51,7 +50,7 @@ SRCS(
 PEERDIR(
     catboost/libs/helpers
     catboost/cuda/cuda_lib
-    contrib/libs/nvidia/cub
+    contrib/libs/cub
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

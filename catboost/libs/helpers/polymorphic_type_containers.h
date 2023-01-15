@@ -7,9 +7,8 @@
 
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
-#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
@@ -58,7 +57,7 @@ namespace NCB {
         template <class F>
         void ParallelForEach(
             F&& f,
-            NPar::ILocalExecutor* localExecutor,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<ui32> approximateBlockSize = Nothing()
         ) const {
             TVector<IDynamicBlockIteratorPtr<T>> subRangeIterators;
@@ -83,7 +82,7 @@ namespace NCB {
                     }
                 },
                 0,
-                SafeIntegerCast<int>(subRangeIterators.size()),
+                subRangeIterators.size(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
@@ -112,7 +111,7 @@ namespace NCB {
 
     protected:
         virtual void CreateSubRangesIterators(
-            const NPar::ILocalExecutor& localExecutor,
+            const NPar::TLocalExecutor& localExecutor,
             TMaybe<ui32> approximateBlockSize,
             TVector<IDynamicBlockIteratorPtr<T>>* subRangeIterators,
             TVector<ui32>* subRangeStarts
@@ -122,19 +121,8 @@ namespace NCB {
     template <class T>
     using ITypedArraySubsetPtr = TIntrusivePtr<ITypedArraySubset<T>>;
 
-    template <class TSrc, class TDst>
-    struct TStaticCast {
-        constexpr TDst operator()(const TSrc& x) const {
-            return TDst(x);
-        }
-    };
 
-
-    template <
-        class TInterfaceValue,
-        class TStoredValue,
-        class TTransformer = TStaticCast<TStoredValue, TInterfaceValue>
-    >
+    template <class TInterfaceValue, class TStoredValue>
     class TTypeCastArraySubset final : public ITypedArraySubset<TInterfaceValue> {
     public:
         using TData = TMaybeOwningConstArrayHolder<TStoredValue>;
@@ -155,18 +143,15 @@ namespace NCB {
         }
 
         IDynamicBlockIteratorPtr<TInterfaceValue> GetBlockIterator(ui32 offset = 0) const override {
-            return MakeTransformingArraySubsetBlockIterator<TInterfaceValue>(
-                SubsetIndexing,
-                Data,
-                offset,
-                TTransformer()
+            return MakeArraySubsetBlockIterator<TInterfaceValue>(
+                SubsetIndexing, Data, offset
             );
         }
 
         TIntrusivePtr<ITypedArraySubset<TInterfaceValue>> CloneWithNewSubsetIndexing(
             const TArraySubsetIndexing<ui32>* newSubsetIndexing
         ) const override {
-            return MakeIntrusive<TTypeCastArraySubset<TInterfaceValue, TStoredValue, TTransformer>>(
+            return MakeIntrusive<TTypeCastArraySubset<TInterfaceValue, TStoredValue>>(
                 Data,
                 newSubsetIndexing
             );
@@ -190,12 +175,12 @@ namespace NCB {
                 auto subRange = indexRanges.GetRange(subRangeIdx);
                 subRangeIterators->push_back(
                     MakeHolder<
-                        TArraySubsetBlockIterator<TInterfaceValue, TData, TRangeIterator<ui32>, TTransformer>
+                        TArraySubsetBlockIterator<TInterfaceValue, TData, TRangeIterator<ui32>, TIdentity>
                     >(
                         Data,
                         subRange.GetSize(),
                         TRangeIterator<ui32>(subRange),
-                        TTransformer()
+                        TIdentity()
                     )
                 );
                 subRangeStarts->push_back(subRange.Begin);
@@ -219,7 +204,7 @@ namespace NCB {
                     auto subRange = indexRanges.GetRange(subRangeIdx);
                     subRangeIterators->push_back(
                         MakeHolder<
-                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangesSubsetIterator<ui32>, TTransformer>
+                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangesSubsetIterator<ui32>, TIdentity>
                         >(
                             Data,
                             subRange.GetSize(),
@@ -229,7 +214,7 @@ namespace NCB {
                                 &block + 1,
                                 subRange.End
                             ),
-                            TTransformer()
+                            TIdentity()
                         )
                     );
                     subRangeStarts->push_back(block.DstBegin + subRange.Begin);
@@ -257,12 +242,12 @@ namespace NCB {
                 auto subRange = indexRanges.GetRange(subRangeIdx);
                 subRangeIterators->push_back(
                     MakeHolder<
-                        TArraySubsetBlockIterator<TInterfaceValue, TData, TIterator, TTransformer>
+                        TArraySubsetBlockIterator<TInterfaceValue, TData, TIterator, TIdentity>
                     >(
                         Data,
                         subRange.GetSize(),
                         TIterator(indexedSubsetBegin + subRange.Begin, indexedSubsetBegin + subRange.End),
-                        TTransformer()
+                        TIdentity()
                     )
                 );
                 subRangeStarts->push_back(subRange.Begin);
@@ -270,7 +255,7 @@ namespace NCB {
         }
 
         void CreateSubRangesIterators(
-            const NPar::ILocalExecutor& localExecutor,
+            const NPar::TLocalExecutor& localExecutor,
             TMaybe<ui32> approximateBlockSize,
             TVector<IDynamicBlockIteratorPtr<TInterfaceValue>>* subRangeIterators,
             TVector<ui32>* subRangeStarts
@@ -287,7 +272,7 @@ namespace NCB {
                     *approximateBlockSize
                     : CeilDiv(size, SafeIntegerCast<ui32>(localExecutor.GetThreadCount()) + 1);
 
-            std::visit(
+            Visit(
                 [&] (const auto& subsetIndexingAlternative) {
                     CreateSubRangesIterators(
                         subsetIndexingAlternative,
@@ -376,11 +361,7 @@ namespace NCB {
     }
 
 
-    template <
-        class TInterfaceValue,
-        class TStoredValue,
-        class TTransformer = TStaticCast<TStoredValue, TInterfaceValue>
-    >
+    template <class TInterfaceValue, class TStoredValue>
     class TTypeCastArrayHolder final : public ITypedSequence<TInterfaceValue> {
     public:
         explicit TTypeCastArrayHolder(TMaybeOwningConstArrayHolder<TStoredValue> values)
@@ -399,7 +380,7 @@ namespace NCB {
         bool EqualTo(const ITypedSequence<TInterfaceValue>& rhs, bool strict = true) const override {
             if (strict) {
                 if (const auto* rhsAsThisType
-                        = dynamic_cast<const TTypeCastArrayHolder<TInterfaceValue, TStoredValue, TTransformer>*>(&rhs))
+                        = dynamic_cast<const TTypeCastArrayHolder<TInterfaceValue, TStoredValue>*>(&rhs))
                 {
                     return Values == rhsAsThisType->Values;
                 } else {
@@ -420,31 +401,15 @@ namespace NCB {
         IDynamicBlockWithExactIteratorPtr<TInterfaceValue> GetBlockIterator(
             TIndexRange<ui32> indexRange
         ) const override {
-            if constexpr (std::is_same_v<TTransformer, TStaticCast<TInterfaceValue, TStoredValue>>) {
-                TConstArrayRef<TStoredValue> subRangeArrayRef(
-                    Values.begin() + indexRange.Begin,
-                    Values.begin() + indexRange.End
-                );
-                if constexpr (std::is_same_v<TInterfaceValue, TStoredValue>) {
-                    return MakeHolder<TArrayBlockIterator<TInterfaceValue>>(subRangeArrayRef);
-                } else {
-                    return MakeHolder<TTypeCastingArrayBlockIterator<TInterfaceValue, TStoredValue>>(
-                        subRangeArrayRef
-                    );
-                }
+            TConstArrayRef<TStoredValue> subRangeArrayRef(
+                Values.begin() + indexRange.Begin,
+                Values.begin() + indexRange.End
+            );
+            if constexpr (std::is_same_v<TInterfaceValue, TStoredValue>) {
+                return MakeHolder<TArrayBlockIterator<TInterfaceValue>>(subRangeArrayRef);
             } else {
-                return MakeHolder<
-                    TArraySubsetBlockIterator<
-                        TInterfaceValue,
-                        TConstArrayRef<TStoredValue>,
-                        TRangeIterator<ui32>,
-                        TTransformer
-                    >
-                >(
-                    *Values,
-                    indexRange.GetSize(),
-                    TRangeIterator<ui32>(indexRange),
-                    TTransformer()
+                return MakeHolder<TTypeCastingArrayBlockIterator<TInterfaceValue, TStoredValue>>(
+                    subRangeArrayRef
                 );
             }
         }
@@ -452,7 +417,7 @@ namespace NCB {
         TIntrusivePtr<ITypedArraySubset<TInterfaceValue>> GetSubset(
             const TArraySubsetIndexing<ui32>* subsetIndexing
         ) const override {
-            return MakeIntrusive<TTypeCastArraySubset<TInterfaceValue, TStoredValue, TTransformer>>(
+            return MakeIntrusive<TTypeCastArraySubset<TInterfaceValue, TStoredValue>>(
                 Values,
                 subsetIndexing
             );
@@ -490,38 +455,5 @@ namespace NCB {
         return MakeIntrusive<TTypeCastArrayHolder<TInterfaceValue, TStoredValue>>(
             TMaybeOwningConstArrayHolder<TStoredValue>::CreateOwning(std::move(values))
         );
-    }
-
-    template <class TSrc, class TDst>
-    struct TMaybeOwningArrayHolderCast {
-        constexpr TMaybeOwningConstArrayHolder<TDst> operator()(
-            const TMaybeOwningConstArrayHolder<TSrc>& x
-        ) const {
-            TVector<TDst> result;
-            result.yresize(x.GetSize());
-            Copy(x.begin(), x.end(), result.begin());
-            return TMaybeOwningConstArrayHolder<TDst>::CreateOwning(std::move(result));
-        }
-    };
-
-    template <class TInterfaceValue, class TStoredValue>
-    ITypedSequencePtr<TMaybeOwningConstArrayHolder<TInterfaceValue>> MakeTypeCastArraysHolderFromVector(
-        TVector<TMaybeOwningConstArrayHolder<TStoredValue>>& values
-    ) {
-        if constexpr (std::is_same_v<TInterfaceValue, TStoredValue>) {
-            return MakeTypeCastArrayHolderFromVector<TMaybeOwningConstArrayHolder<TInterfaceValue>>(values);
-        } else {
-            return MakeIntrusive<
-                TTypeCastArrayHolder<
-                    TMaybeOwningConstArrayHolder<TInterfaceValue>,
-                    TMaybeOwningConstArrayHolder<TStoredValue>,
-                    TMaybeOwningArrayHolderCast<TStoredValue, TInterfaceValue>
-                >
-            >(
-                TMaybeOwningConstArrayHolder<TMaybeOwningConstArrayHolder<TStoredValue>>::CreateOwning(
-                    std::move(values)
-                )
-            );
-        }
     }
 }

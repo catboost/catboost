@@ -106,7 +106,8 @@
  This will build and install OpenSSL in the default location, which is:
 
   Unix:    normal installation directories under /usr/local
-  OpenVMS: SYS$COMMON:[OPENSSL]
+  OpenVMS: SYS$COMMON:[OPENSSL-'version'...], where 'version' is the
+           OpenSSL version number with underscores instead of periods.
   Windows: C:\Program Files\OpenSSL or C:\Program Files (x86)\OpenSSL
 
  The installation directory should be appropriately protected to ensure
@@ -115,9 +116,7 @@
  your Operating System it is recommended that you do not overwrite the system
  version and instead install to somewhere else.
 
- If you want to install it anywhere else, run config like this (the options
- --prefix and --openssldir are explained further down, and the values shown
- here are mere examples):
+ If you want to install it anywhere else, run config like this:
 
   On Unix:
 
@@ -199,7 +198,7 @@
                    Unix:           /usr/local
                    Windows:        C:\Program Files\OpenSSL
                                 or C:\Program Files (x86)\OpenSSL
-                   OpenVMS:        SYS$COMMON:[OPENSSL]
+                   OpenVMS:        SYS$COMMON:[OPENSSL-'version']
 
   --release
                    Build OpenSSL without debugging symbols. This is the default.
@@ -351,9 +350,6 @@
   no-dgram
                    Don't build support for datagram based BIOs. Selecting this
                    option will also force the disabling of DTLS.
-
-  no-dso
-                   Don't build support for loading Dynamic Shared Objects.
 
   enable-devcryptoeng
                    Build the /dev/crypto engine.  It is automatically selected
@@ -536,9 +532,9 @@
                    conjunction with the "-DPEDANTIC" option (or the
                    --strict-warnings option).
 
-  no-ui-console
-                   Don't build with the "UI" console method (i.e. the "UI"
-                   method that enables text based console prompts).
+  no-ui
+                   Don't build with the "UI" capability (i.e. the set of
+                   features enabling text based prompts).
 
   enable-unit-test
                    Enable additional unit test APIs. This should not typically
@@ -609,19 +605,10 @@
                    Take note of the VAR=value documentation below and how
                    these flags interact with those variables.
 
-  -xxx, +xxx, /xxx
+  -xxx, +xxx
                    Additional options that are not otherwise recognised are
-                   passed through as they are to the compiler as well.
-                   Unix-style options beginning with a '-' or '+' and
-                   Windows-style options beginning with a '/' are recognized.
-                   Again, consult your compiler documentation.
-
-                   If the option contains arguments separated by spaces,
-                   then the URL-style notation %20 can be used for the space
-                   character in order to avoid having to quote the option.
-                   For example, -opt%20arg gets expanded to -opt arg.
-                   In fact, any ASCII character can be encoded as %xx using its
-                   hexadecimal encoding.
+                   passed through as they are to the compiler as well.  Again,
+                   consult your compiler documentation.
 
                    Take note of the VAR=value documentation below and how
                    these flags interact with those variables.
@@ -962,9 +949,9 @@
          share/doc/openssl/html/man7
                         Contains the HTML rendition of the man-pages.
 
-       OpenVMS ('arch' is replaced with the architecture name, "ALPHA"
-       or "IA64", 'sover' is replaced with the shared library version
-       (0101 for 1.1.x), and 'pz' is replaced with the pointer size
+       OpenVMS ('arch' is replaced with the architecture name, "Alpha"
+       or "ia64", 'sover' is replaced with the shared library version
+       (0101 for 1.1), and 'pz' is replaced with the pointer size
        OpenSSL was built with):
 
          [.EXE.'arch']  Contains the openssl binary.
@@ -1084,7 +1071,7 @@
 
  HASHBANGPERL
                 The command string for the Perl executable to insert in the
-                #! line of perl scripts that will be publicly installed.
+                #! line of perl scripts that will be publically installed.
                 Default: /usr/bin/env perl
                 Note: the value of this variable is added to the same scripts
                 on all platforms, but it's only relevant on Unix-like platforms.

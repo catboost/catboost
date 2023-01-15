@@ -1,12 +1,8 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 // ATTENTION: The code in this file is highly EXPERIMENTAL.
 // Adventurous users should note that the APIs will probably change.
 
 #pragma once
-#include "onnx/common/common.h"
+
 #include "onnx/common/ir.h"
 #include "onnx/onnx_pb.h"
 
@@ -16,7 +12,7 @@ class ConvertError final : public std::runtime_error {
  public:
   using std::runtime_error::runtime_error;
 
-  explicit ConvertError(const TString& message) : std::runtime_error(message) {}
+  ConvertError(const TString& message) : std::runtime_error(message) {}
 
   const char* what() const noexcept override {
     if (!expanded_message_.empty()) {
@@ -26,14 +22,16 @@ class ConvertError final : public std::runtime_error {
   }
 
   void AppendContext(const TString& context) {
-    expanded_message_ = MakeString(std::runtime_error::what(), "\n\n==> Context: ", context);
+    expanded_message_ = MakeString(
+        std::runtime_error::what(), "\n\n==> Context: ", context);
   }
 
  private:
   TString expanded_message_;
 };
 
-#define fail_convert(...) ONNX_THROW_EX(ConvertError(MakeString(__VA_ARGS__)));
+#define fail_convert(...) \
+  throw ConvertError(MakeString(__VA_ARGS__));
 
 void ExportModelProto(ModelProto* p_m, const std::shared_ptr<Graph>& g);
 
@@ -41,5 +39,5 @@ std::unique_ptr<Graph> ImportModelProto(const ModelProto& mp);
 
 ModelProto PrepareOutput(const ModelProto& mp_in);
 
-void assertNonNull(const std::shared_ptr<Graph>& g);
+void assertNonNull(std::shared_ptr<Graph> g);
 } // namespace ONNX_NAMESPACE

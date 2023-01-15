@@ -19,12 +19,11 @@ static TVector<float> SelectBorders(
     TConstArrayRef<float> target,
     int targetBorderCount,
     EBorderSelectionType targetBorderType,
-    bool allowConstLabel,
-    bool targetValuesMayContainNans = false) {
+    bool allowConstLabel) {
 
     TVector<float> learnTarget(target.begin(), target.end());
 
-    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType, targetValuesMayContainNans);
+    THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
     TVector<float> borders(borderSet.begin(), borderSet.end());
     CB_ENSURE((borders.ysize() > 0) || allowConstLabel, "0 target borders");
     if (borders.empty()) {
@@ -42,8 +41,7 @@ TTargetClassifier BuildTargetClassifier(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     int targetBorderCount,
     EBorderSelectionType targetBorderType,
-    bool allowConstLabel,
-    ui32 targetId = 0) {
+    bool allowConstLabel) {
 
     if (targetBorderCount == 0) {
         return TTargetClassifier();
@@ -57,20 +55,8 @@ TTargetClassifier BuildTargetClassifier(
         "target in train should not be constant");
 
     switch (loss) {
-        case ELossFunction::Cox:
         case ELossFunction::RMSE:
-        case ELossFunction::MultiRMSE:
-        case ELossFunction::SurvivalAft:
-            return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
-                targetId);
-        case ELossFunction::MultiRMSEWithMissingValues:
-            return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel, true),
-                targetId);
-        case ELossFunction::RMSEWithUncertainty:
         case ELossFunction::Quantile:
-        case ELossFunction::MultiQuantile:
         case ELossFunction::Expectile:
         case ELossFunction::Lq:
         case ELossFunction::LogLinQuantile:
@@ -84,31 +70,25 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::YetiRank:
         case ELossFunction::YetiRankPairwise:
         case ELossFunction::StochasticFilter:
-        case ELossFunction::LambdaMart:
         case ELossFunction::StochasticRank:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
-        case ELossFunction::MultiLogloss:
-        case ELossFunction::MultiCrossEntropy:
         case ELossFunction::Huber:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::Tweedie:
-        case ELossFunction::LogCosh:
             return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
-                targetId);
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel));
 
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll:
-            return TTargetClassifier(GetMultiClassBorders(targetBorderCount), targetId);
+            return TTargetClassifier(GetMultiClassBorders(targetBorderCount));
 
-        case ELossFunction::PythonUserDefinedMultiTarget:
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             Y_ASSERT(objectiveDescriptor.Defined());
             return TTargetClassifier(
-                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel),
-                targetId);
+                SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel));
         }
 
         default:

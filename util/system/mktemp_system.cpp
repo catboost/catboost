@@ -33,137 +33,136 @@
 
 #include "defaults.h"
 
+#include <sys/types.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef _win32_
     #include "winint.h"
     #include <util/folder/dirut.h>
+#else
+    #include <unistd.h>
 #endif
 
 #include <util/random/random.h>
 #include "sysstat.h"
 
 static const unsigned char padchar[] =
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 static int
-GetTemp(char* path, int* doopen, int domkdir, int slen)
+_gettemp(char *path, int *doopen, int domkdir, int slen)
 {
-    char *start, *trv, *suffp;
-    char* pad;
+        char *start, *trv, *suffp;
+        char *pad;
 #ifndef _win32_
-    struct stat sbuf;
-    int rval;
+        struct stat sbuf;
+        int rval;
 #endif
-    ui32 rand;
+        ui32 rand;
 
-    if (doopen != nullptr && domkdir) {
-        errno = EINVAL;
-        return (0);
-    }
+        if (doopen != nullptr && domkdir) {
+                errno = EINVAL;
+                return (0);
+        }
 
-    for (trv = path; *trv != '\0'; ++trv) {
-        ;
-    }
-    trv -= slen;
-    suffp = trv;
-    --trv;
-    if (trv < path) {
-        errno = EINVAL;
-        return (0);
-    }
+        for (trv = path; *trv != '\0'; ++trv)
+                ;
+        trv -= slen;
+        suffp = trv;
+        --trv;
+        if (trv < path) {
+                errno = EINVAL;
+                return (0);
+        }
 
-    /* Fill space with random characters */
-    while (trv >= path && *trv == 'X') {
-        rand = (RandomNumber<ui32>()) % (sizeof(padchar) - 1);
-        *trv-- = padchar[rand];
-    }
-    start = trv + 1;
+        /* Fill space with random characters */
+        while (trv >= path && *trv == 'X') {
+            rand = (RandomNumber<ui32>()) % (sizeof(padchar) - 1);
+            *trv-- = padchar[rand];
+        }
+        start = trv + 1;
 
-    /*
+        /*
          * check the target directory.
          */
-    if (doopen != nullptr || domkdir) {
-        for (; trv > path; --trv) {
-            if (*trv == '/') {
-                *trv = '\0';
+        if (doopen != nullptr || domkdir) {
+                for (; trv > path; --trv) {
+                        if (*trv == '/') {
+                                *trv = '\0';
 #ifdef _win32_
-                ui32 attr = ::GetFileAttributesA(path);
-                *trv = '/';
-                if (attr == 0xFFFFFFFF)
-                    return (0);
-                if (!(attr & FILE_ATTRIBUTE_DIRECTORY)) {
-                    errno = ENOTDIR;
-                    return (0);
-                }
+                                ui32 attr = ::GetFileAttributesA(path);
+                                *trv = '/';
+                                if (attr == 0xFFFFFFFF)
+                                    return (0);
+                                if (!(attr & FILE_ATTRIBUTE_DIRECTORY)) {
+                                    errno = ENOTDIR;
+                                    return (0);
+                                }
 #else
-                rval = stat(path, &sbuf);
-                *trv = '/';
-                if (rval != 0) {
-                    return (0);
-                }
-                if (!S_ISDIR(sbuf.st_mode)) {
-                    errno = ENOTDIR;
-                    return (0);
-                }
+                                rval = stat(path, &sbuf);
+                                *trv = '/';
+                                if (rval != 0)
+                                    return (0);
+                                if (!S_ISDIR(sbuf.st_mode)) {
+                                    errno = ENOTDIR;
+                                    return (0);
+                                }
 #endif
-                break;
-            }
+                                break;
+                        }
+                }
         }
-    }
 
-    for (;;) {
-        if (doopen) {
-            if ((*doopen =
-                     open(path, O_CREAT | O_EXCL | O_RDWR, 0600)) >= 0) {
-                return (1);
-            }
-            if (errno != EEXIST) {
-                return (0);
-            }
-        } else if (domkdir) {
-            if (Mkdir(path, S_IRWXU) == 0) {
-                return (1);
-            }
-            if (errno != EEXIST) {
-                return (0);
-            }
-        } else
+        for (;;) {
+                if (doopen) {
+                        if ((*doopen =
+                            open(path, O_CREAT|O_EXCL|O_RDWR, 0600)) >= 0)
+                                return (1);
+                        if (errno != EEXIST)
+                                return (0);
+                } else if (domkdir) {
+                        if (Mkdir(path, S_IRWXU) == 0)
+                                return (1);
+                        if (errno != EEXIST)
+                                return (0);
+                } else
 #ifdef _win32_
-            if (::GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
-            return (errno == ENOENT);
+                    if (::GetFileAttributesA(path) == INVALID_FILE_ATTRIBUTES)
+                        return (errno == ENOENT);
 #else
-            if (lstat(path, &sbuf)) {
-            return (errno == ENOENT);
-        }
+                    if (lstat(path, &sbuf))
+                        return (errno == ENOENT);
 #endif
-        /* If we have a collision, cycle through the space of filenames */
-        for (trv = start;;) {
-            if (*trv == '\0' || trv == suffp) {
-                return (0);
-            }
-            pad = strchr((char*)padchar, *trv);
-            if (pad == nullptr || *++pad == '\0') {
-                *trv++ = padchar[0];
-            } else {
-                *trv++ = *pad;
-                break;
-            }
+                /* If we have a collision, cycle through the space of filenames */
+                for (trv = start;;) {
+                        if (*trv == '\0' || trv == suffp)
+                                return (0);
+                        pad = strchr((char*)padchar, *trv);
+                        if (pad == nullptr || *++pad == '\0')
+                                *trv++ = padchar[0];
+                        else {
+                                *trv++ = *pad;
+                                break;
+                        }
+                }
         }
-    }
-    /*NOTREACHED*/
+        /*NOTREACHED*/
 }
 
-extern "C" int mkstemps(char* path, int slen) {
+extern "C" int mkstemps(char *path, int slen) {
     int fd;
 
-    return (GetTemp(path, &fd, 0, slen) ? fd : -1);
+    return (_gettemp(path, &fd, 0, slen) ? fd : -1);
 }
 
 #if defined(_win_)
-char* mkdtemp(char* path) {
-    return (GetTemp(path, (int*)nullptr, 1, 0) ? path : (char*)nullptr);
+char *
+mkdtemp(char *path) {
+    return (_gettemp(path, (int *)nullptr, 1, 0) ? path : (char *)nullptr);
 }
 #endif

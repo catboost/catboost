@@ -1,6 +1,5 @@
 #include <catboost/libs/model/evaluation_interface.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/model/scale_and_bias.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 
 #include <catboost/libs/model/cuda/evaluator.cuh>
@@ -17,7 +16,6 @@ namespace NCB::NModelEvaluation {
 
             explicit TGpuEvaluator(const TFullModel& model)
                 : ModelTrees(model.ModelTrees)
-                , ApplyData(ModelTrees->GetApplyData())
             {
                 CB_ENSURE(!model.HasCategoricalFeatures(), "Model contains categorical features, gpu evaluation impossible");
                 CB_ENSURE(model.IsOblivious(), "Model is not oblivious, gpu evaluation impossible");
@@ -25,17 +23,17 @@ namespace NCB::NModelEvaluation {
                 for (const TRepackedBin& cpuRepackedBin : ModelTrees->GetRepackedBins()) {
                     gpuBins.emplace_back(TGPURepackedBin{ static_cast<ui32>(cpuRepackedBin.FeatureIndex * WarpSize), cpuRepackedBin.SplitIdx, cpuRepackedBin.XorMask });
                 }
-                TVector<ui32> floatFeatureForBucketIdx(ApplyData->UsedFloatFeaturesCount, Max<ui32>());
-                TVector<ui32> bordersOffsets(ApplyData->UsedFloatFeaturesCount, Max<ui32>());
-                TVector<ui32> bordersCount(ApplyData->UsedFloatFeaturesCount, Max<ui32>());
-                Ctx.GPUModelData.UsedInModel.resize(ApplyData->MinimalSufficientFloatFeaturesVectorSize, false);
+                TVector<ui32> floatFeatureForBucketIdx(ModelTrees->GetUsedFloatFeaturesCount(), Max<ui32>());
+                TVector<ui32> bordersOffsets(ModelTrees->GetUsedFloatFeaturesCount(), Max<ui32>());
+                TVector<ui32> bordersCount(ModelTrees->GetUsedFloatFeaturesCount(), Max<ui32>());
+                Ctx.GPUModelData.UsedInModel.resize(ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize(), false);
                 TVector<float> flatBordersVec;
                 ui32 currentBinarizedBucket = 0;
                 for (const TFloatFeature& floatFeature : ModelTrees->GetFloatFeatures()) {
+                    Ctx.GPUModelData.UsedInModel[floatFeature.Position.Index] = floatFeature.UsedInModel();
                     if (!floatFeature.UsedInModel()) {
                         continue;
                     }
-                    Ctx.GPUModelData.UsedInModel[floatFeature.Position.Index] = floatFeature.UsedInModel();
                     CB_ENSURE(floatFeature.Borders.size() > 0 && floatFeature.Borders.size() < MAX_VALUES_PER_BIN);
                     floatFeatureForBucketIdx[currentBinarizedBucket] = floatFeature.Position.Index;
                     bordersCount[currentBinarizedBucket] = floatFeature.Borders.size();
@@ -50,18 +48,18 @@ namespace NCB::NModelEvaluation {
                 Ctx.GPUModelData.FlatBordersVector = TCudaVec<float>(flatBordersVec, EMemoryType::Device);
 
                 Ctx.GPUModelData.TreeSizes = TCudaVec<ui32>(
-                    TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeSizes().begin(), ModelTrees->GetModelTreeData()->GetTreeSizes().end()),
+                    TVector<ui32>(ModelTrees->GetTreeSizes().begin(), ModelTrees->GetTreeSizes().end()),
                     EMemoryType::Device
                 );
                 Ctx.GPUModelData.TreeStartOffsets = TCudaVec<ui32>(
-                    TVector<ui32>(ModelTrees->GetModelTreeData()->GetTreeStartOffsets().begin(), ModelTrees->GetModelTreeData()->GetTreeStartOffsets().end()),
+                    TVector<ui32>(ModelTrees->GetTreeStartOffsets().begin(), ModelTrees->GetTreeStartOffsets().end()),
                     EMemoryType::Device
                 );
-                const auto& firstLeafOffsetRef = ApplyData->TreeFirstLeafOffsets;
+                const auto& firstLeafOffsetRef = ModelTrees->GetFirstLeafOffsets();
                 TVector<ui32> firstLeafOffset(firstLeafOffsetRef.begin(), firstLeafOffsetRef.end());
                 Ctx.GPUModelData.TreeFirstLeafOffsets = TCudaVec<ui32>(firstLeafOffset, EMemoryType::Device);
                 Ctx.GPUModelData.ModelLeafs = TCudaVec<TCudaEvaluatorLeafType>(
-                    TVector<TCudaEvaluatorLeafType>(ModelTrees->GetModelTreeData()->GetLeafValues().begin(), ModelTrees->GetModelTreeData()->GetLeafValues().end()),
+                    TVector<TCudaEvaluatorLeafType>(ModelTrees->GetLeafValues().begin(), ModelTrees->GetLeafValues().end()),
                     EMemoryType::Device
                 );
                 Ctx.Stream = TCudaStream::NewStream();
@@ -133,7 +131,7 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(docCount.Defined(), "couldn't determine document count, something went wrong");
                 const size_t stride = CeilDiv<size_t>(*docCount, 32) * 32;
                 Ctx.EvalDataCache.PrepareCopyBufs(
-                    ApplyData->MinimalSufficientFloatFeaturesVectorSize * stride,
+                    ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize() * stride,
                     *docCount
                 );
                 TGPUDataInput dataInput;
@@ -142,7 +140,7 @@ namespace NCB::NModelEvaluation {
                 dataInput.Stride = stride;
                 dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
                 auto buf = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
-                for (size_t featureId = 0; featureId < ApplyData->MinimalSufficientFloatFeaturesVectorSize; ++featureId) {
+                for (size_t featureId = 0; featureId < ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize(); ++featureId) {
                     if (transposedFeatures[featureId].empty() || !Ctx.GPUModelData.UsedInModel[featureId]) {
                         continue;
                     }
@@ -221,32 +219,6 @@ namespace NCB::NModelEvaluation {
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
             }
 
-            void CalcWithHashedCatAndTextAndEmbeddings(
-                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TConstArrayRef<int>> catFeatures,
-                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
-                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
-                size_t treeStart,
-                size_t treeEnd,
-                TArrayRef<double> results,
-                const TFeatureLayout* featureLayout
-            ) const override {
-                ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    textFeatures.empty(),
-                    "Text features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    embeddingFeatures.empty(),
-                    "Embedding features are not supported on GPU, should be empty"
-                );
-                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
-            }
-
             void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
@@ -276,32 +248,6 @@ namespace NCB::NModelEvaluation {
                 CB_ENSURE(
                     textFeatures.empty(),
                     "Text features are not supported in GPU calc, should be empty"
-                );
-                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
-            }
-
-            void Calc(
-                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
-                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
-                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
-                TConstArrayRef<TConstArrayRef<TConstArrayRef<float>>> embeddingFeatures,
-                size_t treeStart,
-                size_t treeEnd,
-                TArrayRef<double> results,
-                const TFeatureLayout* featureInfo = nullptr
-            ) const override {
-                ValidateInputFeatures(floatFeatures, catFeatures);
-                CB_ENSURE(
-                    catFeatures.empty(),
-                    "Cat features are not supported on GPU, should be empty"
-                );
-                CB_ENSURE(
-                    textFeatures.empty(),
-                    "Text features are not supported in GPU calc, should be empty"
-                );
-                CB_ENSURE(
-                    embeddingFeatures.empty(),
-                    "Embedding features are not supported in GPU calc, should be empty"
                 );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
@@ -316,7 +262,6 @@ namespace NCB::NModelEvaluation {
                 const TCudaQuantizedData* cudaQuantizedFeatures = dynamic_cast<const TCudaQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cudaQuantizedFeatures != nullptr, "Got improperly typed quantized data");
                 Ctx.EvalQuantizedData(cudaQuantizedFeatures, treeStart, treeEnd, results, PredictionType);
-                ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), results, treeStart);
             }
 
             void CalcLeafIndexesSingle(
@@ -361,30 +306,6 @@ namespace NCB::NModelEvaluation {
                 Y_UNUSED(indexes);
                 ythrow yexception() << "Unimplemented on GPU";
             }
-
-            void Quantize(
-            TConstArrayRef<TConstArrayRef<float>> features,
-            IQuantizedData* quantizedData
-        ) const override {
-            auto expectedFlatVecSize = ModelTrees->GetFlatFeatureVectorExpectedSize();
-            const size_t docCount = features.size();
-            const size_t stride = CeilDiv<size_t>(expectedFlatVecSize, 32) * 32;
-
-        TGPUDataInput dataInput;
-            dataInput.FloatFeatureLayout = TGPUDataInput::EFeatureLayout::RowFirst;
-            dataInput.ObjectCount = docCount;
-            dataInput.FloatFeatureCount = expectedFlatVecSize;
-            dataInput.Stride = stride;
-            Ctx.EvalDataCache.PrepareCopyBufs(docCount * stride, docCount);
-            dataInput.FlatFloatsVector = Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef();
-            auto copyBufRef = Ctx.EvalDataCache.CopyDataBufHost.AsArrayRef();
-            for (size_t docId = 0; docId < docCount; ++docId) {
-            memcpy(&copyBufRef[docId * stride], features[docId].data(), sizeof(float) * expectedFlatVecSize);
-        }
-            MemoryCopyAsync<float>(copyBufRef, Ctx.EvalDataCache.CopyDataBufDevice.AsArrayRef(), Ctx.Stream);
-            TCudaQuantizedData* cudaQuantizedData = reinterpret_cast<TCudaQuantizedData*>(quantizedData);
-            Ctx.QuantizeData(dataInput, cudaQuantizedData);
-        }
         private:
             template <typename TCatFeatureContainer = TConstArrayRef<int>>
             void ValidateInputFeatures(
@@ -395,25 +316,25 @@ namespace NCB::NModelEvaluation {
                     CB_ENSURE(catFeatures.size() == floatFeatures.size());
                 }
                 CB_ENSURE(
-                    ApplyData->UsedFloatFeaturesCount == 0 || !floatFeatures.empty(),
+                    ModelTrees->GetUsedFloatFeaturesCount() == 0 || !floatFeatures.empty(),
                     "Model has float features but no float features provided"
                 );
                 CB_ENSURE(
-                    ApplyData->UsedCatFeaturesCount == 0 || !catFeatures.empty(),
+                    ModelTrees->GetUsedCatFeaturesCount() == 0 || !catFeatures.empty(),
                     "Model has categorical features but no categorical features provided"
                 );
                 for (const auto& floatFeaturesVec : floatFeatures) {
                     CB_ENSURE(
-                        floatFeaturesVec.size() >= ApplyData->MinimalSufficientFloatFeaturesVectorSize,
+                        floatFeaturesVec.size() >= ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize(),
                         "insufficient float features vector size: " << floatFeaturesVec.size() << " expected: " <<
-                                                                    ApplyData->MinimalSufficientFloatFeaturesVectorSize
+                                                                    ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize()
                     );
                 }
                 for (const auto& catFeaturesVec : catFeatures) {
                     CB_ENSURE(
-                        catFeaturesVec.size() >= ApplyData->MinimalSufficientCatFeaturesVectorSize,
+                        catFeaturesVec.size() >= ModelTrees->GetMinimalSufficientCatFeaturesVectorSize(),
                         "insufficient cat features vector size: " << catFeaturesVec.size() << " expected: " <<
-                                                                  ApplyData->MinimalSufficientCatFeaturesVectorSize
+                                                                  ModelTrees->GetMinimalSufficientCatFeaturesVectorSize()
                     );
                 }
             }
@@ -421,7 +342,6 @@ namespace NCB::NModelEvaluation {
         private:
             EPredictionType PredictionType = EPredictionType::RawFormulaVal;
             TCOWTreeWrapper ModelTrees;
-            TAtomicSharedPtr<TModelTrees::TForApplyData> ApplyData;
             TMaybe<TFeatureLayout> ExtFeatureLayout;
             TGPUCatboostEvaluationContext Ctx;
         };

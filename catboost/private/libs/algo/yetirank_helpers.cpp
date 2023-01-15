@@ -6,7 +6,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/loss_description.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 
@@ -81,12 +81,12 @@ void UpdatePairsForYetiRank(
     int queryBegin,
     int queryEnd,
     TVector<TQueryInfo>* queriesInfo,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 ) {
     const int permutationCount = NCatboostOptions::GetYetiRankPermutations(lossDescription);
     const double decaySpeed = NCatboostOptions::GetYetiRankDecay(lossDescription);
 
-    NPar::ILocalExecutor::TExecRangeParams blockParams(queryBegin, queryEnd);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(queryBegin, queryEnd);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
     const int blockSize = blockParams.GetBlockSize();
     const ui32 blockCount = blockParams.GetBlockCount();
@@ -121,7 +121,7 @@ void YetiRankRecalculation(
     const TFold::TBodyTail& bt,
     const NCatboostOptions::TCatBoostOptions& params,
     ui64 randomSeed,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TVector<TQueryInfo>* recalculatedQueriesInfo,
     TVector<float>* recalculatedPairwiseWeights
 ) {

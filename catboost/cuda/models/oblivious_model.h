@@ -125,7 +125,7 @@ namespace NCatboostCuda {
 
         void ComputeBins(
             const TDocParallelDataSet& dataSet,
-            TStripeBuffer<ui32>* dst) const override;
+            TStripeBuffer<ui32>* dst) const;
 
         ui32 OutputDim() const final {
             Y_ASSERT(Dim);
@@ -167,23 +167,6 @@ namespace NCatboostCuda {
                                        values,
                                        TVector<double>(),
                                        Dim);
-        }
-
-        TMaybe<float> GetL1LeavesSum() const {
-            if (LeafValues.empty()) {
-                return Nothing();
-            }
-            const auto numLeaves = LeafValues.size() / Dim;
-            double sumOverLeaves = 0;
-            for (auto leaf : xrange(numLeaves)) {
-                double w2 = 0;
-                for (auto dim : xrange(Dim)) {
-                    const double leafValue = LeafValues[Dim * leaf + dim];
-                    w2 += leafValue * leafValue;
-                }
-                sumOverLeaves += sqrt(w2);
-            }
-            return Sqr(sumOverLeaves / numLeaves);
         }
 
         Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights, Dim);

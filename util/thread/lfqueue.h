@@ -1,12 +1,11 @@
 #pragma once
 
 #include "fwd.h"
-#include "lfstack.h"
 
 #include <util/generic/ptr.h>
+#include <util/system/atomic.h>
 #include <util/system/yassert.h>
-
-#include <atomic>
+#include "lfstack.h"
 
 struct TDefaultLFCounter {
     template <class T>
@@ -22,7 +21,7 @@ struct TDefaultLFCounter {
 // @brief lockfree queue
 // @tparam T - the queue element, should be movable
 // @tparam TCounter, a observer class to count number of items in queue
-//                   be careful, IncCount and DecCount can be called on a moved object and
+//                   be carifull, IncCount and DecCount can be called on a moved object and
 //                   it is TCounter class responsibility to check validity of passed object
 template <class T, class TCounter>
 class TLockFreeQueue: public TNonCopyable {
@@ -40,17 +39,24 @@ class TLockFreeQueue: public TNonCopyable {
         {
         }
 
-        std::atomic<TListNode*> Next;
+        TListNode* volatile Next;
         T Data;
     };
 
     // using inheritance to be able to use 0 bytes for TCounter when we don't need one
     struct TRootNode: public TCounter {
-        std::atomic<TListNode*> PushQueue = nullptr;
-        std::atomic<TListNode*> PopQueue = nullptr;
-        std::atomic<TListNode*> ToDelete = nullptr;
-        std::atomic<TRootNode*> NextFree = nullptr;
+        TListNode* volatile PushQueue;
+        TListNode* volatile PopQueue;
+        TListNode* volatile ToDelete;
+        TRootNode* volatile NextFree;
 
+        TRootNode()
+            : PushQueue(nullptr)
+            , PopQueue(nullptr)
+            , ToDelete(nullptr)
+            , NextFree(nullptr)
+        {
+        }
         void CopyCounter(TRootNode* x) {
             *(TCounter*)this = *(TCounter*)x;
         }
@@ -58,58 +64,58 @@ class TLockFreeQueue: public TNonCopyable {
 
     static void EraseList(TListNode* n) {
         while (n) {
-            TListNode* keepNext = n->Next.load(std::memory_order_acquire);
+            TListNode* keepNext = AtomicGet(n->Next);
             delete n;
             n = keepNext;
         }
     }
 
-    alignas(64) std::atomic<TRootNode*> JobQueue;
-    alignas(64) std::atomic<size_t> FreememCounter;
-    alignas(64) std::atomic<size_t> FreeingTaskCounter;
-    alignas(64) std::atomic<TRootNode*> FreePtr;
+    TRootNode* volatile JobQueue;
+    volatile TAtomic FreememCounter;
+    volatile TAtomic FreeingTaskCounter;
+    TRootNode* volatile FreePtr;
 
     void TryToFreeAsyncMemory() {
-        const auto keepCounter = FreeingTaskCounter.load();
-        TRootNode* current = FreePtr.load(std::memory_order_acquire);
+        TAtomic keepCounter = AtomicAdd(FreeingTaskCounter, 0);
+        TRootNode* current = AtomicGet(FreePtr);
         if (current == nullptr)
             return;
-        if (FreememCounter.load() == 1) {
+        if (AtomicAdd(FreememCounter, 0) == 1) {
             // we are the last thread, try to cleanup
             // check if another thread have cleaned up
-            if (keepCounter != FreeingTaskCounter.load()) {
+            if (keepCounter != AtomicAdd(FreeingTaskCounter, 0)) {
                 return;
             }
-            if (FreePtr.compare_exchange_strong(current, nullptr)) {
+            if (AtomicCas(&FreePtr, (TRootNode*)nullptr, current)) {
                 // free list
                 while (current) {
-                    TRootNode* p = current->NextFree.load(std::memory_order_acquire);
-                    EraseList(current->ToDelete.load(std::memory_order_acquire));
+                    TRootNode* p = AtomicGet(current->NextFree);
+                    EraseList(AtomicGet(current->ToDelete));
                     delete current;
                     current = p;
                 }
-                ++FreeingTaskCounter;
+                AtomicAdd(FreeingTaskCounter, 1);
             }
         }
     }
     void AsyncRef() {
-        ++FreememCounter;
+        AtomicAdd(FreememCounter, 1);
     }
     void AsyncUnref() {
         TryToFreeAsyncMemory();
-        --FreememCounter;
+        AtomicAdd(FreememCounter, -1);
     }
     void AsyncDel(TRootNode* toDelete, TListNode* lst) {
-        toDelete->ToDelete.store(lst, std::memory_order_release);
-        for (auto freePtr = FreePtr.load();;) {
-            toDelete->NextFree.store(freePtr, std::memory_order_release);
-            if (FreePtr.compare_exchange_weak(freePtr, toDelete))
+        AtomicSet(toDelete->ToDelete, lst);
+        for (;;) {
+            AtomicSet(toDelete->NextFree, AtomicGet(FreePtr));
+            if (AtomicCas(&FreePtr, toDelete, AtomicGet(toDelete->NextFree)))
                 break;
         }
     }
     void AsyncUnref(TRootNode* toDelete, TListNode* lst) {
         TryToFreeAsyncMemory();
-        if (--FreememCounter == 0) {
+        if (AtomicAdd(FreememCounter, -1) == 0) {
             // no other operations in progress, can safely reclaim memory
             EraseList(lst);
             delete toDelete;
@@ -145,7 +151,7 @@ class TLockFreeQueue: public TNonCopyable {
             while (ptr) {
                 if (ptr == PrevFirst) {
                     // short cut, we have copied this part already
-                    Tail->Next.store(newCopy, std::memory_order_release);
+                    AtomicSet(Tail->Next, newCopy);
                     newCopy = Copy;
                     Copy = nullptr; // do not destroy prev try
                     if (!newTail)
@@ -154,7 +160,7 @@ class TLockFreeQueue: public TNonCopyable {
                 }
                 TListNode* newElem = new TListNode(ptr->Data, newCopy);
                 newCopy = newElem;
-                ptr = ptr->Next.load(std::memory_order_acquire);
+                ptr = AtomicGet(ptr->Next);
                 if (!newTail)
                     newTail = newElem;
             }
@@ -168,19 +174,21 @@ class TLockFreeQueue: public TNonCopyable {
     void EnqueueImpl(TListNode* head, TListNode* tail) {
         TRootNode* newRoot = new TRootNode;
         AsyncRef();
-        newRoot->PushQueue.store(head, std::memory_order_release);
-        for (TRootNode* curRoot = JobQueue.load(std::memory_order_acquire);;) {
-            tail->Next.store(curRoot->PushQueue.load(std::memory_order_acquire), std::memory_order_release);
-            newRoot->PopQueue.store(curRoot->PopQueue.load(std::memory_order_acquire), std::memory_order_release);
+        AtomicSet(newRoot->PushQueue, head);
+        for (;;) {
+            TRootNode* curRoot = AtomicGet(JobQueue);
+            AtomicSet(newRoot->PushQueue, head);
+            AtomicSet(tail->Next, AtomicGet(curRoot->PushQueue));
+            AtomicSet(newRoot->PopQueue, AtomicGet(curRoot->PopQueue));
             newRoot->CopyCounter(curRoot);
 
-            for (TListNode* node = head;; node = node->Next.load(std::memory_order_acquire)) {
+            for (TListNode* node = head;; node = AtomicGet(node->Next)) {
                 newRoot->IncCount(node->Data);
                 if (node == tail)
                     break;
             }
 
-            if (JobQueue.compare_exchange_weak(curRoot, newRoot)) {
+            if (AtomicCas(&JobQueue, newRoot, curRoot)) {
                 AsyncUnref(curRoot, nullptr);
                 break;
             }
@@ -191,7 +199,7 @@ class TLockFreeQueue: public TNonCopyable {
     static void FillCollection(TListNode* lst, TCollection* res) {
         while (lst) {
             res->emplace_back(std::move(lst->Data));
-            lst = lst->Next.load(std::memory_order_acquire);
+            lst = AtomicGet(lst->Next);
         }
     }
 
@@ -208,7 +216,7 @@ class TLockFreeQueue: public TNonCopyable {
         do {
             TListNode* newElem = new TListNode(std::move(lst->Data), newCopy);
             newCopy = newElem;
-            lst = lst->Next.load(std::memory_order_acquire);
+            lst = AtomicGet(lst->Next);
         } while (lst);
 
         FillCollection(newCopy, res);
@@ -228,8 +236,8 @@ public:
     ~TLockFreeQueue() {
         AsyncRef();
         AsyncUnref(); // should free FreeList
-        EraseList(JobQueue.load(std::memory_order_relaxed)->PushQueue.load(std::memory_order_relaxed));
-        EraseList(JobQueue.load(std::memory_order_relaxed)->PopQueue.load(std::memory_order_relaxed));
+        EraseList(JobQueue->PushQueue);
+        EraseList(JobQueue->PopQueue);
         delete JobQueue;
     }
     template <typename U>
@@ -255,8 +263,8 @@ public:
             return;
 
         TIter i = dataBegin;
-        TListNode* node = new TListNode(*i);
-        TListNode* tail = node;
+        TListNode* volatile node = new TListNode(*i);
+        TListNode* volatile tail = node;
 
         for (++i; i != dataEnd; ++i) {
             TListNode* nextNode = node;
@@ -268,27 +276,28 @@ public:
         TRootNode* newRoot = nullptr;
         TListInvertor listInvertor;
         AsyncRef();
-        for (TRootNode* curRoot = JobQueue.load(std::memory_order_acquire);;) {
-            TListNode* tail = curRoot->PopQueue.load(std::memory_order_acquire);
+        for (;;) {
+            TRootNode* curRoot = AtomicGet(JobQueue);
+            TListNode* tail = AtomicGet(curRoot->PopQueue);
             if (tail) {
                 // has elems to pop
                 if (!newRoot)
                     newRoot = new TRootNode;
 
-                newRoot->PushQueue.store(curRoot->PushQueue.load(std::memory_order_acquire), std::memory_order_release);
-                newRoot->PopQueue.store(tail->Next.load(std::memory_order_acquire), std::memory_order_release);
+                AtomicSet(newRoot->PushQueue, AtomicGet(curRoot->PushQueue));
+                AtomicSet(newRoot->PopQueue, AtomicGet(tail->Next));
                 newRoot->CopyCounter(curRoot);
                 newRoot->DecCount(tail->Data);
-                Y_ASSERT(curRoot->PopQueue.load() == tail);
-                if (JobQueue.compare_exchange_weak(curRoot, newRoot)) {
+                Y_ASSERT(AtomicGet(curRoot->PopQueue) == tail);
+                if (AtomicCas(&JobQueue, newRoot, curRoot)) {
                     *data = std::move(tail->Data);
-                    tail->Next.store(nullptr, std::memory_order_release);
+                    AtomicSet(tail->Next, nullptr);
                     AsyncUnref(curRoot, tail);
                     return true;
                 }
                 continue;
             }
-            if (curRoot->PushQueue.load(std::memory_order_acquire) == nullptr) {
+            if (AtomicGet(curRoot->PushQueue) == nullptr) {
                 delete newRoot;
                 AsyncUnref();
                 return false; // no elems to pop
@@ -296,18 +305,17 @@ public:
 
             if (!newRoot)
                 newRoot = new TRootNode;
-            newRoot->PushQueue.store(nullptr, std::memory_order_release);
-            listInvertor.DoCopy(curRoot->PushQueue.load(std::memory_order_acquire));
-            newRoot->PopQueue.store(listInvertor.Copy, std::memory_order_release);
+            AtomicSet(newRoot->PushQueue, nullptr);
+            listInvertor.DoCopy(AtomicGet(curRoot->PushQueue));
+            newRoot->PopQueue = listInvertor.Copy;
             newRoot->CopyCounter(curRoot);
-            Y_ASSERT(curRoot->PopQueue.load() == nullptr);
-            if (JobQueue.compare_exchange_weak(curRoot, newRoot)) {
-                AsyncDel(curRoot, curRoot->PushQueue.load(std::memory_order_acquire));
-                curRoot = newRoot;
+            Y_ASSERT(AtomicGet(curRoot->PopQueue) == nullptr);
+            if (AtomicCas(&JobQueue, newRoot, curRoot)) {
                 newRoot = nullptr;
                 listInvertor.CopyWasUsed();
+                AsyncDel(curRoot, AtomicGet(curRoot->PushQueue));
             } else {
-                newRoot->PopQueue.store(nullptr, std::memory_order_release);
+                AtomicSet(newRoot->PopQueue, nullptr);
             }
         }
     }
@@ -316,36 +324,36 @@ public:
         AsyncRef();
 
         TRootNode* newRoot = new TRootNode;
-        TRootNode* curRoot = JobQueue.load(std::memory_order_acquire);
+        TRootNode* curRoot;
         do {
-        } while (!JobQueue.compare_exchange_weak(curRoot, newRoot));
+            curRoot = AtomicGet(JobQueue);
+        } while (!AtomicCas(&JobQueue, newRoot, curRoot));
 
         FillCollection(curRoot->PopQueue, res);
 
         TListNode* toDeleteHead = curRoot->PushQueue;
         TListNode* toDeleteTail = FillCollectionReverse(curRoot->PushQueue, res);
-        curRoot->PushQueue.store(nullptr, std::memory_order_release);
+        AtomicSet(curRoot->PushQueue, nullptr);
 
         if (toDeleteTail) {
-            toDeleteTail->Next.store(curRoot->PopQueue.load());
+            toDeleteTail->Next = curRoot->PopQueue;
         } else {
             toDeleteTail = curRoot->PopQueue;
         }
-        curRoot->PopQueue.store(nullptr, std::memory_order_release);
+        AtomicSet(curRoot->PopQueue, nullptr);
 
         AsyncUnref(curRoot, toDeleteHead);
     }
     bool IsEmpty() {
         AsyncRef();
-        TRootNode* curRoot = JobQueue.load(std::memory_order_acquire);
-        bool res = curRoot->PushQueue.load(std::memory_order_acquire) == nullptr &&
-                   curRoot->PopQueue.load(std::memory_order_acquire) == nullptr;
+        TRootNode* curRoot = AtomicGet(JobQueue);
+        bool res = AtomicGet(curRoot->PushQueue) == nullptr && AtomicGet(curRoot->PopQueue) == nullptr;
         AsyncUnref();
         return res;
     }
     TCounter GetCounter() {
         AsyncRef();
-        TRootNode* curRoot = JobQueue.load(std::memory_order_acquire);
+        TRootNode* curRoot = AtomicGet(JobQueue);
         TCounter res = *(TCounter*)curRoot;
         AsyncUnref();
         return res;

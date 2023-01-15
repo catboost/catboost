@@ -3,8 +3,6 @@
 #include <util/generic/hash.h>
 #include <util/digest/fnv.h>
 
-#include <iterator>
-
 template <typename T>
 struct TCollectionImpl {
     TVector<TConstArrayRef<T>> Words;
@@ -18,21 +16,17 @@ struct TCollectionImpl {
         return true;
     }
 
-    TConstArrayRef<T> Remap(const TConstArrayRef<ui64>& keys) const {
+    TConstArrayRef<T> Remap(const TConstArrayRef<ui64>& keys) {
         if (keys.empty()) {
             return TConstArrayRef<T>();
         }
-        auto firstWordPos = std::distance(Keys.data(), keys.begin());
-        auto lastWordPos = std::distance(Keys.data(), keys.end()) - 1;
-        Y_ASSERT(firstWordPos >= 0);
-        Y_ASSERT(lastWordPos >= firstWordPos);
-        Y_ASSERT(static_cast<size_t>(lastWordPos) < Words.size());
-
-        return TConstArrayRef<T>(Words[firstWordPos].begin(), Words[lastWordPos].end());
+        Y_ASSERT(keys.begin() >= Keys.begin() && keys.begin() <= Keys.end());
+        Y_ASSERT(keys.end() >= Keys.begin() && keys.end() <= Keys.end());
+        return TConstArrayRef<T>(Words[keys.begin() - Keys.begin()].begin(), Words[keys.end() - Keys.begin() - 1].end());
     }
 
     TConstArrayRef<ui64> GetKeys() const {
-        return TConstArrayRef<ui64>(Keys);
+        return TConstArrayRef<ui64>(Keys.begin(), Keys.end());
     }
 };
 

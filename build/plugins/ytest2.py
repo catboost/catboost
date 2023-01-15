@@ -30,6 +30,8 @@ def ytest_base(unit, related_prj_dir, related_prj_name, args):
     data_lst.sort()
     data = '\"' + ';'.join(data_lst) + '\"' if data_lst else ''
     unit.set(['TEST-DATA', data])
+    ya_root = unit.get('YA_ROOT')
+    unit.set(['TEST_RUN_SCRIPT', 'devtools/{}/test/node/run_test.py'.format(ya_root)])
 
     related_dirs_list = ['{ARCADIA_ROOT}/devtools/${YA_ROOT}', '${ARCADIA_ROOT}/devtools/${YA_ROOT}', '$RELATED_TARGET_SRCDIR']
     related_dirs_value = []
@@ -42,6 +44,8 @@ def ytest_base(unit, related_prj_dir, related_prj_name, args):
 def on_unittest(unit, *args):
     related_prj_name = args[0]
     related_prj_dir = args[1][3:]
+    ya_root = unit.get('YA_ROOT')
+    unit.set(['SPECIFIC_RUN_SCRIPT', 'devtools/{}/test/scripts/run_ut.py'.format(ya_root)])
     unit.set(['TEST_TYPE', '${kv;hide:"test-type unittest"}'])
     ytest_base(unit, related_prj_dir, related_prj_name, args)
 

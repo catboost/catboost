@@ -13,7 +13,7 @@
 class IDerCalcer;
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -28,7 +28,7 @@ void CalculateDersForQueries(
     int queryEndIndex,
     TArrayRef<TDers> approxDers,
     ui64 randomSeed,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 
 void AddLeafDersForQueries(
@@ -41,5 +41,5 @@ void AddLeafDersForQueries(
     ELeavesEstimation estimationMethod,
     int iteration,
     TVector<TSum>* buckets,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );

@@ -1,20 +1,27 @@
 PY23_LIBRARY()
 
-LICENSE(Service-Py23-Proxy)
 
 
+VERSION(0.4.2)
 
-IF (PYTHON2)
-    PEERDIR(contrib/python/testpath/py2)
-ELSE()
-    PEERDIR(contrib/python/testpath/py3)
-ENDIF()
+LICENSE(UNKNOWN)
 
 NO_LINT()
 
-END()
-
-RECURSE(
-    py2
-    py3
+PY_SRCS(
+    TOP_LEVEL
+    testpath/__init__.py
+    testpath/asserts.py
+    testpath/commands.py
+    testpath/env.py
+    testpath/tempdir.py
 )
+
+RESOURCE_FILES(
+    PREFIX contrib/python/testpath/
+    .dist-info/METADATA
+    # testpath/cli-32.exe
+    # testpath/cli-64.exe
+)
+
+END()

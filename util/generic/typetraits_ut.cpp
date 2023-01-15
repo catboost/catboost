@@ -1,6 +1,6 @@
 #include "typetraits.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <vector>
 #include <tuple>
@@ -59,7 +59,7 @@ namespace {
 
     class TNonStdLayoutClass2 {
     public:
-        virtual void Func() {
+        virtual void func() {
         }
     };
 
@@ -70,7 +70,29 @@ namespace {
     public:
         TEmptyClass Base;
     };
+
+    class TWithBitwiseCopyableFlag {
+    public:
+        TWithBitwiseCopyableFlag() = default;
+        TWithBitwiseCopyableFlag(const TWithBitwiseCopyableFlag&) = default;
+    };
+
+    class TWithBitwiseSerializableFlag {
+    public:
+        TWithBitwiseSerializableFlag() = default;
+        TWithBitwiseSerializableFlag(const TWithBitwiseSerializableFlag&) = default;
+    };
+
+    class TWithAllTypeTraitFlags {
+    public:
+        TWithAllTypeTraitFlags() = default;
+        TWithAllTypeTraitFlags(const TWithAllTypeTraitFlags&) = default;
+    };
 }
+
+Y_DECLARE_TYPE_FLAGS(TWithBitwiseCopyableFlag, NTypeTrait::BITWISE_COPYABLE);
+Y_DECLARE_TYPE_FLAGS(TWithBitwiseSerializableFlag, NTypeTrait::BITWISE_SERIALIZABLE);
+Y_DECLARE_TYPE_FLAGS(TWithAllTypeTraitFlags, NTypeTrait::BITWISE_SERIALIZABLE | NTypeTrait::BITWISE_COPYABLE);
 
 #define ASSERT_SAME_TYPE(x, y)                     \
     {                                              \
@@ -149,7 +171,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_unsigned<T&&>::value);
         UNIT_ASSERT(!std::is_unsigned<T*>::value);
 
-        enum ETypedEnum: T {};
+        enum ETypedEnum : T {};
         UNIT_ASSERT(!std::is_unsigned<ETypedEnum>::value);
     }
 
@@ -164,7 +186,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_signed<T&&>::value);
         UNIT_ASSERT(!std::is_signed<T*>::value);
 
-        enum ETypedEnum: T {};
+        enum ETypedEnum : T {};
         UNIT_ASSERT(!std::is_signed<ETypedEnum>::value);
     }
 
@@ -225,6 +247,39 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT(!std::is_standard_layout<TNonStdLayoutClass2>::value);
         UNIT_ASSERT(!std::is_standard_layout<TNonStdLayoutClass3>::value);
         UNIT_ASSERT(!std::is_standard_layout<TNonStdLayoutClass4>::value);
+    }
+
+    Y_UNIT_TEST(TestIsStdPod) {
+        UNIT_ASSERT(std::is_pod<TPodClass>::value);
+        UNIT_ASSERT(!std::is_pod<TNonPodClass>::value);
+        UNIT_ASSERT(std::is_pod<int>::value);
+        UNIT_ASSERT(std::is_pod<float>::value);
+        UNIT_ASSERT(std::is_pod<double>::value);
+        UNIT_ASSERT(std::is_pod<char>::value);
+        UNIT_ASSERT(std::is_pod<long>::value);
+    }
+
+    template <typename T>
+    void TestAllTypeTraitFlagsSet() {
+        UNIT_ASSERT(TTypeTraits<T>::IsBitwiseCopyable);
+        UNIT_ASSERT(TTypeTraits<T>::IsBitwiseSerializable);
+    }
+
+    Y_UNIT_TEST(TestUserTypeTrait) {
+        TestAllTypeTraitFlagsSet<int>();
+        TestAllTypeTraitFlagsSet<float>();
+        TestAllTypeTraitFlagsSet<double>();
+        TestAllTypeTraitFlagsSet<char>();
+        TestAllTypeTraitFlagsSet<long>();
+        TestAllTypeTraitFlagsSet<TPodClass>();
+
+        UNIT_ASSERT(TTypeTraits<TWithBitwiseSerializableFlag>::IsBitwiseSerializable);
+        UNIT_ASSERT(TTypeTraits<TWithBitwiseCopyableFlag>::IsBitwiseCopyable);
+
+        UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseSerializable);
+        UNIT_ASSERT(!TTypeTraits<TNonPodClass>::IsBitwiseCopyable);
+
+        TestAllTypeTraitFlagsSet<TWithAllTypeTraitFlags>();
     }
 
     template <class T>
@@ -426,11 +481,11 @@ enum E4 {
     X
 };
 
-enum class E64: ui64 {
+enum class E64 : ui64 {
     X
 };
 
-enum class E8: ui8 {
+enum class E8 : ui8 {
     X
 };
 
@@ -457,22 +512,7 @@ static_assert(TIsSpecializationOf<std::tuple, std::tuple<int, double, char>>::va
 static_assert(!TIsSpecializationOf<std::vector, std::tuple<int, double, char>>::value, "");
 static_assert(!TIsSpecializationOf<std::pair, std::vector<int>>::value, "");
 
-// test for TIsTemplateBaseOf
-static_assert(TIsTemplateBaseOf<std::vector, std::vector<int>>::value);
-static_assert(TIsTemplateBaseOf<std::tuple, std::tuple<int, double, char>>::value);
-static_assert(TIsTemplateBaseOf<std::basic_string_view, std::wstring_view>::value);
-static_assert(TIsTemplateBaseOf<std::vector, TVector<int>>::value);
-static_assert(!TIsTemplateBaseOf<TVector, std::vector<int>>::value);
-static_assert(TIsTemplateBaseOf<TBasicStringBuf, TWtringBuf>::value);
-static_assert(TIsTemplateBaseOf<std::basic_string_view, TUtf32StringBuf>::value);
-static_assert(TIsTemplateBaseOf<std::basic_string_view, TWtringBuf>::value);
-
 // test for TIsIterable
 static_assert(TIsIterable<std::vector<int>>::value, "");
 static_assert(!TIsIterable<int>::value, "");
 static_assert(TIsIterable<int[42]>::value, "");
-
-// test for TDependentFalse
-static_assert(TDependentFalse<int> == false);
-static_assert(TDependentFalse<TNonPodClass> == false);
-static_assert(TValueDependentFalse<0x1000> == false);

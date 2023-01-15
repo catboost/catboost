@@ -1,7 +1,6 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/data/pairs.h>
 #include <catboost/libs/data/util.h>
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -9,8 +8,8 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/loss_description.h>
 
-#include <library/cpp/json/json_value.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 
@@ -19,20 +18,16 @@ namespace NCB {
     struct TTargetCreationOptions {
         bool IsClass;
         bool IsMultiClass;
-        bool IsMultiLabel;
         bool CreateBinClassTarget;
         bool CreateMultiClassTarget;
-        bool CreateMultiLabelTarget;
         bool CreateGroups;
         bool CreatePairs;
-        bool SkipMinMaxPairsCheck;
         TMaybe<ui32> MaxPairsCount;
     };
 
     struct TInputClassificationInfo {
         TMaybe<ui32> KnownClassCount;
         TConstArrayRef<float> ClassWeights; // [classIdx], empty if not specified
-        EAutoClassWeightsType AutoClassWeightsType;
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<float> TargetBorder;
     };
@@ -41,7 +36,6 @@ namespace NCB {
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<TLabelConverter*> LabelConverter; // needed only for multiclass
         TMaybe<float> TargetBorder; // TODO(isaf27): delete it from output parameters
-        TMaybe<TVector<float>> ClassWeights;
     };
 
     struct TOutputPairsInfo {
@@ -56,21 +50,10 @@ namespace NCB {
     };
 
     TTargetCreationOptions MakeTargetCreationOptions(
-        bool dataHasWeights,
-        ui32 dataTargetDimension,
-        bool dataHasGroups,
-        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
-        TMaybe<ui32> knownModelApproxDimension,
-        bool knownIsClassification,
-        const TInputClassificationInfo& inputClassificationInfo,
-        bool skipMinMaxPairsCheck=false);
-
-    TTargetCreationOptions MakeTargetCreationOptions(
         const TRawTargetDataProvider &rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo,
-        bool skipMinMaxPairsCheck=false);
+        const TInputClassificationInfo& inputClassificationInfo);
 
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
@@ -81,12 +64,6 @@ namespace NCB {
         TStringBuf datasetName,
         bool isNonEmptyAndNonConst,
         bool allowConstLabel);
-
-    TSharedWeights<float> MakeWeights(
-        const TWeights<float>& rawWeights,
-        const TWeights<float>& rawGroupWeights,
-        bool isForGpu,
-        NPar::ILocalExecutor* localExecutor);
 
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
@@ -104,7 +81,7 @@ namespace NCB {
         const TInputClassificationInfo& inputClassificationInfo,
         TOutputClassificationInfo* outputClassificationInfo,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TOutputPairsInfo* outputPairsInfo);
 
 
@@ -116,44 +93,20 @@ namespace NCB {
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::ILocalExecutor* localExecutor,
-        bool metricsThatRequireTargetCanBeSkipped=false,
-        bool skipMinMaxPairsCheck=false);
+        NPar::TLocalExecutor* localExecutor);
 
     TProcessedDataProvider CreateClassificationCompatibleDataProvider(
         const TDataProvider& srcData,
         const TFullModel& model,
         ui64 cpuRamLimit,
         TRestorableFastRng64* rand, // for possible pairs generation
-        NPar::ILocalExecutor* localExecutor);
+        NPar::TLocalExecutor* localExecutor);
 
 
     TSharedVector<TQueryInfo> MakeGroupInfos(
         const TObjectsGrouping& objectsGrouping,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         const TWeights<float>& groupWeights,
-        TMaybe<TRawPairsDataRef> pairs);
+        TConstArrayRef<TPair> pairs);
 
-    void UpdateTargetProcessingParams(
-        const TInputClassificationInfo& inputClassificationInfo,
-        const TTargetCreationOptions& targetCreationOptions,
-        TMaybe<ui32> knownApproxDimension,
-        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
-        bool* isRealTarget,
-        TMaybe<ui32>* knownClassCount,
-        TInputClassificationInfo* updatedInputClassificationInfo);
-
-    TVector<TSharedVector<float>> ConvertTarget(
-        TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
-        ERawTargetType targetType,
-        bool isRealTarget,
-        bool isClass,
-        bool isMultiClass,
-        bool isMultiLabel,
-        TMaybe<float> targetBorder,
-        bool classCountUnknown,
-        const TVector<NJson::TJsonValue> inputClassLabels,
-        TVector<NJson::TJsonValue>* outputClassLabels,
-        NPar::ILocalExecutor* localExecutor,
-        ui32* classCount);
 }

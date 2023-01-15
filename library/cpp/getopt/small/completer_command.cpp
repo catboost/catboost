@@ -160,6 +160,6 @@ namespace NLastGetopt {
     };
 
     THolder<TMainClassArgs> MakeCompletionMod(const TModChooser* modChooser, TString command, TString modName) {
-        return MakeHolder<TCompleterMode>(modChooser, std::move(command), std::move(modName));
+        return new TCompleterMode(modChooser, std::move(command), std::move(modName));
     }
 }

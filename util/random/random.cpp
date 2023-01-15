@@ -2,7 +2,9 @@
 #include "entropy.h"
 #include "mersenne.h"
 
+#include <util/system/tls.h>
 #include <util/system/getpid.h>
+#include <util/generic/ylimits.h>
 #include <util/thread/singleton.h>
 #include <util/stream/multi.h>
 #include <util/stream/mem.h>

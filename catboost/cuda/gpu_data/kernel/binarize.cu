@@ -3,9 +3,7 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
-
-#include <contrib/libs/nvidia/cub/cub/block/block_radix_sort.cuh>
-
+#include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
 namespace NKernel {
 
     __global__ void WriteCompressedIndexImpl(TCFeature feature, const ui8* bins, ui32 docCount, ui32* cindex) {
@@ -196,7 +194,7 @@ namespace NKernel {
 
         ui64 seed = (1664525 * threadIdx.x + 1013904223) & 0xFFFFFF;
 
-        #pragma unroll 16
+        #pragma unroll 32
         for (int i = 0; i < 32; ++i) {
             const int idx = static_cast<int>(AdvanceSeed(&seed) % size);
             float val = StreamLoad(values + idx);

@@ -1,14 +1,9 @@
 /* Abstract Object Interface (many thanks to Jim Fulton) */
 
 #include "Python.h"
-#include "pycore_abstract.h"      // _PyIndex_Check()
-#include "pycore_ceval.h"         // _Py_EnterRecursiveCall()
-#include "pycore_object.h"        // _Py_CheckSlotResult()
-#include "pycore_pyerrors.h"      // _PyErr_Occurred()
-#include "pycore_pystate.h"       // _PyThreadState_GET()
-#include "pycore_unionobject.h"   // _PyUnion_Check()
+#include "internal/pystate.h"
 #include <ctype.h>
-#include <stddef.h>               // offsetof()
+#include "structmember.h" /* we need the offsetof() macro from there */
 #include "longintrepr.h"
 
 
@@ -18,18 +13,16 @@
 static PyObject *
 type_error(const char *msg, PyObject *obj)
 {
-    PyErr_Format(PyExc_TypeError, msg, Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_TypeError, msg, obj->ob_type->tp_name);
     return NULL;
 }
 
 static PyObject *
 null_error(void)
 {
-    PyThreadState *tstate = _PyThreadState_GET();
-    if (!_PyErr_Occurred(tstate)) {
-        _PyErr_SetString(tstate, PyExc_SystemError,
-                         "null argument to internal routine");
-    }
+    if (!PyErr_Occurred())
+        PyErr_SetString(PyExc_SystemError,
+                        "null argument to internal routine");
     return NULL;
 }
 
@@ -44,7 +37,7 @@ PyObject_Type(PyObject *o)
         return null_error();
     }
 
-    v = (PyObject *)Py_TYPE(o);
+    v = (PyObject *)o->ob_type;
     Py_INCREF(v);
     return v;
 }
@@ -52,15 +45,17 @@ PyObject_Type(PyObject *o)
 Py_ssize_t
 PyObject_Size(PyObject *o)
 {
+    PySequenceMethods *m;
+
     if (o == NULL) {
         null_error();
         return -1;
     }
 
-    PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+    m = o->ob_type->tp_as_sequence;
     if (m && m->sq_length) {
         Py_ssize_t len = m->sq_length(o);
-        assert(_Py_CheckSlotResult(o, "__len__", len >= 0));
+        assert(len >= 0 || PyErr_Occurred());
         return len;
     }
 
@@ -96,12 +91,11 @@ PyObject_LengthHint(PyObject *o, Py_ssize_t defaultvalue)
     if (_PyObject_HasLen(o)) {
         res = PyObject_Length(o);
         if (res < 0) {
-            PyThreadState *tstate = _PyThreadState_GET();
-            assert(_PyErr_Occurred(tstate));
-            if (!_PyErr_ExceptionMatches(tstate, PyExc_TypeError)) {
+            assert(PyErr_Occurred());
+            if (!PyErr_ExceptionMatches(PyExc_TypeError)) {
                 return -1;
             }
-            _PyErr_Clear(tstate);
+            PyErr_Clear();
         }
         else {
             return res;
@@ -117,9 +111,8 @@ PyObject_LengthHint(PyObject *o, Py_ssize_t defaultvalue)
     result = _PyObject_CallNoArg(hint);
     Py_DECREF(hint);
     if (result == NULL) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (_PyErr_ExceptionMatches(tstate, PyExc_TypeError)) {
-            _PyErr_Clear(tstate);
+        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+            PyErr_Clear();
             return defaultvalue;
         }
         return -1;
@@ -149,20 +142,23 @@ PyObject_LengthHint(PyObject *o, Py_ssize_t defaultvalue)
 PyObject *
 PyObject_GetItem(PyObject *o, PyObject *key)
 {
+    PyMappingMethods *m;
+    PySequenceMethods *ms;
+
     if (o == NULL || key == NULL) {
         return null_error();
     }
 
-    PyMappingMethods *m = Py_TYPE(o)->tp_as_mapping;
+    m = o->ob_type->tp_as_mapping;
     if (m && m->mp_subscript) {
         PyObject *item = m->mp_subscript(o, key);
-        assert(_Py_CheckSlotResult(o, "__getitem__", item != NULL));
+        assert((item != NULL) ^ (PyErr_Occurred() != NULL));
         return item;
     }
 
-    PySequenceMethods *ms = Py_TYPE(o)->tp_as_sequence;
+    ms = o->ob_type->tp_as_sequence;
     if (ms && ms->sq_item) {
-        if (_PyIndex_Check(key)) {
+        if (PyIndex_Check(key)) {
             Py_ssize_t key_value;
             key_value = PyNumber_AsSsize_t(key, PyExc_IndexError);
             if (key_value == -1 && PyErr_Occurred())
@@ -176,19 +172,13 @@ PyObject_GetItem(PyObject *o, PyObject *key)
     }
 
     if (PyType_Check(o)) {
-        PyObject *meth, *result;
+        PyObject *meth, *result, *stack[1] = {key};
         _Py_IDENTIFIER(__class_getitem__);
-
-        // Special case type[int], but disallow other types so str[int] fails
-        if ((PyTypeObject*)o == &PyType_Type) {
-            return Py_GenericAlias(o, key);
-        }
-
         if (_PyObject_LookupAttrId(o, &PyId___class_getitem__, &meth) < 0) {
             return NULL;
         }
         if (meth) {
-            result = PyObject_CallOneArg(meth, key);
+            result = _PyObject_FastCall(meth, stack, 1);
             Py_DECREF(meth);
             return result;
         }
@@ -200,27 +190,25 @@ PyObject_GetItem(PyObject *o, PyObject *key)
 int
 PyObject_SetItem(PyObject *o, PyObject *key, PyObject *value)
 {
+    PyMappingMethods *m;
+
     if (o == NULL || key == NULL || value == NULL) {
         null_error();
         return -1;
     }
+    m = o->ob_type->tp_as_mapping;
+    if (m && m->mp_ass_subscript)
+        return m->mp_ass_subscript(o, key, value);
 
-    PyMappingMethods *m = Py_TYPE(o)->tp_as_mapping;
-    if (m && m->mp_ass_subscript) {
-        int res = m->mp_ass_subscript(o, key, value);
-        assert(_Py_CheckSlotResult(o, "__setitem__", res >= 0));
-        return res;
-    }
-
-    if (Py_TYPE(o)->tp_as_sequence) {
-        if (_PyIndex_Check(key)) {
+    if (o->ob_type->tp_as_sequence) {
+        if (PyIndex_Check(key)) {
             Py_ssize_t key_value;
             key_value = PyNumber_AsSsize_t(key, PyExc_IndexError);
             if (key_value == -1 && PyErr_Occurred())
                 return -1;
             return PySequence_SetItem(o, key_value, value);
         }
-        else if (Py_TYPE(o)->tp_as_sequence->sq_ass_item) {
+        else if (o->ob_type->tp_as_sequence->sq_ass_item) {
             type_error("sequence index must be "
                        "integer, not '%.200s'", key);
             return -1;
@@ -234,27 +222,25 @@ PyObject_SetItem(PyObject *o, PyObject *key, PyObject *value)
 int
 PyObject_DelItem(PyObject *o, PyObject *key)
 {
+    PyMappingMethods *m;
+
     if (o == NULL || key == NULL) {
         null_error();
         return -1;
     }
+    m = o->ob_type->tp_as_mapping;
+    if (m && m->mp_ass_subscript)
+        return m->mp_ass_subscript(o, key, (PyObject*)NULL);
 
-    PyMappingMethods *m = Py_TYPE(o)->tp_as_mapping;
-    if (m && m->mp_ass_subscript) {
-        int res = m->mp_ass_subscript(o, key, (PyObject*)NULL);
-        assert(_Py_CheckSlotResult(o, "__delitem__", res >= 0));
-        return res;
-    }
-
-    if (Py_TYPE(o)->tp_as_sequence) {
-        if (_PyIndex_Check(key)) {
+    if (o->ob_type->tp_as_sequence) {
+        if (PyIndex_Check(key)) {
             Py_ssize_t key_value;
             key_value = PyNumber_AsSsize_t(key, PyExc_IndexError);
             if (key_value == -1 && PyErr_Occurred())
                 return -1;
             return PySequence_DelItem(o, key_value);
         }
-        else if (Py_TYPE(o)->tp_as_sequence->sq_ass_item) {
+        else if (o->ob_type->tp_as_sequence->sq_ass_item) {
             type_error("sequence index must be "
                        "integer, not '%.200s'", key);
             return -1;
@@ -283,23 +269,13 @@ PyObject_DelItemString(PyObject *o, const char *key)
     return ret;
 }
 
-
-/* Return 1 if the getbuffer function is available, otherwise return 0. */
-int
-PyObject_CheckBuffer(PyObject *obj)
-{
-    PyBufferProcs *tp_as_buffer = Py_TYPE(obj)->tp_as_buffer;
-    return (tp_as_buffer != NULL && tp_as_buffer->bf_getbuffer != NULL);
-}
-
-
 /* We release the buffer right after use of this function which could
    cause issues later on.  Don't use these functions in new code.
  */
 int
 PyObject_CheckReadBuffer(PyObject *obj)
 {
-    PyBufferProcs *pb = Py_TYPE(obj)->tp_as_buffer;
+    PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
     Py_buffer view;
 
     if (pb == NULL ||
@@ -357,7 +333,7 @@ int PyObject_AsWriteBuffer(PyObject *obj,
         null_error();
         return -1;
     }
-    pb = Py_TYPE(obj)->tp_as_buffer;
+    pb = obj->ob_type->tp_as_buffer;
     if (pb == NULL ||
         pb->bf_getbuffer == NULL ||
         ((*pb->bf_getbuffer)(obj, &view, PyBUF_WRITABLE) != 0)) {
@@ -377,7 +353,7 @@ int PyObject_AsWriteBuffer(PyObject *obj,
 int
 PyObject_GetBuffer(PyObject *obj, Py_buffer *view, int flags)
 {
-    PyBufferProcs *pb = Py_TYPE(obj)->tp_as_buffer;
+    PyBufferProcs *pb = obj->ob_type->tp_as_buffer;
 
     if (pb == NULL || pb->bf_getbuffer == NULL) {
         PyErr_Format(PyExc_TypeError,
@@ -385,9 +361,7 @@ PyObject_GetBuffer(PyObject *obj, Py_buffer *view, int flags)
                      Py_TYPE(obj)->tp_name);
         return -1;
     }
-    int res = (*pb->bf_getbuffer)(obj, view, flags);
-    assert(_Py_CheckSlotResult(obj, "getbuffer", res >= 0));
-    return res;
+    return (*pb->bf_getbuffer)(obj, view, flags);
 }
 
 static int
@@ -519,48 +493,6 @@ _Py_add_one_to_index_C(int nd, Py_ssize_t *index, const Py_ssize_t *shape)
             index[k] = 0;
         }
     }
-}
-
-Py_ssize_t
-PyBuffer_SizeFromFormat(const char *format)
-{
-    PyObject *structmodule = NULL;
-    PyObject *calcsize = NULL;
-    PyObject *res = NULL;
-    PyObject *fmt = NULL;
-    Py_ssize_t itemsize = -1;
-
-    structmodule = PyImport_ImportModule("struct");
-    if (structmodule == NULL) {
-        return itemsize;
-    }
-
-    calcsize = PyObject_GetAttrString(structmodule, "calcsize");
-    if (calcsize == NULL) {
-        goto done;
-    }
-
-    fmt = PyUnicode_FromString(format);
-    if (fmt == NULL) {
-        goto done;
-    }
-
-    res = PyObject_CallFunctionObjArgs(calcsize, fmt, NULL);
-    if (res == NULL) {
-        goto done;
-    }
-
-    itemsize = PyLong_AsSsize_t(res);
-    if (itemsize < 0) {
-        goto done;
-    }
-
-done:
-    Py_DECREF(structmodule);
-    Py_XDECREF(calcsize);
-    Py_XDECREF(fmt);
-    Py_XDECREF(res);
-    return itemsize;
 }
 
 int
@@ -715,7 +647,7 @@ PyBuffer_FillInfo(Py_buffer *view, PyObject *obj, void *buf, Py_ssize_t len,
 {
     if (view == NULL) {
         PyErr_SetString(PyExc_BufferError,
-                        "PyBuffer_FillInfo: view==NULL argument is obsolete");
+            "PyBuffer_FillInfo: view==NULL argument is obsolete");
         return -1;
     }
 
@@ -756,9 +688,8 @@ PyBuffer_Release(Py_buffer *view)
     if (obj == NULL)
         return;
     pb = Py_TYPE(obj)->tp_as_buffer;
-    if (pb && pb->bf_releasebuffer) {
+    if (pb && pb->bf_releasebuffer)
         pb->bf_releasebuffer(obj, view);
-    }
     view->obj = NULL;
     Py_DECREF(obj);
 }
@@ -798,23 +729,21 @@ PyObject_Format(PyObject *obj, PyObject *format_spec)
     /* Find the (unbound!) __format__ method */
     meth = _PyObject_LookupSpecial(obj, &PyId___format__);
     if (meth == NULL) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (!_PyErr_Occurred(tstate)) {
-            _PyErr_Format(tstate, PyExc_TypeError,
-                          "Type %.100s doesn't define __format__",
-                          Py_TYPE(obj)->tp_name);
-        }
+        if (!PyErr_Occurred())
+            PyErr_Format(PyExc_TypeError,
+                         "Type %.100s doesn't define __format__",
+                         Py_TYPE(obj)->tp_name);
         goto done;
     }
 
     /* And call it. */
-    result = PyObject_CallOneArg(meth, format_spec);
+    result = PyObject_CallFunctionObjArgs(meth, format_spec, NULL);
     Py_DECREF(meth);
 
     if (result && !PyUnicode_Check(result)) {
         PyErr_Format(PyExc_TypeError,
-                     "__format__ must return a str, not %.200s",
-                     Py_TYPE(result)->tp_name);
+             "__format__ must return a str, not %.200s",
+             Py_TYPE(result)->tp_name);
         Py_DECREF(result);
         result = NULL;
         goto done;
@@ -829,10 +758,9 @@ done:
 int
 PyNumber_Check(PyObject *o)
 {
-    if (o == NULL)
-        return 0;
-    PyNumberMethods *nb = Py_TYPE(o)->tp_as_number;
-    return nb && (nb->nb_index || nb->nb_int || nb->nb_float || PyComplex_Check(o));
+    return o && o->ob_type->tp_as_number &&
+           (o->ob_type->tp_as_number->nb_int ||
+        o->ob_type->tp_as_number->nb_float);
 }
 
 /* Binary operators */
@@ -849,39 +777,27 @@ PyNumber_Check(PyObject *o)
   Order operations are tried until either a valid result or error:
     w.op(v,w)[*], v.op(v,w), w.op(v,w)
 
-  [*] only when Py_TYPE(v) != Py_TYPE(w) && Py_TYPE(w) is a subclass of
-      Py_TYPE(v)
+  [*] only when v->ob_type != w->ob_type && w->ob_type is a subclass of
+      v->ob_type
  */
 
 static PyObject *
-binary_op1(PyObject *v, PyObject *w, const int op_slot
-#ifndef NDEBUG
-           , const char *op_name
-#endif
-           )
+binary_op1(PyObject *v, PyObject *w, const int op_slot)
 {
-    binaryfunc slotv;
-    if (Py_TYPE(v)->tp_as_number != NULL) {
-        slotv = NB_BINOP(Py_TYPE(v)->tp_as_number, op_slot);
-    }
-    else {
-        slotv = NULL;
-    }
+    PyObject *x;
+    binaryfunc slotv = NULL;
+    binaryfunc slotw = NULL;
 
-    binaryfunc slotw;
-    if (!Py_IS_TYPE(w, Py_TYPE(v)) && Py_TYPE(w)->tp_as_number != NULL) {
-        slotw = NB_BINOP(Py_TYPE(w)->tp_as_number, op_slot);
-        if (slotw == slotv) {
+    if (v->ob_type->tp_as_number != NULL)
+        slotv = NB_BINOP(v->ob_type->tp_as_number, op_slot);
+    if (w->ob_type != v->ob_type &&
+        w->ob_type->tp_as_number != NULL) {
+        slotw = NB_BINOP(w->ob_type->tp_as_number, op_slot);
+        if (slotw == slotv)
             slotw = NULL;
-        }
     }
-    else {
-        slotw = NULL;
-    }
-
     if (slotv) {
-        PyObject *x;
-        if (slotw && PyType_IsSubtype(Py_TYPE(w), Py_TYPE(v))) {
+        if (slotw && PyType_IsSubtype(w->ob_type, v->ob_type)) {
             x = slotw(v, w);
             if (x != Py_NotImplemented)
                 return x;
@@ -889,28 +805,18 @@ binary_op1(PyObject *v, PyObject *w, const int op_slot
             slotw = NULL;
         }
         x = slotv(v, w);
-        assert(_Py_CheckSlotResult(v, op_name, x != NULL));
-        if (x != Py_NotImplemented) {
+        if (x != Py_NotImplemented)
             return x;
-        }
         Py_DECREF(x); /* can't do it */
     }
     if (slotw) {
-        PyObject *x = slotw(v, w);
-        assert(_Py_CheckSlotResult(w, op_name, x != NULL));
-        if (x != Py_NotImplemented) {
+        x = slotw(v, w);
+        if (x != Py_NotImplemented)
             return x;
-        }
         Py_DECREF(x); /* can't do it */
     }
     Py_RETURN_NOTIMPLEMENTED;
 }
-
-#ifdef NDEBUG
-#  define BINARY_OP1(v, w, op_slot, op_name) binary_op1(v, w, op_slot)
-#else
-#  define BINARY_OP1(v, w, op_slot, op_name) binary_op1(v, w, op_slot, op_name)
-#endif
 
 static PyObject *
 binop_type_error(PyObject *v, PyObject *w, const char *op_name)
@@ -919,20 +825,20 @@ binop_type_error(PyObject *v, PyObject *w, const char *op_name)
                  "unsupported operand type(s) for %.100s: "
                  "'%.100s' and '%.100s'",
                  op_name,
-                 Py_TYPE(v)->tp_name,
-                 Py_TYPE(w)->tp_name);
+                 v->ob_type->tp_name,
+                 w->ob_type->tp_name);
     return NULL;
 }
 
 static PyObject *
 binary_op(PyObject *v, PyObject *w, const int op_slot, const char *op_name)
 {
-    PyObject *result = BINARY_OP1(v, w, op_slot, op_name);
+    PyObject *result = binary_op1(v, w, op_slot);
     if (result == Py_NotImplemented) {
         Py_DECREF(result);
 
         if (op_slot == NB_SLOT(nb_rshift) &&
-            PyCFunction_CheckExact(v) &&
+            PyCFunction_Check(v) &&
             strcmp(((PyCFunctionObject *)v)->m_ml->ml_name, "print") == 0)
         {
             PyErr_Format(PyExc_TypeError,
@@ -940,10 +846,11 @@ binary_op(PyObject *v, PyObject *w, const int op_slot, const char *op_name)
                 "'%.100s' and '%.100s'. Did you mean \"print(<message>, "
                 "file=<output_stream>)\"?",
                 op_name,
-                Py_TYPE(v)->tp_name,
-                Py_TYPE(w)->tp_name);
+                v->ob_type->tp_name,
+                w->ob_type->tp_name);
             return NULL;
         }
+
         return binop_type_error(v, w, op_name);
     }
     return result;
@@ -962,92 +869,71 @@ ternary_op(PyObject *v,
            PyObject *w,
            PyObject *z,
            const int op_slot,
-           const char *op_name
-           )
+           const char *op_name)
 {
-    PyNumberMethods *mv = Py_TYPE(v)->tp_as_number;
-    PyNumberMethods *mw = Py_TYPE(w)->tp_as_number;
+    PyNumberMethods *mv, *mw, *mz;
+    PyObject *x = NULL;
+    ternaryfunc slotv = NULL;
+    ternaryfunc slotw = NULL;
+    ternaryfunc slotz = NULL;
 
-    ternaryfunc slotv;
-    if (mv != NULL) {
+    mv = v->ob_type->tp_as_number;
+    mw = w->ob_type->tp_as_number;
+    if (mv != NULL)
         slotv = NB_TERNOP(mv, op_slot);
-    }
-    else {
-        slotv = NULL;
-    }
-
-    ternaryfunc slotw;
-    if (!Py_IS_TYPE(w, Py_TYPE(v)) && mw != NULL) {
+    if (w->ob_type != v->ob_type &&
+        mw != NULL) {
         slotw = NB_TERNOP(mw, op_slot);
-        if (slotw == slotv) {
+        if (slotw == slotv)
             slotw = NULL;
-        }
     }
-    else {
-        slotw = NULL;
-    }
-
     if (slotv) {
-        PyObject *x;
-        if (slotw && PyType_IsSubtype(Py_TYPE(w), Py_TYPE(v))) {
+        if (slotw && PyType_IsSubtype(w->ob_type, v->ob_type)) {
             x = slotw(v, w, z);
-            if (x != Py_NotImplemented) {
+            if (x != Py_NotImplemented)
                 return x;
-            }
             Py_DECREF(x); /* can't do it */
             slotw = NULL;
         }
         x = slotv(v, w, z);
-        assert(_Py_CheckSlotResult(v, op_name, x != NULL));
-        if (x != Py_NotImplemented) {
+        if (x != Py_NotImplemented)
             return x;
-        }
         Py_DECREF(x); /* can't do it */
     }
     if (slotw) {
-        PyObject *x = slotw(v, w, z);
-        assert(_Py_CheckSlotResult(w, op_name, x != NULL));
-        if (x != Py_NotImplemented) {
+        x = slotw(v, w, z);
+        if (x != Py_NotImplemented)
             return x;
-        }
         Py_DECREF(x); /* can't do it */
     }
-
-    PyNumberMethods *mz = Py_TYPE(z)->tp_as_number;
+    mz = z->ob_type->tp_as_number;
     if (mz != NULL) {
-        ternaryfunc slotz = NB_TERNOP(mz, op_slot);
-        if (slotz == slotv || slotz == slotw) {
+        slotz = NB_TERNOP(mz, op_slot);
+        if (slotz == slotv || slotz == slotw)
             slotz = NULL;
-        }
         if (slotz) {
-            PyObject *x = slotz(v, w, z);
-            assert(_Py_CheckSlotResult(z, op_name, x != NULL));
-            if (x != Py_NotImplemented) {
+            x = slotz(v, w, z);
+            if (x != Py_NotImplemented)
                 return x;
-            }
             Py_DECREF(x); /* can't do it */
         }
     }
 
-    if (z == Py_None) {
+    if (z == Py_None)
         PyErr_Format(
             PyExc_TypeError,
-            "unsupported operand type(s) for %.100s: "
+            "unsupported operand type(s) for ** or pow(): "
             "'%.100s' and '%.100s'",
-            op_name,
-            Py_TYPE(v)->tp_name,
-            Py_TYPE(w)->tp_name);
-    }
-    else {
+            v->ob_type->tp_name,
+            w->ob_type->tp_name);
+    else
         PyErr_Format(
             PyExc_TypeError,
-            "unsupported operand type(s) for %.100s: "
+            "unsupported operand type(s) for pow(): "
             "'%.100s', '%.100s', '%.100s'",
-            op_name,
-            Py_TYPE(v)->tp_name,
-            Py_TYPE(w)->tp_name,
-            Py_TYPE(z)->tp_name);
-    }
+            v->ob_type->tp_name,
+            w->ob_type->tp_name,
+            z->ob_type->tp_name);
     return NULL;
 }
 
@@ -1068,48 +954,41 @@ BINARY_FUNC(PyNumber_Divmod, nb_divmod, "divmod()")
 PyObject *
 PyNumber_Add(PyObject *v, PyObject *w)
 {
-    PyObject *result = BINARY_OP1(v, w, NB_SLOT(nb_add), "+");
-    if (result != Py_NotImplemented) {
-        return result;
+    PyObject *result = binary_op1(v, w, NB_SLOT(nb_add));
+    if (result == Py_NotImplemented) {
+        PySequenceMethods *m = v->ob_type->tp_as_sequence;
+        Py_DECREF(result);
+        if (m && m->sq_concat) {
+            return (*m->sq_concat)(v, w);
+        }
+        result = binop_type_error(v, w, "+");
     }
-    Py_DECREF(result);
-
-    PySequenceMethods *m = Py_TYPE(v)->tp_as_sequence;
-    if (m && m->sq_concat) {
-        result = (*m->sq_concat)(v, w);
-        assert(_Py_CheckSlotResult(v, "+", result != NULL));
-        return result;
-    }
-
-    return binop_type_error(v, w, "+");
+    return result;
 }
 
 static PyObject *
 sequence_repeat(ssizeargfunc repeatfunc, PyObject *seq, PyObject *n)
 {
     Py_ssize_t count;
-    if (_PyIndex_Check(n)) {
+    if (PyIndex_Check(n)) {
         count = PyNumber_AsSsize_t(n, PyExc_OverflowError);
-        if (count == -1 && PyErr_Occurred()) {
+        if (count == -1 && PyErr_Occurred())
             return NULL;
-        }
     }
     else {
         return type_error("can't multiply sequence by "
                           "non-int of type '%.200s'", n);
     }
-    PyObject *res = (*repeatfunc)(seq, count);
-    assert(_Py_CheckSlotResult(seq, "*", res != NULL));
-    return res;
+    return (*repeatfunc)(seq, count);
 }
 
 PyObject *
 PyNumber_Multiply(PyObject *v, PyObject *w)
 {
-    PyObject *result = BINARY_OP1(v, w, NB_SLOT(nb_multiply), "*");
+    PyObject *result = binary_op1(v, w, NB_SLOT(nb_multiply));
     if (result == Py_NotImplemented) {
-        PySequenceMethods *mv = Py_TYPE(v)->tp_as_sequence;
-        PySequenceMethods *mw = Py_TYPE(w)->tp_as_sequence;
+        PySequenceMethods *mv = v->ob_type->tp_as_sequence;
+        PySequenceMethods *mw = w->ob_type->tp_as_sequence;
         Py_DECREF(result);
         if  (mv && mv->sq_repeat) {
             return sequence_repeat(mv->sq_repeat, v, w);
@@ -1169,65 +1048,32 @@ PyNumber_Power(PyObject *v, PyObject *w, PyObject *z)
    */
 
 static PyObject *
-binary_iop1(PyObject *v, PyObject *w, const int iop_slot, const int op_slot
-#ifndef NDEBUG
-            , const char *op_name
-#endif
-            )
+binary_iop1(PyObject *v, PyObject *w, const int iop_slot, const int op_slot)
 {
-    PyNumberMethods *mv = Py_TYPE(v)->tp_as_number;
+    PyNumberMethods *mv = v->ob_type->tp_as_number;
     if (mv != NULL) {
         binaryfunc slot = NB_BINOP(mv, iop_slot);
         if (slot) {
             PyObject *x = (slot)(v, w);
-            assert(_Py_CheckSlotResult(v, op_name, x != NULL));
             if (x != Py_NotImplemented) {
                 return x;
             }
             Py_DECREF(x);
         }
     }
-#ifdef NDEBUG
     return binary_op1(v, w, op_slot);
-#else
-    return binary_op1(v, w, op_slot, op_name);
-#endif
 }
-
-#ifdef NDEBUG
-#  define BINARY_IOP1(v, w, iop_slot, op_slot, op_name) binary_iop1(v, w, iop_slot, op_slot)
-#else
-#  define BINARY_IOP1(v, w, iop_slot, op_slot, op_name) binary_iop1(v, w, iop_slot, op_slot, op_name)
-#endif
 
 static PyObject *
 binary_iop(PyObject *v, PyObject *w, const int iop_slot, const int op_slot,
                 const char *op_name)
 {
-    PyObject *result = BINARY_IOP1(v, w, iop_slot, op_slot, op_name);
+    PyObject *result = binary_iop1(v, w, iop_slot, op_slot);
     if (result == Py_NotImplemented) {
         Py_DECREF(result);
         return binop_type_error(v, w, op_name);
     }
     return result;
-}
-
-static PyObject *
-ternary_iop(PyObject *v, PyObject *w, PyObject *z, const int iop_slot, const int op_slot,
-                const char *op_name)
-{
-    PyNumberMethods *mv = Py_TYPE(v)->tp_as_number;
-    if (mv != NULL) {
-        ternaryfunc slot = NB_TERNOP(mv, iop_slot);
-        if (slot) {
-            PyObject *x = (slot)(v, w, z);
-            if (x != Py_NotImplemented) {
-                return x;
-            }
-            Py_DECREF(x);
-        }
-    }
-    return ternary_op(v, w, z, op_slot, op_name);
 }
 
 #define INPLACE_BINOP(func, iop, op, op_name) \
@@ -1261,20 +1107,18 @@ PyNumber_InPlaceTrueDivide(PyObject *v, PyObject *w)
 PyObject *
 PyNumber_InPlaceAdd(PyObject *v, PyObject *w)
 {
-    PyObject *result = BINARY_IOP1(v, w, NB_SLOT(nb_inplace_add),
-                                   NB_SLOT(nb_add), "+=");
+    PyObject *result = binary_iop1(v, w, NB_SLOT(nb_inplace_add),
+                                   NB_SLOT(nb_add));
     if (result == Py_NotImplemented) {
-        PySequenceMethods *m = Py_TYPE(v)->tp_as_sequence;
+        PySequenceMethods *m = v->ob_type->tp_as_sequence;
         Py_DECREF(result);
         if (m != NULL) {
-            binaryfunc func = m->sq_inplace_concat;
-            if (func == NULL)
-                func = m->sq_concat;
-            if (func != NULL) {
-                result = func(v, w);
-                assert(_Py_CheckSlotResult(v, "+=", result != NULL));
-                return result;
-            }
+            binaryfunc f = NULL;
+            f = m->sq_inplace_concat;
+            if (f == NULL)
+                f = m->sq_concat;
+            if (f != NULL)
+                return (*f)(v, w);
         }
         result = binop_type_error(v, w, "+=");
     }
@@ -1284,12 +1128,12 @@ PyNumber_InPlaceAdd(PyObject *v, PyObject *w)
 PyObject *
 PyNumber_InPlaceMultiply(PyObject *v, PyObject *w)
 {
-    PyObject *result = BINARY_IOP1(v, w, NB_SLOT(nb_inplace_multiply),
-                                   NB_SLOT(nb_multiply), "*=");
+    PyObject *result = binary_iop1(v, w, NB_SLOT(nb_inplace_multiply),
+                                   NB_SLOT(nb_multiply));
     if (result == Py_NotImplemented) {
         ssizeargfunc f = NULL;
-        PySequenceMethods *mv = Py_TYPE(v)->tp_as_sequence;
-        PySequenceMethods *mw = Py_TYPE(w)->tp_as_sequence;
+        PySequenceMethods *mv = v->ob_type->tp_as_sequence;
+        PySequenceMethods *mw = w->ob_type->tp_as_sequence;
         Py_DECREF(result);
         if (mv != NULL) {
             f = mv->sq_inplace_repeat;
@@ -1327,8 +1171,13 @@ PyNumber_InPlaceRemainder(PyObject *v, PyObject *w)
 PyObject *
 PyNumber_InPlacePower(PyObject *v, PyObject *w, PyObject *z)
 {
-    return ternary_iop(v, w, z, NB_SLOT(nb_inplace_power),
-                                NB_SLOT(nb_power), "**=");
+    if (v->ob_type->tp_as_number &&
+        v->ob_type->tp_as_number->nb_inplace_power != NULL) {
+        return ternary_op(v, w, z, NB_SLOT(nb_inplace_power), "**=");
+    }
+    else {
+        return ternary_op(v, w, z, NB_SLOT(nb_power), "**=");
+    }
 }
 
 
@@ -1337,16 +1186,15 @@ PyNumber_InPlacePower(PyObject *v, PyObject *w, PyObject *z)
 PyObject *
 PyNumber_Negative(PyObject *o)
 {
+    PyNumberMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PyNumberMethods *m = Py_TYPE(o)->tp_as_number;
-    if (m && m->nb_negative) {
-        PyObject *res = (*m->nb_negative)(o);
-        assert(_Py_CheckSlotResult(o, "__neg__", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_number;
+    if (m && m->nb_negative)
+        return (*m->nb_negative)(o);
 
     return type_error("bad operand type for unary -: '%.200s'", o);
 }
@@ -1354,16 +1202,15 @@ PyNumber_Negative(PyObject *o)
 PyObject *
 PyNumber_Positive(PyObject *o)
 {
+    PyNumberMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PyNumberMethods *m = Py_TYPE(o)->tp_as_number;
-    if (m && m->nb_positive) {
-        PyObject *res = (*m->nb_positive)(o);
-        assert(_Py_CheckSlotResult(o, "__pos__", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_number;
+    if (m && m->nb_positive)
+        return (*m->nb_positive)(o);
 
     return type_error("bad operand type for unary +: '%.200s'", o);
 }
@@ -1371,16 +1218,15 @@ PyNumber_Positive(PyObject *o)
 PyObject *
 PyNumber_Invert(PyObject *o)
 {
+    PyNumberMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PyNumberMethods *m = Py_TYPE(o)->tp_as_number;
-    if (m && m->nb_invert) {
-        PyObject *res = (*m->nb_invert)(o);
-        assert(_Py_CheckSlotResult(o, "__invert__", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_number;
+    if (m && m->nb_invert)
+        return (*m->nb_invert)(o);
 
     return type_error("bad operand type for unary ~: '%.200s'", o);
 }
@@ -1388,36 +1234,27 @@ PyNumber_Invert(PyObject *o)
 PyObject *
 PyNumber_Absolute(PyObject *o)
 {
+    PyNumberMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PyNumberMethods *m = Py_TYPE(o)->tp_as_number;
-    if (m && m->nb_absolute) {
-        PyObject *res = m->nb_absolute(o);
-        assert(_Py_CheckSlotResult(o, "__abs__", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_number;
+    if (m && m->nb_absolute)
+        return m->nb_absolute(o);
 
     return type_error("bad operand type for abs(): '%.200s'", o);
 }
 
-
-int
-PyIndex_Check(PyObject *obj)
-{
-    return _PyIndex_Check(obj);
-}
-
-
 /* Return a Python int from the object item.
-   Can return an instance of int subclass.
    Raise TypeError if the result is not an int
    or if the object cannot be interpreted as an index.
 */
 PyObject *
-_PyNumber_Index(PyObject *item)
+PyNumber_Index(PyObject *item)
 {
+    PyObject *result = NULL;
     if (item == NULL) {
         return null_error();
     }
@@ -1426,23 +1263,19 @@ _PyNumber_Index(PyObject *item)
         Py_INCREF(item);
         return item;
     }
-    if (!_PyIndex_Check(item)) {
+    if (!PyIndex_Check(item)) {
         PyErr_Format(PyExc_TypeError,
                      "'%.200s' object cannot be interpreted "
-                     "as an integer", Py_TYPE(item)->tp_name);
+                     "as an integer", item->ob_type->tp_name);
         return NULL;
     }
-
-    PyObject *result = Py_TYPE(item)->tp_as_number->nb_index(item);
-    assert(_Py_CheckSlotResult(item, "__index__", result != NULL));
-    if (!result || PyLong_CheckExact(result)) {
+    result = item->ob_type->tp_as_number->nb_index(item);
+    if (!result || PyLong_CheckExact(result))
         return result;
-    }
-
     if (!PyLong_Check(result)) {
         PyErr_Format(PyExc_TypeError,
                      "__index__ returned non-int (type %.200s)",
-                     Py_TYPE(result)->tp_name);
+                     result->ob_type->tp_name);
         Py_DECREF(result);
         return NULL;
     }
@@ -1451,23 +1284,9 @@ _PyNumber_Index(PyObject *item)
             "__index__ returned non-int (type %.200s).  "
             "The ability to return an instance of a strict subclass of int "
             "is deprecated, and may be removed in a future version of Python.",
-            Py_TYPE(result)->tp_name)) {
+            result->ob_type->tp_name)) {
         Py_DECREF(result);
         return NULL;
-    }
-    return result;
-}
-
-/* Return an exact Python int from the object item.
-   Raise TypeError if the result is not an int
-   or if the object cannot be interpreted as an index.
-*/
-PyObject *
-PyNumber_Index(PyObject *item)
-{
-    PyObject *result = _PyNumber_Index(item);
-    if (result != NULL && !PyLong_CheckExact(result)) {
-        Py_SETREF(result, _PyLong_Copy((PyLongObject *)result));
     }
     return result;
 }
@@ -1479,29 +1298,23 @@ PyNumber_AsSsize_t(PyObject *item, PyObject *err)
 {
     Py_ssize_t result;
     PyObject *runerr;
-    PyObject *value = _PyNumber_Index(item);
+    PyObject *value = PyNumber_Index(item);
     if (value == NULL)
         return -1;
 
     /* We're done if PyLong_AsSsize_t() returns without error. */
     result = PyLong_AsSsize_t(value);
-    if (result != -1)
+    if (result != -1 || !(runerr = PyErr_Occurred()))
         goto finish;
-
-    PyThreadState *tstate = _PyThreadState_GET();
-    runerr = _PyErr_Occurred(tstate);
-    if (!runerr) {
-        goto finish;
-    }
 
     /* Error handling code -- only manage OverflowError differently */
-    if (!PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
+    if (!PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError))
         goto finish;
-    }
-    _PyErr_Clear(tstate);
 
+    PyErr_Clear();
     /* If no error-handling desired then the default clipping
-       is sufficient. */
+       is sufficient.
+     */
     if (!err) {
         assert(PyLong_Check(value));
         /* Whether or not it is less than or equal to
@@ -1514,9 +1327,9 @@ PyNumber_AsSsize_t(PyObject *item, PyObject *err)
     }
     else {
         /* Otherwise replace the error with caller's error object. */
-        _PyErr_Format(tstate, err,
-                      "cannot fit '%.200s' into an index-sized integer",
-                      Py_TYPE(item)->tp_name);
+        PyErr_Format(err,
+                     "cannot fit '%.200s' into an index-sized integer",
+                     item->ob_type->tp_name);
     }
 
  finish:
@@ -1542,37 +1355,13 @@ PyNumber_Long(PyObject *o)
         Py_INCREF(o);
         return o;
     }
-    m = Py_TYPE(o)->tp_as_number;
+    m = o->ob_type->tp_as_number;
     if (m && m->nb_int) { /* This should include subclasses of int */
-        /* Convert using the nb_int slot, which should return something
-           of exact type int. */
-        result = m->nb_int(o);
-        assert(_Py_CheckSlotResult(o, "__int__", result != NULL));
-        if (!result || PyLong_CheckExact(result)) {
-            return result;
+        result = (PyObject *)_PyLong_FromNbInt(o);
+        if (result != NULL && !PyLong_CheckExact(result)) {
+            Py_SETREF(result, _PyLong_Copy((PyLongObject *)result));
         }
-
-        if (!PyLong_Check(result)) {
-            PyErr_Format(PyExc_TypeError,
-                         "__int__ returned non-int (type %.200s)",
-                         Py_TYPE(result)->tp_name);
-            Py_DECREF(result);
-            return NULL;
-        }
-        /* Issue #17576: warn if 'result' not of exact type int. */
-        if (PyErr_WarnFormat(PyExc_DeprecationWarning, 1,
-                "__int__ returned non-int (type %.200s).  "
-                "The ability to return an instance of a strict subclass of int "
-                "is deprecated, and may be removed in a future version of Python.",
-                Py_TYPE(result)->tp_name)) {
-            Py_DECREF(result);
-            return NULL;
-        }
-        Py_SETREF(result, _PyLong_Copy((PyLongObject *)result));
         return result;
-    }
-    if (m && m->nb_index) {
-        return PyNumber_Index(o);
     }
     trunc_func = _PyObject_LookupSpecial(o, &PyId___trunc__);
     if (trunc_func) {
@@ -1587,22 +1376,26 @@ PyNumber_Long(PyObject *o)
         }
         /* __trunc__ is specified to return an Integral type,
            but int() needs to return an int. */
-        if (!PyIndex_Check(result)) {
+        m = result->ob_type->tp_as_number;
+        if (m == NULL || m->nb_int == NULL) {
             PyErr_Format(
                 PyExc_TypeError,
                 "__trunc__ returned non-Integral (type %.200s)",
-                Py_TYPE(result)->tp_name);
+                result->ob_type->tp_name);
             Py_DECREF(result);
             return NULL;
         }
-        Py_SETREF(result, PyNumber_Index(result));
+        Py_SETREF(result, (PyObject *)_PyLong_FromNbInt(result));
+        if (result != NULL && !PyLong_CheckExact(result)) {
+            Py_SETREF(result, _PyLong_Copy((PyLongObject *)result));
+        }
         return result;
     }
     if (PyErr_Occurred())
         return NULL;
 
     if (PyUnicode_Check(o))
-        /* The below check is done in PyLong_FromUnicodeObject(). */
+        /* The below check is done in PyLong_FromUnicode(). */
         return PyLong_FromUnicodeObject(o, 10);
 
     if (PyBytes_Check(o))
@@ -1634,32 +1427,33 @@ PyNumber_Long(PyObject *o)
     }
 
     return type_error("int() argument must be a string, a bytes-like object "
-                      "or a real number, not '%.200s'", o);
+                      "or a number, not '%.200s'", o);
 }
 
 PyObject *
 PyNumber_Float(PyObject *o)
 {
+    PyNumberMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
     if (PyFloat_CheckExact(o)) {
-        return Py_NewRef(o);
+        Py_INCREF(o);
+        return o;
     }
-
-    PyNumberMethods *m = Py_TYPE(o)->tp_as_number;
+    m = o->ob_type->tp_as_number;
     if (m && m->nb_float) { /* This should include subclasses of float */
         PyObject *res = m->nb_float(o);
-        assert(_Py_CheckSlotResult(o, "__float__", res != NULL));
+        double val;
         if (!res || PyFloat_CheckExact(res)) {
             return res;
         }
-
         if (!PyFloat_Check(res)) {
             PyErr_Format(PyExc_TypeError,
                          "%.50s.__float__ returned non-float (type %.50s)",
-                         Py_TYPE(o)->tp_name, Py_TYPE(res)->tp_name);
+                         o->ob_type->tp_name, res->ob_type->tp_name);
             Py_DECREF(res);
             return NULL;
         }
@@ -1668,30 +1462,15 @@ PyNumber_Float(PyObject *o)
                 "%.50s.__float__ returned non-float (type %.50s).  "
                 "The ability to return an instance of a strict subclass of float "
                 "is deprecated, and may be removed in a future version of Python.",
-                Py_TYPE(o)->tp_name, Py_TYPE(res)->tp_name)) {
+                o->ob_type->tp_name, res->ob_type->tp_name)) {
             Py_DECREF(res);
             return NULL;
         }
-        double val = PyFloat_AS_DOUBLE(res);
+        val = PyFloat_AS_DOUBLE(res);
         Py_DECREF(res);
         return PyFloat_FromDouble(val);
     }
-
-    if (m && m->nb_index) {
-        PyObject *res = _PyNumber_Index(o);
-        if (!res) {
-            return NULL;
-        }
-        double val = PyLong_AsDouble(res);
-        Py_DECREF(res);
-        if (val == -1.0 && PyErr_Occurred()) {
-            return NULL;
-        }
-        return PyFloat_FromDouble(val);
-    }
-
-    /* A float subclass with nb_float == NULL */
-    if (PyFloat_Check(o)) {
+    if (PyFloat_Check(o)) { /* A float subclass with nb_float == NULL */
         return PyFloat_FromDouble(PyFloat_AS_DOUBLE(o));
     }
     return PyFloat_FromString(o);
@@ -1701,15 +1480,18 @@ PyNumber_Float(PyObject *o)
 PyObject *
 PyNumber_ToBase(PyObject *n, int base)
 {
-    if (!(base == 2 || base == 8 || base == 10 || base == 16)) {
-        PyErr_SetString(PyExc_SystemError,
-                        "PyNumber_ToBase: base must be 2, 8, 10 or 16");
-        return NULL;
-    }
-    PyObject *index = _PyNumber_Index(n);
+    PyObject *res = NULL;
+    PyObject *index = PyNumber_Index(n);
+
     if (!index)
         return NULL;
-    PyObject *res = _PyLong_Format(index, base);
+    if (PyLong_Check(index))
+        res = _PyLong_Format(index, base);
+    else
+        /* It should not be possible to get here, as
+           PyNumber_Index already has a check for the same
+           condition */
+        PyErr_SetString(PyExc_ValueError, "PyNumber_ToBase: index not int");
     Py_DECREF(index);
     return res;
 }
@@ -1722,29 +1504,27 @@ PySequence_Check(PyObject *s)
 {
     if (PyDict_Check(s))
         return 0;
-    return Py_TYPE(s)->tp_as_sequence &&
-        Py_TYPE(s)->tp_as_sequence->sq_item != NULL;
+    return s->ob_type->tp_as_sequence &&
+        s->ob_type->tp_as_sequence->sq_item != NULL;
 }
 
 Py_ssize_t
 PySequence_Size(PyObject *s)
 {
+    PySequenceMethods *m;
+
     if (s == NULL) {
         null_error();
         return -1;
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
+    m = s->ob_type->tp_as_sequence;
     if (m && m->sq_length) {
         Py_ssize_t len = m->sq_length(s);
-        assert(_Py_CheckSlotResult(s, "__len__", len >= 0));
+        assert(len >= 0 || PyErr_Occurred());
         return len;
     }
 
-    if (Py_TYPE(s)->tp_as_mapping && Py_TYPE(s)->tp_as_mapping->mp_length) {
-        type_error("%.200s is not a sequence", s);
-        return -1;
-    }
     type_error("object of type '%.200s' has no len()", s);
     return -1;
 }
@@ -1760,22 +1540,21 @@ PySequence_Length(PyObject *s)
 PyObject *
 PySequence_Concat(PyObject *s, PyObject *o)
 {
+    PySequenceMethods *m;
+
     if (s == NULL || o == NULL) {
         return null_error();
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
-    if (m && m->sq_concat) {
-        PyObject *res = m->sq_concat(s, o);
-        assert(_Py_CheckSlotResult(s, "+", res != NULL));
-        return res;
-    }
+    m = s->ob_type->tp_as_sequence;
+    if (m && m->sq_concat)
+        return m->sq_concat(s, o);
 
     /* Instances of user classes defining an __add__() method only
        have an nb_add slot, not an sq_concat slot.      So we fall back
        to nb_add if both arguments appear to be sequences. */
     if (PySequence_Check(s) && PySequence_Check(o)) {
-        PyObject *result = BINARY_OP1(s, o, NB_SLOT(nb_add), "+");
+        PyObject *result = binary_op1(s, o, NB_SLOT(nb_add));
         if (result != Py_NotImplemented)
             return result;
         Py_DECREF(result);
@@ -1786,16 +1565,15 @@ PySequence_Concat(PyObject *s, PyObject *o)
 PyObject *
 PySequence_Repeat(PyObject *o, Py_ssize_t count)
 {
+    PySequenceMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-    if (m && m->sq_repeat) {
-        PyObject *res = m->sq_repeat(o, count);
-        assert(_Py_CheckSlotResult(o, "*", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_sequence;
+    if (m && m->sq_repeat)
+        return m->sq_repeat(o, count);
 
     /* Instances of user classes defining a __mul__() method only
        have an nb_multiply slot, not an sq_repeat slot. so we fall back
@@ -1805,7 +1583,7 @@ PySequence_Repeat(PyObject *o, Py_ssize_t count)
         n = PyLong_FromSsize_t(count);
         if (n == NULL)
             return NULL;
-        result = BINARY_OP1(o, n, NB_SLOT(nb_multiply), "*");
+        result = binary_op1(o, n, NB_SLOT(nb_multiply));
         Py_DECREF(n);
         if (result != Py_NotImplemented)
             return result;
@@ -1817,25 +1595,21 @@ PySequence_Repeat(PyObject *o, Py_ssize_t count)
 PyObject *
 PySequence_InPlaceConcat(PyObject *s, PyObject *o)
 {
+    PySequenceMethods *m;
+
     if (s == NULL || o == NULL) {
         return null_error();
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
-    if (m && m->sq_inplace_concat) {
-        PyObject *res = m->sq_inplace_concat(s, o);
-        assert(_Py_CheckSlotResult(s, "+=", res != NULL));
-        return res;
-    }
-    if (m && m->sq_concat) {
-        PyObject *res = m->sq_concat(s, o);
-        assert(_Py_CheckSlotResult(s, "+", res != NULL));
-        return res;
-    }
+    m = s->ob_type->tp_as_sequence;
+    if (m && m->sq_inplace_concat)
+        return m->sq_inplace_concat(s, o);
+    if (m && m->sq_concat)
+        return m->sq_concat(s, o);
 
     if (PySequence_Check(s) && PySequence_Check(o)) {
-        PyObject *result = BINARY_IOP1(s, o, NB_SLOT(nb_inplace_add),
-                                       NB_SLOT(nb_add), "+=");
+        PyObject *result = binary_iop1(s, o, NB_SLOT(nb_inplace_add),
+                                       NB_SLOT(nb_add));
         if (result != Py_NotImplemented)
             return result;
         Py_DECREF(result);
@@ -1846,29 +1620,25 @@ PySequence_InPlaceConcat(PyObject *s, PyObject *o)
 PyObject *
 PySequence_InPlaceRepeat(PyObject *o, Py_ssize_t count)
 {
+    PySequenceMethods *m;
+
     if (o == NULL) {
         return null_error();
     }
 
-    PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
-    if (m && m->sq_inplace_repeat) {
-        PyObject *res = m->sq_inplace_repeat(o, count);
-        assert(_Py_CheckSlotResult(o, "*=", res != NULL));
-        return res;
-    }
-    if (m && m->sq_repeat) {
-        PyObject *res = m->sq_repeat(o, count);
-        assert(_Py_CheckSlotResult(o, "*", res != NULL));
-        return res;
-    }
+    m = o->ob_type->tp_as_sequence;
+    if (m && m->sq_inplace_repeat)
+        return m->sq_inplace_repeat(o, count);
+    if (m && m->sq_repeat)
+        return m->sq_repeat(o, count);
 
     if (PySequence_Check(o)) {
         PyObject *n, *result;
         n = PyLong_FromSsize_t(count);
         if (n == NULL)
             return NULL;
-        result = BINARY_IOP1(o, n, NB_SLOT(nb_inplace_multiply),
-                             NB_SLOT(nb_multiply), "*=");
+        result = binary_iop1(o, n, NB_SLOT(nb_inplace_multiply),
+                             NB_SLOT(nb_multiply));
         Py_DECREF(n);
         if (result != Py_NotImplemented)
             return result;
@@ -1880,48 +1650,46 @@ PySequence_InPlaceRepeat(PyObject *o, Py_ssize_t count)
 PyObject *
 PySequence_GetItem(PyObject *s, Py_ssize_t i)
 {
+    PySequenceMethods *m;
+
     if (s == NULL) {
         return null_error();
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
+    m = s->ob_type->tp_as_sequence;
     if (m && m->sq_item) {
         if (i < 0) {
             if (m->sq_length) {
                 Py_ssize_t l = (*m->sq_length)(s);
-                assert(_Py_CheckSlotResult(s, "__len__", l >= 0));
                 if (l < 0) {
+                    assert(PyErr_Occurred());
                     return NULL;
                 }
                 i += l;
             }
         }
-        PyObject *res = m->sq_item(s, i);
-        assert(_Py_CheckSlotResult(s, "__getitem__", res != NULL));
-        return res;
+        return m->sq_item(s, i);
     }
 
-    if (Py_TYPE(s)->tp_as_mapping && Py_TYPE(s)->tp_as_mapping->mp_subscript) {
-        return type_error("%.200s is not a sequence", s);
-    }
     return type_error("'%.200s' object does not support indexing", s);
 }
 
 PyObject *
 PySequence_GetSlice(PyObject *s, Py_ssize_t i1, Py_ssize_t i2)
 {
+    PyMappingMethods *mp;
+
     if (!s) {
         return null_error();
     }
 
-    PyMappingMethods *mp = Py_TYPE(s)->tp_as_mapping;
+    mp = s->ob_type->tp_as_mapping;
     if (mp && mp->mp_subscript) {
+        PyObject *res;
         PyObject *slice = _PySlice_FromIndices(i1, i2);
-        if (!slice) {
+        if (!slice)
             return NULL;
-        }
-        PyObject *res = mp->mp_subscript(s, slice);
-        assert(_Py_CheckSlotResult(s, "__getitem__", res != NULL));
+        res = mp->mp_subscript(s, slice);
         Py_DECREF(slice);
         return res;
     }
@@ -1932,32 +1700,28 @@ PySequence_GetSlice(PyObject *s, Py_ssize_t i1, Py_ssize_t i2)
 int
 PySequence_SetItem(PyObject *s, Py_ssize_t i, PyObject *o)
 {
+    PySequenceMethods *m;
+
     if (s == NULL) {
         null_error();
         return -1;
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
+    m = s->ob_type->tp_as_sequence;
     if (m && m->sq_ass_item) {
         if (i < 0) {
             if (m->sq_length) {
                 Py_ssize_t l = (*m->sq_length)(s);
-                assert(_Py_CheckSlotResult(s, "__len__", l >= 0));
                 if (l < 0) {
+                    assert(PyErr_Occurred());
                     return -1;
                 }
                 i += l;
             }
         }
-        int res = m->sq_ass_item(s, i, o);
-        assert(_Py_CheckSlotResult(s, "__setitem__", res >= 0));
-        return res;
+        return m->sq_ass_item(s, i, o);
     }
 
-    if (Py_TYPE(s)->tp_as_mapping && Py_TYPE(s)->tp_as_mapping->mp_ass_subscript) {
-        type_error("%.200s is not a sequence", s);
-        return -1;
-    }
     type_error("'%.200s' object does not support item assignment", s);
     return -1;
 }
@@ -1965,32 +1729,28 @@ PySequence_SetItem(PyObject *s, Py_ssize_t i, PyObject *o)
 int
 PySequence_DelItem(PyObject *s, Py_ssize_t i)
 {
+    PySequenceMethods *m;
+
     if (s == NULL) {
         null_error();
         return -1;
     }
 
-    PySequenceMethods *m = Py_TYPE(s)->tp_as_sequence;
+    m = s->ob_type->tp_as_sequence;
     if (m && m->sq_ass_item) {
         if (i < 0) {
             if (m->sq_length) {
                 Py_ssize_t l = (*m->sq_length)(s);
-                assert(_Py_CheckSlotResult(s, "__len__", l >= 0));
                 if (l < 0) {
+                    assert(PyErr_Occurred());
                     return -1;
                 }
                 i += l;
             }
         }
-        int res = m->sq_ass_item(s, i, (PyObject *)NULL);
-        assert(_Py_CheckSlotResult(s, "__delitem__", res >= 0));
-        return res;
+        return m->sq_ass_item(s, i, (PyObject *)NULL);
     }
 
-    if (Py_TYPE(s)->tp_as_mapping && Py_TYPE(s)->tp_as_mapping->mp_ass_subscript) {
-        type_error("%.200s is not a sequence", s);
-        return -1;
-    }
     type_error("'%.200s' object doesn't support item deletion", s);
     return -1;
 }
@@ -1998,18 +1758,20 @@ PySequence_DelItem(PyObject *s, Py_ssize_t i)
 int
 PySequence_SetSlice(PyObject *s, Py_ssize_t i1, Py_ssize_t i2, PyObject *o)
 {
+    PyMappingMethods *mp;
+
     if (s == NULL) {
         null_error();
         return -1;
     }
 
-    PyMappingMethods *mp = Py_TYPE(s)->tp_as_mapping;
+    mp = s->ob_type->tp_as_mapping;
     if (mp && mp->mp_ass_subscript) {
+        int res;
         PyObject *slice = _PySlice_FromIndices(i1, i2);
         if (!slice)
             return -1;
-        int res = mp->mp_ass_subscript(s, slice, o);
-        assert(_Py_CheckSlotResult(s, "__setitem__", res >= 0));
+        res = mp->mp_ass_subscript(s, slice, o);
         Py_DECREF(slice);
         return res;
     }
@@ -2021,19 +1783,20 @@ PySequence_SetSlice(PyObject *s, Py_ssize_t i1, Py_ssize_t i2, PyObject *o)
 int
 PySequence_DelSlice(PyObject *s, Py_ssize_t i1, Py_ssize_t i2)
 {
+    PyMappingMethods *mp;
+
     if (s == NULL) {
         null_error();
         return -1;
     }
 
-    PyMappingMethods *mp = Py_TYPE(s)->tp_as_mapping;
+    mp = s->ob_type->tp_as_mapping;
     if (mp && mp->mp_ass_subscript) {
+        int res;
         PyObject *slice = _PySlice_FromIndices(i1, i2);
-        if (!slice) {
+        if (!slice)
             return -1;
-        }
-        int res = mp->mp_ass_subscript(s, slice, NULL);
-        assert(_Py_CheckSlotResult(s, "__delitem__", res >= 0));
+        res = mp->mp_ass_subscript(s, slice, NULL);
         Py_DECREF(slice);
         return res;
     }
@@ -2164,10 +1927,8 @@ PySequence_Fast(PyObject *v, const char *m)
 
     it = PyObject_GetIter(v);
     if (it == NULL) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (_PyErr_ExceptionMatches(tstate, PyExc_TypeError)) {
-            _PyErr_SetString(tstate, PyExc_TypeError, m);
-        }
+        if (PyErr_ExceptionMatches(PyExc_TypeError))
+            PyErr_SetString(PyExc_TypeError, m);
         return NULL;
     }
 
@@ -2197,9 +1958,7 @@ _PySequence_IterSearch(PyObject *seq, PyObject *obj, int operation)
 
     it = PyObject_GetIter(seq);
     if (it == NULL) {
-        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
-            type_error("argument of type '%.200s' is not iterable", seq);
-        }
+        type_error("argument of type '%.200s' is not iterable", seq);
         return -1;
     }
 
@@ -2213,7 +1972,7 @@ _PySequence_IterSearch(PyObject *seq, PyObject *obj, int operation)
             break;
         }
 
-        cmp = PyObject_RichCompareBool(item, obj, Py_EQ);
+        cmp = PyObject_RichCompareBool(obj, item, Py_EQ);
         Py_DECREF(item);
         if (cmp < 0)
             goto Fail;
@@ -2280,13 +2039,11 @@ PySequence_Count(PyObject *s, PyObject *o)
 int
 PySequence_Contains(PyObject *seq, PyObject *ob)
 {
-    PySequenceMethods *sqm = Py_TYPE(seq)->tp_as_sequence;
-    if (sqm != NULL && sqm->sq_contains != NULL) {
-        int res = (*sqm->sq_contains)(seq, ob);
-        assert(_Py_CheckSlotResult(seq, "__contains__", res >= 0));
-        return res;
-    }
-    Py_ssize_t result = _PySequence_IterSearch(seq, ob, PY_ITERSEARCH_CONTAINS);
+    Py_ssize_t result;
+    PySequenceMethods *sqm = seq->ob_type->tp_as_sequence;
+    if (sqm != NULL && sqm->sq_contains != NULL)
+        return (*sqm->sq_contains)(seq, ob);
+    result = _PySequence_IterSearch(seq, ob, PY_ITERSEARCH_CONTAINS);
     return Py_SAFE_DOWNCAST(result, Py_ssize_t, int);
 }
 
@@ -2309,30 +2066,27 @@ PySequence_Index(PyObject *s, PyObject *o)
 int
 PyMapping_Check(PyObject *o)
 {
-    return o && Py_TYPE(o)->tp_as_mapping &&
-        Py_TYPE(o)->tp_as_mapping->mp_subscript;
+    return o && o->ob_type->tp_as_mapping &&
+        o->ob_type->tp_as_mapping->mp_subscript;
 }
 
 Py_ssize_t
 PyMapping_Size(PyObject *o)
 {
+    PyMappingMethods *m;
+
     if (o == NULL) {
         null_error();
         return -1;
     }
 
-    PyMappingMethods *m = Py_TYPE(o)->tp_as_mapping;
+    m = o->ob_type->tp_as_mapping;
     if (m && m->mp_length) {
         Py_ssize_t len = m->mp_length(o);
-        assert(_Py_CheckSlotResult(o, "__len__", len >= 0));
+        assert(len >= 0 || PyErr_Occurred());
         return len;
     }
 
-    if (Py_TYPE(o)->tp_as_sequence && Py_TYPE(o)->tp_as_sequence->sq_length) {
-        type_error("%.200s is not a mapping", o);
-        return -1;
-    }
-    /* PyMapping_Size() can be called from PyObject_Size(). */
     type_error("object of type '%.200s' has no len()", o);
     return -1;
 }
@@ -2418,19 +2172,18 @@ method_output_as_list(PyObject *o, _Py_Identifier *meth_id)
     PyObject *it, *result, *meth_output;
 
     assert(o != NULL);
-    meth_output = _PyObject_CallMethodIdNoArgs(o, meth_id);
+    meth_output = _PyObject_CallMethodId(o, meth_id, NULL);
     if (meth_output == NULL || PyList_CheckExact(meth_output)) {
         return meth_output;
     }
     it = PyObject_GetIter(meth_output);
     if (it == NULL) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (_PyErr_ExceptionMatches(tstate, PyExc_TypeError)) {
-            _PyErr_Format(tstate, PyExc_TypeError,
-                          "%.200s.%U() returned a non-iterable (type %.200s)",
-                          Py_TYPE(o)->tp_name,
-                          _PyUnicode_FromId(meth_id),
-                          Py_TYPE(meth_output)->tp_name);
+        if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+            PyErr_Format(PyExc_TypeError,
+                         "%.200s.%U() returned a non-iterable (type %.200s)",
+                         Py_TYPE(o)->tp_name,
+                         meth_id->object,
+                         Py_TYPE(meth_output)->tp_name);
         }
         Py_DECREF(meth_output);
         return NULL;
@@ -2515,7 +2268,9 @@ abstract_get_bases(PyObject *cls)
     _Py_IDENTIFIER(__bases__);
     PyObject *bases;
 
+    Py_ALLOW_RECURSION
     (void)_PyObject_LookupAttrId(cls, &PyId___bases__, &bases);
+    Py_END_ALLOW_RECURSION
     if (bases != NULL && !PyTuple_Check(bases)) {
         Py_DECREF(bases);
         return NULL;
@@ -2557,22 +2312,14 @@ abstract_issubclass(PyObject *derived, PyObject *cls)
             derived = PyTuple_GET_ITEM(bases, 0);
             continue;
         }
-        break;
-    }
-    assert(n >= 2);
-    if (Py_EnterRecursiveCall(" in __issubclass__")) {
-        Py_DECREF(bases);
-        return -1;
-    }
-    for (i = 0; i < n; i++) {
-        r = abstract_issubclass(PyTuple_GET_ITEM(bases, i), cls);
-        if (r != 0) {
-            break;
+        for (i = 0; i < n; i++) {
+            r = abstract_issubclass(PyTuple_GET_ITEM(bases, i), cls);
+            if (r != 0)
+                break;
         }
+        Py_DECREF(bases);
+        return r;
     }
-    Py_LeaveRecursiveCall();
-    Py_DECREF(bases);
-    return r;
 }
 
 static int
@@ -2581,10 +2328,8 @@ check_class(PyObject *cls, const char *error)
     PyObject *bases = abstract_get_bases(cls);
     if (bases == NULL) {
         /* Do not mask errors. */
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (!_PyErr_Occurred(tstate)) {
-            _PyErr_SetString(tstate, PyExc_TypeError, error);
-        }
+        if (!PyErr_Occurred())
+            PyErr_SetString(PyExc_TypeError, error);
         return 0;
     }
     Py_DECREF(bases);
@@ -2592,17 +2337,18 @@ check_class(PyObject *cls, const char *error)
 }
 
 static int
-object_isinstance(PyObject *inst, PyObject *cls)
+recursive_isinstance(PyObject *inst, PyObject *cls)
 {
     PyObject *icls;
     int retval;
     _Py_IDENTIFIER(__class__);
+
     if (PyType_Check(cls)) {
         retval = PyObject_TypeCheck(inst, (PyTypeObject *)cls);
         if (retval == 0) {
             retval = _PyObject_LookupAttrId(inst, &PyId___class__, &icls);
             if (icls != NULL) {
-                if (icls != (PyObject *)(Py_TYPE(inst)) && PyType_Check(icls)) {
+                if (icls != (PyObject *)(inst->ob_type) && PyType_Check(icls)) {
                     retval = PyType_IsSubtype(
                         (PyTypeObject *)icls,
                         (PyTypeObject *)cls);
@@ -2616,7 +2362,7 @@ object_isinstance(PyObject *inst, PyObject *cls)
     }
     else {
         if (!check_class(cls,
-            "isinstance() arg 2 must be a type, a tuple of types, or a union"))
+            "isinstance() arg 2 must be a type or tuple of types"))
             return -1;
         retval = _PyObject_LookupAttrId(inst, &PyId___class__, &icls);
         if (icls != NULL) {
@@ -2628,76 +2374,62 @@ object_isinstance(PyObject *inst, PyObject *cls)
     return retval;
 }
 
-static int
-object_recursive_isinstance(PyThreadState *tstate, PyObject *inst, PyObject *cls)
-{
-    _Py_IDENTIFIER(__instancecheck__);
-
-    /* Quick test for an exact match */
-    if (Py_IS_TYPE(inst, (PyTypeObject *)cls)) {
-        return 1;
-    }
-
-    /* We know what type's __instancecheck__ does. */
-    if (PyType_CheckExact(cls)) {
-        return object_isinstance(inst, cls);
-    }
-
-    if (PyTuple_Check(cls)) {
-        /* Not a general sequence -- that opens up the road to
-           recursion and stack overflow. */
-        if (_Py_EnterRecursiveCall(tstate, " in __instancecheck__")) {
-            return -1;
-        }
-        Py_ssize_t n = PyTuple_GET_SIZE(cls);
-        int r = 0;
-        for (Py_ssize_t i = 0; i < n; ++i) {
-            PyObject *item = PyTuple_GET_ITEM(cls, i);
-            r = object_recursive_isinstance(tstate, inst, item);
-            if (r != 0) {
-                /* either found it, or got an error */
-                break;
-            }
-        }
-        _Py_LeaveRecursiveCall(tstate);
-        return r;
-    }
-
-    PyObject *checker = _PyObject_LookupSpecial(cls, &PyId___instancecheck__);
-    if (checker != NULL) {
-        if (_Py_EnterRecursiveCall(tstate, " in __instancecheck__")) {
-            Py_DECREF(checker);
-            return -1;
-        }
-
-        PyObject *res = PyObject_CallOneArg(checker, inst);
-        _Py_LeaveRecursiveCall(tstate);
-        Py_DECREF(checker);
-
-        if (res == NULL) {
-            return -1;
-        }
-        int ok = PyObject_IsTrue(res);
-        Py_DECREF(res);
-
-        return ok;
-    }
-    else if (_PyErr_Occurred(tstate)) {
-        return -1;
-    }
-
-    /* cls has no __instancecheck__() method */
-    return object_isinstance(inst, cls);
-}
-
-
 int
 PyObject_IsInstance(PyObject *inst, PyObject *cls)
 {
-    PyThreadState *tstate = _PyThreadState_GET();
-    return object_recursive_isinstance(tstate, inst, cls);
-}
+    _Py_IDENTIFIER(__instancecheck__);
+    PyObject *checker;
 
+    /* Quick test for an exact match */
+    if (Py_TYPE(inst) == (PyTypeObject *)cls)
+        return 1;
+
+    /* We know what type's __instancecheck__ does. */
+    if (PyType_CheckExact(cls)) {
+        return recursive_isinstance(inst, cls);
+    }
+
+    if (PyTuple_Check(cls)) {
+        Py_ssize_t i;
+        Py_ssize_t n;
+        int r = 0;
+
+        if (Py_EnterRecursiveCall(" in __instancecheck__"))
+            return -1;
+        n = PyTuple_GET_SIZE(cls);
+        for (i = 0; i < n; ++i) {
+            PyObject *item = PyTuple_GET_ITEM(cls, i);
+            r = PyObject_IsInstance(inst, item);
+            if (r != 0)
+                /* either found it, or got an error */
+                break;
+        }
+        Py_LeaveRecursiveCall();
+        return r;
+    }
+
+    checker = _PyObject_LookupSpecial(cls, &PyId___instancecheck__);
+    if (checker != NULL) {
+        PyObject *res;
+        int ok = -1;
+        if (Py_EnterRecursiveCall(" in __instancecheck__")) {
+            Py_DECREF(checker);
+            return ok;
+        }
+        res = PyObject_CallFunctionObjArgs(checker, inst, NULL);
+        Py_LeaveRecursiveCall();
+        Py_DECREF(checker);
+        if (res != NULL) {
+            ok = PyObject_IsTrue(res);
+            Py_DECREF(res);
+        }
+        return ok;
+    }
+    else if (PyErr_Occurred())
+        return -1;
+    /* Probably never reached anymore. */
+    return recursive_isinstance(inst, cls);
+}
 
 static  int
 recursive_issubclass(PyObject *derived, PyObject *cls)
@@ -2709,18 +2441,16 @@ recursive_issubclass(PyObject *derived, PyObject *cls)
     if (!check_class(derived,
                      "issubclass() arg 1 must be a class"))
         return -1;
-
-    if (!_PyUnion_Check(cls) && !check_class(cls,
-                            "issubclass() arg 2 must be a class,"
-                            " a tuple of classes, or a union")) {
+    if (!check_class(cls,
+                    "issubclass() arg 2 must be a class"
+                    " or tuple of classes"))
         return -1;
-    }
 
     return abstract_issubclass(derived, cls);
 }
 
-static int
-object_issubclass(PyThreadState *tstate, PyObject *derived, PyObject *cls)
+int
+PyObject_IsSubclass(PyObject *derived, PyObject *cls)
 {
     _Py_IDENTIFIER(__subclasscheck__);
     PyObject *checker;
@@ -2734,32 +2464,34 @@ object_issubclass(PyThreadState *tstate, PyObject *derived, PyObject *cls)
     }
 
     if (PyTuple_Check(cls)) {
-
-        if (_Py_EnterRecursiveCall(tstate, " in __subclasscheck__")) {
-            return -1;
-        }
-        Py_ssize_t n = PyTuple_GET_SIZE(cls);
+        Py_ssize_t i;
+        Py_ssize_t n;
         int r = 0;
-        for (Py_ssize_t i = 0; i < n; ++i) {
+
+        if (Py_EnterRecursiveCall(" in __subclasscheck__"))
+            return -1;
+        n = PyTuple_GET_SIZE(cls);
+        for (i = 0; i < n; ++i) {
             PyObject *item = PyTuple_GET_ITEM(cls, i);
-            r = object_issubclass(tstate, derived, item);
+            r = PyObject_IsSubclass(derived, item);
             if (r != 0)
                 /* either found it, or got an error */
                 break;
         }
-        _Py_LeaveRecursiveCall(tstate);
+        Py_LeaveRecursiveCall();
         return r;
     }
 
     checker = _PyObject_LookupSpecial(cls, &PyId___subclasscheck__);
     if (checker != NULL) {
+        PyObject *res;
         int ok = -1;
-        if (_Py_EnterRecursiveCall(tstate, " in __subclasscheck__")) {
+        if (Py_EnterRecursiveCall(" in __subclasscheck__")) {
             Py_DECREF(checker);
             return ok;
         }
-        PyObject *res = PyObject_CallOneArg(checker, derived);
-        _Py_LeaveRecursiveCall(tstate);
+        res = PyObject_CallFunctionObjArgs(checker, derived, NULL);
+        Py_LeaveRecursiveCall();
         Py_DECREF(checker);
         if (res != NULL) {
             ok = PyObject_IsTrue(res);
@@ -2767,27 +2499,16 @@ object_issubclass(PyThreadState *tstate, PyObject *derived, PyObject *cls)
         }
         return ok;
     }
-    else if (_PyErr_Occurred(tstate)) {
+    else if (PyErr_Occurred())
         return -1;
-    }
-
     /* Probably never reached anymore. */
     return recursive_issubclass(derived, cls);
 }
 
-
-int
-PyObject_IsSubclass(PyObject *derived, PyObject *cls)
-{
-    PyThreadState *tstate = _PyThreadState_GET();
-    return object_issubclass(tstate, derived, cls);
-}
-
-
 int
 _PyObject_RealIsInstance(PyObject *inst, PyObject *cls)
 {
-    return object_isinstance(inst, cls);
+    return recursive_isinstance(inst, cls);
 }
 
 int
@@ -2800,7 +2521,7 @@ _PyObject_RealIsSubclass(PyObject *derived, PyObject *cls)
 PyObject *
 PyObject_GetIter(PyObject *o)
 {
-    PyTypeObject *t = Py_TYPE(o);
+    PyTypeObject *t = o->ob_type;
     getiterfunc f;
 
     f = t->tp_iter;
@@ -2815,49 +2536,12 @@ PyObject_GetIter(PyObject *o)
             PyErr_Format(PyExc_TypeError,
                          "iter() returned non-iterator "
                          "of type '%.100s'",
-                         Py_TYPE(res)->tp_name);
+                         res->ob_type->tp_name);
             Py_DECREF(res);
             res = NULL;
         }
         return res;
     }
-}
-
-PyObject *
-PyObject_GetAIter(PyObject *o) {
-    PyTypeObject *t = Py_TYPE(o);
-    unaryfunc f;
-
-    if (t->tp_as_async == NULL || t->tp_as_async->am_aiter == NULL) {
-        return type_error("'%.200s' object is not an async iterable", o);
-    }
-    f = t->tp_as_async->am_aiter;
-    PyObject *it = (*f)(o);
-    if (it != NULL && !PyAIter_Check(it)) {
-        PyErr_Format(PyExc_TypeError,
-                     "aiter() returned not an async iterator of type '%.100s'",
-                     Py_TYPE(it)->tp_name);
-        Py_DECREF(it);
-        it = NULL;
-    }
-    return it;
-}
-
-int
-PyIter_Check(PyObject *obj)
-{
-    PyTypeObject *tp = Py_TYPE(obj);
-    return (tp->tp_iternext != NULL &&
-            tp->tp_iternext != &_PyObject_NextNotImplemented);
-}
-
-int
-PyAIter_Check(PyObject *obj)
-{
-    PyTypeObject *tp = Py_TYPE(obj);
-    return (tp->tp_as_async != NULL &&
-            tp->tp_as_async->am_anext != NULL &&
-            tp->tp_as_async->am_anext != &_PyObject_NextNotImplemented);
 }
 
 /* Return next item.
@@ -2871,43 +2555,14 @@ PyObject *
 PyIter_Next(PyObject *iter)
 {
     PyObject *result;
-    result = (*Py_TYPE(iter)->tp_iternext)(iter);
-    if (result == NULL) {
-        PyThreadState *tstate = _PyThreadState_GET();
-        if (_PyErr_Occurred(tstate)
-            && _PyErr_ExceptionMatches(tstate, PyExc_StopIteration))
-        {
-            _PyErr_Clear(tstate);
-        }
-    }
+    result = (*iter->ob_type->tp_iternext)(iter);
+    if (result == NULL &&
+        PyErr_Occurred() &&
+        PyErr_ExceptionMatches(PyExc_StopIteration))
+        PyErr_Clear();
     return result;
 }
 
-PySendResult
-PyIter_Send(PyObject *iter, PyObject *arg, PyObject **result)
-{
-    _Py_IDENTIFIER(send);
-    assert(arg != NULL);
-    assert(result != NULL);
-    if (Py_TYPE(iter)->tp_as_async && Py_TYPE(iter)->tp_as_async->am_send) {
-        PySendResult res = Py_TYPE(iter)->tp_as_async->am_send(iter, arg, result);
-        assert(_Py_CheckSlotResult(iter, "am_send", res != PYGEN_ERROR));
-        return res;
-    }
-    if (arg == Py_None && PyIter_Check(iter)) {
-        *result = Py_TYPE(iter)->tp_iternext(iter);
-    }
-    else {
-        *result = _PyObject_CallMethodIdOneArg(iter, &PyId_send, arg);
-    }
-    if (*result != NULL) {
-        return PYGEN_NEXT;
-    }
-    if (_PyGen_FetchStopIterationValue(result) == 0) {
-        return PYGEN_RETURN;
-    }
-    return PYGEN_ERROR;
-}
 
 /*
  * Flatten a sequence of bytes() objects into a C array of

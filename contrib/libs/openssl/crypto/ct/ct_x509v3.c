@@ -11,7 +11,7 @@
 # error "CT is disabled"
 #endif
 
-#include "ct_local.h"
+#include "ct_locl.h"
 
 static char *i2s_poison(const X509V3_EXT_METHOD *method, void *val)
 {

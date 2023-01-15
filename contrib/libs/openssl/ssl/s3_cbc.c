@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2012-2018 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "internal/constant_time.h"
-#include "ssl_local.h"
+#include "internal/constant_time_locl.h"
+#include "ssl_locl.h"
 #include "internal/cryptlib.h"
 
 #include <openssl/md5.h>
@@ -128,7 +128,7 @@ char ssl3_cbc_record_digest_supported(const EVP_MD_CTX *ctx)
 int ssl3_cbc_digest_record(const EVP_MD_CTX *ctx,
                            unsigned char *md_out,
                            size_t *md_out_size,
-                           const unsigned char *header,
+                           const unsigned char header[13],
                            const unsigned char *data,
                            size_t data_plus_mac_size,
                            size_t data_plus_mac_plus_padding_size,

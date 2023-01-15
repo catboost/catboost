@@ -1,10 +1,10 @@
 RECURSE(
     api
-    tcmalloc
+    api/helpers
+    api/ut
     jemalloc
     nalf
     system
-    mimalloc
 )
 
 IF (NOT OS_WINDOWS)

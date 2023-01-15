@@ -11,18 +11,12 @@ class TFold;
 
 
 namespace NCB {
-    void PenalizeBestSplits(
+    void AddFeaturePenaltiesToBestSplits(
         const TVector<TIndexType>& leaves,
         const TLearnContext& ctx,
         const TTrainingDataProviders& trainingData,
         const TFold& fold,
         ui32 oneHotMaxSize,
         TVector<TCandidateInfo>* candidates
-    );
-    float GetSplitFeatureWeight(
-        const TSplit& split,
-        const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
-        const TFeaturesLayout& layout,
-        const NCatboostOptions::TPerFeaturePenalty& featureWeights
     );
 }

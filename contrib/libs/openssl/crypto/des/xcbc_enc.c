@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "des_local.h"
+#include "des_locl.h"
 
 /* RSA's DESX */
 

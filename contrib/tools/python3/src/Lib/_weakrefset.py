@@ -3,7 +3,6 @@
 # by abc.py to load everything else at startup.
 
 from _weakref import ref
-from types import GenericAlias
 
 __all__ = ['WeakSet']
 
@@ -51,14 +50,10 @@ class WeakSet:
             self.update(data)
 
     def _commit_removals(self):
-        pop = self._pending_removals.pop
+        l = self._pending_removals
         discard = self.data.discard
-        while True:
-            try:
-                item = pop()
-            except IndexError:
-                return
-            discard(item)
+        while l:
+            discard(l.pop())
 
     def __iter__(self):
         with _IterationGuard(self):
@@ -199,8 +194,3 @@ class WeakSet:
 
     def isdisjoint(self, other):
         return len(self.intersection(other)) == 0
-
-    def __repr__(self):
-        return repr(self.data)
-
-    __class_getitem__ = classmethod(GenericAlias)

@@ -2,7 +2,6 @@
 
 #include "calc_fstr.h"
 
-#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/private/libs/algo/tree_print.h>
 
 #include <util/stream/file.h>
@@ -110,11 +109,20 @@ inline void OutputFeatureImportanceMatrix(
 
 inline void CalcAndOutputFstr(const TFullModel& model,
                               const NCB::TDataProviderPtr dataset, // can be nullptr
-                              NPar::ILocalExecutor* localExecutor,
+                              NPar::TLocalExecutor* localExecutor,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath,
                               EFstrType type) {
-    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
+    const NCB::TFeaturesLayout layout(
+        TVector<TFloatFeature>(
+            model.ModelTrees->GetFloatFeatures().begin(),
+            model.ModelTrees->GetFloatFeatures().end()
+        ),
+        TVector<TCatFeature>(
+            model.ModelTrees->GetCatFeatures().begin(),
+            model.ModelTrees->GetCatFeatures().end()
+        )
+    );
 
     TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, dataset, type, localExecutor);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
@@ -124,7 +132,8 @@ inline void CalcAndOutputFstr(const TFullModel& model,
     if (regularFstrPath != nullptr && !regularFstrPath->empty()) {
         TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
             internalEffect,
-            model);
+            model.GetNumCatFeatures(),
+            model.GetNumFloatFeatures());
         OutputRegularFstr(layout, regularEffect, *regularFstrPath);
     }
 }
@@ -134,7 +143,16 @@ inline void CalcAndOutputInteraction(
     const TString* regularFstrPath,
     const TString* internalFstrPath)
 {
-    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
+    const NCB::TFeaturesLayout layout(
+        TVector<TFloatFeature>(
+            model.ModelTrees->GetFloatFeatures().begin(),
+            model.ModelTrees->GetFloatFeatures().end()
+        ),
+        TVector<TCatFeature>(
+            model.ModelTrees->GetCatFeatures().begin(),
+            model.ModelTrees->GetCatFeatures().end()
+        )
+    );
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     if (internalFstrPath != nullptr) {

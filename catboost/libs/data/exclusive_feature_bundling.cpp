@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/parallel_tasks.h>
 
 #include <library/cpp/pop_count/popcount.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -36,7 +36,7 @@ namespace NCB {
         TVector<ui64> UsedObjects; // block non default masks
 
     public:
-        TExclusiveFeatureBundleForMerging(ui32 objectCount, NPar::ILocalExecutor* localExecutor)
+        TExclusiveFeatureBundleForMerging(ui32 objectCount, NPar::TLocalExecutor* localExecutor)
             : IntersectionCount(0)
             , NonDefaultCount(0)
         {
@@ -99,7 +99,7 @@ namespace NCB {
         TConstArrayRef<ui32> featuresNonDefaultCounts,
         TConstArrayRef<ui32> flatFeatureIndicesToCalc,
         const TExclusiveFeaturesBundlingOptions& options,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         const auto& featuresLayout = *quantizedFeaturesInfo.GetFeaturesLayout();
 
@@ -322,7 +322,7 @@ namespace NCB {
         const TFeaturesLayout& featuresLayout,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         const TExclusiveFeaturesBundlingOptions& options,
-        NPar::ILocalExecutor* localExecutor
+        NPar::TLocalExecutor* localExecutor
     ) {
         const ui32 objectCount = rawObjectsDataIncrementalIndexing.SrcSubsetIndexing.Size();
 
@@ -333,13 +333,13 @@ namespace NCB {
         const auto featureCount = featuresLayout.GetExternalFeatureCount();
         const auto featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
+        bool hasDenseFeatures = false;
         bool hasSparseFeatures = false;
         TVector<ui32> featureIndicesToCalc;
 
         for (auto flatFeatureIdx : xrange(featureCount)) {
             const auto& featureMetaInfo = featuresMetaInfo[flatFeatureIdx];
-            if (!featureMetaInfo.IsAvailable ||
-                (featureMetaInfo.Type == EFeatureType::Text || featureMetaInfo.Type == EFeatureType::Embedding)) {
+            if (!featureMetaInfo.IsAvailable || featureMetaInfo.Type == EFeatureType::Text) {
                 continue;
             }
 
@@ -357,6 +357,8 @@ namespace NCB {
 
             if (isSparse) {
                 hasSparseFeatures = true;
+            } else {
+                hasDenseFeatures = true;
             }
         }
 

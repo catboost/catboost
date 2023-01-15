@@ -67,12 +67,12 @@
     - contrib/libs/musl/src/include/wchar.h
 
   - inttypes.h:             contrib/libs/musl/include/inttypes.h
-  - stddef.h:               contrib/libs/musl/include/stddef.h
   - stdint.h:               contrib/libs/musl/include/stdint.h
 
 
 # We want musl to resolve itself without these sysincls, but its test must have them
-- source_filter: "^(?!contrib/libs/musl)|^contrib/libs/musl/tests"
+# Also we disable this headers for some libraries, that want to build withoud libc at all
+- source_filter: "^(?!(contrib/libs/musl|contrib/libs/cxxsupp/builtins|contrib/libs/cxxsupp/libcxx/include/support|contrib/libs/libunwind|contrib/tools/yasm)).*|^contrib/libs/musl/tests"
   includes:
   # libc & stl common headers
   - complex.h:              contrib/libs/musl/include/complex.h
@@ -122,6 +122,7 @@
   - getopt.h:               contrib/libs/musl/include/getopt.h
   - glob.h:                 contrib/libs/musl/include/glob.h
   - grp.h:                  contrib/libs/musl/include/grp.h
+  - iconv.h:                contrib/libs/musl/include/iconv.h
   - ifaddrs.h:              contrib/libs/musl/include/ifaddrs.h
   - iso646.h:               contrib/libs/musl/include/iso646.h
   - langinfo.h:             contrib/libs/musl/include/langinfo.h
@@ -160,7 +161,6 @@
   - regex.h:                contrib/libs/musl/include/regex.h
   - resolv.h:               contrib/libs/musl/include/resolv.h
   - sched.h:                contrib/libs/musl/include/sched.h
-  - scsi/scsi.h:            contrib/libs/musl/include/scsi/scsi.h
   - search.h:               contrib/libs/musl/include/search.h
   - semaphore.h:            contrib/libs/musl/include/semaphore.h
   - shadow.h:               contrib/libs/musl/include/shadow.h
@@ -188,7 +188,6 @@
   - sys/ioctl.h:            contrib/libs/musl/include/sys/ioctl.h
   - sys/io.h:               contrib/libs/musl/include/sys/io.h
   - sys/ipc.h:              contrib/libs/musl/include/sys/ipc.h
-  - sys/kd.h:               contrib/libs/musl/include/sys/kd.h
   - syslog.h:               contrib/libs/musl/include/syslog.h
   - sys/mman.h:             contrib/libs/musl/include/sys/mman.h
   - sys/mount.h:            contrib/libs/musl/include/sys/mount.h
@@ -234,7 +233,6 @@
   - sys/user.h:             contrib/libs/musl/include/sys/user.h
   - sys/utsname.h:          contrib/libs/musl/include/sys/utsname.h
   - sys/vfs.h:              contrib/libs/musl/include/sys/vfs.h
-  - sys/vt.h:               contrib/libs/musl/include/sys/vt.h
   - sys/wait.h:             contrib/libs/musl/include/sys/wait.h
   - sys/xattr.h:            contrib/libs/musl/include/sys/xattr.h
   - tar.h:                  contrib/libs/musl/include/tar.h

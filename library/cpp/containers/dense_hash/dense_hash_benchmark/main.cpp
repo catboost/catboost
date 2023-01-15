@@ -62,7 +62,7 @@ class TSerializer<TStdHash<T1, T2>>: public TMapSerializer<TStdHash<T1, T2>, fal
 };
 
 template <class TKey, class TValue>
-struct TGoogleDenseHash: public google::dense_hash_map<TKey, TValue>, public TMapOps<TGoogleDenseHash<TKey, TValue>> {
+struct TGoogleDenseHash: public google::sparsehash::dense_hash_map<TKey, TValue>, public TMapOps<TGoogleDenseHash<TKey, TValue>> {
     TGoogleDenseHash() {
         this->set_empty_key((ui32)-1);
     }

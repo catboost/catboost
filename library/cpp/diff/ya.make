@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/cpp/lcs
+    library/lcs
     library/cpp/containers/stack_array
 )
 
@@ -12,7 +12,3 @@ SRCS(
 )
 
 END()
-
-RECURSE_FOR_TESTS(
-    ut
-)

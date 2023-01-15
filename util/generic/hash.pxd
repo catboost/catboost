@@ -12,16 +12,6 @@ cdef extern from "util/generic/hash.h" nogil:
         cppclass const_iterator(iterator):
             pass
 
-        cppclass reverse_iterator:
-            pair[T, U]& operator*()
-            iterator operator++()
-            iterator operator--()
-            bint operator==(reverse_iterator)
-            bint operator!=(reverse_iterator)
-
-        cppclass const_reverse_iterator(reverse_iterator):
-            pass
-
         THashMap() except +
         THashMap(THashMap&) except +
         U& operator[](T&)
@@ -54,13 +44,3 @@ cdef extern from "util/generic/hash.h" nogil:
         size_t max_size()
         size_t size()
         void swap(THashMap&)
-        iterator lower_bound(T&)
-        const_iterator const_lower_bound "lower_bound"(T&)
-        reverse_iterator rbegin()
-        const_reverse_iterator const_rbegin "rbegin"()
-        reverse_iterator rend()
-        const_reverse_iterator const_rend "rend"()
-        iterator upper_bound(T&)
-        const_iterator const_upper_bound "upper_bound"(T&)
-        void max_load_factor(float)
-        float max_load_factor()

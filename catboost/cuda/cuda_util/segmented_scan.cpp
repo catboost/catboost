@@ -19,7 +19,7 @@ using NKernelHost::TKernelBase;
 
 namespace {
     template <class T>
-    class TSegmentedScanKernel: public TKernelBase<NKernel::TScanKernelContext<T, T>, false> {
+    class TSegmentedScanKernel: public TKernelBase<NKernel::TScanKernelContext<T>, false> {
     private:
         TCudaBufferPtr<const T> Input;
         TCudaBufferPtr<const ui32> Flags;
@@ -28,7 +28,7 @@ namespace {
         bool Inclusive;
 
     public:
-        using TKernelContext = NKernel::TScanKernelContext<T, T>;
+        using TKernelContext = NKernel::TScanKernelContext<T>;
 
         TSegmentedScanKernel() = default;
 

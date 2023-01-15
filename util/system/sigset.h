@@ -5,17 +5,17 @@
 #include "compat.h"
 
 #if defined _unix_
-    #include <pthread.h>
+#include <pthread.h>
 #elif defined _win_
-    // Flags for sigprocmask:
-    #define SIG_BLOCK 1
-    #define SIG_UNBLOCK 2
-    #define SIG_SETMASK 3
+// Flags for sigprocmask:
+#define SIG_BLOCK 1
+#define SIG_UNBLOCK 2
+#define SIG_SETMASK 3
 
 using sigset_t = ui32;
 
 #else
-    #error not supported yet
+#error not supported yet
 #endif
 
 inline int SigEmptySet(sigset_t* set) {

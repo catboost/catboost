@@ -5,7 +5,7 @@
 namespace NKernel
 {
     struct TPFoundFContext : public IKernelContext {
-        TDevicePointer<ui32> QidCursor;
+        TDevicePointer<int> QidCursor;
     };
     void ComputeMatrixSizes(const ui32* queryOffsets,
                             ui32 qCount,
@@ -14,7 +14,7 @@ namespace NKernel
 
 
     void MakePairs(const ui32* qOffsets,
-                   const ui64* matrixOffsets,
+                   const ui32* matrixOffsets,
                    ui32 qCount,
                    uint2* pairs,
                    TCudaStream stream);
@@ -23,10 +23,10 @@ namespace NKernel
                          float decaySpeed,
                          ui32 bootstrapIter,
                          const ui32* queryOffsets,
-                         ui32* qidCursor,
+                         int* qidCursor,
                          ui32 qCount,
                          const ui32* qids,
-                         const ui64* matrixOffsets,
+                         const ui32* matrixOffsets,
                          const float* expApprox,
                          const float* relev,
                          ui32 size,

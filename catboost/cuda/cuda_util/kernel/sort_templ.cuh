@@ -1,6 +1,6 @@
 #include "sort.cuh"
 #include "fill.cuh"
-#include <contrib/libs/nvidia/cub/cub/device/device_radix_sort.cuh>
+#include <contrib/libs/cub/cub/device/device_radix_sort.cuh>
 #include <cassert>
 
 namespace NKernel {

@@ -1,1 +1,0 @@
-{% include [python-reference_catboost_attributes](python-reference_catboost_attributes.md) %}

@@ -2,7 +2,6 @@
 
 #include "feature.h"
 
-#include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/private/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/data/cat_feature_perfect_hash.h>
 #include <catboost/libs/data/exclusive_feature_bundling.h>
@@ -35,9 +34,7 @@ namespace NCatboostCuda {
                                   NCB::TFeatureEstimatorsPtr estimators,
                                   const NCB::TFeaturesLayout& featuresLayout,
                                   const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
-                                  NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-                                  ui32 maxObjectsCount,
-                                  bool enableShuffling = true);
+                                  NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
 
@@ -76,17 +73,13 @@ namespace NCatboostCuda {
             return InverseCtrs.contains(featureId);
         }
 
-        ui32 GetCtrsCount() const {
-            return InverseCtrs.size();
-        }
-
         bool IsTreeCtr(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);
             return IsCtr(featureId) && !GetCtr(featureId).IsSimple();
         }
 
         bool IsFeatureBundle(ui32 featureId) const {
-            CB_ENSURE(featureId < Cursor, "Unexpected feature id " << featureId << ", should be less than " << Cursor);
+            CB_ENSURE(featureId < Cursor);
             return FeatureManagerIdToExclusiveBundleId.contains(featureId);
         }
 
@@ -144,15 +137,6 @@ namespace NCatboostCuda {
             return Cursor;
         }
 
-        ui32 GetTreeCtrCount() const {
-            for (ui32 idx = 0; idx < Cursor; ++idx) {
-                if (IsTreeCtr(idx)) {
-                    return Cursor - idx;
-                }
-            }
-            return 0;
-        }
-
         ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const;
 
         const TVector<ui32>& GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
@@ -184,14 +168,6 @@ namespace NCatboostCuda {
             ui32 id = AddCtr(ctr);
             Borders[id] = std::move(borders);
             return id;
-        }
-
-        bool IsUsedCtr(ui32 featureId) const {
-            return UsedCtrs.contains(featureId);
-        }
-
-        void AddUsedCtr(ui32 featureId) const {
-            UsedCtrs.insert(featureId);
         }
 
         TVector<ui32> GetEstimatedFeatureIds() const;
@@ -308,23 +284,6 @@ namespace NCatboostCuda {
             UserCombinations.push_back(TUserDefinedCombination(tensor, description));
         }
 
-        ui32 GetMaxCtrUniqueValues(const TCtr& ctr) const {
-            ui32 maxCtrUniqueValues = 1 << ctr.FeatureTensor.GetSplits().size();
-            for (ui32 idx: ctr.FeatureTensor.GetCatFeatures()) {
-                CB_ENSURE_INTERNAL(IsCat(idx), "Unknown cat feature");
-                maxCtrUniqueValues *= GetUniqueValuesCounts(idx).OnAll;
-            }
-            return Min(maxCtrUniqueValues, MaxObjectsCount);
-        }
-
-        ui32 GetMaxCtrUniqueValues(ui32 idx) const {
-            CB_ENSURE_INTERNAL(InverseCtrs.contains(idx), "Unknown ctr idx");
-            return GetMaxCtrUniqueValues(InverseCtrs[idx]);
-        }
-
-        bool UseShuffle() const {
-            return EnableShuffling;
-        }
 
     private:
         void RegisterDataProviderCatFeature(ui32 featureId) {
@@ -430,7 +389,6 @@ namespace NCatboostCuda {
     private:
         mutable TMap<TCtr, ui32> KnownCtrs;
         mutable TMap<ui32, TCtr> InverseCtrs;
-        mutable THashSet<ui32> UsedCtrs;
 
         mutable TMap<ui32, TVector<ui32>> DataProviderFloatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
@@ -441,14 +399,12 @@ namespace NCatboostCuda {
         mutable TMap<ui32, NCB::TEstimatedFeatureId> FeatureManagerIdToEstimatedFeatureId;
 
         mutable ui32 Cursor = 0;
-        const ui32 MaxObjectsCount;
 
         mutable TVector<NCatboostOptions::TBinarizationOptions> CtrBinarizationOptions;
 
         TVector<float> TargetBorders;
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
 
-        bool EnableShuffling = true;
 
         // for ctr features and float features
         THashMap<ui32, TVector<float>> Borders;

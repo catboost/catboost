@@ -15,47 +15,51 @@
 #include <cerrno>
 
 #ifndef INET_ADDRSTRLEN
-    #define INET_ADDRSTRLEN 16
+#define INET_ADDRSTRLEN 16
 #endif
 
 #if defined(_unix_)
-    #define get_host_error() h_errno
+#define get_host_error() h_errno
 #elif defined(_win_)
-    #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 
-    #if _WIN32_WINNT < 0x0600
+#if _WIN32_WINNT < 0x0600
 struct pollfd {
     SOCKET fd;
     short events;
     short revents;
 };
 
-        #define POLLIN (1 << 0)
-        #define POLLRDNORM (1 << 1)
-        #define POLLRDBAND (1 << 2)
-        #define POLLPRI (1 << 3)
-        #define POLLOUT (1 << 4)
-        #define POLLWRNORM (1 << 5)
-        #define POLLWRBAND (1 << 6)
-        #define POLLERR (1 << 7)
-        #define POLLHUP (1 << 8)
-        #define POLLNVAL (1 << 9)
+#define POLLIN (1 << 0)
+#define POLLRDNORM (1 << 1)
+#define POLLRDBAND (1 << 2)
+#define POLLPRI (1 << 3)
+#define POLLOUT (1 << 4)
+#define POLLWRNORM (1 << 5)
+#define POLLWRBAND (1 << 6)
+#define POLLERR (1 << 7)
+#define POLLHUP (1 << 8)
+#define POLLNVAL (1 << 9)
 
 const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
 int poll(struct pollfd fds[], nfds_t nfds, int timeout) noexcept;
-    #else
-        #define poll(fds, nfds, timeout) WSAPoll(fds, nfds, timeout)
-    #endif
+#else
+#define poll(fds, nfds, timeout) WSAPoll(fds, nfds, timeout)
+#endif
 
 int inet_aton(const char* cp, struct in_addr* inp);
 
-    #define get_host_error() WSAGetLastError()
+ssize_t readv(SOCKET s, const struct iovec* iov, int iovcnt);
 
-    #define SHUT_RD SD_RECEIVE
-    #define SHUT_WR SD_SEND
-    #define SHUT_RDWR SD_BOTH
+ssize_t writev(SOCKET s, const struct iovec* iov, int iovcnt);
 
-    #define INFTIM (-1)
+#define get_host_error() WSAGetLastError()
+
+#define SHUT_RD SD_RECEIVE
+#define SHUT_WR SD_SEND
+#define SHUT_RDWR SD_BOTH
+
+#define INFTIM (-1)
 #endif
 
 template <class T>
@@ -116,21 +120,11 @@ void SetSocketToS(SOCKET s, int tos);
 void SetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr, int tos);
 int GetSocketToS(SOCKET s);
 int GetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr);
-void SetSocketPriority(SOCKET s, int priority);
 void SetTcpFastOpen(SOCKET s, int qlen);
-/**
- * Deprecated, consider using HasSocketDataToRead instead.
- **/
-bool IsNotSocketClosedByOtherSide(SOCKET s);
-enum class ESocketReadStatus {
-    HasData,
-    NoData,
-    SocketClosed
-};
 /**
  * Useful for keep-alive connections.
  **/
-ESocketReadStatus HasSocketDataToRead(SOCKET s);
+bool IsNotSocketClosedByOtherSide(SOCKET s);
 /**
  * Determines whether connection on socket is local (same machine) or not.
  **/
@@ -159,8 +153,7 @@ struct TUnixSocketPath {
     // TUnixSocketPath("/tmp/unixsocket") -> "/tmp/unixsocket"
     explicit TUnixSocketPath(const TString& path)
         : Path(path)
-    {
-    }
+    {}
 };
 
 class TNetworkAddress {

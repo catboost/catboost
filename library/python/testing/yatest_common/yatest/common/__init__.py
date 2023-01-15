@@ -5,3 +5,4 @@ from .misc import *  # noqa
 from .path import *  # noqa
 from .process import *  # noqa
 from .runtime import *  # noqa
+from .tags import *  # noqa

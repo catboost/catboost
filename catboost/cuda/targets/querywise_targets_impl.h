@@ -239,7 +239,6 @@ namespace NCatboostCuda {
                                             samplesGrouping.GetBiasedOffsets(),
                                             samplesGrouping.GetOffsetsBias(),
                                             NCatboostOptions::GetQuerySoftMaxLambdaReg(Params),
-                                            NCatboostOptions::GetQuerySoftMaxBeta(Params),
                                             GetTarget().GetTargets(),
                                             GetTarget().GetWeights(),
                                             point,
@@ -325,7 +324,6 @@ namespace NCatboostCuda {
                             weights);
 
             TParent::Target.Weights = weights.ConstCopyView();
-            TParent::Target.StorePairWeights = true;
 
             {
                 const auto& pairWeights = TParent::GetSamplesGrouping().GetPairsWeights();

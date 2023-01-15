@@ -1,9 +1,11 @@
 #include "store_policy.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 
 Y_UNIT_TEST_SUITE(StorePolicy) {
+
     Y_UNIT_TEST(Compileability) {
         // construction
         TAutoEmbedOrPtrPolicy<THolder<int>>(MakeHolder<int>(1));
@@ -13,12 +15,13 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
 
         // const
         (**TAutoEmbedOrPtrPolicy<THolder<int>>(MakeHolder<int>(1)).Ptr())++; // ok
-        (**TAutoEmbedOrPtrPolicy<THolder<int>&>(a).Ptr())++;                 // ok
+        (**TAutoEmbedOrPtrPolicy<THolder<int>&>(a).Ptr())++; // ok
 
         const TVector<int> b = {0};
         auto bValue = (*TAutoEmbedOrPtrPolicy<const TVector<int>&>(b).Ptr())[0]; // ok
         // (*TAutoEmbedOrPtrPolicy<const TVector<int>&>(b).Ptr())[0]++; // not ok
         Y_UNUSED(bValue);
+
     }
 
     template <typename T, typename TFunc>
@@ -48,6 +51,7 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
                 static_assert(std::is_const<std::remove_reference_t<decltype(*holder.Ptr())>>::value);
                 UNIT_ASSERT_VALUES_EQUAL(holder.Ptr()->size(), 3);
             });
+
         }
     }
 
@@ -83,4 +87,5 @@ Y_UNIT_TEST_SUITE(StorePolicy) {
             UNIT_ASSERT_VALUES_EQUAL(**secondHolder.Ptr(), 42);
         });
     }
+
 }

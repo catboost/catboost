@@ -1,3 +1,0 @@
-copy:
-  - faulthandler.c
-  - traceback.c

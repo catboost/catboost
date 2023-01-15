@@ -87,12 +87,6 @@ public:
         insert(il.begin(), il.end());
     }
 
-    TSet(std::initializer_list<value_type> il, size_type initSize = INIT_SIZE)
-        : TBase(initSize)
-    {
-        insert(il.begin(), il.end());
-    }
-
     TSet(const TSet&) = default;
     TSet(TSet&&) = default;
 

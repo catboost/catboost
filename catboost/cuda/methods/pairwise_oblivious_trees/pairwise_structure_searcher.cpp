@@ -47,9 +47,7 @@ namespace NCatboostCuda {
                                                isGradient,
                                                &target);
 
-        CB_ENSURE(
-            target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice(),
-            "Slices of pairs and pair weight/derivatives should have same size");
+        Y_VERIFY(target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice());
         CATBOOST_DEBUG_LOG << "Pairs count " << target.PairDer2OrWeights.GetObjectsSlice().Size() << Endl;
         CATBOOST_DEBUG_LOG << "Doc count " << target.Docs.GetObjectsSlice().Size() << Endl;
         return target;
@@ -67,25 +65,24 @@ namespace NCatboostCuda {
         TScoreCalcerPtr simpleCtrScoreCalcer;
 
         if (dataSet.HasFeatures()) {
-            featuresScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetFeatures(),
+            featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
                                                    TreeConfig,
                                                    subsets,
                                                    objective.GetRandom());
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
-            simpleCtrScoreCalcer = MakeHolder<TScoreCalcer>(dataSet.GetPermutationFeatures(),
+            simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
                                                     TreeConfig,
                                                     subsets,
                                                     objective.GetRandom());
         }
-        CB_ENSURE(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr, "Need a score calcer");
+        Y_VERIFY(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr);
 
         TObliviousTreeStructure structure;
         TVector<float> leaves;
         TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
-        double scoreBeforeSplit = 0;
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             NCudaLib::GetCudaManager().Barrier();
@@ -111,12 +108,12 @@ namespace NCatboostCuda {
 
             if (featuresScoreCalcer) {
                 bestSplitProp = TakeBest(bestSplitProp,
-                                         featuresScoreCalcer->FindOptimalSplit(readSolution, scoreBeforeSplit));
+                                         featuresScoreCalcer->FindOptimalSplit(readSolution));
             }
 
             if (simpleCtrScoreCalcer) {
                 bestSplitProp = TakeBest(bestSplitProp,
-                                         simpleCtrScoreCalcer->FindOptimalSplit(readSolution, scoreBeforeSplit));
+                                         simpleCtrScoreCalcer->FindOptimalSplit(readSolution));
             }
 
             CB_ENSURE(bestSplitProp.BestSplit.FeatureId != static_cast<ui32>(-1),
@@ -124,7 +121,6 @@ namespace NCatboostCuda {
 
             bestSplit = ToSplit(FeaturesManager, bestSplitProp.BestSplit);
             PrintBestScore(FeaturesManager, bestSplit, bestSplitProp.BestSplit.Score, depth);
-            scoreBeforeSplit = bestSplitProp.BestSplit.Score;
 
             if (((depth + 1) != TreeConfig.MaxDepth)) {
                 auto guard = profiler.Profile(TStringBuilder() << "Update subsets");

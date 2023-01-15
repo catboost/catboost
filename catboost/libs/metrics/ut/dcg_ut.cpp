@@ -2,7 +2,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/sample.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/labeled.h>
 #include <util/generic/algorithm.h>
@@ -16,19 +16,15 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
             TVector<double> approx{1.0, 0.0, 2.0};
             TVector<double> target{1.0, 0.0, 2.0};
             const auto samples = NMetrics::TSample::FromVectors(target, approx);
-            TVector<double> decay(samples.size());
-            FillDcgDecay(ENdcgDenominatorType::LogPosition, Nothing(), decay);
-            UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, decay, ENdcgMetricType::Base), 1);
-            UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, decay, ENdcgMetricType::Exp), 1);
+            UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Base), 1);
+            UNIT_ASSERT_VALUES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Exp), 1);
         }
         {
             TVector<double> approx{1.0, 1.0, 2.0};
             TVector<double> target{1.0, 0.0, 2.0};
             const auto samples = NMetrics::TSample::FromVectors(target, approx);
-            TVector<double> decay(samples.size());
-            FillDcgDecay(ENdcgDenominatorType::LogPosition, Nothing(), decay);
-            UNIT_ASSERT_DOUBLES_EQUAL(CalcNdcg(samples, decay, ENdcgMetricType::Base), 0.9502344168, 1e-5);
-            UNIT_ASSERT_DOUBLES_EQUAL(CalcNdcg(samples, decay, ENdcgMetricType::Exp), 0.9639404333, 1e-5);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Base), 0.9502344168, 1e-5);
+            UNIT_ASSERT_DOUBLES_EQUAL(CalcNdcg(samples, ENdcgMetricType::Exp), 0.9639404333, 1e-5);
         }
     }
 
@@ -83,7 +79,7 @@ Y_UNIT_TEST_SUITE(NdcgTests) {
 
         NPar::TLocalExecutor executor;
         const auto ndcg = std::move(CreateMetricsFromDescription({metricDescription}, 1).front());
-        const auto metric = dynamic_cast<const ISingleTargetEval*>(ndcg.Get())->Eval(
+        const auto metric = ndcg->Eval(
             approxes,
             targets,
             dummyWeights,

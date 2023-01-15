@@ -18,7 +18,7 @@
 # include <openssl/md2.h>
 # include <openssl/rsa.h>
 
-#include "crypto/evp.h"
+#include "internal/evp_int.h"
 
 static int init(EVP_MD_CTX *ctx)
 {

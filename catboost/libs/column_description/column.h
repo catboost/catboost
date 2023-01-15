@@ -8,7 +8,6 @@
 enum class EColumn {
     Num,
     Categ,
-    HashedCateg,
     Label,
     Auxiliary,
     Baseline,
@@ -20,22 +19,11 @@ enum class EColumn {
     Timestamp,
     Sparse,
     Prediction,
-    Text,
-    NumVector
+    Text
 };
 
 inline bool IsFactorColumn(EColumn column) {
-    switch (column) {
-        case EColumn::Num:
-        case EColumn::Categ:
-        case EColumn::HashedCateg:
-        case EColumn::Sparse:
-        case EColumn::Text:
-        case EColumn::NumVector:
-            return true;
-        default:
-            return false;
-    }
+    return column == EColumn::Num || column == EColumn::Categ || column == EColumn::Sparse || column == EColumn::Text;
 }
 
 inline bool CanBeOutputByColumnType(EColumn column) {

@@ -1,16 +1,15 @@
 #include "rwlock.h"
+#include "mutex.h"
+#include "condvar.h"
 
 #include <util/generic/yexception.h>
 
 #if defined(_unix_)
-    #include <errno.h>
-    #include <pthread.h>
+#include <errno.h>
+#include <pthread.h>
 #endif
 
 #if defined(_win_) || defined(_darwin_)
-    #include "mutex.h"
-    #include "condvar.h"
-
 //darwin rwlocks not recursive
 class TRWMutex::TImpl {
 public:

@@ -1,4 +1,4 @@
-//===----------------------------------------------------------------------===//
+//===------------------------ __refstring ---------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -13,29 +13,16 @@
 #include <stdexcept>
 #include <cstddef>
 #include <cstring>
+#ifdef __APPLE__
+#include <dlfcn.h>
+#include <mach-o/dyld.h>
+#endif
 
 #if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG) && !defined(_LIBCPP_USE_ATOMIC)
 #define _LIBCPP_USE_ATOMIC
 #include <atomic>
 #else
 #include "atomic_support.h"
-#endif
-
-// MacOS and iOS used to ship with libstdc++, and still support old applications
-// linking against libstdc++. The libc++ and libstdc++ exceptions are supposed
-// to be ABI compatible, such that they can be thrown from one library and caught
-// in the other.
-//
-// For that reason, we must look for libstdc++ in the same process and if found,
-// check the string stored in the exception object to see if it is the GCC empty
-// string singleton before manipulating the reference count. This is done so that
-// if an exception is created with a zero-length string in libstdc++, libc++abi
-// won't try to delete the memory.
-#if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
-    defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__)
-#   define _LIBCPP_CHECK_FOR_GCC_EMPTY_STRING_STORAGE
-#   include <dlfcn.h>
-#   include <mach-o/dyld.h>
 #endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -63,9 +50,9 @@ inline char * data_from_rep(_Rep_base *rep) noexcept {
     return data + sizeof(*rep);
 }
 
-#if defined(_LIBCPP_CHECK_FOR_GCC_EMPTY_STRING_STORAGE)
+#if defined(__APPLE__)
 inline
-const char* compute_gcc_empty_string_storage() noexcept
+const char* compute_gcc_empty_string_storage() _NOEXCEPT
 {
     void* handle = dlopen("/usr/lib/libstdc++.6.dylib", RTLD_NOLOAD);
     if (handle == nullptr)
@@ -78,7 +65,7 @@ const char* compute_gcc_empty_string_storage() noexcept
 
 inline
 const char*
-get_gcc_empty_string_storage() noexcept
+get_gcc_empty_string_storage() _NOEXCEPT
 {
     static const char* p = compute_gcc_empty_string_storage();
     return p;
@@ -102,7 +89,7 @@ __libcpp_refstring::__libcpp_refstring(const char* msg) {
 }
 
 inline
-__libcpp_refstring::__libcpp_refstring(const __libcpp_refstring &s) noexcept
+__libcpp_refstring::__libcpp_refstring(const __libcpp_refstring &s) _NOEXCEPT
     : __imp_(s.__imp_)
 {
     if (__uses_refcount())
@@ -114,7 +101,7 @@ __libcpp_refstring::__libcpp_refstring(const __libcpp_refstring &s) noexcept
 }
 
 inline
-__libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring const& s) noexcept {
+__libcpp_refstring& __libcpp_refstring::operator=(__libcpp_refstring const& s) _NOEXCEPT {
     bool adjust_old_count = __uses_refcount();
     struct _Rep_base *old_rep = rep_from_data(__imp_);
     __imp_ = s.__imp_;
@@ -155,7 +142,7 @@ __libcpp_refstring::~__libcpp_refstring() {
 
 inline
 bool __libcpp_refstring::__uses_refcount() const {
-#if defined(_LIBCPP_CHECK_FOR_GCC_EMPTY_STRING_STORAGE)
+#ifdef __APPLE__
     return __imp_ != get_gcc_empty_string_storage();
 #else
     return true;

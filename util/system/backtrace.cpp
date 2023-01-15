@@ -1,55 +1,56 @@
-#include "demangle_impl.h"
+#include "dynlib.h"
+#include "demangle.h"
 #include "platform.h"
 #include "backtrace.h"
 
 #include <util/stream/output.h>
 #include <util/stream/format.h>
-#include <util/generic/array_ref.h>
+#include <util/generic/singleton.h>
 #include <util/generic/string.h>
 
 #ifdef _win_
-    #include "mutex.h"
+#include "mutex.h"
 
-    #ifndef OPTIONAL
-        #define OPTIONAL
-    #endif
-    #include <dbghelp.h>
+#ifndef OPTIONAL
+#define OPTIONAL
+#endif
+#include <dbghelp.h>
 #endif
 
 #if defined(_bionic_)
 //TODO
 #else
-    #if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
-        #define CaptureStackBackTrace RtlCaptureStackBackTrace
+#if !defined(HAVE_BACKTRACE) && defined(_cygwin_)
+#define CaptureStackBackTrace RtlCaptureStackBackTrace
 extern "C" __stdcall unsigned short CaptureStackBackTrace(unsigned long FramesToSkip, unsigned long FramesToCapture, void** BackTrace, unsigned long* BackTraceHash);
 
-        #define USE_WIN_BACKTRACE
-        #define HAVE_BACKTRACE
-    #endif
+#define USE_WIN_BACKTRACE
+#define HAVE_BACKTRACE
+#endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(__IOS__)
-        #define USE_GLIBC_BACKTRACE
-        #define HAVE_BACKTRACE
-    #endif
+#if !defined(HAVE_BACKTRACE) && defined(__IOS__)
+#define USE_GLIBC_BACKTRACE
+#define HAVE_BACKTRACE
+#endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
-        #define USE_GCC_BACKTRACE
-        #define HAVE_BACKTRACE
-    #endif
+#if !defined(HAVE_BACKTRACE) && defined(__GNUC__)
+#define USE_GCC_BACKTRACE
+#define HAVE_BACKTRACE
+#endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(_win_)
-        #define USE_WIN_BACKTRACE
-        #define HAVE_BACKTRACE
-    #endif
+#if !defined(HAVE_BACKTRACE) && defined(_win_)
+#define USE_WIN_BACKTRACE
+#define HAVE_BACKTRACE
+#endif
 
-    #if !defined(HAVE_BACKTRACE) && defined(_glibc_)
-        #define USE_GLIBC_BACKTRACE
-        #define HAVE_BACKTRACE
-    #endif
+#if !defined(HAVE_BACKTRACE) && defined(_glibc_)
+#define USE_GLIBC_BACKTRACE
+#define HAVE_BACKTRACE
+#endif
 #endif
 
 #if defined(USE_GLIBC_BACKTRACE)
-    #include <execinfo.h>
+#include <execinfo.h>
 
 size_t BackTrace(void** p, size_t len) {
     return (size_t)backtrace(p, len);
@@ -57,8 +58,8 @@ size_t BackTrace(void** p, size_t len) {
 #endif
 
 #if defined(USE_GCC_BACKTRACE)
-    #include <cxxabi.h>
-    #include <unwind.h>
+#include <cxxabi.h>
+#include <unwind.h>
 
 namespace {
     namespace NGCCBacktrace {
@@ -99,7 +100,35 @@ namespace {
 }
 
 size_t BackTrace(void** p, size_t len) {
+#if defined(pg_sanitizer_enabled)
+    struct TStackFrame {
+        const TStackFrame* Next;
+        void* Ret;
+    };
+
+    const TStackFrame* frame = (const TStackFrame*)__builtin_frame_address(0);
+    const TStackFrame* bound = frame + 4096;
+
+    size_t cnt = 0;
+
+    while (frame && cnt < len) {
+        p[cnt++] = frame->Ret;
+
+        if (frame->Next < frame || frame->Next > bound) {
+            if (cnt < 5) {
+                return NGCCBacktrace::BackTrace(p, len);
+            } else {
+                return cnt;
+            }
+        }
+
+        frame = frame->Next;
+    }
+
+    return cnt;
+#else
     return NGCCBacktrace::BackTrace(p, len);
+#endif
 }
 #endif
 
@@ -116,13 +145,13 @@ size_t BackTrace(void**, size_t) {
 #endif
 
 #if defined(_unix_) && !defined(_cygwin_)
-    #include <util/generic/strfcpy.h>
+#include <util/generic/strfcpy.h>
 
-    #include <dlfcn.h>
+#include <dlfcn.h>
 
-    #if defined(_darwin_)
-        #include <execinfo.h>
-    #endif
+#if defined(_darwin_)
+#include <execinfo.h>
+#endif
 
 static inline const char* CopyTo(const char* from, char* buf, size_t len) {
     strfcpy(buf, from, len);
@@ -141,15 +170,13 @@ TResolvedSymbol ResolveSymbol(void* sym, char* buf, size_t len) {
     Zero(dli);
 
     if (dladdr(sym, &dli) && dli.dli_sname) {
-        ret.Name = CopyTo(NPrivate::TCppDemangler().Demangle(dli.dli_sname), buf, len);
+        ret.Name = CopyTo(TCppDemangler().Demangle(dli.dli_sname), buf, len);
         ret.NearestSymbol = dli.dli_saddr;
     }
 
     return ret;
 }
 #elif defined(_win_)
-    #include <util/generic/singleton.h>
-
 namespace {
     struct TWinSymbolResolverImpl {
         typedef BOOL(WINAPI* TSymInitializeFunc)(HANDLE, PCSTR, BOOL);
@@ -242,18 +269,22 @@ void FormatBackTrace(IOutputStream* out, void* const* backtrace, size_t backtrac
     }
 }
 
-TFormatBackTraceFn FormatBackTraceFn = FormatBackTrace;
+void FormatBackTraceImpl(IOutputStream* out) {
+    void* array[300];
+    const size_t s = BackTrace(array, Y_ARRAY_SIZE(array));
+    FormatBackTrace(out, array, s);
+}
+
+TFormatBackTraceFn FormatBackTraceFn = FormatBackTraceImpl;
+
+void FormatBackTrace(IOutputStream* out) {
+    FormatBackTraceFn(out);
+}
 
 TFormatBackTraceFn SetFormatBackTraceFn(TFormatBackTraceFn f) {
     TFormatBackTraceFn prevFn = FormatBackTraceFn;
     FormatBackTraceFn = f;
     return prevFn;
-}
-
-void FormatBackTrace(IOutputStream* out) {
-    void* array[300];
-    const size_t s = BackTrace(array, Y_ARRAY_SIZE(array));
-    FormatBackTraceFn(out, array, s);
 }
 
 TFormatBackTraceFn GetFormatBackTraceFn() {
@@ -274,33 +305,11 @@ void TBackTrace::Capture() {
 }
 
 void TBackTrace::PrintTo(IOutputStream& out) const {
-    FormatBackTraceFn(&out, Data, Size);
+    FormatBackTrace(&out, Data, Size);
 }
 
 TString TBackTrace::PrintToString() const {
     TStringStream ss;
     PrintTo(ss);
     return ss.Str();
-}
-
-size_t TBackTrace::size() const {
-    return Size;
-}
-
-const void* const* TBackTrace::data() const {
-    return Data;
-}
-
-TBackTrace::operator TBackTraceView() const {
-    return TBackTraceView(Data, Size);
-}
-
-TBackTrace TBackTrace::FromCurrentException() {
-#ifdef _YNDX_LIBUNWIND_EXCEPTION_BACKTRACE_SIZE
-    TBackTrace result;
-    result.Size = __cxxabiv1::__cxa_collect_current_exception_backtrace(result.Data, CAPACITY);
-    return result;
-#else
-    return TBackTrace();
-#endif
 }

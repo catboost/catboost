@@ -19,14 +19,13 @@ SRCS(
 
 
 PEERDIR(
-    catboost/libs/helpers
     catboost/libs/model
 
     catboost/private/libs/ctr_description
     catboost/private/libs/labels
     contrib/libs/coreml
     contrib/libs/onnx
-    library/cpp/resource
+    library/resource
 )
 
 RESOURCE(

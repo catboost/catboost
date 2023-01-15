@@ -127,8 +127,7 @@ class WSGIRequestHandler(BaseHTTPRequestHandler):
             return
 
         handler = ServerHandler(
-            self.rfile, self.wfile, self.get_stderr(), self.get_environ(),
-            multithread=False,
+            self.rfile, self.wfile, self.get_stderr(), self.get_environ()
         )
         handler.request_handler = self      # backpointer for logging
         handler.run(self.server.get_app())

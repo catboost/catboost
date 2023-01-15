@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2006-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -11,10 +11,10 @@
 #include "internal/cryptlib.h"
 #include <openssl/x509.h>
 #include <openssl/asn1.h>
-#include "dh_local.h"
+#include "dh_locl.h"
 #include <openssl/bn.h>
-#include "crypto/asn1.h"
-#include "crypto/evp.h"
+#include "internal/asn1_int.h"
+#include "internal/evp_int.h"
 #include <openssl/cms.h>
 
 /*
@@ -629,18 +629,16 @@ static int dh_cms_set_peerkey(EVP_PKEY_CTX *pctx,
         goto err;
 
     pk = EVP_PKEY_CTX_get0_pkey(pctx);
-    if (pk == NULL || pk->type != EVP_PKEY_DHX)
+    if (!pk)
         goto err;
-
+    if (pk->type != EVP_PKEY_DHX)
+        goto err;
     /* Get parameters from parent key */
     dhpeer = DHparams_dup(pk->pkey.dh);
-    if (dhpeer == NULL)
-        goto err;
-
     /* We have parameters now set public key */
     plen = ASN1_STRING_length(pubkey);
     p = ASN1_STRING_get0_data(pubkey);
-    if (p == NULL || plen == 0)
+    if (!p || !plen)
         goto err;
 
     if ((public_key = d2i_ASN1_INTEGER(NULL, &p, plen)) == NULL) {
@@ -657,7 +655,6 @@ static int dh_cms_set_peerkey(EVP_PKEY_CTX *pctx,
     pkpeer = EVP_PKEY_new();
     if (pkpeer == NULL)
         goto err;
-
     EVP_PKEY_assign(pkpeer, pk->ameth->pkey_id, dhpeer);
     dhpeer = NULL;
     if (EVP_PKEY_derive_set_peer(pctx, pkpeer) > 0)
@@ -904,7 +901,6 @@ static int dh_cms_encrypt(CMS_RecipientInfo *ri)
  err:
     OPENSSL_free(penc);
     X509_ALGOR_free(wrap_alg);
-    OPENSSL_free(dukm);
     return rv;
 }
 

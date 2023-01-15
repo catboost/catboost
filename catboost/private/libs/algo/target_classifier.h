@@ -18,5 +18,4 @@ TTargetClassifier BuildTargetClassifier(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     int targetBorderCount,
     EBorderSelectionType targetBorderType,
-    bool allowConstLabel,
-    ui32 targetId);
+    bool allowConstLabel);

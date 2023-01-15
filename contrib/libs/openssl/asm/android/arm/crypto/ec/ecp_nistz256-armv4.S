@@ -3756,7 +3756,7 @@ ecp_nistz256_point_add:
 #endif
 	movne	r12,#-1
 	stmia	r3,{r4-r11}
-	str	r12,[sp,#32*18+8]	@ ~in2infty
+	str	r12,[sp,#32*18+8]	@ !in2infty
 
 	ldmia	r1!,{r4-r11}	@ copy in1_x
 	add	r3,sp,#96
@@ -3777,7 +3777,7 @@ ecp_nistz256_point_add:
 #endif
 	movne	r12,#-1
 	stmia	r3,{r4-r11}
-	str	r12,[sp,#32*18+4]	@ ~in1infty
+	str	r12,[sp,#32*18+4]	@ !in1infty
 
 	add	r1,sp,#256
 	add	r2,sp,#256
@@ -3842,20 +3842,33 @@ ecp_nistz256_point_add:
 	orr	r11,r11,r4
 	orr	r6,r6,r8
 	orr	r11,r11,r9
-	orr	r11,r11,r6		@ ~is_equal(U1,U2)
+	orrs	r11,r11,r6
 
-	ldr	r10,[sp,#32*18+4]	@ ~in1infty
-	ldr	r12,[sp,#32*18+8]	@ ~in2infty
-	ldr	r14,[sp,#32*18+12]	@ ~is_equal(S1,S2)
-	mvn	r10,r10			@ -1/0 -> 0/-1
-	mvn	r12,r12			@ -1/0 -> 0/-1
-	orr	r11,r11,r10
-	orr	r11,r11,r12
-	orrs	r11,r11,r14		@ set flags
+	bne	.Ladd_proceed		@ is_equal(U1,U2)?
 
-	@ if(~is_equal(U1,U2) | in1infty | in2infty | ~is_equal(S1,S2))
-	bne	.Ladd_proceed
+	ldr	r10,[sp,#32*18+4]
+	ldr	r12,[sp,#32*18+8]
+	ldr	r14,[sp,#32*18+12]
+	tst	r10,r12
+	beq	.Ladd_proceed		@ (in1infty || in2infty)?
+	tst	r14,r14
+	beq	.Ladd_double		@ is_equal(S1,S2)?
 
+	ldr	r0,[sp,#32*18+16]
+	eor	r4,r4,r4
+	eor	r5,r5,r5
+	eor	r6,r6,r6
+	eor	r7,r7,r7
+	eor	r8,r8,r8
+	eor	r9,r9,r9
+	eor	r10,r10,r10
+	eor	r11,r11,r11
+	stmia	r0!,{r4-r11}
+	stmia	r0!,{r4-r11}
+	stmia	r0!,{r4-r11}
+	b	.Ladd_done
+
+.align	4
 .Ladd_double:
 	ldr	r1,[sp,#32*18+20]
 	add	sp,sp,#32*(18-5)+16	@ difference in frame sizes
@@ -3920,24 +3933,24 @@ ecp_nistz256_point_add:
 	add	r2,sp,#544
 	bl	__ecp_nistz256_sub_from	@ p256_sub(res_y, res_y, S2);
 
-	ldr	r11,[sp,#32*18+4]	@ ~in1infty
-	ldr	r12,[sp,#32*18+8]	@ ~in2infty
+	ldr	r11,[sp,#32*18+4]	@ !in1intfy
+	ldr	r12,[sp,#32*18+8]	@ !in2intfy
 	add	r1,sp,#0
 	add	r2,sp,#192
-	and	r10,r11,r12		@ ~in1infty & ~in2infty
+	and	r10,r11,r12
 	mvn	r11,r11
 	add	r3,sp,#96
-	and	r11,r11,r12		@ in1infty & ~in2infty
-	mvn	r12,r12			@ in2infty
+	and	r11,r11,r12
+	mvn	r12,r12
 	ldr	r0,[sp,#32*18+16]
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -3947,11 +3960,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -3961,11 +3974,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -3975,11 +3988,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -3989,11 +4002,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4003,11 +4016,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4017,11 +4030,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4031,11 +4044,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4045,11 +4058,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4059,11 +4072,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4073,11 +4086,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4087,11 +4100,11 @@ ecp_nistz256_point_add:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4133,7 +4146,7 @@ ecp_nistz256_point_add_affine:
 #endif
 	movne	r12,#-1
 	stmia	r3,{r4-r11}
-	str	r12,[sp,#32*15+4]	@ ~in1infty
+	str	r12,[sp,#32*15+4]	@ !in1infty
 
 	ldmia	r2!,{r4-r11}	@ copy in2_x
 	add	r3,sp,#192
@@ -4160,7 +4173,7 @@ ecp_nistz256_point_add_affine:
 	it	ne
 #endif
 	movne	r12,#-1
-	str	r12,[sp,#32*15+8]	@ ~in2infty
+	str	r12,[sp,#32*15+8]	@ !in2infty
 
 	add	r1,sp,#160
 	add	r2,sp,#160
@@ -4242,24 +4255,24 @@ ecp_nistz256_point_add_affine:
 	add	r2,sp,#288
 	bl	__ecp_nistz256_sub_from	@ p256_sub(res_y, res_y, S2);
 
-	ldr	r11,[sp,#32*15+4]	@ ~in1infty
-	ldr	r12,[sp,#32*15+8]	@ ~in2infty
+	ldr	r11,[sp,#32*15+4]	@ !in1intfy
+	ldr	r12,[sp,#32*15+8]	@ !in2intfy
 	add	r1,sp,#0
 	add	r2,sp,#192
-	and	r10,r11,r12		@ ~in1infty & ~in2infty
+	and	r10,r11,r12
 	mvn	r11,r11
 	add	r3,sp,#96
-	and	r11,r11,r12		@ in1infty & ~in2infty
-	mvn	r12,r12			@ in2infty
+	and	r11,r11,r12
+	mvn	r12,r12
 	ldr	r0,[sp,#32*15]
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4269,11 +4282,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4283,11 +4296,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4297,11 +4310,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4311,11 +4324,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4325,11 +4338,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4339,11 +4352,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7
@@ -4353,11 +4366,11 @@ ecp_nistz256_point_add_affine:
 	ldmia	r1!,{r4-r5}		@ res_x
 	ldmia	r2!,{r6-r7}		@ in2_x
 	ldmia	r3!,{r8-r9}		@ in1_x
-	and	r4,r4,r10		@ ~in1infty & ~in2infty
+	and	r4,r4,r10
 	and	r5,r5,r10
-	and	r6,r6,r11		@ in1infty & ~in2infty
+	and	r6,r6,r11
 	and	r7,r7,r11
-	and	r8,r8,r12		@ in2infty
+	and	r8,r8,r12
 	and	r9,r9,r12
 	orr	r4,r4,r6
 	orr	r5,r5,r7

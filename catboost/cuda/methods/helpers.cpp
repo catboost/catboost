@@ -87,11 +87,11 @@ TString NCatboostCuda::SplitConditionToString(
                 messageBuilder << "== -inf (nan)";
             }
         } else {
-            CB_ENSURE(nanMode == ENanMode::Max, "Unexpected nan mode");
+            Y_VERIFY(nanMode == ENanMode::Max);
             if (split.BinIdx < borders.size()) {
                 messageBuilder << ">" << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
             } else {
-                CB_ENSURE(split.BinIdx == borders.size(), "Bin index is too large");
+                Y_VERIFY(split.BinIdx == borders.size());
                 messageBuilder << "== +inf (nan)";
             }
         }
@@ -123,11 +123,11 @@ TString NCatboostCuda::SplitConditionToString(
                 messageBuilder << (inverse ? "!=" : "==") << " -inf (nan)";
             }
         } else {
-            CB_ENSURE(nanMode == ENanMode::Max, "Unexpected nan mode");
+            Y_VERIFY(nanMode == ENanMode::Max);
             if (split.BinIdx < borders.size()) {
                 messageBuilder << (inverse ? "<=" : ">") << featuresManager.GetBorders(split.FeatureId)[split.BinIdx];
             } else {
-                CB_ENSURE(split.BinIdx == borders.size(), "Bin index is too large");
+                Y_VERIFY(split.BinIdx == borders.size());
                 messageBuilder << (inverse ? "!=" : "==") << " +inf (nan)";
             }
         }
@@ -154,7 +154,7 @@ void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManage
 }
 
 NCatboostCuda::TBinarySplit NCatboostCuda::ToSplit(const NCatboostCuda::TBinarizedFeaturesManager& manager, const TBestSplitProperties& props) {
-    CB_ENSURE(props.Defined(), "Need best split properties");
+    Y_VERIFY(props.Defined());
     if (manager.IsFeatureBundle(props.FeatureId)) {
         return manager.TranslateFeatureBundleSplitToBinarySplit(props.FeatureId, props.BinId);
     }

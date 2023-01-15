@@ -89,7 +89,7 @@ namespace NCatboostCuda {
         }
 
         void ComputeBins(const TDocParallelDataSet& dataSet,
-                         TStripeBuffer<ui32>* dst) const override;
+                         TStripeBuffer<ui32>* dst) const;
 
         ui32 OutputDim() const final {
             Y_ASSERT(Dim);

@@ -17,7 +17,7 @@ def exists(path):
     """Test whether a path exists.  Returns False for broken symbolic links"""
     try:
         os.stat(path)
-    except (OSError, ValueError):
+    except OSError:
         return False
     return True
 
@@ -28,7 +28,7 @@ def isfile(path):
     """Test whether a path is a regular file"""
     try:
         st = os.stat(path)
-    except (OSError, ValueError):
+    except OSError:
         return False
     return stat.S_ISREG(st.st_mode)
 
@@ -40,7 +40,7 @@ def isdir(s):
     """Return true if the pathname refers to an existing directory."""
     try:
         st = os.stat(s)
-    except (OSError, ValueError):
+    except OSError:
         return False
     return stat.S_ISDIR(st.st_mode)
 
@@ -149,7 +149,7 @@ def _check_arg_types(funcname, *args):
         elif isinstance(s, bytes):
             hasbytes = True
         else:
-            raise TypeError(f'{funcname}() argument must be str, bytes, or '
-                            f'os.PathLike object, not {s.__class__.__name__!r}') from None
+            raise TypeError('%s() argument must be str or bytes, not %r' %
+                            (funcname, s.__class__.__name__)) from None
     if hasstr and hasbytes:
         raise TypeError("Can't mix strings and bytes in path components") from None

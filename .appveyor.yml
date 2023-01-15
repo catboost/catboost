@@ -1,0 +1,66 @@
+version: '{build}-{branch}'
+branches:
+  only:
+    - master
+
+skip_tags: true
+
+image:
+- Visual Studio 2015
+
+environment:
+  matrix:
+    - image: Visual Studio 2017
+      configuration: Release
+      arch: 64
+      target: exe
+    - image: Visual Studio 2017
+      configuration: Release
+      arch: 64
+      target: whl
+    - image: Visual Studio 2017
+      configuration: Release
+      arch: 64
+      target: R
+
+
+clone_folder: c:\projects\catboost
+
+install:
+  - git submodule update --init --recursive
+  
+build_script:
+  - |
+    echo Downloading CUDA toolkit 8
+    appveyor DownloadFile  https://developer.nvidia.com/compute/cuda/8.0/prod/local_installers/cuda_8.0.44_windows-exe -FileName cuda_8.0.44_windows.exe
+    echo Installing CUDA toolkit 8
+    cuda_8.0.44_windows.exe -s compiler_8.0 cublas_8.0 cublas_dev_8.0 cudart_8.0 curand_8.0 curand_dev_8.0 cusparse_8.0 cusparse_dev_8.0
+
+    dir .
+
+    dir "%ProgramFiles%"
+    dir "C:\Program Files"
+    dir "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA"
+    dir "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0"
+    dir "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0\bin"
+
+    xcopy "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA" "C:\CUDA" /e /i /h
+
+    dir "C:\CUDA"
+    dir "C:\CUDA\v8.0"
+    dir "C:\CUDA\v8.0\bin"
+    dir "C:\CUDA\v8.0\include"
+
+    set PATH=C:\CUDA\v8.0\bin;%PATH%
+
+    python -m pip install webdavclient
+
+    nvcc -V
+    cd c:\projects\catboost
+    call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
+    call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+
+    if "%target%"=="exe" call ci\appveyor\build_apps.cmd
+    if "%target%"=="whl" call ci\appveyor\build_whls.cmd
+    if "%target%"=="R" call ci\appveyor\build_r.cmd
+   

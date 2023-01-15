@@ -37,7 +37,7 @@
 # include <starlet.h>
 # include <iodef.h>
 # ifdef __alpha
-#  error #include <iosbdef.h>
+#  include <iosbdef.h>
 # else
 typedef struct _iosb {           /* Copied from IOSBDEF.H for Alpha  */
 #  pragma __nomember_alignment
@@ -82,7 +82,7 @@ typedef struct _iosb {           /* Copied from IOSBDEF.H for Alpha  */
 
 # endif  /* End of IOSBDEF */
 
-# error #include <efndef.h>
+# include <efndef.h>
 # include <stdlib.h>
 # include <ssdef.h>
 # include <time.h>

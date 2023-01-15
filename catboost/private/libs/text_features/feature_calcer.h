@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/flatbuffers/guid.fbs.h>
 #include <catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
-#include <library/cpp/object_factory/object_factory.h>
+#include <library/object_factory/object_factory.h>
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
 #include <util/stream/input.h>
@@ -32,11 +32,11 @@ namespace NCB {
         }
 
         virtual void Save(IOutputStream*) const {
-            CB_ENSURE(false, "Serialization not allowed");
+            Y_FAIL("Serialization not allowed");
         };
 
         virtual void Load(IInputStream*) {
-            CB_ENSURE(false, "Deserialization not allowed");
+            Y_FAIL("Deserialization not allowed");
         };
 
         virtual void TrimFeatures(TConstArrayRef<ui32> featureIndices) = 0;

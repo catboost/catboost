@@ -9,7 +9,7 @@
 
 #include <catboost/private/libs/options/output_file_options.h>
 
-#include <library/cpp/json/json_reader.h>
+#include <library/json/json_reader.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -65,7 +65,7 @@ namespace NCB {
             NCB::NCoreML::ConfigureMetadata(model, userParameters, pipelineDescription);
             NCB::NCoreML::ConfigurePipelineModelIO(model, pipelineDescription);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD pipelineModel.SerializeToString(&data);
+            pipelineModel.SerializeToString(&data);
         } else {
             auto description = treeModel.mutable_description();
             NCB::NCoreML::ConfigureMetadata(model, userParameters, description);
@@ -73,7 +73,7 @@ namespace NCB {
 
             NCB::NCoreML::ConfigureTrees(model, perTypeFeatureIdxToInputIndex, ensemble);
 
-            Y_PROTOBUF_SUPPRESS_NODISCARD treeModel.SerializeToString(&data);
+            treeModel.SerializeToString(&data);
         }
 
         TOFStream out(modelFile);
@@ -107,7 +107,7 @@ namespace NCB {
         NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
 
         TString data;
-        Y_PROTOBUF_SUPPRESS_NODISCARD outModel.SerializeToString(&data);
+        outModel.SerializeToString(&data);
         oStream->Write(data);
     }
 
@@ -143,8 +143,8 @@ namespace NCB {
         const THashMap<ui32, TString>* catFeaturesHashToString
     ) {
         //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json || format == EModelType::Pmml,
-            "Can save non symmetric trees only in cbm, Json, or Pmml format");
+        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
+            "Can save non symmetric trees only in cbm or Json format");
         //TODO(d-kruchinin): support text features
         CB_ENSURE(
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,
@@ -172,7 +172,7 @@ namespace NCB {
                 {
                     CB_ENSURE(
                         userParametersJson.empty(),
-                        "JSON user params for JSON model export are not supported"
+                        "JSON user params for CatBoost model export are not supported"
                     );
 
                     OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);

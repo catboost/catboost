@@ -30,18 +30,6 @@ enum ESaverMode {
     SAVER_MODE_WRITE_COMPRESSED = 3,
 };
 
-namespace NBinSaverInternals {
-    // This lets explicitly control the overload resolution priority
-    // The higher P means higher priority in overload resolution order
-    template <int P>
-    struct TOverloadPriority : TOverloadPriority <P-1> {
-    };
-
-    template <>
-    struct TOverloadPriority<0> {
-    };
-}
-
 //////////////////////////////////////////////////////////////////////////
 struct IBinSaver {
 public:
@@ -63,18 +51,18 @@ private:
     //  }
     // };
     template <class T, typename = decltype(std::declval<T*>()->T::operator&(std::declval<IBinSaver&>()))>
-    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<2>) { // highest priority -  will be resolved first if enabled
+    void CallObjectSerialize(T* p, ui32) { // ui32 will be resolved first if enabled
                                            // Note: p->operator &(*this) would lead to infinite recursion
         p->T::operator&(*this);
     }
 
     template <class T, typename = decltype(std::declval<T&>() & std::declval<IBinSaver&>())>
-    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<1>) { // lower priority - will be resolved second if enabled
+    void CallObjectSerialize(T* p, void*) { // void* will be resolved second if enabled
         (*p) & (*this);
     }
 
     template <class T>
-    void CallObjectSerialize(T* p, NBinSaverInternals::TOverloadPriority<0>) { // lower priority - will be resolved last
+    void CallObjectSerialize(T* p, ...) { // ... will be resolved last
 #if (!defined(_MSC_VER))
         // In MSVC __has_trivial_copy returns false to enums, primitive types and arrays.
         static_assert(__has_trivial_copy(T), "Class is nontrivial copyable, you must define operator&, see");
@@ -133,7 +121,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            TVector<typename AM::key_type, typename std::allocator_traits<typename AM::allocator_type>::template rebind_alloc<typename AM::key_type>> indices;
+            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);
@@ -144,7 +132,7 @@ private:
             CheckOverflow(nSize, data.size());
             Add(3, &nSize);
 
-            TVector<typename AM::key_type, typename std::allocator_traits<typename AM::allocator_type>::template rebind_alloc<typename AM::key_type>> indices;
+            TVector<typename AM::key_type, typename AM::allocator_type::template rebind<typename AM::key_type>::other> indices;
             indices.resize(nSize);
             TStoredSize i = 1;
             for (auto pos = data.begin(); pos != data.end(); ++pos, ++i)
@@ -163,7 +151,7 @@ private:
             data.clear();
             TStoredSize nSize;
             Add(3, &nSize);
-            TVector<typename AMM::key_type, typename std::allocator_traits<typename AMM::allocator_type>::template rebind_alloc<typename AMM::key_type>> indices;
+            TVector<typename AMM::key_type, typename AMM::allocator_type::template rebind<typename AMM::key_type>::other> indices;
             indices.resize(nSize);
             for (TStoredSize i = 0; i < nSize; ++i)
                 Add(1, &indices[i]);
@@ -294,7 +282,7 @@ public:
     // return type of Add() is used to detect specialized serializer (see HasNonTrivialSerializer below)
     template <class T>
     char Add(const chunk_id, T* p) {
-        CallObjectSerialize(p, NBinSaverInternals::TOverloadPriority<2>());
+        CallObjectSerialize(p, 0u);
         return 0;
     }
     int Add(const chunk_id, std::string* pStr) {
@@ -471,13 +459,13 @@ public:
     };
 
     template <class... TVariantTypes>
-    int Add(const chunk_id, std::variant<TVariantTypes...>* pData) {
-        static_assert(std::variant_size_v<std::variant<TVariantTypes...>> < Max<ui32>());
+    int Add(const chunk_id, TVariant<TVariantTypes...>* pData) {
+        static_assert(::TVariantSize<TVariant<TVariantTypes...>>::value < Max<ui32>());
 
         ui32 index;
         if (IsReading()) {
             Add(1, &index);
-            TLoadFromTypeFromListHelper<std::variant<TVariantTypes...>>::template Do<TVariantTypes...>(
+            TLoadFromTypeFromListHelper<TVariant<TVariantTypes...>>::template Do<TVariantTypes...>(
                 *this,
                 index,
                 pData
@@ -485,7 +473,7 @@ public:
         } else {
             index = pData->index(); // type cast is safe because of static_assert check above
             Add(1, &index);
-            std::visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
+            ::Visit([&](auto& dst) -> void { Add(2, &dst); }, *pData);
         }
         return 0;
     }
@@ -625,17 +613,11 @@ struct TRegisterSaveLoadType {
         return 0;                 \
     }
 
-#define SAVELOAD_OVERRIDE_WITHOUT_BASE(...) \
-    int operator&(IBinSaver& f) override {  \
-        f.AddMulti(__VA_ARGS__);            \
-        return 0;                           \
-    }
-
-#define SAVELOAD_OVERRIDE(base, ...)       \
-    int operator&(IBinSaver& f) override { \
-        base::operator&(f);                \
-        f.AddMulti(__VA_ARGS__);           \
-        return 0;                          \
+#define SAVELOAD_OVERRIDE(base, ...)      \
+    int operator&(IBinSaver& f)override { \
+        base::operator&(f);               \
+        f.AddMulti(__VA_ARGS__);          \
+        return 0;                         \
     }
 
 #define SAVELOAD_BASE(...)        \

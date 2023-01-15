@@ -12,7 +12,6 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/train_lib/dir_helper.h>
-#include <catboost/libs/train_lib/trainer_env.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -106,7 +105,7 @@ namespace {
             : TProductIteratorBase<TEnumeratedSet, TValue>(sets)
         {}
 
-        bool Next(TConstArrayRef<TValue>* value) override {
+        virtual bool Next(TConstArrayRef<TValue>* value) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
@@ -162,7 +161,7 @@ namespace {
             this->TotalElementsCount = count;
         }
 
-        bool Next(TConstArrayRef<TValue>* values) override {
+        virtual bool Next(TConstArrayRef<TValue>* values) override {
             if (this->IsIteratorReachedEnd()) {
                  return false;
             }
@@ -236,7 +235,7 @@ namespace {
         NCB::TTrainingDataProviderPtr srcData,
         const TTrainTestSplitParams& trainTestSplitParams,
         ui64 cpuUsedRamLimit,
-        NPar::ILocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor) {
 
         CB_ENSURE(
             srcData->ObjectsData->GetOrder() != NCB::EObjectsOrder::Ordered,
@@ -399,7 +398,7 @@ namespace {
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
         TLabelConverter* labelConverter,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
         NCB::TTrainingDataProviderPtr* result) {
@@ -427,12 +426,11 @@ namespace {
             // Quantizing training data
             *result = GetTrainingData(
                 data,
-                /*dataCanBeEmpty*/ false,
                 /*isLearnData*/ true,
                 /*datasetName*/ TStringBuf(),
                 /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
                 /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
-                /*ensureConsecutiveLearnFeaturesDataForCpu*/ false, // data will be split afterwards anyway
+                /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
                 tmpDir,
                 quantizedFeaturesInfo,
                 catBoostOptions,
@@ -457,7 +455,7 @@ namespace {
         const TQuantizationParamsInfo& oldQuantizedParamsInfo,
         const TQuantizationParamsInfo& newQuantizedParamsInfo,
         TLabelConverter* labelConverter,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         NCatboostOptions::TCatBoostOptions* catBoostOptions,
         NCB::TTrainingDataProviders* result) {
@@ -696,8 +694,7 @@ namespace {
         const NCB::TDataMetaInfo& metaInfo,
         const NJson::TJsonValue& modelParamsToBeTried,
         NCatboostOptions::TCatBoostOptions *catBoostOptions,
-        NCatboostOptions::TOutputFilesOptions *outputFileOptions,
-        TString* paramsErrorMessage) {
+        NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
         try {
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
@@ -707,8 +704,7 @@ namespace {
             outputFileOptions->Load(outputJsonParams);
 
             return true;
-        } catch (const TCatBoostException& exception) {
-            *paramsErrorMessage = ToString(exception.what());
+        } catch (const TCatBoostException&) {
             return false;
         }
     }
@@ -725,7 +721,7 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo* bestGridParams,
         TVector<TCVResult>* bestCvResult,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
@@ -749,15 +745,14 @@ namespace {
         );
         double bestParamsSetMetricValue = 0;
         // Other parameters
+        NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
         TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
-
+        
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         TConstArrayRef<NJson::TJsonValue> paramsSet;
-        TString paramsErrorString;
-        bool foundValidParams = false;
         while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
@@ -782,13 +777,11 @@ namespace {
                 data.Get()->MetaInfo,
                 *modelParamsToBeTried,
                 &catBoostOptions,
-                &outputFileOptions,
-                &paramsErrorString
+                &outputFileOptions
             );
             if (!areParamsValid) {
                 continue;
             }
-            foundValidParams = true;
 
             TString tmpDir;
             if (outputFileOptions.AllowWriteFiles()) {
@@ -802,14 +795,28 @@ namespace {
             TVector<TCVResult> cvResult;
             {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+                QuantizeDataIfNeeded(
+                    outputFileOptions.AllowWriteFiles(),
+                    tmpDir,
+                    featuresLayout,
+                    quantizedFeaturesInfo,
+                    data,
+                    lastQuantizationParamsSet,
+                    quantizationParamsSet,
+                    &labelConverter,
+                    localExecutor,
+                    &rand,
+                    &catBoostOptions,
+                    &quantizedData
+                );
+
                 lastQuantizationParamsSet = quantizationParamsSet;
                 CrossValidate(
                     *modelParamsToBeTried,
-                    quantizedFeaturesInfo,
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     labelConverter,
-                    data,
+                    quantizedData,
                     cvParams,
                     localExecutor,
                     &cvResult);
@@ -819,7 +826,7 @@ namespace {
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
                 approxDimension,
-                data->MetaInfo.HasWeights
+                quantizedData->MetaInfo.HasWeights
             );
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
@@ -895,9 +902,6 @@ namespace {
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
         }
-        if (!foundValidParams) {
-            ythrow TCatBoostException() << "All params in grid were invalid, last error message: " << paramsErrorString;
-        }
         return bestParamsSetMetricValue;
     }
 
@@ -913,7 +917,7 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
         TMetricsAndTimeLeftHistory* trainTestResult,
-        NPar::ILocalExecutor* localExecutor,
+        NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(trainTestSplitParams.PartitionRandSeed);
@@ -923,7 +927,7 @@ namespace {
             data = data->GetSubset(objectsGroupingSubset, cpuUsedRamLimit, localExecutor);
         }
 
-        TSetLogging inThisScope(ELoggingLevel::Debug);
+        TSetLogging inThisScope(ELoggingLevel::Verbose);
         TLogger logger;
         TString searchToken = "loss";
         const auto parametersToken = GetParametersToken();
@@ -944,8 +948,6 @@ namespace {
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         TConstArrayRef<NJson::TJsonValue> paramsSet;
-        bool foundValidParams = false;
-        TString paramsErrorString;
         while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
@@ -970,13 +972,11 @@ namespace {
                 data.Get()->MetaInfo,
                 *modelParamsToBeTried,
                 &catBoostOptions,
-                &outputFileOptions,
-                &paramsErrorString
+                &outputFileOptions
             );
             if (!areParamsValid) {
                 continue;
             }
-            foundValidParams = true;
 
             static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
             TString tmpDir;
@@ -1009,7 +1009,7 @@ namespace {
                     &trainTestData
                 );
                 lastQuantizationParamsSet = quantizationParamsSet;
-                THolder<IModelTrainer> modelTrainerHolder = THolder<IModelTrainer>(TTrainerFactory::Construct(catBoostOptions.GetTaskType()));
+                THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(catBoostOptions.GetTaskType());
 
                 TEvalResult evalRes;
 
@@ -1019,7 +1019,6 @@ namespace {
                 internalOptions.OffsetMetricPeriodByInitModelSize = true;
                 outputFileOptions.SetAllowWriteFiles(false);
                 const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
-                const auto defaultCustomCallbacks = MakeHolder<TCustomCallbacks>(Nothing());
                 // Training model
                 modelTrainerHolder->TrainModel(
                     internalOptions,
@@ -1028,10 +1027,8 @@ namespace {
                     objectiveDescriptor,
                     evalMetricDescriptor,
                     trainTestData,
-                    /*precomputedSingleOnlineCtrDataForSingleFold*/ Nothing(),
                     labelConverter,
                     defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
-                    defaultCustomCallbacks.Get(),
                     /*initModel*/ Nothing(),
                     /*initLearnProgress*/ nullptr,
                     /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
@@ -1128,9 +1125,6 @@ namespace {
             oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
         }
-        if (!foundValidParams) {
-            ythrow TCatBoostException() << "All params in grid were invalid, last error message: " << paramsErrorString;
-        }
         return bestParamsSetMetricValue;
     }
 } // anonymous namespace
@@ -1208,7 +1202,6 @@ namespace NCB {
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
 
-        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
@@ -1292,7 +1285,6 @@ namespace NCB {
                 SetGridParamsToBestOptionValues(bestGridParams, bestOptionValuesWithCvResult);
             }
         }
-        trainerEnv.Reset();
         if (returnCvStat || isSearchUsingTrainTestSplit) {
             if (isSearchUsingTrainTestSplit) {
                 if (verbose) {
@@ -1341,7 +1333,6 @@ namespace NCB {
         CB_ENSURE(!outputJsonParams["save_snapshot"].GetBoolean(), "Snapshots are not yet supported for RandomizedSearchCV");
 
         InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
-        auto trainerEnv = NCB::CreateTrainerEnv(catBoostOptions);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads.Get() - 1);
 
@@ -1415,7 +1406,6 @@ namespace NCB {
                 randDistGenerators
             );
         }
-        trainerEnv.Reset();
         bestGridParams.QuantizationParamsSet.GeneralInfo = generalQuantizeParamsInfo;
         SetGridParamsToBestOptionValues(bestGridParams, bestOptionValuesWithCvResult);
         if (returnCvStat || isSearchUsingTrainTestSplit) {

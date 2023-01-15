@@ -1,6 +1,6 @@
 #include "update_part_props.cuh"
 #include "fill.cuh"
-#include <library/cpp/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 
@@ -58,26 +58,10 @@ namespace NKernel {
         const int iterCount = (size - localIdx + stripeSize - 1)  / stripeSize;
 
         stat += localIdx;
-        double accumResult = 0;
-        const int M = 8;
+
         if (size > 0) {
-            int i = 0;
-            for (; i <= iterCount - N * M; i += N * M) {
-                #pragma unroll 4
-                for (int j = 0; j < N * M; ++j) {
-                    const float4* stat4 = (const float4*) stat;
-                    float4 val = Ldg(stat4);
-                    sum.x += val.x;
-                    sum.y += val.y;
-                    sum.z += val.z;
-                    sum.w += val.w;
-                    stat += stripeSize;
-                }
-                accumResult += (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
-                sum = {0};
-            }
             #pragma unroll N
-            for (; i < iterCount; ++i) {
+            for (int i = 0; i < iterCount; ++i) {
                 const float4* stat4 = (const float4*) stat;
                 float4 val = Ldg(stat4);
                 sum.x += val.x;
@@ -88,7 +72,7 @@ namespace NKernel {
             }
         }
 
-        return accumResult + (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
+        return (double)sum.x + (double)sum.y + (double)sum.z + (double)sum.w;
     };
 
 
@@ -420,7 +404,7 @@ namespace NKernel {
         numBlocks.y = min(count, 65535);
         numBlocks.z = statCount;
         numBlocks.x = CeilDivide(2 * TArchProps::SMCount(), (int)statCount);
-        Y_VERIFY((ui64)numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
+        Y_VERIFY(numBlocks.x * numBlocks.y * numBlocks.z <= tempVarsCount);
 
         UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, count, tempVars);
         {

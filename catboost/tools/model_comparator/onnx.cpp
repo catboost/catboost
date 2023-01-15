@@ -1,8 +1,8 @@
 #include "decl.h"
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
-#include <contrib/libs/onnx/onnx/onnx_pb.h>
-#include <google/protobuf/util/message_differencer.h>
+#include <contrib/libs/onnx/proto/onnx_ml.pb.h>
+#include <contrib/libs/protobuf/util/message_differencer.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>
@@ -24,7 +24,7 @@ namespace NCB {
         TMaybe<onnx::ModelProto> model = MakeMaybe<onnx::ModelProto>();
 
         TIFStream in{TString(filePath)};
-        if (!model->ParseFromArcadiaStream(&in)) {
+        if (!model->ParseFromIstream(&in)) {
             return Nothing();
         }
 

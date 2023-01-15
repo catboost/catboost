@@ -10,110 +10,69 @@
 
 namespace NCB {
 
-    void PushBackEvalPrinters(
+// TEvalPrinter
+
+    TEvalPrinter::TEvalPrinter(
+        NPar::TLocalExecutor* executor,
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
         const TString& lossFunctionName,
-        bool isMultiTarget,
-        size_t ensemblesCount,
+        ui32 targetDimension,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        TMaybe<std::pair<size_t, size_t>> evalParameters,
-        TVector<THolder<IColumnPrinter>>* result,
-        NPar::ILocalExecutor* executor,
-        double binClassLogitThreshold
-    ) {
+        TMaybe<std::pair<size_t, size_t>> evalParameters)
+        : PredictionType(predictionType)
+        ,VisibleLabelsHelper(visibleLabelsHelper) {
         int begin = 0;
+        const bool isMultiTarget = targetDimension > 1;
         const bool callMakeExternalApprox
-            = visibleLabelsHelper.IsInitialized()
-              && (visibleLabelsHelper.GetExternalApproxDimension() > 1)
-              && !IsUncertaintyPredictionType(predictionType);
+            = VisibleLabelsHelper.IsInitialized()
+                && (VisibleLabelsHelper.GetExternalApproxDimension() > 1);
         for (const auto& raws : rawValues) {
-            const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, visibleLabelsHelper) : raws;
-            auto approxes = PrepareEval(predictionType, ensemblesCount, lossFunctionName, approx, executor, binClassLogitThreshold);
+            const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
+            Approxes.push_back(PrepareEval(predictionType, lossFunctionName, approx, executor));
+
             const auto& headers = CreatePredictionTypeHeader(
                 approx.size(),
                 isMultiTarget,
                 predictionType,
-                visibleLabelsHelper,
-                lossFunctionName,
-                ensemblesCount,
+                VisibleLabelsHelper,
                 begin,
                 evalParameters.Get()
             );
-            if (!lossFunctionName.empty() && IsMultiLabelObjective(lossFunctionName)) {
-                for (int i = 0; i < approxes.ysize(); ++i) {
-                    result->push_back(MakeHolder<TArrayPrinter<double>>(
-                        std::move(approxes[i]),
-                        headers[i]
-                    ));
-                }
-            } else {
-                for (int i = 0; i < approxes.ysize(); ++i) {
-                    result->push_back(MakeHolder<TEvalPrinter>(
-                        predictionType,
-                        headers[i],
-                        approxes[i],
-                        visibleLabelsHelper
-                    ));
-                }
-            }
+            Header.insert(Header.end(), headers.begin(), headers.end());
             if (evalParameters) {
                 begin += evalParameters->first;
             }
         }
     }
 
-    TVector<TString> CreatePredictionTypeHeaderForUncertainty(
-        EPredictionType predictionType,
-        TMaybe<ELossFunction> lossFunction,
-        const TExternalLabelsHelper& visibleLabelsHelper,
-        ui32 approxDimension,
-        size_t ensemblesCount,
-        bool isMultiTarget,
-        bool isMultiLabel
-    ) {
-        TVector<TString> headers;
-        const bool isRMSEWithUncertainty = lossFunction == ELossFunction::RMSEWithUncertainty;
-        ui32 predictionDim = isRMSEWithUncertainty ? 1 : approxDimension / ensemblesCount;
-        TVector<TString> uncertaintyHeaders;
-        if (predictionType == EPredictionType::VirtEnsembles) {
-            uncertaintyHeaders = {"ApproxRawFormulaVal"};
-            if (isRMSEWithUncertainty) {
-                uncertaintyHeaders.push_back("Var");
+    void TEvalPrinter::OutputValue(IOutputStream* outStream, size_t docIndex) {
+        TString delimiter = "";
+        if (PredictionType == EPredictionType::Class) {
+            for (const auto& approxes : Approxes) {
+                for (const auto& approx : approxes) {
+                    *outStream << delimiter
+                               << VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(approx[docIndex]));
+                    delimiter = "\t";
+                }
             }
         } else {
-            if (IsRegressionMetric(*lossFunction)) {
-                uncertaintyHeaders = {"MeanPredictions", "KnowledgeUnc"}; // KnowledgeUncertainty
-                if (isRMSEWithUncertainty) {
-                    uncertaintyHeaders.push_back("DataUnc"); // DataUncertainty
+            for (const auto& approxes : Approxes) {
+                for (const auto& approx : approxes) {
+                    *outStream << delimiter << approx[docIndex];
+                    delimiter = "\t";
                 }
-            } else {
-                uncertaintyHeaders = {"DataUnc", "TotalUnc"};
             }
-            ensemblesCount = 1;
-            predictionDim = 1;
         }
-        headers.reserve(ensemblesCount * predictionDim * uncertaintyHeaders.size());
-        // TODO(eermishkina): support multiRMSE
-        // TODO(espetrov): support MultiQuantile
-        for (ui32 veId = 0; veId < ensemblesCount; ++veId) {
-            for (ui32 dimId  = 0; dimId  < predictionDim; ++dimId ) {
-                for (const auto &name: uncertaintyHeaders) {
-                    TStringBuilder str;
-                    str << predictionType << ":" << name;
-                    if (predictionDim > 1) {
-                        str << (isMultiTarget && !isMultiLabel ? ":Dim=" : ":Class=")
-                            << visibleLabelsHelper.GetVisibleClassNameFromClass(dimId );
-                    }
-                    if (ensemblesCount > 1) {
-                        str << ":vEnsemble=" << veId;
-                    }
-                    headers.push_back(str);
-                }
-            }
+    }
 
+    void TEvalPrinter::OutputHeader(IOutputStream* outStream) {
+        for (int idx = 0; idx < Header.ysize(); ++idx) {
+            if (idx > 0) {
+                *outStream << "\t";
+            }
+            *outStream << Header[idx];
         }
-        return headers;
     }
 
     TVector<TString> CreatePredictionTypeHeader(
@@ -121,49 +80,17 @@ namespace NCB {
         bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
-        const TString& lossFunctionName,
-        size_t ensemblesCount,
         ui32 startTreeIndex,
         std::pair<size_t, size_t>* evalParameters) {
 
-        TMaybe<ELossFunction> lossFunction = Nothing();
-        if (!lossFunctionName.empty()) {
-            lossFunction = FromString<ELossFunction>(lossFunctionName);
-        }
-        const bool isUncertainty = IsUncertaintyPredictionType(predictionType);
-        const bool isMultiLabel = lossFunction.Defined() && IsMultiLabelObjective(*lossFunction);
-
-        if (isUncertainty) {
-            return CreatePredictionTypeHeaderForUncertainty(
-                predictionType,
-                lossFunction,
-                visibleLabelsHelper,
-                approxDimension,
-                ensemblesCount,
-                isMultiTarget,
-                isMultiLabel
-            );
-        }
-
-        const ui32 classCount = (predictionType == EPredictionType::Class && !isMultiLabel) ? 1 : approxDimension;
+        const ui32 classCount = (predictionType == EPredictionType::Class) ? 1 : approxDimension;
         TVector<TString> headers;
         headers.reserve(classCount);
         for (ui32 classId = 0; classId < classCount; ++classId) {
             TStringBuilder str;
             str << predictionType;
             if (classCount > 1) {
-                if (lossFunction == ELossFunction::RMSEWithUncertainty) {
-                    if (classId == 0) {
-                        str << "Mean";
-                    } else {
-                        str << (predictionType == EPredictionType::RMSEWithUncertainty ? "Std" : "Log(Std)");
-                    }
-                } else if (lossFunction == ELossFunction::MultiQuantile) {
-                    str << ":QuantileId=" << classId;
-                } else {
-                    str << (isMultiTarget && !isMultiLabel ? ":Dim=" : ":Class=")
-                        << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
-                }
+                str << (isMultiTarget ?  ":Dim=" : ":Class=")  << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
             }
             if (evalParameters && (evalParameters->first != evalParameters->second)) {
                 str << ":TreesCount=[" << startTreeIndex << "," <<

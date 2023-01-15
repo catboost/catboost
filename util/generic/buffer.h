@@ -4,7 +4,6 @@
 
 #include <util/generic/fwd.h>
 #include <util/system/align.h>
-#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 #include <cstring>
@@ -47,7 +46,7 @@ public:
         Pos_ -= n;
     }
 
-    Y_REINITIALIZES_OBJECT inline void Reset() noexcept {
+    inline void Reset() noexcept {
         TBuffer().Swap(*this);
     }
 
@@ -81,7 +80,8 @@ public:
         return Pos_;
     }
 
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return !Size();
     }
 
@@ -146,12 +146,6 @@ public:
         }
     }
 
-    inline void ReserveExactNeverCallMeInSaneCode(size_t len) {
-        if (len > Len_) {
-            Realloc(len);
-        }
-    }
-
     inline void ShrinkToFit() {
         if (Pos_ < Len_) {
             Realloc(Pos_);
@@ -160,14 +154,6 @@ public:
 
     inline void Resize(size_t len) {
         Reserve(len);
-        Pos_ = len;
-    }
-
-    // Method works like Resize, but allocates exact specified number of bytes
-    // rather than rounded up to next power of 2
-    // Use with care
-    inline void ResizeExactNeverCallMeInSaneCode(size_t len) {
-        ReserveExactNeverCallMeInSaneCode(len);
         Pos_ = len;
     }
 
@@ -222,17 +208,6 @@ public:
 
     inline TConstIterator End() const noexcept {
         return Begin() + Size();
-    }
-
-    bool operator==(const TBuffer& other) const noexcept {
-        if (Empty()) {
-            return other.Empty();
-        }
-        return Size() == other.Size() && 0 == std::memcmp(Data(), other.Data(), Size());
-    }
-
-    bool operator!=(const TBuffer& other) const noexcept {
-        return !(*this == other);
     }
 
 private:

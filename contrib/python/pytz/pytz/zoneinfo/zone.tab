@@ -3,7 +3,7 @@
 # This file is in the public domain, so clarified as of
 # 2009-05-17 by Arthur David Olson.
 #
-# From Paul Eggert (2021-09-20):
+# From Paul Eggert (2018-06-27):
 # This file is intended as a backward-compatibility aid for older programs.
 # New programs should use zone1970.tab.  This file is like zone1970.tab (see
 # zone1970.tab's comments), but with the following additional restrictions:
@@ -15,9 +15,6 @@
 # of a region identified by a country code and of a timezone where civil
 # clocks have agreed since 1970; this is a narrower definition than
 # that of zone1970.tab.
-#
-# Unlike zone1970.tab, a row's third column can be a Link from
-# 'backward' instead of a Zone.
 #
 # This table is intended as an aid for users, to help them select timezones
 # appropriate for their practical needs.  It is not intended to take or
@@ -59,7 +56,8 @@ AS	-1416-17042	Pacific/Pago_Pago
 AT	+4813+01620	Europe/Vienna
 AU	-3133+15905	Australia/Lord_Howe	Lord Howe Island
 AU	-5430+15857	Antarctica/Macquarie	Macquarie Island
-AU	-4253+14719	Australia/Hobart	Tasmania
+AU	-4253+14719	Australia/Hobart	Tasmania (most areas)
+AU	-3956+14352	Australia/Currie	Tasmania (King Island)
 AU	-3749+14458	Australia/Melbourne	Victoria
 AU	-3352+15113	Australia/Sydney	New South Wales (most areas)
 AU	-3157+14127	Australia/Broken_Hill	New South Wales (Yancowinna)
@@ -114,10 +112,13 @@ CA	+4606-06447	America/Moncton	Atlantic - New Brunswick
 CA	+5320-06025	America/Goose_Bay	Atlantic - Labrador (most areas)
 CA	+5125-05707	America/Blanc-Sablon	AST - QC (Lower North Shore)
 CA	+4339-07923	America/Toronto	Eastern - ON, QC (most areas)
+CA	+4901-08816	America/Nipigon	Eastern - ON, QC (no DST 1967-73)
+CA	+4823-08915	America/Thunder_Bay	Eastern - ON (Thunder Bay)
 CA	+6344-06828	America/Iqaluit	Eastern - NU (most east areas)
 CA	+6608-06544	America/Pangnirtung	Eastern - NU (Pangnirtung)
 CA	+484531-0913718	America/Atikokan	EST - ON (Atikokan); NU (Coral H)
 CA	+4953-09709	America/Winnipeg	Central - ON (west); Manitoba
+CA	+4843-09434	America/Rainy_River	Central - ON (Rainy R, Ft Frances)
 CA	+744144-0944945	America/Resolute	Central - NU (Resolute)
 CA	+624900-0920459	America/Rankin_Inlet	Central - NU (central)
 CA	+5024-10439	America/Regina	CST - SK (most areas)
@@ -127,11 +128,11 @@ CA	+690650-1050310	America/Cambridge_Bay	Mountain - NU (west)
 CA	+6227-11421	America/Yellowknife	Mountain - NT (central)
 CA	+682059-1334300	America/Inuvik	Mountain - NT (west)
 CA	+4906-11631	America/Creston	MST - BC (Creston)
-CA	+5546-12014	America/Dawson_Creek	MST - BC (Dawson Cr, Ft St John)
+CA	+5946-12014	America/Dawson_Creek	MST - BC (Dawson Cr, Ft St John)
 CA	+5848-12242	America/Fort_Nelson	MST - BC (Ft Nelson)
-CA	+6043-13503	America/Whitehorse	MST - Yukon (east)
-CA	+6404-13925	America/Dawson	MST - Yukon (west)
 CA	+4916-12307	America/Vancouver	Pacific - BC (most areas)
+CA	+6043-13503	America/Whitehorse	Pacific - Yukon (east)
+CA	+6404-13925	America/Dawson	Pacific - Yukon (west)
 CC	-1210+09655	Indian/Cocos
 CD	-0418+01518	Africa/Kinshasa	Dem. Rep. of Congo (west)
 CD	-1140+02728	Africa/Lubumbashi	Dem. Rep. of Congo (east)
@@ -228,7 +229,7 @@ KE	-0117+03649	Africa/Nairobi
 KG	+4254+07436	Asia/Bishkek
 KH	+1133+10455	Asia/Phnom_Penh
 KI	+0125+17300	Pacific/Tarawa	Gilbert Islands
-KI	-0247-17143	Pacific/Kanton	Phoenix Islands
+KI	-0308-17105	Pacific/Enderbury	Phoenix Islands
 KI	+0152-15720	Pacific/Kiritimati	Line Islands
 KM	-1141+04316	Indian/Comoro
 KN	+1718-06243	America/St_Kitts
@@ -336,8 +337,8 @@ RU	+554521+0373704	Europe/Moscow	MSK+00 - Moscow area
 # Programs should use zone1970.tab instead; see above.
 UA	+4457+03406	Europe/Simferopol	Crimea
 RU	+5836+04939	Europe/Kirov	MSK+00 - Kirov
-RU	+4844+04425	Europe/Volgograd	MSK+00 - Volgograd
 RU	+4621+04803	Europe/Astrakhan	MSK+01 - Astrakhan
+RU	+4844+04425	Europe/Volgograd	MSK+01 - Volgograd
 RU	+5134+04602	Europe/Saratov	MSK+01 - Saratov
 RU	+5420+04824	Europe/Ulyanovsk	MSK+01 - Ulyanovsk
 RU	+5312+05009	Europe/Samara	MSK+01 - Samara, Udmurtia
@@ -391,13 +392,15 @@ TK	-0922-17114	Pacific/Fakaofo
 TL	-0833+12535	Asia/Dili
 TM	+3757+05823	Asia/Ashgabat
 TN	+3648+01011	Africa/Tunis
-TO	-210800-1751200	Pacific/Tongatapu
+TO	-2110-17510	Pacific/Tongatapu
 TR	+4101+02858	Europe/Istanbul
 TT	+1039-06131	America/Port_of_Spain
 TV	-0831+17913	Pacific/Funafuti
 TW	+2503+12130	Asia/Taipei
 TZ	-0648+03917	Africa/Dar_es_Salaam
-UA	+5026+03031	Europe/Kyiv	Ukraine (most areas)
+UA	+5026+03031	Europe/Kiev	Ukraine (most areas)
+UA	+4837+02218	Europe/Uzhgorod	Transcarpathia
+UA	+4750+03510	Europe/Zaporozhye	Zaporozhye and east Lugansk
 UG	+0019+03225	Africa/Kampala
 UM	+2813-17722	Pacific/Midway	Midway Islands
 UM	+1917+16637	Pacific/Wake	Wake Island

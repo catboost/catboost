@@ -737,9 +737,6 @@ def compile_multiple(sources, options):
     a CompilationResultSet. Performs timestamp checking and/or recursion
     if these are specified in the options.
     """
-    if options.module_name and len(sources) > 1:
-        raise RuntimeError('Full module name can only be set '
-                           'for single source compilation')
     # run_pipeline creates the context
     # context = options.create_context()
     sources = [os.path.abspath(source) for source in sources]
@@ -758,9 +755,8 @@ def compile_multiple(sources, options):
             if (not timestamps) or out_of_date:
                 if verbose:
                     sys.stderr.write("Compiling %s\n" % source)
-                result = run_pipeline(source, options,
-                                      full_module_name=options.module_name,
-                                      context=context)
+
+                result = run_pipeline(source, options, context=context)
                 results.add(source, result)
                 # Compiling multiple sources in one context doesn't quite
                 # work properly yet.
@@ -915,6 +911,7 @@ default_options = dict(
     language_level = None,  # warn but default to 2
     formal_grammar = False,
     gdb_debug = False,
+    module_name = None,
     init_suffix = None,
     compile_time_env = None,
     common_utility_include_dir = None,
@@ -922,6 +919,5 @@ default_options = dict(
     build_dir=None,
     cache=None,
     create_extension=None,
-    module_name=None,
     np_pythran=False
 )

@@ -22,7 +22,7 @@ namespace NJson {
 }
 
 namespace NPar {
-    class ILocalExecutor;
+    class TLocalExecutor;
 }
 
 
@@ -44,12 +44,12 @@ void UpdateUndefinedClassLabels(
 NCB::TDataProviderPtr ReorderByTimestampLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor
 );
 
 NCB::TDataProviderPtr ShuffleLearnDataIfNeeded(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     NCB::TDataProviderPtr learnData,
-    NPar::ILocalExecutor* localExecutor,
+    NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 );

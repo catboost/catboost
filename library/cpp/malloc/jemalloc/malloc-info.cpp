@@ -16,7 +16,7 @@ TMallocInfo NMalloc::MallocInfo() {
 #include <contrib/libs/jemalloc/include/jemalloc/jemalloc.h>
 
 namespace {
-    bool JESetParam(const char* param, const char* value) {
+    static bool JESetParam(const char* param, const char*) {
         if (param) {
             if (strcmp(param, "j:reset_epoch") == 0) {
                 uint64_t epoch = 1;
@@ -25,45 +25,6 @@ namespace {
                 mallctl("epoch", &epoch, &sz, &epoch, sz);
 
                 return true;
-            }
-
-            if (strcmp(param, "j:prof") == 0) {
-                if (strcmp(value, "start") == 0) {
-                    bool is_active = true;
-                    const int ret = mallctl("prof.active", nullptr, nullptr, &is_active, sizeof(is_active));
-                    return ret == 0;
-                }
-                if (strcmp(value, "stop") == 0) {
-                    bool is_active = false;
-                    const int ret = mallctl("prof.active", nullptr, nullptr, &is_active, sizeof(is_active));
-                    return ret == 0;
-                }
-                if (strcmp(value, "dump") == 0) {
-                    const int ret = mallctl("prof.dump", nullptr, nullptr, nullptr, 0);
-                    return ret == 0;
-                }
-            }
-            if (strcmp(param, "j:bg_threads") == 0) {
-                if (strcmp(value, "start") == 0) {
-                    bool is_active = true;
-                    const int ret = mallctl("background_thread", nullptr, nullptr, &is_active, sizeof(is_active));
-                    return ret == 0;
-                }
-                if (strcmp(value, "stop") == 0) {
-                    bool is_active = false;
-                    // NOTE: joins bg thread
-                    const int ret = mallctl("background_thread", nullptr, nullptr, &is_active, sizeof(is_active));
-                    return ret == 0;
-                }
-                if (strncmp(value, "max=", 4) == 0) {
-                    int num_value = atoi(value + 4);
-                    if (num_value <= 0) {
-                        return false;
-                    }
-                    size_t max_threads = num_value;
-                    const int ret = mallctl("max_background_threads", nullptr, nullptr, &max_threads, sizeof(max_threads));
-                    return ret == 0;
-                }
             }
 
             return false;

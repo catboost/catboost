@@ -21,16 +21,10 @@ static constexpr const char* FeatureTypeName() {
         return "Categorical";
     } else if constexpr (std::is_same<TFeature, TTextFeature>::value) {
         return "Text";
-    } else if constexpr (std::is_same<TFeature, TEmbeddingFeature>::value) {
-        return "Embedding";
     } else {
         CB_ENSURE(false, "FeatureTypeName: Unknown feature type");
         return "Unknown";
     }
-}
-
-static inline TString GetFeatureName(const TString& featureId, int featureIndex) {
-    return featureId == "" ? ToString(featureIndex) : featureId;
 }
 
 template <class TFeature>
@@ -55,57 +49,42 @@ static void CheckFeatureTypes(
     }
 }
 
-template <class TFeature>
-static void CheckFeatureTypesAndNames(
-    TConstArrayRef<TFeature> modelFeatures,
-    const THashSet<ui32>& datasetFeaturesIndices,
-    TConstArrayRef<NCB::TFeatureMetaInfo> datasetFeaturesMetaInfo,
-    THashMap<ui32, ui32>* columnIndexesReorderMap
+static THashSet<ui32> GetFloatFeatureIndexes(
+    ui32 featureCount,
+    const THashSet<ui32>& catFeatureIndexes,
+    const THashSet<ui32>& textFeatureIndexes
 ) {
-    for (const TFeature& feature : modelFeatures) {
-        if (!feature.UsedInModel()) {
-            continue;
-        }
-        TString featureModelName = GetFeatureName(feature.FeatureId, feature.Position.FlatIndex);
-        CB_ENSURE(
-            SafeIntegerCast<size_t>(feature.Position.FlatIndex) < datasetFeaturesMetaInfo.size(),
-            "Feature " << featureModelName << " is present in model but not in pool.");
-        if (SafeIntegerCast<size_t>(feature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()
-                && feature.FeatureId != ""
-                && datasetFeaturesMetaInfo[feature.Position.FlatIndex].Name != "")
-        {
-            CB_ENSURE(
-                feature.FeatureId == datasetFeaturesMetaInfo[feature.Position.FlatIndex].Name,
-                "At position " << feature.Position.FlatIndex
-                << " should be feature with name " << feature.FeatureId
-                << " (found " << datasetFeaturesMetaInfo[feature.Position.FlatIndex].Name << ").");
-        }
-        TString featurePoolName;
-        if (SafeIntegerCast<size_t>(feature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
-            featurePoolName = GetFeatureName(
-                datasetFeaturesMetaInfo[feature.Position.FlatIndex].Name,
-                feature.Position.FlatIndex);
-        } else {
-            featurePoolName = GetFeatureName("", feature.Position.FlatIndex);
-        }
-        CB_ENSURE(
-            datasetFeaturesIndices.contains(feature.Position.FlatIndex),
-            "Feature " << featurePoolName << " from pool must be " << FeatureTypeName<TFeature>() << ".");
-
-        columnIndexesReorderMap->insert(
-            {feature.Position.FlatIndex, feature.Position.FlatIndex});
-    }
+    THashSet<ui32> allIndexes = xrange(featureCount);
+    THashSet<ui32> floatFeatureIndexes;
+    SetDifference(
+        allIndexes.begin(),
+        allIndexes.end(),
+        catFeatureIndexes.begin(),
+        catFeatureIndexes.end(),
+        std::inserter(floatFeatureIndexes, floatFeatureIndexes.begin())
+    );
+    allIndexes = floatFeatureIndexes;
+    SetDifference(
+        allIndexes.begin(),
+        allIndexes.end(),
+        textFeatureIndexes.begin(),
+        textFeatureIndexes.end(),
+        std::inserter(floatFeatureIndexes, floatFeatureIndexes.begin())
+    );
+    return floatFeatureIndexes;
 }
 
 namespace NCB {
 
+    static inline TString GetFeatureName(const TString& featureId, int featureIndex) {
+        return featureId == "" ? ToString(featureIndex) : featureId;
+    }
+
     bool CheckColumnRemappingPossible(
         const TFullModel& model,
         const TFeaturesLayout& datasetFeaturesLayout,
-        const THashSet<ui32>& datasetFloatFeatureFlatIndexes,
         const THashSet<ui32>& datasetCatFeatureFlatIndexes,
         const THashSet<ui32>& datasetTextFeatureFlatIndexes,
-        const THashSet<ui32>& datasetEmbeddingFeatureFlatIndexes,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
         columnIndexesReorderMap->clear();
@@ -122,16 +101,6 @@ namespace NCB {
             model.ModelTrees->GetTextFeatures(),
             &modelFeatureIdSet
         );
-        AddUsedFeatureIdsToSet(
-            model.ModelTrees->GetEmbeddingFeatures(),
-            &modelFeatureIdSet
-        );
-        // we can't remap unnamed features
-        for (const auto& featureId : modelFeatureIdSet) {
-            if (featureId.empty()) {
-                return false;
-            }
-        }
         size_t featureNameIntersection = 0;
         THashMap<TString, ui32> datasetFeatureNamesMap;
 
@@ -150,12 +119,19 @@ namespace NCB {
             return false;
         }
 
-        CheckFeatureTypes(
-            model.ModelTrees->GetFloatFeatures(),
-            datasetFeatureNamesMap,
-            datasetFloatFeatureFlatIndexes,
-            columnIndexesReorderMap
-        );
+        {
+            const auto& datasetFloatFeatureIndexes = GetFloatFeatureIndexes(
+                datasetFeaturesLayout.GetExternalFeatureCount(),
+                datasetCatFeatureFlatIndexes,
+                datasetTextFeatureFlatIndexes
+            );
+            CheckFeatureTypes(
+                model.ModelTrees->GetFloatFeatures(),
+                datasetFeatureNamesMap,
+                datasetFloatFeatureIndexes,
+                columnIndexesReorderMap
+            );
+        }
         CheckFeatureTypes(
             model.ModelTrees->GetCatFeatures(),
             datasetFeatureNamesMap,
@@ -168,26 +144,18 @@ namespace NCB {
             datasetTextFeatureFlatIndexes,
             columnIndexesReorderMap
         );
-        CheckFeatureTypes(
-            model.ModelTrees->GetEmbeddingFeatures(),
-            datasetFeatureNamesMap,
-            datasetEmbeddingFeatureFlatIndexes,
-            columnIndexesReorderMap
-        );
         return true;
     }
 
     void CheckModelAndDatasetCompatibility(
         const TFullModel& model,
-        const TFeaturesLayout& datasetFeaturesLayout,
+        const TObjectsDataProvider& objectsData,
         THashMap<ui32, ui32>* columnIndexesReorderMap)
     {
-        const auto datasetFloatFeatureInternalIdxToExternalIdx =
-            datasetFeaturesLayout.GetFloatFeatureInternalIdxToExternalIdx();
-
-        THashSet<ui32> datasetFloatFeatures(
-            datasetFloatFeatureInternalIdxToExternalIdx.begin(),
-            datasetFloatFeatureInternalIdxToExternalIdx.end());
+        if (dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(&objectsData)) {
+            CB_ENSURE(model.GetUsedCatFeaturesCount() == 0, "Quantized datasets with categorical features are not currently supported");
+        }
+        const auto& datasetFeaturesLayout = *objectsData.GetFeaturesLayout();
 
         const auto datasetCatFeatureInternalIdxToExternalIdx =
             datasetFeaturesLayout.GetCatFeatureInternalIdxToExternalIdx();
@@ -199,24 +167,15 @@ namespace NCB {
         const auto datasetTextFeatureInternalIdxToExternalIdx =
             datasetFeaturesLayout.GetTextFeatureInternalIdxToExternalIdx();
 
-        const auto datasetEmbeddingFeatureInternalIdxToExternalIdx =
-            datasetFeaturesLayout.GetEmbeddingFeatureInternalIdxToExternalIdx();
-
         THashSet<ui32> datasetTextFeatures(
             datasetTextFeatureInternalIdxToExternalIdx.begin(),
             datasetTextFeatureInternalIdxToExternalIdx.end());
 
-        THashSet<ui32> datasetEmbeddingFeatures(
-            datasetEmbeddingFeatureInternalIdxToExternalIdx.begin(),
-            datasetEmbeddingFeatureInternalIdxToExternalIdx.end());
-
         if (CheckColumnRemappingPossible(
             model,
             datasetFeaturesLayout,
-            datasetFloatFeatures,
             datasetCatFeatures,
             datasetTextFeatures,
-            datasetEmbeddingFeatures,
             columnIndexesReorderMap))
         {
             return;
@@ -226,41 +185,108 @@ namespace NCB {
 
         const auto& datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
 
-        CheckFeatureTypesAndNames(
-            model.ModelTrees->GetFloatFeatures(),
-            datasetFloatFeatures,
-            datasetFeaturesMetaInfo,
-            columnIndexesReorderMap
-        );
+        for (const TCatFeature& catFeature : model.ModelTrees->GetCatFeatures()) {
+            if (!catFeature.UsedInModel()) {
+                continue;
+            }
+            TString featureModelName = GetFeatureName(catFeature.FeatureId, catFeature.Position.FlatIndex);
+            CB_ENSURE(
+                SafeIntegerCast<size_t>(catFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size(),
+                "Feature " << featureModelName << " is present in model but not in pool.");
+            if (SafeIntegerCast<size_t>(catFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()
+                    && catFeature.FeatureId != ""
+                    && datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name != "")
+            {
+                CB_ENSURE(
+                    catFeature.FeatureId == datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name,
+                    "Feature " << datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name
+                    << " from pool must be " << catFeature.FeatureId << ".";);
+            }
+            TString featurePoolName;
+            if (SafeIntegerCast<size_t>(catFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
+                featurePoolName = GetFeatureName(
+                    datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name,
+                    catFeature.Position.FlatIndex);
+            } else {
+                featurePoolName = GetFeatureName("", catFeature.Position.FlatIndex);
+            }
+            CB_ENSURE(
+                datasetCatFeatures.contains(catFeature.Position.FlatIndex),
+                "Feature " << featurePoolName << " from pool must be categorical.");
 
-        CheckFeatureTypesAndNames(
-            model.ModelTrees->GetCatFeatures(),
-            datasetCatFeatures,
-            datasetFeaturesMetaInfo,
-            columnIndexesReorderMap
-        );
+            columnIndexesReorderMap->insert(
+                {catFeature.Position.FlatIndex, catFeature.Position.FlatIndex});
+        }
 
-        CheckFeatureTypesAndNames(
-            model.ModelTrees->GetTextFeatures(),
-            datasetTextFeatures,
-            datasetFeaturesMetaInfo,
-            columnIndexesReorderMap
-        );
+        for (const TFloatFeature& floatFeature : model.ModelTrees->GetFloatFeatures()) {
+            if (!floatFeature.UsedInModel()) {
+                continue;
+            }
+            TString featureModelName = GetFeatureName(floatFeature.FeatureId, floatFeature.Position.FlatIndex);
+            CB_ENSURE(
+                SafeIntegerCast<size_t>(floatFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size(),
+                "Feature " << featureModelName << " is present in model but not in pool.");
+            if (SafeIntegerCast<size_t>(floatFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()
+                    && floatFeature.FeatureId != ""
+                    && datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name != "")
+            {
+                CB_ENSURE(
+                    floatFeature.FeatureId == datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name,
+                    "Feature " << datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name
+                    << " from pool must be " << floatFeature.FeatureId << ".");
+            }
+            TString featurePoolName;
+            if (SafeIntegerCast<size_t>(floatFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
+                featurePoolName = GetFeatureName(
+                    datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name,
+                    floatFeature.Position.FlatIndex);
+            } else {
+                featurePoolName = GetFeatureName("", floatFeature.Position.FlatIndex);
+            }
+            CB_ENSURE(
+                !datasetCatFeatures.contains(floatFeature.Position.FlatIndex),
+                "Feature " << featurePoolName << " from pool must not be categorical.");
+            CB_ENSURE(
+                !datasetTextFeatures.contains(floatFeature.Position.FlatIndex),
+                "Feature " << featurePoolName << " from pool must not be text.");
 
-        CheckFeatureTypesAndNames(
-            model.ModelTrees->GetEmbeddingFeatures(),
-            datasetEmbeddingFeatures,
-            datasetFeaturesMetaInfo,
-            columnIndexesReorderMap
-        );
-    }
+            columnIndexesReorderMap->insert(
+                {floatFeature.Position.FlatIndex, floatFeature.Position.FlatIndex});
+        }
 
-    void CheckModelAndDatasetCompatibility(
-        const TFullModel& model,
-        const TObjectsDataProvider& objectsData,
-        THashMap<ui32, ui32>* columnIndexesReorderMap)
-    {
-        CheckModelAndDatasetCompatibility(model, *objectsData.GetFeaturesLayout(), columnIndexesReorderMap);
+        // TODO(d-kruchinin, akhropov): refactor this - remove duplicates, create generic solution
+        for (const TTextFeature& textFeature : model.ModelTrees->GetTextFeatures()) {
+            if (!textFeature.UsedInModel()) {
+                continue;
+            }
+            TString featureModelName = GetFeatureName(textFeature.FeatureId, textFeature.Position.FlatIndex);
+            CB_ENSURE(
+                SafeIntegerCast<size_t>(textFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size(),
+                "Feature " << featureModelName << " is present in model but not in pool.");
+            if (SafeIntegerCast<size_t>(textFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()
+                && textFeature.FeatureId != ""
+                && datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name != "")
+            {
+                CB_ENSURE(
+                    textFeature.FeatureId == datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name,
+                    "Feature " << datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name
+                    << " from pool must be " << textFeature.FeatureId << ".");
+            }
+            TString featurePoolName;
+            if (SafeIntegerCast<size_t>(textFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
+                featurePoolName = GetFeatureName(
+                    datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name,
+                    textFeature.Position.FlatIndex);
+            } else {
+                featurePoolName = GetFeatureName("", textFeature.Position.FlatIndex);
+            }
+            CB_ENSURE(
+                datasetTextFeatures.contains(textFeature.Position.FlatIndex),
+                "Feature " << featurePoolName << " from pool must be text.");
+
+            columnIndexesReorderMap->insert(
+                {textFeature.Position.FlatIndex, textFeature.Position.FlatIndex});
+        }
     }
 
     void CheckModelAndDatasetCompatibility(
@@ -271,112 +297,44 @@ namespace NCB {
         CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
     }
 
-    TVector<ui8> GetFloatFeatureBordersRemap(
-        const TFloatFeature& feature,
-        ui32 datasetFlatFeatureIdx,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
-        CB_ENSURE(
-            !feature.Borders.empty(),
-            "Feature " << feature.Position.FlatIndex <<  ": model does not have border information for it"
-        );
-        const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
-        NCB::TFloatFeatureIdx floatFeatureIdx
-            = featuresLayout.GetInternalFeatureIdx<EFeatureType::Float>(datasetFlatFeatureIdx);
-
-        CB_ENSURE(
-            quantizedFeaturesInfo.HasBorders(floatFeatureIdx),
-            "Feature " << feature.Position.FlatIndex <<  ": dataset does not have border information for it"
-        );
-
-        TVector<ui8> floatBinsRemap;
-        auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(floatFeatureIdx);
-        ui32 poolBucketIdx = 0;
-        auto addRemapBinIdx = [&] (ui8 bucketIdx) {
-            floatBinsRemap.push_back(bucketIdx);
-            ++poolBucketIdx;
-        };
-        for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
-            while (poolBucketIdx < quantizedBorders.size() &&
-                quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx]) {
-                addRemapBinIdx(modelBucketIdx);
-            }
-            CB_ENSURE(
-                poolBucketIdx < quantizedBorders.size(),
-                "Feature " << feature.Position.FlatIndex << ": inconsistent borders, last quantized vs model: "
-                << double(quantizedBorders.back()) << " vs " << feature.Borders[modelBucketIdx]
-            );
-            CB_ENSURE(
-                quantizedBorders[poolBucketIdx] == feature.Borders[modelBucketIdx],
-                "Feature " << feature.Position.FlatIndex << ": inconsistent borders, quantized vs model: "
-                << double(quantizedBorders[poolBucketIdx]) << " vs " << feature.Borders[modelBucketIdx]
-            );
-            addRemapBinIdx(modelBucketIdx);
-        }
-        while (poolBucketIdx <= quantizedBorders.size()) {
-            addRemapBinIdx(feature.Borders.size());
-        }
-        return floatBinsRemap;
-    }
-
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(
         const TFullModel& model,
-        const THashMap<ui32, ui32>& columnIndexesReorderMap,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
     {
-        TVector<TVector<ui8>> floatBinsRemap(model.ModelTrees->GetFlatFeatureVectorExpectedSize());
+        TVector<TVector<ui8>> floatBinsRemap(model.ModelTrees->GetFloatFeatures().size());
         for (const auto& feature: model.ModelTrees->GetFloatFeatures()) {
             if (feature.Borders.empty()) {
                 continue;
             }
-            floatBinsRemap[feature.Position.FlatIndex] = GetFloatFeatureBordersRemap(
-                feature,
-                columnIndexesReorderMap.at(feature.Position.FlatIndex),
-                quantizedFeaturesInfo
+            CB_ENSURE(
+                quantizedFeaturesInfo.HasBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex)),
+                "Feature " << feature.Position.FlatIndex <<  ": dataset does not have border information for it"
             );
+            auto& quantizedBorders = quantizedFeaturesInfo.GetBorders(NCB::TFloatFeatureIdx(feature.Position.FlatIndex));
+            ui32 poolBucketIdx = 0;
+            auto addRemapBinIdx = [&] (ui8 bucketIdx) {
+                floatBinsRemap[feature.Position.FlatIndex].push_back(bucketIdx);
+                ++poolBucketIdx;
+            };
+            for (ui32 modelBucketIdx = 0; modelBucketIdx < feature.Borders.size(); ++modelBucketIdx) {
+                while (poolBucketIdx < quantizedBorders.size() &&
+                    quantizedBorders[poolBucketIdx] < feature.Borders[modelBucketIdx]) {
+                    addRemapBinIdx(modelBucketIdx);
+                }
+                CB_ENSURE(poolBucketIdx < quantizedBorders.size(),
+                    "Feature " << feature.Position.FlatIndex << ": inconsistent borders, last quantized vs model: "
+                    << double(quantizedBorders.back()) << " vs " << feature.Borders[modelBucketIdx]
+                );
+                CB_ENSURE(quantizedBorders[poolBucketIdx] == feature.Borders[modelBucketIdx],
+                    "Feature " << feature.Position.FlatIndex << ": inconsistent borders, quantized vs model: "
+                    << double(quantizedBorders[poolBucketIdx]) << " vs " << feature.Borders[modelBucketIdx]
+                );
+                addRemapBinIdx(modelBucketIdx);
+            }
+            while (poolBucketIdx <= quantizedBorders.size()) {
+                addRemapBinIdx(feature.Borders.size());
+            }
         }
         return floatBinsRemap;
-    }
-
-    TVector<ui32> GetCatFeatureBinToHashedValueRemap(
-        ui32 datasetFlatFeatureIdx,
-        const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo)
-    {
-        const auto& featuresLayout = *(quantizedFeaturesInfo.GetFeaturesLayout());
-        NCB::TCatFeatureIdx catFeatureIdx
-            = featuresLayout.GetInternalFeatureIdx<EFeatureType::Categorical>(datasetFlatFeatureIdx);
-
-        const NCB::TCatFeaturePerfectHash& catFeaturePerfectHash
-            = quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-
-        TVector<ui32> result;
-        result.yresize(quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx).OnAll);
-
-        if (catFeaturePerfectHash.DefaultMap) {
-            result[catFeaturePerfectHash.DefaultMap->DstValueWithCount.Value]
-                = catFeaturePerfectHash.DefaultMap->SrcValue;
-        }
-        for (const auto& [srcValue, dstValueWithCount] : catFeaturePerfectHash.Map) {
-            result[dstValueWithCount.Value] = srcValue;
-        }
-
-        return result;
-    }
-
-    TVector<TVector<ui32>> GetCatFeaturesBinToHashedValueRemap(
-        const TFullModel& model,
-        const THashMap<ui32, ui32>& columnIndexesReorderMap,
-        const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
-    {
-        TVector<TVector<ui32>> result(model.ModelTrees->GetFlatFeatureVectorExpectedSize());
-        for (const auto& feature: model.ModelTrees->GetCatFeatures()) {
-            if (!feature.UsedInModel()) {
-                continue;
-            }
-            result[feature.Position.FlatIndex] = GetCatFeatureBinToHashedValueRemap(
-                columnIndexesReorderMap.at(feature.Position.FlatIndex),
-                quantizedFeaturesInfo
-            );
-        }
-        return result;
     }
 }

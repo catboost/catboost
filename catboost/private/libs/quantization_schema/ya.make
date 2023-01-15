@@ -12,7 +12,8 @@ PEERDIR(
     catboost/idl/pool/proto
     catboost/libs/helpers
     catboost/private/libs/options
-    library/cpp/json
+    catboost/private/libs/quantization
+    library/json
 )
 
 GENERATE_ENUM_SERIALIZATION(serialization.h)

@@ -1,39 +1,28 @@
-- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/restricted/boost"
+- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/restricted/boost|^logbroker|^market|^rtline|^strm"
   includes:
   - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
   - sched.h:       contrib/libs/pthreads_win32/include/sched.h
 
 - source_filter: "^contrib/libs/jemalloc"
   includes:
+  - stdbool.h:     contrib/libs/jemalloc/include/msvc_compat/stdbool.h
   - strings.h:     contrib/libs/jemalloc/include/msvc_compat/strings.h
+
+- source_filter: "^contrib/libs/libgit2"
+  includes:
+  - regex.h:       contrib/libs/libgit2/deps/regex/regex.h
 
 - source_filter: "^contrib/libs/libpq/src"
   includes:
   - arpa/inet.h:   contrib/libs/libpq/src/include/port/win32/arpa/inet.h
-  - netdb.h: contrib/libs/libpq/src/include/port/win32/netdb.h
-  - netinet/in.h: contrib/libs/libpq/src/include/port/win32/netinet/in.h
-  - pwd.h: contrib/libs/libpq/src/include/port/win32/pwd.h
   - sys/file.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/file.h
   - sys/param.h:   contrib/libs/libpq/src/include/port/win32_msvc/sys/param.h
-  - sys/socket.h:  contrib/libs/libpq/src/include/port/win32/sys/socket.h
   - sys/time.h:    contrib/libs/libpq/src/include/port/win32_msvc/sys/time.h
   - unistd.h:      contrib/libs/libpq/src/include/port/win32_msvc/unistd.h
-
-- source_filter: "^contrib/libs/postgresql/src|^ydb/library/yql/parser/pg_wrapper/postgresql/src"
-  includes:
-  - arpa/inet.h:   contrib/libs/postgresql/src/include/port/win32/arpa/inet.h
-  - dirent.h:      contrib/libs/postgresql/src/include/port/win32_msvc/dirent.h
-  - grp.h:         contrib/libs/postgresql/src/include/port/win32/grp.h
-  - netdb.h:       contrib/libs/postgresql/src/include/port/win32/netdb.h
-  - netinet/in.h:  contrib/libs/postgresql/src/include/port/win32/netinet/in.h
-  - pwd.h:         contrib/libs/postgresql/src/include/port/win32/pwd.h
-  - sys/file.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/file.h
-  - sys/param.h:   contrib/libs/postgresql/src/include/port/win32_msvc/sys/param.h
-  - sys/socket.h:  contrib/libs/postgresql/src/include/port/win32/sys/socket.h
-  - sys/time.h:    contrib/libs/postgresql/src/include/port/win32_msvc/sys/time.h
-  - sys/wait.h:    contrib/libs/postgresql/src/include/port/win32/sys/wait.h
-  - unistd.h:      contrib/libs/postgresql/src/include/port/win32_msvc/unistd.h
-  - utime.h:       contrib/libs/postgresql/src/include/port/win32_msvc/utime.h
+  - netdb.h:       contrib/libs/libpq/src/include/port/win32/netdb.h
+  - netinet/in.h:  contrib/libs/libpq/src/include/port/win32/netinet/in.h
+  - pwd.h:         contrib/libs/libpq/src/include/port/win32/pwd.h
+  - sys/socket.h:  contrib/libs/libpq/src/include/port/win32/sys/socket.h
 
 - source_filter: "^contrib/libs/libx264"
   includes:
@@ -57,16 +46,22 @@
   - sys/wait.h:    contrib/tools/bison/gnulib/platform/win64/sys/wait.h
   - unistd.h:      contrib/tools/bison/gnulib/platform/win64/unistd.h
 
+- source_filter: "^contrib/tools/watchman"
+  includes:
+  - getopt.h:      contrib/tools/watchman/winbuild/getopt.h
+  - spawn.h:       contrib/tools/watchman/winbuild/spawn.h
+  - sys/time.h:    contrib/tools/watchman/winbuild/sys/time.h
+
+- source_filter: "^logbroker/push-client"
+  includes:
+  - dirent.h:      logbroker/push-client/src/win32/dirent.h
+
 - source_filter: "^contrib/libs/libpq"
   includes:
   - dirent.h:      contrib/libs/libpq/src/include/port/win32_msvc/dirent.h
   - sys/wait.h:    contrib/libs/libpq/src/include/port/win32/sys/wait.h
   - win32.h:       contrib/libs/libpq/src/include/port/win32.h
 
-- source_filter: "^contrib/libs/curl"
+- source_fiter: "^contrib/libs/curl"
   includes:
   - nghttp2/nghttp2.h
-
-- includes:
-    - sys/queue.h:   contrib/libs/libc_compat/include/windows/sys/queue.h
-    - sys/uio.h:     contrib/libs/libc_compat/include/windows/sys/uio.h

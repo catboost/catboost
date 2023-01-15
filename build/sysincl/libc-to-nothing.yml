@@ -43,7 +43,6 @@
   - netdb.h
   - net/ethernet.h
   - net/if_arp.h
-  - net/if_ppp.h
   - net/if.h
   - netinet/ether.h
   - netinet/icmp6.h
@@ -57,7 +56,6 @@
   - netinet/tcp.h
   - netinet/udp.h
   - netpacket/packet.h
-  - netrom/netrom.h
   - net/route.h
   - nl_types.h
   - paths.h
@@ -68,7 +66,6 @@
   - regex.h
   - resolv.h
   - sched.h
-  - scsi/scsi.h
   - search.h
   - semaphore.h
   - shadow.h
@@ -76,7 +73,6 @@
   - spawn.h
   - stdalign.h
   - stdarg.h
-  - stdatomic.h
   - stdio_ext.h
   - stdnoreturn.h
   - strings.h
@@ -97,7 +93,6 @@
   - sys/ioctl.h
   - sys/io.h
   - sys/ipc.h
-  - sys/kd.h
   - syslog.h
   - sys/mman.h
   - sys/mount.h
@@ -110,6 +105,7 @@
   - sys/procfs.h
   - sys/ptrace.h
   - sys/quota.h
+  - sys/random.h
   - sys/reboot.h
   - sys/resource.h
   - sys/select.h
@@ -142,7 +138,6 @@
   - sys/user.h
   - sys/utsname.h
   - sys/vfs.h
-  - sys/vt.h
   - sys/wait.h
   - sys/xattr.h
   - tar.h

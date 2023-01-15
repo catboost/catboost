@@ -11,7 +11,7 @@ namespace NCB{
     public:
         TFullModel ReadModel(IInputStream *modelStream) const override {
             Y_UNUSED(modelStream);
-            CB_ENSURE(false, "This Unimplemented");
+            Y_UNREACHABLE();
         }
         TFullModel ReadModel(const TString& snapshotPath) const override {
             CB_ENSURE(NFs::Exists(snapshotPath), "Model file doesn't exist: " << snapshotPath);
@@ -23,16 +23,16 @@ namespace NCB{
             });
             CB_ENSURE(learnProgress.CatFeatures.empty(),
                       "Can't load model trained on dataset with categorical features from snapshot");
-            TObliviousTreeBuilder builder(learnProgress.FloatFeatures, learnProgress.CatFeatures, {}, {},
+            TObliviousTreeBuilder builder(learnProgress.FloatFeatures, learnProgress.CatFeatures, {},
                                           learnProgress.ApproxDimension);
             TVector<TModelSplit> modelSplits;
             for (ui32 treeId = 0; treeId < learnProgress.TreeStruct.size(); ++treeId) {
                 // TODO(ilyzhin) implement it
                 CB_ENSURE_INTERNAL(
-                    std::holds_alternative<TSplitTree>(learnProgress.TreeStruct[treeId]),
+                    HoldsAlternative<TSplitTree>(learnProgress.TreeStruct[treeId]),
                     "ReadModel is unimplemented for non-symmetric trees yet");
 
-                const TSplitTree& tree = std::get<TSplitTree>(learnProgress.TreeStruct[treeId]);
+                const TSplitTree& tree = Get<TSplitTree>(learnProgress.TreeStruct[treeId]);
                 modelSplits.resize(tree.Splits.size());
                 auto iter = modelSplits.begin();
                 for (const TSplit& split : tree.Splits) {
@@ -45,7 +45,7 @@ namespace NCB{
             }
             TFullModel model;
             builder.Build(model.ModelTrees.GetMutable());
-            model.SetScaleAndBias({1, learnProgress.StartingApprox.GetOrElse({})});
+            model.SetScaleAndBias({1, learnProgress.StartingApprox.GetOrElse(0)});
             model.ModelInfo["params"] = learnProgress.SerializedTrainParams;
             return model;
         }

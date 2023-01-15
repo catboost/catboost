@@ -7,9 +7,9 @@ work. One should use importlib as the public-facing version of this module.
 
 """
 #
-# IMPORTANT: Whenever making changes to this module, be sure to run a top-level
-# `make regen-importlib` followed by `make` in order to get the frozen version
-# of the module updated. Not doing so will result in the Makefile to fail for
+# IMPORTANT: Whenever making changes to this module, be sure to run
+# a top-level make in order to get the frozen version of the module
+# updated. Not doing so will result in the Makefile to fail for
 # all others who don't have a ./python around to freeze the module
 # in the early stages of compilation.
 #
@@ -20,22 +20,9 @@ work. One should use importlib as the public-facing version of this module.
 # reference any injected objects! This includes not only global code but also
 # anything specified at the class level.
 
-def _object_name(obj):
-    try:
-        return obj.__qualname__
-    except AttributeError:
-        return type(obj).__qualname__
-
 # Bootstrap-related code ######################################################
 
-# Modules injected manually by _setup()
-_thread = None
-_warnings = None
-_weakref = None
-
-# Import done by _install_external_importers()
 _bootstrap_external = None
-
 
 def _wrap(new, old):
     """Simple substitute for functools.update_wrapper."""
@@ -80,7 +67,6 @@ class _ModuleLock:
         # Deadlock avoidance for concurrent circular imports.
         me = _thread.get_ident()
         tid = self.owner
-        seen = set()
         while True:
             lock = _blocking_on.get(tid)
             if lock is None:
@@ -88,14 +74,6 @@ class _ModuleLock:
             tid = lock.owner
             if tid == me:
                 return True
-            if tid in seen:
-                # bpo 38091: the chain of tid's we encounter here
-                # eventually leads to a fixpoint or a cycle, but
-                # does not reach 'me'.  This means we would not
-                # actually deadlock.  This can happen if other
-                # threads are at the beginning of acquire() below.
-                return False
-            seen.add(tid)
 
     def acquire(self):
         """
@@ -275,12 +253,9 @@ def _requires_frozen(fxn):
 def _load_module_shim(self, fullname):
     """Load the specified module into sys.modules and return it.
 
-    This method is deprecated.  Use loader.exec_module() instead.
+    This method is deprecated.  Use loader.exec_module instead.
 
     """
-    msg = ("the load_module() method is deprecated and slated for removal in "
-          "Python 3.12; use exec_module() instead")
-    _warnings.warn(msg, DeprecationWarning)
     spec = spec_from_loader(fullname, self)
     if fullname in sys.modules:
         module = sys.modules[fullname]
@@ -292,16 +267,26 @@ def _load_module_shim(self, fullname):
 # Module specifications #######################################################
 
 def _module_repr(module):
-    """The implementation of ModuleType.__repr__()."""
+    # The implementation of ModuleType.__repr__().
     loader = getattr(module, '__loader__', None)
-    if spec := getattr(module, "__spec__", None):
-        return _module_repr_from_spec(spec)
-    elif hasattr(loader, 'module_repr'):
+    if hasattr(loader, 'module_repr'):
+        # As soon as BuiltinImporter, FrozenImporter, and NamespaceLoader
+        # drop their implementations for module_repr. we can add a
+        # deprecation warning here.
         try:
             return loader.module_repr(module)
         except Exception:
             pass
-    # Fall through to a catch-all which always succeeds.
+    try:
+        spec = module.__spec__
+    except AttributeError:
+        pass
+    else:
+        if spec is not None:
+            return _module_repr_from_spec(spec)
+
+    # We could use module.__class__.__name__ instead of 'module' in the
+    # various repr permutations.
     try:
         name = module.__name__
     except AttributeError:
@@ -315,6 +300,33 @@ def _module_repr(module):
             return '<module {!r} ({!r})>'.format(name, loader)
     else:
         return '<module {!r} from {!r}>'.format(name, filename)
+
+
+class _installed_safely:
+
+    def __init__(self, module):
+        self._module = module
+        self._spec = module.__spec__
+
+    def __enter__(self):
+        # This must be done before putting the module in sys.modules
+        # (otherwise an optimization shortcut in import.c becomes
+        # wrong)
+        self._spec._initializing = True
+        sys.modules[self._spec.name] = self._module
+
+    def __exit__(self, *args):
+        try:
+            spec = self._spec
+            if any(arg is not None for arg in args):
+                try:
+                    del sys.modules[spec.name]
+                except KeyError:
+                    pass
+            else:
+                _verbose_message('import {!r} # {!r}', spec.name, spec.loader)
+        finally:
+            self._spec._initializing = False
 
 
 class ModuleSpec:
@@ -386,7 +398,7 @@ class ModuleSpec:
                     self.cached == other.cached and
                     self.has_location == other.has_location)
         except AttributeError:
-            return NotImplemented
+            return False
 
     @property
     def cached(self):
@@ -602,43 +614,30 @@ def _exec(spec, module):
         if sys.modules.get(name) is not module:
             msg = 'module {!r} not in sys.modules'.format(name)
             raise ImportError(msg, name=name)
-        try:
-            if spec.loader is None:
-                if spec.submodule_search_locations is None:
-                    raise ImportError('missing loader', name=spec.name)
-                # Namespace package.
-                _init_module_attrs(spec, module, override=True)
-            else:
-                _init_module_attrs(spec, module, override=True)
-                if not hasattr(spec.loader, 'exec_module'):
-                    msg = (f"{_object_name(spec.loader)}.exec_module() not found; "
-                           "falling back to load_module()")
-                    _warnings.warn(msg, ImportWarning)
-                    spec.loader.load_module(name)
-                else:
-                    spec.loader.exec_module(module)
-        finally:
-            # Update the order of insertion into sys.modules for module
-            # clean-up at shutdown.
-            module = sys.modules.pop(spec.name)
-            sys.modules[spec.name] = module
-    return module
+        if spec.loader is None:
+            if spec.submodule_search_locations is None:
+                raise ImportError('missing loader', name=spec.name)
+            # namespace package
+            _init_module_attrs(spec, module, override=True)
+            return module
+        _init_module_attrs(spec, module, override=True)
+        if not hasattr(spec.loader, 'exec_module'):
+            # (issue19713) Once BuiltinImporter and ExtensionFileLoader
+            # have exec_module() implemented, we can add a deprecation
+            # warning here.
+            spec.loader.load_module(name)
+        else:
+            spec.loader.exec_module(module)
+    return sys.modules[name]
 
 
 def _load_backward_compatible(spec):
-    # It is assumed that all callers have been warned about using load_module()
-    # appropriately before calling this function.
-    try:
-        spec.loader.load_module(spec.name)
-    except:
-        if spec.name in sys.modules:
-            module = sys.modules.pop(spec.name)
-            sys.modules[spec.name] = module
-        raise
+    # (issue19713) Once BuiltinImporter and ExtensionFileLoader
+    # have exec_module() implemented, we can add a deprecation
+    # warning here.
+    spec.loader.load_module(spec.name)
     # The module must be in sys.modules at this point!
-    # Move it to the end of sys.modules.
-    module = sys.modules.pop(spec.name)
-    sys.modules[spec.name] = module
+    module = sys.modules[spec.name]
     if getattr(module, '__loader__', None) is None:
         try:
             module.__loader__ = spec.loader
@@ -664,45 +663,23 @@ def _load_backward_compatible(spec):
 def _load_unlocked(spec):
     # A helper for direct use by the import system.
     if spec.loader is not None:
-        # Not a namespace package.
+        # not a namespace package
         if not hasattr(spec.loader, 'exec_module'):
-            msg = (f"{_object_name(spec.loader)}.exec_module() not found; "
-                    "falling back to load_module()")
-            _warnings.warn(msg, ImportWarning)
             return _load_backward_compatible(spec)
 
     module = module_from_spec(spec)
+    with _installed_safely(module):
+        if spec.loader is None:
+            if spec.submodule_search_locations is None:
+                raise ImportError('missing loader', name=spec.name)
+            # A namespace package so do nothing.
+        else:
+            spec.loader.exec_module(module)
 
-    # This must be done before putting the module in sys.modules
-    # (otherwise an optimization shortcut in import.c becomes
-    # wrong).
-    spec._initializing = True
-    try:
-        sys.modules[spec.name] = module
-        try:
-            if spec.loader is None:
-                if spec.submodule_search_locations is None:
-                    raise ImportError('missing loader', name=spec.name)
-                # A namespace package so do nothing.
-            else:
-                spec.loader.exec_module(module)
-        except:
-            try:
-                del sys.modules[spec.name]
-            except KeyError:
-                pass
-            raise
-        # Move the module to the end of sys.modules.
-        # We don't ensure that the import-related module attributes get
-        # set in the sys.modules replacement case.  Such modules are on
-        # their own.
-        module = sys.modules.pop(spec.name)
-        sys.modules[spec.name] = module
-        _verbose_message('import {!r} # {!r}', spec.name, spec.loader)
-    finally:
-        spec._initializing = False
-
-    return module
+    # We don't ensure that the import-related module attributes get
+    # set in the sys.modules replacement case.  Such modules are on
+    # their own.
+    return sys.modules[spec.name]
 
 # A method used during testing of _load_unlocked() and by
 # _load_module_shim().
@@ -730,8 +707,6 @@ class BuiltinImporter:
 
     """
 
-    _ORIGIN = "built-in"
-
     @staticmethod
     def module_repr(module):
         """Return repr for the module.
@@ -739,16 +714,14 @@ class BuiltinImporter:
         The method is deprecated.  The import machinery does the job itself.
 
         """
-        _warnings.warn("BuiltinImporter.module_repr() is deprecated and "
-                       "slated for removal in Python 3.12", DeprecationWarning)
-        return f'<module {module.__name__!r} ({BuiltinImporter._ORIGIN})>'
+        return '<module {!r} (built-in)>'.format(module.__name__)
 
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
         if path is not None:
             return None
         if _imp.is_builtin(fullname):
-            return spec_from_loader(fullname, cls, origin=cls._ORIGIN)
+            return spec_from_loader(fullname, cls, origin='built-in')
         else:
             return None
 
@@ -761,22 +734,19 @@ class BuiltinImporter:
         This method is deprecated.  Use find_spec() instead.
 
         """
-        _warnings.warn("BuiltinImporter.find_module() is deprecated and "
-                       "slated for removal in Python 3.12; use find_spec() instead",
-                       DeprecationWarning)
         spec = cls.find_spec(fullname, path)
         return spec.loader if spec is not None else None
 
-    @staticmethod
-    def create_module(spec):
+    @classmethod
+    def create_module(self, spec):
         """Create a built-in module"""
         if spec.name not in sys.builtin_module_names:
             raise ImportError('{!r} is not a built-in module'.format(spec.name),
                               name=spec.name)
         return _call_with_frames_removed(_imp.create_builtin, spec)
 
-    @staticmethod
-    def exec_module(module):
+    @classmethod
+    def exec_module(self, module):
         """Exec a built-in module"""
         _call_with_frames_removed(_imp.exec_builtin, module)
 
@@ -810,8 +780,6 @@ class FrozenImporter:
 
     """
 
-    _ORIGIN = "frozen"
-
     @staticmethod
     def module_repr(m):
         """Return repr for the module.
@@ -819,14 +787,12 @@ class FrozenImporter:
         The method is deprecated.  The import machinery does the job itself.
 
         """
-        _warnings.warn("FrozenImporter.module_repr() is deprecated and "
-                       "slated for removal in Python 3.12", DeprecationWarning)
-        return '<module {!r} ({})>'.format(m.__name__, FrozenImporter._ORIGIN)
+        return '<module {!r} (frozen)>'.format(m.__name__)
 
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
         if _imp.is_frozen(fullname):
-            return spec_from_loader(fullname, cls, origin=cls._ORIGIN)
+            return spec_from_loader(fullname, cls, origin='frozen')
         else:
             return None
 
@@ -837,13 +803,10 @@ class FrozenImporter:
         This method is deprecated.  Use find_spec() instead.
 
         """
-        _warnings.warn("FrozenImporter.find_module() is deprecated and "
-                       "slated for removal in Python 3.12; use find_spec() instead",
-                       DeprecationWarning)
         return cls if _imp.is_frozen(fullname) else None
 
-    @staticmethod
-    def create_module(spec):
+    @classmethod
+    def create_module(cls, spec):
         """Use default semantics for module creation."""
 
     @staticmethod
@@ -862,7 +825,6 @@ class FrozenImporter:
         This method is deprecated.  Use exec_module() instead.
 
         """
-        # Warning about deprecation implemented in _load_module_shim().
         return _load_module_shim(cls, fullname)
 
     @classmethod
@@ -903,15 +865,14 @@ def _resolve_name(name, package, level):
     """Resolve a relative module name to an absolute one."""
     bits = package.rsplit('.', level - 1)
     if len(bits) < level:
-        raise ImportError('attempted relative import beyond top-level package')
+        raise ValueError('attempted relative import beyond top-level package')
     base = bits[0]
     return '{}.{}'.format(base, name) if name else base
 
 
 def _find_spec_legacy(finder, name, path):
-    msg = (f"{_object_name(finder)}.find_spec() not found; "
-                           "falling back to find_module()")
-    _warnings.warn(msg, ImportWarning)
+    # This would be a good place for a DeprecationWarning if
+    # we ended up going that route.
     loader = finder.find_module(name, path)
     if loader is None:
         return None
@@ -1007,12 +968,7 @@ def _find_and_load_unlocked(name, import_):
     if parent:
         # Set the module as an attribute on its parent.
         parent_module = sys.modules[parent]
-        child = name.rpartition('.')[2]
-        try:
-            setattr(parent_module, child, module)
-        except AttributeError:
-            msg = f"Cannot set an attribute on {parent!r} for child module {child!r}"
-            _warnings.warn(msg, ImportWarning)
+        setattr(parent_module, name.rpartition('.')[2], module)
     return module
 
 
@@ -1060,30 +1016,31 @@ def _handle_fromlist(module, fromlist, import_, *, recursive=False):
     """
     # The hell that is fromlist ...
     # If a package was imported, try to import stuff from fromlist.
-    for x in fromlist:
-        if not isinstance(x, str):
-            if recursive:
-                where = module.__name__ + '.__all__'
-            else:
-                where = "``from list''"
-            raise TypeError(f"Item in {where} must be str, "
-                            f"not {type(x).__name__}")
-        elif x == '*':
-            if not recursive and hasattr(module, '__all__'):
-                _handle_fromlist(module, module.__all__, import_,
-                                 recursive=True)
-        elif not hasattr(module, x):
-            from_name = '{}.{}'.format(module.__name__, x)
-            try:
-                _call_with_frames_removed(import_, from_name)
-            except ModuleNotFoundError as exc:
-                # Backwards-compatibility dictates we ignore failed
-                # imports triggered by fromlist for modules that don't
-                # exist.
-                if (exc.name == from_name and
-                    sys.modules.get(from_name, _NEEDS_LOADING) is not None):
-                    continue
-                raise
+    if hasattr(module, '__path__'):
+        for x in fromlist:
+            if not isinstance(x, str):
+                if recursive:
+                    where = module.__name__ + '.__all__'
+                else:
+                    where = "``from list''"
+                raise TypeError(f"Item in {where} must be str, "
+                                f"not {type(x).__name__}")
+            elif x == '*':
+                if not recursive and hasattr(module, '__all__'):
+                    _handle_fromlist(module, module.__all__, import_,
+                                     recursive=True)
+            elif not hasattr(module, x):
+                from_name = '{}.{}'.format(module.__name__, x)
+                try:
+                    _call_with_frames_removed(import_, from_name)
+                except ModuleNotFoundError as exc:
+                    # Backwards-compatibility dictates we ignore failed
+                    # imports triggered by fromlist for modules that don't
+                    # exist.
+                    if (exc.name == from_name and
+                        sys.modules.get(from_name, _NEEDS_LOADING) is not None):
+                        continue
+                    raise
     return module
 
 
@@ -1145,10 +1102,8 @@ def __import__(name, globals=None, locals=None, fromlist=(), level=0):
             # Slice end needs to be positive to alleviate need to special-case
             # when ``'.' not in name``.
             return sys.modules[module.__name__[:len(module.__name__)-cut_off]]
-    elif hasattr(module, '__path__'):
-        return _handle_fromlist(module, fromlist, _gcd_import)
     else:
-        return module
+        return _handle_fromlist(module, fromlist, _gcd_import)
 
 
 def _builtin_from_name(name):

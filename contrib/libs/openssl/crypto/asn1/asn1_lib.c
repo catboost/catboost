@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2016 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -11,7 +11,7 @@
 #include <limits.h>
 #include "internal/cryptlib.h"
 #include <openssl/asn1.h>
-#include "asn1_local.h"
+#include "asn1_locl.h"
 
 static int asn1_get_length(const unsigned char **pp, int *inf, long *rl,
                            long max);
@@ -268,36 +268,20 @@ ASN1_STRING *ASN1_STRING_dup(const ASN1_STRING *str)
     return ret;
 }
 
-int ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len_in)
+int ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len)
 {
     unsigned char *c;
     const char *data = _data;
-    size_t len;
 
-    if (len_in < 0) {
+    if (len < 0) {
         if (data == NULL)
             return 0;
-        len = strlen(data);
-    } else {
-        len = (size_t)len_in;
+        else
+            len = strlen(data);
     }
-    /*
-     * Verify that the length fits within an integer for assignment to
-     * str->length below.  The additional 1 is subtracted to allow for the
-     * '\0' terminator even though this isn't strictly necessary.
-     */
-    if (len > INT_MAX - 1) {
-        ASN1err(0, ASN1_R_TOO_LARGE);
-        return 0;
-    }
-    if ((size_t)str->length <= len || str->data == NULL) {
+    if ((str->length <= len) || (str->data == NULL)) {
         c = str->data;
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        /* No NUL terminator in fuzzing builds */
-        str->data = OPENSSL_realloc(c, len != 0 ? len : 1);
-#else
         str->data = OPENSSL_realloc(c, len + 1);
-#endif
         if (str->data == NULL) {
             ASN1err(ASN1_F_ASN1_STRING_SET, ERR_R_MALLOC_FAILURE);
             str->data = c;
@@ -307,17 +291,8 @@ int ASN1_STRING_set(ASN1_STRING *str, const void *_data, int len_in)
     str->length = len;
     if (data != NULL) {
         memcpy(str->data, data, len);
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-        /* Set the unused byte to something non NUL and printable. */
-        if (len == 0)
-            str->data[len] = '~';
-#else
-        /*
-         * Add a NUL terminator. This should not be necessary - but we add it as
-         * a safety precaution
-         */
+        /* an allowance for strings :-) */
         str->data[len] = '\0';
-#endif
     }
     return 1;
 }
@@ -379,8 +354,7 @@ int ASN1_STRING_cmp(const ASN1_STRING *a, const ASN1_STRING *b)
 
     i = (a->length - b->length);
     if (i == 0) {
-        if (a->length != 0)
-            i = memcmp(a->data, b->data, a->length);
+        i = memcmp(a->data, b->data, a->length);
         if (i == 0)
             return a->type - b->type;
         else

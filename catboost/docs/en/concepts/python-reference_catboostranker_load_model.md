@@ -1,1 +1,0 @@
-{% include [python-reference_catboost_load_model](python-reference_catboost_load_model.md) %}

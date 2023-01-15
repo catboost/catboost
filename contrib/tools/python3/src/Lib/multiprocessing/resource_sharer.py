@@ -63,6 +63,7 @@ class _ResourceSharer(object):
     def __init__(self):
         self._key = 0
         self._cache = {}
+        self._old_locks = []
         self._lock = threading.Lock()
         self._listener = None
         self._address = None
@@ -112,7 +113,10 @@ class _ResourceSharer(object):
         for key, (send, close) in self._cache.items():
             close()
         self._cache.clear()
-        self._lock._at_fork_reinit()
+        # If self._lock was locked at the time of the fork, it may be broken
+        # -- see issue 6721.  Replace it without letting it be gc'ed.
+        self._old_locks.append(self._lock)
+        self._lock = threading.Lock()
         if self._listener is not None:
             self._listener.close()
         self._listener = None
@@ -132,7 +136,7 @@ class _ResourceSharer(object):
 
     def _serve(self):
         if hasattr(signal, 'pthread_sigmask'):
-            signal.pthread_sigmask(signal.SIG_BLOCK, signal.valid_signals())
+            signal.pthread_sigmask(signal.SIG_BLOCK, range(1, signal.NSIG))
         while 1:
             try:
                 with self._listener.accept() as conn:

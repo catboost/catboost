@@ -1,14 +1,8 @@
 import os
 import collections
-from hashlib import md5
 
 import ymake
 from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks, pathid
-
-
-YA_IDE_VENV_VAR = 'YA_IDE_VENV'
-PY_NAMESPACE_PREFIX = 'py/namespace'
-BUILTIN_PROTO = 'builtin_proto'
 
 
 def is_arc_src(src, unit):
@@ -18,27 +12,16 @@ def is_arc_src(src, unit):
         unit.resolve_arc_path(src).startswith('$S/')
     )
 
-
-def is_extended_source_search_enabled(path, unit):
-    if not is_arc_src(path, unit):
-        return False
-    if unit.get('NO_EXTENDED_SOURCE_SEARCH') == 'yes':
-        return False
-    return True
-
-
 def to_build_root(path, unit):
     if is_arc_src(path, unit):
         return '${ARCADIA_BUILD_ROOT}/' + rootrel_arc_src(path, unit)
     return path
-
 
 def uniq_suffix(path, unit):
     upath = unit.path()
     if '/' not in path:
         return ''
     return '.{}'.format(pathid(path)[:4])
-
 
 def pb2_arg(suf, path, mod, unit):
     return '{path}__int__{suf}={mod}{modsuf}'.format(
@@ -48,22 +31,17 @@ def pb2_arg(suf, path, mod, unit):
         modsuf=stripext(suf)
     )
 
-
 def proto_arg(path, mod, unit):
     return '{}.proto={}'.format(stripext(to_build_root(path, unit)), mod)
-
 
 def pb_cc_arg(suf, path, unit):
     return '{}{suf}'.format(stripext(to_build_root(path, unit)), suf=suf)
 
-
 def ev_cc_arg(path, unit):
     return '{}.ev.pb.cc'.format(stripext(to_build_root(path, unit)))
 
-
 def ev_arg(path, mod, unit):
     return '{}__int___ev_pb2.py={}_ev_pb2'.format(stripext(to_build_root(path, unit)), mod)
-
 
 def mangle(name):
     if '.' not in name:
@@ -114,13 +92,15 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
             else:
                 ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
 
-
 def has_pyx(args):
     return any(arg.endswith('.pyx') for arg in args)
 
-
 def get_srcdir(path, unit):
     return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
+
+
+def is_generated(path, unit):
+    return not unit.resolve(path).startswith('$S/')
 
 
 def add_python_lint_checks(unit, py_ver, files):
@@ -132,44 +112,20 @@ def add_python_lint_checks(unit, py_ver, files):
                 resolved_files.append(resolved)
         return resolved_files
 
-    if unit.get('_NO_LINT_VALUE') == "none":
-
-        no_lint_allowed_paths = (
-            "contrib/",
-            "devtools/",
-            "junk/",
-            # temporary allowed, TODO: remove
-            "taxi/uservices/",
-            "travel/",
-            "market/report/lite/",  # MARKETOUT-38662, deadline: 2021-08-12
-            "passport/backend/oauth/",  # PASSP-35982
-            "testenv/", # CI-3229
-        )
-
-        upath = unit.path()[3:]
-
-        if not upath.startswith(no_lint_allowed_paths):
-            ymake.report_configure_error("NO_LINT() is allowed only in " + ", ".join(no_lint_allowed_paths))
-
-    if files and unit.get('_NO_LINT_VALUE') not in ("none", "none_internal"):
+    resolved_files = []
+    if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = get_resolved_files()
-        if resolved_files:
-            flake8_cfg = 'build/config/tests/flake8/flake8.conf'
-            unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
+        unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
+        unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
 
-    if files and unit.get('STYLE_PYTHON_VALUE') == 'yes' and is_py3(unit):
-        resolved_files = get_resolved_files()
-        if resolved_files:
-            black_cfg =  unit.get('STYLE_PYTHON_PYPROJECT_VALUE') or 'devtools/ya/handlers/style/python_style_config.toml'
-            unit.onadd_check(['black', black_cfg] + resolved_files)
+    flake8_cfg = unit.get('FLAKE8_CONFIG') or 'build/config/tests/flake8_default.conf'
+    if files and flake8_cfg != 'none':
+        resolved_files = resolved_files or get_resolved_files()
+        unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
 
 def is_py3(unit):
     return unit.get("PYTHON3") == "yes"
-
-
-def on_py_program(unit, *args):
-    py_program(unit, is_py3(unit))
 
 
 def py_program(unit, py3):
@@ -202,7 +158,7 @@ def onpy_srcs(unit, *args):
         __init__.py never required, but if present (and specified in PY_SRCS), it will be imported when you import package modules with __init__.py Oh.
 
         Example of library declaration with PY_SRCS():
-        PY2_LIBRARY(mymodule)
+        PY_LIBRARY(mymodule)
         PY_SRCS(a.py sub/dir/b.py e.proto sub/dir/f.proto c.pyx sub/dir/d.pyx g.swg sub/dir/h.swg)
         END()
 
@@ -215,13 +171,8 @@ def onpy_srcs(unit, *args):
 
     upath = unit.path()[3:]
     py3 = is_py3(unit)
-    py_main_only = unit.get('PROCESS_PY_MAIN_ONLY')
     with_py = not unit.get('PYBUILD_NO_PY')
     with_pyc = not unit.get('PYBUILD_NO_PYC')
-    in_proto_library = unit.get('PY_PROTO') or unit.get('PY3_PROTO')
-    venv = unit.get(YA_IDE_VENV_VAR)
-    need_gazetteer_peerdir = False
-    trim = 0
 
     if not upath.startswith('contrib/tools/python') and not upath.startswith('library/python/runtime') and unit.get('NO_PYTHON_INCLS') != 'yes':
         unit.onpeerdir(['contrib/libs/python'])
@@ -248,7 +199,6 @@ def onpy_srcs(unit, *args):
     pyxs_c_h = []
     pyxs_c_api_h = []
     pyxs_cpp = []
-    pyxs_cpp_h = []
     pyxs = pyxs_cpp
     swigs_c = []
     swigs_cpp = []
@@ -256,8 +206,6 @@ def onpy_srcs(unit, *args):
     pys = []
     protos = []
     evs = []
-    fbss = []
-    py_namespaces = {}
 
     dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
     dump_output = None
@@ -284,8 +232,6 @@ def onpy_srcs(unit, *args):
             pyxs = pyxs_c_api_h
         elif arg == 'CYTHON_CPP':
             pyxs = pyxs_cpp
-        elif arg == 'CYTHON_CPP_H':
-            pyxs = pyxs_cpp_h
         elif arg == 'CYTHON_DIRECTIVE':
             cython_directives += ['-X', next(args)]
         elif arg == 'CYTHONIZE_PY':
@@ -296,12 +242,8 @@ def onpy_srcs(unit, *args):
         elif arg == 'SWIG_CPP':
             swigs = swigs_cpp
         # Unsupported but legal PROTO_LIBRARY arguments.
-        elif arg == 'GLOBAL' or not in_proto_library and arg.endswith('.gztproto'):
+        elif arg == 'GLOBAL' or arg.endswith('.gztproto'):
             pass
-        elif arg == '_MR':
-            # GLOB support: convert arcadia-root-relative paths to module-relative
-            # srcs are assumed to start with ${ARCADIA_ROOT}
-            trim = len(unit.path()) + 14
         # Sources.
         else:
             main_mod = arg == 'MAIN'
@@ -312,13 +254,7 @@ def onpy_srcs(unit, *args):
                 main_py = False
                 path, mod = arg.split('=', 1)
             else:
-                if trim:
-                    arg = arg[trim:]
-                if arg.endswith('.gztproto'):
-                    need_gazetteer_peerdir = True
-                    path = '{}.proto'.format(arg[:-9])
-                else:
-                    path = arg
+                path = arg
                 main_py = (path == '__main__.py' or path.endswith('/__main__.py'))
                 if not py3 and unit_needs_main and main_py:
                     mod = '__main__'
@@ -328,29 +264,20 @@ def onpy_srcs(unit, *args):
                     if arg.startswith('/'):
                         ymake.report_configure_error('PY_SRCS item starts with "/": {!r}'.format(arg))
                         continue
-                    mod_name = stripext(arg).replace('/', '.')
-                    if py3 and path.endswith('.py') and is_extended_source_search_enabled(path, unit):
-                        # Dig out real path from the file path. Unit.path is not enough because of SRCDIR and ADDINCL
-                        root_rel_path = rootrel_arc_src(path, unit)
-                        mod_root_path = root_rel_path[:-(len(path) + 1)]
-                        py_namespaces.setdefault(mod_root_path, set()).add(ns if ns else '.')
-                    mod = ns + mod_name
+                    mod = ns + stripext(arg).replace('/', '.')
+
+            if py3 and mod == '__main__':
+                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
 
             if main_mod:
                 py_main(unit, mod + ":main")
             elif py3 and unit_needs_main and main_py:
                 py_main(unit, mod)
 
-            if py_main_only:
-                continue
-
-            if py3 and mod == '__main__':
-                ymake.report_configure_error('TOP_LEVEL __main__.py is not allowed in PY3_PROGRAM')
-
             pathmod = (path, mod)
 
             if dump_output is not None:
-                dump_output.write('{path}\t{module}\t{py3}\n'.format(path=rootrel_arc_src(path, unit), module=mod, py3=1 if py3 else 0))
+                dump_output.write('{path}\t{module}\n'.format(path=rootrel_arc_src(path, unit), module=mod))
 
             if path.endswith('.py'):
                 if cythonize_py:
@@ -365,11 +292,6 @@ def onpy_srcs(unit, *args):
                 evs.append(pathmod)
             elif path.endswith('.swg'):
                 swigs.append(pathmod)
-            # Allow pyi files in PY_SRCS for autocomplete in IDE, but skip it during building
-            elif path.endswith('.pyi'):
-                pass
-            elif path.endswith('.fbs'):
-                fbss.append(pathmod)
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -409,7 +331,6 @@ def onpy_srcs(unit, *args):
             (pyxs_c_h, unit.on_buildwith_cython_c_h, ".c", True),
             (pyxs_c_api_h, unit.on_buildwith_cython_c_api_h, ".c", True),
             (pyxs_cpp, unit.on_buildwith_cython_cpp_dep, ".cpp", False),
-            (pyxs_cpp_h, unit.on_buildwith_cython_cpp_h, ".cpp", True),
         ]:
             for path, mod in pyxs:
                 filename = rootrel_arc_src(path, unit)
@@ -466,27 +387,15 @@ def onpy_srcs(unit, *args):
         res = []
 
         if py3:
-            mod_list_md5 = md5()
             for path, mod in pys:
-                mod_list_md5.update(mod)
-                if not (venv and is_extended_source_search_enabled(path, unit)):
-                    dest = 'py/' + mod.replace('.', '/') + '.py'
-                    if with_py:
-                        res += ['DEST', dest, path]
-                    if with_pyc:
-                        root_rel_path = rootrel_arc_src(path, unit)
-                        dst = path + uniq_suffix(path, unit)
-                        unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
-                        res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
-
-            if py_namespaces:
-                # Note: Add md5 to key to prevent key collision if two or more PY_SRCS() used in the same ya.make
-                ns_res = []
-                for path, ns in sorted(py_namespaces.items()):
-                    key = '{}/{}/{}'.format(PY_NAMESPACE_PREFIX, mod_list_md5.hexdigest(), path)
-                    namespaces = ':'.join(sorted(ns))
-                    ns_res += ['-', '{}="{}"'.format(key, namespaces)]
-                unit.onresource(ns_res)
+                dest = 'py/' + mod.replace('.', '/') + '.py'
+                if with_py:
+                    res += ['DEST', dest, path]
+                if with_pyc:
+                    root_rel_path = rootrel_arc_src(path, unit)
+                    dst = path + uniq_suffix(path, unit)
+                    unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
+                    res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
 
             unit.onresource_files(res)
             add_python_lint_checks(unit, 3, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
@@ -508,19 +417,9 @@ def onpy_srcs(unit, *args):
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
-    use_vanilla_protoc = unit.get('USE_VANILLA_PROTOC') == 'yes'
-    if use_vanilla_protoc:
-        cpp_runtime_path = 'contrib/libs/protobuf_std'
-        py_runtime_path = 'contrib/python/protobuf_std'
-        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
-    else:
-        cpp_runtime_path = 'contrib/libs/protobuf'
-        py_runtime_path = 'contrib/python/protobuf'
-        builtin_proto_path = cpp_runtime_path + '/' + BUILTIN_PROTO
-
     if protos:
-        if not upath.startswith(py_runtime_path) and not upath.startswith(builtin_proto_path):
-            unit.onpeerdir(py_runtime_path)
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
 
         unit.onpeerdir(unit.get("PY_PROTO_DEPS").split())
 
@@ -532,19 +431,37 @@ def onpy_srcs(unit, *args):
             for py_suf in unit.get("PY_PROTO_SUFFIXES").split()
         ])
 
-        if optimize_proto and need_gazetteer_peerdir:
-            unit.onpeerdir(['kernel/gazetteer/proto'])
+        if optimize_proto:
+            unit.onsrcs(proto_paths)
+
+            pb_cc_outs = [
+                pb_cc_arg(cc_suf, path, unit)
+                for path in proto_paths
+                for cc_suf in unit.get("CPP_PROTO_SUFFIXES").split()
+            ]
+
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if unit_needs_main:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
     if evs:
-        unit.onpeerdir([cpp_runtime_path])
+        if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+
         unit.on_generate_py_evs_internal([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
 
-    if fbss:
-        unit.onpeerdir(unit.get('_PY_FBS_DEPS').split())
-        pysrc_base_name = listid(fbss)
-        unit.onfbs_to_pysrc([pysrc_base_name] + [path for path, _ in fbss])
-        unit.onsrcs(['GLOBAL', '{}.fbs.pysrc'.format(pysrc_base_name)])
+        if optimize_proto:
+            unit.onsrcs([path for path, mod in evs])
+
+            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if unit_needs_main:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
 
 def _check_test_srcs(*args):
@@ -562,7 +479,7 @@ def ontest_srcs(unit, *args):
 
 def onpy_doctests(unit, *args):
     """
-    @usage PY_DOCTESTS(Packages...)
+    @usage PY_DOCTEST(Packages...)
 
     Add to the test doctests for specified Python packages
     The packages should be part of a test (listed as sources of the test or its PEERDIRs).
@@ -580,7 +497,7 @@ def py_register(unit, func, py3):
 
 def onpy_register(unit, *args):
     """
-    @usage: PY_REGISTER([package.]module_name)
+    @usage: PY_REGISTER([package.]module_name[=module_name])
 
     Python knows about which built-ins can be imported, due to their registration in the Assembly or at the start of the interpreter.
     All modules from the sources listed in PY_SRCS() are registered automatically.
@@ -608,8 +525,6 @@ def onpy_register(unit, *args):
 
 
 def py_main(unit, arg):
-    if unit.get('IGNORE_PY_MAIN'):
-        return
     unit_needs_main = unit.get('MODULE_TYPE') in ('PROGRAM', 'DLL')
     if unit_needs_main:
         py_program(unit, is_py3(unit))
@@ -624,9 +539,6 @@ def onpy_main(unit, arg):
 
         Documentation: https://wiki.yandex-team.ru/arcadia/python/pysrcs/#modulipyprogrampy3programimakrospymain
     """
-
-    arg = arg.replace('/', '.')
-
     if ':' not in arg:
         arg += ':main'
 
@@ -646,30 +558,3 @@ def onpy_constructor(unit, arg):
     else:
         arg[arg.index(':')] = '='
     unit.onresource(['-', 'py/constructors/{}'.format(arg)])
-
-
-def onpy_enums_serialization(unit, *args):
-    ns = ''
-    args = iter(args)
-    for arg in args:
-        # Namespace directives.
-        if arg == 'NAMESPACE':
-            ns = next(args)
-        else:
-            unit.on_py_enum_serialization_to_json(arg)
-            unit.on_py_enum_serialization_to_py(arg)
-            filename = arg.rsplit('.', 1)[0] + '.py'
-            if len(ns) != 0:
-                onpy_srcs(unit, 'NAMESPACE', ns, filename)
-            else:
-                onpy_srcs(unit, filename)
-
-
-def oncpp_enums_serialization(unit, *args):
-    args = iter(args)
-    for arg in args:
-        # Namespace directives.
-        if arg == 'NAMESPACE':
-            next(args)
-        else:
-            unit.ongenerate_enum_serialization_with_header(arg)

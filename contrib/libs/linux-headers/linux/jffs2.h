@@ -10,8 +10,6 @@
  * jffs2 directory.
  */
 
-#error "This file is licensed under bad license (GPL-2.0-or-later WITH mif-exception). See https://st.yandex-team.ru/DTCC-665 for details"
-
 #ifndef __LINUX_JFFS2_H__
 #define __LINUX_JFFS2_H__
 

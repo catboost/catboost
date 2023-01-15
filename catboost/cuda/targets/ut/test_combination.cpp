@@ -1,4 +1,4 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
@@ -92,7 +92,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer0 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights0 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        rmseTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer0, gpuWeights0);
+        rmseTarget.GradientAt(gpuCursor, gpuWeightedDer0, gpuWeights0);
         TVector<float> weightedDer0, weights0;
         gpuWeightedDer0.Read(weightedDer0);
         gpuWeights0.Read(weights0);
@@ -104,7 +104,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer1 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights1 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        queryRmseTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer1, gpuWeights1);
+        queryRmseTarget.GradientAt(gpuCursor, gpuWeightedDer1, gpuWeights1);
         TVector<float> weightedDer1, weights1;
         gpuWeightedDer1.Read(weightedDer1);
         gpuWeights1.Read(weights1);
@@ -119,7 +119,7 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
         auto gpuWeightedDer2 = TStripeBuffer<float>::CopyMapping(gpuCursor);
         auto gpuWeights2 = TStripeBuffer<float>::CopyMapping(gpuCursor);
-        combinationTarget.GradientAt(gpuCursor.AsConstBuf(), gpuWeightedDer2, gpuWeights2);
+        combinationTarget.GradientAt(gpuCursor, gpuWeightedDer2, gpuWeights2);
         TVector<float> weightedDer2, weights2;
         gpuWeightedDer2.Read(weightedDer2);
         gpuWeights2.Read(weights2);
@@ -142,9 +142,5 @@ Y_UNIT_TEST_SUITE(TCombinationTargetTests) {
 
     Y_UNIT_TEST(TestCombinationRMSEQueryRMSE) {
         TestCombinationGradientImpl(/*seed*/42, "RMSE", "QueryRMSE");
-    }
-
-    Y_UNIT_TEST(TestCombinationLoglossQuerySoftMaxBeta) {
-        TestCombinationGradientImpl(/*seed*/96, "Logloss", "QuerySoftMax:beta=0.5");
     }
 }

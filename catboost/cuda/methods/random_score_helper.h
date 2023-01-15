@@ -22,7 +22,7 @@ namespace NCatboostCuda {
     }
 
     template <class TTarget>
-    inline double ComputeScoreStdDev(double modelLengthMult, double randomStrength, const TTarget& target) {
+    inline double ComputeScoreStdDev(double modelLengthMult, double randomStrength, TTarget& target) {
         if (modelLengthMult * randomStrength) {
             double stdDev = ComputeStdDev(target);
             return modelLengthMult * stdDev * randomStrength;

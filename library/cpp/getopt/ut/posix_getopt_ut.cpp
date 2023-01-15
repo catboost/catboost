@@ -1,6 +1,6 @@
 #include <library/cpp/getopt/posix_getopt.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace NLastGetopt;
 

@@ -4,7 +4,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/targets/gpu_metrics.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
     class IMetricCalcer {
@@ -21,7 +21,7 @@ namespace NCatboostCuda {
         using TTargetMapping = typename TTarget::TMapping;
         using TConstVec = typename TTarget::TConstVec;
 
-        TMetricCalcer(const TTarget& target, NPar::ILocalExecutor* localExecutor)
+        TMetricCalcer(const TTarget& target, NPar::TLocalExecutor* localExecutor)
             : Target(target)
             , LocalExecutor(localExecutor)
         {
@@ -30,16 +30,14 @@ namespace NCatboostCuda {
         void SetPoint(TConstVec&& point) {
             Point = std::move(point);
             PointOnCpuCached = false;
-            Cache = MakeHolder<TScopedCacheHolder>();
+            Cache = new TScopedCacheHolder;
         }
 
         TMetricHolder Compute(const IGpuMetric* metric) final {
             CB_ENSURE(Point.GetObjectsSlice().Size(), "Set point first");
             auto targets = Target.GetTarget().GetTargets().ConstCopyView();
             TConstVec weights;
-            if ((metric->GetCpuMetric().UseWeights.IsIgnored() || metric->GetCpuMetric().UseWeights) &&
-                !Target.GetTarget().HasPairWeights()
-            ) {
+            if (metric->GetCpuMetric().UseWeights.IsIgnored() || metric->GetCpuMetric().UseWeights) {
                 weights = Target.GetTarget().GetWeights().ConstCopyView();
             } else {
                 using TVec = typename TTarget::TVec;
@@ -94,11 +92,7 @@ namespace NCatboostCuda {
                 Target.GetTarget().GetTargets().Read(CpuTarget);
             }
             if (CpuWeights.size() == 0) {
-                if (!Target.GetTarget().HasPairWeights()) {
-                    Target.GetTarget().GetWeights().Read(CpuWeights);
-                } else {
-                    CpuWeights.resize(CpuTarget.size(), 1);
-                }
+                Target.GetTarget().GetWeights().Read(CpuWeights);
             }
         }
 
@@ -143,7 +137,7 @@ namespace NCatboostCuda {
         TVector<float> CpuWeights;
         TVector<TQueryInfo> QueryInfo;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
 }

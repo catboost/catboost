@@ -36,7 +36,7 @@ namespace NCatboostModelExportHelpers {
             }
 
             TIndent& operator--() {
-                CB_ENSURE(IndentCount > 0, "Cannot unindent because indent count == 0");
+                Y_ENSURE(IndentCount > 0);
                 --IndentCount;
                 UpdateSize();
                 return *this;

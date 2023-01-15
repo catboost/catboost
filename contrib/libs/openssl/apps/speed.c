@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2019 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright (c) 2002, Oracle and/or its affiliates. All rights reserved
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -1242,6 +1242,8 @@ static int run_benchmark(int async_jobs,
     OSSL_ASYNC_FD job_fd = 0;
     size_t num_job_fds = 0;
 
+    run = 1;
+
     if (async_jobs == 0) {
         return loop_function((void *)&loopargs);
     }
@@ -1590,10 +1592,6 @@ int speed_main(int argc, char **argv)
         case OPT_MULTI:
 #ifndef NO_FORK
             multi = atoi(opt_arg());
-            if (multi >= INT_MAX / (int)sizeof(int)) {
-                BIO_printf(bio_err, "%s: multi argument too large\n", prog);
-                return 0;
-            }
 #endif
             break;
         case OPT_ASYNCJOBS:
@@ -2414,7 +2412,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_128_CML], c[D_CBC_128_CML][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_128_CML][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_128_CML][testnum]); count++)
                 Camellia_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                      (size_t)lengths[testnum], &camellia_ks1,
                                      iv, CAMELLIA_ENCRYPT);
@@ -2436,7 +2434,7 @@ int speed_main(int argc, char **argv)
                 exit(1);
             }
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_192_CML][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_192_CML][testnum]); count++)
                 Camellia_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                      (size_t)lengths[testnum], &camellia_ks2,
                                      iv, CAMELLIA_ENCRYPT);
@@ -2454,7 +2452,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_256_CML], c[D_CBC_256_CML][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_256_CML][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_256_CML][testnum]); count++)
                 Camellia_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                      (size_t)lengths[testnum], &camellia_ks3,
                                      iv, CAMELLIA_ENCRYPT);
@@ -2474,7 +2472,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_IDEA], c[D_CBC_IDEA][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_IDEA][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_IDEA][testnum]); count++)
                 IDEA_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                  (size_t)lengths[testnum], &idea_ks,
                                  iv, IDEA_ENCRYPT);
@@ -2494,7 +2492,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_SEED], c[D_CBC_SEED][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_SEED][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_SEED][testnum]); count++)
                 SEED_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                  (size_t)lengths[testnum], &seed_ks, iv, 1);
             d = Time_F(STOP);
@@ -2517,7 +2515,7 @@ int speed_main(int argc, char **argv)
                 exit(1);
             }
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_RC2][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_RC2][testnum]); count++)
                 RC2_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                 (size_t)lengths[testnum], &rc2_ks,
                                 iv, RC2_ENCRYPT);
@@ -2541,7 +2539,7 @@ int speed_main(int argc, char **argv)
                 exit(1);
             }
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_RC5][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_RC5][testnum]); count++)
                 RC5_32_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                    (size_t)lengths[testnum], &rc5_ks,
                                    iv, RC5_ENCRYPT);
@@ -2561,7 +2559,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_BF], c[D_CBC_BF][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_BF][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_BF][testnum]); count++)
                 BF_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                (size_t)lengths[testnum], &bf_ks,
                                iv, BF_ENCRYPT);
@@ -2581,7 +2579,7 @@ int speed_main(int argc, char **argv)
             print_message(names[D_CBC_CAST], c[D_CBC_CAST][testnum],
                           lengths[testnum], seconds.sym);
             Time_F(START);
-            for (count = 0; COND(c[D_CBC_CAST][testnum]); count++)
+            for (count = 0, run = 1; COND(c[D_CBC_CAST][testnum]); count++)
                 CAST_cbc_encrypt(loopargs[0].buf, loopargs[0].buf,
                                  (size_t)lengths[testnum], &cast_ks,
                                  iv, CAST_ENCRYPT);
@@ -3008,7 +3006,7 @@ int speed_main(int argc, char **argv)
                 pctx = NULL;
             }
             if (kctx == NULL ||      /* keygen ctx is not null */
-                EVP_PKEY_keygen_init(kctx) <= 0/* init keygen ctx */ ) {
+                !EVP_PKEY_keygen_init(kctx) /* init keygen ctx */ ) {
                 ecdh_checks = 0;
                 BIO_printf(bio_err, "ECDH keygen failure.\n");
                 ERR_print_errors(bio_err);
@@ -3016,12 +3014,12 @@ int speed_main(int argc, char **argv)
                 break;
             }
 
-            if (EVP_PKEY_keygen(kctx, &key_A) <= 0 || /* generate secret key A */
-                EVP_PKEY_keygen(kctx, &key_B) <= 0 || /* generate secret key B */
+            if (!EVP_PKEY_keygen(kctx, &key_A) || /* generate secret key A */
+                !EVP_PKEY_keygen(kctx, &key_B) || /* generate secret key B */
                 !(ctx = EVP_PKEY_CTX_new(key_A, NULL)) || /* derivation ctx from skeyA */
-                EVP_PKEY_derive_init(ctx) <= 0 || /* init derivation ctx */
-                EVP_PKEY_derive_set_peer(ctx, key_B) <= 0 || /* set peer pubkey in ctx */
-                EVP_PKEY_derive(ctx, NULL, &outlen) <= 0 || /* determine max length */
+                !EVP_PKEY_derive_init(ctx) || /* init derivation ctx */
+                !EVP_PKEY_derive_set_peer(ctx, key_B) || /* set peer pubkey in ctx */
+                !EVP_PKEY_derive(ctx, NULL, &outlen) || /* determine max length */
                 outlen == 0 ||  /* ensure outlen is a valid size */
                 outlen > MAX_ECDH_SIZE /* avoid buffer overflow */ ) {
                 ecdh_checks = 0;
@@ -3108,8 +3106,8 @@ int speed_main(int argc, char **argv)
 
             if ((ed_pctx = EVP_PKEY_CTX_new_id(test_ed_curves[testnum].nid, NULL))
                     == NULL
-                || EVP_PKEY_keygen_init(ed_pctx) <= 0
-                || EVP_PKEY_keygen(ed_pctx, &ed_pkey) <= 0) {
+                || !EVP_PKEY_keygen_init(ed_pctx)
+                || !EVP_PKEY_keygen(ed_pctx, &ed_pkey)) {
                 st = 0;
                 EVP_PKEY_CTX_free(ed_pctx);
                 break;
@@ -3397,7 +3395,6 @@ static void print_message(const char *s, long num, int length, int tm)
                mr ? "+DT:%s:%d:%d\n"
                : "Doing %s for %ds on %d size blocks: ", s, tm, length);
     (void)BIO_flush(bio_err);
-    run = 1;
     alarm(tm);
 #else
     BIO_printf(bio_err,
@@ -3415,7 +3412,6 @@ static void pkey_print_message(const char *str, const char *str2, long num,
                mr ? "+DTP:%d:%s:%s:%d\n"
                : "Doing %u bits %s %s's for %ds: ", bits, str, str2, tm);
     (void)BIO_flush(bio_err);
-    run = 1;
     alarm(tm);
 #else
     BIO_printf(bio_err,
@@ -3494,7 +3490,7 @@ static int do_multi(int multi, int size_num)
             close(fd[1]);
             mr = 1;
             usertime = 0;
-            OPENSSL_free(fds);
+            free(fds);
             return 0;
         }
         printf("Forked child %d\n", n);
@@ -3588,7 +3584,6 @@ static int do_multi(int multi, int size_num)
                 p = buf + 4;
                 k = atoi(sstrsep(&p, sep));
                 sstrsep(&p, sep);
-                sstrsep(&p, sep);
 
                 d = atof(sstrsep(&p, sep));
                 eddsa_results[k][0] += d;
@@ -3607,7 +3602,7 @@ static int do_multi(int multi, int size_num)
 
         fclose(f);
     }
-    OPENSSL_free(fds);
+    free(fds);
     return 1;
 }
 #endif
@@ -3646,7 +3641,7 @@ static void multiblock_speed(const EVP_CIPHER *evp_cipher, int lengths_single,
     for (j = 0; j < num; j++) {
         print_message(alg_name, 0, mblengths[j], seconds->sym);
         Time_F(START);
-        for (count = 0; run && count < 0x7fffffff; count++) {
+        for (count = 0, run = 1; run && count < 0x7fffffff; count++) {
             unsigned char aad[EVP_AEAD_TLS1_AAD_LEN];
             EVP_CTRL_TLS1_1_MULTIBLOCK_PARAM mb_param;
             size_t len = mblengths[j];

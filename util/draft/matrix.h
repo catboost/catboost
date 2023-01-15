@@ -6,7 +6,7 @@
 #include <string.h>
 
 template <typename T>
-class TMatrix: TNonCopyable {
+class TMatrix : TNonCopyable {
     // Constructor/Destructor
 public:
     TMatrix()

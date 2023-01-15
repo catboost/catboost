@@ -46,7 +46,7 @@ static inline TBasicString<TChar> EscapeC(TChar ch) {
 
 template <typename TChar>
 static inline TBasicString<TChar> EscapeC(const TChar* str) {
-    return EscapeC(str, std::char_traits<TChar>::length(str));
+    return EscapeC(str, TCharTraits<TChar>::GetLength(str));
 }
 
 TString& EscapeC(const TStringBuf str, TString& res);

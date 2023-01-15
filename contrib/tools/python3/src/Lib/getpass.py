@@ -52,7 +52,7 @@ def unix_getpass(prompt='Password: ', stream=None):
             stack.enter_context(input)
             if not stream:
                 stream = input
-        except OSError:
+        except OSError as e:
             # If that fails, see if stdin can be controlled.
             stack.close()
             try:
@@ -95,7 +95,7 @@ def unix_getpass(prompt='Password: ', stream=None):
 
 
 def win_getpass(prompt='Password: ', stream=None):
-    """Prompt for password with echo off, using Windows getwch()."""
+    """Prompt for password with echo off, using Windows getch()."""
     if sys.stdin is not sys.__stdin__:
         return fallback_getpass(prompt, stream)
 

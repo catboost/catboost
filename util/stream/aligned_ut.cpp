@@ -1,6 +1,6 @@
 #include "aligned.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 class TNastyInputStream: public IInputStream {
 public:
@@ -11,9 +11,8 @@ public:
 
 protected:
     size_t DoRead(void* buf, size_t len) override {
-        if (len == 0) {
+        if (len == 0)
             return 0;
-        }
 
         *static_cast<unsigned char*>(buf) = static_cast<unsigned char>(Pos_);
         ++Pos_;
@@ -21,9 +20,8 @@ protected:
     }
 
     size_t DoSkip(size_t len) override {
-        if (len == 0) {
+        if (len == 0)
             return 0;
-        }
 
         ++Pos_;
         return 1;

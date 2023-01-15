@@ -12,7 +12,7 @@ namespace NCoro {
             }
 
             cont->Executor()->ScheduleIoWait(event);
-            cont->Switch();
+            cont->SwitchTo(cont->Executor()->SchedContext());
 
             if (cont->Cancelled()) {
                 return ECANCELED;

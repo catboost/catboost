@@ -23,10 +23,10 @@ enum ESizeFormat {
 
 namespace NFormatPrivate {
     template <size_t Value>
-    struct TLog2: std::integral_constant<size_t, TLog2<Value / 2>::value + 1> {};
+    struct TLog2 : std::integral_constant<size_t, TLog2<Value / 2>::value + 1> {};
 
     template <>
-    struct TLog2<1>: std::integral_constant<size_t, 0> {};
+    struct TLog2<1> : std::integral_constant<size_t, 0> {};
 
     static inline void WriteChars(IOutputStream& os, char c, size_t count) {
         if (count == 0)
@@ -118,9 +118,9 @@ namespace NFormatPrivate {
 
         if (value.Flags & HF_ADDX) {
             if (Base == 16) {
-                stream << TStringBuf("0x");
+                stream << AsStringBuf("0x");
             } else if (Base == 2) {
-                stream << TStringBuf("0b");
+                stream << AsStringBuf("0b");
             }
         }
 
@@ -329,7 +329,7 @@ static constexpr ::NFormatPrivate::TBaseNumber<T, 2> SBin(const T& value, const 
  *
  * Example usage:
  * @code
- * stream << HexText(TStringBuf("abcи"));  // Will output "61 62 63 D0 B8"
+ * stream << HexText(AsStringBuf("abcи"));  // Will output "61 62 63 D0 B8"
  * stream << HexText(TWtringBuf(u"abcи")); // Will output "0061 0062 0063 0438"
  * @endcode
  *
@@ -348,7 +348,7 @@ static inline ::NFormatPrivate::TBaseText<TChar, 16> HexText(const TBasicStringB
  *
  * Example usage:
  * @code
- * stream << BinText(TStringBuf("aaa"));  // Will output "01100001 01100001 01100001"
+ * stream << BinText(AsStringBuf("aaa"));  // Will output "01100001 01100001 01100001"
  * @endcode
  *
  * @param value                         String to output.

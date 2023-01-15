@@ -1,7 +1,6 @@
 UNITTEST_FOR(util)
 
 
-SUBSCRIBER(g:util-subscribers)
 
 SRCS(
     thread/factory_ut.cpp
@@ -9,10 +8,6 @@ SRCS(
     thread/lfstack_ut.cpp
     thread/pool_ut.cpp
     thread/singleton_ut.cpp
-)
-
-PEERDIR(
-    library/cpp/threading/future
 )
 
 END()

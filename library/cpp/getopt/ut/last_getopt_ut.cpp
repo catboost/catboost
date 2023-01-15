@@ -1,7 +1,7 @@
 #include <library/cpp/getopt/last_getopt.h>
 
 #include <library/cpp/colorizer/colors.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/generic/array_size.h>
 #include <util/string/subst.h>
@@ -126,7 +126,7 @@ struct TOptsParserTester {
 };
 
 namespace {
-    bool gSimpleFlag = false;
+    static bool gSimpleFlag = false;
     void SimpleHander(void) {
         gSimpleFlag = true;
     }
@@ -415,59 +415,15 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
     }
 #endif
 
-    Y_UNIT_TEST(TestEqParseOnly) {
-        TOptsParserTester tester;
-
-        tester.Argv_.push_back("cmd");
-        tester.Argv_.push_back("--data=jjhh");
-        tester.Argv_.push_back("-n");
-        tester.Argv_.push_back("11");
-        tester.Argv_.push_back("--optional-number-1=8");
-        tester.Argv_.push_back("--optional-string-1=os1");
-        tester.Argv_.push_back("--optional-number-2");
-        tester.Argv_.push_back("10");
-        tester.Argv_.push_back("--optional-string-2");
-        tester.Argv_.push_back("freearg");
-
-        tester.Opts_.AddLongOption('d', "data");
-        tester.Opts_.AddLongOption('n', "number");
-        tester.Opts_.AddLongOption("optional-string-0");
-        tester.Opts_.AddLongOption("optional-number-0");
-        tester.Opts_.AddLongOption("optional-string-1");
-        tester.Opts_.AddLongOption("optional-number-1");
-        tester.Opts_.AddLongOption("optional-string-2").OptionalArgument().DisableSpaceParse();
-        tester.Opts_.AddLongOption("optional-number-2").OptionalArgument();
-
-        tester.AcceptOptionWithValue("data", "jjhh");
-        tester.AcceptOptionWithValue('n', "11");
-        tester.AcceptOptionWithValue("optional-number-1", "8");
-        tester.AcceptOptionWithValue("optional-string-1", "os1");
-        tester.AcceptOptionWithValue("optional-number-2", "10");
-        tester.AcceptOptionWithoutValue("optional-string-2");
-        tester.AcceptEndOfOptions();
-        tester.AcceptFreeArg("freearg");
-        tester.AcceptEndOfFreeArgs();
-    }
-
     Y_UNIT_TEST(TestStoreResult) {
         TOptsNoDefault opts;
         TString data;
         int number;
-        TMaybe<TString> optionalString0, optionalString1;
-        TMaybe<int> optionalNumber0, optionalNumber1;
         opts.AddLongOption('d', "data").StoreResult(&data);
         opts.AddLongOption('n', "number").StoreResult(&number);
-        opts.AddLongOption("optional-string-0").StoreResult(&optionalString0);
-        opts.AddLongOption("optional-number-0").StoreResult(&optionalNumber0);
-        opts.AddLongOption("optional-string-1").StoreResult(&optionalString1);
-        opts.AddLongOption("optional-number-1").StoreResult(&optionalNumber1);
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--data=jjhh", "-n", "11", "--optional-number-1=8", "--optional-string-1=os1"}));
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--data=jjhh", "-n", "11"}));
         UNIT_ASSERT_VALUES_EQUAL("jjhh", data);
         UNIT_ASSERT_VALUES_EQUAL(11, number);
-        UNIT_ASSERT(!optionalString0.Defined());
-        UNIT_ASSERT(!optionalNumber0.Defined());
-        UNIT_ASSERT_VALUES_EQUAL(*optionalString1, "os1");
-        UNIT_ASSERT_VALUES_EQUAL(*optionalNumber1, 8);
     }
 
     Y_UNIT_TEST(TestStoreValue) {
@@ -736,21 +692,15 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
 
     Y_UNIT_TEST(TestAppendTo) {
         TVector<int> ints;
-        std::vector<std::string> strings;
 
         TOptsNoDefault opts;
         opts.AddLongOption("size").AppendTo(&ints);
-        opts.AddLongOption("value").AppendTo(&strings);
 
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19", "--value=v1", "--value=v2"}));
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--size=17", "--size=19"}));
 
         UNIT_ASSERT_VALUES_EQUAL(size_t(2), ints.size());
         UNIT_ASSERT_VALUES_EQUAL(17, ints.at(0));
         UNIT_ASSERT_VALUES_EQUAL(19, ints.at(1));
-
-        UNIT_ASSERT_VALUES_EQUAL(size_t(2), strings.size());
-        UNIT_ASSERT_VALUES_EQUAL("v1", strings.at(0));
-        UNIT_ASSERT_VALUES_EQUAL("v2", strings.at(1));
     }
 
     Y_UNIT_TEST(TestEmplaceTo) {
@@ -818,42 +768,5 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT_EXCEPTION(
             TOptsParseResultException(&opts, Y_ARRAY_SIZE(argv), argv),
             TUsageException);
-    }
-
-    Y_UNIT_TEST(TestFreeArgsStoreResult) {
-        TOptsNoDefault opts;
-        TString data;
-        int number = 0;
-        opts.AddFreeArgBinding("data", data);
-        opts.AddFreeArgBinding("number", number);
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "hello", "25"}));
-        UNIT_ASSERT_VALUES_EQUAL("hello", data);
-        UNIT_ASSERT_VALUES_EQUAL(25, number);
-        UNIT_ASSERT_VALUES_EQUAL(2, r.GetFreeArgCount());
-    }
-
-    Y_UNIT_TEST(TestCheckUserTypos) {
-        {
-            TOptsNoDefault opts;
-            opts.SetCheckUserTypos();
-            opts.AddLongOption("from");
-            opts.AddLongOption("to");
-
-            UNIT_ASSERT_EXCEPTION(
-                    TOptsParseResultTestWrapper(&opts, V({"copy", "-from", "/home", "--to=/etc"})),
-                    TUsageException);
-            UNIT_ASSERT_NO_EXCEPTION(
-                    TOptsParseResultTestWrapper(&opts, V({"copy", "--from", "from", "--to=/etc"})));
-        }
-
-        {
-            TOptsNoDefault opts;
-            opts.SetCheckUserTypos();
-            opts.AddLongOption('f', "file", "");
-            opts.AddLongOption('r', "read", "");
-            opts.AddLongOption("fr");
-            UNIT_ASSERT_NO_EXCEPTION(
-                    TOptsParseResultTestWrapper(&opts, V({"copy", "-fr"})));
-        }
     }
 }

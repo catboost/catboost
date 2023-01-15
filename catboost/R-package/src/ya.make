@@ -1,31 +1,28 @@
 R_MODULE(
     catboostr
 )
-
-IF (NOT OS_WINDOWS)
-    EXPORTS_SCRIPT(catboostr.exports)
-ENDIF()
+EXPORTS_SCRIPT(catboostr.exports)
 
 
 
 SRCS(
     catboostr.cpp
-    init.c
 )
 
 PEERDIR(
+    catboost/private/libs/algo
     catboost/libs/cat_feature
+    catboost/private/libs/data_util
     catboost/libs/data
-    catboost/libs/eval_result
+    catboost/private/libs/documents_importance
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
+    catboost/libs/eval_result
+    catboost/private/libs/init
     catboost/libs/logging
     catboost/libs/model
+    catboost/private/libs/options
     catboost/libs/train_lib
-    catboost/private/libs/algo
-    catboost/private/libs/data_util
-    catboost/private/libs/documents_importance
-    catboost/private/libs/init
     catboost/private/libs/options
 )
 
@@ -40,10 +37,10 @@ IF (OS_WINDOWS)
     LDFLAGS($CURDIR/R.lib)  # TODO: use EXTRALIBS
 ENDIF()
 
-IF (OS_WINDOWS)
+IF (ARCH_AARCH64 OR OS_WINDOWS)
     ALLOCATOR(J)
 ELSE()
-    ALLOCATOR(MIM)
+    ALLOCATOR(LF)
 ENDIF()
 
 END()

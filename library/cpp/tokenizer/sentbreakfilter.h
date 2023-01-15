@@ -2,9 +2,9 @@
 
 #include "tokenizer.h"
 
-#include <library/cpp/token/nlptypes.h>
-#include <library/cpp/langmask/langmask.h>
-#include <library/cpp/token/token_structure.h>
+#include <library/token/nlptypes.h>
+#include <library/langmask/langmask.h>
+#include <library/token/token_structure.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/noncopyable.h>
@@ -110,7 +110,7 @@ public:
         if (type == NLP_WORD || type == NLP_INTEGER || type == NLP_FLOAT || type == NLP_MARK) {
             Y_ASSERT(token.Leng <= TOKEN_MAX_LEN);
             LastType = type;
-            std::char_traits<wchar16>::copy(Buffer, token.Token, token.Leng);
+            TCharTraits<wchar16>::Copy(Buffer, token.Token, token.Leng);
             //LastToken.Token = Buffer; assigned in the constructor
             LastToken.Leng = token.Leng;
             LastToken.SubTokens = token.SubTokens;

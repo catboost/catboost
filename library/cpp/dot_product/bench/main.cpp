@@ -1,173 +1,239 @@
 #include <library/cpp/dot_product/dot_product.h>
-#include <library/cpp/dot_product/dot_product_sse.h>
-#include <library/cpp/dot_product/dot_product_avx2.h>
-#include <library/cpp/dot_product/dot_product_simple.h>
 
-#include <benchmark/benchmark.h>
-
-#include <contrib/libs/eigen/Eigen/Core>
+#include <library/testing/benchmark/bench.h>
 
 #include <util/generic/singleton.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
-#include <util/generic/ymath.h>
+#include <contrib/libs/eigen/Eigen/Core>
+
 #include <util/random/fast.h>
 
-constexpr size_t SlidingWindowStride = 16;
+namespace {
+    inline void RandomNumber(TReallyFastRng32& rng, i8& value) {
+        value = rng.Uniform(~((ui8)0));
+    };
 
-template <class T>
-TVector<T> MakeRandomData(size_t size, ui32 seed) {
-    const size_t length = CeilDiv(Max<size_t>(size * 2, 4096), SlidingWindowStride) * SlidingWindowStride;
-    TReallyFastRng32 rng(seed);
-    rng.Advance(length);
+    inline void RandomNumber(TReallyFastRng32& rng, ui8& value) {
+        value = rng.Uniform(~((ui8)0));
+    };
 
-    TVector<T> result(length);
-    for (auto& n : result) {
-        if constexpr (std::is_integral_v<T>) {
-            const auto x = rng.GenRand();
-            static_assert(sizeof(T) <= sizeof(x));
-            memcpy(&n, &x, sizeof(T));
-        } else {
-            n = rng.GenRandReal1();
+    inline void RandomNumber(TReallyFastRng32& rng, i32& value) {
+        value = rng.Uniform(~((ui32)0));
+    };
+
+    inline void RandomNumber(TReallyFastRng32& rng, float& value) {
+        value = rng.GenRandReal1();
+    };
+
+    inline void RandomNumber(TReallyFastRng32& rng, double& value) {
+        value = rng.GenRandReal1();
+    };
+
+    template <class Number, size_t length, size_t seed>
+    class TRandomDataHolder {
+        static constexpr const size_t SequenceLength = Max(length * 2, (size_t)4096);
+
+    public:
+        TRandomDataHolder() {
+            TReallyFastRng32 rng(seed);
+            rng.Advance(length);
+            for (Number& n : Data_) {
+                RandomNumber(rng, n);
+            }
         }
+
+        /// Возвращает набор смещений, каждое из которых можно использовать как начало окна с длиной `length`
+        static auto SlidingWindows() {
+            static_assert(SequenceLength >= length);
+            return xrange((size_t)0, SequenceLength - length, 16);
+        }
+
+        const Number* Data() const {
+            return Data_;
+        }
+
+        ui32 Length() const {
+            return length;
+        }
+
+    private:
+        char Padding0[64];                        // memory sanitizer guard range
+        alignas(16) Number Data_[SequenceLength]; // в тесте используется скользящее окно с длиной length, которое имеет смещение до length, поэтому адресуются length*2 значений
+        char Padding1[64];                        // memory sanitizer guard range
+    };
+
+    template <typename Res, typename Num>
+    Res SimpleDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
+        Res sum = 0;
+
+        while (length) {
+            sum += static_cast<Res>(*lhs++) * static_cast<Res>(*rhs++);
+            --length;
+        }
+
+        return sum;
     }
 
-    return result;
-}
+    template <typename Res, typename Num>
+    Res EigenDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
+        Eigen::Map<const Eigen::Matrix<Num, 1, Eigen::Dynamic>> el(lhs, length);
+        Eigen::Map<const Eigen::Matrix<Num, Eigen::Dynamic, 1>> er(rhs, length);
+        Res res[1];
+        Eigen::Map<Eigen::Matrix<Res, 1, 1>> r(res);
 
-struct TSimpleDotProduct {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        return DotProductSimple(lhs, rhs, length);
+        r = el.template cast<Res>() * er.template cast<Res>();
+
+        return res[0];
     }
-};
 
-struct TEigenDotProduct {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>> el(lhs, length);
-        Eigen::Map<const Eigen::Array<T, Eigen::Dynamic, 1>> er(rhs, length);
-
-        return (el * er).sum();
-    }
-};
-
-struct TSseDotProduct {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        return DotProductSse(lhs, rhs, length);
-    }
-};
-
-struct TAvx2DotProduct {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        return DotProductAvx2(lhs, rhs, length);
-    }
-};
-
-struct TDotProduct {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        return DotProduct(lhs, rhs, length);
-    }
-};
-
-struct TSequentialCosine {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        const auto ll = L2NormSquared(lhs, length);
-        const auto lr = DotProduct(lhs, rhs, length);
-        const auto rr = L2NormSquared(rhs, length);
-        return lr / sqrt(ll * rr);
-    }
-};
-
-struct TCombinedCosine {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        const auto p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::All);
+    template <typename Res, typename Num>
+    Res SequentialCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            L2NormSquared(rhs, length)
+        };
         return p.LR / sqrt(p.LL * p.RR);
     }
-};
 
-struct TSequentialCosinePrenorm {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        const auto ll = L2NormSquared(lhs, length);
-        const auto lr = DotProduct(lhs, rhs, length);
-        return lr / sqrt(ll);
+    template <typename Res, typename Num>
+    Res CombinedCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::All);
+        return p.LR / sqrt(p.LL * p.RR);
     }
-};
 
-struct TCombinedCosinePrenorm {
-    template <class T>
-    auto operator()(const T* lhs, const T* rhs, size_t length) {
-        const auto p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::Left);
-        return p.LR / sqrt(p.LL);
+    template <typename Res, typename Num>
+    Res SequentialCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            1
+        };
+        return p.LR / sqrt(p.LL * p.RR);
     }
-};
 
-constexpr size_t Seed1 = 19;
-constexpr size_t Seed2 = 179;
+    template <typename Res, typename Num>
+    Res CombinedCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::Left);
+        return p.LR / sqrt(p.LL * p.RR);
+    }
 
-template <class T, class TDotProduct>
-void BM_DotProduct(benchmark::State& state) {
-    const size_t size = state.range(0);
-    const auto data1 = MakeRandomData<T>(size, Seed1);
-    const auto data2 = MakeRandomData<T>(size, Seed2);
-    const auto dataSize = data1.size();
-    const auto* lhs = data1.data();
-    const auto* rhs = data2.data();
+    template <typename Res, typename Number, size_t count, size_t seed1, size_t seed2>
+    class TBenchmark {
+    public:
+        using TData1 = TRandomDataHolder<Number, count, seed1>;
+        using TData2 = TRandomDataHolder<Number, count, seed2>;
 
-    size_t offset = 0;
-    for (const auto _: state) {
-        benchmark::DoNotOptimize(TDotProduct{}(lhs + offset, rhs + offset, size));
-        offset += SlidingWindowStride;
-        if (offset + size > dataSize) {
-            offset = 0;
+        TBenchmark() {
         }
+
+        void Do(Res (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
+            ui32 length = Data1_.Length();
+            const Number* lhs = Data1_.Data();
+            const Number* rhs = Data2_.Data();
+
+            size_t i = 0;
+            while (1) {
+                for (ui32 start : TData1::SlidingWindows()) {
+                    if (!(i < iface.Iterations())) {
+                        return;
+                    }
+                    Y_DO_NOT_OPTIMIZE_AWAY(op(lhs + start, rhs + start, length));
+                    ++i;
+                }
+            }
+        }
+
+    private:
+        TData1 Data1_;
+        TData2 Data2_;
+    };
+
+    template <typename TSourceType>
+    struct TResultType {
+        using TType = TSourceType;
+    };
+
+    template <>
+    struct TResultType<i8> {
+        using TType = i32;
+    };
+
+    template <>
+    struct TResultType<ui8> {
+        using TType = ui32;
+    };
+
+    template <>
+    struct TResultType<i32> {
+        using TType = i64;
+    };
+
+    /* stand-alone dot-product */
+
+#define DefineBenchmarkAlgos(length, TSourceType)                                                                   \
+    static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 19, 179> Bench##length##_##TSourceType; \
+                                                                                                                    \
+    Y_CPU_BENCHMARK(Slow##length##_##TSourceType, iface) {                                                          \
+        Bench##length##_##TSourceType.Do(SimpleDotProduct, iface);                                                  \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Eigen##length##_##TSourceType, iface) {                                                         \
+        Bench##length##_##TSourceType.Do(EigenDotProduct, iface);                                                   \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Vector##length##_##TSourceType, iface) {                                                        \
+        Bench##length##_##TSourceType.Do(DotProductSlow, iface);                                                    \
+    }                                                                                                               \
+    Y_CPU_BENCHMARK(Fast##length##_##TSourceType, iface) {                                                          \
+        Bench##length##_##TSourceType.Do(DotProduct, iface);                                                        \
     }
-}
 
-void WithSizes(benchmark::internal::Benchmark* b) {
-    for (const auto i: {32, 48, 50, 64, 96, 100, 150, 200, 350, 700, 1024, 30000}) {
-        b->Arg(i);
+#define DefineBenchmarkLengths(TSourceType)  \
+    DefineBenchmarkAlgos(32, TSourceType);   \
+    DefineBenchmarkAlgos(96, TSourceType);   \
+    DefineBenchmarkAlgos(100, TSourceType);  \
+    DefineBenchmarkAlgos(150, TSourceType);  \
+    DefineBenchmarkAlgos(200, TSourceType);  \
+    DefineBenchmarkAlgos(350, TSourceType);  \
+    DefineBenchmarkAlgos(700, TSourceType);  \
+    DefineBenchmarkAlgos(1000, TSourceType); \
+    DefineBenchmarkAlgos(30000, TSourceType);
+
+    DefineBenchmarkLengths(i8);
+    DefineBenchmarkLengths(ui8);
+    DefineBenchmarkLengths(i32);
+    DefineBenchmarkLengths(float);
+    DefineBenchmarkLengths(double);
+
+    /* combined dot-product */
+
+#define DefineCosineBenchmarkAlgos(length, TSourceType)                                                                   \
+    static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 17, 137> BenchCosine##length##_##TSourceType; \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosine##length##_##TSourceType, iface) {                                                    \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosine, iface);                                     \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosine##length##_##TSourceType, iface) {                                                      \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosine, iface);                                       \
+    }                                                                                                                     \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosinePrenorm##length##_##TSourceType, iface) {                                             \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosinePrenorm, iface);                              \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosinePrenorm##length##_##TSourceType, iface) {                                               \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosinePrenorm, iface);                                \
     }
+
+#define DefineCosineBenchmarkLengths(TSourceType)  \
+    DefineCosineBenchmarkAlgos(32, TSourceType);   \
+    DefineCosineBenchmarkAlgos(96, TSourceType);   \
+    DefineCosineBenchmarkAlgos(100, TSourceType);  \
+    DefineCosineBenchmarkAlgos(150, TSourceType);  \
+    DefineCosineBenchmarkAlgos(200, TSourceType);  \
+    DefineCosineBenchmarkAlgos(350, TSourceType);  \
+    DefineCosineBenchmarkAlgos(700, TSourceType);  \
+    DefineCosineBenchmarkAlgos(1000, TSourceType); \
+    DefineCosineBenchmarkAlgos(30000, TSourceType);
+
+    DefineCosineBenchmarkLengths(float);
 }
-
-BENCHMARK_TEMPLATE(BM_DotProduct, i8, TSseDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, ui8, TSseDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, i32, TSseDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TSseDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, double, TSseDotProduct)->Apply(WithSizes);
-
-BENCHMARK_TEMPLATE(BM_DotProduct, i8, TAvx2DotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, ui8, TAvx2DotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, i32, TAvx2DotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TAvx2DotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, double, TAvx2DotProduct)->Apply(WithSizes);
-
-BENCHMARK_TEMPLATE(BM_DotProduct, i8, TDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, ui8, TDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, i32, TDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, double, TDotProduct)->Apply(WithSizes);
-
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TSequentialCosine)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TCombinedCosine)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TSequentialCosinePrenorm)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TCombinedCosinePrenorm)->Apply(WithSizes);
-
-BENCHMARK_TEMPLATE(BM_DotProduct, i8, TSimpleDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, ui8, TSimpleDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, i32, TSimpleDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TSimpleDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, double, TSimpleDotProduct)->Apply(WithSizes);
-
-BENCHMARK_TEMPLATE(BM_DotProduct, i8, TEigenDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, ui8, TEigenDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, i32, TEigenDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, float, TEigenDotProduct)->Apply(WithSizes);
-BENCHMARK_TEMPLATE(BM_DotProduct, double, TEigenDotProduct)->Apply(WithSizes);
-

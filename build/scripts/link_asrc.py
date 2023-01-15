@@ -69,6 +69,7 @@ def main():
                 files.extend(tar.getnames())
                 tar.extractall(path=args.work)
 
+
     with tarfile.open(args.output, 'w') as out:
         for part in parts:
             dest = DESTS[part[0]]
@@ -78,7 +79,6 @@ def main():
 
         for f in files:
             out.add(os.path.join(args.work, f), arcname=f)
-
 
 if __name__ == '__main__':
     main()

@@ -16,12 +16,8 @@ namespace NCatboostCuda {
         TFeatureEstimatorsPtr estimators,
         const TFeaturesLayout& featuresLayout,
         const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
-        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        ui32 maxObjectsCount,
-        bool enableShuffling)
-        : MaxObjectsCount(maxObjectsCount)
-        , CatFeatureOptions(catFeatureOptions)
-        , EnableShuffling(enableShuffling)
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
+        : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
         , FeatureEstimators(estimators)
         , LearnExclusiveFeatureBundles(learnExclusiveFeatureBundles)
@@ -49,7 +45,6 @@ namespace NCatboostCuda {
         const TVector<ui32>& ignoredFeatureIds)
         : KnownCtrs(featureManager.KnownCtrs)
         , InverseCtrs(featureManager.InverseCtrs)
-        , UsedCtrs(featureManager.UsedCtrs)
         , DataProviderFloatFeatureIdToFeatureManagerId(featureManager.DataProviderFloatFeatureIdToFeatureManagerId)
         , DataProviderCatFeatureIdToFeatureManagerId(featureManager.DataProviderCatFeatureIdToFeatureManagerId)
         , FeatureManagerIdToDataProviderId(featureManager.FeatureManagerIdToDataProviderId)
@@ -57,7 +52,6 @@ namespace NCatboostCuda {
         , EstimatedFeatureUpperBoundHints(featureManager.EstimatedFeatureUpperBoundHints)
         , FeatureManagerIdToEstimatedFeatureId(featureManager.FeatureManagerIdToEstimatedFeatureId)
         , Cursor(featureManager.Cursor)
-        , MaxObjectsCount(featureManager.MaxObjectsCount)
         , CtrBinarizationOptions(featureManager.CtrBinarizationOptions)
         , TargetBorders(featureManager.TargetBorders)
         , CatFeatureOptions(featureManager.CatFeatureOptions)

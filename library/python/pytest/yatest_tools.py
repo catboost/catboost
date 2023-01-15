@@ -1,18 +1,12 @@
 # coding: utf-8
 
-import collections
-import functools
-import math
 import os
 import re
 import sys
+import math
+import functools
 
-from . import config
 import yatest_lib.tools
-
-
-SEP = '/'
-TEST_MOD_PREFIX = '__tests__.'
 
 
 class Subtest(object):
@@ -155,22 +149,17 @@ class YaCtx(object):
 ya_ctx = YaCtx()
 
 TRACE_FILE_NAME = "ytest.report.trace"
+TESTING_OUT_DIR_NAME = "testing_out_stuff"
 
 
 def lazy(func):
-    memory = {}
+    mem = {}
 
     @functools.wraps(func)
-    def wrapper(*args):
-        # Disabling caching in test mode
-        if config.is_test_mode():
-            return func(*args)
-
-        try:
-            return memory[args]
-        except KeyError:
-            memory[args] = func(*args)
-        return memory[args]
+    def wrapper():
+        if "results" not in mem:
+            mem["results"] = func()
+        return mem["results"]
 
     return wrapper
 
@@ -184,7 +173,6 @@ def _get_mtab():
     return []
 
 
-@lazy
 def get_max_filename_length(dirname):
     """
     Return maximum filename length for the filesystem
@@ -202,14 +190,14 @@ def get_max_filename_length(dirname):
     return 255
 
 
-def get_unique_file_path(dir_path, filename, cache=collections.defaultdict(set)):
+def get_unique_file_path(dir_path, filename):
     """
-    Get unique filename in dir with proper filename length, using given filename/dir.
-    File/dir won't be created (thread nonsafe)
+    Get unique filename in dir with proper filename length, using given filename
     :param dir_path: path to dir
     :param filename: original filename
     :return: unique filename
     """
+    counter = 0
     max_suffix = 10000
     # + 1 symbol for dot before suffix
     tail_length = int(round(math.log(max_suffix, 10))) + 1
@@ -225,11 +213,7 @@ def get_unique_file_path(dir_path, filename, cache=collections.defaultdict(set))
             filename = yatest_lib.tools.trim_string(filename, max_path - filename_len)
     filename = yatest_lib.tools.trim_string(filename, get_max_filename_length(dir_path) - tail_length - len(extension)) + extension
     candidate = os.path.join(dir_path, filename)
-
-    key = dir_path + filename
-    counter = sorted(cache.get(key, {0, }))[-1]
     while os.path.exists(candidate):
-        cache[key].add(counter)
         counter += 1
         assert counter < max_suffix
         candidate = os.path.join(dir_path, filename + ".{}".format(counter))
@@ -263,7 +247,6 @@ def normalize_name(name):
     return name
 
 
-@lazy
 def normalize_filename(filename):
     """
     Replace invalid for file names characters with string equivalents
@@ -296,19 +279,16 @@ def get_test_log_file_path(output_dir, class_name, test_name, extension="log"):
     return get_unique_file_path(output_dir, filename)
 
 
-@lazy
 def split_node_id(nodeid, test_suffix=None):
     path, possible_open_bracket, params = nodeid.partition('[')
     separator = "::"
-    test_name = None
     if separator in path:
         path, test_name = path.split(separator, 1)
-    path = _unify_path(path)
-    class_name = os.path.basename(path)
-    if test_name is None:
-        test_name = class_name
+    else:
+        test_name = os.path.basename(path)
     if test_suffix:
         test_name += "::" + test_suffix
+    class_name = os.path.basename(path.strip())
     if separator in test_name:
         klass_name, test_name = test_name.split(separator, 1)
         if not test_suffix:
@@ -318,68 +298,3 @@ def split_node_id(nodeid, test_suffix=None):
         test_name = test_name.split(separator)[-1]
     test_name += possible_open_bracket + params
     return yatest_lib.tools.to_utf8(class_name), yatest_lib.tools.to_utf8(test_name)
-
-
-@lazy
-def _suffix_test_modules_tree():
-    root = {}
-
-    for module in sys.extra_modules:
-        if not module.startswith(TEST_MOD_PREFIX):
-            continue
-
-        module = module[len(TEST_MOD_PREFIX):]
-        node = root
-
-        for name in reversed(module.split('.')):
-            if name == '__init__':
-                continue
-            node = node.setdefault(name, {})
-
-    return root
-
-
-def _conftest_load_policy_is_local(path):
-    return SEP in path and getattr(sys, "is_standalone_binary", False)
-
-
-class MissingTestModule(Exception):
-    pass
-
-
-# If CONFTEST_LOAD_POLICY==LOCAL the path parameters is a true test file path. Something like
-#   /-B/taxi/uservices/services/alt/gen/tests/build/services/alt/validation/test_generated_files.py
-# If CONFTEST_LOAD_POLICY is not LOCAL the path parameter is a module name with '.py' extension added. Example:
-#  validation.test_generated_files.py
-# To make test names independent of the CONFTEST_LOAD_POLICY value replace path by module name if possible.
-@lazy
-def _unify_path(path):
-    py_ext = ".py"
-
-    path = path.strip()
-    if _conftest_load_policy_is_local(path) and path.endswith(py_ext):
-        # Try to find best match for path as a module among test modules and use it as a class name.
-        # This is the only way to unify different CONFTEST_LOAD_POLICY modes
-        suff_tree = _suffix_test_modules_tree()
-        node, res = suff_tree, []
-
-        assert path.endswith(py_ext), path
-        parts = path[:-len(py_ext)].split(SEP)
-
-        for p in reversed(parts):
-            if p in node:
-                node = node[p]
-                res.append(p)
-            else:
-                if res:
-                    return '.'.join(reversed(res)) + py_ext
-                else:
-                    # Top level test module
-                    if TEST_MOD_PREFIX + p in sys.extra_modules:
-                        return p + py_ext
-                    # Unknown module - raise an error
-                    break
-
-        raise MissingTestModule("Can't find proper module for '{}' path among: {}".format(path, suff_tree))
-    else:
-        return path

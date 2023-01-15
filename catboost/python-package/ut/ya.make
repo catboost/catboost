@@ -1,7 +1,6 @@
 
 
 RECURSE(
-    small
     medium
     large
 )

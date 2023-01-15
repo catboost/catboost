@@ -62,7 +62,6 @@ namespace NLastGetopt {
 
         EHasArg HasArg_ = DEFAULT_HAS_ARG; // the argument parsing politics
         bool Required_ = false;            // option existence politics
-        bool EqParseOnly_ = false;             // allows option not to read argument
 
         bool AllowMultipleCompletion_ = false; // let the completer know that this option can occur more than once
 
@@ -284,23 +283,6 @@ namespace NLastGetopt {
         TOpt& Required() {
             Required_ = true;
             return *this;
-        }
-
-        /**
-         *  allow only --option=arg parsing and disable --option arg
-         *  @return self
-         */
-        TOpt& DisableSpaceParse() {
-            Y_ASSERT(GetHasArg() == OPTIONAL_ARGUMENT);
-            EqParseOnly_ = true;
-            return *this;
-        }
-
-        /**
-         *  @return true if only --option=arg parse allowed
-         */
-        bool IsEqParseOnly() const {
-            return EqParseOnly_;
         }
 
         /**
@@ -622,12 +604,6 @@ namespace NLastGetopt {
             return StoreResultT<T>(target);
         }
 
-        // Uses TMaybe<T> to store FromString<T>(arg)
-        template <typename T>
-        TOpt& StoreResult(TMaybe<T>* target) {
-            return StoreResultT<T>(target);
-        }
-
         template <typename TpVal, typename T, typename TpDef>
         TOpt& StoreResultT(T* target, const TpDef& def) {
             return Handler1T<TpVal>(def, NPrivate::TStoreResultFunctor<T, TpVal>(target));
@@ -691,9 +667,9 @@ namespace NLastGetopt {
         }
 
         // Appends FromString<T>(arg) to *target for each argument
-        template<class Container>
-        TOpt& AppendTo(Container* target) {
-            return Handler1T<typename Container::value_type>([target](auto&& value) { target->push_back(std::move(value)); });
+        template <typename T>
+        TOpt& AppendTo(TVector<T>* target) {
+            return Handler1T<T>([target](auto&& value) { target->push_back(std::move(value)); });
         }
 
         // Appends FromString<T>(arg) to *target for each argument

@@ -51,9 +51,9 @@ namespace NNumaAwareLockFreeAllocator {
         if (Y_LIKELY(s))
             return s;
 
-        static TAdaptiveLock lock;
+        static TAtomic lock;
 
-        TGuard guard(lock);
+        TGuard<TAtomic> guard(lock);
         if ((s = AtomicLoad(&x)))
             return s;
 

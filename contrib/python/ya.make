@@ -1,65 +1,51 @@
 
 
 RECURSE(
-    asttokens
     atomicwrites
     attrs
-    backcall
-    colorama
-    contextlib2
     dateutil
-    decorator
-    exceptiongroup
-    executing
-    filelock
+    enum34
     funcsigs
     graphviz
-    importlib-metadata
-    iniconfig
-    ipdb
-    ipython
-    ipython-genutils
-    jedi
     Jinja2
-    joblib
+    Jinja2/examples
     MarkupSafe
-    matplotlib-inline
     more-itertools
-    mypy-protobuf
     numpy
-    packaging
     pandas
-    parso
     pathlib2
-    pexpect
-    pickleshare
     pluggy
-    prompt-toolkit
-    protobuf
-    ptyprocess
-    pure-eval
     py
-    Pygments
-    pyparsing
     pytest
     pytz
-    scikit-learn
+    scandir
     scipy
     setuptools
-    simplegeneric
     six
-    stack-data
+    subprocess32
     testpath
-    threadpoolctl
-    tomli
-    tornado
-    traitlets
-    types-protobuf
-    wcwidth
 )
+
+IF (OS_WINDOWS)
+    RECURSE(
+    
+)
+ENDIF()
 
 IF (OS_DARWIN)
     RECURSE(
-    appnope
+    
 )
-ENDIF()
+ENDIF ()
+
+IF (OS_LINUX)
+    RECURSE(
+    
+)
+
+    IF (NOT OS_SDK STREQUAL "ubuntu-12")
+        RECURSE(
+    
+)
+    ENDIF()
+ENDIF ()

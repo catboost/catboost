@@ -1,6 +1,6 @@
 #include "set.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <utility>
 
@@ -405,4 +405,4 @@ Y_UNIT_TEST_SUITE(YSetTest) {
             UNIT_ASSERT(ckeySet.equal_range(2) != std::make_pair(ckeySet.begin(), ckeySet.end()));
         }
     }
-}
+} // Y_UNIT_TEST_SUITE

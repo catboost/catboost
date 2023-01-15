@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 bin |= ((direction == ESplitValue::Zero) ? 0 : 1) << level;
             }
 
-            CB_ENSURE(bin < leavesCount, "Bin id is too large");
+            Y_VERIFY(bin < leavesCount);
             binIds[i] = bin;
             checkSum += bin;
         }
@@ -174,18 +174,18 @@ namespace NCatboostCuda {
             }
 
             TLeaf& GetLeaf() {
-                return std::get<TLeaf>(Value);
+                return Get<TLeaf>(Value);
             }
 
             TBinarySplit& GetSplit() {
-                return std::get<TBinarySplit>(Value);
+                return Get<TBinarySplit>(Value);
             }
 
             bool IsTerminal() const {
-                return std::holds_alternative<TLeaf>(Value);
+                return HoldsAlternative<TLeaf>(Value);
             };
 
-            std::variant<TLeaf, TBinarySplit> Value;
+            TVariant<TLeaf, TBinarySplit> Value;
         };
 
         using TNodePtr = TSimpleSharedPtr<TNode>;
@@ -251,7 +251,7 @@ namespace NCatboostCuda {
                    TVector<EBinSplitType>* flatSplitTypes,
                    TVector<float>* leavesValues,
                    TVector<double>* weights) {
-            CB_ENSURE(cursor, "Tree is empty (cursor is nullptr)");
+            Y_VERIFY(cursor);
             const bool isTerminal = cursor->IsTerminal();
             if (isTerminal) {
                 const auto& leaf = cursor->GetLeaf();

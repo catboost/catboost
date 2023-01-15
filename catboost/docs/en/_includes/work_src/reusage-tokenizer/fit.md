@@ -1,2 +1,0 @@
-
-Train a dictionary.

@@ -1,0 +1,22 @@
+# Permanent exceptions for heavily-patched Go contribs. Those responsible must support them
+# in any way required (update on demand, fix bugs, etc).
+
+# CSADMIN-26541. responsible: maxk@, g:marketsre
+ALLOW market/sre/tools/config-primer/src/internal/blogic -> contrib/go/patched/hugo
+
+# CONTRIB-1581. responsible: grihabor@, g:strm-admin
+ALLOW strm/plgo -> contrib/go/patched/hashring
+
+# CONTRIB-1627. responsible: g:edadeal-go
+ALLOW edadeal -> contrib/go/patched/cony
+ALLOW contrib/go/patched/cony -> contrib/go/patched/cony
+
+# STRM-1124. responsible: grihabor@, g:strm-admin
+ALLOW strm/plgo -> contrib/go/patched/m3u8
+ALLOW contrib/go/patched/m3u8/example -> contrib/go/patched/m3u8
+
+# CONTRIB-1496 RTP/RTCP stack for Go. responsible: rmcf@
+# Moved to contrib/go, because library is not go-gettable.
+ALLOW yabs/telephony/platform/internal/rtp -> contrib/go/GoRTP
+
+DENY .* -> contrib/go/patched/

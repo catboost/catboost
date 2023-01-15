@@ -27,7 +27,6 @@ namespace NKernel {
 
     void SelectBestSplit(const float* scores,
                          const TCBinFeature* binFeature, int size,
-                         double scoreBeforeSplit, const float* featureWeights,
                          int bestIndexBias, TBestSplitPropertiesWithIndex* best,
                          TCudaStream stream);
 

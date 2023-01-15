@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2018 The OpenSSL Project Authors. All Rights Reserved.
  * Copyright 2005 Nokia. All rights reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ssl_local.h"
+#include "ssl_locl.h"
 #include <openssl/asn1t.h>
 #include <openssl/x509.h>
 
@@ -225,7 +225,7 @@ static int ssl_session_strndup(char **pdst, ASN1_OCTET_STRING *src)
 static int ssl_session_memcpy(unsigned char *dst, size_t *pdstlen,
                               ASN1_OCTET_STRING *src, size_t maxlen)
 {
-    if (src == NULL || src->length == 0) {
+    if (src == NULL) {
         *pdstlen = 0;
         return 1;
     }

@@ -19,11 +19,9 @@ struct TCrossValidationParams : public TSplitParams {
     TMaybe<TVector<TVector<ui32>>> customTrainSubsets = Nothing();
     TMaybe<TVector<TVector<ui32>>> customTestSubsets = Nothing();
     double MaxTimeSpentOnFixedCostRatio = 0.05;
-    double MetricUpdateInterval = 0.5; // in seconds
     ui32 DevMaxIterationsBatchSize = 100000; // useful primarily for tests
     ECrossValidation Type = ECrossValidation::Classical;
     bool IsCalledFromSearchHyperparameters = false;
-    bool ReturnModels = false;
 
 public:
     bool Initialized() const {

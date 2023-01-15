@@ -1,6 +1,6 @@
 #include <catboost/libs/helpers/guid.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace NCB;
 

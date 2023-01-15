@@ -81,8 +81,6 @@ int CalcSplitsCount(
                 // for each part: part.BucketCount - 1
                 return featuresGroup.TotalBucketCount - featuresGroup.Parts.size();
             }
-        default:
-            CB_ENSURE(false, "Unexpected split ensemble type");
     }
     Y_UNREACHABLE();
 }

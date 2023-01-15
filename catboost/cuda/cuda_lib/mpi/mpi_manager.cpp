@@ -6,7 +6,7 @@
 #include <util/system/env.h>
 #include <util/string/cast.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
-#include <library/cpp/blockcodecs/codecs.h>
+#include <library/blockcodecs/codecs.h>
 
 namespace NCudaLib {
     void TMpiManager::Start(int* argc, char*** argv) {
@@ -36,7 +36,7 @@ namespace NCudaLib {
         int deviceCount = NCudaHelpers::GetDeviceCount();
         int deviceCountTypeBytes = sizeof(decltype(deviceCount));
 
-        MpiProxyThread = MakeHolder<std::thread>([this]() {
+        MpiProxyThread = new std::thread([this]() {
             this->ProceedRequests();
         });
 
@@ -164,7 +164,7 @@ namespace NCudaLib {
                     if (!SendCommands.IsEmpty()) {
                         hasWorkToDo = true;
                         TSendTaskRequest request;
-                        CB_ENSURE(SendCommands.Dequeue(request), "Dequeue of send command failed");
+                        Y_VERIFY(SendCommands.Dequeue(request));
                         const auto& deviceId = request.DeviceId;
 
                         const int size = static_cast<const int>(request.Task.Size());
@@ -194,8 +194,8 @@ namespace NCudaLib {
                     hasWorkToDo = true;
                     TMemcpyReceiveRequest readRequest;
                     const auto rc = ReceiveRequests.Dequeue(readRequest);
-                    CB_ENSURE(rc, "Dequeue from receive requests failed");
-                    CB_ENSURE(readRequest.Request != nullptr, "Dequeued read request is nullptr");
+                    Y_VERIFY(rc);
+                    Y_VERIFY(readRequest.Request != nullptr);
                     Y_ASSERT(readRequest.Request->GetState() == TMpiRequest::EState::Created);
 
                     MPI_SAFE_CALL(MPI_Irecv(readRequest.Data, readRequest.DataSize,
@@ -213,8 +213,8 @@ namespace NCudaLib {
                     hasWorkToDo = true;
                     TMemcpySendRequest writeRequest;
                     const auto rc = SendRequests.Dequeue(writeRequest);
-                    CB_ENSURE(rc, "Dequeue from send requests failed");
-                    CB_ENSURE(writeRequest.Request != nullptr, "Dequeued write request is nullptr");
+                    Y_VERIFY(rc);
+                    Y_VERIFY(writeRequest.Request != nullptr);
                     Y_ASSERT(writeRequest.Request->GetState() == TMpiRequest::EState::Created);
 
                     MPI_SAFE_CALL(MPI_Issend(writeRequest.Data, writeRequest.DataSize,

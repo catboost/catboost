@@ -7,12 +7,11 @@ import zipfile
 
 if __name__ == '__main__':
     build_root = sys.argv[1]
-    root = os.path.normpath(sys.argv[2])
-    dest = os.path.normpath(sys.argv[3])
+    root = sys.argv[2]
+    dest = sys.argv[3]
     srcs = sys.argv[4:]
 
     for src in srcs:
-        src = os.path.normpath(src)
         if src.endswith('.java') or src.endswith('.kt'):
             src_rel_path = os.path.relpath(src, root)
 
@@ -22,7 +21,7 @@ if __name__ == '__main__':
 
             else:
                 # Outside root
-                print>>sys.stderr, 'External src file "{}" is outside of srcdir {}, ignore'.format(
+                print>>sys.stderr, 'External src file "{}" is outside of srcdir, ignore'.format(
                     os.path.relpath(src, build_root),
                     os.path.relpath(root, build_root),
                 )

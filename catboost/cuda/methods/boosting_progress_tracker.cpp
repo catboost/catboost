@@ -1,5 +1,4 @@
 #include "boosting_progress_tracker.h"
-#include <catboost/cuda/cuda_lib/cuda_base.h>
 
 namespace NCatboostCuda {
     static inline TErrorTracker CreateErrorTracker(const NCatboostOptions::TOverfittingDetectorOptions& odOptions,
@@ -71,7 +70,7 @@ namespace NCatboostCuda {
     }
 
     void TBoostingProgressTracker::OnFirstCall() {
-        CB_ENSURE(FirstCall, "OnFirstCall is called twice");
+        Y_VERIFY(FirstCall);
 
         LastSnapshotTime = Now();
 
@@ -231,12 +230,7 @@ namespace NCatboostCuda {
         if (IsTimeToSaveSnapshot()) {
             const auto snapshotBackup = OutputFiles.SnapshotFile + ".bak";
             TProgressHelper(GpuProgressLabel()).Write(snapshotBackup, [&](IOutputStream* out) {
-                NJson::TJsonArray processors;
-                const auto& devicesProps = NCudaLib::NCudaHelpers::GetDevicesProps();
-                for (const auto& props : devicesProps) {
-                    processors.AppendValue(props.GetName());
-                }
-                TrainingCallbacks->OnSaveSnapshot(processors, out);
+                TrainingCallbacks->OnSaveSnapshot(out);
                 ::Save(out, CatBoostOptionsStr);
                 ::Save(out, History);
                 ::Save(out, ProfileInfo.DumpProfileInfo());

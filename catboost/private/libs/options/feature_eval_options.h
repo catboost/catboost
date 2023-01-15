@@ -23,7 +23,6 @@ namespace NCatboostOptions {
         TOption<TVector<TVector<ui32>>> FeaturesToEvaluate;
         TOption<NCB::EFeatureEvalMode> FeatureEvalMode;
         TOption<TString> EvalFeatureFileName;
-        TOption<TString> ProcessorsUsageFileName;
         TOption<ui32> Offset;
         TOption<ui32> FoldCount;
         TOption<ESamplingUnit> FoldSizeUnit;

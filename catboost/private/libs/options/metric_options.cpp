@@ -85,7 +85,7 @@ static ELossFunction GetMetric(const NCatboostOptions::TLossDescription& lossDes
     if (lossFunction != ELossFunction::Combination) {
         return lossFunction;
     }
-    return GetMetricFromCombination(lossDescription.GetLossParamsMap());
+    return GetMetricFromCombination(lossDescription.GetLossParams());
 }
 
 void CheckMetrics(const NCatboostOptions::TMetricOptions& metrics) {

@@ -19,7 +19,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/stream/format.h>
 
@@ -51,7 +51,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TModelBasedEvalOptions& ModelBasedEvalConfig;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
 
     private:
         inline static TDocParallelDataSetsHolder CreateDocParallelDataSet(TBinarizedFeaturesManager& manager,
@@ -59,7 +59,7 @@ namespace NCatboostCuda {
                                                                           const NCB::TFeatureEstimators& estimators,
                                                                           const NCB::TTrainingDataProvider* test,
                                                                           ui32 permutationCount,
-                                                                          NPar::ILocalExecutor* localExecutor) {
+                                                                          NPar::TLocalExecutor* localExecutor) {
             TDocParallelDataSetBuilder dataSetsHolderBuilder(manager,
                                                              dataProvider,
                                                              estimators,
@@ -147,7 +147,7 @@ namespace NCatboostCuda {
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                cursors->StartingPoint = NCB::CalcOneDimensionalOptimumConstApprox(
+                cursors->StartingPoint = NCB::CalcOptimumConstApprox(
                     CatBoostOptions.LossFunctionDescription,
                     DataProvider->TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*DataProvider->TargetData));
@@ -203,8 +203,8 @@ namespace NCatboostCuda {
             }
 
             if (ProgressTracker->NeedBestTestCursor()) {
-                CB_ENSURE(TestDataProvider, "Need test data provider");
-                cursors->BestTestCursor = MakeHolder<TStripeBuffer<float>>();
+                Y_VERIFY(TestDataProvider);
+                cursors->BestTestCursor = new TStripeBuffer<float>();
                 (*cursors->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(cursors->TestCursor);
             }
             return cursors;
@@ -277,7 +277,7 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TDocParallelDataSet& dataSet) const {
-            return MakeHolder<TObjective>(dataSet,
+            return new TObjective(dataSet,
                                   Random,
                                   TargetOptions);
         }
@@ -308,7 +308,7 @@ namespace NCatboostCuda {
             TMetricCalcer<TObjective> learnMetricCalcer(*learnTarget[estimationPermutation], LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
-                testMetricCalcer = MakeHolder<TMetricCalcer<TObjective>>(*testTarget, LocalExecutor);
+                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget, LocalExecutor);
             }
 
             auto snapshotSaver = [&](IOutputStream* out) {
@@ -336,15 +336,11 @@ namespace NCatboostCuda {
 
                     const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
                     using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
-                    auto target = TTargetAtPointTrait<TObjective>::Create(
-                        *(learnTarget[learnPermutationId]),
-                        (*learnCursors)[learnPermutationId].AsConstBuf()
-                    );
+                    auto target = TTargetAtPointTrait<TObjective>::Create(*(learnTarget[learnPermutationId]),
+                                                                          (*learnCursors)[learnPermutationId]);
                     auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),
                                                          iteration * step);
-                    auto optimizer = weak->template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(
-                        mult,
-                        (*result)[learnPermutationId]);
+                    auto optimizer = weak->template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(mult);
                     //search for best model and values of shifted target
                     auto model = optimizer.Fit(taskDataSet,
                                                target);
@@ -359,12 +355,10 @@ namespace NCatboostCuda {
 
                     for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
                         const auto& taskDataSet = dataSet.GetDataSetForPermutation(permutation);
-                        estimator.AddEstimationTask(
-                            *(learnTarget[permutation]),
-                            taskDataSet,
-                            (*learnCursors)[permutation].AsConstBuf(),
-                            &iterationModels[permutation]
-                        );
+                        estimator.AddEstimationTask(*(learnTarget[permutation]),
+                                                    taskDataSet,
+                                                    (*learnCursors)[permutation],
+                                                    &iterationModels[permutation]);
                     }
                     estimator.Estimate(LocalExecutor);
                 }
@@ -398,7 +392,7 @@ namespace NCatboostCuda {
                 }
 
                 if (bestTestCursor && iterationProgressTracker.IsBestTestIteration()) {
-                    CB_ENSURE(testCursor, "Need cursor for test data");
+                    Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
             }
@@ -431,7 +425,7 @@ namespace NCatboostCuda {
                   const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
-                  NPar::ILocalExecutor* localExecutor)
+                  NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)
             , BaseIterationSeed(random.NextUniformL())
@@ -479,7 +473,7 @@ namespace NCatboostCuda {
                 models.size() == permutationCount,
                 "Progress permutation count differs from current learning task: " << models.size() << " / " << permutationCount
             );
-            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, Config, CatBoostOptions, Random);
+            auto weak = MakeWeakLearner<TWeakLearner>(FeaturesManager, CatBoostOptions);
             if (models[0].Size() > 0) {
                 auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Restore from progress");
                 AppendEnsembles(
@@ -508,7 +502,7 @@ namespace NCatboostCuda {
             );
             auto& modelToExport = models[inputData->GetEstimationPermutation()];
             modelToExport.SetBias(cursors->StartingPoint.GetOrElse(0.0f));
-            return MakeHolder<TResultModel>(modelToExport);
+            return new TResultModel(modelToExport);
         }
 
         void RunModelBasedEval() {
@@ -557,7 +551,7 @@ namespace NCatboostCuda {
                 return baseModelSize - offset + offset / experimentCount * experimentIdx;
             };
 
-            auto baseWeak = MakeWeakLearner<TWeakLearner>(baseFeatureManager, Config, CatBoostOptions, Random);
+            auto baseWeak = MakeWeakLearner<TWeakLearner>(baseFeatureManager, CatBoostOptions);
             AppendEnsembles(
                 baseInputData->DataSets,
                 baseModels,
@@ -592,20 +586,16 @@ namespace NCatboostCuda {
             for (featureSetIdx = 0; featureSetIdx < features.size(); ++featureSetIdx) {
                 TSet<ui32> ignoredFeatures = allEvaluatedFeatures;
                 for (ui32 feature : features[featureSetIdx]) {
-                    if (FeaturesManager.HasBorders(feature)) {
-                        ignoredFeatures.erase(feature);
-                    } else {
-                        CATBOOST_WARNING_LOG << "Ignoring constant feature " << feature  << " in feature set " << featureSetIdx << Endl;
-                    }
+                    ignoredFeatures.erase(feature);
                 }
                 TBinarizedFeaturesManager featureManager(FeaturesManager, {ignoredFeatures.begin(), ignoredFeatures.end()});
-                if (featureManager.GetDataProviderFeatureIds().empty() || allEvaluatedFeatures == ignoredFeatures) {
+                if (featureManager.GetDataProviderFeatureIds().empty()) {
                     CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
                         << " is not evaluated because it consists of ignored or constant features" << Endl;
                     continue;
                 }
                 auto inputData = CreateInputData(permutationCount, &featureManager);
-                auto weak = MakeWeakLearner<TWeakLearner>(featureManager, Config, CatBoostOptions, Random);
+                auto weak = MakeWeakLearner<TWeakLearner>(featureManager, CatBoostOptions);
 
                 baseCursors->CopyFrom(*startingBaseCursors);
                 for (experimentIdx = 0; experimentIdx < ModelBasedEvalConfig.ExperimentCount; ++experimentIdx) {

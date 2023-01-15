@@ -143,7 +143,7 @@ int openssl_get_fork_id(void)
 # if defined(OPENSSL_SYS_UNIX)
     return getpid();
 # else
-    return 0;
+    return return 0;
 # endif
 }
 #endif

@@ -8,9 +8,7 @@ C CatBoostEvaluateObjectImportances_R
 C CatBoostFit_R
 C CatBoostGetModelParams_R
 C CatBoostGetNumTrees_R
-C CatBoostGetPlainParams_R
 C CatBoostHashStrings_R
-C CatBoostIsGroupwiseMetric_R
 C CatBoostIsNullHandle_R
 C CatBoostIsOblivious_R
 C CatBoostOutputModel_R
@@ -19,11 +17,8 @@ C CatBoostPoolNumRow_R
 C CatBoostPoolNumTrees_R
 C CatBoostPoolSlice_R
 C CatBoostPredictMulti_R
-C CatBoostPredictVirtualEnsembles_R
 C CatBoostPrepareEval_R
 C CatBoostReadModel_R
 C CatBoostSerializeModel_R
 C CatBoostShrinkModel_R
 C CatBoostSumModels_R
-C CatBoostEvalMetrics_R
-C R_init_libcatboostr

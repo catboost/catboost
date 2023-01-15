@@ -86,15 +86,15 @@
 // form accessible to clients, so that client code can analyze the
 // parsed regular expressions.
 
-#include <stddef.h>
 #include <stdint.h>
 #include <map>
 #include <set>
 #include <string>
 
-#include "util/util.h"
-#include "util/logging.h"
-#include "util/utf.h"
+// Solve include ambiguity by using relative paths
+#include "../util/util.h"
+#include "../util/logging.h"
+#include "../util/utf.h"
 #include "re2/stringpiece.h"
 
 namespace re2 {
@@ -178,7 +178,6 @@ enum RegexpStatusCode {
   kRegexpBadCharRange,       // bad character class range
   kRegexpMissingBracket,     // missing closing ]
   kRegexpMissingParen,       // missing closing )
-  kRegexpUnexpectedParen,    // unexpected closing )
   kRegexpTrailingBackslash,  // at end of regexp
   kRegexpRepeatArgument,     // repeat argument missing, e.g. "*"
   kRegexpRepeatSize,         // bad repetition argument
@@ -196,7 +195,7 @@ class RegexpStatus {
 
   void set_code(RegexpStatusCode code) { code_ = code; }
   void set_error_arg(const StringPiece& error_arg) { error_arg_ = error_arg; }
-  void set_tmp(std::string* tmp) { delete tmp_; tmp_ = tmp; }
+  void set_tmp(string* tmp) { delete tmp_; tmp_ = tmp; }
   RegexpStatusCode code() const { return code_; }
   const StringPiece& error_arg() const { return error_arg_; }
   bool ok() const { return code() == kRegexpSuccess; }
@@ -206,16 +205,16 @@ class RegexpStatus {
 
   // Returns text equivalent of code, e.g.:
   //   "Bad character class"
-  static std::string CodeText(RegexpStatusCode code);
+  static string CodeText(RegexpStatusCode code);
 
   // Returns text describing error, e.g.:
   //   "Bad character class: [z-a]"
-  std::string Text() const;
+  string Text() const;
 
  private:
   RegexpStatusCode code_;  // Kind of error
-  StringPiece error_arg_;  // Piece of regexp containing syntax error.
-  std::string* tmp_;       // Temporary storage, possibly where error_arg_ is.
+  StringPiece error_arg_;       // Piece of regexp containing syntax error.
+  string* tmp_;                 // Temporary storage, possibly where error_arg_ is.
 
   RegexpStatus(const RegexpStatus&) = delete;
   RegexpStatus& operator=(const RegexpStatus&) = delete;
@@ -254,13 +253,13 @@ class CharClass {
   bool full() { return nrunes_ == Runemax+1; }
   bool FoldsASCII() { return folds_ascii_; }
 
-  bool Contains(Rune r) const;
+  bool Contains(Rune r);
   CharClass* Negate();
 
  private:
   CharClass();  // not implemented
   ~CharClass();  // not implemented
-  static CharClass* New(size_t maxranges);
+  static CharClass* New(int maxranges);
 
   friend class CharClassBuilder;
 
@@ -338,7 +337,7 @@ class Regexp {
   Rune rune() { DCHECK_EQ(op_, kRegexpLiteral); return rune_; }
   CharClass* cc() { DCHECK_EQ(op_, kRegexpCharClass); return cc_; }
   int cap() { DCHECK_EQ(op_, kRegexpCapture); return cap_; }
-  const std::string* name() { DCHECK_EQ(op_, kRegexpCapture); return name_; }
+  const string* name() { DCHECK_EQ(op_, kRegexpCapture); return name_; }
   Rune* runes() { DCHECK_EQ(op_, kRegexpLiteralString); return runes_; }
   int nrunes() { DCHECK_EQ(op_, kRegexpLiteralString); return nrunes_; }
   int match_id() { DCHECK_EQ(op_, kRegexpHaveMatch); return match_id_; }
@@ -370,7 +369,8 @@ class Regexp {
   // string representation of the simplified form.  Returns true on success.
   // Returns false and sets *status (if status != NULL) on parse error.
   static bool SimplifyRegexp(const StringPiece& src, ParseFlags flags,
-                             std::string* dst, RegexpStatus* status);
+                             string* dst,
+                             RegexpStatus* status);
 
   // Returns the number of capturing groups in the regexp.
   int NumCaptures();
@@ -379,16 +379,16 @@ class Regexp {
   // Returns a map from names to capturing group indices,
   // or NULL if the regexp contains no named capture groups.
   // The caller is responsible for deleting the map.
-  std::map<std::string, int>* NamedCaptures();
+  std::map<string, int>* NamedCaptures();
 
   // Returns a map from capturing group indices to capturing group
   // names or NULL if the regexp contains no named capture groups. The
   // caller is responsible for deleting the map.
-  std::map<int, std::string>* CaptureNames();
+  std::map<int, string>* CaptureNames();
 
   // Returns a string representation of the current regexp,
   // using as few parentheses as possible.
-  std::string ToString();
+  string ToString();
 
   // Convenience functions.  They consume the passed reference,
   // so in many cases you should use, e.g., Plus(re->Incref(), flags).
@@ -410,7 +410,7 @@ class Regexp {
 
   // Debugging function.  Returns string format for regexp
   // that makes structure clear.  Does NOT use regexp syntax.
-  std::string Dump();
+  string Dump();
 
   // Helper traversal class, defined fully in walker-inl.h.
   template<typename T> class Walker;
@@ -437,21 +437,7 @@ class Regexp {
   // begin with a non-empty fixed string (perhaps after ASCII
   // case-folding).  If so, returns the prefix and the sub-regexp that
   // follows it.
-  // Callers should expect *prefix, *foldcase and *suffix to be "zeroed"
-  // regardless of the return value.
-  bool RequiredPrefix(std::string* prefix, bool* foldcase,
-                      Regexp** suffix);
-
-  // Whether every match of this regexp must be unanchored and
-  // begin with a non-empty fixed string (perhaps after ASCII
-  // case-folding).  If so, returns the prefix.
-  // Callers should expect *prefix and *foldcase to be "zeroed"
-  // regardless of the return value.
-  bool RequiredPrefixForAccel(std::string* prefix, bool* foldcase);
-
-  // Controls the maximum repeat count permitted by the parser.
-  // FOR FUZZING ONLY.
-  static void FUZZING_ONLY_set_maximum_repeat_count(int i);
+  bool RequiredPrefix(string* prefix, bool *foldcase, Regexp** suffix);
 
  private:
   // Constructor allocates vectors as appropriate for operator.
@@ -507,7 +493,8 @@ class Regexp {
   // Simplifies an alternation of literal strings by factoring out
   // common prefixes.
   static int FactorAlternation(Regexp** sub, int nsub, ParseFlags flags);
-  friend class FactorAlternationImpl;
+  static int FactorAlternationRecursive(Regexp** sub, int nsub,
+                                        ParseFlags flags, int maxdepth);
 
   // Is a == b?  Only efficient on regexps that have not been through
   // Simplify yet - the expansion of a kRegexpRepeat will make this
@@ -519,7 +506,7 @@ class Regexp {
     DCHECK(n >= 0 && static_cast<uint16_t>(n) == n);
     if (n > 1)
       submany_ = new Regexp*[n];
-    nsub_ = static_cast<uint16_t>(n);
+    nsub_ = n;
   }
 
   // Add Rune to LiteralString
@@ -577,7 +564,7 @@ class Regexp {
     };
     struct {  // Capture
       int cap_;
-      std::string* name_;
+      string* name_;
     };
     struct {  // LiteralString
       int nrunes_;

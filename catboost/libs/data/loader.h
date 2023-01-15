@@ -12,8 +12,8 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/libs/column_description/cd_parser.h>
 
-#include <library/cpp/object_factory/object_factory.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/object_factory/object_factory.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
@@ -31,29 +31,17 @@ namespace NCB {
 
     struct TDatasetSubset {
         bool HasFeatures = true;
-        TIndexRange<ui64> Range = {0, Max<ui64>()};
+        TIndexRange<ui32> Range = {0, Max<ui32>()};
 
     public:
-        ui64 GetSize() const { return Range.GetSize(); }
+        ui32 GetSize() const { return Range.GetSize(); }
 
-        static TDatasetSubset MakeRange(ui64 start, ui64 end) {
+        static TDatasetSubset MakeRange(ui32 start, ui32 end) {
             return {true, {start, end}};
         }
 
         static TDatasetSubset MakeColumns(bool hasFeatures = true) {
-            return {hasFeatures, {0u, Max<ui64>()}};
-        }
-
-        size_t GetHash() const {
-            return MultiHash(HasFeatures, Range.Begin, Range.End);
-        }
-
-        bool operator==(const TDatasetSubset& rhs) const {
-            return std::tie(HasFeatures, Range) == std::tie(rhs.HasFeatures, rhs.Range);
-        }
-
-        bool operator!=(const TDatasetSubset& rhs) const {
-            return !(rhs == *this);
+            return {hasFeatures, {0u, Max<ui32>()}};
         }
     };
 
@@ -63,7 +51,6 @@ namespace NCB {
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
         TPathWithScheme FeatureNamesPath;
-        TPathWithScheme PoolMetaInfoPath;
         const TVector<NJson::TJsonValue>& ClassLabels;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
@@ -71,9 +58,7 @@ namespace NCB {
         EObjectsOrder ObjectsOrder;
         ui32 BlockSize;
         TDatasetSubset DatasetSubset;
-        bool LoadColumnsAsString;
-        bool ForceUnitAutoPairWeights;
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 
     // pass this struct to to IDatasetLoader ctor
@@ -153,10 +138,7 @@ namespace NCB {
                                                    TString,
                                                    TDatasetLoaderPullArgs>;
 
-    using TDatasetLineDataLoaderFactory =
-        NObjectFactory::TParametrizedObjectFactory<IDatasetLoader,
-                                                   TString,
-                                                   TLineDataLoaderPushArgs>;
+
 
     ///////////////////////////////////////////////////////////////////////////
     // Common functionality used in IDatasetLoader implementations
@@ -183,11 +165,7 @@ namespace NCB {
      * Indices of objects passed to visitor methods are indices from the beginning of the subset (not indices in the whole dataset).
      * objectCount parameter represents the number of objects in the subset.
      */
-    void SetPairs(
-        const TPathWithScheme& pairsPath,
-        TDatasetSubset loadSubset,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
-        IDatasetVisitor* visitor);
+    void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor);
     void SetGroupWeights(
         const TPathWithScheme& groupWeightsPath,
         ui32 objectCount,
@@ -289,7 +267,7 @@ namespace NCB {
             if (!inBlock) {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
-                SetPairs(Args.PairsFilePath, Args.DatasetSubset, visitor->GetGroupIds(), visitor);
+                SetPairs(Args.PairsFilePath, objectCount, Args.DatasetSubset, visitor);
                 SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();
@@ -314,10 +292,3 @@ namespace NCB {
 
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value);
 }
-
-template <>
-struct THash<NCB::TDatasetSubset> {
-    inline size_t operator()(const NCB::TDatasetSubset& value) const {
-        return value.GetHash();
-    }
-};

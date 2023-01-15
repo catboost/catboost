@@ -1,10 +1,5 @@
 LIBRARY()
 
-WITHOUT_LICENSE_TEXTS()
-
-# Proxy library
-LICENSE(Not-Applicable)
-
 
 
 NO_PLATFORM()
@@ -20,10 +15,3 @@ ELSE()
 ENDIF()
 
 END()
-
-RECURSE(
-    libcxx
-    libcxxabi
-    libcxxrt
-    openmp
-)

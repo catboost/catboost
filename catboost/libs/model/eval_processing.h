@@ -8,7 +8,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
-#include <library/cpp/fast_exp/fast_exp.h>
+#include <library/fast_exp/fast_exp.h>
 
 #include <cmath>
 
@@ -32,22 +32,6 @@ inline TVector<double> CalcExponent(TVector<double> approx) {
     return approx;
 }
 
-inline void CalcSquaredExponentInplace(TArrayRef<double> approx) {
-    constexpr size_t blockSize = 4096;
-    for (size_t i = 0; i < approx.size(); i += blockSize) {
-        size_t currBlockSize = Min<size_t>(blockSize, approx.size() - i);
-        double* blockStartPtr = approx.data() + i;
-        for (size_t j = 0; j < currBlockSize; ++j) {
-            blockStartPtr[j] *= 2.0f;
-        }
-        FastExpInplace(blockStartPtr, currBlockSize);
-    }
-}
-
-inline TVector<double> CalcSquaredExponent(TVector<double> approx) {
-    CalcSquaredExponentInplace(approx);
-    return approx;
-}
 
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
@@ -110,15 +94,6 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
     return probabilities;
 }
 
-inline TVector<double> CalcEntropyFromProbabilities(const TConstArrayRef<double> probabilities) {
-    TVector<double> entropy;
-    entropy.yresize(probabilities.size());
-    for (size_t i = 0; i < probabilities.size(); ++i) {
-        entropy[i] = - probabilities[i] * std::log(probabilities[i]) - (1 - probabilities[i]) * std::log(1 - probabilities[i]);
-    }
-    return entropy;
-}
-
 //approx and target could overlap
 inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
@@ -175,8 +150,8 @@ namespace NCB::NModelEvaluation {
             if (ScaleAndBias.IsIdentity()) {
                 return;
             }
-            Y_ASSERT(ApproxDimension == ScaleAndBias.GetBiasRef().size());
-            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, ApproxDimension), startTree);
+            Y_ASSERT(ApproxDimension == 1);
+            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, 1), startTree);
         }
 
         inline void PostprocessBlock(ui32 blockId, ui32 startTree) {
@@ -186,50 +161,31 @@ namespace NCB::NModelEvaluation {
             }
             if (ApproxDimension == 1) {
                 auto blockView = GetResultBlockView(blockId, 1);
-                switch (PredictionType) {
-                    case EPredictionType::Probability:
-                        CalcSigmoid(blockView, blockView);
-                        break;
-                    case EPredictionType::Exponent:
-                        FastExpInplace(blockView.data(), blockView.ysize());
-                        break;
-                    case EPredictionType::Class:
-                        for (auto &val : blockView) {
-                            val = val > BinclassRawValueBorder;
-                        }
-                        break;
-                    default:
-                        CB_ENSURE(false, "unsupported prediction type");
+                if (PredictionType == EPredictionType::Probability) {
+                    CalcSigmoid(blockView, blockView);
+                }
+                if (PredictionType == EPredictionType::Exponent) {
+                    FastExpInplace(blockView.data(), blockView.ysize());;
+                }
+                if (PredictionType == EPredictionType::Class) {
+                    for (auto &val : blockView) {
+                        val = val > BinclassRawValueBorder;
+                    }
                 }
             } else {
-                switch (PredictionType) {
-                    case EPredictionType::RMSEWithUncertainty: {
-                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
-                        for (size_t i = 1; i < blockView.size(); i += ApproxDimension) {
-                            auto docView = blockView.Slice(i, 1);
-                            CalcSquaredExponentInplace(MakeArrayRef<double>(docView.data(), 1));
-                        }
-                        break;
+                if (PredictionType == EPredictionType::Probability) {
+                    auto blockView = GetResultBlockView(blockId, ApproxDimension);
+                    for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
+                        auto docView = blockView.Slice(i, ApproxDimension);
+                        CalcSoftmax(docView, docView);
                     }
-                    case EPredictionType::Probability: {
-                        auto blockView = GetResultBlockView(blockId, ApproxDimension);
-                        for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
-                            auto docView = blockView.Slice(i, ApproxDimension);
-                            CalcSoftmax(docView, docView);
-                        }
-                        break;
+                } else {
+                    Y_ASSERT(PredictionType == EPredictionType::Class);
+                    auto resultView = GetResultBlockView(blockId, 1);
+                    for (size_t objId = 0; objId < resultView.size(); ++objId) {
+                        auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
+                        resultView[objId] = MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
                     }
-                    case EPredictionType::Class: {
-                        auto resultView = GetResultBlockView(blockId, 1);
-                        for (size_t objId = 0; objId < resultView.size(); ++objId) {
-                            auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
-                            resultView[objId] =
-                                MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
-                        }
-                        break;
-                    }
-                    default:
-                        Y_ASSERT(false);
                 }
             }
         }

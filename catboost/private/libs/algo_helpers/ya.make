@@ -14,7 +14,6 @@ SRCS(
     online_predictor.cpp
     pairwise_leaves_calculation.cpp
     scoring_helpers.cpp
-    survival_aft_utils.cpp
 )
 
 PEERDIR(

@@ -22,7 +22,7 @@ namespace NCatboostCuda {
         TEstimatorsExecutor(TBinarizedFeaturesManager& featuresManager,
                             const NCB::TFeatureEstimators& featureEstimators,
                             const TDataPermutation& permutation,
-                            NPar::ILocalExecutor* localExecutor)
+                            NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , Estimators(featureEstimators)
             , Permutation(permutation)
@@ -45,6 +45,6 @@ namespace NCatboostCuda {
         const NCB::TFeatureEstimators& Estimators;
         const TDataPermutation& Permutation;
         TVector<ui32> PermutationIndices;
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
     };
 }

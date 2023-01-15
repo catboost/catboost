@@ -8,7 +8,7 @@
  */
 
 #include <openssl/ec.h>
-#include "ec_local.h"
+#include "ec_lcl.h"
 #include <openssl/err.h>
 
 ECDSA_SIG *ECDSA_do_sign(const unsigned char *dgst, int dlen, EC_KEY *eckey)

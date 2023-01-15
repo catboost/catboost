@@ -44,5 +44,10 @@ static struct PyModuleDef _fuzzmodule = {
 PyMODINIT_FUNC
 PyInit__xxtestfuzz(void)
 {
-    return PyModule_Create(&_fuzzmodule);
+    PyObject *m = NULL;
+
+    if ((m = PyModule_Create(&_fuzzmodule)) == NULL) {
+        return NULL;
+    }
+    return m;
 }

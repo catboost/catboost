@@ -1,7 +1,6 @@
 #pragma once
 
 #include <util/generic/fwd.h>
-#include <util/generic/strbuf.h>
 #include <util/generic/utility.h>
 #include <util/system/defaults.h>
 
@@ -9,15 +8,6 @@ class TMemoryMap;
 class IInputStream;
 class TFile;
 class TBuffer;
-
-enum class EMappingMode {
-    /// Just mmap a file allowing lazy page loading at access
-    Standard,
-    /// Same as previous but warmup the buffer with sequential access to it's data
-    Precharged,
-    /// Try to lock file in memory so that it doesn't wash away. See mlock(2)
-    Locked
-};
 
 /// @addtogroup BLOBs
 /// @{
@@ -55,7 +45,7 @@ private:
     };
 
 public:
-    using value_type = ui8;
+    using value_type = unsigned char;
     using const_reference = const value_type&;
     using const_pointer = const value_type*;
     using const_iterator = const_pointer;
@@ -112,13 +102,9 @@ public:
     }
 
     /// Checks if the object has an empty data array.
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return !Length();
-    }
-
-    /// Checks if the blob owns data
-    Y_PURE_FUNCTION inline bool OwnsData() const noexcept {
-        return S_.Base != nullptr;
     }
 
     /// Checks if the object has a data array.
@@ -136,10 +122,6 @@ public:
         return (const unsigned char*)Data();
     }
 
-    inline TStringBuf AsStringBuf() const noexcept {
-        return TStringBuf(AsCharPtr(), size());
-    }
-
     /// Drops the data array.
     inline void Drop() noexcept {
         TBlob().Swap(*this);
@@ -148,19 +130,6 @@ public:
     /*
      * Some stl-like methods
      */
-
-    /// Returns a const reference to the data array.
-    /// result type is const ui8* which is not consistent with Data method above
-    /// but it's consistent with operator[], Begin and End methods below
-    /// Also it allows us to construct TArrayRef from TBlob
-    inline const_pointer data() const noexcept {
-        return static_cast<const_pointer>(Data());
-    }
-
-    /// Returns the size of the data array in bytes.
-    inline size_t size() const noexcept {
-        return Length();
-    }
 
     /// Returns the size of the data array in bytes.
     inline size_t Size() const noexcept {
@@ -199,18 +168,6 @@ public:
 
     /// Creates a blob which doesn't own data. No refcounter, no memory allocation, no data copy.
     static TBlob NoCopy(const void* data, size_t length);
-
-    /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
-    static TBlob FromFileSingleThreaded(const TString& path, EMappingMode);
-
-    /// Creates a blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
-    static TBlob FromFile(const TString& path, EMappingMode);
-
-    /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
-    static TBlob FromFileSingleThreaded(const TFile& file, EMappingMode);
-
-    /// Creates a blob with a multi-threaded (atomic) refcounter. It maps the file on the path as data.
-    static TBlob FromFile(const TFile& file, EMappingMode);
 
     /// Creates a blob with a single-threaded (non atomic) refcounter. It maps the file on the path as data.
     static TBlob FromFileSingleThreaded(const TString& path);

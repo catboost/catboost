@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/cpp/threading/future/future.h>
-#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/system/types.h>
@@ -19,7 +19,7 @@ namespace NCB {
     template <class TData>
     class TAsyncRowProcessor {
     public:
-        TAsyncRowProcessor(NPar::ILocalExecutor* localExecutor, size_t blockSize)
+        TAsyncRowProcessor(NPar::TLocalExecutor* localExecutor, size_t blockSize)
             : LocalExecutor(localExecutor)
             , BlockSize(blockSize)
             , FirstLineInReadBuffer(false)
@@ -27,8 +27,8 @@ namespace NCB {
         {
             CB_ENSURE(BlockSize, "TAsyncRowProcessor: blockSize == 0");
 
-            ReadBuffer.resize(blockSize);
-            ParseBuffer.resize(blockSize);
+            ReadBuffer.yresize(blockSize);
+            ParseBuffer.yresize(blockSize);
         }
 
         ~TAsyncRowProcessor() {
@@ -64,7 +64,7 @@ namespace NCB {
                     1,
                     NPar::TLocalExecutor::HIGH_PRIORITY
                 );
-                CB_ENSURE(readFuturesVector.size() == 1, "ExecRangeWithFutures returned unexpected number of futures");
+                Y_VERIFY(readFuturesVector.size() == 1);
                 ReadFuture = std::move(readFuturesVector[0]);
             } else {
                 readLineBufferLambda(0);
@@ -77,8 +77,7 @@ namespace NCB {
          */
         template <class TReadDataFunc>
         bool ReadBlock(TReadDataFunc readFunc) {
-            const bool haveReadFuture = ReadFuture.Initialized();
-            if (haveReadFuture) { // ReadFuture is not used if there's only one thread
+            if (ReadFuture.Initialized()) { // ReadFuture is not used if there's only one thread
                 ReadFuture.GetValueSync(); // will rethrow if there was an exception during read
             }
             ReadBuffer.swap(ParseBuffer);
@@ -86,9 +85,7 @@ namespace NCB {
                 ReadBlockAsync(readFunc);
             } else {
                 ReadBuffer.resize(0);
-                if (haveReadFuture) {
-                    ReadFuture = NThreading::TFuture<void>();
-                }
+                ReadFuture = NThreading::TFuture<void>();
             }
             return !!ParseBuffer;
         }
@@ -98,7 +95,7 @@ namespace NCB {
         void ProcessBlock(TProcessDataFunc processFunc) {
             const int threadCount = LocalExecutor->GetThreadCount() + 1;
 
-            NPar::ILocalExecutor::TExecRangeParams blockParams(0, ParseBuffer.ysize());
+            NPar::TLocalExecutor::TExecRangeParams blockParams(0, ParseBuffer.ysize());
             blockParams.SetBlockCount(threadCount);
             LocalExecutor->ExecRangeWithThrow([this, blockParams, processFunc = std::move(processFunc)](int blockIdx) {
                 const int blockOffset = blockIdx * blockParams.GetBlockSize();
@@ -132,7 +129,7 @@ namespace NCB {
         }
 
     private:
-        NPar::ILocalExecutor* LocalExecutor;
+        NPar::TLocalExecutor* LocalExecutor;
         size_t BlockSize;
 
         TVector<TData> ParseBuffer;

@@ -93,12 +93,6 @@ elif os.name == "posix":
     # Andreas Degert's find functions, using gcc, /sbin/ldconfig, objdump
     import re, tempfile
 
-    def _is_elf(filename):
-        "Return True if the given file is an ELF file"
-        elf_header = b'\x7fELF'
-        with open(filename, 'br') as thefile:
-            return thefile.read(4) == elf_header
-
     def _findLib_gcc(name):
         # Run GCC's linker with the -t (aka --trace) option and examine the
         # library name it prints out. The GCC command will fail because we
@@ -136,17 +130,10 @@ elif os.name == "posix":
                 # Raised if the file was already removed, which is the normal
                 # behaviour of GCC if linking fails
                 pass
-        res = re.findall(expr, trace)
+        res = re.search(expr, trace)
         if not res:
             return None
-
-        for file in res:
-            # Check if the given file is an elf file: gcc can report
-            # some files that are linker scripts and not actual
-            # shared objects. See bpo-41976 for more details
-            if not _is_elf(file):
-                continue
-            return os.fsdecode(file)
+        return os.fsdecode(res.group(0))
 
 
     if sys.platform == "sunos5":
@@ -312,22 +299,17 @@ elif os.name == "posix":
                                      stderr=subprocess.PIPE,
                                      universal_newlines=True)
                 out, _ = p.communicate()
-                res = re.findall(expr, os.fsdecode(out))
-                for file in res:
-                    # Check if the given file is an elf file: gcc can report
-                    # some files that are linker scripts and not actual
-                    # shared objects. See bpo-41976 for more details
-                    if not _is_elf(file):
-                        continue
-                    return os.fsdecode(file)
-            except Exception:
+                res = re.search(expr, os.fsdecode(out))
+                if res:
+                    result = res.group(0)
+            except Exception as e:
                 pass  # result will be None
             return result
 
         def find_library(name):
             # See issue #9998
             return _findSoname_ldconfig(name) or \
-                   _get_soname(_findLib_gcc(name)) or _get_soname(_findLib_ld(name))
+                   _get_soname(_findLib_gcc(name) or _findLib_ld(name))
 
 try:
     from library.python.symbols.module import find_library as _find_library

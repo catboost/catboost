@@ -1,5 +1,5 @@
 #pragma once
-#include <contrib/libs/nvidia/cub/cub/thread/thread_load.cuh>
+#include <contrib/libs/cub/cub/thread/thread_load.cuh>
 
 
 __forceinline__ __device__ ui32 bfe(ui32 a, ui32 start, ui32 length)

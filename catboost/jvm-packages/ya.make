@@ -1,5 +1,5 @@
 
 
 RECURSE(
-    catboost4j-prediction/src/native_impl
+    catboost4j-prediction/src/native
 )

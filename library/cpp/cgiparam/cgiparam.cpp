@@ -46,23 +46,6 @@ bool TCgiParameters::Erase(const TStringBuf name, const TStringBuf val) {
     return found;
 }
 
-bool TCgiParameters::ErasePattern(const TStringBuf name, const TStringBuf pat) {
-    const auto pair = equal_range(name);
-
-    bool found = false;
-    for (auto it = pair.first; it != pair.second;) {
-        bool startsWith = it->second.StartsWith(pat);
-        if (startsWith) {
-            it = erase(it);
-            found = true;
-        } else {
-            ++it;
-        }
-    }
-
-    return found;
-}
-
 size_t TCgiParameters::EraseAll(const TStringBuf name) {
     size_t num = 0;
 
@@ -100,8 +83,8 @@ void TCgiParameters::JoinUnescaped(const TStringBuf key, char sep, TStringBuf va
 static inline TString DoUnescape(const TStringBuf s) {
     TString res;
 
-    res.ReserveAndResize(CgiUnescapeBufLen(s.size()));
-    res.resize(CgiUnescape(res.begin(), s).size());
+    res.reserve(CgiUnescapeBufLen(s.size()));
+    res.ReserveAndResize(CgiUnescape(res.begin(), s).size());
 
     return res;
 }
@@ -254,7 +237,7 @@ TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
         buf += name.size() + 1;
         TStringBuf value = CgiUnescapeBuf(buf, val);
         buf += value.size() + 1;
-        Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.capacity() + 1 /*trailing zero*/);
+        Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.reserve() + 1 /*trailing zero*/);
         emplace(name, value);
     };
 

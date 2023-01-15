@@ -66,6 +66,6 @@ namespace NCatboostCuda {
     // TODO(kirillovs): this function is used only for cuda unittests, maybe remove later
     template <class TIndicesType>
     inline void QueryConsistentShuffle(ui64 seed, ui32 blockSize, TConstArrayRef<TGroupId> queryIds, TVector<TIndicesType>* orderPtr) {
-        GenerateQueryDocsOrder(seed, blockSize, GroupSamples<TGroupId>(queryIds), orderPtr);
+        GenerateQueryDocsOrder(seed, blockSize, GroupSamples(queryIds), orderPtr);
     }
 }

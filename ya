@@ -1,33 +1,16 @@
-#!/usr/bin/env sh
-
-# Shell commands follow
-# Next line is bilingual: it starts a comment in Python, but do nothing in shell
-""":"
-
-# Find a suitable python interpreter
-for cmd in python3 python; do
-   command -v > /dev/null $cmd && exec $cmd $0 "$@"
-done
-
-echo "Python interpreter is not found in this system, please, install python or contact DEVTOOLSSUPPORT" >2
-
-exit 2
-
-":"""
-# Previous line is bilingual: it ends a comment in Python, but do nothing in shell
-# Shell commands end here
-# Python script follows
-
+#!/usr/bin/env python
 import os
 import sys
 import platform
 import json
 
-URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/233854/fba20aeabae11002ead119f4c9117e0f"]
-MD5 = "fba20aeabae11002ead119f4c9117e0f"
+URLS = ["https://storage.mds.yandex.net/get-devtools-opensource/233854/fe81899c123c1561a29187ad0fbb8d9c"]
+MD5 = "fe81899c123c1561a29187ad0fbb8d9c"
 
 RETRIES = 5
 HASH_PREFIX = 10
+
+HOME_DIR = os.path.expanduser('~')
 
 
 def create_dirs(path):
@@ -42,28 +25,8 @@ def create_dirs(path):
     return path
 
 
-def home_dir():
-    # Do not trust $HOME, as it is unreliable in certain environments
-    # Temporarily delete os.environ["HOME"] to force reading current home directory from /etc/passwd
-    home_from_env = os.environ.pop("HOME", None)
-    try:
-        home_from_passwd = os.path.expanduser("~")
-        if os.path.isabs(home_from_passwd):
-            # This home dir is valid, prefer it over $HOME
-            return home_from_passwd
-        else:
-            # When python is built with musl (this is quire weird though),
-            # only users from /etc/passwd will be properly resolved,
-            # as musl does not have nss module for LDAP integration.
-            return home_from_env
-
-    finally:
-        if home_from_env is not None:
-            os.environ["HOME"] = home_from_env
-
-
 def misc_root():
-    return create_dirs(os.getenv('YA_CACHE_DIR') or os.path.join(home_dir(), '.ya'))
+    return create_dirs(os.getenv('YA_CACHE_DIR') or os.path.join(HOME_DIR, '.ya'))
 
 
 def tool_root():
@@ -73,7 +36,7 @@ def tool_root():
 def ya_token():
     def get_token_from_file():
         try:
-            with open(os.environ.get('YA_TOKEN_PATH', os.path.join(home_dir(), '.ya_token')), 'r') as f:
+            with open(os.environ.get('YA_TOKEN_PATH', os.path.join(HOME_DIR, '.ya_token')), 'r') as f:
                 return f.read().strip()
         except:
             pass
@@ -90,28 +53,8 @@ def uniq(size=6):
     return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(size))
 
 
-_ssl_is_tuned = False
-def _tune_ssl():
-    global _ssl_is_tuned
-    if _ssl_is_tuned:
-        return
-    try:
-        import ssl
-        ssl._create_default_https_context = ssl._create_unverified_context
-    except AttributeError:
-        pass
-
-    try:
-        import urllib3
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    except (AttributeError, ImportError):
-        pass
-    _ssl_is_tuned = True
-
-
 def _fetch(url, into):
     import hashlib
-    _tune_ssl()
 
     try:
         from urllib2 import urlopen
@@ -126,21 +69,17 @@ def _fetch(url, into):
     request.add_header('User-Agent', 'ya-bootstrap')
     if urlparse(url).netloc == 'proxy.sandbox.yandex-team.ru':
         token = ya_token()
-        if token:
-            request.add_header('Authorization', 'OAuth {}'.format(token))
+        request.add_header('Authorization', "OAuth {}".format(token) if token else "")
 
     md5 = hashlib.md5()
     sys.stderr.write('Downloading %s ' % url)
-    sys.stderr.flush()
     conn = urlopen(request, timeout=10)
     sys.stderr.write('[')
-    sys.stderr.flush()
     try:
         with open(into, 'wb') as f:
             while True:
                 block = conn.read(1024 * 1024)
                 sys.stderr.write('.')
-                sys.stderr.flush()
                 if block:
                     md5.update(block)
                     f.write(block)
@@ -150,7 +89,6 @@ def _fetch(url, into):
 
     finally:
         sys.stderr.write('] ')
-        sys.stderr.flush()
 
 
 def _atomic_fetch(url, into, md5):
@@ -174,16 +112,7 @@ def _atomic_fetch(url, into, md5):
 def _extract(path, into):
     import tarfile
 
-    tar = tarfile.open(path, errorlevel=2)
-
-    # tar.extractall() will try to set file ownership according to the attributes stored in the archive
-    # by calling TarFile.chown() method.
-    # As this information is hardly relevant to the point of deployment / extraction,
-    # it will just fail (python2) if ya is executed with root euid, or silently set non-existent numeric owner (python3)
-    # to the files being extracted.
-    # mock it with noop to retain current user ownership.
-    tar.chown = lambda *args, **kwargs: None
-
+    tar = tarfile.open(path)
     tar.extractall(path=into)
     tar.close()
 
@@ -206,27 +135,16 @@ def _get(urls, md5):
     return dest_path
 
 
-def _get_dir(urls, md5, ya_name):
+def _get_dir(urls, md5):
+    packed_path = _get(urls, md5)
     dest_dir = os.path.join(TOOLS_DIR, md5[:HASH_PREFIX] + '_d')
 
-    if os.path.isfile(os.path.join(dest_dir, ya_name)):
+    if os.path.exists(dest_dir):
         return dest_dir
-
-    try:
-        packed_path = _get(urls, md5)
-    except Exception:
-        if os.path.isfile(os.path.join(dest_dir, ya_name)):
-            return dest_dir
-        raise
 
     tmp_dir = dest_dir + '.' + uniq()
     try:
-        try:
-            _extract(packed_path, tmp_dir)
-        except Exception:
-            if os.path.isfile(os.path.join(dest_dir, ya_name)):
-                return dest_dir
-            raise
+        _extract(packed_path, tmp_dir)
 
         try:
             os.rename(tmp_dir, dest_dir)
@@ -239,10 +157,6 @@ def _get_dir(urls, md5, ya_name):
     finally:
         import shutil
         shutil.rmtree(tmp_dir, ignore_errors=True)
-        try:
-            os.remove(packed_path)
-        except Exception:
-            pass
 
 
 def _mine_arc_root():
@@ -256,42 +170,26 @@ def main():
     with open(_get(URLS, MD5), 'r') as fp:
         meta = json.load(fp)['data']
     my_platform = platform.system().lower()
-    my_machine = platform.machine().lower()
-    if my_platform == 'linux':
-        my_platform = 'linux-ppc64le' if 'ppc64le' in platform.platform() else 'linux_musl'
-    if my_platform == 'darwin' and my_machine == 'arm64':
-        my_platform = 'darwin-arm64'
 
-    def _platform_key(target_platform):
-        """ match by max prefix length, prefer shortest """
-        def _key_for_platform(platform):
-            return len(os.path.commonprefix([target_platform, platform])), -len(platform)
-
-        return _key_for_platform
-
-    best_key = max(meta.keys(), key=_platform_key(my_platform))
+    # match by max prefix length
+    best_key = max(meta.keys(), key=lambda x: len(os.path.commonprefix([my_platform, x])))
     value = meta[best_key]
 
-    if len(sys.argv) == 2 and sys.argv[1].startswith('--print-sandbox-id='):
+    if len(sys.argv) == 2 and sys.argv[1].startswith("--print-sandbox-id="):
         target = sys.argv[1].split('=')[1]
-        best_target = max(meta.keys(), key=_platform_key(target))
+        best_target = max(meta.keys(), key=lambda x: len(os.path.commonprefix([target, x])))
         sys.stdout.write(str(meta[best_target]['resource_id']) + '\n')
         exit(0)
 
-    ya_name = {'win32': 'ya-bin.exe'}.get(best_key, 'ya-bin')  # XXX
-    ya_dir = _get_dir(value['urls'], value['md5'], ya_name)
-
-    # Popen `args` must have `str` type
-    ya_path = str(os.path.join(ya_dir, ya_name))
+    ya_name = {'win32': 'ya-bin.exe'}.get(my_platform, 'ya-bin')  # XXX
+    ya_dir = _get_dir(value['urls'], value['md5'])
+    ya_path = os.path.join(ya_dir, ya_name)
 
     env = os.environ.copy()
     if 'YA_SOURCE_ROOT' not in env:
         src_root = _mine_arc_root()
         if src_root is not None:
             env['YA_SOURCE_ROOT'] = src_root
-    # For more info see YT-14105
-    if 'LD_PRELOAD' in env:
-        sys.stderr.write("Warn: LD_PRELOAD='{}' is specified and may affect the correct operation of the ya\n".format(env['LD_PRELOAD']))
 
     if os.name == 'nt':
         import subprocess

@@ -188,7 +188,7 @@ namespace NCudaLib {
         void DisablePeers();
 
     public:
-        ~TCudaManager() noexcept(false);
+        ~TCudaManager();
 
         template <class TKernel>
         inline void LaunchKernel(TKernel&& kernel,
@@ -391,7 +391,7 @@ namespace NCudaLib {
         {
         }
 
-        ~TStopChildCudaManagerCallback() noexcept(false) {
+        ~TStopChildCudaManagerCallback() {
             auto& manager = NCudaLib::GetCudaManager();
             CB_ENSURE(&manager == Owner);
             manager.StopChild();
@@ -433,7 +433,7 @@ namespace NCudaLib {
             Events.push_back(TManualEvent());
             Events.back().Reset();
             childManager.StartChild(Parent, devices, Events.back());
-            return MakeHolder<TStopChildCudaManagerCallback>(&childManager);
+            return new TStopChildCudaManagerCallback(&childManager);
         }
 
         THolder<TStopChildCudaManagerCallback> Initialize(ui64 dev) {

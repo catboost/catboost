@@ -234,23 +234,23 @@ public:
 
         switch (sa.Sa->sa_family) {
             case AF_INET:
-                L_.PushBack(new TOneSocketListener(this, MakeHolder<TIPv4Addr>(*sa.In)));
+                L_.PushBack(new TOneSocketListener(this, new TIPv4Addr(*sa.In)));
                 break;
             case AF_INET6:
-                L_.PushBack(new TOneSocketListener(this, MakeHolder<TIPv6Addr>(*sa.In6)));
+                L_.PushBack(new TOneSocketListener(this, new TIPv6Addr(*sa.In6)));
                 break;
             default:
-                ythrow yexception() << TStringBuf("unknown protocol");
+                ythrow yexception() << AsStringBuf("unknown protocol");
         }
     }
 
     inline void Bind(const TIpAddress& addr) {
-        L_.PushBack(new TOneSocketListener(this, MakeHolder<TIPv4Addr>(addr)));
+        L_.PushBack(new TOneSocketListener(this, new TIPv4Addr(addr)));
     }
 
     inline void Bind(const TNetworkAddress& addr) {
         for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
-            L_.PushBack(new TOneSocketListener(this, MakeHolder<TStoredAddrInfo>(&*it, addr)));
+            L_.PushBack(new TOneSocketListener(this, new TStoredAddrInfo(&*it, addr)));
         }
     }
 

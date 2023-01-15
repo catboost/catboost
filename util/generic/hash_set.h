@@ -3,8 +3,6 @@
 #include "fwd.h"
 #include "hash.h"
 
-#include <util/system/compiler.h>
-
 #include <initializer_list>
 #include <utility>
 
@@ -125,7 +123,8 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION bool empty() const {
+    Y_PURE_FUNCTION
+    bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -229,13 +228,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    Y_REINITIALIZES_OBJECT void clear() {
+    void clear() {
         rep.clear();
     }
-    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
+    void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    Y_REINITIALIZES_OBJECT void basic_clear() {
+    void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {
@@ -374,7 +373,8 @@ public:
         return rep.max_size();
     }
 
-    Y_PURE_FUNCTION bool empty() const {
+    Y_PURE_FUNCTION
+    bool empty() const {
         return rep.empty();
     }
     explicit operator bool() const noexcept {
@@ -400,10 +400,6 @@ public:
 public:
     iterator insert(const value_type& obj) {
         return rep.insert_equal(obj);
-    }
-    template <typename... Args>
-    iterator emplace(Args&&... args) {
-        return rep.emplace_equal(std::forward<Args>(args)...);
     }
     template <class InputIterator>
     void insert(InputIterator f, InputIterator l) {
@@ -437,13 +433,13 @@ public:
     void erase(iterator f, iterator l) {
         rep.erase(f, l);
     }
-    Y_REINITIALIZES_OBJECT void clear() {
+    void clear() {
         rep.clear();
     }
-    Y_REINITIALIZES_OBJECT void clear(size_t downsize_hint) {
+    void clear(size_t downsize_hint) {
         rep.clear(downsize_hint);
     }
-    Y_REINITIALIZES_OBJECT void basic_clear() {
+    void basic_clear() {
         rep.basic_clear();
     }
     void release_nodes() {

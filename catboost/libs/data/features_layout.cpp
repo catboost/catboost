@@ -27,16 +27,14 @@ bool TFeatureMetaInfo::EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity)
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {}, {}, {})
+    : TFeaturesLayout(featureCount, {}, {}, {})
 {}
 
 TFeaturesLayout::TFeaturesLayout(
     const ui32 featureCount,
     const TVector<ui32>& catFeatureIndices,
     const TVector<ui32>& textFeatureIndices,
-    const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
-    const THashMap<TString, TTagDescription>& featureTags,
     bool allFeaturesAreSparse)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
@@ -66,14 +64,6 @@ TFeaturesLayout::TFeaturesLayout(
         );
         ExternalIdxToMetaInfo[textFeatureExternalIdx].Type = EFeatureType::Text;
     }
-    for (auto embeddingFeatureExternalIdx : embeddingFeatureIndices) {
-        CB_ENSURE(
-            embeddingFeatureExternalIdx < featureCount,
-            "Embedding feature index (" << embeddingFeatureExternalIdx << ") is out of valid range [0,"
-            << featureCount << ')'
-        );
-        ExternalIdxToMetaInfo[embeddingFeatureExternalIdx].Type = EFeatureType::Embedding;
-    }
 
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
         switch (ExternalIdxToMetaInfo[externalFeatureIdx].Type) {
@@ -92,11 +82,6 @@ TFeaturesLayout::TFeaturesLayout(
                 TextFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
                 break;
             }
-            case EFeatureType::Embedding: {
-                FeatureExternalIdxToInternalIdx.push_back((ui32)EmbeddingFeatureInternalIdxToExternalIdx.size());
-                EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
-                break;
-            }
         }
     }
 
@@ -110,88 +95,53 @@ TFeaturesLayout::TFeaturesLayout(
             featureNames.insert(name);
         }
     }
-
-    for (const auto& [tag, description] : featureTags) {
-        for (auto featureIdx : description.Features) {
-            CB_ENSURE(
-                featureIdx < featureCount,
-                "Feature index (" << featureIdx << ") from tag #" << tag
-                << " is out of valid range [0," << featureCount << ")"
-            );
-        }
-        TagToExternalIndices[tag] = description.Features;
-    }
 }
 
 TFeaturesLayout::TFeaturesLayout(
     const TVector<TFloatFeature>& floatFeatures,
     const TVector<TCatFeature>& catFeatures)
 {
-    UpdateFeaturesMetaInfo(MakeConstArrayRef(floatFeatures), EFeatureType::Float);
-    UpdateFeaturesMetaInfo(MakeConstArrayRef(catFeatures), EFeatureType::Categorical);
-}
-
-TFeaturesLayout::TFeaturesLayout(
-    TConstArrayRef<TFloatFeature> floatFeatures,
-    TConstArrayRef<TCatFeature> catFeatures,
-    TConstArrayRef<TTextFeature> textFeatures,
-    TConstArrayRef<TEmbeddingFeature> embeddingFeatures)
-{
-    UpdateFeaturesMetaInfo(floatFeatures, EFeatureType::Float);
-    UpdateFeaturesMetaInfo(catFeatures, EFeatureType::Categorical);
-    UpdateFeaturesMetaInfo(textFeatures, EFeatureType::Text);
-    UpdateFeaturesMetaInfo(embeddingFeatures, EFeatureType::Embedding);
-}
-
-TFeaturesLayoutPtr TFeaturesLayout::CreateFeaturesLayout(
-    TConstArrayRef<TColumn> columns,
-    TMaybe<const TVector<TString>*> featureNames,
-    TMaybe<const THashMap<TString, TTagDescription>*> featureTags
-) {
-    TVector<TString> finalFeatureNames;
-    if (featureNames) {
-        finalFeatureNames = **featureNames;
-    }
-    TVector<ui32> catFeatureIndices;
-    TVector<ui32> textFeatureIndices;
-    TVector<ui32> embeddingFeatureIndices;
-
-    ui32 featureIdx = 0;
-    for (const auto& column : columns) {
-        if (IsFactorColumn(column.Type)) {
-            if (!featureNames) {
-                finalFeatureNames.push_back(column.Id);
-            }
-            if ((column.Type == EColumn::Categ) || (column.Type == EColumn::HashedCateg)) {
-                catFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::Text) {
-                textFeatureIndices.push_back(featureIdx);
-            } else if (column.Type == EColumn::NumVector) {
-                embeddingFeatureIndices.push_back(featureIdx);
-            }
-            ++featureIdx;
+    TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
+    const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
+    for (const TFloatFeature& floatFeature : floatFeatures) {
+        CB_ENSURE(floatFeature.Position.FlatIndex >= 0, "floatFeature.Position.FlatIndex is negative");
+        CB_ENSURE(floatFeature.Position.Index >= 0, "floatFeature.Position.Index is negative");
+        if ((size_t)floatFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)floatFeature.Position.FlatIndex < (size_t)Max<ui32>(),
+                "floatFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
+            ExternalIdxToMetaInfo.resize(floatFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(floatFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
         }
+        ExternalIdxToMetaInfo[floatFeature.Position.FlatIndex] =
+            TFeatureMetaInfo(EFeatureType::Float, floatFeature.FeatureId);
+        FeatureExternalIdxToInternalIdx[floatFeature.Position.FlatIndex] = floatFeature.Position.Index;
+        if ((size_t)floatFeature.Position.Index >= FloatFeatureInternalIdxToExternalIdx.size()) {
+            FloatFeatureInternalIdxToExternalIdx.resize((size_t)floatFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
+        }
+        FloatFeatureInternalIdxToExternalIdx[floatFeature.Position.Index] = floatFeature.Position.FlatIndex;
     }
-    return MakeIntrusive<TFeaturesLayout>(
-        featureIdx,
-        catFeatureIndices,
-        textFeatureIndices,
-        embeddingFeatureIndices,
-        finalFeatureNames,
-        featureTags.Defined()
-            ? **featureTags
-            : THashMap<TString, TTagDescription>{});
-}
 
-TFeaturesLayout::TFeaturesLayout(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
-    Init(data);
-}
-
-void TFeaturesLayout::Init(TVector<TFeatureMetaInfo>* data) { // 'data' is moved into
-    for (auto& featureMetaInfo : *data) {
-        AddFeature(std::move(featureMetaInfo));
+    for (const TCatFeature& catFeature : catFeatures) {
+        CB_ENSURE(catFeature.Position.FlatIndex >= 0, "catFeature.Position.FlatIndex is negative");
+        CB_ENSURE(catFeature.Position.Index >= 0, "catFeature.Position.Index is negative");
+        if ((size_t)catFeature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)catFeature.Position.FlatIndex < (size_t)Max<ui32>(),
+                "catFeature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
+            ExternalIdxToMetaInfo.resize(catFeature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
+            FeatureExternalIdxToInternalIdx.resize(catFeature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
+        }
+        ExternalIdxToMetaInfo[catFeature.Position.FlatIndex] =
+            TFeatureMetaInfo(EFeatureType::Categorical, catFeature.FeatureId);
+        FeatureExternalIdxToInternalIdx[catFeature.Position.FlatIndex] = catFeature.Position.Index;
+        if ((size_t)catFeature.Position.Index >= CatFeatureInternalIdxToExternalIdx.size()) {
+            CatFeatureInternalIdxToExternalIdx.resize((size_t)catFeature.Position.Index + 1, internalOrExternalIndexPlaceholder);
+        }
+        CatFeatureInternalIdxToExternalIdx[catFeature.Position.Index] = catFeature.Position.FlatIndex;
     }
-    data->clear();
 }
 
 
@@ -216,6 +166,17 @@ TString TFeaturesLayout::GetExternalFeatureDescription(ui32 internalFeatureIdx, 
     return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
 }
 
+ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+    switch (type) {
+        case EFeatureType::Float:
+            return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+        case EFeatureType::Categorical:
+            return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+        case EFeatureType::Text:
+            return TextFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+    }
+}
+
 ui32 TFeaturesLayout::GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
     Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
     return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
@@ -238,8 +199,6 @@ bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeat
             return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
         case EFeatureType::Text:
             return (size_t)internalFeatureIdx < TextFeatureInternalIdxToExternalIdx.size();
-        case EFeatureType::Embedding:
-            return (size_t)internalFeatureIdx < EmbeddingFeatureInternalIdxToExternalIdx.size();
     }
 }
 
@@ -265,11 +224,6 @@ ui32 TFeaturesLayout::GetTextFeatureCount() const {
     return (ui32)TextFeatureInternalIdxToExternalIdx.size();
 }
 
-ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const {
-    // cast is safe because of size invariant established in constructors
-    return (ui32)EmbeddingFeatureInternalIdxToExternalIdx.size();
-}
-
 ui32 TFeaturesLayout::GetExternalFeatureCount() const {
     // cast is safe because of size invariant established in constructors
     return (ui32)ExternalIdxToMetaInfo.size();
@@ -283,8 +237,6 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
             return GetCatFeatureCount();
         case EFeatureType::Text:
             return GetTextFeatureCount();
-        case EFeatureType::Embedding:
-            return GetEmbeddingFeatureCount();
     }
 }
 
@@ -313,25 +265,12 @@ void TFeaturesLayout::IgnoreExternalFeatures(TConstArrayRef<ui32> ignoredFeature
     }
 }
 
-TConstArrayRef<ui32> TFeaturesLayout::GetFloatFeatureInternalIdxToExternalIdx() const {
-    return FloatFeatureInternalIdxToExternalIdx;
-}
-
 TConstArrayRef<ui32> TFeaturesLayout::GetCatFeatureInternalIdxToExternalIdx() const {
     return CatFeatureInternalIdxToExternalIdx;
 }
 
 TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() const {
     return TextFeatureInternalIdxToExternalIdx;
-}
-
-TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
-    return EmbeddingFeatureInternalIdxToExternalIdx;
-}
-
-
-const THashMap<TString, TVector<ui32>>& TFeaturesLayout::GetTagToExternalIndices() const {
-    return TagToExternalIndices;
 }
 
 
@@ -349,14 +288,12 @@ bool TFeaturesLayout::EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity) c
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx,
-            TextFeatureInternalIdxToExternalIdx,
-            EmbeddingFeatureInternalIdxToExternalIdx
+            TextFeatureInternalIdxToExternalIdx
         ) == std::tie(
             rhs.FeatureExternalIdxToInternalIdx,
             rhs.CatFeatureInternalIdxToExternalIdx,
             rhs.FloatFeatureInternalIdxToExternalIdx,
-            rhs.TextFeatureInternalIdxToExternalIdx,
-            rhs.EmbeddingFeatureInternalIdxToExternalIdx
+            rhs.TextFeatureInternalIdxToExternalIdx
         );
 }
 
@@ -407,14 +344,8 @@ void TFeaturesLayout::AddFeature(TFeatureMetaInfo&& featureMetaInfo) {
             );
             TextFeatureInternalIdxToExternalIdx.push_back(externalIdx);
             break;
-        case EFeatureType::Embedding:
-            FeatureExternalIdxToInternalIdx.push_back(
-                SafeIntegerCast<ui32>(EmbeddingFeatureInternalIdxToExternalIdx.size())
-            );
-            EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalIdx);
-            break;
         default:
-            CB_ENSURE(false, "Unexpected feature type");
+            Y_FAIL();
     }
     ExternalIdxToMetaInfo.push_back(std::move(featureMetaInfo));
 }

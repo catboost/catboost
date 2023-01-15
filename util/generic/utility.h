@@ -6,7 +6,7 @@
 
 template <class T>
 static constexpr const T& Min(const T& l, const T& r) {
-    return r < l ? r : l;
+    return l < r ? l : r;
 }
 
 template <typename T, typename... Args>
@@ -16,7 +16,7 @@ static constexpr const T& Min(const T& a, const T& b, const Args&... args) {
 
 template <class T>
 static constexpr const T& Max(const T& l, const T& r) {
-    return l < r ? r : l;
+    return l > r ? l : r;
 }
 
 template <typename T, typename... Args>

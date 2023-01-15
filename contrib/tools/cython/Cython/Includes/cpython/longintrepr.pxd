@@ -1,11 +1,7 @@
 # Internals of the "long" type (Python 2) or "int" type (Python 3).
+# This is not part of Python's published API.
 
-cdef extern from "Python.h":
-    """
-    #if PY_MAJOR_VERSION < 3
-     #include "longintrepr.h"
-    #endif
-    """
+cdef extern from "longintrepr.h":
     ctypedef unsigned int digit
     ctypedef int sdigit  # Python >= 2.7 only
 

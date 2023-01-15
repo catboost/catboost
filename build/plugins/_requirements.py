@@ -18,6 +18,10 @@ def check_cpu(suite_cpu_requirements, test_size, is_kvm=False):
     return None
 
 
+def is_power_of_two(num):
+    return num > 0 and ((num & (num - 1)) == 0)
+
+
 # TODO: Remove is_kvm param when there will be guarantees on RAM
 def check_ram(suite_ram_requirements, test_size, is_kvm=False):
     if not isinstance(suite_ram_requirements, int):
@@ -29,6 +33,10 @@ def check_ram(suite_ram_requirements, test_size, is_kvm=False):
         if is_kvm:
             err_msg += ' with kvm requirements'
         return err_msg
+    # TODO: Remove this part of rule when dafault_ram_requirement becomes power of 2
+    if suite_ram_requirements != max_ram_requirements and not is_power_of_two(suite_ram_requirements):
+        return "Wrong 'ram' requirements: {}, should be power of 2".format(suite_ram_requirements)
+
     return None
 
 

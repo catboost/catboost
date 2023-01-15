@@ -1,14 +1,12 @@
 #include "interface.h"
 
-#include <util/string/ascii.h>
-
 #if defined(_unix_)
-    #include <ifaddrs.h>
+#include <ifaddrs.h>
 #endif
 
 #ifdef _win_
-    #include <iphlpapi.h>
-    #pragma comment(lib, "Iphlpapi.lib")
+#include <iphlpapi.h>
+#pragma comment(lib, "Iphlpapi.lib")
 #endif
 
 namespace NAddr {
@@ -46,10 +44,10 @@ namespace NAddr {
                         TNetworkInterface networkInterface;
 
                         // Not very efficient but straightforward
-                        wchar_t* it = ptr->FriendlyName;
-                        while (*it != '\0') {
-                            networkInterface.Name += IsAscii(*it) ? static_cast<char>(*it) : '?';
-                            ++it;
+                        for (size_t i = 0; ptr->FriendlyName[i] != 0; i++) {
+                            CHAR w = ptr->FriendlyName[i];
+                            char c = (w < 0x80) ? char(w) : '?';
+                            networkInterface.Name.append(1, c);
                         }
 
                         networkInterface.Address = new TOpaqueAddr(a);

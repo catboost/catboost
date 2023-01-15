@@ -36,7 +36,7 @@ namespace NCatboostCuda {
                                                            const TFeaturesBinarizationDescription& info,
                                                            const NCudaLib::TSingleMapping& docsMapping,
                                                            const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
-            THolder<TFeaturesBlock> resultHolder = MakeHolder<TFeaturesBlock>(TCpuGrid(info, featureIds));
+            THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
 
             auto layout = CreateLayout(featureIds.size());
@@ -88,6 +88,17 @@ namespace NCatboostCuda {
 
             return resultHolder;
         }
+
+        static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
+                                           TConstArrayRef<ui8> bins,
+                                           const NCudaLib::TSingleMapping& docsMapping,
+                                           TStripeBuffer<ui32>* compressedIndex) {
+            TSingleBuffer<ui8> tmp = TSingleBuffer<ui8>::Create(docsMapping);
+            tmp.Write(bins);
+            WriteCompressedFeature(feature, tmp, *compressedIndex);
+        }
     };
+
+    extern template struct TCudaFeaturesLayoutHelper<TSingleDevLayout>;
 
 }

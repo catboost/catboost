@@ -1,6 +1,5 @@
 use catboost_sys;
 use std::ffi::CStr;
-use std::fmt;
 
 pub type CatBoostResult<T> = std::result::Result<T, CatBoostError>;
 
@@ -29,11 +28,3 @@ impl CatBoostError {
         }
     }
 }
-
-impl fmt::Display for CatBoostError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)
-    }
-}
-
-impl std::error::Error for CatBoostError {}

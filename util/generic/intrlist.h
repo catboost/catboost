@@ -5,15 +5,13 @@
 #include <util/system/yassert.h>
 #include <iterator>
 
-struct TIntrusiveListDefaultTag {};
-
 /*
  * two-way linked list
  */
-template <class T, class Tag = TIntrusiveListDefaultTag>
+template <class T>
 class TIntrusiveListItem {
 private:
-    using TListItem = TIntrusiveListItem<T, Tag>;
+    using TListItem = TIntrusiveListItem<T>;
 
 public:
     inline TIntrusiveListItem() noexcept
@@ -27,7 +25,9 @@ public:
     }
 
 public:
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return (Prev_ == this) && (Next_ == this);
     }
 
@@ -118,10 +118,10 @@ private:
     TListItem* Prev_;
 };
 
-template <class T, class Tag>
+template <class T>
 class TIntrusiveList {
 private:
-    using TListItem = TIntrusiveListItem<T, Tag>;
+    using TListItem = TIntrusiveListItem<T>;
 
     template <class TListItem, class TNode>
     class TIteratorBase {
@@ -357,16 +357,13 @@ public:
         return !Empty();
     }
 
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return End_.Empty();
     }
 
     inline size_t Size() const noexcept {
         return std::distance(Begin(), End());
-    }
-
-    inline void Remove(TListItem* item) noexcept {
-        item->Unlink();
     }
 
     inline void Clear() noexcept {
@@ -584,14 +581,14 @@ private:
     TListItem End_;
 };
 
-template <class T, class D, class Tag>
-class TIntrusiveListWithAutoDelete: public TIntrusiveList<T, Tag> {
+template <class T, class D>
+class TIntrusiveListWithAutoDelete: public TIntrusiveList<T> {
 public:
-    using TIterator = typename TIntrusiveList<T, Tag>::TIterator;
-    using TConstIterator = typename TIntrusiveList<T, Tag>::TConstIterator;
+    using TIterator = typename TIntrusiveList<T>::TIterator;
+    using TConstIterator = typename TIntrusiveList<T>::TConstIterator;
 
-    using TReverseIterator = typename TIntrusiveList<T, Tag>::TReverseIterator;
-    using TConstReverseIterator = typename TIntrusiveList<T, Tag>::TConstReverseIterator;
+    using TReverseIterator = typename TIntrusiveList<T>::TReverseIterator;
+    using TConstReverseIterator = typename TIntrusiveList<T>::TConstReverseIterator;
 
     using iterator = TIterator;
     using const_iterator = TConstIterator;
@@ -603,7 +600,7 @@ public:
     inline TIntrusiveListWithAutoDelete() noexcept = default;
 
     inline TIntrusiveListWithAutoDelete(TIntrusiveListWithAutoDelete&& right) noexcept
-        : TIntrusiveList<T, Tag>(std::move(right))
+        : TIntrusiveList<T>(std::move(right))
     {
     }
 
@@ -612,7 +609,7 @@ public:
     }
 
     TIntrusiveListWithAutoDelete& operator=(TIntrusiveListWithAutoDelete&& rhs) noexcept {
-        TIntrusiveList<T, Tag>::operator=(std::move(rhs));
+        TIntrusiveList<T>::operator=(std::move(rhs));
         return *this;
     }
 
@@ -624,22 +621,22 @@ public:
     }
 
     inline static void Cut(TIterator begin, TIterator end) noexcept {
-        TIntrusiveListWithAutoDelete<T, D, Tag> temp;
+        TIntrusiveListWithAutoDelete<T, D> temp;
         Cut(begin, end, temp.End());
     }
 
     inline static void Cut(TIterator begin, TIterator end, TIterator pasteBefore) noexcept {
-        TIntrusiveList<T, Tag>::Cut(begin, end, pasteBefore);
+        TIntrusiveList<T>::Cut(begin, end, pasteBefore);
     }
 };
 
 /*
  * one-way linked list
  */
-template <class T, class Tag = TIntrusiveListDefaultTag>
+template <class T>
 class TIntrusiveSListItem {
 private:
-    using TListItem = TIntrusiveSListItem<T, Tag>;
+    using TListItem = TIntrusiveSListItem<T>;
 
 public:
     inline TIntrusiveSListItem() noexcept
@@ -678,10 +675,10 @@ private:
     TListItem* Next_;
 };
 
-template <class T, class Tag>
+template <class T>
 class TIntrusiveSList {
 private:
-    using TListItem = TIntrusiveSListItem<T, Tag>;
+    using TListItem = TIntrusiveSListItem<T>;
 
 public:
     template <class TListItem, class TNode>
@@ -761,7 +758,8 @@ public:
         return !Empty();
     }
 
-    Y_PURE_FUNCTION inline bool Empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool Empty() const noexcept {
         return Begin_ == nullptr;
     }
 

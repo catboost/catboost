@@ -2,7 +2,7 @@
 #include <library/cpp/binsaver/mem_io.h>
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/binsaver/ut_util/ut_util.h>
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include <util/stream/buffer.h>
 #include <util/generic/map.h>
@@ -111,13 +111,13 @@ Y_UNIT_TEST(TestBlob) {
 
 Y_UNIT_TEST(TestVariant) {
     {
-        using T = std::variant<TString, int>;
+        using T = TVariant<TString, int>;
 
         TestBinSaverSerialization(T(TString("")));
         TestBinSaverSerialization(T(0));
     }
     {
-        using T = std::variant<TString, int, float>;
+        using T = TVariant<TString, int, float>;
 
         TestBinSaverSerialization(T(TString("ask")));
         TestBinSaverSerialization(T(12));

@@ -65,22 +65,20 @@ struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
     float Score = std::numeric_limits<float>::infinity();
-    float Gain = std::numeric_limits<float>::infinity();
 
     TBestSplitProperties() = default;
 
-    TBestSplitProperties(ui32 featureId, ui32 binId, float score, float gain)
+    TBestSplitProperties(ui32 featureId, ui32 binId, float score)
         : FeatureId(featureId)
         , BinId(binId)
         , Score(score)
-        , Gain(gain)
     {
     }
 
     bool operator<(const TBestSplitProperties& other) const {
-        if (Gain < other.Gain) {
+        if (Score < other.Score) {
             return true;
-        } else if (Gain == other.Gain) {
+        } else if (Score == other.Score) {
             if (FeatureId < other.FeatureId) {
                 return true;
             } else if (FeatureId == other.FeatureId) {
@@ -105,7 +103,7 @@ struct TBestSplitProperties {
 struct TBestSplitPropertiesWithIndex: public TBestSplitProperties {
     ui32 Index = 0;
 
-    bool operator<(const TBestSplitPropertiesWithIndex& other) const {
+    bool operator<(const TBestSplitPropertiesWithIndex& other) {
         return static_cast<const TBestSplitProperties&>(*this).operator<(static_cast<const TBestSplitProperties&>(other));
     }
 };

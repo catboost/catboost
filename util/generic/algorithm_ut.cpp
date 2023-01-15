@@ -1,8 +1,6 @@
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 #include "algorithm.h"
-#include "hash.h"
-#include "hash_multi_map.h"
 #include "strbuf.h"
 #include "string.h"
 
@@ -10,10 +8,10 @@ static auto isOne = [](char c) { return c == '1'; };
 
 Y_UNIT_TEST_SUITE(TAlgorithm) {
     Y_UNIT_TEST(AnyTest) {
-        UNIT_ASSERT(0 == AnyOf(TStringBuf("00"), isOne));
-        UNIT_ASSERT(1 == AnyOf(TStringBuf("01"), isOne));
-        UNIT_ASSERT(1 == AnyOf(TStringBuf("10"), isOne));
-        UNIT_ASSERT(1 == AnyOf(TStringBuf("11"), isOne));
+        UNIT_ASSERT(0 == AnyOf(AsStringBuf("00"), isOne));
+        UNIT_ASSERT(1 == AnyOf(AsStringBuf("01"), isOne));
+        UNIT_ASSERT(1 == AnyOf(AsStringBuf("10"), isOne));
+        UNIT_ASSERT(1 == AnyOf(AsStringBuf("11"), isOne));
         UNIT_ASSERT(0 == AnyOf(TStringBuf(), isOne));
 
         const char array00[]{'0', '0'};
@@ -23,10 +21,10 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     Y_UNIT_TEST(AllOfTest) {
-        UNIT_ASSERT(0 == AllOf(TStringBuf("00"), isOne));
-        UNIT_ASSERT(0 == AllOf(TStringBuf("01"), isOne));
-        UNIT_ASSERT(0 == AllOf(TStringBuf("10"), isOne));
-        UNIT_ASSERT(1 == AllOf(TStringBuf("11"), isOne));
+        UNIT_ASSERT(0 == AllOf(AsStringBuf("00"), isOne));
+        UNIT_ASSERT(0 == AllOf(AsStringBuf("01"), isOne));
+        UNIT_ASSERT(0 == AllOf(AsStringBuf("10"), isOne));
+        UNIT_ASSERT(1 == AllOf(AsStringBuf("11"), isOne));
         UNIT_ASSERT(1 == AllOf(TStringBuf(), isOne));
 
         const char array01[]{'0', '1'};
@@ -36,11 +34,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     Y_UNIT_TEST(CountIfTest) {
-        UNIT_ASSERT(3 == CountIf(TStringBuf("____1________1____1_______"), isOne));
-        UNIT_ASSERT(5 == CountIf(TStringBuf("1____1________1____1_______1"), isOne));
-        UNIT_ASSERT(0 == CountIf(TStringBuf("___________"), isOne));
+        UNIT_ASSERT(3 == CountIf(AsStringBuf("____1________1____1_______"), isOne));
+        UNIT_ASSERT(5 == CountIf(AsStringBuf("1____1________1____1_______1"), isOne));
+        UNIT_ASSERT(0 == CountIf(AsStringBuf("___________"), isOne));
         UNIT_ASSERT(0 == CountIf(TStringBuf(), isOne));
-        UNIT_ASSERT(1 == CountIf(TStringBuf("1"), isOne));
+        UNIT_ASSERT(1 == CountIf(AsStringBuf("1"), isOne));
 
         const char array[] = "____1________1____1_______";
         UNIT_ASSERT(3 == CountIf(array, isOne));
@@ -48,17 +46,17 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     Y_UNIT_TEST(CountTest) {
         UNIT_ASSERT(3 == Count("____1________1____1_______", '1'));
-        UNIT_ASSERT(3 == Count(TStringBuf("____1________1____1_______"), '1'));
-        UNIT_ASSERT(5 == Count(TStringBuf("1____1________1____1_______1"), '1'));
-        UNIT_ASSERT(0 == Count(TStringBuf("___________"), '1'));
+        UNIT_ASSERT(3 == Count(AsStringBuf("____1________1____1_______"), '1'));
+        UNIT_ASSERT(5 == Count(AsStringBuf("1____1________1____1_______1"), '1'));
+        UNIT_ASSERT(0 == Count(AsStringBuf("___________"), '1'));
         UNIT_ASSERT(0 == Count(TStringBuf(), '1'));
-        UNIT_ASSERT(1 == Count(TStringBuf("1"), '1'));
+        UNIT_ASSERT(1 == Count(AsStringBuf("1"), '1'));
 
         const char array[] = "____1________1____1_______";
         UNIT_ASSERT(3 == Count(array, '1'));
     }
 
-    struct TStrokaNoCopy: TString {
+    struct TStrokaNoCopy : TString {
     public:
         TStrokaNoCopy(const char* p)
             : TString(p)
@@ -87,18 +85,18 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), "123", "poi", "xyz"), 1);
 
         // TString and TStringBuf
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), TStringBuf("123"), TStringBuf("poi")), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), TStringBuf("123"), TStringBuf("poi"),
-                                         TStringBuf("xyz")),
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), AsStringBuf("123"), AsStringBuf("poi")), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(TString("xyz"), AsStringBuf("123"), AsStringBuf("poi"),
+                                         AsStringBuf("xyz")),
                                  1);
 
         // TStringBuf and const char *
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), "123", "poi"), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), "123", "poi", "xyz"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), "123", "poi"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), "123", "poi", "xyz"), 1);
 
         // TStringBuf and TString
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), TString("123"), TString("poi")), 0);
-        UNIT_ASSERT_VALUES_EQUAL(CountOf(TStringBuf("xyz"), TString("123"), TString("poi"),
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), TString("123"), TString("poi")), 0);
+        UNIT_ASSERT_VALUES_EQUAL(CountOf(AsStringBuf("xyz"), TString("123"), TString("poi"),
                                          TString("xyz")),
                                  1);
     }
@@ -151,7 +149,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }
     }
 
-    struct TVectorNoCopy: std::vector<int> {
+    struct TVectorNoCopy : std::vector<int> {
     public:
         TVectorNoCopy() = default;
 
@@ -418,56 +416,6 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }
     }
 
-    Y_UNIT_TEST(AdjacentFindTest) {
-        TVector<int> v0;
-        UNIT_ASSERT_EQUAL(AdjacentFind(v0), v0.end());
-
-        TVector<int> v1 = {1};
-        UNIT_ASSERT_EQUAL(AdjacentFind(v1), v1.end());
-
-        const int v2[] = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
-        UNIT_ASSERT_EQUAL(AdjacentFind(v2), std::begin(v2) + 2);
-
-        TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
-        UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
-
-        TVector<int> v4 = {1, 1, 1, 1, 1};
-        for (;;) {
-            if (auto it = AdjacentFind(v4); it == v4.end()) {
-                break;
-            } else {
-                *it += 1;
-            }
-        }
-        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{5, 4, 3, 2, 1}));
-    }
-
-    Y_UNIT_TEST(AdjacentFindByTest) {
-        TVector<int> v0;
-        UNIT_ASSERT_EQUAL(AdjacentFindBy(v0, std::negate<int>()), v0.end());
-
-        TVector<int> v1 = {1};
-        UNIT_ASSERT_EQUAL(AdjacentFindBy(v1, std::negate<int>()), v1.end());
-
-        const int v2[] = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
-        UNIT_ASSERT_EQUAL(AdjacentFindBy(v2, std::negate<int>()), std::begin(v2) + 2);
-        UNIT_ASSERT_EQUAL(AdjacentFindBy(v2, [](const auto& e) { return e / 8; }), std::begin(v2) + 1);
-
-        TVector<TStringBuf> v3 = {"six", "five", "four", "three", "two", "one"};
-        UNIT_ASSERT_EQUAL(AdjacentFind(v3), v3.end());
-        UNIT_ASSERT_EQUAL(AdjacentFindBy(v3, std::mem_fn(&TStringBuf::size)), v3.begin() + 1);
-
-        TVector<int> v4 = {101, 201, 301, 401, 501};
-        for (;;) {
-            if (auto it = AdjacentFindBy(v4, [](int a) { return a % 10; }); it == v4.end()) {
-                break;
-            } else {
-                *it += 1;
-            }
-        }
-        UNIT_ASSERT_VALUES_EQUAL(v4, (TVector<int>{105, 204, 303, 402, 501}));
-    }
-
     Y_UNIT_TEST(IsSortedTest) {
         TVector<int> v0;
         UNIT_ASSERT_VALUES_EQUAL(IsSorted(v0.begin(), v0.end()), true);
@@ -486,19 +434,15 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     Y_UNIT_TEST(IsSortedByTest) {
         TVector<int> v0;
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v0.begin(), v0.end(), std::negate<int>()), true);
-        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v0, std::negate<int>()), true);
 
         TVector<int> v1 = {1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v1.begin(), v1.end(), std::negate<int>()), true);
-        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v1, std::negate<int>()), true);
 
         TVector<int> v2 = {8, 7, 6, 6, 5, 5, 5, 4, 3, 2, 1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v2.begin(), v2.end(), std::negate<int>()), true);
-        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v2, std::negate<int>()), true);
 
         TVector<int> v3 = {1, 2, 1};
         UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v3.begin(), v3.end(), std::negate<int>()), false);
-        UNIT_ASSERT_VALUES_EQUAL(IsSortedBy(v3, std::negate<int>()), false);
     }
 
     Y_UNIT_TEST(SortTestTwoIterators) {
@@ -672,12 +616,14 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {1, 2, 5, 3, 4, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(array, [](int x) {
             return x * x;
-        }), 5);
+        }),
+                                 5);
 
         const TVector<int> vec(array, array + Y_ARRAY_SIZE(array));
         UNIT_ASSERT_VALUES_EQUAL(*MaxElementBy(vec, [](int x) {
             return -1.0 * x;
-        }), 1);
+        }),
+                                 1);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto maxPtr = MaxElementBy(arrayMutable, [](int x) { return x; });
@@ -698,12 +644,14 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         const int array[] = {2, 3, 4, 1, 5};
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(array, [](int x) -> char {
             return 'a' + x;
-        }), 1);
+        }),
+                                 1);
 
         const TVector<int> vec(std::begin(array), std::end(array));
         UNIT_ASSERT_VALUES_EQUAL(*MinElementBy(vec, [](int x) {
             return -x;
-        }), 5);
+        }),
+                                 5);
 
         int arrayMutable[] = {1, 2, 5, 3, 4, 5};
         auto minPtr = MinElementBy(arrayMutable, [](int x) { return x; });
@@ -796,7 +744,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
             auto pred = [](auto s) { return s.size() == 3; };
             UNIT_ASSERT_VALUES_EQUAL(AllOf(ts, pred), AllOf(ts, pred));
         }
-    }
+   }
 
     Y_UNIT_TEST(TestTupleAnyOf) {
         UNIT_ASSERT(!AnyOf(std::tuple<>{}, [](auto) { return true; }));
@@ -901,6 +849,6 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
     Y_UNIT_TEST(AccumulateWithBinOp) {
         std::vector<int> v = {1, 2, 777};
-        UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto&& a, auto& b) { return a + ";" + ToString(b); }));
+        UNIT_ASSERT_VALUES_EQUAL(TString("begin;1;2;777"), Accumulate(v, TString("begin"), [](auto& a, auto& b) { return a + ";" + ToString(b); }));
     }
 };

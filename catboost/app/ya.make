@@ -5,9 +5,9 @@ DISABLE(USE_ASMLIB)
 
 
 SRCS(
+    bind_options.cpp
     main.cpp
     mode_calc.cpp
-    mode_dataset_statistics.cpp
     mode_eval_metrics.cpp
     mode_eval_feature.cpp
     mode_fit.cpp
@@ -19,67 +19,61 @@ SRCS(
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
-    mode_select_features.cpp
-    mode_dump_options.cpp
     GLOBAL signal_handling.cpp
 )
 
 PEERDIR(
+    catboost/private/libs/algo
+    catboost/private/libs/app_helpers
+    catboost/libs/column_description
     catboost/libs/data
-    catboost/libs/dataset_statistics
-    catboost/libs/features_selection
+    catboost/private/libs/data_util
+    catboost/private/libs/distributed
+    catboost/private/libs/documents_importance
     catboost/libs/helpers
+    catboost/private/libs/init
+    catboost/private/libs/labels
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/model/model_export
-    catboost/libs/train_lib
-    catboost/private/libs/algo
-    catboost/private/libs/app_helpers
-    catboost/private/libs/data_util
-    catboost/private/libs/distributed
-    catboost/private/libs/documents_importance
-    catboost/private/libs/init
-    catboost/private/libs/labels
     catboost/private/libs/options
     catboost/private/libs/target
+    catboost/libs/train_lib
     library/cpp/getopt/small
-    library/cpp/json
-    library/cpp/svnversion
-    library/cpp/threading/local_executor
+    library/cpp/grid_creator
+    library/json
+    library/logger
+    library/svnversion
+    library/cpp/text_processing/dictionary
+    library/threading/local_executor
 )
+
+IF(HAVE_CUDA)
+    PEERDIR(
+        catboost/cuda/train_lib
+        catboost/libs/model/cuda
+    )
+ENDIF()
 
 GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 
-IF(OPENSOURCE)
-    RESTRICT_LICENSES(
-        DENY REQUIRE_DISCLOSURE FORBIDDEN
-        EXCEPT
-            contrib/libs/linux-headers # DTCC-725
-            contrib/libs/intel/mkl # DTCC-730
-    )
+IF(CATBOOST_OPENSOURCE)
+    NO_GPL()
 ELSE()
     PEERDIR(
         catboost//private/libs/for_app
     )
 ENDIF()
 
-IF (OS_WINDOWS)
+IF (ARCH_AARCH64 OR OS_WINDOWS)
     ALLOCATOR(J)
 ELSE()
-    ALLOCATOR(MIM)
+    ALLOCATOR(LF)
 ENDIF()
 
-IF (OPENSOURCE AND AUTOCHECK)
+IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
     INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
-ENDIF()
-
-IF (HAVE_CUDA)
-    CFLAGS(-DHAVE_CUDA)
-
-    PEERDIR(
-        catboost/cuda/cuda_lib
-    )
 ENDIF()
 
 END()

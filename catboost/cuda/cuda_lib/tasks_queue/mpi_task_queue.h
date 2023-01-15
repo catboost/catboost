@@ -69,7 +69,7 @@ namespace NCudaLib {
 
             for (TMpiRequestPtr& request : Requests) {
                 if (request) {
-                    CB_ENSURE(!request->IsComplete(), "Request completed unexpectedly");
+                    Y_VERIFY(!request->IsComplete());
                     request->Abort();
                 }
             }

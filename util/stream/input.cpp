@@ -182,9 +182,9 @@ namespace {
 #if defined(_win_)
     using TGetLine = TStdIn;
 #else
-    #if defined(_bionic_)
+#if defined(_bionic_)
     using TGetLineBase = TStdIn;
-    #else
+#else
     struct TGetLineBase: public TStdIn {
         ~TGetLineBase() override {
             free(B_);
@@ -220,12 +220,12 @@ namespace {
         char* B_ = nullptr;
         size_t L_ = 0;
     };
-    #endif
+#endif
 
-    #if defined(_glibc_) || defined(_cygwin_)
+#if defined(_glibc_) || defined(_cygwin_)
     // glibc does not have fgetln
     using TGetLine = TGetLineBase;
-    #else
+#else
     struct TGetLine: public TGetLineBase {
         size_t DoReadTo(TString& st, char ch) override {
             if (ch == '\n') {
@@ -246,7 +246,7 @@ namespace {
             return TGetLineBase::DoReadTo(st, ch);
         }
     };
-    #endif
+#endif
 #endif
 }
 

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import sys
 import xml.etree.ElementTree as et
 import argparse
@@ -46,30 +44,6 @@ def split_artifacts(s):
     return [m.groups()[0]] + m.groups()[1].split('::')[1:]
 
 
-def parse_coord_file(target_coords):
-    deps = set()
-    excludes = set()
-    target = None
-
-    with open(target_coords, 'r') as f:
-        for ln in f:
-            ln = ln.strip('\n')
-            if ln.startswith('D='):
-                if target is None:
-                    target = ln[2:]
-                else:
-                    group, artifact = ln[2:].split(':')[0:2]
-                    deps.add('{}:{}'.format(group, artifact))
-            elif ln.startswith('E='):
-                group, artifact = ln[2:].split(':')[0:2]
-                excludes.add('{}:{}'.format(group, artifact))
-    return target, deps, excludes
-
-
-def applied_excludes(deps, excludes):
-    return sorted(list(deps & excludes))
-
-
 def build_pom_and_export_to_maven(**kwargs):
     target_path = kwargs.get('target_path')
     target = kwargs.get('target')
@@ -78,40 +52,16 @@ def build_pom_and_export_to_maven(**kwargs):
     output_dir = kwargs.get('output_dir')
     final_name = kwargs.get('final_name')
     packaging = kwargs.get('packaging')
+    target_dependencies = kwargs.get('target_dependencies')
     test_target_dependencies = kwargs.get('test_target_dependencies')
     test_target_dependencies_exclude = kwargs.get('test_target_dependencies_exclude')
     modules_path = kwargs.get('modules_path')
-    base64_prop_vars = kwargs.get('properties')
-    prop_vars = kwargs.get('property')
+    prop_vars = kwargs.get('properties')
     external_jars = kwargs.get('external_jars')
     resources = kwargs.get('resources')
     run_java_programs = [json.loads(base64.b64decode(i)) for i in kwargs.get('run_java_programs')]
     test_source_dirs = kwargs.get('test_source_dirs')
     test_resource_dirs = kwargs.get('test_resource_dirs')
-
-    from_coord_files = kwargs.get('from_coord_files')
-    deps_coords = kwargs.get('deps_coords')
-    target_coords = kwargs.get('target_coords')
-    if from_coord_files:
-        target, _, all_excludes = parse_coord_file(target_coords)
-        # TODO: ymake java -> jbuild java values format conversion must be removed
-        target = ':'.join(target.split(':')[:3])
-        target_dependencies = []
-        for dep in deps_coords:
-            dep_coord, dep_deps, _ = parse_coord_file(dep)
-            excluded = applied_excludes(dep_deps, all_excludes)
-            if len(excluded) > 0:
-                target_dependencies.append('{}::{}'.format(dep_coord, '::'.join(excluded)))
-            else:
-                target_dependencies.append(dep_coord)
-    else:
-        target_dependencies = kwargs.get('target_dependencies')
-
-    if kwargs.get('vcs_info') is not None:
-        with open(kwargs.get('vcs_info'), 'r') as vcs_json:
-            vcs_revision = json.load(vcs_json).get('ARCADIA_SOURCE_LAST_CHANGE')
-        target = target.format(vcs_revision=vcs_revision)
-        target_dependencies = [dep.format(vcs_revision=vcs_revision) for dep in target_dependencies]
 
     modules = []
 
@@ -146,15 +96,9 @@ def build_pom_and_export_to_maven(**kwargs):
     properties = et.SubElement(project, 'properties')
     et.SubElement(properties, 'project.build.sourceEncoding').text = 'UTF-8'
 
-    if base64_prop_vars:
-        for property, value in json.loads(base64.b64decode(base64_prop_vars)).items():
+    if prop_vars:
+        for property, value in json.loads(base64.b64decode(prop_vars)).items():
             et.SubElement(properties, property).text = value
-    for rawprop in prop_vars:
-        property, sep, value = rawprop.partition('=')
-        if sep != '=':
-            print("Can't find propertyr name and property value in {}. No '=' symbol found".format(rawprop))
-            sys.exit(1)
-        et.SubElement(properties, property).text = value
 
     if modules_path:
         with open(modules_path) as f:
@@ -309,9 +253,6 @@ def build_pom_and_export_to_maven(**kwargs):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--from-coord-files', action='store_true')
-    parser.add_argument('--deps-coords', action='append', default=[])
-    parser.add_argument('--target-coords', action='store')
     parser.add_argument('--target-path', action='store', default='')
     parser.add_argument('--target', action='store')
     parser.add_argument('--pom-path', action='store')
@@ -327,10 +268,8 @@ if __name__ == '__main__':
     parser.add_argument('--test-target-dependencies-exclude', action='append', default=[])
     parser.add_argument('--modules-path', action='store')
     parser.add_argument('--properties')
-    parser.add_argument('--property', action='append', default=[])
     parser.add_argument('--test-source-dirs', action='append', default=[])
     parser.add_argument('--test-resource-dirs', action='append', default=[])
-    parser.add_argument('--vcs-info', action='store', default=None)
     args = parser.parse_args()
 
     build_pom_and_export_to_maven(**vars(args))

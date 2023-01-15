@@ -1,8 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #include "Python.h"
-#include <stddef.h>               // offsetof()
-#include "pycore_accu.h"
-#include "pycore_object.h"
+#include "structmember.h"
+#include "accu.h"
 #include "_iomodule.h"
 
 /* Implementation note: the buffer is always at least one character longer
@@ -402,14 +401,14 @@ stringio_iternext(stringio *self)
     CHECK_CLOSED(self);
     ENSURE_REALIZED(self);
 
-    if (Py_IS_TYPE(self, &PyStringIO_Type)) {
+    if (Py_TYPE(self) == &PyStringIO_Type) {
         /* Skip method call overhead for speed */
         line = _stringio_readline(self, -1);
     }
     else {
         /* XXX is subclassing StringIO really supported? */
-        line = PyObject_CallMethodNoArgs((PyObject *)self,
-                                             _PyIO_str_readline);
+        line = PyObject_CallMethodObjArgs((PyObject *)self,
+                                           _PyIO_str_readline, NULL);
         if (line && !PyUnicode_Check(line)) {
             PyErr_Format(PyExc_OSError,
                          "readline() should have returned a str object, "
@@ -714,9 +713,9 @@ _io_StringIO___init___impl(stringio *self, PyObject *value,
     }
 
     if (self->readuniversal) {
-        self->decoder = PyObject_CallFunctionObjArgs(
+        self->decoder = PyObject_CallFunction(
             (PyObject *)&PyIncrementalNewlineDecoder_Type,
-            Py_None, self->readtranslate ? Py_True : Py_False, NULL);
+            "Oi", Py_None, (int) self->readtranslate);
         if (self->decoder == NULL)
             return -1;
     }
@@ -813,7 +812,7 @@ _io_StringIO_seekable_impl(stringio *self)
 */
 
 static PyObject *
-stringio_getstate(stringio *self, PyObject *Py_UNUSED(ignored))
+stringio_getstate(stringio *self)
 {
     PyObject *initvalue = _io_StringIO_getvalue_impl(self);
     PyObject *dict;
@@ -899,7 +898,7 @@ stringio_setstate(stringio *self, PyObject *state)
 
     /* Set carefully the position value. Alternatively, we could use the seek
        method instead of modifying self->pos directly to better protect the
-       object internal state against erroneous (or malicious) inputs. */
+       object internal state against errneous (or malicious) inputs. */
     position_obj = PyTuple_GET_ITEM(state, 2);
     if (!PyLong_Check(position_obj)) {
         PyErr_Format(PyExc_TypeError,
@@ -1007,10 +1006,10 @@ PyTypeObject PyStringIO_Type = {
     sizeof(stringio),                    /*tp_basicsize*/
     0,                                         /*tp_itemsize*/
     (destructor)stringio_dealloc,              /*tp_dealloc*/
-    0,                                         /*tp_vectorcall_offset*/
+    0,                                         /*tp_print*/
     0,                                         /*tp_getattr*/
     0,                                         /*tp_setattr*/
-    0,                                         /*tp_as_async*/
+    0,                                         /*tp_reserved*/
     0,                                         /*tp_repr*/
     0,                                         /*tp_as_number*/
     0,                                         /*tp_as_sequence*/

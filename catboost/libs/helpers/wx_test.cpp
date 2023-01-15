@@ -1,10 +1,34 @@
-#include "distribution_helpers.h"
-#include "exception.h"
 #include "wx_test.h"
 
 
-using namespace NCB;
+static double ErrorFunction(const double x) {
+    double coeffs[] = {
+        -1.26551223,
+        1.00002368,
+        0.37409196,
+        0.09678418,
+        -0.18628806,
+        0.27886807,
+        -1.13520398,
+        1.48851587,
+        -0.82215223,
+        0.17087277
+    };
 
+    double t = 1.0 / (1.0 + 0.5 * Abs(x));
+    double sum = -x * x;
+    double powT = 1.0;
+    for (double coef : coeffs) {
+        sum += coef * powT;
+        powT *= t;
+    }
+    double tau = t * exp(sum);
+    if (x > 0) {
+        return 1.0 - tau;
+    } else {
+        return tau - 1.0;
+    }
+}
 
 static double NormalCDF(double x) {
     return 0.5 + 0.5 * ErrorFunction(x / sqrt(2.0));
@@ -13,7 +37,7 @@ static double NormalCDF(double x) {
 //w is Abs(wPlus-wMinus)
 // wMinus/wPlus are sums of rank with appropriate sign
 static double CalcLevelOfSignificanceWXMPSR(double w, int n) {
-    CB_ENSURE(n < 20, "Size of sample is too large for CalcLevelOfSignificanceWXMPSR");
+    Y_VERIFY(n < 20);
     // The total number of possible outcomes is 2**N
     int numberOfPossibilities = 1 << n;
 
@@ -49,7 +73,7 @@ TWxTestResult WxTest(const TVector<double>& baseline, const TVector<double>& tes
         const double i1 = baseline[i];
         const double i2 = test[i];
         const double diff = i1 - i2;
-        if (IsFinite(diff) && diff != 0) {
+        if (diff != 0) {
             diffs.push_back(diff);
         }
     }

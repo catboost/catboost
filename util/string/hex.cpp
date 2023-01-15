@@ -32,7 +32,7 @@ char* HexEncode(const void* in, size_t len, char* out) {
 void* HexDecode(const void* in, size_t len, void* ptr) {
     const char* b = (const char*)in;
     const char* e = b + len;
-    Y_ENSURE(!(len & 1), TStringBuf("Odd buffer length passed to HexDecode"));
+    Y_ENSURE(!(len & 1), AsStringBuf("Odd buffer length passed to HexDecode"));
 
     char* out = (char*)ptr;
 

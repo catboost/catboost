@@ -36,7 +36,11 @@ namespace NPrivate {
     public:
         typedef TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, Alloc> TSelf;
 
+        using typename Alloc::const_pointer;
+        using typename Alloc::const_reference;
         using typename Alloc::difference_type;
+        using typename Alloc::pointer;
+        using typename Alloc::reference;
         using typename Alloc::size_type;
         using typename Alloc::value_type;
 
@@ -45,60 +49,43 @@ namespace NPrivate {
         };
 
     public:
-        //NOTE: it is important to make this syntax; using =default will lead to memset https://godbolt.org/z/vTqzK9aWr
-        TStackBasedAllocator() noexcept {};
-
-        template <
-            typename... TArgs,
-            typename = std::enable_if_t<
-                std::is_constructible_v<Alloc, TArgs...>
-            >
-        >
-        TStackBasedAllocator(TArgs&&... args)
-            : Alloc(std::forward<TArgs>(args)...)
-        {}
-
-        T* allocate(size_type n) {
+        pointer allocate(size_type n, std::allocator<void>::const_pointer hint = nullptr) {
             if (!IsStorageUsed && CountOnStack >= n) {
                 IsStorageUsed = true;
-                return reinterpret_cast<T*>(&StackBasedStorage[0]);
+                return reinterpret_cast<pointer>(&StackBasedStorage[0]);
             } else {
                 if constexpr (!UseFallbackAlloc) {
                     Y_FAIL(
                             "Stack storage overflow. Capacity: %d, requested: %d", (int)CountOnStack, int(n));
                 }
-                return FallbackAllocator().allocate(n);
+                return FallbackAllocator.allocate(n, hint);
             }
         }
 
-        void deallocate(T* p, size_type n) {
-            if (p >= reinterpret_cast<T*>(&StackBasedStorage[0]) &&
-                    p < reinterpret_cast<T*>(&StackBasedStorage[CountOnStack])) {
+
+        void deallocate(pointer p, size_type n) {
+            if (p >= reinterpret_cast<pointer>(&StackBasedStorage[0]) &&
+                    p < reinterpret_cast<pointer>(&StackBasedStorage[CountOnStack])) {
                 Y_VERIFY(IsStorageUsed);
                 IsStorageUsed = false;
             } else {
-                FallbackAllocator().deallocate(p, n);
+                FallbackAllocator.deallocate(p, n);
             }
         }
 
     private:
         std::aligned_storage_t<sizeof(T), alignof(T)> StackBasedStorage[CountOnStack];
-        bool IsStorageUsed = false;
-
-    private:
-        Alloc& FallbackAllocator() noexcept {
-            return static_cast<Alloc&>(*this);
-        }
+        size_t IsStorageUsed = false;
+        Alloc FallbackAllocator;
     };
 }
 
 template <typename T, size_t CountOnStack, bool UseFallbackAlloc, class Alloc>
 class TStackVec: public TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> {
-private:
-    using TBase = TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>>;
-    using TAllocator = typename TBase::allocator_type;
-
 public:
+    typedef TVector<T, ::NPrivate::TStackBasedAllocator<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>>> TBase;
+    typedef TStackVec<T, CountOnStack, UseFallbackAlloc, TReboundAllocator<Alloc, T>> TSelf;
+
     using typename TBase::const_iterator;
     using typename TBase::const_reverse_iterator;
     using typename TBase::iterator;
@@ -107,14 +94,14 @@ public:
     using typename TBase::value_type;
 
 public:
-    TStackVec(const TAllocator& alloc = TAllocator())
-        : TBase(alloc)
+    TStackVec()
+        : TBase()
     {
         TBase::reserve(CountOnStack);
     }
 
-    explicit TStackVec(size_type count, const TAllocator& alloc = TAllocator())
-        : TBase(alloc)
+    explicit TStackVec(size_type count)
+        : TBase()
     {
         if (count <= CountOnStack) {
             TBase::reserve(CountOnStack);
@@ -122,8 +109,8 @@ public:
         TBase::resize(count);
     }
 
-    TStackVec(size_type count, const T& val, const TAllocator& alloc = TAllocator())
-        : TBase(alloc)
+    TStackVec(size_type count, const T& val)
+        : TBase()
     {
         if (count <= CountOnStack) {
             TBase::reserve(CountOnStack);
@@ -131,7 +118,7 @@ public:
         TBase::assign(count, val);
     }
 
-    TStackVec(const TStackVec& src)
+    TStackVec(const TSelf& src)
         : TStackVec(src.begin(), src.end())
     {
     }
@@ -142,14 +129,13 @@ public:
     {
     }
 
-    TStackVec(std::initializer_list<T> il, const TAllocator& alloc = TAllocator())
-        : TStackVec(il.begin(), il.end(), alloc)
+    TStackVec(std::initializer_list<T> il)
+        : TStackVec(il.begin(), il.end())
     {
     }
 
     template <class TIter>
-    TStackVec(TIter first, TIter last, const TAllocator& alloc = TAllocator())
-        : TBase(alloc)
+    TStackVec(TIter first, TIter last)
     {
         // NB(eeight) Since we want to call 'reserve' here, we cannot just delegate to TVector ctor.
         // The best way to insert values afterwards is to call TVector::insert. However there is a caveat.
@@ -168,21 +154,21 @@ public:
     }
 
 public:
-    void swap(TStackVec&) = delete;
+    void swap(TSelf&) = delete;
     void shrink_to_fit() = delete;
 
-    TStackVec& operator=(const TStackVec& src) {
+    TSelf& operator=(const TSelf& src) {
         TBase::assign(src.begin(), src.end());
         return *this;
     }
 
     template <class A>
-    TStackVec& operator=(const TVector<T, A>& src) {
+    TSelf& operator=(const TVector<T, A>& src) {
         TBase::assign(src.begin(), src.end());
         return *this;
     }
 
-    TStackVec& operator=(std::initializer_list<T> il) {
+    TSelf& operator=(std::initializer_list<T> il) {
         TBase::assign(il.begin(), il.end());
         return *this;
     }

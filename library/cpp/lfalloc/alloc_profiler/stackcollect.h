@@ -2,7 +2,6 @@
 
 #include <library/cpp/containers/stack_vector/stack_vec.h>
 #include <library/cpp/cache/cache.h>
-#include <library/cpp/deprecated/atomic/atomic.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>

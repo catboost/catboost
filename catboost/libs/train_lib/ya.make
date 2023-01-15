@@ -7,7 +7,6 @@ SRCS(
     dir_helper.cpp
     eval_feature.cpp
     options_helper.cpp
-    trainer_env.cpp
     GLOBAL train_model.cpp
     GLOBAL model_import_snapshot.cpp
 )
@@ -33,9 +32,13 @@ PEERDIR(
     catboost/private/libs/pairs
     catboost/private/libs/target
     library/cpp/grid_creator
-    library/cpp/json
-    library/cpp/object_factory
-    library/cpp/threading/local_executor
+    library/json
+    library/object_factory
+    library/threading/local_executor
 )
+
+IF (USE_MPI)
+    CFLAGS(-DUSE_MPI)
+ENDIF()
 
 END()

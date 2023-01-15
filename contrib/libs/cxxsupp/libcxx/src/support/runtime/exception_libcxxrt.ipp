@@ -7,17 +7,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LIBCXX_BUILDING_LIBCXXRT
+#ifndef LIBCXXRT
 #error this header may only be used when targeting libcxxrt
 #endif
 
 namespace std {
 
-bad_exception::~bad_exception() noexcept
+bad_exception::~bad_exception() _NOEXCEPT
 {
 }
 
-const char* bad_exception::what() const noexcept
+const char* bad_exception::what() const _NOEXCEPT
 {
   return "std::bad_exception";
 }

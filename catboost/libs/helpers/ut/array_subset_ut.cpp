@@ -8,7 +8,7 @@
 
 #include <utility>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 
 Y_UNIT_TEST_SUITE(TArraySubset) {
@@ -206,7 +206,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         const TVector<int>& v,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
         const TVector<int>& expectedVSubset,
-        TMaybe<NPar::ILocalExecutor*> localExecutor
+        TMaybe<NPar::TLocalExecutor*> localExecutor
     ) {
         {
             TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing, localExecutor);

@@ -27,7 +27,7 @@ static void SetOneHotMaxSizeAndPrintNotice(
 }
 
 
-void UpdateOneHotMaxSize(
+static void UpdateOneHotMaxSize(
     ui32 maxCategoricalFeaturesUniqValuesOnLearn,
     bool hasLearnTarget,
     NCatboostOptions::TCatBoostOptions* catBoostOptions) {
@@ -97,18 +97,17 @@ void UpdateYetiRankEvalMetric(
     }
 }
 
-static void UpdateUseBestModel(
-    bool hasTest,
-    bool hasTestConstTarget,
-    bool hasTestPairs,
-    NCatboostOptions::TOutputFilesOptions* outputFilesOptions
-) {
-    if (outputFilesOptions->UseBestModel.NotSet() && hasTest && (!hasTestConstTarget || hasTestPairs)) {
-        outputFilesOptions->UseBestModel = true;
+static void UpdateUseBestModel(bool learningContinuation, bool hasTest, bool hasTestConstTarget, bool hasTestPairs, NCatboostOptions::TOption<bool>* useBestModel) {
+    if (useBestModel->NotSet() && !learningContinuation && hasTest && (!hasTestConstTarget || hasTestPairs)) {
+        *useBestModel = true;
     }
-    if (!hasTest && outputFilesOptions->UseBestModel) {
+    if (learningContinuation && *useBestModel) {
+        CATBOOST_WARNING_LOG << "Using best model is not supported for learning continuation. use_best_model parameter has been switched to false value." << Endl;
+        *useBestModel = false;
+    }
+    if (!hasTest && *useBestModel) {
         CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter has been switched to false value." << Endl;
-        outputFilesOptions->UseBestModel = false;
+        *useBestModel = false;
     }
 }
 
@@ -179,18 +178,14 @@ namespace {
     private:
 
         static ETargetType GetTargetType(ELossFunction lossFunction) {
-            switch (lossFunction) {
-                case ELossFunction::Logloss:
-                case ELossFunction::MultiLogloss:
-                case ELossFunction::MultiCrossEntropy:
-                    return ETargetType::Logloss;
-                case ELossFunction::MultiClass:
-                    return ETargetType::MultiClass;
-                case ELossFunction::RMSE:
-                    return ETargetType::RMSE;
-                default:
-                    return ETargetType::Unknown;
+            if (lossFunction == ELossFunction::Logloss) {
+                return ETargetType::Logloss;
+            } else if (lossFunction == ELossFunction::MultiClass) {
+                return ETargetType::MultiClass;
+            } else if (lossFunction == ELossFunction::RMSE) {
+                return ETargetType::RMSE;
             }
+            return ETargetType::Unknown;
         }
 
     public:
@@ -234,13 +229,13 @@ namespace {
 
 
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
-                {0.108, -3.525, -0.285, 0.058};
+                {0.158, -3.762 , -0.377, 0.392};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
-                {0.131, -4.114, -0.597, 1.693};
+                {0.171, -4.015, -0.599, 1.561};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
-                {0.051, -3.001, -0.449, 0.859};
+                {0.186, -4.065, -0.512, 1.062};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
-                {0.047, -3.034, -0.591, 1.554};
+                {0.194, -4.251, -0.61, 1.536};
         }
 
         static bool NeedToUpdate(ETaskType taskType, ELossFunction lossFunction, bool useBestModel, bool boostFromAverage) {
@@ -364,32 +359,13 @@ static void AdjustBoostFromAverageDefaultValue(
         // boost from average is enabled by default only for RMSE, MAE, Quantile and MAPE now
         && EqualToOneOf(
             catBoostOptions->LossFunctionDescription->GetLossFunction(),
-            ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE,
-            ELossFunction::MultiQuantile, ELossFunction::MultiRMSE, ELossFunction::MultiRMSEWithMissingValues)
+            ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE)
     ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }
     if (trainDataMetaInfo.BaselineCount != 0 || (testDataMetaInfo.Defined() && testDataMetaInfo->BaselineCount != 0)) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(false);
     }
-}
-
-static void AdjustPosteriorSamplingDeafultValues(
-    const NCB::TDataMetaInfo& trainDataMetaInfo,
-    bool continueFromModel,
-    NCatboostOptions::TCatBoostOptions* catBoostOptions
-) {
-    if (!catBoostOptions->BoostingOptions->PosteriorSampling.GetUnchecked()) {
-        return;
-    }
-    CB_ENSURE(!continueFromModel, "Model shrinkage and Posterior Sampling in combination with learning continuation " <<
-        "is not implemented yet.");
-    CB_ENSURE(trainDataMetaInfo.BaselineCount == 0, "Model shrinkage and Posterior Sampling in combination with baseline column " <<
-        "is not implemented yet.");
-    CB_ENSURE(catBoostOptions->BoostingOptions->ModelShrinkMode != EModelShrinkMode::Decreasing, "Posterior Sampling requires " <<
-        "Constant Model Shrink Mode");
-    catBoostOptions->BoostingOptions->ModelShrinkRate.Set(1 / (2. * trainDataMetaInfo.ObjectCount));
-    catBoostOptions->BoostingOptions->DiffusionTemperature.Set(trainDataMetaInfo.ObjectCount);
 }
 
 static void UpdateDictionaryDefaults(
@@ -406,17 +382,16 @@ void SetDataDependentDefaults(
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
     bool continueFromModel,
     bool continueFromProgress,
-    NCatboostOptions::TOutputFilesOptions* outputFilesOptions,
+    NCatboostOptions::TOption<bool>* useBestModel,
     NCatboostOptions::TCatBoostOptions* catBoostOptions
 ) {
     const ui64 learnPoolSize = trainDataMetaInfo.ObjectCount;
     const ui64 testPoolSize = testDataMetaInfo.Defined() ? testDataMetaInfo->ObjectCount : 0;
     const bool isConstTestTarget = testDataMetaInfo.Defined() && IsConstTarget(*testDataMetaInfo);
     const bool hasTestPairs = testDataMetaInfo.Defined() && testDataMetaInfo->HasPairs;
-    UpdateUseBestModel(testPoolSize, isConstTestTarget, hasTestPairs, outputFilesOptions);
+    UpdateUseBestModel(continueFromModel || continueFromProgress, testPoolSize, isConstTestTarget, hasTestPairs, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, catBoostOptions);
-    AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
-    UpdateLearningRate(learnPoolSize, outputFilesOptions->UseBestModel.Get(), catBoostOptions);
+    UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
     UpdateOneHotMaxSize(
         trainDataMetaInfo.MaxCatFeaturesUniqValuesOnLearn,
         trainDataMetaInfo.TargetCount > 0,
@@ -430,7 +405,7 @@ void SetDataDependentDefaults(
     UpdateLeavesEstimationIterations(trainDataMetaInfo, catBoostOptions);
     UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
     DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
+    AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
     UpdateDictionaryDefaults(learnPoolSize, catBoostOptions);
     UpdateSampleRateOption(learnPoolSize, catBoostOptions);
-    AdjustPosteriorSamplingDeafultValues(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
 }

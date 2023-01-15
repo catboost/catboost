@@ -1,23 +1,24 @@
 #include "tls.h"
+#include "mutex.h"
+#include "thread.h"
 
+#include <util/generic/set.h>
 #include <util/generic/hash.h>
 #include <util/generic/intrlist.h>
 #include <util/generic/singleton.h>
 #include <util/generic/vector.h>
 
-#include <atomic>
-
 #if defined(_unix_)
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
 using namespace NTls;
 
 namespace {
-    static inline size_t AcquireKey() {
-        static std::atomic<size_t> cur;
+    static inline TAtomicBase AcquireKey() {
+        static TAtomic cur;
 
-        return cur++;
+        return AtomicIncrement(cur) - (TAtomicBase)1;
     }
 
     class TGenericTlsBase {
@@ -241,8 +242,6 @@ TKey::TKey(TDtor dtor)
     : Impl_(new TImpl(dtor))
 {
 }
-
-TKey::TKey(TKey&&) noexcept = default;
 
 TKey::~TKey() = default;
 

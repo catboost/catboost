@@ -170,7 +170,7 @@ namespace NCB {
                 }
             }
             if (mapMostFrequentValueTo0 && (mappedTo0 != mappedForMostFrequent)) {
-                CB_ENSURE(mappedTo0, "No value mapped to 0");
+                Y_VERIFY(mappedTo0, "No value mapped to 0");
 
                 if (dstBins) {
                     // values for 0 and MostFrequent need to be swapped

@@ -8,9 +8,9 @@
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/learn_context.h>
 
-#include <library/cpp/json/json_writer.h>
+#include <library/json/json_writer.h>
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;
@@ -33,22 +33,10 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
     Y_UNIT_TEST(TestSerializeDeserializeFullModelWithScaleAndBias) {
         TFullModel trainedModel = TrainFloatCatboostModel();
-        trainedModel.SetScaleAndBias({0.5, {0.125}});
+        trainedModel.SetScaleAndBias({0.5, 0.125});
         DoSerializeDeserialize(trainedModel);
         trainedModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         DoSerializeDeserialize(trainedModel);
-    }
-
-    Y_UNIT_TEST(TestSerializeDeserializeFullModelNonOwning) {
-        auto check = [&](const TFullModel& model) {
-            TStringStream strStream;
-            model.Save(&strStream);
-            TFullModel deserializedModel;
-            deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
-            UNIT_ASSERT_EQUAL(model, deserializedModel);
-        };
-        check(TrainFloatCatboostModel());
-        check(TrainCatOnlyNoOneHotModel());
     }
 
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
@@ -57,8 +45,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         trainedModel.Save(&strStream);
         ExportModel(trainedModel, "model.coreml", EModelType::AppleCoreML);
         TFullModel deserializedModel = ReadModel("model.coreml", EModelType::AppleCoreML);
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetLeafValues(), deserializedModel.ModelTrees->GetModelTreeData()->GetLeafValues());
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetTreeSplits(), deserializedModel.ModelTrees->GetModelTreeData()->GetTreeSplits());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetLeafValues(), deserializedModel.ModelTrees->GetLeafValues());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetTreeSplits(), deserializedModel.ModelTrees->GetTreeSplits());
     }
 
     Y_UNIT_TEST(TestNonSymmetricJsonApply) {
@@ -80,7 +68,6 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
             nullptr,
             Nothing(),
             Nothing(),
-            Nothing(),
             dataProviders,
             Nothing(),
             &learnProgress,
@@ -94,8 +81,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
 
         TFullModel obliviousModel = ReadModel("oblivious_model.json", EModelType::Json);
         TFullModel nonSymmetricModel = ReadModel("nonsymmetric_model.json", EModelType::Json);
-        auto result1 = ApplyModelMulti(obliviousModel, *pool);
-        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool);
+        auto result1 = ApplyModelMulti(obliviousModel, *pool->ObjectsData);
+        auto result2 = ApplyModelMulti(nonSymmetricModel, *pool->ObjectsData);
         UNIT_ASSERT_EQUAL(result1, result2);
     }
 
@@ -115,7 +102,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
         TFloatFeature f1(false, 1, 1, {5, 10, 20});
         TFloatFeature f2(false, 2, 2, {5, 15, 25, 35});
-        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, {}, 1);
+        TNonSymmetricTreeModelBuilder builder({f0, f1, f2}, {}, {}, 1);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));
@@ -227,7 +214,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         TFullModel model;
         model.UpdateDynamicData();
         TFloatFeature f0(false, 0, 0, {0.5, 1.5, 2.5});
-        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, {}, 2);
+        TNonSymmetricTreeModelBuilder builder({f0}, {}, {}, 2);
         {
             auto head = MakeHolder<TNonSymmetricTreeNode>();
             head->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));

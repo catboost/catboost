@@ -206,14 +206,13 @@ secondFrac = digit {1,6} >clear_int $update_int @{
     }
     DateTimeFields.MicroSecond = us;
 };
-secondFracTail = (digit*);
 
 zoneZ = [Zz] @set_zone_utc;
 zoneOffset = space? . ('+' | '-') >{ Sign = fc == '+' ? 1 : -1; } . int2 @{ DateTimeFields.ZoneOffsetMinutes = Sign * (i32)TDuration::Hours(I).Minutes(); } . (':')? . (int2 @{ DateTimeFields.ZoneOffsetMinutes += I * Sign; })?;
 zone = zoneZ | zoneOffset;
 
 iso8601date = (year . '-' . month . '-' . day) | (year . month . day);
-iso8601time = (hour . ':' . minute . (':' . second ('.' secondFrac secondFracTail)?)?) | (hour . minute . second?);
+iso8601time = (hour . ':' . minute . (':' . second ('.' secondFrac)?)?) | (hour . minute . second?);
 
 iso8601datetime = iso8601date . ([Tt ] . iso8601time . zone?)?;
 

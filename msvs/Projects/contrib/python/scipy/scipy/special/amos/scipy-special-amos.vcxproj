@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{0C120EC2-67BE-1FF3-1D71-5270B33FA22A}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>scipy-special-amos</ProjectName>
+    <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ArcadiaProps"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>scipy-special-amos</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0C120EC2-67BE-1FF3-1D71-5270B33FA22A\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHs /errorReport:prompt /Zc:inline /utf-8 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /DFAKEID=5020880 /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS /DSSE_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /DSSE41_ENABLED=1 /DSSE42_ENABLED=1 /DPOPCNT_ENABLED=1 /DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOGDI /DNOMINMAX /DWIN32_LEAN_AND_MEAN /D__SSE2__=1 /D__SSE3__=1 /D__SSSE3__=1 /D__SSE4_1__=1 /D__SSE4_2__=1 /D__POPCNT__=1  /std:c++17  -DCATBOOST_OPENSOURCE=yes</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\dgamln.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\dsclmr.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\fdump.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zabs.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zacai.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zacon.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zairy.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zasyi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesh.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesj.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesk.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesy.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbinu.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbiry.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbknu.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbuni.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbunk.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zdiv.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zexp.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zkscl.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zlog.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zmlri.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zmlt.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zrati.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zs1s2.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zseri.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zshch.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zsqrt.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuchk.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunhj.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuni1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuni2.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunik.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunk1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunk2.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuoik.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zwrsk.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/dgamln.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/dgamln.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/dsclmr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/dsclmr.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/fdump.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/fdump.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zabs.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zabs.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zacai.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zacai.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zacon.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zacon.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zairy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zairy.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zasyi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zasyi.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesh.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesi.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesj.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesj.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesy.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbinu.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbinu.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbiry.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbiry.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbknu.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbknu.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbuni.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbuni.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbunk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbunk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zdiv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zdiv.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zexp.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zexp.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zkscl.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zkscl.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zlog.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zlog.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zmlri.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zmlri.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zmlt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zmlt.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zrati.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zrati.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zs1s2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zs1s2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zseri.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zseri.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zshch.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zshch.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zsqrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zsqrt.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuchk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuchk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunhj.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunhj.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuni1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuni1.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuni2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuni2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunik.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunik.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunk1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunk1.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunk2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunk2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuoik.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuoik.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zwrsk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zwrsk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/dgamln.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/dgamln.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/dsclmr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/dsclmr.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/fdump.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/fdump.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zabs.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zabs.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zacai.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zacai.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zacon.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zacon.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zairy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zairy.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zasyi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zasyi.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesh.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesi.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesj.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesj.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbesy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbesy.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbinu.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbinu.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbiry.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbiry.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbknu.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbknu.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbuni.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbuni.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zbunk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zbunk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zdiv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zdiv.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zexp.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zexp.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zkscl.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zkscl.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zlog.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zlog.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zmlri.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zmlri.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zmlt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zmlt.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zrati.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zrati.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zs1s2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zs1s2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zseri.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zseri.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zshch.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zshch.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zsqrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zsqrt.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuchk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuchk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunhj.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunhj.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuni1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuni1.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuni2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuni2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunik.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunik.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunk1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunk1.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zunk2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zunk2.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zuoik.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zuoik.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/special/amos/zwrsk.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/special/amos/zwrsk.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy/scipy/special/amos/dgamln.f.c	$B/contrib/python/scipy/scipy/special/amos/dsclmr.f.c	$B/contrib/python/scipy/scipy/special/amos/fdump.f.c	$B/contrib/python/scipy/scipy/special/amos/zabs.f.c	$B/contrib/python/scipy/scipy/special/amos/zacai.f.c	$B/contrib/python/scipy/scipy/special/amos/zacon.f.c	$B/contrib/python/scipy/scipy/special/amos/zairy.f.c	$B/contrib/python/scipy/scipy/special/amos/zasyi.f.c	$B/contrib/python/scipy/scipy/special/amos/zbesh.f.c	$B/contrib/python/scipy/scipy/special/amos/zbesi.f.c	$B/contrib/python/scipy/scipy/special/amos/zbesj.f.c	$B/contrib/python/scipy/scipy/special/amos/zbesk.f.c	$B/contrib/python/scipy/scipy/special/amos/zbesy.f.c	$B/contrib/python/scipy/scipy/special/amos/zbinu.f.c	$B/contrib/python/scipy/scipy/special/amos/zbiry.f.c	$B/contrib/python/scipy/scipy/special/amos/zbknu.f.c	$B/contrib/python/scipy/scipy/special/amos/zbuni.f.c	$B/contrib/python/scipy/scipy/special/amos/zbunk.f.c	$B/contrib/python/scipy/scipy/special/amos/zdiv.f.c	$B/contrib/python/scipy/scipy/special/amos/zexp.f.c	$B/contrib/python/scipy/scipy/special/amos/zkscl.f.c	$B/contrib/python/scipy/scipy/special/amos/zlog.f.c	$B/contrib/python/scipy/scipy/special/amos/zmlri.f.c	$B/contrib/python/scipy/scipy/special/amos/zmlt.f.c	$B/contrib/python/scipy/scipy/special/amos/zrati.f.c	$B/contrib/python/scipy/scipy/special/amos/zs1s2.f.c	$B/contrib/python/scipy/scipy/special/amos/zseri.f.c	$B/contrib/python/scipy/scipy/special/amos/zshch.f.c	$B/contrib/python/scipy/scipy/special/amos/zsqrt.f.c	$B/contrib/python/scipy/scipy/special/amos/zuchk.f.c	$B/contrib/python/scipy/scipy/special/amos/zunhj.f.c	$B/contrib/python/scipy/scipy/special/amos/zuni1.f.c	$B/contrib/python/scipy/scipy/special/amos/zuni2.f.c	$B/contrib/python/scipy/scipy/special/amos/zunik.f.c	$B/contrib/python/scipy/scipy/special/amos/zunk1.f.c	$B/contrib/python/scipy/scipy/special/amos/zunk2.f.c	$B/contrib/python/scipy/scipy/special/amos/zuoik.f.c	$B/contrib/python/scipy/scipy/special/amos/zwrsk.f.c	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\f2c.py;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\dgamln.f;$(SolutionDir)$(Configuration)\contrib\tools\f2c\f2c.exe;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\dsclmr.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\fdump.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zabs.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zacai.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zacon.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zairy.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zasyi.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbesh.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbesi.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbesj.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbesk.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbesy.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbinu.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbiry.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbknu.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbuni.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zbunk.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zdiv.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zexp.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zkscl.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zlog.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zmlri.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zmlt.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zrati.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zs1s2.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zseri.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zshch.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zsqrt.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zuchk.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zunhj.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zuni1.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zuni2.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zunik.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zunk1.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zunk2.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zuoik.f;$(SolutionDir)..\contrib\python\scipy\scipy\special\amos\zwrsk.f;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\dgamln.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\dsclmr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\fdump.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zabs.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zacai.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zacon.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zairy.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zasyi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesj.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesk.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbesy.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbinu.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbiry.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbknu.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbuni.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zbunk.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zdiv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zexp.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zkscl.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zlog.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zmlri.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zmlt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zrati.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zs1s2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zseri.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zshch.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zsqrt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuchk.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunhj.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuni1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuni2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunik.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunk1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zunk2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zuoik.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\special\amos\zwrsk.f.c;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
+      <Project>{65ED7A96-9AF7-8308-F3E6-7C54576A4963}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

@@ -12,9 +12,3 @@ PEERDIR(
 )
 
 END()
-
-RECURSE(
-    bench
-    medium_ut
-    ut
-)

@@ -13,8 +13,8 @@ private:
     TVector<float> Weights;
     TVector<float> SampleWeights; // used only double for Quantile regression
     TVector<TVector<float>> Labels;
-    TVector<TVector<double>> Approx; // [approxDim][sampleIdx]
-    TVector<double> LeafValues; // [approxDim]
+    TVector<TVector<double>> Approx;
+    TVector<double> LeafValues;
 
     int ObjectsCount;
     int LeafIdx;

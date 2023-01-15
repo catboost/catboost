@@ -22,7 +22,6 @@ table Monster {
   color:Color = Blue;
   weapons:[Weapon];
   equipped:Equipment;
-  path:[Vec3];
 }
 
 table Weapon {

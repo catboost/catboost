@@ -1,5 +1,7 @@
 #include "cxxabi.h"
 
+#if defined(__GNUC__)
+
 #include <new>
 
 extern "C" {
@@ -11,3 +13,5 @@ extern "C" {
         throw std::bad_alloc();
     }
 }
+
+#endif

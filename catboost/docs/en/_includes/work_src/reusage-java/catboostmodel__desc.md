@@ -1,2 +1,0 @@
-
-Basic model application methods.

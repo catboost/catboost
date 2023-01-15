@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "library/cpp/testing/gtest/gtest.h"
+#include "util/test.h"
 #include "util/logging.h"
 #include "util/strutil.h"
 #include "re2/prog.h"
@@ -21,8 +21,8 @@ namespace re2 {
 // Test that C++ strings are compared as uint8s, not int8s.
 // PossibleMatchRange doesn't depend on this, but callers probably will.
 TEST(CplusplusStrings, EightBit) {
-  std::string s = "\x70";
-  std::string t = "\xA0";
+  string s = "\x70";
+  string t = "\xA0";
   EXPECT_LT(s, t);
 }
 
@@ -107,22 +107,22 @@ static PrefixTest tests[] = {
 };
 
 TEST(PossibleMatchRange, HandWritten) {
-  for (size_t i = 0; i < arraysize(tests); i++) {
-    for (size_t j = 0; j < 2; j++) {
+  for (int i = 0; i < arraysize(tests); i++) {
+    for (int j = 0; j < 2; j++) {
       const PrefixTest& t = tests[i];
-      std::string min, max;
+      string min, max;
       if (j == 0) {
         LOG(INFO) << "Checking regexp=" << CEscape(t.regexp);
         Regexp* re = Regexp::Parse(t.regexp, Regexp::LikePerl, NULL);
-        ASSERT_TRUE(re != NULL);
+        CHECK(re);
         Prog* prog = re->CompileToProg(0);
-        ASSERT_TRUE(prog != NULL);
-        ASSERT_TRUE(prog->PossibleMatchRange(&min, &max, t.maxlen))
+        CHECK(prog);
+        CHECK(prog->PossibleMatchRange(&min, &max, t.maxlen))
           << " " << t.regexp;
         delete prog;
         re->Decref();
       } else {
-        ASSERT_TRUE(RE2(t.regexp).PossibleMatchRange(&min, &max, t.maxlen));
+        CHECK(RE2(t.regexp).PossibleMatchRange(&min, &max, t.maxlen));
       }
       EXPECT_EQ(t.min, min) << t.regexp;
       EXPECT_EQ(t.max, max) << t.regexp;
@@ -132,7 +132,7 @@ TEST(PossibleMatchRange, HandWritten) {
 
 // Test cases where PossibleMatchRange should return false.
 TEST(PossibleMatchRange, Failures) {
-  std::string min, max;
+  string min, max;
 
   // Fails because no room to write max.
   EXPECT_FALSE(RE2("abc").PossibleMatchRange(&min, &max, 0));
@@ -172,10 +172,10 @@ class PossibleMatchTester : public RegexpGenerator {
  public:
   PossibleMatchTester(int maxatoms,
                       int maxops,
-                      const std::vector<std::string>& alphabet,
-                      const std::vector<std::string>& ops,
+                      const std::vector<string>& alphabet,
+                      const std::vector<string>& ops,
                       int maxstrlen,
-                      const std::vector<std::string>& stralphabet)
+                      const std::vector<string>& stralphabet)
     : RegexpGenerator(maxatoms, maxops, alphabet, ops),
       strgen_(maxstrlen, stralphabet),
       regexps_(0), tests_(0) { }
@@ -184,7 +184,7 @@ class PossibleMatchTester : public RegexpGenerator {
   int tests()    { return tests_; }
 
   // Needed for RegexpGenerator interface.
-  void HandleRegexp(const std::string& regexp);
+  void HandleRegexp(const string& regexp);
 
  private:
   StringGenerator strgen_;
@@ -198,15 +198,15 @@ class PossibleMatchTester : public RegexpGenerator {
 
 // Processes a single generated regexp.
 // Checks that all accepted strings agree with the prefix range.
-void PossibleMatchTester::HandleRegexp(const std::string& regexp) {
+void PossibleMatchTester::HandleRegexp(const string& regexp) {
   regexps_++;
 
   VLOG(3) << CEscape(regexp);
 
   RE2 re(regexp, RE2::Latin1);
-  ASSERT_EQ(re.error(), "");
+  CHECK_EQ(re.error(), "");
 
-  std::string min, max;
+  string min, max;
   if(!re.PossibleMatchRange(&min, &max, 10)) {
     // There's no good max for "\\C*".  Can't use strcmp
     // because sometimes it gets embedded in more
@@ -222,8 +222,8 @@ void PossibleMatchTester::HandleRegexp(const std::string& regexp) {
     tests_++;
     if (!RE2::FullMatch(s, re))
       continue;
-    ASSERT_GE(s, min) << " regexp: " << regexp << " max: " << max;
-    ASSERT_LE(s, max) << " regexp: " << regexp << " min: " << min;
+    CHECK_GE(s, min) << " regexp: " << regexp << " max: " << max;
+    CHECK_LE(s, max) << " regexp: " << regexp << " min: " << min;
   }
 }
 

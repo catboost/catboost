@@ -7,476 +7,6 @@
  https://github.com/openssl/openssl/commits/ and pick the appropriate
  release branch.
 
- Changes between 1.1.1r and 1.1.1s [1 Nov 2022]
-
-  *) Fixed a regression introduced in 1.1.1r version not refreshing the
-     certificate data to be signed before signing the certificate.
-
-     [Gibeom Gwon]
-
- Changes between 1.1.1q and 1.1.1r [11 Oct 2022]
-
-  *) Fixed the linux-mips64 Configure target which was missing the
-     SIXTY_FOUR_BIT bn_ops flag. This was causing heap corruption on that
-     platform.
-     [Adam Joseph]
-
-  *) Fixed a strict aliasing problem in bn_nist. Clang-14 optimisation was
-     causing incorrect results in some cases as a result.
-     [Paul Dale]
-
-  *) Fixed SSL_pending() and SSL_has_pending() with DTLS which were failing to
-     report correct results in some cases
-     [Matt Caswell]
-
-  *) Fixed a regression introduced in 1.1.1o for re-signing certificates with
-     different key sizes
-     [Todd Short]
-
-  *) Added the loongarch64 target
-     [Shi Pujin]
-
-  *) Fixed a DRBG seed propagation thread safety issue
-     [Bernd Edlinger]
-
-  *) Fixed a memory leak in tls13_generate_secret
-     [Bernd Edlinger]
-
-  *) Fixed reported performance degradation on aarch64. Restored the
-     implementation prior to commit 2621751 ("aes/asm/aesv8-armx.pl: avoid
-     32-bit lane assignment in CTR mode") for 64bit targets only, since it is
-     reportedly 2-17% slower and the silicon errata only affects 32bit targets.
-     The new algorithm is still used for 32 bit targets.
-     [Bernd Edlinger]
-
-  *) Added a missing header for memcmp that caused compilation failure on some
-     platforms
-     [Gregor Jasny]
-
- Changes between 1.1.1p and 1.1.1q [5 Jul 2022]
-
-  *) AES OCB mode for 32-bit x86 platforms using the AES-NI assembly optimised
-     implementation would not encrypt the entirety of the data under some
-     circumstances.  This could reveal sixteen bytes of data that was
-     preexisting in the memory that wasn't written.  In the special case of
-     "in place" encryption, sixteen bytes of the plaintext would be revealed.
-
-     Since OpenSSL does not support OCB based cipher suites for TLS and DTLS,
-     they are both unaffected.
-     (CVE-2022-2097)
-     [Alex Chernyakhovsky, David Benjamin, Alejandro Sedeño]
-
- Changes between 1.1.1o and 1.1.1p [21 Jun 2022]
-
-  *) In addition to the c_rehash shell command injection identified in
-     CVE-2022-1292, further bugs where the c_rehash script does not
-     properly sanitise shell metacharacters to prevent command injection have been
-     fixed.
-
-     When the CVE-2022-1292 was fixed it was not discovered that there
-     are other places in the script where the file names of certificates
-     being hashed were possibly passed to a command executed through the shell.
-
-     This script is distributed by some operating systems in a manner where
-     it is automatically executed.  On such operating systems, an attacker
-     could execute arbitrary commands with the privileges of the script.
-
-     Use of the c_rehash script is considered obsolete and should be replaced
-     by the OpenSSL rehash command line tool.
-     (CVE-2022-2068)
-     [Daniel Fiala, Tomáš Mráz]
-
-  *) When OpenSSL TLS client is connecting without any supported elliptic
-     curves and TLS-1.3 protocol is disabled the connection will no longer fail
-     if a ciphersuite that does not use a key exchange based on elliptic
-     curves can be negotiated.
-     [Tomáš Mráz]
-
- Changes between 1.1.1n and 1.1.1o [3 May 2022]
-
-  *) Fixed a bug in the c_rehash script which was not properly sanitising shell
-     metacharacters to prevent command injection.  This script is distributed
-     by some operating systems in a manner where it is automatically executed.
-     On such operating systems, an attacker could execute arbitrary commands
-     with the privileges of the script.
-
-     Use of the c_rehash script is considered obsolete and should be replaced
-     by the OpenSSL rehash command line tool.
-     (CVE-2022-1292)
-     [Tomáš Mráz]
-
- Changes between 1.1.1m and 1.1.1n [15 Mar 2022]
-
-  *) Fixed a bug in the BN_mod_sqrt() function that can cause it to loop forever
-     for non-prime moduli.
-
-     Internally this function is used when parsing certificates that contain
-     elliptic curve public keys in compressed form or explicit elliptic curve
-     parameters with a base point encoded in compressed form.
-
-     It is possible to trigger the infinite loop by crafting a certificate that
-     has invalid explicit curve parameters.
-
-     Since certificate parsing happens prior to verification of the certificate
-     signature, any process that parses an externally supplied certificate may
-     thus be subject to a denial of service attack. The infinite loop can also
-     be reached when parsing crafted private keys as they can contain explicit
-     elliptic curve parameters.
-
-     Thus vulnerable situations include:
-
-      - TLS clients consuming server certificates
-      - TLS servers consuming client certificates
-      - Hosting providers taking certificates or private keys from customers
-      - Certificate authorities parsing certification requests from subscribers
-      - Anything else which parses ASN.1 elliptic curve parameters
-
-     Also any other applications that use the BN_mod_sqrt() where the attacker
-     can control the parameter values are vulnerable to this DoS issue.
-     (CVE-2022-0778)
-     [Tomáš Mráz]
-
-  *) Add ciphersuites based on DHE_PSK (RFC 4279) and ECDHE_PSK (RFC 5489)
-     to the list of ciphersuites providing Perfect Forward Secrecy as
-     required by SECLEVEL >= 3.
-
-     [Dmitry Belyavskiy, Nicola Tuveri]
-
- Changes between 1.1.1l and 1.1.1m [14 Dec 2021]
-
-  *) Avoid loading of a dynamic engine twice.
-
-     [Bernd Edlinger]
-
-  *) Fixed building on Debian with kfreebsd kernels
-
-     [Mattias Ellert]
-
-  *) Prioritise DANE TLSA issuer certs over peer certs
-
-     [Viktor Dukhovni]
-
-  *) Fixed random API for MacOS prior to 10.12
-
-     These MacOS versions don't support the CommonCrypto APIs
-
-     [Lenny Primak]
-
- Changes between 1.1.1k and 1.1.1l [24 Aug 2021]
-
-  *) Fixed an SM2 Decryption Buffer Overflow.
-
-     In order to decrypt SM2 encrypted data an application is expected to call the
-     API function EVP_PKEY_decrypt(). Typically an application will call this
-     function twice. The first time, on entry, the "out" parameter can be NULL and,
-     on exit, the "outlen" parameter is populated with the buffer size required to
-     hold the decrypted plaintext. The application can then allocate a sufficiently
-     sized buffer and call EVP_PKEY_decrypt() again, but this time passing a non-NULL
-     value for the "out" parameter.
-
-     A bug in the implementation of the SM2 decryption code means that the
-     calculation of the buffer size required to hold the plaintext returned by the
-     first call to EVP_PKEY_decrypt() can be smaller than the actual size required by
-     the second call. This can lead to a buffer overflow when EVP_PKEY_decrypt() is
-     called by the application a second time with a buffer that is too small.
-
-     A malicious attacker who is able present SM2 content for decryption to an
-     application could cause attacker chosen data to overflow the buffer by up to a
-     maximum of 62 bytes altering the contents of other data held after the
-     buffer, possibly changing application behaviour or causing the application to
-     crash. The location of the buffer is application dependent but is typically
-     heap allocated.
-     (CVE-2021-3711)
-     [Matt Caswell]
-
-  *) Fixed various read buffer overruns processing ASN.1 strings
-
-     ASN.1 strings are represented internally within OpenSSL as an ASN1_STRING
-     structure which contains a buffer holding the string data and a field holding
-     the buffer length. This contrasts with normal C strings which are repesented as
-     a buffer for the string data which is terminated with a NUL (0) byte.
-
-     Although not a strict requirement, ASN.1 strings that are parsed using OpenSSL's
-     own "d2i" functions (and other similar parsing functions) as well as any string
-     whose value has been set with the ASN1_STRING_set() function will additionally
-     NUL terminate the byte array in the ASN1_STRING structure.
-
-     However, it is possible for applications to directly construct valid ASN1_STRING
-     structures which do not NUL terminate the byte array by directly setting the
-     "data" and "length" fields in the ASN1_STRING array. This can also happen by
-     using the ASN1_STRING_set0() function.
-
-     Numerous OpenSSL functions that print ASN.1 data have been found to assume that
-     the ASN1_STRING byte array will be NUL terminated, even though this is not
-     guaranteed for strings that have been directly constructed. Where an application
-     requests an ASN.1 structure to be printed, and where that ASN.1 structure
-     contains ASN1_STRINGs that have been directly constructed by the application
-     without NUL terminating the "data" field, then a read buffer overrun can occur.
-
-     The same thing can also occur during name constraints processing of certificates
-     (for example if a certificate has been directly constructed by the application
-     instead of loading it via the OpenSSL parsing functions, and the certificate
-     contains non NUL terminated ASN1_STRING structures). It can also occur in the
-     X509_get1_email(), X509_REQ_get1_email() and X509_get1_ocsp() functions.
-
-     If a malicious actor can cause an application to directly construct an
-     ASN1_STRING and then process it through one of the affected OpenSSL functions
-     then this issue could be hit. This might result in a crash (causing a Denial of
-     Service attack). It could also result in the disclosure of private memory
-     contents (such as private keys, or sensitive plaintext).
-     (CVE-2021-3712)
-     [Matt Caswell]
-
- Changes between 1.1.1j and 1.1.1k [25 Mar 2021]
-
-  *) Fixed a problem with verifying a certificate chain when using the
-     X509_V_FLAG_X509_STRICT flag. This flag enables additional security checks
-     of the certificates present in a certificate chain. It is not set by
-     default.
-
-     Starting from OpenSSL version 1.1.1h a check to disallow certificates in
-     the chain that have explicitly encoded elliptic curve parameters was added
-     as an additional strict check.
-
-     An error in the implementation of this check meant that the result of a
-     previous check to confirm that certificates in the chain are valid CA
-     certificates was overwritten. This effectively bypasses the check
-     that non-CA certificates must not be able to issue other certificates.
-
-     If a "purpose" has been configured then there is a subsequent opportunity
-     for checks that the certificate is a valid CA.  All of the named "purpose"
-     values implemented in libcrypto perform this check.  Therefore, where
-     a purpose is set the certificate chain will still be rejected even when the
-     strict flag has been used. A purpose is set by default in libssl client and
-     server certificate verification routines, but it can be overridden or
-     removed by an application.
-
-     In order to be affected, an application must explicitly set the
-     X509_V_FLAG_X509_STRICT verification flag and either not set a purpose
-     for the certificate verification or, in the case of TLS client or server
-     applications, override the default purpose.
-     (CVE-2021-3450)
-     [Tomáš Mráz]
-
-  *) Fixed an issue where an OpenSSL TLS server may crash if sent a maliciously
-     crafted renegotiation ClientHello message from a client. If a TLSv1.2
-     renegotiation ClientHello omits the signature_algorithms extension (where
-     it was present in the initial ClientHello), but includes a
-     signature_algorithms_cert extension then a NULL pointer dereference will
-     result, leading to a crash and a denial of service attack.
-
-     A server is only vulnerable if it has TLSv1.2 and renegotiation enabled
-     (which is the default configuration). OpenSSL TLS clients are not impacted
-     by this issue.
-     (CVE-2021-3449)
-     [Peter Kästle and Samuel Sapalski]
-
- Changes between 1.1.1i and 1.1.1j [16 Feb 2021]
-
-  *) Fixed the X509_issuer_and_serial_hash() function. It attempts to
-     create a unique hash value based on the issuer and serial number data
-     contained within an X509 certificate. However it was failing to correctly
-     handle any errors that may occur while parsing the issuer field (which might
-     occur if the issuer field is maliciously constructed). This may subsequently
-     result in a NULL pointer deref and a crash leading to a potential denial of
-     service attack.
-     (CVE-2021-23841)
-     [Matt Caswell]
-
-  *) Fixed the RSA_padding_check_SSLv23() function and the RSA_SSLV23_PADDING
-     padding mode to correctly check for rollback attacks. This is considered a
-     bug in OpenSSL 1.1.1 because it does not support SSLv2. In 1.0.2 this is
-     CVE-2021-23839.
-     [Matt Caswell]
-
-  *) Fixed the EVP_CipherUpdate, EVP_EncryptUpdate and EVP_DecryptUpdate
-     functions. Previously they could overflow the output length argument in some
-     cases where the input length is close to the maximum permissable length for
-     an integer on the platform. In such cases the return value from the function
-     call would be 1 (indicating success), but the output length value would be
-     negative. This could cause applications to behave incorrectly or crash.
-     (CVE-2021-23840)
-     [Matt Caswell]
-
-  *) Fixed SRP_Calc_client_key so that it runs in constant time. The previous
-     implementation called BN_mod_exp without setting BN_FLG_CONSTTIME. This
-     could be exploited in a side channel attack to recover the password. Since
-     the attack is local host only this is outside of the current OpenSSL
-     threat model and therefore no CVE is assigned.
-
-     Thanks to Mohammed Sabt and Daniel De Almeida Braga for reporting this
-     issue.
-     [Matt Caswell]
-
- Changes between 1.1.1h and 1.1.1i [8 Dec 2020]
-
-  *) Fixed NULL pointer deref in the GENERAL_NAME_cmp function
-     This function could crash if both GENERAL_NAMEs contain an EDIPARTYNAME.
-     If an attacker can control both items being compared  then this could lead
-     to a possible denial of service attack. OpenSSL itself uses the
-     GENERAL_NAME_cmp function for two purposes:
-     1) Comparing CRL distribution point names between an available CRL and a
-        CRL distribution point embedded in an X509 certificate
-     2) When verifying that a timestamp response token signer matches the
-        timestamp authority name (exposed via the API functions
-        TS_RESP_verify_response and TS_RESP_verify_token)
-     (CVE-2020-1971)
-     [Matt Caswell]
-
-  *) Add support for Apple Silicon M1 Macs with the darwin64-arm64-cc target.
-     [Stuart Carnie]
-
-  *) The security callback, which can be customised by application code, supports
-     the security operation SSL_SECOP_TMP_DH. This is defined to take an EVP_PKEY
-     in the "other" parameter. In most places this is what is passed. All these
-     places occur server side. However there was one client side call of this
-     security operation and it passed a DH object instead. This is incorrect
-     according to the definition of SSL_SECOP_TMP_DH, and is inconsistent with all
-     of the other locations. Therefore this client side call has been changed to
-     pass an EVP_PKEY instead.
-     [Matt Caswell]
-
-  *) In 1.1.1h, an expired trusted (root) certificate was not anymore rejected
-     when validating a certificate path. This check is restored in 1.1.1i.
-     [David von Oheimb]
-
- Changes between 1.1.1g and 1.1.1h [22 Sep 2020]
-
-  *) Certificates with explicit curve parameters are now disallowed in
-     verification chains if the X509_V_FLAG_X509_STRICT flag is used.
-     [Tomas Mraz]
-
-  *) The 'MinProtocol' and 'MaxProtocol' configuration commands now silently
-     ignore TLS protocol version bounds when configuring DTLS-based contexts, and
-     conversely, silently ignore DTLS protocol version bounds when configuring
-     TLS-based contexts.  The commands can be repeated to set bounds of both
-     types.  The same applies with the corresponding "min_protocol" and
-     "max_protocol" command-line switches, in case some application uses both TLS
-     and DTLS.
-  
-     SSL_CTX instances that are created for a fixed protocol version (e.g.
-     TLSv1_server_method()) also silently ignore version bounds.  Previously
-     attempts to apply bounds to these protocol versions would result in an
-     error.  Now only the "version-flexible" SSL_CTX instances are subject to
-     limits in configuration files in command-line options.
-     [Viktor Dukhovni]
-
-  *) Handshake now fails if Extended Master Secret extension is dropped
-     on renegotiation.
-     [Tomas Mraz]
-
-  *) Accidentally, an expired trusted (root) certificate is not anymore rejected
-     when validating a certificate path.
-     [David von Oheimb]
-
-  *) The Oracle Developer Studio compiler will start reporting deprecated APIs
-
- Changes between 1.1.1f and 1.1.1g [21 Apr 2020]
-
-  *) Fixed segmentation fault in SSL_check_chain()
-     Server or client applications that call the SSL_check_chain() function
-     during or after a TLS 1.3 handshake may crash due to a NULL pointer
-     dereference as a result of incorrect handling of the
-     "signature_algorithms_cert" TLS extension. The crash occurs if an invalid
-     or unrecognised signature algorithm is received from the peer. This could
-     be exploited by a malicious peer in a Denial of Service attack.
-     (CVE-2020-1967)
-     [Benjamin Kaduk]
-
-  *) Added AES consttime code for no-asm configurations
-     an optional constant time support for AES was added
-     when building openssl for no-asm.
-     Enable with: ./config no-asm -DOPENSSL_AES_CONST_TIME
-     Disable with: ./config no-asm -DOPENSSL_NO_AES_CONST_TIME
-     At this time this feature is by default disabled.
-     It will be enabled by default in 3.0.
-     [Bernd Edlinger]
-
- Changes between 1.1.1e and 1.1.1f [31 Mar 2020]
-
-  *) Revert the change of EOF detection while reading in libssl to avoid
-     regressions in applications depending on the current way of reporting
-     the EOF. As the existing method is not fully accurate the change to
-     reporting the EOF via SSL_ERROR_SSL is kept on the current development
-     branch and will be present in the 3.0 release.
-     [Tomas Mraz]
-
-  *) Revised BN_generate_prime_ex to not avoid factors 3..17863 in p-1
-     when primes for RSA keys are computed.
-     Since we previously always generated primes == 2 (mod 3) for RSA keys,
-     the 2-prime and 3-prime RSA modules were easy to distinguish, since
-     N = p*q = 1 (mod 3), but N = p*q*r = 2 (mod 3). Therefore fingerprinting
-     2-prime vs. 3-prime RSA keys was possible by computing N mod 3.
-     This avoids possible fingerprinting of newly generated RSA modules.
-     [Bernd Edlinger]
-
- Changes between 1.1.1d and 1.1.1e [17 Mar 2020]
-  *) Properly detect EOF while reading in libssl. Previously if we hit an EOF
-     while reading in libssl then we would report an error back to the
-     application (SSL_ERROR_SYSCALL) but errno would be 0. We now add
-     an error to the stack (which means we instead return SSL_ERROR_SSL) and
-     therefore give a hint as to what went wrong.
-     [Matt Caswell]
-
-  *) Check that ed25519 and ed448 are allowed by the security level. Previously
-     signature algorithms not using an MD were not being checked that they were
-     allowed by the security level.
-     [Kurt Roeckx]
-
-  *) Fixed SSL_get_servername() behaviour. The behaviour of SSL_get_servername()
-     was not quite right. The behaviour was not consistent between resumption
-     and normal handshakes, and also not quite consistent with historical
-     behaviour. The behaviour in various scenarios has been clarified and
-     it has been updated to make it match historical behaviour as closely as
-     possible.
-     [Matt Caswell]
-
-  *) [VMS only] The header files that the VMS compilers include automatically,
-     __DECC_INCLUDE_PROLOGUE.H and __DECC_INCLUDE_EPILOGUE.H, use pragmas that
-     the C++ compiler doesn't understand.  This is a shortcoming in the
-     compiler, but can be worked around with __cplusplus guards.
-
-     C++ applications that use OpenSSL libraries must be compiled using the
-     qualifier '/NAMES=(AS_IS,SHORTENED)' to be able to use all the OpenSSL
-     functions.  Otherwise, only functions with symbols of less than 31
-     characters can be used, as the linker will not be able to successfully
-     resolve symbols with longer names.
-     [Richard Levitte]
-
-  *) Corrected the documentation of the return values from the EVP_DigestSign*
-     set of functions.  The documentation mentioned negative values for some
-     errors, but this was never the case, so the mention of negative values
-     was removed.
-
-     Code that followed the documentation and thereby check with something
-     like 'EVP_DigestSignInit(...) <= 0' will continue to work undisturbed.
-     [Richard Levitte]
-
-  *) Fixed an an overflow bug in the x64_64 Montgomery squaring procedure
-     used in exponentiation with 512-bit moduli. No EC algorithms are
-     affected. Analysis suggests that attacks against 2-prime RSA1024,
-     3-prime RSA1536, and DSA1024 as a result of this defect would be very
-     difficult to perform and are not believed likely. Attacks against DH512
-     are considered just feasible. However, for an attack the target would
-     have to re-use the DH512 private key, which is not recommended anyway.
-     Also applications directly using the low level API BN_mod_exp may be
-     affected if they use BN_FLG_CONSTTIME.
-     (CVE-2019-1551)
-     [Andy Polyakov]
-
-  *) Added a new method to gather entropy on VMS, based on SYS$GET_ENTROPY.
-     The presence of this system service is determined at run-time.
-     [Richard Levitte]
-
-  *) Added newline escaping functionality to a filename when using openssl dgst.
-     This output format is to replicate the output format found in the '*sum'
-     checksum programs. This aims to preserve backward compatibility.
-     [Matt Eaton, Richard Levitte, and Paul Dale]
-
-  *) Print all values for a PKCS#12 attribute with 'openssl pkcs12', not just
-     the first value.
-     [Jon Spillett]
-
  Changes between 1.1.1c and 1.1.1d [10 Sep 2019]
 
   *) Fixed a fork protection issue. OpenSSL 1.1.1 introduced a rewritten random
@@ -1103,9 +633,9 @@
      bytes long. In theory it is permissible in SSLv3 - TLSv1.2 to fragment such
      alerts across multiple records (some of which could be empty). In practice
      it make no sense to send an empty alert record, or to fragment one. TLSv1.3
-     prohibits this altogether and other libraries (BoringSSL, NSS) do not
+     prohibts this altogether and other libraries (BoringSSL, NSS) do not
      support this at all. Supporting it adds significant complexity to the
-     record layer, and its removal is unlikely to cause interoperability
+     record layer, and its removal is unlikely to cause inter-operability
      issues.
      [Matt Caswell]
 
@@ -4122,7 +3652,7 @@
      implementations).
      [Emilia Käsper, Adam Langley, Bodo Moeller (Google)]
 
-  *) Use type ossl_ssize_t instead of ssize_t which isn't available on
+  *) Use type ossl_ssize_t instad of ssize_t which isn't available on
      all platforms. Move ssize_t definition from e_os.h to the public
      header file e_os2.h as it now appears in public header file cms.h
      [Steve Henson]
@@ -8843,7 +8373,7 @@ des-cbc           3624.96k     5258.21k     5530.91k     5624.30k     5628.26k
 
   *) New OCSP utility. Allows OCSP requests to be generated or
      read. The request can be sent to a responder and the output
-     parsed, outputted or printed in text form. Not complete yet:
+     parsed, outputed or printed in text form. Not complete yet:
      still needs to check the OCSP response validity.
      [Steve Henson]
 
@@ -9838,7 +9368,7 @@ des-cbc           3624.96k     5258.21k     5530.91k     5624.30k     5628.26k
      [Andy Polyakov]
 
   *) Modified SSL library such that the verify_callback that has been set
-     specifically for an SSL object with SSL_set_verify() is actually being
+     specificly for an SSL object with SSL_set_verify() is actually being
      used. Before the change, a verify_callback set with this function was
      ignored and the verify_callback() set in the SSL_CTX at the time of
      the call was used. New function X509_STORE_CTX_set_verify_cb() introduced
@@ -10955,10 +10485,10 @@ des-cbc           3624.96k     5258.21k     5530.91k     5624.30k     5628.26k
      as other interfaces in OpenSSL, like the BIO interface.
      NCONF_dump_* dump the internal storage of the configuration file,
      which is useful for debugging.  All other functions take the same
-     arguments as the old CONF_* functions with the exception of the
+     arguments as the old CONF_* functions wth the exception of the
      first that must be a `CONF *' instead of a `LHASH *'.
 
-     To make it easier to use the new classes with the old CONF_* functions,
+     To make it easer to use the new classes with the old CONF_* functions,
      the function CONF_set_default_method is provided.
      [Richard Levitte]
 
@@ -12801,7 +12331,7 @@ des-cbc           3624.96k     5258.21k     5530.91k     5624.30k     5628.26k
      than the old method: it now uses a modified version of Ulf's parser to
      read the ANSI prototypes in all header files (thus the old K&R definitions
      aren't needed for error creation any more) and do a better job of
-     translating function codes into names. The old 'ASN1 error code embedded
+     translating function codes into names. The old 'ASN1 error code imbedded
      in a comment' is no longer necessary and it doesn't use .err files which
      have now been deleted. Also the error code call doesn't have to appear all
      on one line (which resulted in some large lines...).
@@ -13102,7 +12632,7 @@ des-cbc           3624.96k     5258.21k     5530.91k     5624.30k     5628.26k
 
   *) Add a useful kludge to allow package maintainers to specify compiler and
      other platforms details on the command line without having to patch the
-     Configure script every time: One now can use ``perl Configure
+     Configure script everytime: One now can use ``perl Configure
      <id>:<details>'', i.e. platform ids are allowed to have details appended
      to them (separated by colons). This is treated as there would be a static
      pre-configured entry in Configure's %table under key <id> with value

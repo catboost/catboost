@@ -1,7 +1,3 @@
-/*
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #pragma once
 
 #include <stdexcept>
@@ -9,7 +5,6 @@
 #include <unordered_set>
 #include "onnx/defs/function.h"
 #include "onnx/defs/schema.h"
-#include "onnx/onnx-data_pb.h"
 #include "onnx/onnx-operators_pb.h"
 #include "onnx/onnx_pb.h"
 #include "onnx/string_utils.h"
@@ -26,15 +21,17 @@ class ValidationError final : public std::runtime_error {
     return std::runtime_error::what();
   }
   void AppendContext(const TString& context) {
-    expanded_message_ = ONNX_NAMESPACE::MakeString(std::runtime_error::what(), "\n\n==> Context: ", context);
+    expanded_message_ = ONNX_NAMESPACE::MakeString(
+        std::runtime_error::what(), "\n\n==> Context: ", context);
   }
 
  private:
   TString expanded_message_;
 };
 
-#define fail_check(...) \
-  ONNX_THROW_EX(ONNX_NAMESPACE::checker::ValidationError(ONNX_NAMESPACE::MakeString(__VA_ARGS__)));
+#define fail_check(...)                           \
+  throw ONNX_NAMESPACE::checker::ValidationError( \
+      ONNX_NAMESPACE::MakeString(__VA_ARGS__));
 
 class CheckerContext final {
  public:
@@ -65,12 +62,12 @@ class CheckerContext final {
     return schema_registry_;
   }
 
-  void set_model_dir(const TString& model_dir) {
-    model_dir_ = model_dir;
+  void set_func_registry(const IFunctionBuilderRegistry* func_registry) {
+    func_registry_ = func_registry;
   }
 
-  TString get_model_dir() const {
-    return model_dir_;
+  const IFunctionBuilderRegistry* get_func_registry() const {
+    return func_registry_;
   }
 
   explicit CheckerContext() : ir_version_(-1) {}
@@ -80,76 +77,41 @@ class CheckerContext final {
   std::unordered_map<TString, int> opset_imports_;
   bool is_main_graph_ = true;
   const ISchemaRegistry* schema_registry_ = OpSchemaRegistry::Instance();
-  TString model_dir_;
+  const IFunctionBuilderRegistry* func_registry_ =
+      &FunctionBuilderRegistry::OnnxInstance();
 };
 
-class LexicalScopeContext final {
- public:
-  LexicalScopeContext() = default;
-
-  // Construct an instance with the lexical scope from the parent graph to allow
-  // lookup of names from that scope via this_or_ancestor_graph_has.
-  // The caller must ensure parent_context remains valid for the entire lifetime
-  // of the new instance. Alternatively, if that cannot be guaranteed, create an
-  // instance with the default constructor and populate output_names with the
-  // values from the parent scope so the values are copied instead.
-  LexicalScopeContext(const LexicalScopeContext& parent_context) : parent_context_{&parent_context} {}
-  LexicalScopeContext& operator=(const LexicalScopeContext& parent_context) {
-    parent_context_ = &parent_context;
-    return *this;
-  }
-
-  void add(const TString& name) {
-    output_names.insert(name);
-  }
-
-  bool this_graph_has(const TString& name) const {
-    return output_names.find(name) != output_names.cend();
-  }
-
-  bool this_or_ancestor_graph_has(const TString& name) const {
-    return this_graph_has(name) || (parent_context_ && parent_context_->this_or_ancestor_graph_has(name));
-  }
-
-  // public for backwards compatibility. please prefer the public interface of
-  // this class over directly changing output_names
+struct LexicalScopeContext final {
   std::unordered_set<TString> output_names;
-
- private:
-  const LexicalScopeContext* parent_context_{nullptr};
 };
 
 using IR_VERSION_TYPE = decltype(Version::IR_VERSION);
 void check_value_info(const ValueInfoProto& value_info, const CheckerContext&);
 void check_tensor(const TensorProto& tensor, const CheckerContext&);
-void check_sparse_tensor(const SparseTensorProto& sparse_tensor, const CheckerContext&);
-void check_sequence(const SequenceProto& sequence, const CheckerContext&);
-void check_map(const MapProto& map, const CheckerContext&);
-void check_optional(const OptionalProto& opt, const CheckerContext&);
-void check_attribute(const AttributeProto& attr, const CheckerContext&, const LexicalScopeContext&);
-void check_node(const NodeProto& node, const CheckerContext&, const LexicalScopeContext&);
-void check_graph(const GraphProto& graph, const CheckerContext&, const LexicalScopeContext&);
-void check_function(const FunctionProto& function, const CheckerContext&, const LexicalScopeContext&);
-
-// Check schema compatibility for 2 opset versions for a given node.
-// Checks whether the schema for 2 versions is same, this is true when the opschema
-// does not change between versions.
-void check_opset_compatibility(
+void check_attribute(
+    const AttributeProto& attr,
+    const CheckerContext&,
+    const LexicalScopeContext&);
+void check_node(
     const NodeProto& node,
-    const CheckerContext& ctx,
-    const std::unordered_map<TString, int>& func_opset_imports,
-    const std::unordered_map<TString, int>& model_opset_imports);
+    const CheckerContext&,
+    const LexicalScopeContext&);
+void check_graph(
+    const GraphProto& graph,
+    const CheckerContext&,
+    const LexicalScopeContext&);
+void check_function(
+    const FunctionProto& function,
+    const CheckerContext&,
+    const LexicalScopeContext&);
 
-// Checks all model local functions present in ModelProto
-void check_model_local_functions(
-    const ModelProto& model,
-    const CheckerContext& ctx,
-    const LexicalScopeContext& parent_lex);
+void check_model(const ModelProto& model);
 
-void check_model(const ModelProto& model, bool full_check = false);
-void check_model(const TString& model_path, bool full_check = false);
-
-bool check_is_experimental_op(const NodeProto& node);
+void VerifyFunctionNode(
+    const NodeProto&,
+    const FunctionProto&,
+    const CheckerContext&,
+    const LexicalScopeContext&);
 
 } // namespace checker
 } // namespace ONNX_NAMESPACE

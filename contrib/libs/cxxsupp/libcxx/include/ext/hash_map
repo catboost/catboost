@@ -1,5 +1,5 @@
 // -*- C++ -*-
-//===----------------------------------------------------------------------===//
+//===-------------------------- hash_map ----------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -46,10 +46,10 @@ public:
     template <class InputIterator>
     hash_map(InputIterator f, InputIterator l);
     template <class InputIterator>
-    hash_map(InputIterator f, InputIterator l,
+        hash_map(InputIterator f, InputIterator l,
                 size_type n, const hasher& hf = hasher(),
-                const key_equal& eql = key_equal(),
-                const allocator_type& a = allocator_type());
+                      const key_equal& eql = key_equal(),
+                      const allocator_type& a = allocator_type());
     hash_map(const hash_map&);
     ~hash_map();
     hash_map& operator=(const hash_map&);
@@ -201,15 +201,14 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 
 */
 
-#include <__algorithm/is_permutation.h>
 #include <__config>
 #include <__hash_table>
-#include <ext/__hash>
 #include <functional>
 #include <stdexcept>
 #include <type_traits>
+#include <ext/__hash>
 
-#if defined(__DEPRECATED) && __DEPRECATED
+#if __DEPRECATED
 #if defined(_LIBCPP_WARNING)
     _LIBCPP_WARNING("Use of the header <ext/hash_map> is deprecated.  Migrate to <unordered_map>")
 #else
@@ -218,7 +217,7 @@ template <class Key, class T, class Hash, class Pred, class Alloc>
 #endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
-#  pragma GCC system_header
+#pragma GCC system_header
 #endif
 
 namespace __gnu_cxx {
@@ -351,7 +350,7 @@ public:
         {
             const_cast<bool&>(__x.__value_constructed) = false;
         }
-#endif // _LIBCPP_CXX03_LANG
+#endif  // _LIBCPP_CXX03_LANG
 
     _LIBCPP_INLINE_VISIBILITY
     void operator()(pointer __p)
@@ -396,10 +395,10 @@ public:
         return __t;
     }
 
-    friend _LIBCPP_INLINE_VISIBILITY
+    friend _LIBCPP_INLINE_VISIBILITY 
     bool operator==(const __hash_map_iterator& __x, const __hash_map_iterator& __y)
         {return __x.__i_ == __y.__i_;}
-    friend _LIBCPP_INLINE_VISIBILITY
+    friend _LIBCPP_INLINE_VISIBILITY 
     bool operator!=(const __hash_map_iterator& __x, const __hash_map_iterator& __y)
         {return __x.__i_ != __y.__i_;}
 
@@ -672,7 +671,7 @@ hash_map<_Key, _Tp, _Hash, _Pred, _Alloc>::__construct_node(const key_type& __k)
     __h.get_deleter().__first_constructed = true;
     __node_traits::construct(__na, _VSTD::addressof(__h->__value_.second));
     __h.get_deleter().__second_constructed = true;
-    return __h;
+    return _LIBCPP_EXPLICIT_MOVE(__h);  // explicitly moved for C++03
 }
 
 template <class _Key, class _Tp, class _Hash, class _Pred, class _Alloc>
@@ -980,6 +979,6 @@ operator!=(const hash_multimap<_Key, _Tp, _Hash, _Pred, _Alloc>& __x,
     return !(__x == __y);
 }
 
-} // namespace __gnu_cxx
+} // __gnu_cxx
 
-#endif // _LIBCPP_HASH_MAP
+#endif  // _LIBCPP_HASH_MAP

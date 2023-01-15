@@ -1,38 +1,37 @@
 
-#include "lfstack.h"
-
-#include <library/cpp/testing/unittest/registar.h>
+#include <util/system/atomic.h>
+#include <util/system/event.h>
+#include <util/generic/deque.h>
 #include <library/cpp/threading/future/legacy_future.h>
 
-#include <util/generic/deque.h>
-#include <util/system/event.h>
+#include <library/unittest/registar.h>
 
-#include <atomic>
+#include "lfstack.h"
 
 Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     class TCountDownLatch {
     private:
-        std::atomic<size_t> Current_;
-        TSystemEvent EventObject_;
+        TAtomic Current;
+        TSystemEvent EventObject;
 
     public:
         TCountDownLatch(unsigned initial)
-            : Current_(initial)
+            : Current(initial)
         {
         }
 
         void CountDown() {
-            if (--Current_ == 0) {
-                EventObject_.Signal();
+            if (AtomicDecrement(Current) == 0) {
+                EventObject.Signal();
             }
         }
 
         void Await() {
-            EventObject_.Wait();
+            EventObject.Wait();
         }
 
         bool Await(TDuration timeout) {
-            return EventObject_.WaitT(timeout);
+            return EventObject.WaitT(timeout);
         }
     };
 
@@ -42,7 +41,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
         size_t DequeueThreads;
 
         size_t EnqueuesPerThread;
-        std::atomic<size_t> LeftToDequeue;
+        TAtomic LeftToDequeue;
 
         TCountDownLatch StartLatch;
         TLockFreeStack<int> Stack;
@@ -70,7 +69,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             StartLatch.Await();
 
             TVector<int> temp;
-            while (LeftToDequeue.load() > 0) {
+            while (AtomicGet(LeftToDequeue) > 0) {
                 size_t dequeued = 0;
                 for (size_t i = 0; i < 100; ++i) {
                     temp.clear();
@@ -81,7 +80,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
                     }
                     dequeued += temp.size();
                 }
-                LeftToDequeue -= dequeued;
+                AtomicAdd(LeftToDequeue, -dequeued);
             }
         }
 
@@ -99,7 +98,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             // effectively join
             futures.clear();
 
-            UNIT_ASSERT_VALUES_EQUAL(0, int(LeftToDequeue.load()));
+            UNIT_ASSERT_VALUES_EQUAL(0, int(AtomicGet(LeftToDequeue)));
 
             TVector<int> left;
             Stack.DequeueAll(&left);
@@ -194,14 +193,10 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     Y_UNIT_TEST(NoCopyTest) {
         static unsigned copied = 0;
         struct TCopyCount {
-            TCopyCount(int) {
-            }
-            TCopyCount(const TCopyCount&) {
-                ++copied;
-            }
+            TCopyCount(int) {}
+            TCopyCount(const TCopyCount&) { ++copied; }
 
-            TCopyCount(TCopyCount&&) {
-            }
+            TCopyCount(TCopyCount&&) {}
 
             TCopyCount& operator=(const TCopyCount&) {
                 ++copied;
@@ -282,6 +277,7 @@ Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
             futures.clear();
             TTest::DequeueAll(Stack);
         }
+
     };
 
     struct TFreeListTest {

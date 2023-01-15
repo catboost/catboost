@@ -8,11 +8,11 @@
  */
 
 #include <stdio.h>
-#include "crypto/ctype.h"
+#include "internal/ctype.h"
 #include <limits.h>
 #include "internal/cryptlib.h"
 #include <openssl/buffer.h>
-#include "bn_local.h"
+#include "bn_lcl.h"
 
 static const char Hex[] = "0123456789ABCDEF";
 
@@ -142,7 +142,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
         continue;
 
     if (i == 0 || i > INT_MAX / 4)
-        return 0;
+        goto err;
 
     num = i + neg;
     if (bn == NULL)

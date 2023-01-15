@@ -12,7 +12,6 @@
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/data/lazy_columns.h>
 
 namespace NCatboostCuda {
     template <>
@@ -48,7 +47,7 @@ namespace NCatboostCuda {
                 }
             }
 
-            THolder<TFeaturesBlock> resultHolder = MakeHolder<TFeaturesBlock>(TCpuGrid(info, featureIds));
+            THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
             TCudaFeaturesHelper helper(result.Grid);
 
@@ -122,21 +121,6 @@ namespace NCatboostCuda {
                                                                    bins.size()));
             tmp.Write(bins);
             WriteCompressedFeature(feature, tmp, *compressedIndex);
-        }
-
-        static void WriteToLazyCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const NCB::TLazyQuantizedFloatValuesHolder* lazyQuantizedColumn,
-                                           ui32 featureId,
-                                           TMaybe<ui16> baseValue,
-                                           const NCudaLib::TMirrorMapping& docsMapping,
-                                           TStripeBuffer<ui32>* compressedIndex) {
-            Y_UNUSED(feature);
-            Y_UNUSED(lazyQuantizedColumn);
-            Y_UNUSED(featureId);
-            Y_UNUSED(baseValue);
-            Y_UNUSED(docsMapping);
-            Y_UNUSED(compressedIndex);
-            CB_ENSURE_INTERNAL(false, "Lazy dataset loading does not support feature parallel layout");
         }
     };
 

@@ -9,20 +9,6 @@
 
 #include "multiprocessing.h"
 
-/*[python input]
-class HANDLE_converter(CConverter):
-    type = "HANDLE"
-    format_unit = '"F_HANDLE"'
-
-[python start generated code]*/
-/*[python end generated code: output=da39a3ee5e6b4b0d input=9fad6080b79ace91]*/
-
-/*[clinic input]
-module _multiprocessing
-[clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=01e0745f380ac6e3]*/
-
-#include "clinic/multiprocessing.c.h"
 
 /*
  * Function which raises exceptions based on error codes
@@ -64,19 +50,14 @@ _PyMp_SetError(PyObject *Type, int num)
 }
 
 #ifdef MS_WINDOWS
-/*[clinic input]
-_multiprocessing.closesocket
-
-    handle: HANDLE
-    /
-
-[clinic start generated code]*/
-
 static PyObject *
-_multiprocessing_closesocket_impl(PyObject *module, HANDLE handle)
-/*[clinic end generated code: output=214f359f900966f4 input=8a20706dd386c6cc]*/
+multiprocessing_closesocket(PyObject *self, PyObject *args)
 {
+    HANDLE handle;
     int ret;
+
+    if (!PyArg_ParseTuple(args, F_HANDLE ":closesocket" , &handle))
+        return NULL;
 
     Py_BEGIN_ALLOW_THREADS
     ret = closesocket((SOCKET) handle);
@@ -87,21 +68,15 @@ _multiprocessing_closesocket_impl(PyObject *module, HANDLE handle)
     Py_RETURN_NONE;
 }
 
-/*[clinic input]
-_multiprocessing.recv
-
-    handle: HANDLE
-    size: int
-    /
-
-[clinic start generated code]*/
-
 static PyObject *
-_multiprocessing_recv_impl(PyObject *module, HANDLE handle, int size)
-/*[clinic end generated code: output=92322781ba9ff598 input=6a5b0834372cee5b]*/
+multiprocessing_recv(PyObject *self, PyObject *args)
 {
-    int nread;
+    HANDLE handle;
+    int size, nread;
     PyObject *buf;
+
+    if (!PyArg_ParseTuple(args, F_HANDLE "i:recv" , &handle, &size))
+        return NULL;
 
     buf = PyBytes_FromStringAndSize(NULL, size);
     if (!buf)
@@ -119,27 +94,23 @@ _multiprocessing_recv_impl(PyObject *module, HANDLE handle, int size)
     return buf;
 }
 
-/*[clinic input]
-_multiprocessing.send
-
-    handle: HANDLE
-    buf: Py_buffer
-    /
-
-[clinic start generated code]*/
-
 static PyObject *
-_multiprocessing_send_impl(PyObject *module, HANDLE handle, Py_buffer *buf)
-/*[clinic end generated code: output=52d7df0519c596cb input=41dce742f98d2210]*/
+multiprocessing_send(PyObject *self, PyObject *args)
 {
+    HANDLE handle;
+    Py_buffer buf;
     int ret, length;
 
-    length = (int)Py_MIN(buf->len, INT_MAX);
+    if (!PyArg_ParseTuple(args, F_HANDLE "y*:send" , &handle, &buf))
+        return NULL;
+
+    length = (int)Py_MIN(buf.len, INT_MAX);
 
     Py_BEGIN_ALLOW_THREADS
-    ret = send((SOCKET) handle, buf->buf, length, 0);
+    ret = send((SOCKET) handle, buf.buf, length, 0);
     Py_END_ALLOW_THREADS
 
+    PyBuffer_Release(&buf);
     if (ret < 0)
         return PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
     return PyLong_FromLong(ret);
@@ -147,33 +118,18 @@ _multiprocessing_send_impl(PyObject *module, HANDLE handle, Py_buffer *buf)
 
 #endif
 
-/*[clinic input]
-_multiprocessing.sem_unlink
-
-    name: str
-    /
-
-[clinic start generated code]*/
-
-static PyObject *
-_multiprocessing_sem_unlink_impl(PyObject *module, const char *name)
-/*[clinic end generated code: output=fcbfeb1ed255e647 input=bf939aff9564f1d5]*/
-{
-    return _PyMp_sem_unlink(name);
-}
-
 /*
  * Function table
  */
 
 static PyMethodDef module_methods[] = {
 #ifdef MS_WINDOWS
-    _MULTIPROCESSING_CLOSESOCKET_METHODDEF
-    _MULTIPROCESSING_RECV_METHODDEF
-    _MULTIPROCESSING_SEND_METHODDEF
+    {"closesocket", multiprocessing_closesocket, METH_VARARGS, ""},
+    {"recv", multiprocessing_recv, METH_VARARGS, ""},
+    {"send", multiprocessing_send, METH_VARARGS, ""},
 #endif
 #if !defined(POSIX_SEMAPHORES_NOT_ENABLED) && !defined(__ANDROID__)
-    _MULTIPROCESSING_SEM_UNLINK_METHODDEF
+    {"sem_unlink", _PyMp_sem_unlink, METH_VARARGS, ""},
 #endif
     {NULL}
 };
@@ -183,17 +139,35 @@ static PyMethodDef module_methods[] = {
  * Initialize
  */
 
-static int
-multiprocessing_exec(PyObject *module)
+static struct PyModuleDef multiprocessing_module = {
+    PyModuleDef_HEAD_INIT,
+    "_multiprocessing",
+    NULL,
+    -1,
+    module_methods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+
+PyMODINIT_FUNC
+PyInit__multiprocessing(void)
 {
+    PyObject *module, *temp, *value = NULL;
+
+    /* Initialize module */
+    module = PyModule_Create(&multiprocessing_module);
+    if (!module)
+        return NULL;
+
 #if defined(MS_WINDOWS) ||                                              \
   (defined(HAVE_SEM_OPEN) && !defined(POSIX_SEMAPHORES_NOT_ENABLED))
-
     /* Add _PyMp_SemLock type to module */
-    if (PyModule_AddType(module, &_PyMp_SemLockType) < 0) {
-        return -1;
-    }
-
+    if (PyType_Ready(&_PyMp_SemLockType) < 0)
+        return NULL;
+    Py_INCREF(&_PyMp_SemLockType);
     {
         PyObject *py_sem_value_max;
         /* Some systems define SEM_VALUE_MAX as an unsigned value that
@@ -205,40 +179,25 @@ multiprocessing_exec(PyObject *module)
             py_sem_value_max = PyLong_FromLong(INT_MAX);
         else
             py_sem_value_max = PyLong_FromLong(SEM_VALUE_MAX);
-
-        if (py_sem_value_max == NULL) {
-            return -1;
-        }
-        if (PyDict_SetItemString(_PyMp_SemLockType.tp_dict, "SEM_VALUE_MAX",
-                             py_sem_value_max) < 0) {
-            Py_DECREF(py_sem_value_max);
-            return -1;
-        }
-        Py_DECREF(py_sem_value_max);
+        if (py_sem_value_max == NULL)
+            return NULL;
+        PyDict_SetItemString(_PyMp_SemLockType.tp_dict, "SEM_VALUE_MAX",
+                             py_sem_value_max);
     }
-
+    PyModule_AddObject(module, "SemLock", (PyObject*)&_PyMp_SemLockType);
 #endif
 
     /* Add configuration macros */
-    PyObject *flags = PyDict_New();
-    if (!flags) {
-        return -1;
-    }
+    temp = PyDict_New();
+    if (!temp)
+        return NULL;
 
-#define ADD_FLAG(name)                                          \
-    do {                                                        \
-        PyObject *value = PyLong_FromLong(name);                \
-        if (value == NULL) {                                    \
-            Py_DECREF(flags);                                   \
-            return -1;                                          \
-        }                                                       \
-        if (PyDict_SetItemString(flags, #name, value) < 0) {    \
-            Py_DECREF(flags);                                   \
-            Py_DECREF(value);                                   \
-            return -1;                                          \
-        }                                                       \
-        Py_DECREF(value);                                       \
-    } while (0)
+#define ADD_FLAG(name)                                            \
+    value = Py_BuildValue("i", name);                             \
+    if (value == NULL) { Py_DECREF(temp); return NULL; }          \
+    if (PyDict_SetItemString(temp, #name, value) < 0) {           \
+        Py_DECREF(temp); Py_DECREF(value); return NULL; }         \
+    Py_DECREF(value)
 
 #if defined(HAVE_SEM_OPEN) && !defined(POSIX_SEMAPHORES_NOT_ENABLED)
     ADD_FLAG(HAVE_SEM_OPEN);
@@ -253,28 +212,8 @@ multiprocessing_exec(PyObject *module)
     ADD_FLAG(HAVE_BROKEN_SEM_UNLINK);
 #endif
 
-    if (PyModule_AddObject(module, "flags", flags) < 0) {
-        Py_DECREF(flags);
-        return -1;
-    }
+    if (PyModule_AddObject(module, "flags", temp) < 0)
+        return NULL;
 
-    return 0;
-}
-
-static PyModuleDef_Slot multiprocessing_slots[] = {
-    {Py_mod_exec, multiprocessing_exec},
-    {0, NULL}
-};
-
-static struct PyModuleDef multiprocessing_module = {
-    PyModuleDef_HEAD_INIT,
-    .m_name = "_multiprocessing",
-    .m_methods = module_methods,
-    .m_slots = multiprocessing_slots,
-};
-
-PyMODINIT_FUNC
-PyInit__multiprocessing(void)
-{
-    return PyModuleDef_Init(&multiprocessing_module);
+    return module;
 }

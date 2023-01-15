@@ -1,10 +1,11 @@
 #include "../system/utime.h"
 
 #ifdef _MSC_VER
-    #include <sys/utime.h>
+#include <sys/utime.h>
 #else
-    #define HDR <../include/utime.h>
-    #include HDR
+#define HDR <../include/utime.h>
+#include <sys/types.h>
+#include HDR
 #endif
 
 int TouchFile(const char* filePath) {

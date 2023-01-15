@@ -13,7 +13,6 @@ public:
     void WaitRead(SOCKET sock, void* cookie);
     void WaitWrite(SOCKET sock, void* cookie);
     void WaitReadWrite(SOCKET sock, void* cookie);
-    void WaitRdhup(SOCKET sock, void* cookie);
 
     void WaitReadOneShot(SOCKET sock, void* cookie);
     void WaitWriteOneShot(SOCKET sock, void* cookie);

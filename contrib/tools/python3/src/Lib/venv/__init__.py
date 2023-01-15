@@ -12,8 +12,6 @@ import sys
 import sysconfig
 import types
 
-
-CORE_VENV_DEPS = ('pip', 'setuptools')
 logger = logging.getLogger(__name__)
 
 
@@ -40,21 +38,16 @@ class EnvBuilder:
     :param with_pip: If True, ensure pip is installed in the virtual
                      environment
     :param prompt: Alternative terminal prefix for the environment.
-    :param upgrade_deps: Update the base venv modules to the latest on PyPI
     """
 
     def __init__(self, system_site_packages=False, clear=False,
-                 symlinks=False, upgrade=False, with_pip=False, prompt=None,
-                 upgrade_deps=False):
+                 symlinks=False, upgrade=False, with_pip=False, prompt=None):
         self.system_site_packages = system_site_packages
         self.clear = clear
         self.symlinks = symlinks
         self.upgrade = upgrade
         self.with_pip = with_pip
-        if prompt == '.':  # see bpo-38901
-            prompt = os.path.basename(os.getcwd())
         self.prompt = prompt
-        self.upgrade_deps = upgrade_deps
 
     def create(self, env_dir):
         """
@@ -81,8 +74,6 @@ class EnvBuilder:
             # restore it and rewrite the configuration
             self.system_site_packages = True
             self.create_configuration(context)
-        if self.upgrade_deps:
-            self.upgrade_dependencies(context)
 
     def clear_directory(self, path):
         for fn in os.listdir(path):
@@ -114,12 +105,8 @@ class EnvBuilder:
         prompt = self.prompt if self.prompt is not None else context.env_name
         context.prompt = '(%s) ' % prompt
         create_if_needed(env_dir)
-        executable = sys._base_executable
-        if not executable:  # see gh-96861
-            raise ValueError('Unable to determine path to the running '
-                             'Python interpreter. Provide an explicit path or '
-                             'check that your PATH environment variable is '
-                             'correctly set.')
+        env = os.environ
+        executable = getattr(sys, '_base_executable', sys.executable)
         dirname, exename = os.path.split(os.path.abspath(executable))
         context.executable = executable
         context.python_dir = dirname
@@ -147,20 +134,6 @@ class EnvBuilder:
         context.bin_name = binname
         context.env_exe = os.path.join(binpath, exename)
         create_if_needed(binpath)
-        # Assign and update the command to use when launching the newly created
-        # environment, in case it isn't simply the executable script (e.g. bpo-45337)
-        context.env_exec_cmd = context.env_exe
-        if sys.platform == 'win32':
-            # bpo-45337: Fix up env_exec_cmd to account for file system redirections.
-            # Some redirects only apply to CreateFile and not CreateProcess
-            real_env_exe = os.path.realpath(context.env_exe)
-            if os.path.normcase(real_env_exe) != os.path.normcase(context.env_exe):
-                logger.warning('Actual environment location may have moved due to '
-                               'redirects, links or junctions.\n'
-                               '  Requested location: "%s"\n'
-                               '  Actual location:    "%s"',
-                               context.env_exe, real_env_exe)
-                context.env_exec_cmd = real_env_exe
         return context
 
     def create_configuration(self, context):
@@ -181,8 +154,6 @@ class EnvBuilder:
                 incl = 'false'
             f.write('include-system-site-packages = %s\n' % incl)
             f.write('version = %d.%d.%d\n' % sys.version_info[:3])
-            if self.prompt is not None:
-                f.write(f'prompt = {self.prompt!r}\n')
 
     if os.name != 'nt':
         def symlink_or_copy(self, src, dst, relative_symlinks_ok=False):
@@ -262,7 +233,7 @@ class EnvBuilder:
             copier(context.executable, path)
             if not os.path.islink(path):
                 os.chmod(path, 0o755)
-            for suffix in ('python', 'python3', f'python3.{sys.version_info[1]}'):
+            for suffix in ('python', 'python3'):
                 path = os.path.join(binpath, suffix)
                 if not os.path.exists(path):
                     # Issue 18807: make copies if
@@ -286,9 +257,8 @@ class EnvBuilder:
                         os.path.normcase(f).startswith(('python', 'vcruntime'))
                     ]
             else:
-                suffixes = {'python.exe', 'python_d.exe', 'pythonw.exe', 'pythonw_d.exe'}
-                base_exe = os.path.basename(context.env_exe)
-                suffixes.add(base_exe)
+                suffixes = ['python.exe', 'python_d.exe', 'pythonw.exe',
+                            'pythonw_d.exe']
 
             for suffix in suffixes:
                 src = os.path.join(dirname, suffix)
@@ -308,25 +278,14 @@ class EnvBuilder:
                         shutil.copyfile(src, dst)
                         break
 
-    def _call_new_python(self, context, *py_args, **kwargs):
-        """Executes the newly created Python using safe-ish options"""
-        # gh-98251: We do not want to just use '-I' because that masks
-        # legitimate user preferences (such as not writing bytecode). All we
-        # really need is to ensure that the path variables do not overrule
-        # normal venv handling.
-        args = [context.env_exec_cmd, *py_args]
-        kwargs['env'] = env = os.environ.copy()
-        env['VIRTUAL_ENV'] = context.env_dir
-        env.pop('PYTHONHOME', None)
-        env.pop('PYTHONPATH', None)
-        kwargs['cwd'] = context.env_dir
-        kwargs['executable'] = context.env_exec_cmd
-        subprocess.check_output(args, **kwargs)
-
     def _setup_pip(self, context):
         """Installs or upgrades pip in a virtual environment"""
-        self._call_new_python(context, '-m', 'ensurepip', '--upgrade',
-                              '--default-pip', stderr=subprocess.STDOUT)
+        # We run ensurepip in isolated mode to avoid side effects from
+        # environment vars, the current directory and anything else
+        # intended for the global Python environment
+        cmd = [context.env_exe, '-Im', 'ensurepip', '--upgrade',
+                                                    '--default-pip']
+        subprocess.check_output(cmd, stderr=subprocess.STDOUT)
 
     def setup_scripts(self, context):
         """
@@ -421,20 +380,13 @@ class EnvBuilder:
                         f.write(data)
                     shutil.copymode(srcfile, dstfile)
 
-    def upgrade_dependencies(self, context):
-        logger.debug(
-            f'Upgrading {CORE_VENV_DEPS} packages in {context.bin_path}'
-        )
-        self._call_new_python(context, '-m', 'pip', 'install', '--upgrade',
-                              *CORE_VENV_DEPS)
-
 
 def create(env_dir, system_site_packages=False, clear=False,
-           symlinks=False, with_pip=False, prompt=None, upgrade_deps=False):
+                    symlinks=False, with_pip=False, prompt=None):
     """Create a virtual environment in a directory."""
     builder = EnvBuilder(system_site_packages=system_site_packages,
                          clear=clear, symlinks=symlinks, with_pip=with_pip,
-                         prompt=prompt, upgrade_deps=upgrade_deps)
+                         prompt=prompt)
     builder.create(env_dir)
 
 def main(args=None):
@@ -497,11 +449,6 @@ def main(args=None):
         parser.add_argument('--prompt',
                             help='Provides an alternative prompt prefix for '
                                  'this environment.')
-        parser.add_argument('--upgrade-deps', default=False, action='store_true',
-                            dest='upgrade_deps',
-                            help='Upgrade core dependencies: {} to the latest '
-                                 'version in PyPI'.format(
-                                 ' '.join(CORE_VENV_DEPS)))
         options = parser.parse_args(args)
         if options.upgrade and options.clear:
             raise ValueError('you cannot supply --upgrade and --clear together.')
@@ -510,8 +457,7 @@ def main(args=None):
                              symlinks=options.symlinks,
                              upgrade=options.upgrade,
                              with_pip=options.with_pip,
-                             prompt=options.prompt,
-                             upgrade_deps=options.upgrade_deps)
+                             prompt=options.prompt)
         for d in options.dirs:
             builder.create(d)
 

@@ -1,6 +1,6 @@
 #include "platform.h"
 
-#include <library/cpp/testing/unittest/registar.h>
+#include <library/unittest/registar.h>
 
 class TPlatformTest: public TTestBase {
     UNIT_TEST_SUITE(TPlatformTest);
@@ -15,6 +15,7 @@ private:
         UNIT_ASSERT_EQUAL(SIZEOF_INT, sizeof(int));
         UNIT_ASSERT_EQUAL(SIZEOF_LONG, sizeof(long));
         UNIT_ASSERT_EQUAL(SIZEOF_LONG_LONG, sizeof(long long));
+        UNIT_ASSERT_EQUAL(SIZEOF_SIZE_T, sizeof(size_t));
         UNIT_ASSERT_EQUAL(SIZEOF_UNSIGNED_CHAR, sizeof(unsigned char));
         UNIT_ASSERT_EQUAL(SIZEOF_UNSIGNED_INT, sizeof(unsigned int));
         UNIT_ASSERT_EQUAL(SIZEOF_UNSIGNED_LONG, sizeof(unsigned long));

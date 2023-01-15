@@ -1,7 +1,6 @@
-PY2TEST()
+PYTEST()
 
 
-SUBSCRIBER(g:util-subscribers)
 
 TEST_SRCS(test_glibc.py)
 

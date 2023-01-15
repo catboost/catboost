@@ -13,6 +13,7 @@ void TSerializer<TBuffer>::Load(IInputStream* rh, TBuffer& buf) {
     ::LoadPodArray(rh, buf.Data(), buf.Size());
 }
 
+
 [[noreturn]] void NPrivate::ThrowLoadEOFException(size_t typeSize, size_t realSize, TStringBuf structName) {
     ythrow TLoadEOF() << "can not load " << structName << "(" << typeSize << ", " << realSize << " bytes)";
 }

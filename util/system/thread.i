@@ -9,12 +9,17 @@
     typedef HANDLE THREADHANDLE;
 #else
     #include <pthread.h>
+    #include <sched.h>
+    #include <errno.h>
+    #include <string.h>
 
     typedef pthread_t THREADHANDLE;
 #endif
 
 #if defined(_freebsd_)
     #include <pthread_np.h>
+#elif defined(_linux_)
+    #include <sys/prctl.h>
 #endif
 
 #include <util/digest/numeric.h>

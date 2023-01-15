@@ -88,7 +88,7 @@ static CYTHON_INLINE PyObject * newarrayobject(PyTypeObject *type, Py_ssize_t si
     op->ob_descr = descr;
     op->allocated = size;
     op->weakreflist = NULL;
-    __Pyx_SET_SIZE(op, size);
+    op->ob_size = size;
     if (size <= 0) {
         op->data.ob_item = NULL;
     }
@@ -116,7 +116,7 @@ static CYTHON_INLINE int resize(arrayobject *self, Py_ssize_t n) {
         return -1;
     }
     self->data.ob_item = (char*) items;
-    __Pyx_SET_SIZE(self, n);
+    self->ob_size = n;
     self->allocated = n;
     return 0;
 }
@@ -126,7 +126,7 @@ static CYTHON_INLINE int resize_smart(arrayobject *self, Py_ssize_t n) {
     void *items = (void*) self->data.ob_item;
     Py_ssize_t newsize;
     if (n < self->allocated && n*4 > self->allocated) {
-        __Pyx_SET_SIZE(self, n);
+        self->ob_size = n;
         return 0;
     }
     newsize = n + (n / 2) + 1;
@@ -140,7 +140,7 @@ static CYTHON_INLINE int resize_smart(arrayobject *self, Py_ssize_t n) {
         return -1;
     }
     self->data.ob_item = (char*) items;
-    __Pyx_SET_SIZE(self, n);
+    self->ob_size = n;
     self->allocated = newsize;
     return 0;
 }
