@@ -199,7 +199,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     if (Y_LIKELY(__mysetjmp(Buf_) == 0)) {
     #if defined(_asan_enabled_) || defined(_tsan_enabled_)
-        next->San_.BeforeSwitch();
+        next->San_.BeforeSwitch(&San_);
     #endif
         __mylongjmp(next->Buf_, 1);
     } else {
