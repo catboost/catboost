@@ -6,6 +6,7 @@
 #include <catboost/private/libs/algo/features_data_helpers.h>
 #include <catboost/private/libs/algo/index_calcer.h>
 #include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -221,17 +222,14 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
 }
 
 static void MapBinFeaturesToClasses(
-    const TModelTrees& forest,
+    const TFullModel& model,
     TVector<int>* binFeatureCombinationClass,
     TVector<TVector<int>>* combinationClassFeatures
 ) {
-    TConstArrayRef<TFloatFeature> floatFeatures = forest.GetFloatFeatures();
-    TConstArrayRef<TCatFeature> catFeatures = forest.GetCatFeatures();
-    const NCB::TFeaturesLayout layout(
-        TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
-        TVector<TCatFeature>(catFeatures.begin(), catFeatures.end()));
+    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
     TVector<TVector<int>> featuresCombinations;
     TVector<size_t> featureBucketSizes;
+    const TModelTrees& forest = *model.ModelTrees;
 
     for (const TFloatFeature& floatFeature : forest.GetFloatFeatures()) {
         if (!floatFeature.UsedInModel()) {
@@ -432,9 +430,8 @@ static void InitPreparedTrees(
     preparedTrees->AverageApproxByTree.resize(treeCount);
     preparedTrees->CalcInternalValues = calcInternalValues;
 
-    const TModelTrees& forest = *model.ModelTrees;
     MapBinFeaturesToClasses(
-        forest,
+        model,
         &preparedTrees->BinFeatureCombinationClass,
         &preparedTrees->CombinationClassFeatures
     );

@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/algo/yetirank_helpers.h>
 #include <catboost/private/libs/algo/tree_print.h>
+#include <catboost/libs/data/features_layout_helpers.h>
 #include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -37,18 +38,10 @@
 using namespace NCB;
 
 
-static TVector<TFeature>  GetCombinationClassFeatures(const TModelTrees& forest) {
-    NCB::TFeaturesLayout layout(
-        TVector<TFloatFeature>(
-            forest.GetFloatFeatures().begin(),
-            forest.GetFloatFeatures().end()
-        ),
-        TVector<TCatFeature>(
-            forest.GetCatFeatures().begin(),
-            forest.GetCatFeatures().end()
-        )
-    );
+static TVector<TFeature>  GetCombinationClassFeatures(const TFullModel& model) {
+    NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
     TVector<std::pair<TVector<int>, TFeature>> featuresCombinations;
+    const TModelTrees& forest = *model.ModelTrees;
 
     for (const TFloatFeature& floatFeature : forest.GetFloatFeatures()) {
         if (!floatFeature.UsedInModel()) {
@@ -255,7 +248,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ModelTrees->GetDimensionsCount();
 
-    auto combinationClassFeatures = GetCombinationClassFeatures(*model.ModelTrees);
+    auto combinationClassFeatures = GetCombinationClassFeatures(model);
     int featuresCount = combinationClassFeatures.size();
     if (featuresCount == 0) {
         TVector<std::pair<double, TFeature>> result;
@@ -452,9 +445,10 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& internalEffect,
-    int catFeaturesCount,
-    int floatFeaturesCount)
+    const TFullModel& model)
 {
+    int catFeaturesCount = model.GetNumCatFeatures();
+    int floatFeaturesCount = model.GetNumFloatFeatures();
     TVector<double> catFeatureEffect(catFeaturesCount);
     TVector<double> floatFeatureEffect(floatFeaturesCount);
 
@@ -517,21 +511,10 @@ TVector<double> CalcRegularFeatureEffect(
     ECalcTypeShapValues calcType
 )
 {
-    const NCB::TFeaturesLayout layout(
-        TVector<TFloatFeature>(
-            model.ModelTrees->GetFloatFeatures().begin(),
-            model.ModelTrees->GetFloatFeatures().end()
-        ),
-        TVector<TCatFeature>(
-            model.ModelTrees->GetCatFeatures().begin(),
-            model.ModelTrees->GetCatFeatures().end()
-        )
-    );
+    const NCB::TFeaturesLayout layout = MakeFeaturesLayout(model);
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
-        CalcFeatureEffect(model, dataset, type, localExecutor, calcType),
-        model.GetNumCatFeatures(),
-        model.GetNumFloatFeatures());
+        CalcFeatureEffect(model, dataset, type, localExecutor, calcType), model);
 
     TVector<double> effect(layout.GetExternalFeatureCount());
     for (const auto& featureEffect : regularEffect) {
@@ -667,16 +650,7 @@ static TVector<TVector<double>> CalcFstr(
 }
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model) {
-    const TFeaturesLayout layout(
-        TVector<TFloatFeature>(
-            model.ModelTrees->GetFloatFeatures().begin(),
-            model.ModelTrees->GetFloatFeatures().end()
-        ),
-        TVector<TCatFeature>(
-            model.ModelTrees->GetCatFeatures().begin(),
-            model.ModelTrees->GetCatFeatures().end()
-        )
-    );
+    const TFeaturesLayout layout = MakeFeaturesLayout(model);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
@@ -810,16 +784,7 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
-    const NCB::TFeaturesLayout modelFeaturesLayout(
-        TVector<TFloatFeature>(
-            model.ModelTrees->GetFloatFeatures().begin(),
-            model.ModelTrees->GetFloatFeatures().end()
-        ),
-        TVector<TCatFeature>(
-            model.ModelTrees->GetCatFeatures().begin(),
-            model.ModelTrees->GetCatFeatures().end()
-        )
-    );
+    const NCB::TFeaturesLayout modelFeaturesLayout = MakeFeaturesLayout(model);
     TVector<TString> modelFeatureIds(modelFeaturesLayout.GetExternalFeatureCount());
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
         if (dataset) {

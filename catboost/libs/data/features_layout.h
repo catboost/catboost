@@ -2,6 +2,7 @@
 
 #include "feature_index.h"
 
+#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/features.h>
 #include <catboost/private/libs/options/enums.h>
 
@@ -99,6 +100,11 @@ namespace NCB {
         TFeaturesLayout(
             const TVector<TFloatFeature>& floatFeatures,
             const TVector<TCatFeature>& catFeatures);
+        TFeaturesLayout(
+            TConstArrayRef<TFloatFeature> floatFeatures,
+            TConstArrayRef<TCatFeature> catFeatures,
+            TConstArrayRef<TTextFeature> textFeatures,
+            TConstArrayRef<TEmbeddingFeature> embeddingFeatures);
 
         // data is moved into - poor substitute to && because SWIG does not support it
         TFeaturesLayout(TVector<TFeatureMetaInfo>* data);
@@ -241,6 +247,52 @@ namespace NCB {
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
         TVector<ui32> EmbeddingFeatureInternalIdxToExternalIdx;
+
+        template<class TFeatureElement>
+        inline void UpdateFeaturesMetaInfo(
+            TConstArrayRef<TFeatureElement> features,
+            EFeatureType featureType)
+        {
+            const TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
+            const ui32 internalOrExternalIndexPlaceholder = Max<ui32>();
+            TVector<ui32>& featureInternalIdxToExternalIdx = [&]()->TVector<ui32>& {
+                switch (featureType) {
+                    case EFeatureType::Float:
+                        return FloatFeatureInternalIdxToExternalIdx;
+                        break;
+                    case EFeatureType::Categorical:
+                        return CatFeatureInternalIdxToExternalIdx;
+                        break;
+                    case EFeatureType::Text:
+                        return TextFeatureInternalIdxToExternalIdx;
+                        break;
+                    case EFeatureType::Embedding:
+                        return EmbeddingFeatureInternalIdxToExternalIdx;
+                        break;
+                    default:
+                        CB_ENSURE(false); // "Unsupported feature type " << featureType << " for layout");
+                }
+            }();
+            for (const auto& feature : features) {
+                CB_ENSURE(feature.Position.FlatIndex >= 0, "feature.Position.FlatIndex is negative");
+                CB_ENSURE(feature.Position.Index >= 0, "feature.Position.Index is negative");
+                if ((size_t)feature.Position.FlatIndex >= ExternalIdxToMetaInfo.size()) {
+                    CB_ENSURE(
+                        (size_t)feature.Position.FlatIndex < (size_t)Max<ui32>(),
+                        "feature.Position.FlatIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+                    );
+                    ExternalIdxToMetaInfo.resize(feature.Position.FlatIndex + 1, defaultIgnoredMetaInfo);
+                    FeatureExternalIdxToInternalIdx.resize(feature.Position.FlatIndex + 1, internalOrExternalIndexPlaceholder);
+                }
+                ExternalIdxToMetaInfo[feature.Position.FlatIndex] =
+                    TFeatureMetaInfo(featureType, feature.FeatureId);
+                FeatureExternalIdxToInternalIdx[feature.Position.FlatIndex] = feature.Position.Index;
+                if ((size_t)feature.Position.Index >= featureInternalIdxToExternalIdx.size()) {
+                    featureInternalIdxToExternalIdx.resize((size_t)feature.Position.Index + 1, internalOrExternalIndexPlaceholder);
+                }
+                featureInternalIdxToExternalIdx[feature.Position.Index] = feature.Position.FlatIndex;
+            }
+        }
     };
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
