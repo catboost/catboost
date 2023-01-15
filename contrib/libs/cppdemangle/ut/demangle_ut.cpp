@@ -3,7 +3,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <util/system/demangle.h>
+#include <util/system/type_name.h>
 
 void Check(TString symbol, TString expectedName) {
     TString actualName = CppDemangle(symbol);

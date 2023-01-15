@@ -3,7 +3,7 @@
 
 #include <util/generic/map.h>
 #include <util/generic/vector.h>
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 
 using namespace NUnitTest;
 using namespace NUnitTest::NPrivate;

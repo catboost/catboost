@@ -8,7 +8,6 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/set.h>
-#include <util/generic/type_name.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
@@ -18,7 +17,7 @@
 #include <util/string/printf.h>
 
 #include <util/system/defaults.h>
-#include <util/system/demangle.h>
+#include <util/system/type_name.h>
 #include <util/system/spinlock.h>
 #include <util/system/src_location.h>
 

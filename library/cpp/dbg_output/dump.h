@@ -6,7 +6,7 @@
 #include "colorscheme.h"
 
 #include <util/stream/format.h>
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 #include <util/generic/hash_set.h>
 #include <utility>
 

@@ -4,7 +4,7 @@
 
 #include <library/cpp/binsaver/mem_io.h>
 
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 #include <util/generic/vector.h>
 #include <util/system/compiler.h>
 #include <util/system/event.h>

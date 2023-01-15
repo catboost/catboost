@@ -1,9 +1,18 @@
-#include <library/cpp/testing/unittest/registar.h>
-
 #include "type_name.h"
+
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <stdexcept>
 #include <string>
+
+Y_UNIT_TEST_SUITE(TDemangleTest) {
+    Y_UNIT_TEST(SimpleTest) {
+        // just check it does not crash or leak
+        CppDemangle("hello");
+        CppDemangle("");
+        CppDemangle("Sfsdf$dfsdfTTSFSDF23234::SDFS:FSDFSDF#$%");
+    }
+}
 
 namespace NUtil::NTypeNameTest {
 

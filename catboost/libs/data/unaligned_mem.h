@@ -4,7 +4,7 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 
 #include <util/generic/array_ref.h>
-#include <util/generic/type_name.h>
+#include <util/system/type_name.h>
 #include <util/system/unaligned_mem.h>
 
 #include <cstring>

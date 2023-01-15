@@ -127,7 +127,6 @@ JOIN_SRCS(
     generic/strfcpy.cpp
     generic/string.cpp
     generic/typelist.cpp
-    generic/type_name.cpp
     generic/typetraits.cpp
     generic/utility.cpp
     generic/va_args.cpp
@@ -256,7 +255,6 @@ JOIN_SRCS(
     system/daemon.cpp
     system/datetime.cpp
     system/defaults.c
-    system/demangle.cpp
     system/direct_io.cpp
     system/dynlib.cpp
     system/env.cpp
@@ -315,6 +313,7 @@ JOIN_SRCS(
     system/thread.cpp
     system/tls.cpp
     system/types.cpp
+    system/type_name.cpp
     system/unaligned_mem.cpp
     system/user.cpp
     system/utime.cpp
